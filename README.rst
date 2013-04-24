@@ -14,7 +14,7 @@ The Landlab
   Jordan Adams,
   Eric Hutton
 
-:url: https://csdms.colorado.edu/trac/landlab
+:url: http://csdms.colorado.edu/trac/landlab
 
 :license: MIT
 

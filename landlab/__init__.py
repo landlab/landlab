@@ -2,10 +2,10 @@
 """
 The Landlab
 
-:package name: TheLandlab
+:Package name: TheLandlab
 :Version: 0.1.0
-:release date: 2013-03-24
-:authors:
+:Release date: 2013-03-24
+:Authors:
   Greg Tucker,
   Nicole Gasparini,
   Erkan Istanbulluoglu,
@@ -14,9 +14,9 @@ The Landlab
   Jordan Adams,
   Eric Hutton
 
-:url: https://csdms.colorado.edu/trac/landlab
+:URL: http://csdms.colorado.edu/trac/landlab
 
-:license: MIT
+:License: MIT
 """
 from landlab.framework.collections import Palette, Arena, NoProvidersError
 from landlab.framework.decorators import Implements, ImplementsOrRaise
