@@ -2,14 +2,21 @@
 """
 The Landlab
 
-:Authors:
-    Eric Hutton
+:package name: TheLandlab
+:Version: 0.1.0
+:release date: 2013-03-24
+:authors:
+  Greg Tucker,
+  Nicole Gasparini,
+  Erkan Istanbulluoglu,
+  Daniel Hobley,
+  Sai Nudurupati,
+  Jordan Adams,
+  Eric Hutton
 
-:Version:
-    0.1.0 (2013-03-24)
+:url: https://csdms.colorado.edu/trac/landlab
 
-:License:
-    MIT
+:license: MIT
 """
 from landlab.collections import Palette, Arena, NoProvidersError
 from landlab.decorators import Implements, ImplementsOrRaise
