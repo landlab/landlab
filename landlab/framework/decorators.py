@@ -9,9 +9,13 @@ import types
 
 def camel_case(text, sep=None):
     """
-    Convert a string to camel case.
+    Convert *text* to camel case. Use the *sep* keyword to specify the word
+    separator. The default is to split on whitespace.
 
-    :text: String to camel case
+    >>> camel_case('camel case')
+    CamelCase
+    >>> camel_case('camel_case', sep='_')
+    CamelCase
     """
     return ''.join(text.title().split(sep))
 
@@ -38,14 +42,11 @@ class InterfaceImplementationError(Error):
 
 def is_implementation(cls, interface):
     """
-    Check if a class implements an interface. A class implements the interface
+    Check if *cls* implements *interface*. A class implements the interface
     class if it has the same members, the members have the same type, and
     methods have the same signature.
 
-    :cls: Class to check
-    :interface: Interface to implement
-
-    :returns: True, if cls implements interface
+    Returns ``True`` if *cls* implements *interface*, otherwise ``False``.
     """
     for (name, value) in inspect.getmembers(interface):
         if isinstance(value, types.MethodType):
