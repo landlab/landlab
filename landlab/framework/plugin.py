@@ -99,8 +99,3 @@ def load_landlab_plugins(paths=_PLUGIN_PATH):
         load_plugins_from_dir
     """
     return load_plugins(BmiBase, paths=paths)
-
-    .. seealso::
-        load_plugins_from_dir
-    """
-    return load_plugins(BmiBase, paths=paths)

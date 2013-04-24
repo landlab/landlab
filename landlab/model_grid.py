@@ -14,7 +14,9 @@ class BoundaryCondition:
     """
     The BoundaryCondition class stores boundary condition information for
     a particular variable. It includes:
+
         * A list of boundary codes
+
           - 1 = fixed value
           - 2 = fixed gradient
           - 3 = tracks cell
