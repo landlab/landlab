@@ -61,12 +61,9 @@ class BadVarNameError(Error):
 
 def get_var_names(component, intent='input'):
     """
-    Get a list of input or output variable names from a component.
-
-    :component: A BmiBase-like component
-    :keyword intent: One of 'input' or 'output'
-
-    :returns: A list of var names
+    Get a list of input or output variable names from *component* (a BMI-like
+    object). Use the *intent* keyword to specify whether to return input or
+    output variable names. *intent* must be one of *input* or *output*.
     """
     assert(intent in ['input', 'output'])
 
@@ -91,16 +88,12 @@ class Collection(dict):
     def list(self):
         """
         Get a list of component names in the collection.
-
-        :returns: A list of component names
         """
         return self.keys()
 
     def uses(self):
         """
         Get a list of variable names that components in the collection uses.
-
-        :returns: A list of variable names
         """
         return self._var_names(intent='input')
 
@@ -108,30 +101,22 @@ class Collection(dict):
         """
         Get a list of variable names that components in the collection
         provides.
-
-        :returns: A list of variable names
         """
         return self._var_names(intent='output')
 
     def find_provider(self, var_name):
         """
-        Find a component in the collection that provides the specified variable
-        name.
-
-        :var_name: Variable name to look for
-
-        :returns: Component names providing the variable
+        Find a component in the collection that provides the CSDMS standard name,
+        *var_name*. The returned list contains the names of the components
+        providing *var_name*.
         """
         return self._find_var_name(var_name, intent='output')
 
     def find_user(self, var_name):
         """
-        Find components in the collection that use the specified variable
-        name.
-
-        :var_name: Variable name to look for
-
-        :returns: List of components' names providing the variable
+        Find components in the collection that use the specified CSDMS standard
+        variable name, *var_name*. The returned list contains the names of the
+        components using *var_name*.
         """
         return self._find_var_name(var_name, intent='input')
 
@@ -141,8 +126,6 @@ class Collection(dict):
         The returned dictionary will have keys that are names of components
         that provide varaibles. Its keys will be a dictionary of variable
         names and list of components that use the variable.
-
-        :returns: A dictionary of connected components.
         """
         connections = dict()
         for var_name in self.uses():
@@ -223,10 +206,10 @@ class Arena(Collection):
 
     def instantiate(self, cls, name):
         """
-        Instantiate a component and add it to the arena.
-
-        :cls: Class (or instance) to add
-        :name: Name of the newly-instantiated component
+        Instantiate a component and call it *name*. The component, *cls*, is
+        either an instance of a BMI-like object or a class that implements the
+        BMI. If *cls* is a class, it is instantiated by calling it's __init__
+        method without any arguments.
         """
         if inspect.isclass(cls):
             self[name] = cls()
@@ -244,11 +227,12 @@ class Arena(Collection):
 
     def connect(self, user_name, provider_name, var_name):
         """
-        Connect two components through a variable.
+        Connect two components through a variable. *user_name* is the name of the
+        component that uses *var_name* and *provider_name* is the name of the
+        component that provides *var_name*.
 
-        :user_name: Name of the component using the variable
-        :provider_name: Name of the component providing the variable
-        :var_name: Name of the variable to share
+        If the arena doesn't contain either *user_name* or *provider_name*,
+        :func:`UnknownComponentError` is raised.
         """
         try:
             user = self[user_name]
@@ -284,15 +268,11 @@ class Arena(Collection):
 
     def walk(self, root, tree=[]):
         """
-        Walk a connected set of components. If the tree keyword is given, treat
-        it as a list of components already in the tree and add to that list.
-        If a component is already in the tree, do not iterate through that
-        component.
-
-        :root: The root to begin the walk
-        :tree: A list of component names
-
-        :returns: A serialized list of components
+        Walk a connected set of components with the component named *root*. If
+        the *tree* keyword is given, treat it as a list of components already
+        in the tree and add to that list. If a component is already in the tree,
+        do not iterate through that component. This function returns a list of
+        component names in the order they are visited by the walk.
         """
         if root in tree:
             return tree
