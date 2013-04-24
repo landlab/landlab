@@ -99,7 +99,7 @@ html_theme = 'default'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = dict(collapsiblesidebar=True)
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -306,3 +306,4 @@ epub_copyright = u'2013, Author'
 #epub_use_index = True
 
 todo_include_todos = True
+#latex_elements = dict(preamble='\\usepackage{amsmath}')
