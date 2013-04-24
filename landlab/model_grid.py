@@ -539,11 +539,12 @@ class RasterModelGrid ( ModelGrid ):
             .. math::
                 {Q_{net} \over A} = {1 \over dx} \sum{q_i}
 
-        Note: the net flux is defined as positive outward, negative
-        inward. In a diffusion problem, for example, one would use:
-            .. math::
-                {du \over dt} = source - fd
-        where fd is "flux divergence".
+        .. note::
+            The net flux is defined as positive outward, negative
+            inward. In a diffusion problem, for example, one would use:
+                .. math::
+                    {du \over dt} = \\text{source} - \\text{fd}
+            where fd is "flux divergence".
         """
     
         if self.debug:

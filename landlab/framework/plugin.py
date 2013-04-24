@@ -63,39 +63,50 @@ def load_plugins_from_dir(path, cls):
     return plugins
 
 
-def load_plugins(cls, paths=_PLUGIN_PATH):
+def load_plugins(cls, paths=None):
     """
     Load plugins from a series of directories. Plugins found earlier in the
     search path order override those discovered later. Use the *paths* keyword
     to specify a list of paths to search for plugins.
 
     .. seealso::
-        load_plugins_from_dir
+
+        :func:`load_plugins_from_dir`
     """
+    if not paths:
+        paths = _PLUGIN_DIR
+
     plugins = {}
     for path in paths[::-1]:
         plugins.update(load_plugins_from_dir(path, cls))
     return plugins
 
 
-def load_landlab_plugins(paths=_PLUGIN_PATH):
+def _load_landlab_plugins(paths=None):
     """
     Load plugins for The Landlab. These are classes that implement BmiBase. Use
     the *paths* keyword to specify a list of paths to search for plugins.
 
     .. seealso::
-        load_plugins_from_dir
+
+        :func:`load_plugins_from_dir`
     """
+    if not paths:
+        paths = _PLUGIN_DIR
+
     plugins = {}
     for path in paths[::-1]:
         plugins.update(load_plugins_from_dir(path, cls))
     return plugins
 
-def load_landlab_plugins(paths=_PLUGIN_PATH):
+
+def load_landlab_plugins(paths=None):
     """
     Load plugins for The Landlab. These are classes that implement BmiBase.
+    See :func:`load_plugins_from_dir` for the meaning of *paths* keyword.
 
     .. seealso::
-        load_plugins_from_dir
+
+        :func:`load_plugins_from_dir`
     """
     return load_plugins(BmiBase, paths=paths)
