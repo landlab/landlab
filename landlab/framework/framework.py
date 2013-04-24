@@ -21,9 +21,8 @@ class Framework(object):
 
     def instantiate(self, name):
         """
-        Instantiate a component from the palette and move it to the arena.
-
-        :name: Name of the component to instantiate
+        Instantiate a component called *name* from the palette and move it to
+        the arena.
         """
         try:
             self._arena.instantiate(self._palette.get(name), name)
@@ -32,9 +31,7 @@ class Framework(object):
 
     def remove(self, name):
         """
-        Remove a component from the arena.
-
-        :name: Name of the component to remove
+        Remove a component called *name* from the arena.
         """
         try:
             self._arena.remove(name)
@@ -44,48 +41,36 @@ class Framework(object):
     def list_palette(self):
         """
         Get a list of names of the components in the palette.
-
-        :returns: A list of component names
         """
         return self._palette.list()
 
     def list_arena(self):
         """
         Get a list of names of the components in the arena.
-
-        :returns: A list of component names
         """
         return self._arena.list()
 
     def arena_uses(self):
         """
-        Get a list of variable names components in the arena use.
-
-        :returns: A list of variable names
+        Get a list of variable names that components in the arena use.
         """
         return self._arena.uses()
 
     def arena_provides(self):
         """
-        Get a list of variable names components in the arena provide.
-
-        :returns: A list of variable names
+        Get a list of variable names that components in the arena provide.
         """
         return self._arena.provides()
 
     def palette_uses(self):
         """
-        Get a list of variable names components in the palette use.
-
-        :returns: A list of variable names
+        Get a list of variable names that components in the palette use.
         """
         return self._palette.uses()
 
     def palette_provides(self):
         """
-        Get a list of variable names components in the palette provide.
-
-        :returns: A list of variable names
+        Get a list of variable names that components in the palette provide.
         """
         return self._palette.provides()
 
