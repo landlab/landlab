@@ -17,6 +17,7 @@ setup(name='TheLandlab',
                 'landlab.plugins',
                 'landlab.tests',
                 'landlab.examples',
+                'landlab.framework',
                ],
       entry_points={
           'console_scripts': [

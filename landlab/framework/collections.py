@@ -7,7 +7,7 @@ import inspect
 
 #from landlab.interfaces import BmiBase
 from cmt.bmi import BmiBase
-from landlab.decorators import is_implementation
+from landlab.framework.decorators import is_implementation
 
 
 class Error(Exception):

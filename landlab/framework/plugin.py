@@ -8,7 +8,7 @@ from cmt.bmi import BmiBase
 
 
 _PLUGIN_PATH = [
-    os.path.join(os.path.dirname(__file__), 'plugins'),
+    os.path.join(os.path.dirname(__file__), '..', 'plugins'),
 ]
 
 try:

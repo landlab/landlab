@@ -2,8 +2,8 @@
 
 import inspect
 
-from landlab.plugin import load_landlab_plugins
-from landlab.collections import Palette, Arena
+from landlab.framework.plugin import load_landlab_plugins
+from landlab import Palette, Arena
 
 
 class Error(Exception):
