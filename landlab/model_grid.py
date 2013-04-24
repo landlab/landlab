@@ -1,37 +1,26 @@
 #! /usr/env/python
+"""
+Python implementation of ModelGrid, a class used to
+create and manage grids for 2D numerical, flux-conservative models.
 
-#-----------------------------------------------------------------------
-#
-# model_grid.py: Python implementation of ModelGrid, a class used to
-# create and manage grids for 2D numerical, flux-conservative models.
-#
-# GT, July 2010
-#-----------------------------------------------------------------------
+GT, July 2010
+"""
 
 import numpy
 from numpy import *
 
 
-#-----------------------------------------------------------------------
-# 
-# Class BoundaryCondition
-#
-# The BoundaryCondition class stores boundary condition information for
-# a particular variable. It includes:
-#  (1) A list of boundary codes:
-#          1 = fixed value
-#          2 = fixed gradient
-#          3 = tracks cell
-#  (2) A list of boundary gradients
-#  (3) A list of cell IDs to track
-#
-#-----------------------------------------------------------------------
 class BoundaryCondition:
-
-    """Class for storing boundary condition data for a particular
-       field; returned to the caller for its use."""
-    
-    #-------------------------------------------------------------------
+    """
+    The BoundaryCondition class stores boundary condition information for
+    a particular variable. It includes:
+        * A list of boundary codes
+          - 1 = fixed value
+          - 2 = fixed gradient
+          - 3 = tracks cell
+        * A list of boundary gradients
+        * A list of cell IDs to track
+    """
     def __init__( self, n_boundary_cells = 0 ):
     
         # Create the 3 vectors
@@ -50,19 +39,15 @@ class BoundaryCondition:
         self.tracks_cell[:] = -1
 
 
-#-----------------------------------------------------------------------
-# 
-# Class ModelGrid
-#
-# This is the base class. The idea is to have at least two inherited
-# classes, RasterModelGrid and DelaunayModelGrid, that can create and
-# manage grids. To this might be added a GenericModelGrid, which would
-# be an unstructured polygonal grid that doesn't necessarily obey or
-# understand the Delaunay triangulation, but rather simply accepts
-# an input grid from the user. Also a HexModelGrid for hexagonal.
-#
-#-----------------------------------------------------------------------
 class ModelGrid:
+    """
+    This is the base class. The idea is to have at least two inherited
+    classes, RasterModelGrid and DelaunayModelGrid, that can create and
+    manage grids. To this might be added a GenericModelGrid, which would
+    be an unstructured polygonal grid that doesn't necessarily obey or
+    understand the Delaunay triangulation, but rather simply accepts
+    an input grid from the user. Also a HexModelGrid for hexagonal.
+    """
 
     """Base class for creating and manipulating 2D structured or
        unstructured grids for flux-conservative numerical models."""
@@ -77,45 +62,38 @@ class ModelGrid:
     
         pass
 
-    #-------------------------------------------------------------------
-    # ModelGrid.create_cell_dvector:
-    #
-    # Returns a vector of floating point numbers the same length as 
-    # the number of cells.
-    #-------------------------------------------------------------------
     def create_cell_dvector( self ):
+        """
+        Returns a vector of floating point numbers the same length as 
+        the number of cells.
+        """
     
         return zeros( self.ncells )
 
-    #-------------------------------------------------------------------
-    # ModelGrid.create_boundary_condition:
-    #
-    # Creates, initializes, and returns a BoundaryCondition of the 
-    # proper size.
-    #-------------------------------------------------------------------
     def create_boundary_condition( self ):
+        """
+        Creates, initializes, and returns a BoundaryCondition of the 
+        proper size.
+        """
     
         return BoundaryCondition( self.n_boundary_cells )
         
-    #-------------------------------------------------------------------
-    # ModelGrid.create_face_dvector:
-    #
-    # Returns a vector of floating point numbers the same length as 
-    # the number of interior faces.
-    #-------------------------------------------------------------------
     def create_face_dvector( self ):
+        """
+        Returns a vector of floating point numbers the same length as 
+        the number of interior faces.
+        """
     
         return zeros( self.nfaces )
 
-    #-------------------------------------------------------------------
-    # ModelGrid.calculate_face_gradients:
-    #
-    # Calculates and returns gradients in u across all interior faces.
-    #
-    # TODO: At the moment, we just use self.dx, but for unstructured
-    # grids this needs to use link length associated with each face!
-    #-------------------------------------------------------------------
     def calculate_face_gradients( self, u ):
+        """
+        Calculates and returns gradients in u across all interior faces.
+
+        .. todo::
+            At the moment, we just use self.dx, but for unstructured
+            grids this needs to use link length associated with each face!
+        """
     
         g = zeros( self.nfaces )
         g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
@@ -124,82 +102,64 @@ class ModelGrid:
             #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
         return g
         
-    #-------------------------------------------------------------------
-    # ModelGrid.calculate_flux_divergences:
-    #
-    # At the moment, this is just a virtual function that does nothing,
-    # and in fact I don't understand why it doesn't print its "hello"
-    # message when called from an inherited class ...
-    #-------------------------------------------------------------------
     def calculate_flux_divergences( self, q ):
+        """
+        At the moment, this is just a virtual function that does nothing,
+        and in fact I don't understand why it doesn't print its "hello"
+        message when called from an inherited class ...
+        """
     
         print 'ModelGrid.calculate_flux_divergences here'
         #pass    # this is a virtual function
             
-    #-------------------------------------------------------------------
-    # ModelGrid.x:
-    #
-    # Returns the x coordinate of cell "id".
-    #-------------------------------------------------------------------
     def x( self, id ):
+        """
+        Returns the x coordinate of cell "id".
+        """
         return self.cellx[id]
         
-    #-------------------------------------------------------------------
-    # ModelGrid.y:
-    #
-    # Returns the y coordinate of cell "id".
-    #-------------------------------------------------------------------
     def y( self, id ):
+        """
+        Returns the y coordinate of cell "id".
+        """
         return self.celly[id]
         
-    #-------------------------------------------------------------------
-    # ModelGrid.get_cell_x_coords:
-    #
-    # Returns vector of cell x coordinates.
-    #-------------------------------------------------------------------
     def get_cell_x_coords( self ):
+        """
+        Returns vector of cell x coordinates.
+        """
         return self.cellx           
 
-    #-------------------------------------------------------------------
-    # ModelGrid.get_cell_y_coords:
-    #
-    # Returns vector of cell y coordinates.
-    #-------------------------------------------------------------------
     def get_cell_y_coords( self ):
+        """
+        Returns vector of cell y coordinates.
+        """
         return self.celly           
 
-    #-------------------------------------------------------------------
-    # ModelGrid.get_face_x_coords:
-    #
-    # Returns vector of cell x coordinates.
-    #-------------------------------------------------------------------
     def get_face_x_coords( self ):
+        """
+        Returns vector of cell x coordinates.
+        """
         return self.facex           
 
-    #-------------------------------------------------------------------
-    # ModelGrid.get_face_y_coords:
-    #
-    # Returns vector of face y coordinates.
-    #-------------------------------------------------------------------
     def get_face_y_coords( self ):
+        """
+        Returns vector of face y coordinates.
+        """
         return self.facey           
 
-    #-------------------------------------------------------------------
-    # ModelGrid.get_interior_cells:
-    #
-    # Returns an integer vector of the IDs of all interior cells.
-    #-------------------------------------------------------------------
     def get_interior_cells( self ):
+        """
+        Returns an integer vector of the IDs of all interior cells.
+        """
         return self.interior_cells
                 
-    #-------------------------------------------------------------------
-    # ModelGrid.assign_upslope_vals_to_faces:
-    #
-    # Assigns to each face the values of u at whichever of its
-    # neighbors has a higher value of v. If v is omitted, uses u for
-    # both.
-    #-------------------------------------------------------------------
     def assign_upslope_vals_to_faces( self, u, v=0 ):
+        """
+        Assigns to each face the values of u at whichever of its
+        neighbors has a higher value of v. If v is omitted, uses u for
+        both.
+        """
         
         fv = zeros( self.nfaces )
         if len(v) < len(u):
@@ -214,43 +174,36 @@ class ModelGrid:
         return fv
         
         
-#-----------------------------------------------------------------------
-# 
-# Class RasterModelGrid ( ModelGrid )
-#
-# This inherited class implements a regular, raster 2D grid with uniform
-# cell dimensions.
-#
-#-----------------------------------------------------------------------
 class RasterModelGrid ( ModelGrid ):
+    """
+    This inherited class implements a regular, raster 2D grid with uniform
+    cell dimensions.
+    """
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.__init__:
-    #
-    # Optionally takes numbers of rows and columns and cell size as
-    # inputs. If this are given, calls initialize() to set up the grid.
-    #-------------------------------------------------------------------
     def __init__( self, num_rows=0, num_cols=0, dx=1.0 ):
+        """
+        Optionally takes numbers of rows and columns and cell size as
+        inputs. If this are given, calls initialize() to set up the grid.
+        """
     
         self.ncells = num_rows * num_cols
         if self.ncells > 0:
             self.initialize( num_rows, num_cols, dx )
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.initialize:
-    #
-    # Sets up a num_rows by num_cols grid with cell spacing dx and
-    # (by default) regular boundaries (that is, all perimeter cells are
-    # boundaries and all interior cells are active).
-    #   To be consistent with unstructured grids, the raster grid is
-    # managed not as a 2D array but rather as a set of vectors that
-    # describe connectivity information between cells and faces. Each
-    # cell in the grid has four faces. Each face has a "fromcell" and
-    # a "tocell"; the convention is that these always "point" up or
-    # right (so a negative flux across a face is either going left or
-    # down).
-    #-------------------------------------------------------------------
     def initialize( self, num_rows, num_cols, dx ):
+        """
+        Sets up a num_rows by num_cols grid with cell spacing dx and
+        (by default) regular boundaries (that is, all perimeter cells are
+        boundaries and all interior cells are active).
+
+        To be consistent with unstructured grids, the raster grid is
+        managed not as a 2D array but rather as a set of vectors that
+        describe connectivity information between cells and faces. Each
+        cell in the grid has four faces. Each face has a "fromcell" and
+        a "tocell"; the convention is that these always "point" up or
+        right (so a negative flux across a face is either going left or
+        down).
+        """
     
         # Debugging output flag
         self.debug = False
@@ -496,32 +449,32 @@ class RasterModelGrid ( ModelGrid ):
                 self.celly[id] = r*self.dx
                 id += 1
                 
-            
-    #-------------------------------------------------------------------
-    # RasterModelGrid.set_noflux_boundaries:
-    #
-    # Assigns "no flux" status to one or more sides of the rectangular
-    # domain, for BoundaryCondition "bc", which default's to ModelGrid's
-    # self.default_bc (i.e., the default BoundaryCondition used when
-    # the user doesn't specify another one).
-    #   Boundary cells are either "fixed value" (Dirichlet), which is
-    # the default, "fixed gradient" (Neumann with a zero derivative), or
-    # "tracks cell" (they track a cell in the interior on the opposite
-    # side of the grid, e.g., for periodic). Here we implement no flux
-    # by mirroring adjacent cells in the interior.
-    #   Boundary status is recorded in the bc's TRACKS_CELL vector, 
-    # defined in bc's initialize() and N_BOUNDARY_CELLS long. For
-    # no-flux cells, this vector contains the CID of the neighboring
-    # cell whose value it will mirror in order to maintain a zero
-    # gradient. For periodic boundary cells, this vector contains the
-    # CID of the cell on the opposite side whose value it will track.
-    # Fixed value cells are indicated by a -1 for TRACKS_CELL.
-    #   For no-flux boundaries, the corner cells (which don't really
-    # matter much anyway), the neighbor is arbitrarily chosen as either 
-    # the righthand or lefthand cell.
-    #-------------------------------------------------------------------
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
+        """
+        Assigns "no flux" status to one or more sides of the rectangular
+        domain, for BoundaryCondition "bc", which default's to ModelGrid's
+        self.default_bc (i.e., the default BoundaryCondition used when
+        the user doesn't specify another one).
+
+        Boundary cells are either "fixed value" (Dirichlet), which is
+        the default, "fixed gradient" (Neumann with a zero derivative), or
+        "tracks cell" (they track a cell in the interior on the opposite
+        side of the grid, e.g., for periodic). Here we implement no flux
+        by mirroring adjacent cells in the interior.
+
+        Boundary status is recorded in the bc's TRACKS_CELL vector, 
+        defined in bc's initialize() and N_BOUNDARY_CELLS long. For
+        no-flux cells, this vector contains the CID of the neighboring
+        cell whose value it will mirror in order to maintain a zero
+        gradient. For periodic boundary cells, this vector contains the
+        CID of the cell on the opposite side whose value it will track.
+        Fixed value cells are indicated by a -1 for TRACKS_CELL.
+
+        For no-flux boundaries, the corner cells (which don't really
+        matter much anyway), the neighbor is arbitrarily chosen as either 
+        the righthand or lefthand cell.
+        """
         
         if bc==None:
             bc = self.default_bc
@@ -567,26 +520,29 @@ class RasterModelGrid ( ModelGrid ):
         
         if self.debug:
             print 'tracks_cell:',bc.tracks_cell
-        
     
-    #-------------------------------------------------------------------
-    # RasterModelGrid.calculate_flux_divergences:
-    #
-    # Calculates the net flux at each cell by adding up the fluxes
-    # through all four faces, and divides the total by cell area.
-    #   In general, for a polygonal cell with N sides of lengths
-    # Li and with surface area A, the net influx divided by cell
-    # area would be:
-    #     Qnet / A = (1/A) SUM( qi * Li )
-    # For a square cell, the sum is over 4 sides of length dx, and
-    # A = dx^2, so:
-    #     Qnet / A = (1/dx) SUM( qi )
-    #
-    # Note: the net flux is defined as positive outward, negative
-    # inward. In a diffusion problem, for example, one would use:
-    #    dudt = source - fd  (where fd is "flux divergence")
-    #-------------------------------------------------------------------    
     def calculate_flux_divergences( self, q ):
+        """
+        Calculates the net flux at each cell by adding up the fluxes
+        through all four faces, and divides the total by cell area.
+
+        In general, for a polygonal cell with N sides of lengths
+        Li and with surface area A, the net influx divided by cell
+        area would be:
+            .. math::
+                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+
+        For a square cell, the sum is over 4 sides of length dx, and
+        :math:`A = dx^2`, so:
+            .. math::
+                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
+
+        Note: the net flux is defined as positive outward, negative
+        inward. In a diffusion problem, for example, one would use:
+            .. math::
+                {du \over dt} = source - fd
+        where fd is "flux divergence".
+        """
     
         if self.debug:
             print 'RasterModelGrid.calculate_flux_divergences here'
@@ -603,13 +559,11 @@ class RasterModelGrid ( ModelGrid ):
                   ) / self.dx
         return fd
         
-    #-------------------------------------------------------------------
-    # RasterModelGrid.calculate_flux_divergence:
-    #
-    # This is like calculate_flux_divergences (plural!), but only does
-    # it for cell "id".
-    #-------------------------------------------------------------------    
     def calculate_flux_divergence( self, q, id ):
+        """
+        This is like calculate_flux_divergences (plural!), but only does
+        it for cell "id".
+        """
     
         if self.debug:
             print 'RasterModelGrid.calculate_flux_divergence here with cell',id
@@ -621,15 +575,15 @@ class RasterModelGrid ( ModelGrid ):
               ) / self.dx
         return fd
         
-    #-------------------------------------------------------------------
-    # RasterModelGrid.update_noflux_boundaries:
-    #
-    # Sets the value of u at all noflux boundary cells equal to the
-    # value of their interior neighbors, as recorded in the
-    # "boundary_nbrs" array.
-    #    THIS IS DEPRECATED: NOW PREFERRED USE IS UPDATE_BOUNDARIES
-    #-------------------------------------------------------------------
     def update_noflux_boundaries( self, u, bc = None ):
+        """
+        Sets the value of u at all noflux boundary cells equal to the
+        value of their interior neighbors, as recorded in the
+        "boundary_nbrs" array.
+
+        .. deprecated:: 0.1
+            Use `update_boundaries` instead
+        """
     
         if bc==None:
             bc = self.default_bc
@@ -638,21 +592,20 @@ class RasterModelGrid ( ModelGrid ):
                 u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
         return u
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.update_boundaries:
-    #
-    # Updates FIXED_GRADIENT and TRACKS_CELL boundaries in 
-    # BoundaryCondition "bc" (by default ModelGrid's default_bc), so
-    # that TRACKS_CELL values in u are assigned the value at the 
-    # corresponding cell-to-track, and FIXED_GRADIENT cells get a value
-    # equal to the cell-to-track's value plus gradient times distance.
-    #
-    # NOTE: does NOT change fixed-value boundary cells.
-    #
-    # TODO: use the cell-local distance rather than dx, for use
-    # in the base class!
-    #-------------------------------------------------------------------
     def update_boundaries( self, u, bc = None ):
+        """
+        Updates FIXED_GRADIENT and TRACKS_CELL boundaries in 
+        BoundaryCondition "bc" (by default ModelGrid's default_bc), so
+        that TRACKS_CELL values in u are assigned the value at the 
+        corresponding cell-to-track, and FIXED_GRADIENT cells get a value
+        equal to the cell-to-track's value plus gradient times distance.
+
+        .. note:: Does NOT change fixed-value boundary cells.
+
+        .. todo::
+            use the cell-local distance rather than dx, for use in the base
+            class!
+        """
     
         if bc==None:
             bc = self.default_bc
@@ -664,13 +617,11 @@ class RasterModelGrid ( ModelGrid ):
                                              + bc.gradient[id]*self.dx
         return u
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.cell_vector_to_raster:
-    #
-    # Converts cell vector u to a 2D array and returns it, so that it
-    # can be plotted, output, etc.
-    #-------------------------------------------------------------------
     def cell_vector_to_raster( self, u ):
+        """
+        Converts cell vector u to a 2D array and returns it, so that it
+        can be plotted, output, etc.
+        """
     
         rast = zeros( [self.nrows, self.ncols] )
         id = 0
@@ -679,14 +630,12 @@ class RasterModelGrid ( ModelGrid ):
             id += self.ncols
         return rast
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.get_neighbor_list:
-    #
-    # If id is specified, returns a list of neighboring cell IDs for
-    # the node "id". Otherwise, returns lists for all cells as a 2D
-    # array.
-    #-------------------------------------------------------------------
     def get_neighbor_list( self, id = -1 ):
+        """
+        If id is specified, returns a list of neighboring cell IDs for
+        the node "id". Otherwise, returns lists for all cells as a 2D
+        array.
+        """
     
         if self.neighbor_list_created==False:
             self.create_neighbor_list()
@@ -696,14 +645,12 @@ class RasterModelGrid ( ModelGrid ):
         else:
             return self.neighbor_cells
             
-    #-------------------------------------------------------------------
-    # RasterModelGrid.create_neighbor_list:
-    #
-    # Creates a list of IDs of neighbor cells for each cell, as a
-    # 2D array. Only interior cells are assigned neighbors; boundary
-    # cells get -1 for each neighbor.
-    #-------------------------------------------------------------------
     def create_neighbor_list( self ):
+        """
+        Creates a list of IDs of neighbor cells for each cell, as a
+        2D array. Only interior cells are assigned neighbors; boundary
+        cells get -1 for each neighbor.
+        """
     
         assert self.neighbor_list_created == False
         
@@ -717,29 +664,26 @@ class RasterModelGrid ( ModelGrid ):
                 self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
                 self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.is_interior:
-    #
-    # Returns True if the cell is an interior cell, False otherwise. 
-    # Interior status is indicated by a value of -1 in boundary_ids.
-    #-------------------------------------------------------------------
     def is_interior( self, id ):
+        """
+        Returns True if the cell is an interior cell, False otherwise. 
+        Interior status is indicated by a value of -1 in boundary_ids.
+        """
     
         return self.boundary_ids[id] < 0
         
-    #-------------------------------------------------------------------
-    # RasterModelGrid.update_boundary_cell:
-    #
-    # If cell ID tracks the value at another cell, this function sets
-    # the value of U at cell ID to the value at its tracking cell in
-    # BoundaryCondition "bc", which defaults to the self.default_bc.
-    # If it is a fixed-gradient boundary, it updates the gradient.
-    #
-    # TODO: Generalize, or create base-class version, that uses local
-    # link length instead of self.dx.
-    #-------------------------------------------------------------------
     def update_boundary_cell( self, id, u, bc = None ):
-    
+        """
+        If cell ID tracks the value at another cell, this function sets
+        the value of U at cell ID to the value at its tracking cell in
+        BoundaryCondition "bc", which defaults to the self.default_bc.
+        If it is a fixed-gradient boundary, it updates the gradient.
+
+        .. todo::
+            Generalize, or create base-class version, that uses local
+            link length instead of self.dx.
+        """
+
         if bc == None:
             bc = self.default_bc
         bid = self.boundary_ids[id]
@@ -769,13 +713,11 @@ class RasterModelGrid ( ModelGrid ):
 #       my_faces = self.faces[cid1]
         #if self.
 
-    #-------------------------------------------------------------------
-    # RasterModelGrid.get_face_connecting_cell_pair:
-    #
-    # Returns the face that connects cells cid1 and cid2, or -1 if
-    # no such face is found.
-    #-------------------------------------------------------------------
     def get_face_connecting_cell_pair( self, cid1, cid2 ):
+        """
+        Returns the face that connects cells cid1 and cid2, or -1 if
+        no such face is found.
+        """
         
         #print 'Cells',cid1,'and',cid2
         for i in xrange( 0, 4 ):
@@ -786,11 +728,3 @@ class RasterModelGrid ( ModelGrid ):
                or ( cid1==self.tocell[fid] and cid2==self.fromcell[fid] ) ) ):
                 return fid
         return -1
-
-
-                                
-        
-
-
-
-
