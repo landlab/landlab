@@ -21,11 +21,10 @@ else:
 
 def isplugin(value, cls):
     """
-    Check if a class is a plugin. A class is a plugin if it implements the
-    plugin class or it is an instance of the plugin class.
+    Check if *value* is a plugin component for The Landlab. *value* is a plugin
+    if it implements the *cls* or it is an instance of *cls*.
 
-    :value: The class to check
-    :cls: The plugin class
+    Returns ``True`` if *value* is a plugin, otherwise ``False``.
     """
     try:
         return (cls in value.__implements__ or
@@ -37,13 +36,9 @@ def isplugin(value, cls):
 
 def load_plugins_from_dir(path, cls):
     """
-    Look for plugins in a given directory. Identify plugins as being an
-    instance of the given class, cls.
-
-    :path: Path to directory containing plugins
-    :cls: Class that defines the plugin
-
-    :returns: A list of discovered plugins
+    Look for plugins for The Landlab in *path*. Identify plugins as being an
+    instance of *cls*. Returns a dictionary of discovered plugin names as
+    keys and plugin classes as values.
     """
     import sys
     import imp
@@ -71,12 +66,25 @@ def load_plugins_from_dir(path, cls):
 def load_plugins(cls, paths=_PLUGIN_PATH):
     """
     Load plugins from a series of directories. Plugins found earlier in the
-    search path order override those discovered later.
+    search path order override those discovered later. Use the *paths* keyword
+    to specify a list of paths to search for plugins.
 
-    :cls: Class othat defines the plugin
-    :keyword paths: A list of search paths for plugins
+    .. seealso::
+        load_plugins_from_dir
+    """
+    plugins = {}
+    for path in paths[::-1]:
+        plugins.update(load_plugins_from_dir(path, cls))
+    return plugins
 
-    :returns: A list of discovered plugins
+
+def load_landlab_plugins(paths=_PLUGIN_PATH):
+    """
+    Load plugins for The Landlab. These are classes that implement BmiBase. Use
+    the *paths* keyword to specify a list of paths to search for plugins.
+
+    .. seealso::
+        load_plugins_from_dir
     """
     plugins = {}
     for path in paths[::-1]:
@@ -87,8 +95,12 @@ def load_landlab_plugins(paths=_PLUGIN_PATH):
     """
     Load plugins for The Landlab. These are classes that implement BmiBase.
 
-    :keyword paths: A list of search paths for plugins
+    .. seealso::
+        load_plugins_from_dir
+    """
+    return load_plugins(BmiBase, paths=paths)
 
-    :returns: A list of discovered plugins
+    .. seealso::
+        load_plugins_from_dir
     """
     return load_plugins(BmiBase, paths=paths)
