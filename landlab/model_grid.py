@@ -1,9 +1,9 @@
 #! /usr/env/python
 """
 Python implementation of ModelGrid, a class used to
-create and manage grids for 2D numerical, flux-conservative models.
+create and manage grids for 2D numerical models.
 
-GT, July 2010
+First version GT, July 2010
 """
 
 import numpy
@@ -43,7 +43,10 @@ class BoundaryCondition:
 
 class ModelGrid:
     """
-    This is the base class. The idea is to have at least two inherited
+    Base class for creating and manipulating 2D structured or
+    unstructured grids for numerical models.
+    
+    The idea is to have at least two inherited
     classes, RasterModelGrid and DelaunayModelGrid, that can create and
     manage grids. To this might be added a GenericModelGrid, which would
     be an unstructured polygonal grid that doesn't necessarily obey or
@@ -51,9 +54,6 @@ class ModelGrid:
     an input grid from the user. Also a HexModelGrid for hexagonal.
     """
 
-    """Base class for creating and manipulating 2D structured or
-       unstructured grids for flux-conservative numerical models."""
-    
     #-------------------------------------------------------------------
     def __init__( self ):
     
