@@ -450,6 +450,14 @@ class RasterModelGrid ( ModelGrid ):
                 self.cellx[id] = c*self.dx
                 self.celly[id] = r*self.dx
                 id += 1
+
+    def get_nodes_around_point(self, xcoord, ycoord):
+        """
+        This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item numpy array. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
+        """
+        ID = ycoord//self.dx * self.ncols + xcoord//self.dx
+        return numpy.array(ID, ID+1, ID+self.ncols, ID+self.ncols+1)
+                    
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
