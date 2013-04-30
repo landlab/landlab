@@ -453,11 +453,27 @@ class RasterModelGrid ( ModelGrid ):
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
-        This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item numpy array. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
+        This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item list. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
         """
         ID = ycoord//self.dx * self.ncols + xcoord//self.dx
-        return numpy.array(ID, ID+1, ID+self.ncols, ID+self.ncols+1)
-                    
+        return [ID, ID+1, ID+self.ncols, ID+self.ncols+1]
+    
+    def calculate_max_gradient_across_node(self, u, cell_id):
+        '''
+            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive.
+            '''
+        #We have poor functionality if these are edge cells! ...will assume some weird looping. Could easily be unstable.
+        neighbor_cells = get_neighbor_list(cell_ID)
+        diagonal_cells = [neighbor_cells[0]-1, neighbor_cells[0]+1,neighbor_cells[3]-1, neighbor_cells[3]+1]
+        slopes = []
+        diagonal_dx = numpy.sqrt(2.)
+        for a in neighbor_cells:
+            slopes.append((u[cell_ID] - u[a])/self.dx)
+        for a in diagonal_cells:
+            slopes.append((u[cell_ID] - u[a])/diagonal_dx)
+        min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+        angles = [180., 270., 90., 0., 225., 135., 315., 45.] #This is inefficient
+        return min_slope, angles[index_min]
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
