@@ -451,6 +451,18 @@ class RasterModelGrid ( ModelGrid ):
                 self.celly[id] = r*self.dx
                 id += 1
 
+    def get_grid_xdimension(self):
+        '''
+        Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
+        '''
+        return self.ncols * self.dx
+    
+    def get_grid_ydimension(self):
+        '''
+            Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
+            '''
+        return self.nrows * self.dx
+
     def get_nodes_around_point(self, xcoord, ycoord):
         """
         This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item list. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
