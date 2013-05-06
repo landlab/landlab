@@ -455,36 +455,65 @@ class RasterModelGrid ( ModelGrid ):
         '''
         Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
         '''
-        return self.ncols * self.dx
+        return (self.ncols * self.dx)
     
     def get_grid_ydimension(self):
         '''
-            Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
-            '''
-        return self.nrows * self.dx
+        Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
+        '''
+        return (self.nrows * self.dx)
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
         This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item list. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
         """
-        ID = ycoord//self.dx * self.ncols + xcoord//self.dx
+        ID = int(ycoord//self.dx * self.ncols + xcoord//self.dx)
         return [ID, ID+1, ID+self.ncols, ID+self.ncols+1]
     
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
-            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive.
+            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive. If 
             '''
-        #We have poor functionality if these are edge cells! ...will assume some weird looping. Could easily be unstable.
-        neighbor_cells = get_neighbor_list(cell_ID)
-        diagonal_cells = [neighbor_cells[0]-1, neighbor_cells[0]+1,neighbor_cells[3]-1, neighbor_cells[3]+1]
+        #We have poor functionality if these are edge cells! Needs an exception
+        neighbor_cells = self.get_neighbor_list(cell_id)
+        neighbor_cells.sort()
+        #print 'Node is internal: ', self.is_interior(cell_id)
+        #print 'Neighbor cells: ', neighbor_cells
+        diagonal_cells = []
+        if neighbor_cells[0]!=-1:
+            diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
+        if neighbor_cells[3]!=-1:
+            diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
         slopes = []
         diagonal_dx = numpy.sqrt(2.)
         for a in neighbor_cells:
-            slopes.append((u[cell_ID] - u[a])/self.dx)
+            single_slope = (u[cell_id] - u[a])/self.dx
+            #print 'cell id: ', cell_id
+            #print 'neighbor id: ', a
+            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
+            #print 'cell elev: ', u[cell_id]
+            #print 'neighbor elev: ', u[a]
+            #print single_slope
+            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+                slopes.append(single_slope)
+            else:
+                print 'NaNs present in the grid!'
         for a in diagonal_cells:
-            slopes.append((u[cell_ID] - u[a])/diagonal_dx)
-        min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
-        angles = [180., 270., 90., 0., 225., 135., 315., 45.] #This is inefficient
+            single_slope = (u[cell_id] - u[a])/diagonal_dx
+            #print single_slope
+            if not numpy.isnan(single_slope):
+                slopes.append(single_slope)
+            else:
+                print 'NaNs present in the grid!'
+        #print 'Slopes list: ', slopes
+        if slopes:
+            min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+        else:
+            #print u
+            print 'Returning NaN angle and direction...'
+            min_slope = numpy.nan
+            index_min = 8
+        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
         return min_slope, angles[index_min]
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
