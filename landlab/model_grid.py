@@ -472,8 +472,8 @@ class RasterModelGrid ( ModelGrid ):
     
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
-            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive. If 
-            '''
+            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive.
+        '''
         #We have poor functionality if these are edge cells! Needs an exception
         neighbor_cells = self.get_neighbor_list(cell_id)
         neighbor_cells.sort()
