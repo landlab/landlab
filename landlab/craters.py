@@ -12,6 +12,7 @@ from model_grid import RasterModelGrid as ModelGrid #this is the tMesh equivalen
 #these ones only so we can run this module ad-hoc:
 import pylab
 from pylab import plot, draw, show, contour, imshow, colorbar
+from copy import copy
 
 sys.setrecursionlimit(1500)
 
@@ -47,7 +48,7 @@ class impactor(object):
         self.ivanov_a = [-3.0876, -3.557528, 0.781027, 1.021521, -0.156012, -0.444058, 0.019977, 0.08685, -0.005874, -0.006809, 0.000825, 0.0000554] #The coefficients for Ivanov's crater distn function
         self._impactor_angle_to_surface = -999.
         self._angle_to_horizontal = -999.
-        self._minimum_ejecta_thickness = 0.001
+        self._minimum_ejecta_thickness = 0.000005
         self._beta_factor = 0.5
         
         self.total_counted_craters = self.ivanov_prod_equ_as_Nequals(self._minimum_crater*2.)
@@ -161,8 +162,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random.random() * (ModelGrid.get_grid_xdimension()-1)
-        self._ycoord = random.random() * (ModelGrid.get_grid_ydimension()-1)
+        self._xcoord = random.random() * (ModelGrid.get_grid_xdimension()-ModelGrid.dx)
+        self._ycoord = random.random() * (ModelGrid.get_grid_ydimension()-ModelGrid.dx)
         #Snap impact to grid:
         vertices_array = ModelGrid.get_nodes_around_point(self._xcoord, self._ycoord)
         distances_to_vertices = []
@@ -647,7 +648,7 @@ class impactor(object):
             print 'Impactor angle to ground normal: ', self._impactor_angle_to_surface_normal
         print '*****'
         #Record the data:
-        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius})
+        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'surface_slope': self._surface_slope, 'normal_angle': self._impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self._ejecta_azimuth})
 
 
 #The functions in this segment give control over the execution of this module. Adjusty the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
@@ -693,7 +694,7 @@ def dig_some_craters(ModelGrid, data):
     Takes an existing DTM and peppers it with craters.
     '''
     dt = 1.
-    nt = 500
+    nt = 10000
 
     #Setup
     cr = impactor()
@@ -710,11 +711,13 @@ def dig_some_craters(ModelGrid, data):
     for i in range(0,ModelGrid.nrows):
         flipped_elev_raster[i,:] = elev_raster[(ModelGrid.nrows-i-1),:]
     
-    imshow(flipped_elev_raster)
-    colorbar()
-    show()
+    profile = plot(elev_raster[600,:])
+    xsec = plot(elev_raster[:,1100])
+    #imshow(flipped_elev_raster)
+    #colorbar()
+    #show()
     data.viewing_raster = flipped_elev_raster
-    return ModelGrid, data
+    return ModelGrid, data, profile, xsec
     
 
 def dig_one_crater():
@@ -722,8 +725,8 @@ def dig_one_crater():
     This is an ad-hoc script to dig one crater.
     '''
     #User-defined params:
-    nr = 400
-    nc = 400
+    nr = 1200
+    nc = 1200
     dx = 0.0025
     dt = 1.
     nt = 1
@@ -738,12 +741,12 @@ def dig_one_crater():
         #vectors.elev = vectors.elev + [100.-i*0.003]*nc
     cr = impactor()
 
-    cr._radius = .25
+    cr._radius = 1.
     print 'Radius: ', cr._radius
     cr.set_depth_from_size()
     print 'Depth: ', cr._depth
     cr.set_crater_volume()
-    cr._xcoord = 0.5*mg.get_grid_xdimension()
+    cr._xcoord = 0.99*mg.get_grid_xdimension()
     cr._ycoord = 0.5*mg.get_grid_ydimension()
     vertices_array = mg.get_nodes_around_point(cr._xcoord, cr._ycoord)
     distances_to_vertices = []
@@ -752,7 +755,7 @@ def dig_one_crater():
     cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
     cr.closest_node_elev = vectors.elev[cr.closest_node_index]
 
-    cr._angle_to_horizontal = numpy.pi*0.5*1.51/3.
+    cr._angle_to_horizontal = numpy.pi*0.5*3./3.
     cr._azimuth_of_travel = numpy.pi*1.5
     cr.set_crater_mean_slope_v2(mg, vectors)
     print 'Azimuth of travel: ', cr._azimuth_of_travel
@@ -773,6 +776,25 @@ def dig_one_crater():
     vectors.viewing_raster = flipped_elev_raster
     return cr, mg, vectors
 
-cr, mg, vectors = dig_some_craters_on_fresh_surface()
+#cr, mg, vectors = dig_some_craters_on_fresh_surface()
 #cr, mg, vectors = dig_one_crater()
-#mg, vectors = dig_some_craters(mg, vectors)
+#mg_10k, vectors_10k = dig_some_craters(mg, vectors)
+
+#This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+#How many times round?
+loops = 50 #500,000 craters!!
+#Build the dictionary:
+crater_time_sequ = {}
+profile_list = []
+xsec_list = []
+#Initialize the starting condition:
+cr, mg, vectors = dig_one_crater()
+#Save the starting conds:
+crater_time_sequ[0] = copy(vectors)
+#Run the loops
+for i in range(0,loops):
+    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+    crater_time_sequ[i] = copy(vectors)
+    profile_list.append(profile)
+    xsec_list.append(xsec)
+show(profile_list)
