@@ -5,12 +5,15 @@
 import random
 import math
 import numpy
+import sys
 import scipy.optimize as opt
 from model_grid import RasterModelGrid as ModelGrid #this is the tMesh equivalent module
 
 #these ones only so we can run this module ad-hoc:
 import pylab
 from pylab import plot, draw, show, contour, imshow, colorbar
+
+sys.setrecursionlimit(1500)
 
 class data(object):
     '''
@@ -47,7 +50,7 @@ class impactor(object):
         self._minimum_ejecta_thickness = 0.001
         self._beta_factor = 0.5
         
-        self.total_counted_craters = self.ivanov_prod_equ_as_Nequals(self._minimum_crater)
+        self.total_counted_craters = self.ivanov_prod_equ_as_Nequals(self._minimum_crater*2.)
         #Define the Ivanov fn and its derivatives, for use in Newton Raphson optimization. Note this is normalized now.
         self.ivanov_prod_fn = lambda x, N_as_fraction: self.ivanov_prod_equ(x,(N_as_fraction/self.total_counted_craters))
         self.ivanov_prod_fn_1stderiv = lambda x, N_as_fraction: self.ivanov_prod_equ_1stderiv(x, N_as_fraction)
@@ -139,6 +142,17 @@ class impactor(object):
         #Estimate zero position by a super ad-hoc Shoemaker distn. Note K is not really right here - we've defined it at D=1; I think it should be equal to Ivanov at D~0.03.
         x_0 = (10.**self.ivanov_a[0] / (self.total_counted_craters * N_by_fract)) ** 0.345
         return opt.newton(func=self.ivanov_prod_fn, x0=x_0, fprime=self.ivanov_prod_fn_1stderiv, args=args_in, tol=0.001)
+    
+    
+    def set_cr_radius_from_shoemaker(self, data):
+        '''
+        This method is a less accurate (but faster) alternative to the Newton-Raphson-on-Ivanov-distn also available in this object. It takes a random number between 0 and 1, and returns a crater radius based on a py distn N = kD^-2.9, following Shoemaker et al., 1970.
+        '''
+        self._radius = self._minimum_crater*(random.random())**-0.345
+        if self._radius > self._max_complex_cr_radius:
+            data.craters_over_max_radius_not_plotted.append(self._radius)
+            print 'Drew a crater above the maximum permitted size. Drawing a new crater...'
+            self.set_size(data)
 
 
     def set_coords(self, ModelGrid, data):
@@ -159,8 +173,9 @@ class impactor(object):
         self.closest_node_elev = data.elev[self.closest_node_index]
         #print 'Closest node elev and index: ', self.closest_node_elev, self.closest_node_index
         # Check we haven't hit a boundary node. Reset if we have:
-        if not ModelGrid.is_interior(self.closest_node_index):
-            self.set_coords(ModelGrid, data)
+        #NB - this step can introduce recursion very easily into the program. We need a way out of this that doesn't result in endless recursion. 
+        #if not ModelGrid.is_interior(self.closest_node_index):
+            #self.set_coords(ModelGrid, data)
         #NB - snapping to the grid may be quite computationally demanding in a Voronoi. Could dramatically increase speed by picking a node for centre and working out from there (or just leaving it on the node...). Fine for square grid though.
             
 
@@ -618,7 +633,7 @@ class impactor(object):
         '''
         This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
         '''
-        self.set_size(data)
+        self.set_cr_radius_from_shoemaker(data)
         print 'Radius: ', self._radius
         self.set_depth_from_size()
         self.set_crater_volume()
@@ -637,16 +652,16 @@ class impactor(object):
 
 #The functions in this segment give control over the execution of this module. Adjusty the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
 
-def dig_some_craters():
+def dig_some_craters_on_fresh_surface():
     '''
     Ad hoc driver code to make this file run as a standalone:
     '''
     #User-defined params:
     nr = 500
     nc = 500
-    dx = 0.25
+    dx = 0.0025
     dt = 1.
-    nt = 100
+    nt = 5000
 
     #Setup
     mg = ModelGrid()
@@ -670,16 +685,46 @@ def dig_some_craters():
     imshow(flipped_elev_raster)
     colorbar()
     show()
-    return numpy.array(flipped_elev_raster)
+    vectors.viewing_raster = flipped_elev_raster
+    return cr, mg, vectors
+
+def dig_some_craters(ModelGrid, data):
+    '''
+    Takes an existing DTM and peppers it with craters.
+    '''
+    dt = 1.
+    nt = 500
+
+    #Setup
+    cr = impactor()
+
+    #Update until
+    for i in range(0,nt):
+        print 'Crater number ', i
+        cr.excavate_a_crater(ModelGrid, data)
+    
+    #Finalize
+    elev_raster = mg.cell_vector_to_raster(data.elev)
+    #contour(elev_raster)
+    flipped_elev_raster = numpy.empty_like(elev_raster)
+    for i in range(0,ModelGrid.nrows):
+        flipped_elev_raster[i,:] = elev_raster[(ModelGrid.nrows-i-1),:]
+    
+    imshow(flipped_elev_raster)
+    colorbar()
+    show()
+    data.viewing_raster = flipped_elev_raster
+    return ModelGrid, data
+    
 
 def dig_one_crater():
     '''
     This is an ad-hoc script to dig one crater.
     '''
     #User-defined params:
-    nr = 800
-    nc = 800
-    dx = .01
+    nr = 400
+    nc = 400
+    dx = 0.0025
     dt = 1.
     nt = 1
 
@@ -693,7 +738,7 @@ def dig_one_crater():
         #vectors.elev = vectors.elev + [100.-i*0.003]*nc
     cr = impactor()
 
-    cr._radius = 1.
+    cr._radius = .25
     print 'Radius: ', cr._radius
     cr.set_depth_from_size()
     print 'Depth: ', cr._depth
@@ -725,6 +770,9 @@ def dig_one_crater():
     imshow(flipped_elev_raster)
     colorbar()
     show()
-    return numpy.array(flipped_elev_raster)
+    vectors.viewing_raster = flipped_elev_raster
+    return cr, mg, vectors
 
-raster_array = dig_some_craters()
+cr, mg, vectors = dig_some_craters_on_fresh_surface()
+#cr, mg, vectors = dig_one_crater()
+#mg, vectors = dig_some_craters(mg, vectors)
