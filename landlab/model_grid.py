@@ -702,7 +702,7 @@ class RasterModelGrid ( ModelGrid ):
         """
         If id is specified, returns a list of neighboring cell IDs for
         the node "id". Otherwise, returns lists for all cells as a 2D
-        array.
+        array. The list is in the order [right, top, left, bottom].
         """
     
         if self.neighbor_list_created==False:
@@ -717,7 +717,7 @@ class RasterModelGrid ( ModelGrid ):
         """
         Creates a list of IDs of neighbor cells for each cell, as a
         2D array. Only interior cells are assigned neighbors; boundary
-        cells get -1 for each neighbor.
+        cells get -1 for each neighbor. The order of the neighbors is [right, top, left, bottom].
         """
     
         assert self.neighbor_list_created == False
@@ -731,6 +731,38 @@ class RasterModelGrid ( ModelGrid ):
                 self.neighbor_cells[cell_id,0] = cell_id + 1  # right
                 self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
                 self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
+    
+    def get_diagonal_list( self, id = -1 ):
+        """
+        If id is specified, returns a list of IDs for the diagonal cells of the node "id". Otherwise, returns lists for all cells as a 2D array. The list is in the order [topright, topleft, bottomleft, bottomright].
+        """
+        #Added DEJH 051513
+    
+        if self.diagonal_list_created==False:
+            self.create_diagonal_list()
+        
+        if id > -1:
+            return self.diagonal_cells[id,:]
+        else:
+            return self.diagonal_cells
+
+    def create_diagonal_list( self ):
+        """
+        Creates a list of IDs of the diagonal cells to each cell, as a 2D array. Only interior cells are assigned neighbors; boundary cells get -1 for each neighbor. The order of the diagonal cells is [topright, topleft, bottomleft, bottomright].
+        """
+        #Added DEJH 051513
+        
+        assert self.diagonal_list_created == False
+        
+        self.diagonal_list_created = True
+        self.diagonal_cells = -ones( [self.ncells, 4], dtype=int )
+        for r in xrange( 1, self.nrows-1 ):
+            for c in xrange( 1, self.ncols-1 ):
+                cell_id = r * self.ncols + c
+                self.diagonal_cells[cell_id,2] = cell_id - self.ncols - 1   # bottom left
+                self.diagonal_cells[cell_id,0] = cell_id + self.ncols + 1  # top right
+                self.diagonal_cells[cell_id,3] = cell_id - self.ncols + 1 # bottom right
+                self.diagonal_cells[cell_id,1] = cell_id + self.ncols - 1 # top left
 
     def is_interior( self, id ):
         """
