@@ -7,7 +7,7 @@ import math
 import numpy
 import sys
 import scipy.optimize as opt
-from model_grid import RasterModelGrid as ModelGrid #this is the tMesh equivalent module
+from model_grid import RasterModelGrid as grid #this is the tMesh equivalent module
 
 #these ones only so we can run this module ad-hoc:
 import pylab
@@ -48,7 +48,7 @@ class impactor(object):
         self.ivanov_a = [-3.0876, -3.557528, 0.781027, 1.021521, -0.156012, -0.444058, 0.019977, 0.08685, -0.005874, -0.006809, 0.000825, 0.0000554] #The coefficients for Ivanov's crater distn function
         self._impactor_angle_to_surface = -999.
         self._angle_to_horizontal = -999.
-        self._minimum_ejecta_thickness = 0.000005
+        self._minimum_ejecta_thickness = 0.000001
         self._beta_factor = 0.5
         
         self.total_counted_craters = self.ivanov_prod_equ_as_Nequals(self._minimum_crater*2.)
@@ -156,27 +156,27 @@ class impactor(object):
             self.set_size(data)
 
 
-    def set_coords(self, ModelGrid, data):
+    def set_coords(self, grid, data):
         '''
         This method selects a random location inside the grid onto which to map an impact. It also sets variables for the closest grid node to the impact, and the elevation at that node.
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random.random() * (ModelGrid.get_grid_xdimension()-ModelGrid.dx)
-        self._ycoord = random.random() * (ModelGrid.get_grid_ydimension()-ModelGrid.dx)
+        self._xcoord = random.random() * (grid.get_grid_xdimension()-grid.dx)
+        self._ycoord = random.random() * (grid.get_grid_ydimension()-grid.dx)
         #Snap impact to grid:
-        vertices_array = ModelGrid.get_nodes_around_point(self._xcoord, self._ycoord)
+        vertices_array = grid.get_nodes_around_point(self._xcoord, self._ycoord)
         distances_to_vertices = []
         for x in vertices_array:
             #print 'The ID is:', x
-            distances_to_vertices.append(numpy.sqrt((self._xcoord-ModelGrid.x(x))**2. + (self._ycoord-ModelGrid.y(x))**2.))
+            distances_to_vertices.append(numpy.sqrt((self._xcoord-grid.x(x))**2. + (self._ycoord-grid.y(x))**2.))
         self.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
         self.closest_node_elev = data.elev[self.closest_node_index]
         #print 'Closest node elev and index: ', self.closest_node_elev, self.closest_node_index
         # Check we haven't hit a boundary node. Reset if we have:
         #NB - this step can introduce recursion very easily into the program. We need a way out of this that doesn't result in endless recursion. 
-        #if not ModelGrid.is_interior(self.closest_node_index):
-            #self.set_coords(ModelGrid, data)
+        #if not grid.is_interior(self.closest_node_index):
+            #self.set_coords(grid, data)
         #NB - snapping to the grid may be quite computationally demanding in a Voronoi. Could dramatically increase speed by picking a node for centre and working out from there (or just leaving it on the node...). Fine for square grid though.
             
 
@@ -235,7 +235,7 @@ class impactor(object):
         self._cavity_volume = 0.51 * numpy.pi * self._depth * self._radius**3. / (0.51*self._radius + 2.*self._depth)
 
 
-    def set_crater_mean_slope(self, ModelGrid, data):
+    def set_crater_mean_slope(self, grid, data):
         '''
         This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. For computational efficiency reasons, the average slope is a mean of local slopes at 8 points 45 degrees apart around the crater rim, plus the center point. This function also  sets the mean surface dip direction.
         '''
@@ -255,11 +255,11 @@ class impactor(object):
                      [self._xcoord-self._radius,self._ycoord],
                      [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
         for x,y in slope_pts:
-            if x < ModelGrid.get_grid_xdimension and y < ModelGrid.get_grid_ydimension:
-                radial_points.append(self.snap_coords_to_grid(ModelGrid, x, y))
+            if x < grid.get_grid_xdimension and y < grid.get_grid_ydimension:
+                radial_points.append(self.snap_coords_to_grid(grid, x, y))
         for a in radial_points:
-            if ModelGrid.is_interior(a):
-                slope, dir = ModelGrid.calculate_max_gradient_across_node(data.elev, a)
+            if grid.is_interior(a):
+                slope, dir = grid.calculate_max_gradient_across_node(data.elev, a)
             #Make sure we stay on the grid!!:
                 if not numpy.isnan(slope): #Probably not necessary now; retain for belt and braces
                     slope_array.append(slope)
@@ -269,7 +269,7 @@ class impactor(object):
             else:
                 print 'One of the nodes round the crater rim is a boundary cell; no slope calculated here.'
         # Add in the central node:
-        slope0, dir0 = ModelGrid.calculate_max_gradient_across_node(data.elev, self.closest_node_index)
+        slope0, dir0 = grid.calculate_max_gradient_across_node(data.elev, self.closest_node_index)
         if not numpy.isnan(slope0):
             slope_array.append(slope0)
             dip_direction_array.append(dir0)
@@ -289,7 +289,7 @@ class impactor(object):
         print 'The mean slope is: ', self._surface_slope
     
     
-    def set_crater_mean_slope_v2(self, ModelGrid, data):
+    def set_crater_mean_slope_v2(self, grid, data):
         '''
         This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. This version of the method works by taking four transects across the crater area every 45 degrees around its rim, calculating the slope along each, then setting the slope as the greatest, positive downwards and in the appropriate D8 direction. This function also sets the mean surface dip direction.
         '''
@@ -310,13 +310,13 @@ class impactor(object):
                      [self._xcoord-self._radius,self._ycoord],
                      [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
         for x,y in slope_pts1:
-            if 0. < x < ModelGrid.get_grid_xdimension and 0. < y < ModelGrid.get_grid_ydimension:
-                radial_points1.append(self.snap_coords_to_grid(ModelGrid, x, y))
+            if 0. < x < grid.get_grid_xdimension and 0. < y < grid.get_grid_ydimension:
+                radial_points1.append(self.snap_coords_to_grid(grid, x, y))
             else:
                 radial_points1.append(self.closest_node_index)
         for x,y in slope_pts2:
-            if 0. < x < ModelGrid.get_grid_xdimension and 0. < y < ModelGrid.get_grid_ydimension:
-                radial_points2.append(self.snap_coords_to_grid(ModelGrid, x, y))
+            if 0. < x < grid.get_grid_xdimension and 0. < y < grid.get_grid_ydimension:
+                radial_points2.append(self.snap_coords_to_grid(grid, x, y))
             else:
                 radial_points2.append(self.closest_node_index)
         divisions = len(radial_points1)
@@ -346,28 +346,28 @@ class impactor(object):
         print 'The slope under the crater cavity footprint is: ', self._surface_slope
 
         
-    def snap_coords_to_grid(self, ModelGrid, xcoord, ycoord):
+    def snap_coords_to_grid(self, grid, xcoord, ycoord):
         '''
         This method takes existing coordinates, inside the grid, and returns the ID of the closest grid node.
         '''
             #There should probably be an exception here: return None?
-        vertices_array = ModelGrid.get_nodes_around_point(self._xcoord, self._ycoord)
+        vertices_array = grid.get_nodes_around_point(self._xcoord, self._ycoord)
         distances_to_vertices = []
         for x in vertices_array:
-            distances_to_vertices.append(numpy.sqrt((xcoord-ModelGrid.x(x))**2. + (ycoord-ModelGrid.y(x))**2.))
+            distances_to_vertices.append(numpy.sqrt((xcoord-grid.x(x))**2. + (ycoord-grid.y(x))**2.))
         return vertices_array[numpy.argmin(distances_to_vertices)]
 
 
-    def set_elev_change_at_pts(self, ModelGrid, data):
+    def set_elev_change_at_pts(self, grid, data):
         '''
         This method takes existing impact properties and a known nearest node to the impact site, and alters the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution.
         '''
         #Build a list of nodes to work on. Starts just with the node closest to the center.
         crater_node_list = [self.closest_node_index]
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        data.flag_already_in_the_list = [0] * ModelGrid.ncells
+        data.flag_already_in_the_list = [0] * grid.ncells
         #Could we have the node properties as dictionaries of arrays?:
-        #ModelGrid.nodes[adjusted] = zeros(ModelGrid.ncells)
+        #grid.nodes[adjusted] = zeros(grid.ncells)
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
@@ -406,8 +406,8 @@ class impactor(object):
         while len(crater_node_list): #i.e., array is not empty
             low_cell_flag = False
             active_node = crater_node_list.pop(0)
-            active_node_x_to_center = ModelGrid.x(active_node) - self._xcoord
-            active_node_y_to_center = ModelGrid.y(active_node) - self._ycoord
+            active_node_x_to_center = grid.x(active_node) - self._xcoord
+            active_node_y_to_center = grid.y(active_node) - self._ycoord
             active_node_r_to_center = numpy.sqrt(active_node_x_to_center**2. + active_node_y_to_center**2.)
             #Special case for if the impact location is right on a gridline:
             if not active_node_x_to_center:
@@ -443,7 +443,7 @@ class impactor(object):
                 #Set the ground elev:
                 data.elev[active_node] = new_z
                 #Add the neighboring nodes which haven't already been adjusted to the for-processing array:
-                neighbors_active_node = ModelGrid.get_neighbor_list(active_node)
+                neighbors_active_node = grid.get_neighbor_list(active_node)
                 for x in neighbors_active_node:
                     if not data.flag_already_in_the_list[x]:
                         if x!=-1: #Not an edge
@@ -481,7 +481,7 @@ class impactor(object):
                 data.elev[active_node] = data.elev[active_node] + thickness_at_active_node
                 #Add the neighbors to the list, but only if the thickness of the current ejecta layer was nontrivial. Smallest crater is 5m diam, so 1m deep - so its max ejecta thickness at the rim is 10cm! We should probably resolve down to, say, 2.5cm, which is <4 crater radii from the rim of our smallest crater.
                 if thickness_at_active_node > 0.001:
-                    neighbors_active_node = ModelGrid.get_neighbor_list(active_node)
+                    neighbors_active_node = grid.get_neighbor_list(active_node)
                     for x in neighbors_active_node:
                         if not data.flag_already_in_the_list[x]:
                             if x!=-1:
@@ -490,16 +490,17 @@ class impactor(object):
         #print 'f/mu is ', f_theta/mu_theta_by_mu0
 
 
-    def set_elev_change_at_pts_v2(self, ModelGrid, data):
+    def set_elev_change_at_pts_v2(self, grid, data):
         '''
         This is an alternative method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
         '''
         #Build a list of nodes to work on. Starts just with the node closest to the center.
         crater_node_list = [self.closest_node_index]
+        self.elev_changes = []
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        data.flag_already_in_the_list = [0] * ModelGrid.ncells
+        data.flag_already_in_the_list = [0] * grid.ncells
         #Could we have the node properties as dictionaries of arrays?:
-        #ModelGrid.nodes[adjusted] = zeros(ModelGrid.ncells)
+        #grid.nodes[adjusted] = zeros(grid.ncells)
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
@@ -546,8 +547,8 @@ class impactor(object):
 
         while len(crater_node_list): #i.e., array is not empty
             active_node = crater_node_list.pop(0)
-            active_node_x_to_center = ModelGrid.x(active_node) - self._xcoord
-            active_node_y_to_center = ModelGrid.y(active_node) - self._ycoord
+            active_node_x_to_center = grid.x(active_node) - self._xcoord
+            active_node_y_to_center = grid.y(active_node) - self._ycoord
             active_node_r_to_center = numpy.sqrt(active_node_x_to_center**2. + active_node_y_to_center**2.)
             #Special case for if the impact location is right on a gridline:
             if not active_node_x_to_center:
@@ -573,18 +574,20 @@ class impactor(object):
 
             if new_z<data.elev[active_node]: #Below the original surface
                 #print 'Under surface'
+                self.elev_changes.append(new_z-data.elev[active_node])
                 if self._crater_type: #Complex crater, adjust for the peak
                     if active_node_r_to_center <= self._complex_peak_radius: #on the peak
                         new_z  = new_z + self._complex_peak_str_uplift * (1. - active_node_r_to_center/self._complex_peak_radius)
                 #Set the ground elev:
                 data.elev[active_node] = new_z
                 #Add the neighboring nodes which haven't already been adjusted to the for-processing array:
-                neighbors_active_node = ModelGrid.get_neighbor_list(active_node)
+                neighbors_active_node = grid.get_neighbor_list(active_node)
                 for x in neighbors_active_node:
                     if not data.flag_already_in_the_list[x]:
                         if x!=-1: #Not an edge
                             crater_node_list.append(x)
                             data.flag_already_in_the_list[x] = 1
+
             else:
                 #Calc the ejecta thickness for a perp. impact. Note it's fine if r<R_true
                 local_flat_thickness = thickness_at_rim*(active_node_r_to_center/self._radius)**-2.75
@@ -613,13 +616,15 @@ class impactor(object):
                 #Now, are we inside or outside the rim?
                 if new_z <= (data.elev[active_node] + thickness_at_active_node): #inside the rim
                     #print 'Inside the rim, on the ejecta'
+                    self.elev_changes.append(new_z-data.elev[active_node])
                     data.elev[active_node] = new_z
                 else: #outside the rim
                     #print 'Outside the rim'
+                    self.elev_changes.append(thickness_at_active_node)
                     data.elev[active_node] = data.elev[active_node] + thickness_at_active_node
                 #Add the neighbors to the list, but only if the thickness of the current ejecta layer was nontrivial. Smallest crater is 5m diam, so 1m deep - so its max ejecta thickness at the rim is 10cm! We should probably resolve down to, say, 2.5cm, which is <4 crater radii from the rim of our smallest crater.
                 if thickness_at_active_node > self._minimum_ejecta_thickness:
-                    neighbors_active_node = ModelGrid.get_neighbor_list(active_node)
+                    neighbors_active_node = grid.get_neighbor_list(active_node)
                     for x in neighbors_active_node:
                         if not data.flag_already_in_the_list[x]:
                             if x!=-1:
@@ -630,7 +635,7 @@ class impactor(object):
 
 
 
-    def excavate_a_crater(self, ModelGrid, data):
+    def excavate_a_crater(self, grid, data):
         '''
         This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
         '''
@@ -638,17 +643,18 @@ class impactor(object):
         print 'Radius: ', self._radius
         self.set_depth_from_size()
         self.set_crater_volume()
-        self.set_coords(ModelGrid, data)
+        self.set_coords(grid, data)
         self.set_impactor_angles()
-        self.set_crater_mean_slope_v2(ModelGrid, data)
+        self.set_crater_mean_slope_v2(grid, data)
         if numpy.isnan(self._surface_slope):
             print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
         else:
-            self.set_elev_change_at_pts_v2(ModelGrid, data)
+            self.set_elev_change_at_pts_v2(grid, data)
             print 'Impactor angle to ground normal: ', self._impactor_angle_to_surface_normal
+            print 'Mean mass balance/px: ', numpy.mean(self.elev_changes)
         print '*****'
         #Record the data:
-        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'surface_slope': self._surface_slope, 'normal_angle': self._impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self._ejecta_azimuth})
+        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self._impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self._ejecta_azimuth, 'mass_balance': numpy.mean(self.elev_changes)})
 
 
 #The functions in this segment give control over the execution of this module. Adjusty the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
@@ -662,10 +668,10 @@ def dig_some_craters_on_fresh_surface():
     nc = 500
     dx = 0.0025
     dt = 1.
-    nt = 5000
+    nt = 1000
 
     #Setup
-    mg = ModelGrid()
+    mg = grid()
     mg.initialize(nr, nc, dx)
     vectors = data()
     vectors.elev = [100.] * mg.ncells
@@ -689,7 +695,7 @@ def dig_some_craters_on_fresh_surface():
     vectors.viewing_raster = flipped_elev_raster
     return cr, mg, vectors
 
-def dig_some_craters(ModelGrid, data):
+def dig_some_craters(grid, data):
     '''
     Takes an existing DTM and peppers it with craters.
     '''
@@ -702,14 +708,14 @@ def dig_some_craters(ModelGrid, data):
     #Update until
     for i in range(0,nt):
         print 'Crater number ', i
-        cr.excavate_a_crater(ModelGrid, data)
+        cr.excavate_a_crater(grid, data)
     
     #Finalize
     elev_raster = mg.cell_vector_to_raster(data.elev)
     #contour(elev_raster)
     flipped_elev_raster = numpy.empty_like(elev_raster)
-    for i in range(0,ModelGrid.nrows):
-        flipped_elev_raster[i,:] = elev_raster[(ModelGrid.nrows-i-1),:]
+    for i in range(0,grid.nrows):
+        flipped_elev_raster[i,:] = elev_raster[(grid.nrows-i-1),:]
     
     profile = plot(elev_raster[600,:])
     xsec = plot(elev_raster[:,1100])
@@ -717,7 +723,7 @@ def dig_some_craters(ModelGrid, data):
     #colorbar()
     #show()
     data.viewing_raster = flipped_elev_raster
-    return ModelGrid, data, profile, xsec
+    return grid, data, profile, xsec
     
 
 def dig_one_crater():
@@ -732,7 +738,7 @@ def dig_one_crater():
     nt = 1
 
     #Setup
-    mg = ModelGrid()
+    mg = grid()
     mg.initialize(nr, nc, dx)
     vectors = data()
     vectors.elev = []
@@ -777,24 +783,24 @@ def dig_one_crater():
     return cr, mg, vectors
 
 #cr, mg, vectors = dig_some_craters_on_fresh_surface()
-#cr, mg, vectors = dig_one_crater()
+cr, mg, vectors = dig_one_crater()
 #mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-#This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-#How many times round?
-loops = 50 #500,000 craters!!
-#Build the dictionary:
-crater_time_sequ = {}
-profile_list = []
-xsec_list = []
-#Initialize the starting condition:
-cr, mg, vectors = dig_one_crater()
-#Save the starting conds:
-crater_time_sequ[0] = copy(vectors)
-#Run the loops
-for i in range(0,loops):
-    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-    crater_time_sequ[i] = copy(vectors)
-    profile_list.append(profile)
-    xsec_list.append(xsec)
-show(profile_list)
+##This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+##How many times round?
+#loops = 50 #500,000 craters!!
+##Build the dictionary:
+#crater_time_sequ = {}
+#profile_list = []
+#xsec_list = []
+##Initialize the starting condition:
+#cr, mg, vectors = dig_one_crater()
+##Save the starting conds:
+#crater_time_sequ[0] = copy(vectors)
+##Run the loops
+#for i in range(0,loops):
+#    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+#    crater_time_sequ[i] = copy(vectors)
+#    profile_list.append(profile)
+#    xsec_list.append(xsec)
+#show(profile_list)
