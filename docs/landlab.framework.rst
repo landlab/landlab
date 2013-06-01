@@ -17,6 +17,14 @@ framework Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`component` Module
+-----------------------
+
+.. automodule:: landlab.framework.component
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`decorators` Module
 ------------------------
 
@@ -37,14 +45,6 @@ framework Package
 ------------------------
 
 .. automodule:: landlab.framework.interfaces
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`plugin` Module
---------------------
-
-.. automodule:: landlab.framework.plugin
     :members:
     :undoc-members:
     :show-inheritance:

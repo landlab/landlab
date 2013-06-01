@@ -9,10 +9,26 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`PerronNLDiff` Module
+--------------------------
+
+.. automodule:: landlab.PerronNLDiff
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`cmd` Module
 -----------------
 
 .. automodule:: landlab.cmd
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`craters` Module
+---------------------
+
+.. automodule:: landlab.craters
     :members:
     :undoc-members:
     :show-inheritance:
@@ -25,10 +41,10 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`test` Module
-------------------
+:mod:`model_parameter_dictionary` Module
+----------------------------------------
 
-.. automodule:: landlab.test
+.. automodule:: landlab.model_parameter_dictionary
     :members:
     :undoc-members:
     :show-inheritance:
@@ -38,8 +54,8 @@ Subpackages
 
 .. toctree::
 
+    landlab.components
     landlab.examples
     landlab.framework
-    landlab.plugins
     landlab.tests
 
