@@ -152,5 +152,30 @@ You should also probably do this before commiting changes to the repository to
 make sure you didn't break things.
 
 
+------------
+Coding Style
+------------
+
+Because Python is so flexible style-wise, please try to stick to the coding
+style described by PEP8,
+
+http://www.python.org/dev/peps/pep-0008/
+
+An easy way to make sure that you've done this is by running the pep8 command
+on each file that you edit. If you don't have pep8 installed, you will have to
+install it with::
+
+    $ pip install pep8
+
+Now you can run it on a Python source file. For instance::
+
+    $ pep8 craters.py
+
+At first, this will probably return lots of problems with you source file. Don't
+worry though, it won't take long to get used to the coding style and be able to
+write compatible code straigt away. If we stick to this it will make it much
+easier to read the code written by any one of us.
+
+
 Happy Landlab-ing!
 ==================
