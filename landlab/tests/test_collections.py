@@ -6,7 +6,7 @@ Unit tests for landlab.collections
 import unittest
 
 from landlab import Palette, Arena, NoProvidersError
-from landlab.plugins.sample import Sample1, Sample2
+from landlab.components.sample import Sample1, Sample2
 
 class TestLandlabPalette(unittest.TestCase):
     def test_empty_palette(self):

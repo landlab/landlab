@@ -2,7 +2,7 @@
 
 import inspect
 
-from landlab.framework.plugin import load_landlab_plugins
+from landlab.framework.component import load_landlab_components
 from landlab import Palette, Arena
 
 
@@ -16,7 +16,7 @@ class Framework(object):
     A framework for connecting and running component from The Landlab.
     """
     def __init__(self):
-        self._palette = Palette(**load_landlab_plugins())
+        self._palette = Palette(**load_landlab_components())
         self._arena = Arena()
 
     def instantiate(self, name):
