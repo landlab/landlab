@@ -21,7 +21,136 @@ The Landlab
 Install
 =======
 
-Install The Landlab with easy_install::
+Installing a release
+--------------------
 
-    easy_install TheLandlab
+We don't have any releases of The Landlab yet so this doesn't work righ now.
+However, once we have a stable release, this is how users will install our
+software on their machine::
 
+    $ pip install TheLandlab
+
+This will install Landlab as well as any prerequisite packages (required packages
+are listed in setup.py).
+
+Installing from a source distribution
+-------------------------------------
+
+To install the landlab package from a source distribution (like what you get with
+a Subversion checkout), run the setup.py script with the install argument::
+
+    $ python setup.py install
+
+This will put the landlab package into a system-wide location so that you can
+import landlab from any python session. It will also install any required
+packages.
+
+Note that if you are developing landlab you will probably not want to do this!
+If you do, you would have to run this command everytime you make a change to
+the code. Instead, you want to install the package in "development mode". See
+below in the "Development Environment" section for details on how to do this.
+
+
+----------------------
+Developing The Landlab
+----------------------
+
+This section describes one possible workflow when developing The Landlab.
+
+Using Subversion
+================
+
+The standard resource for Subversion "Version Control with Subversion" book.
+It's available online and is completely *free*!
+
+http://svnbook.red-bean.com/
+
+
+Checkout a copy of the source
+-----------------------------
+
+Use Subversion to checkout the latest version of the source code::
+
+    $ svn co https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
+
+Alternatively, if you already have a working copy of the repository you may want
+to update it with changes that others have committed to the repository::
+
+    $ svn update
+
+Review your changes
+-------------------
+
+Now that you've made changes to some files, you'll probably want to have a
+look at what you've done. To see what it is you've changed since your last
+commit (or since you last checkout), use the status command::
+
+    $ svn status
+
+Use the Subversion diff command to see the differences between your copy and the
+copy that you checked out::
+
+    $ svn diff <changed_file>
+
+where *<changed_file>* is the name of the file you've made changes to. If you
+don't list any file names, this command will print the differences for *all*
+files that have changes.
+
+Commit your changes to the repository
+-------------------------------------
+
+Once you have made changes to your copy of the source and are happy with the
+changes, you can commit them back to the repository::
+
+    $ svn commit
+
+This will commit all changes that you have made under the current directory. If
+you only want to commit changes to a file or two, you can list the file names
+separately on the command line::
+
+    $ svn commit <one_file> <another_file>
+
+
+---------------------------
+The Development Environment
+---------------------------
+
+Once I have a working copy of The Landlab source code, I use the pip command to
+install a development version of the code. If I'm in the base landlab folder
+(the folder that contains setup.py), I run the following::
+
+    $ pip install -e .
+
+This sets up python so that it knows where the landlab package is when try to
+import it - regardless of what directory you are in. This allows python commands
+like::
+
+    >>> import landlab
+    >>> from landlab import craters
+
+to work. If you didn't do this you might start getting errors that contain 
+something like::
+
+    ImportError: No module named landlab
+
+To uninstall your development version of landlab::
+
+    $ pip uninstall TheLandlab
+
+
+------------------
+Running Unit Tests
+------------------
+
+Immediatly after update your working copy of the code (or checking out a new
+version) I will normally run the unit tests for the package to make sure nothing
+is broken. You can do this with setup.py::
+
+    $ python setup.py test
+
+You should also probably do this before commiting changes to the repository to
+make sure you didn't break things.
+
+
+Happy Landlab-ing!
+==================
