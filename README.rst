@@ -177,5 +177,28 @@ write compatible code straigt away. If we stick to this it will make it much
 easier to read the code written by any one of us.
 
 
+-----------------------
+Build API Documentation
+-----------------------
+
+You can build documentation for the LandLab API using Sphinx. Once you have set
+up your envrionment to properly import landlab, you can generate the necessary
+sphinx files with::
+
+    $ python setup.py build_sphinx
+
+This will put a bunch of files in the docs folder. The HTML documentation will
+be under the docs/_build/html/ folder. Pointing your browser to index.html
+under this folder will give you the top-level page for the documentation. This
+entire folder is relocatable, so if you would like your documentation elsewhere
+you can easily move the folder around.
+
+If you have added, removed, or renamed files you may need to regenerate some of
+the sphinx files and rebuild the api docs. If you have Sphinx installed, you can
+do this with (from the directory that contains setup.py)::
+
+    $ sphinx-apidoc -o docs landlab
+
+
 Happy Landlab-ing!
 ==================
