@@ -782,25 +782,30 @@ def dig_one_crater():
     vectors.viewing_raster = flipped_elev_raster
     return cr, mg, vectors
 
-#cr, mg, vectors = dig_some_craters_on_fresh_surface()
-cr, mg, vectors = dig_one_crater()
-#mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-##This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-##How many times round?
-#loops = 50 #500,000 craters!!
-##Build the dictionary:
-#crater_time_sequ = {}
-#profile_list = []
-#xsec_list = []
-##Initialize the starting condition:
-#cr, mg, vectors = dig_one_crater()
-##Save the starting conds:
-#crater_time_sequ[0] = copy(vectors)
-##Run the loops
-#for i in range(0,loops):
-#    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-#    crater_time_sequ[i] = copy(vectors)
-#    profile_list.append(profile)
-#    xsec_list.append(xsec)
-#show(profile_list)
+def main():
+    #cr, mg, vectors = dig_some_craters_on_fresh_surface()
+    cr, mg, vectors = dig_one_crater()
+    #mg_10k, vectors_10k = dig_some_craters(mg, vectors)
+
+    ##This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+    ##How many times round?
+    #loops = 50 #500,000 craters!!
+    ##Build the dictionary:
+    #crater_time_sequ = {}
+    #profile_list = []
+    #xsec_list = []
+    ##Initialize the starting condition:
+    #cr, mg, vectors = dig_one_crater()
+    ##Save the starting conds:
+    #crater_time_sequ[0] = copy(vectors)
+    ##Run the loops
+    #for i in range(0,loops):
+    #    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+    #    crater_time_sequ[i] = copy(vectors)
+    #    profile_list.append(profile)
+    #    xsec_list.append(xsec)
+    #show(profile_list)
+
+if __name__=='__main__':
+    main()
