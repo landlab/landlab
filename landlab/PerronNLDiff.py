@@ -63,8 +63,8 @@ class PerronNLDiff(object):
         
         for i in grid.get_interior_cells(): #What do we do about boundary cells?? Need them to be counted to give enough simultaneous equations.
             #Will need to add exceptions here
-            cell_neighbors = grid.get_neighbor_list()
-            cell_diagonals = grid.get_diagonal_list()
+            cell_neighbors = grid.get_neighbor_list(i)
+            cell_diagonals = grid.get_diagonal_list(i)
             self._z_x[i] = (data.elev[cell_neighbors[0]]-data.elev[cell_neighbors[2]])*0.5*one_over_delta_x
             self._z_y[i] = (data.elev[cell_neighbors[1]]-data.elev[cell_neighbors[3]])*0.5*one_over_delta_y
             self._z_xx[i] = (data.elev[cell_neighbors[0]]-2.*data.elev[i]+data.elev[cell_neighbors[2]])*one_over_delta_x_sqd
@@ -83,6 +83,7 @@ class PerronNLDiff(object):
             self._F_iplus1jminus1[i] = -self._F_iplus1jplus1
             self._F_iminus1jplus1[i] = self._F_iplus1jminus1
 
+            #RHS of equ 6 (see para [20])
             self._func_on_z[i] = self._rock_density/self._sed_density*self._uplift + self._kappa*((self._z_xx[i]+self._z_yy[i])/(1.-(self._z_x[i]**2.+self._z_y[i]**2.)/self._S_crit**2.) + 2.*(self._z_x[i]**2.*self._z_xx[i]+self._z_y[i]**2.*self._z_yy[i]+2.*self._z_x[i]*self._z_y[i]*self._z_xy[i])/(self._S_crit**2.*(1.-(self._z_x[i]**2.+self._z_y[i]**2.)/self._S_crit**2.)**2.))
 
             self._equ23_RHS[i] = data.elev[i] + self._delta_t*(self._func_on_z[i] - (self._F_ij*data.elev[i]+self._F_ijless1[i]*data.elev[cell_neighbors[2]]+self._F_ijplus1[i]*data.elev[cell_neighbors[0]]+self._F_iless1j[i]*data.elev[cell_neighbors[3]]+self._F_iplus1j[i]*data.elev[cell_neighbors[1]]+self._F_iminus1jminus1[i]*data.elev[cell_diagonals[2]]+self._F_iplus1jplus1[i]*data.elev[cell_diagonals[0]]+self._F_iplus1jminus1[i]*data.elev[cell_diagonals[1]]+self._F_iminus1jplus1[i]*data.elev[cell_diagonals[3]])
@@ -92,7 +93,7 @@ class PerronNLDiff(object):
         #assemble the operation matrix
         #...more problems with the boundaries -> make exceptions
         for i in range(grid.ncells): #this is for each cell in the grid
-            self._operating_matrix[i,1] = 1.-self._delta_t*self._F_ij[i]
+            self._operating_matrix[i,i] = 1.-self._delta_t*self._F_ij[i]
             self._operating_matrix[i,i-1] = -self._delta_t*self._F_ijless1[i]
             self._operating_matrix[i,i+1] = -self._delta_t*self._F_ijplus1[i]
             self._operating_matrix[i,i-grid.ncols] = -self._delta_t*self._F_iless1j[i]
