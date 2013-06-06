@@ -782,30 +782,86 @@ def dig_one_crater():
     vectors.viewing_raster = flipped_elev_raster
     return cr, mg, vectors
 
+def dig_one_crater_smaller():
+    '''
+    This is an ad-hoc script to dig one crater.
+    '''
+    #User-defined params:
+    nr = 120
+    nc = 120
+    dx = 0.025
+    dt = 1.
+    nt = 1
+
+    #Setup
+    mg = grid()
+    mg.initialize(nr, nc, dx)
+    vectors = data()
+    vectors.elev = []
+    for i in range(0, nr):
+        vectors.elev = vectors.elev + [100.]*nc
+        #vectors.elev = vectors.elev + [100.-i*0.003]*nc
+    cr = impactor()
+
+    cr._radius = 1.
+    print 'Radius: ', cr._radius
+    cr.set_depth_from_size()
+    print 'Depth: ', cr._depth
+    cr.set_crater_volume()
+    cr._xcoord = 0.5*mg.get_grid_xdimension()
+    cr._ycoord = 0.5*mg.get_grid_ydimension()
+    vertices_array = mg.get_nodes_around_point(cr._xcoord, cr._ycoord)
+    distances_to_vertices = []
+    for x in vertices_array:
+        distances_to_vertices.append(numpy.sqrt((cr._xcoord-mg.x(x))**2. + (cr._ycoord-mg.y(x))**2.))
+    cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
+    cr.closest_node_elev = vectors.elev[cr.closest_node_index]
+
+    cr._angle_to_horizontal = numpy.pi*0.5*3./3.
+    cr._azimuth_of_travel = numpy.pi*1.5
+    cr.set_crater_mean_slope_v2(mg, vectors)
+    print 'Azimuth of travel: ', cr._azimuth_of_travel
+    print 'Angle of ground: ', cr._surface_slope
+    print 'Dip direction of ground: ', cr._surface_dip_direction
+    cr.set_elev_change_at_pts_v2(mg, vectors)
+    print 'Impact angle to ground normal: ', cr._impactor_angle_to_surface_normal
+
+    #Finalize
+    elev_raster = mg.cell_vector_to_raster(vectors.elev)
+    #contour(elev_raster)
+    flipped_elev_raster = numpy.empty_like(elev_raster)
+    for i in range(0,nr):
+        flipped_elev_raster[i,:] = elev_raster[(nr-i-1),:]
+    imshow(flipped_elev_raster)
+    colorbar()
+    show()
+    vectors.viewing_raster = flipped_elev_raster
+    return cr, mg, vectors
+
 
 def main():
-    #cr, mg, vectors = dig_some_craters_on_fresh_surface()
-    cr, mg, vectors = dig_one_crater()
-    #mg_10k, vectors_10k = dig_some_craters(mg, vectors)
+#   cr, mg, vectors = dig_some_craters_on_fresh_surface()
+#   cr, mg, vectors = dig_one_crater()
+#   mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-    ##This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-    ##How many times round?
-    #loops = 50 #500,000 craters!!
-    ##Build the dictionary:
-    #crater_time_sequ = {}
-    #profile_list = []
-    #xsec_list = []
-    ##Initialize the starting condition:
-    #cr, mg, vectors = dig_one_crater()
-    ##Save the starting conds:
-    #crater_time_sequ[0] = copy(vectors)
-    ##Run the loops
-    #for i in range(0,loops):
-    #    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-    #    crater_time_sequ[i] = copy(vectors)
-    #    profile_list.append(profile)
-    #    xsec_list.append(xsec)
-    #show(profile_list)
+    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+    #How many times round?
+    loops = 5 #500,000 craters!!
+    #Build the dictionary:
+    crater_time_sequ = {}
+    profile_list = []
+    xsec_list = []
+    #Initialize the starting condition:
+    cr, mg, vectors = dig_one_crater()
+    #Save the starting conds:
+    crater_time_sequ[0] = copy(vectors)
+    #Run the loops
+    for i in range(0,loops):
+        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+        crater_time_sequ[i] = copy(vectors)
+        profile_list.append(profile)
+        xsec_list.append(xsec)
+    show(profile_list)
 
 if __name__=='__main__':
     main()
