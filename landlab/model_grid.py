@@ -332,6 +332,10 @@ class RasterModelGrid ( ModelGrid ):
         if self.debug:
         	print 'Setting nlc flag'
 
+        # List of diagonal neighbors. As with the neighbor list, we'll only
+        # create it if requested.
+        self.diagonal_list_created = False
+
         # For each node, we also need to know which way the face
         # points. A flux of mass across a face is considered positive
         # when it flows toward the "to" cell, and negative otherwise.
