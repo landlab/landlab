@@ -7,7 +7,7 @@ import math
 import numpy
 import sys
 import scipy.optimize as opt
-from model_grid import RasterModelGrid as grid #this is the tMesh equivalent module
+from model_grid import RasterModelGrid #this is the tMesh equivalent module
 
 #these ones only so we can run this module ad-hoc:
 import pylab
@@ -671,7 +671,7 @@ def dig_some_craters_on_fresh_surface():
     nt = 1000
 
     #Setup
-    mg = grid()
+    mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
     vectors = data()
     vectors.elev = [100.] * mg.ncells
@@ -711,7 +711,7 @@ def dig_some_craters(grid, data):
         cr.excavate_a_crater(grid, data)
     
     #Finalize
-    elev_raster = mg.cell_vector_to_raster(data.elev)
+    elev_raster = grid.cell_vector_to_raster(data.elev)
     #contour(elev_raster)
     flipped_elev_raster = numpy.empty_like(elev_raster)
     for i in range(0,grid.nrows):
@@ -738,7 +738,7 @@ def dig_one_crater():
     nt = 1
 
     #Setup
-    mg = grid()
+    mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
     vectors = data()
     vectors.elev = []
@@ -794,7 +794,7 @@ def dig_one_crater_smaller():
     nt = 1
 
     #Setup
-    mg = grid()
+    mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
     vectors = data()
     vectors.elev = []
