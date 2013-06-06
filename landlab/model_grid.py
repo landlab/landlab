@@ -5,7 +5,6 @@ create and manage grids for 2D numerical models.
 
 First version GT, July 2010
 """
-
 import numpy
 from numpy import *
 
@@ -98,6 +97,8 @@ class ModelGrid:
         """
     
         g = zeros( self.nfaces )
+        print 'nfaces'
+        print self.nfaces
         g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
         #for i in arange( 0, self.nfaces ):
             #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self.dx
@@ -188,6 +189,7 @@ class RasterModelGrid ( ModelGrid ):
         inputs. If this are given, calls initialize() to set up the grid.
         """
     
+        #print 'RasterModelGrid.init'
         self.ncells = num_rows * num_cols
         if self.ncells > 0:
             self.initialize( num_rows, num_cols, dx )
@@ -206,7 +208,9 @@ class RasterModelGrid ( ModelGrid ):
         right (so a negative flux across a face is either going left or
         down).
         """
-    
+        
+        #print 'RasterModelGrid.initialize'
+        
         # Debugging output flag
         self.debug = False
         
@@ -476,7 +480,82 @@ class RasterModelGrid ( ModelGrid ):
     
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
-            This method calculates the gradients in u across all 4 faces of the cell with ID cell_id, and across the four diagonals. It then returns the steepest (most negative) of these values, followed by its dip direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes downward from the cell are reported as positive.
+            This method calculates the gradients in u across all 4 faces of the 
+            cell with ID cell_id, and across the four diagonals. It then returns 
+            the steepest (most negative) of these values, followed by its dip 
+            direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes 
+            downward from the cell are reported as positive.
+            
+            This code is actually calculating slopes, not gradients.  
+            The max gradient is the most negative, but the max slope is the most
+            positive.  So, this was updated to return the max value, not the 
+            min.
+        '''
+        #We have poor functionality if these are edge cells! Needs an exception
+        neighbor_cells = self.get_neighbor_list(cell_id)
+        neighbor_cells.sort()
+        #print 'Node is internal: ', self.is_interior(cell_id)
+        #print 'Neighbor cells: ', neighbor_cells
+        diagonal_cells = []
+        if neighbor_cells[0]!=-1:
+            diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
+        if neighbor_cells[3]!=-1:
+            diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
+        slopes = []
+        diagonal_dx = numpy.sqrt(2.)
+        for a in neighbor_cells:
+            #ng I think this is actually slope as defined by a geomorphologist,
+            #that is -dz/dx and not the gradient (dz/dx)
+            single_slope = (u[cell_id] - u[a])/self.dx
+            #print 'cell id: ', cell_id
+            #print 'neighbor id: ', a
+            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
+            #print 'cell elev: ', u[cell_id]
+            #print 'neighbor elev: ', u[a]
+            #print single_slope
+            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+                slopes.append(single_slope)
+            else:
+                print 'NaNs present in the grid!'
+        for a in diagonal_cells:
+            single_slope = (u[cell_id] - u[a])/diagonal_dx
+            #print single_slope
+            if not numpy.isnan(single_slope):
+                slopes.append(single_slope)
+            else:
+                print 'NaNs present in the grid!'
+        #print 'Slopes list: ', slopes
+        #ng thinks that the maximum slope should be found here, not the 
+        #minimum slope, old code commented out.  New code below it.
+        #if slopes:
+        #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+        #else:
+        #    print u
+        #    print 'Returning NaN angle and direction...'
+        #    min_slope = numpy.nan
+        #    index_min = 8
+        if slopes:
+            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
+        else:
+            print u
+            print 'Returning NaN angle and direction...'
+            max_slope = numpy.nan
+            index_max = 8
+            
+        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
+        
+        #ng commented out old code
+        #return min_slope, angles[index_min]
+        return max_slope, angles[index_max]
+        
+    def find_node_in_direction_of_max_slope(self, u, cell_id):
+        '''
+            This method calculates the slopes (-dz/dx) in u across all 4 faces of 
+            the cell with ID cell_id, and across the four diagonals. 
+            It then returns the node ID in the direction of the steepest 
+            (most positive) of these values,  i.e., this is a 
+            D8 algorithm. Slopes downward from the cell are reported as positive.
+            Based on code from GT, modified by NG, 6/2013
         '''
         #We have poor functionality if these are edge cells! Needs an exception
         neighbor_cells = self.get_neighbor_list(cell_id)
@@ -511,14 +590,17 @@ class RasterModelGrid ( ModelGrid ):
                 print 'NaNs present in the grid!'
         #print 'Slopes list: ', slopes
         if slopes:
-            min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
         else:
-            #print u
+            print u
             print 'Returning NaN angle and direction...'
-            min_slope = numpy.nan
-            index_min = 8
-        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
-        return min_slope, angles[index_min]
+            max_slope = numpy.nan
+            index_max = 8
+        
+        all_neighbor_cells=numpy.concatenate((neighbor_cells,diagonal_cells))
+        #print 'all_neighbor_cells ', all_neighbor_cells
+        
+        return all_neighbor_cells[index_max]   
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
@@ -738,7 +820,9 @@ class RasterModelGrid ( ModelGrid ):
     
     def get_diagonal_list( self, id = -1 ):
         """
-        If id is specified, returns a list of IDs for the diagonal cells of the node "id". Otherwise, returns lists for all cells as a 2D array. The list is in the order [topright, topleft, bottomleft, bottomright].
+        If id is specified, returns a list of IDs for the diagonal cells of the node "id". 
+        Otherwise, returns lists for all cells as a 2D array. 
+        The list is in the order [topright, topleft, bottomleft, bottomright].
         """
         #Added DEJH 051513
     
@@ -752,7 +836,9 @@ class RasterModelGrid ( ModelGrid ):
 
     def create_diagonal_list( self ):
         """
-        Creates a list of IDs of the diagonal cells to each cell, as a 2D array. Only interior cells are assigned neighbors; boundary cells get -1 for each neighbor. The order of the diagonal cells is [topright, topleft, bottomleft, bottomright].
+        Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
+        Only interior cells are assigned neighbors; boundary cells get -1 for each neighbor. 
+        The order of the diagonal cells is [topright, topleft, bottomleft, bottomright].
         """
         #Added DEJH 051513
         
