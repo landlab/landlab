@@ -1,11 +1,10 @@
 import numpy
-from model_grid import Rastergrid as grid
 
 class PerronNLDiff(object):
     '''
     This module uses Taylor Perron's implicit (2011) method to solve the nonlinear hillslope diffusion equation across a rectangular grid for a single timestep. Note it works with the mass flux implicitly, and thus does not actually calculate it. At the moment, this can't handle boundary cells (let's run on a looped grid!)
     '''
-    def __init__(self)_:
+    def __init__(self):
 #        self._current_elevs = []
 #        self._elevs_next_tstep = []
 #        self._operating_matrix = []
@@ -86,7 +85,7 @@ class PerronNLDiff(object):
             #RHS of equ 6 (see para [20])
             self._func_on_z[i] = self._rock_density/self._sed_density*self._uplift + self._kappa*((self._z_xx[i]+self._z_yy[i])/(1.-(self._z_x[i]**2.+self._z_y[i]**2.)/self._S_crit**2.) + 2.*(self._z_x[i]**2.*self._z_xx[i]+self._z_y[i]**2.*self._z_yy[i]+2.*self._z_x[i]*self._z_y[i]*self._z_xy[i])/(self._S_crit**2.*(1.-(self._z_x[i]**2.+self._z_y[i]**2.)/self._S_crit**2.)**2.))
 
-            self._equ23_RHS[i] = data.elev[i] + self._delta_t*(self._func_on_z[i] - (self._F_ij*data.elev[i]+self._F_ijless1[i]*data.elev[cell_neighbors[2]]+self._F_ijplus1[i]*data.elev[cell_neighbors[0]]+self._F_iless1j[i]*data.elev[cell_neighbors[3]]+self._F_iplus1j[i]*data.elev[cell_neighbors[1]]+self._F_iminus1jminus1[i]*data.elev[cell_diagonals[2]]+self._F_iplus1jplus1[i]*data.elev[cell_diagonals[0]]+self._F_iplus1jminus1[i]*data.elev[cell_diagonals[1]]+self._F_iminus1jplus1[i]*data.elev[cell_diagonals[3]])
+            self._equ23_RHS[i] = data.elev[i] + self._delta_t*(self._func_on_z[i] - (self._F_ij*data.elev[i]+self._F_ijless1[i]*data.elev[cell_neighbors[2]]+self._F_ijplus1[i]*data.elev[cell_neighbors[0]]+self._F_iless1j[i]*data.elev[cell_neighbors[3]]+self._F_iplus1j[i]*data.elev[cell_neighbors[1]]+self._F_iminus1jminus1[i]*data.elev[cell_diagonals[2]]+self._F_iplus1jplus1[i]*data.elev[cell_diagonals[0]]+self._F_iplus1jminus1[i]*data.elev[cell_diagonals[1]]+self._F_iminus1jplus1[i]*data.elev[cell_diagonals[3]]))
 
         self._mat_RHS = numpy.matrix(self._equ23_RHS)
 
