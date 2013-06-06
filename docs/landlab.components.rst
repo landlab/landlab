@@ -1,10 +1,10 @@
-plugins Package
-===============
+components Package
+==================
 
 :mod:`diff_2d` Module
 ---------------------
 
-.. automodule:: landlab.plugins.diff_2d
+.. automodule:: landlab.components.diff_2d
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ plugins Package
 :mod:`sample` Module
 --------------------
 
-.. automodule:: landlab.plugins.sample
+.. automodule:: landlab.components.sample
     :members:
     :undoc-members:
     :show-inheritance:
