@@ -3,12 +3,13 @@
 import numpy as np
 from scipy import ndimage
 
-from landlab import ImplementsOrRaise
+from landlab import Implements
 from cmt.bmi import (BmiBase, BmiUniformRectilinear,
                      BadVarNameError, GRID_TYPE_UNIFORM)
 
 
-@ImplementsOrRaise(BmiBase, BmiUniformRectilinear)
+#@ImplementsOrRaise(BmiBase, BmiUniformRectilinear)
+@Implements(BmiBase, BmiUniformRectilinear)
 class Diff2D(object): #pylint:disable-msg=R0902,R0904
     """
     Basic Modeling Interface implementation for a 2d diffusion process.
