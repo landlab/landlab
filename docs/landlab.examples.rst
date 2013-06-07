@@ -25,6 +25,22 @@ examples Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`flowRoutingD8` Module
+---------------------------
+
+.. automodule:: landlab.examples.flowRoutingD8
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`test_script_for_flow_routing` Module
+------------------------------------------
+
+.. automodule:: landlab.examples.test_script_for_flow_routing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`test_script_for_model_grid` Module
 ----------------------------------------
 

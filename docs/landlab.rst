@@ -9,14 +9,6 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`PerronNLDiff` Module
---------------------------
-
-.. automodule:: landlab.PerronNLDiff
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`cmd` Module
 -----------------
 
@@ -45,6 +37,14 @@ landlab Package
 ----------------------------------------
 
 .. automodule:: landlab.model_parameter_dictionary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`perron_nl_diff` Module
+----------------------------
+
+.. automodule:: landlab.perron_nl_diff
     :members:
     :undoc-members:
     :show-inheritance:
