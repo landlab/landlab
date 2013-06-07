@@ -13,6 +13,8 @@ _SPACING = 1.
 class TestRasterModelGrid(unittest.TestCase):
     def setUp(self):
         """
+        These tests use a grid that 3x4 cells::
+
         |-------|-------|-------|-------|
         |       |       |       |       |
         |   8   |   9   |  10   |  11   |
