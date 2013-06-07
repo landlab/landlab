@@ -1,10 +1,12 @@
 import numpy
-#from model_grid import RasterModelGrid
 import craters
 
 class perron_nl_diff(object):
     '''
-    This module uses Taylor Perron's implicit (2011) method to solve the nonlinear hillslope diffusion equation across a rectangular grid for a single timestep. Note it works with the mass flux implicitly, and thus does not actually calculate it.
+    This module uses Taylor Perron's implicit (2011) method to solve the
+    nonlinear hillslope diffusion equation across a rectangular grid for a
+    single timestep. Note it works with the mass flux implicitly, and thus does
+    not actually calculate it.
     '''
     def __init__(self):
 #        self._current_elevs = []
@@ -226,16 +228,13 @@ class perron_nl_diff(object):
             else:
                 continue #The old value of elev is still correct
 
-#def main():
-    
-dt = 1.
-nt = 1000
-diff = perron_nl_diff()
-cr, mg, vectors = craters.dig_one_crater_smaller()
-for i in range (nt):
-    diff.update(mg, vectors)
+def main():
+    dt = 1.
+    nt = 1
+    diff = perron_nl_diff()
+    cr, mg, vectors = craters.dig_one_crater_smaller()
+    for i in range(nt):
+        diff.update(mg, vectors)
 
-
-
-#if __name__=='__main__':
-#    main()
+if __name__ == '__main__':
+    main() 
