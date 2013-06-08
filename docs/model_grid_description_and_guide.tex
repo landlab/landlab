@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 \usepackage{amsmath}
+\usepackage{listings}
 %\geometry{a4paper} % or letter or a5paper or ... etc
 % \geometry{landscape} % rotated page geometry
 
@@ -15,6 +16,27 @@
 
 %%% BEGIN DOCUMENT
 \begin{document}
+
+\lstset{ %
+language=Python,                % choose language
+basicstyle=\footnotesize,       % size of fonts used for code
+numbers=left,                   % where to put line-numbers
+numberstyle=\footnotesize,      % size used for line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+%backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,           % adds a frame around the code
+tabsize=2,          % sets default tabsize to 2 spaces
+captionpos=b,           % sets the caption-position to bottom
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+columns=fullflexible,
+basicstyle=\ttfamily,
+escapeinside={\%*}{*)}          % if you want to add a comment within your code
+}
 
 \maketitle
 %\tableofcontents
@@ -51,7 +73,23 @@ Notice that the links also enclose a set of polygons that are offset from the ce
 
 \section{ModelGrid Example: Building a Diffusion Model} 
 
+The following is a simple tutorial in which we use ModelGrid to build an explicit, staggered-grid model of diffusion. The mathematics of diffusion describe quite a few different phenomena, among them heat conduction in solids, chemical diffusion of dissolved material, transport of momentum in a viscous shear flow, and transport of soil on hillslopes. To make this exercise concrete, we will use the latter as our working example, though in fact the solution could apply to any of these systems.
 
+To work through this example, you can type in and run the code below, or find a copy at XXX. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn.
+
+\begin{lstlisting}[frame=single]  % Start your code-block
+
+import numpy
+import model_grid
+
+for i in range( 10 ):
+	print( 'frog' )
+	
+\end{lstlisting}
+
+\subsection{Importing Packages and Setting Parameters}
+
+\end{document}
  
 \newpage
 \bibliography{/Users/gtucker/Documents/Literature/gt_library.bib}
