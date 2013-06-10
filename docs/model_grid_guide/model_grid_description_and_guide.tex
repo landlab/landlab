@@ -1,5 +1,5 @@
 
-\documentclass[12pt]{amsart}
+\documentclass[12pt]{article}
 \usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
 \usepackage{graphicx}
 \usepackage{natbib}
@@ -63,7 +63,7 @@ Figure~\ref{grid} illustrates how ModelGrid represents a simulation grid. The gr
 
 In the simple case of a regular (raster) grid, the cells are square, the nodes are the center points of the cells (Figure~\ref{grid}a), and the faces have identical length (equal to the node spacing). In a Voronoi-Delaunay grid, the cells are Voronoi polygons (also known as Theissen polygons) (Figure~\ref{grid}b). In this case, each cell represents the surface area that is closer to its own node than to any other node in the grid. The faces then represent locations that are equidistant between two adjacent nodes. Other grid configurations are possible as well. For examples, cells could be square elements in a quad-tree grid (Figure~\ref{grid}c), or triangular elements with nodes at their circumcenters (Figure~\ref{grid}d).
 
-Each pair of adjacent cells is connected by a line segment called a {\em link}(Figure~\ref{grid}, dashed line). In some cases, as we will see in a worked example below, it is useful to have each pair of adjacent cells connected by two vectors: one pointing one way, and a second pointing the opposite way \citep{guibas1985primitives,tucker2001object}. These vectors are known as {\em directed edges} (Figure~\ref{grid}, gray arrows). 
+Each pair of adjacent cells is connected by a line segment called a {\em link} (Figure~\ref{grid}, dashed line). In some cases, as we will see in a worked example below, it is useful to have each pair of adjacent cells connected by two vectors: one pointing one way, and a second pointing the opposite way \citep{guibas1985primitives,tucker2001object}. These vectors are known as {\em directed edges} (Figure~\ref{grid}, gray arrows). 
 
 Finite-difference and finite-volume models usually need to calculate spatial gradients in one or more scalar variables, and often these gradients are evaluated between pairs of adjacent nodes. ModelGrid makes these calculations easier for programmers by providing built-in functions to calculate gradients along links or directed edges, and allowing applications to associate an array of gradient values with their corresponding links or edges.
 
@@ -87,9 +87,19 @@ for i in range( 10 ):
 	
 \end{lstlisting}
 
-\subsection{Importing Packages and Setting Parameters}
+\subsection{Importing Packages}
 
-\end{document}
+\begin{lstlisting}[frame=single]  % Start your code-block
+
+import numpy
+from landlab import model_grid 
+
+\end{lstlisting}
+
+We start by importing the {\tt numpy} package and the {\tt model\_grid} package. Note that the {\tt landlab} package must first be installed (see instructions XX).
+
+
+
  
 \newpage
 \bibliography{/Users/gtucker/Documents/Literature/gt_library.bib}

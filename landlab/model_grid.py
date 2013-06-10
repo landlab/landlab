@@ -129,13 +129,25 @@ class ModelGrid:
         
     def get_cell_x_coords( self ):
         """
-        Returns vector of cell x coordinates.
+        Returns vector of node x coordinates (same as get_node_x_coords).
         """
         return self.cellx           
 
     def get_cell_y_coords( self ):
         """
-        Returns vector of cell y coordinates.
+        Returns vector of node y coordinates (same as get_node_y_coords).
+        """
+        return self.celly           
+
+    def get_node_x_coords( self ):
+        """
+        Returns vector of node x coordinates.
+        """
+        return self.cellx           
+
+    def get_node_y_coords( self ):
+        """
+        Returns vector of node y coordinates.
         """
         return self.celly           
 
