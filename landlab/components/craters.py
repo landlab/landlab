@@ -1,7 +1,5 @@
 #! /usr/env/python
 
-#Thought for group: -1 is no longer an appropriate "bad ID" code, as it can function as an ID in python! Maybe return "None"
-
 import random
 import math
 import numpy
@@ -29,6 +27,7 @@ class data(object):
 class impactor(object):
     '''
     This class holds all parameters decribing properties of a single impact structure, and contains methods for recalculating fresh and internally consistent data describing such a impact structure.
+    Built DEJH Spring 2013.
     '''
     def __init__(self):
         self._xcoord = -999.

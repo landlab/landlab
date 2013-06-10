@@ -11,6 +11,7 @@ from pylab import plot, draw, show, contour, imshow, colorbar
 class perron_nl_diff(object):
     '''
     This module uses Taylor Perron's implicit (2011) method to solve the nonlinear hillslope diffusion equation across a rectangular grid for a single timestep. Note it works with the mass flux implicitly, and thus does not actually calculate it.
+    Built DEJH early June 2013.
     '''
     def __init__(self, grid, data, dt):
         self._delta_t = dt
@@ -51,11 +52,11 @@ class perron_nl_diff(object):
             _z_xy = (self._data.elev[cell_diagonals[0]] - self._data.elev[cell_diagonals[1]] - self._data.elev[cell_diagonals[3]] + self._data.elev[cell_diagonals[2]])*0.25*self._one_over_delta_x*self._one_over_delta_y
             _d = 1./(1.-self._b*(_z_x**2.+_z_y**2.))
             
-            assert type(_z_x) is numpy.float64
-            assert type(_z_y) is numpy.float64
-            assert type(_z_xx) is numpy.float64
-            assert type(_z_yy) is numpy.float64
-            assert type(_z_xy) is numpy.float64
+            #assert type(_z_x) is numpy.float64
+            #assert type(_z_y) is numpy.float64
+            #assert type(_z_xx) is numpy.float64
+            #assert type(_z_yy) is numpy.float64
+            #assert type(_z_xy) is numpy.float64
             
             _abd_sqd = self._kappa*self._b*_d**2.
             _F_ij = -2.*self._kappa*_d*(self._one_over_delta_x_sqd+self._one_over_delta_y_sqd) - 4.*_abd_sqd*(_z_x**2.*self._one_over_delta_x_sqd+_z_y**2.*self._one_over_delta_y_sqd)
@@ -68,23 +69,23 @@ class perron_nl_diff(object):
             _F_iplus1jminus1 = -_F_iplus1jplus1
             _F_iminus1jplus1 = _F_iplus1jminus1
             
-            assert type(_F_ij) is numpy.float64
-            assert type(_F_ijminus1) is numpy.float64
-            assert type(_F_ijplus1) is numpy.float64
-            assert type(_F_iminus1j) is numpy.float64
-            assert type(_F_iplus1j) is numpy.float64
-            assert type(_F_iplus1jplus1) is numpy.float64
+            #assert type(_F_ij) is numpy.float64
+            #assert type(_F_ijminus1) is numpy.float64
+            #assert type(_F_ijplus1) is numpy.float64
+            #assert type(_F_iminus1j) is numpy.float64
+            #assert type(_F_iplus1j) is numpy.float64
+            #assert type(_F_iplus1jplus1) is numpy.float64
 
             #RHS of equ 6 (see para [20])
             self._func_on_z[i] = self._rock_density/self._sed_density*self._uplift + self._kappa*((_z_xx+_z_yy)/(1.-(_z_x**2.+_z_y**2.)/self._S_crit**2.) + 2.*(_z_x**2.*_z_xx+_z_y**2.*_z_yy+2.*_z_x*_z_y*_z_xy)/(self._S_crit**2.*(1.-(_z_x**2.+_z_y**2.)/self._S_crit**2.)**2.))
                         
-            assert type(self._func_on_z[i]) is numpy.float64
+            #assert type(self._func_on_z[i]) is numpy.float64
 
             _equ23_RHS.append(self._data.elev[i] + self._delta_t*(self._func_on_z[i] - (_F_ij*self._data.elev[i]+_F_ijminus1*self._data.elev[cell_neighbors[2]]+_F_ijplus1*self._data.elev[cell_neighbors[0]]+_F_iminus1j*self._data.elev[cell_neighbors[3]]+_F_iplus1j*self._data.elev[cell_neighbors[1]]+_F_iminus1jminus1*self._data.elev[cell_diagonals[2]]+_F_iplus1jplus1*self._data.elev[cell_diagonals[0]]+_F_iplus1jminus1*self._data.elev[cell_diagonals[1]]+_F_iminus1jplus1*self._data.elev[cell_diagonals[3]])))
         
             _F_[i] = numpy.array([[_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1], [_F_ijminus1, _F_ij, _F_ijplus1], [_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1]])
         
-        assert type(_equ23_RHS[0]) is numpy.float64
+        #assert type(_equ23_RHS[0]) is numpy.float64
         assert len(_equ23_RHS) == len(self._interior_cells)
 
         #self._mat_RHS = numpy.matrix(_equ23_RHS) #Put this in set_variables
