@@ -71,6 +71,14 @@ class ModelGrid:
     
         return zeros( self.ncells )
 
+    def create_node_dvector( self ):
+        """
+        Returns a vector of floating point numbers the same length as 
+        the number of nodes. Same as create_cell_dvector.
+        """
+    
+        return zeros( self.ncells )
+
     def create_boundary_condition( self ):
         """
         Creates, initializes, and returns a BoundaryCondition of the 

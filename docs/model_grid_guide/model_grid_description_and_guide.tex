@@ -8,6 +8,9 @@
 %\geometry{a4paper} % or letter or a5paper or ... etc
 % \geometry{landscape} % rotated page geometry
 
+\newcommand{\code}[1]{{\tt #1}}
+
+
 % See the ``Article customise'' template for come common customisations
 
 \title{The ModelGrid Package}
@@ -30,7 +33,7 @@ showstringspaces=false,         % underline spaces within strings
 showtabs=false,                 % show tabs within strings adding particular underscores
 frame=single,           % adds a frame around the code
 tabsize=2,          % sets default tabsize to 2 spaces
-captionpos=b,           % sets the caption-position to bottom
+captionpos=t,           % sets the caption-position to bottom
 breaklines=true,        % sets automatic line breaking
 breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
 columns=fullflexible,
@@ -53,7 +56,7 @@ This document provides a basic introduction to building applications using Model
 %%%%%%%%%%% FIGURE %%%%%%%%%%%
  \begin{figure}[h!]
     \centering
-    \includegraphics[scale=0.9]{grid_schematic.pdf}
+    \includegraphics[scale=0.92]{grid_schematic.pdf}
     \caption{Elements of a model grid. Each grid comprises nodes, cells, faces, corners, patches, links, directed edges, and junctions. (Note that not all links, edges, and patches are shown, and only one representative cell is shaded.)}
    \label{grid}
 \end{figure}
@@ -77,26 +80,58 @@ The following is a simple tutorial in which we use ModelGrid to build an explici
 
 To work through this example, you can type in and run the code below, or find a copy at XXX. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn.
 
-\begin{lstlisting}[frame=single]  % Start your code-block
+\lstinputlisting[language=Python,caption={diffusion\_with\_model\_grid.py}]{diffusion_with_model_grid.py}
 
-import numpy
-import model_grid
 
-for i in range( 10 ):
-	print( 'frog' )
-	
-\end{lstlisting}
 
 \subsection{Importing Packages}
 
-\begin{lstlisting}[frame=single]  % Start your code-block
-
-import numpy
-from landlab import model_grid 
-
+\begin{lstlisting}[firstnumber=11]
+from landlab import model_grid
+import pylab
 \end{lstlisting}
 
-We start by importing the {\tt numpy} package and the {\tt model\_grid} package. Note that the {\tt landlab} package must first be installed (see instructions XX).
+We start by importing {\tt model\_grid} from the {\tt land lab} package (note that the {\tt landlab} package must first be installed; see instructions XX). We'll also import {\tt pylab} so we can plot the results.
+
+
+\subsection{Setting the User-Defined Parameters}
+
+\lstinputlisting[firstnumber=14,firstline=14,lastline=29]{diffusion_with_model_grid.py}
+
+The first thing we'll do is set a group of user-defined parameters. The size of the grid is set by \code{numrows} and \code{numcols}, with cell spacing \code{dx}. In this example, we have a 10 by 15 grid with 10~m grid spacing, so our domain represents a 100 by 150~m rectangular patch of land. The diffusivity coefficient \code{kd} describes the efficiency of soil creep, while the \code{uplift\_rate} indicates how fast the land is rising relative to base level along its boundaries. Finally, we set how many time steps we want to compute.
+
+Note that the code for our simple program lives inside a \code{main()} function. This isn't strictly necessary---we could have put the code in the file without a \code{main()} function and it would work just fine when we run it---but it is good Python practice, and will be helpful later on.
+
+
+\subsection{Calculating Derived Parameters}
+
+\lstinputlisting[firstnumber=31,firstline=31,lastline=33]{diffusion_with_model_grid.py}
+
+Next, we calculate the values of parameters that are derived from the user-defined parameters. In this case, we have just one: the time-step size, which is set by the Courant-Friedrichs-Lewy condition for an explicit, finite-difference solution to the diffusion equation (to be on the safe side, we multiply the ratio $\Delta x^2 / k_d$ by 0.1 instead of the theoretical limit of 1/2). With the parameter values above, $\Delta t = 1000$ years, so our total run duration will be one million years. Remember, though, that the same code could be used for any diffusion application with a source term. For instance, we could model conductive heat flow, with $k_d$ representing thermal diffusivity and $uplift\_rate$ representing steady head input.
+
+
+\subsection{Creating and Configuring the Grid}
+
+\lstinputlisting[firstnumber=34,firstline=34,lastline=39]{diffusion_with_model_grid.py}
+
+Our model grid is created with a call to \code{model\_grid.RasterModelGrid()}, which returns a raster model grid object. We then set up this grid with a call to its \code{initialize} method, passing it the desired grid dimensions and spacing.
+
+ModelGrid provides several options for managing boundary conditions. With a raster model grid, by default all of the grid's perimeter cells are boundaries. If we did nothing else, these cells would be treated as fixed-value (or {\em Dirichlet}) boundaries, maintaining their initial values throughout the duration of the run. For some applications, it is useful to have boundaries along which the gradient in a value of interest is zero. If the flux of some substance is proportional to this gradient, then imposing a zero-gradient along the boundaries is equivalent to a {\em no flux} condition. In our tutorial example, we will be modeling the uplift and erosion of a ridge that is bounded by a fixed base level on the top and bottom, and has no flux on the right and left. The call to the \code{set\_noflux\_boundaries} method on line 39 accomplishes this. The method takes four boolean arguments, which indicate whether there should be a zero-gradient boundary condition on the top, right, bottom, and left sides of the grid. Here we have set the flag to \code{True} for the right and left sides.
+
+
+\subsection{Creating Data}
+
+\lstinputlisting[firstnumber=41,firstline=41,lastline=50]{diffusion_with_model_grid.py}
+
+Our state variable, $z(x,y,t)$, represents the land surface elevation. One of the unique aspects of ModelGrid is that grid-based variables like $z$ are represented as 1D rather than 2D arrays. Why do it this way, if we have a regular grid that naturally lends itself to 2D arrays? The answer is that we might want to have an irregular, unstructured grid, which is much easier to handle with 1D arrays of values. By using 1D arrays for all types of ModelGrid, we allow the user to switch seamlessly between structured and unstructured grids.
+
+We create our data structure for $z$ values with a call to the \code{create\_cell\_dvector} method. The method simply returns a 1D numpy array filled with zeros. On the next line, we create a second array, \code{dzdt}, to store the time rate of change of elevation at each node. 
+
+Each of these arrays span the entire grid, including both interior and boundary cells. When we update elevation values, however, we will want to operate only on the interior (non-boundary) cells. To help with this, we obtain an of interior cell ID numbers with a call to the \code{get\_interior\_cells} method. Finally, we display a message to tell the user that we're about to run and with what time step size.
+
+
+
+
 
 
 

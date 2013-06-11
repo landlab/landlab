@@ -35,15 +35,15 @@ def main():
     mg = model_grid.RasterModelGrid()
     mg.initialize(numrows, numcols, dx)
     
+    # Set the boundary conditions
+    mg.set_noflux_boundaries(False, True, False, True)
+
     # Set up scalar values
     z = mg.create_cell_dvector()     # node/cell elevations
     dzdt = mg.create_cell_dvector()  # node/cell rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_interior_cells()
-
-    # Set the boundary conditions
-    mg.set_noflux_boundaries(False, True, False, True)
 
     # Display a message
     print( 'Running diffusion_with_model_grid.py' )
