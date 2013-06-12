@@ -130,9 +130,56 @@ We create our data structure for $z$ values with a call to the \code{create\_cel
 Each of these arrays span the entire grid, including both interior and boundary cells. When we update elevation values, however, we will want to operate only on the interior (non-boundary) cells. To help with this, we obtain an of interior cell ID numbers with a call to the \code{get\_interior\_cells} method. Finally, we display a message to tell the user that we're about to run and with what time step size.
 
 
+\section{Main Loop}
+
+Our model implements a finite-volume solution to the diffusion equation. The idea here is that we calculate sediment fluxes around the perimeter of each cell. We then integrate these fluxes forward in time to calculate the net change in volume, which is divided by the cell's surface area to obtain an equivalent change in height. The numerical solution is given by:
+\begin{equation}
+\frac{d z_i}{dt} \approx \frac{z^{T+1}_i-z^T_i}{\Delta t}
+= - \frac{1}{\Lambda_i} \sum_{j=1}^{N_i} \mathbf{q}_{Sij}^T \lambda_{ij}.
+\label{eq:dzdt}
+\end{equation}
+Here, $z_i^T$ is the elevation at node $i$ at time step $T$, $t$ is time, $\Lambda_i$ is the surface area of cell $i$, $N_i$ is the number of cells adjacent to $i$ (called the cell's {\em neighbors}), $\mathbf{q}_{Sij}^T$ is the sediment flux per unit face width from cell $i$ to cell $j$, and $\lambda_{ij}$ is the width of the face between cells $i$ and $j$. The flux between a pair of adjacent cells is the product of the slope (positive upward) between their associated nodes, $\mathbf{S}_{ij}$, and a transport coefficient, $k_d$,
+\begin{equation}
+\mathbf{q}_{Sij} = - k_d \mathbf{S}_{ij} = - k_d \frac{z_j-z_i}{L_{ij}}
+\end{equation}
+where $L_{ij}$ is the length of the link connecting nodes $i$ and $j$. Notice that elevation values (which are scalars) are associated with nodes, while slopes and sediment fluxes (which are vectors) are associated with links and faces. If we want to think of the slopes and fluxes as being calculated at a particular point, that point is the junction between a link and its corresponding face (Figure~\ref{grid}).
+
+\subsection{Calculating gradients and sediment fluxes}
+
+\lstinputlisting[firstnumber=55,firstline=55,lastline=60]{diffusion_with_model_grid.py}
+
+In order to calculate new elevation values, the first quantities we need to know are the gradient (slope) values between all the node pairs. We can calculate this in a single line of code using ModelGrid's \code{calculate\_face\_gradients} method. This method takes a single argument: a 1D numpy array of scalar values associated with nodes. The length of this array must be the same as the number of nodes in the grid. The method calculates the gradients in \code{z} between each pair of nodes. It returns a 1D numpy array, \code{g} (for gradient), the size of which is the same as the number of links in the grid.
+
+[PUT IN A NOTE HERE EXPLAINING HOW WE KNOW THE DIRECTION]
+
+To calculate the sediment fluxes, we multiply each gradient value by the transport coefficient \code{kd}. The minus sign simply means that the sediment goes downhill: where the gradient is negative, the flux should be positive, and vice versa. Here, we are taking advantage of numpy's ability to perform mathematical operations on entire arrays in a single line of code, rather than having to write out a \code{for} loop. Line 60 in our code multiplies \code{ks} by every value of \code{g}, and returns the result as a numpy array the same size as \code{g}.
+
+\subsection{Calculating net fluxes in and out of cells}
+
+\lstinputlisting[firstnumber=62,firstline=62,lastline=63]{diffusion_with_model_grid.py}
+
+Now that we know the unit fluxes associated with each cell face, the next thing we need to do is add up the total flux around the perimeter of each cell. In other words, we need to calculate the summation in equation (\ref{eq:dzdt}). ModelGrid allows us to do this in one line of code, by calling the \code{calculate\_flux\_divergence} method. This method takes a single argument: a 1D numpy array containing the flux per unit width at each face in the grid. The method multiplies each unit flux by its corresponding face width, adds up the fluxes across each face for each cell, and divides the result by the surface area of the cell. It returns a 1D numpy array that contains the net rate of change of volume per unit cell area. The length of this array is the same as the number of cells in the grid. Note, though, that the returned value will be zero for any and all boundary cells. In our diffusion example, we will store the result in \code{dasds}.
+
+\subsection{Calculating rates of elevation change and updating elevations}
+
+\lstinputlisting[firstnumber=65,firstline=65,lastline=70]{diffusion_with_model_grid.py}
+
+When we calculated flux divergence, we got back an array of numbers, \code{dasds}, that represent the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. We don't want to apply this calculation to the boundary cells, however. We therefore use a \code{for} loop to calculate the rate of elevation change \code{dzdt} at only the interior cells. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size. (Note that we could have combined the calculation of rates of change and updating of new elevations into a single line; this would slightly improve performance, but the code would be less clear).
+
+\subsection{Updating no-flux boundaries}
+
+\lstinputlisting[firstnumber=72,firstline=72,lastline=73]{diffusion_with_model_grid.py}
+
+The last step in the loop is to update any zero-gradient (no-flux) boundaries. The call to \code{update\_noflux\_boundaries} simply sets the elevation of any no-flux boundary nodes to the elevation of the adjacent interior neighbor. This way, the gradient and hence the flux will be zero at that interface.
 
 
+\section{Plotting the Result}
 
+\lstinputlisting[firstnumber=78,firstline=78,lastline=95]{diffusion_with_model_grid.py}
+
+The last section of the \code{main} function plots the result of our calculation. We do this using pylab's \code{imshow} and \code{contour} functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our \code{z} values through a call to RasterModelGrid's \code{cell\_vector\_to\_raster} method.
+
+The last two lines of code are standard Python syntax. They will execute the \code{main} function when the code is run, but not when the code is simply imported as a module.
 
 
  
