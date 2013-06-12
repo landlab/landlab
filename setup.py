@@ -21,6 +21,7 @@ setup(name='TheLandlab',
                ],
       entry_points={
           'console_scripts': [
+              'craters = landlab.components.craters:main',
               'landlab = landlab.cmd:main',
               'landlab_ex_1 = landlab.examples.diffusion2Dtest:main',
               'landlab_ex_2 = landlab.examples.diffusion2Dtest2:main',
