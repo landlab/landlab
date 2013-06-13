@@ -4,11 +4,19 @@
 Python implementation of d8 routing scheme for
 Landlab with a rectangular, uniform, mesh.
 
+Some issues that might come up ...
+This class relies on a method in model_grid called
+find_node_in_direction_of_max_slope.  That method does not do
+any boundary checking.  It needs to be done somewhere, maybe here,
+maybe there.  Alternatively, if boundary elevations are always set
+in a consistent way depending on the type of bounary, maybe no boundary
+checking is needed?
+
 Last updated NG 6/2013
 
 """
 
-from landlab.model_grid import RasterModelGrid
+#from landlab.model_grid import RasterModelGrid
 from numpy import *
 
 
