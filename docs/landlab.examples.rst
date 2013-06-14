@@ -25,6 +25,22 @@ examples Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`drainageArea` Module
+--------------------------
+
+.. automodule:: landlab.examples.drainageArea
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`drive_perron` Module
+--------------------------
+
+.. automodule:: landlab.examples.drive_perron
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`flowRoutingD8` Module
 ---------------------------
 

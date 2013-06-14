@@ -17,6 +17,14 @@ tests Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`test_landlab` Module
+--------------------------
+
+.. automodule:: landlab.tests.test_landlab
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`test_param_dict` Module
 -----------------------------
 
