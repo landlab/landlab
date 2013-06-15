@@ -237,9 +237,12 @@ class RasterModelGrid ( ModelGrid ):
         # Basic info about raster size and shape
         self.nrows = num_rows
         self.ncols = num_cols
-        self.ncells = num_rows * num_cols
+        self.ncells = num_rows * num_cols # soon to be deprecated, June 2013
         self.dx = dx
         self.cellarea = dx*dx
+        self.num_nodes = num_rows * num_cols
+        self.num_cells = (num_rows-2) * (num_cols-2)
+        self.num_links = num_cols*(num_rows-1)+num_rows*(num_cols-1)
         
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
@@ -938,3 +941,25 @@ class RasterModelGrid ( ModelGrid ):
                or ( cid1==self.tocell[fid] and cid2==self.fromcell[fid] ) ) ):
                 return fid
         return -1
+        
+    def unit_test( self ):
+        
+        print 'Performing unit test for RasterModelGrid ...'
+        print
+        
+        num_rows_for_unit_test = 5
+        num_cols_for_unit_test = 4
+        
+        print 'Initializing ...'
+        self.initialize( num_rows_for_unit_test, 
+                         num_cols_for_unit_test,
+                         1.0 )
+        print 'done.'
+        print
+        
+        print 'Testing numbers of elements (correct values in parens):'
+        print('num_nodes: '+str(self.num_nodes)+' (20)')
+        print('num_cells: '+str(self.num_cells)+' (6)')
+        print('num_links: '+str(self.num_links)+' (31)')
+        
+        
