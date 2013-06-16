@@ -1,0 +1,53 @@
+
+\documentclass[12pt]{amsart}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\usepackage{booktabs}
+\usepackage{topcapt}
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+
+\title{Model Grid Design and Programming Notes}
+\author{Greg Tucker}
+\date{June 2013} % delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+%\tableofcontents
+
+\section{Raster Model Grid}
+
+\subsection{Grid Element Numbers and Numbering}
+
+A basic raster model grid consists of a rectangular matrix of nodes with $R$ rows and $C$ columns. Here I list the numbers and numbering schemes for the various elements in the grid, for the default case in which all perimeter nodes are open boundaries, and all interior nodes and all cells are active. Note that grids with different boundary conditions will have different numbers of active links/edges and active faces. 
+
+As a template example, I also list the numbers of elements for a 5-column by 4-row grid in two cases: all open boundaries, and only bottom and right boundaries open.
+
+% Requires the booktabs if the memoir class is not being used
+\begin{table}[htbp]
+   \centering
+   \topcaption{Formulas for numbers of elements in a rectangular grid with $R$ rows and $C$ columns} % requires the topcapt package
+   \begin{tabular}{@{} lccc @{}} % Column formatting, @{} suppresses leading/trailing space
+      \toprule
+      %\multicolumn{2}{c}{Item} \\
+      %\cmidrule(r){1-2} % Partial rule. (r) trims the line a little bit on the right; (l) & (lr) also possible
+      Element & Formula & $4\times 5$ Grid & $4\times 5$ Grid \\
+       &  & (all open) & (right, bottom) \\
+      \midrule
+      Nodes         & $RC$ & 20 & 20 \\
+      Cells           & $(R-2)(C-2)$ & 6 & 6 \\
+      Active cells & $(R-2)(C-2)$ & 6 & 6 \\
+      Links           & $C(R-1)+R(C-1)$ & 31 & 31 \\
+      Active links & $(R-1)(C-2)+(R-2)(C-1)$ & 17 & 12 \\
+      Corners      & $(R-1)(C-1)$ & 12 & 12 \\
+      Faces         & $(R-1)(C-2)+(R-2)(C-1)$ & 17 & 17 \\
+      Active faces & $(R-1)(C-2)+(R-2)(C-1)$ & 17 & 12 \\
+      \bottomrule
+   \end{tabular}
+   %\caption{Remember, \emph{never} use vertical lines in tables.}
+   \label{tab:formulas}
+\end{table}
+
+\end{document}
