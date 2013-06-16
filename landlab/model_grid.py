@@ -210,8 +210,9 @@ class RasterModelGrid ( ModelGrid ):
         """
     
         #print 'RasterModelGrid.init'
-        self.ncells = num_rows * num_cols
-        if self.ncells > 0:
+        self.ncells = num_rows * num_cols   #TBX
+        self.num_nodes = num_rows * num_cols
+        if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )
 
     def initialize( self, num_rows, num_cols, dx ):
@@ -242,7 +243,9 @@ class RasterModelGrid ( ModelGrid ):
         self.cellarea = dx*dx
         self.num_nodes = num_rows * num_cols
         self.num_cells = (num_rows-2) * (num_cols-2)
+        self.num_active_cells = self.num_cells
         self.num_links = num_cols*(num_rows-1)+num_rows*(num_cols-1)
+        self.num_active_links = self.num_links-(2*(num_cols-1)+2*(num_rows-1))
         
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
@@ -472,14 +475,20 @@ class RasterModelGrid ( ModelGrid ):
             
         self.default_bc = BoundaryCondition( self.n_boundary_cells )
         
-        # Store cell x and y coordinates
-        self.cellx = zeros( self.ncells )
-        self.celly = zeros( self.ncells )
+        # Store node x and y coordinates
+        self.cellx = zeros( self.ncells )  #TBX
+        self.celly = zeros( self.ncells )  #TBX
+        self.node_x = zeros( self.num_nodes )
+        self.node_y = zeros( self.num_nodes )
+        self.node_z = zeros( self.num_nodes )
         id = 0
         for r in range( 0, num_rows ):
             for c in xrange( 0, num_cols ):
                 self.cellx[id] = c*self.dx
                 self.celly[id] = r*self.dx
+                self.node_x[id] = c*self.dx
+                self.node_y[id] = r*self.dx
+                self.node_z[id] = 0.0
                 id += 1
 
     def get_grid_xdimension(self):
@@ -947,8 +956,8 @@ class RasterModelGrid ( ModelGrid ):
         print 'Performing unit test for RasterModelGrid ...'
         print
         
-        num_rows_for_unit_test = 5
-        num_cols_for_unit_test = 4
+        num_rows_for_unit_test = 4
+        num_cols_for_unit_test = 5
         
         print 'Initializing ...'
         self.initialize( num_rows_for_unit_test, 
@@ -961,5 +970,12 @@ class RasterModelGrid ( ModelGrid ):
         print('num_nodes: '+str(self.num_nodes)+' (20)')
         print('num_cells: '+str(self.num_cells)+' (6)')
         print('num_links: '+str(self.num_links)+' (31)')
+        print('num_active_links: '+str(self.num_active_links)+' (17)')
+        print
         
+        print 'Testing node lists:'
+        for node in range( 0, self.num_nodes ):
+            print(str(node)+' '+str(self.node_x[node])+' '
+                  +str(self.node_y[node])+' '
+                  +str(self.node_z[node]))
         
