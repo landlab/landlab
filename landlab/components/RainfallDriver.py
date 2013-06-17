@@ -70,7 +70,6 @@ class PrecipitationDistribution:
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
-        #input_file.close()
 
 
     def update(self):
