@@ -9,18 +9,18 @@ tests Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_collections` Module
-------------------------------
+:mod:`run_raster_model_grid_builtin_unit_test` Module
+-----------------------------------------------------
 
-.. automodule:: landlab.tests.test_collections
+.. automodule:: landlab.tests.run_raster_model_grid_builtin_unit_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_landlab` Module
---------------------------
+:mod:`test_collections` Module
+------------------------------
 
-.. automodule:: landlab.tests.test_landlab
+.. automodule:: landlab.tests.test_collections
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,22 @@
 components Package
 ==================
 
+:mod:`RainfallDriver` Module
+----------------------------
+
+.. automodule:: landlab.components.RainfallDriver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`RainfallDriver_Test` Module
+---------------------------------
+
+.. automodule:: landlab.components.RainfallDriver_Test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`craters` Module
 ---------------------
 

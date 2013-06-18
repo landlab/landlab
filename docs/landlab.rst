@@ -17,22 +17,6 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`config` Module
---------------------
-
-.. automodule:: landlab.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`craters` Module
----------------------
-
-.. automodule:: landlab.craters
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`model_grid` Module
 ------------------------
 
@@ -45,22 +29,6 @@ landlab Package
 ----------------------------------------
 
 .. automodule:: landlab.model_parameter_dictionary
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`perron_nl_diff_funcs.0` Module
-------------------------------------
-
-.. automodule:: landlab.perron_nl_diff_funcs.0
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`perron_nl_diff_funcs` Module
-----------------------------------
-
-.. automodule:: landlab.perron_nl_diff_funcs
     :members:
     :undoc-members:
     :show-inheritance:
