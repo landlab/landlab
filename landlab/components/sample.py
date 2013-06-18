@@ -1,9 +1,11 @@
 #import numpy as np
 
 from landlab import Implements, ImplementsOrRaise
-from cmt.bmi import BmiBase, BmiNoGrid
+from landlab.framework.interfaces import BmiBase, BmiNoGrid
 
-@ImplementsOrRaise(BmiBase)
+
+#@ImplementsOrRaise(BmiBase)
+@Implements(BmiBase)
 class Sample1(object):
     """
     A sample component.

@@ -4,8 +4,8 @@ import numpy as np
 from scipy import ndimage
 
 from landlab import Implements
-from cmt.bmi import (BmiBase, BmiUniformRectilinear,
-                     BadVarNameError, GRID_TYPE_UNIFORM)
+from landlab.framework.interfaces import (BmiBase, BmiUniformRectilinear,
+                                          BadVarNameError, GRID_TYPE_UNIFORM)
 
 
 #@ImplementsOrRaise(BmiBase, BmiUniformRectilinear)

@@ -6,7 +6,7 @@ Collections of components
 import inspect
 
 #from landlab.interfaces import BmiBase
-from cmt.bmi import BmiBase
+from landlab.framework.interfaces import BmiBase
 from landlab.framework.decorators import is_implementation
 
 

@@ -4,7 +4,7 @@ Utility functions for loading components for The Landlab.
 """
 
 import os
-from cmt.bmi import BmiBase
+from landlab.framework.interfaces import BmiBase
 
 
 _COMPONENT_PATH = [
