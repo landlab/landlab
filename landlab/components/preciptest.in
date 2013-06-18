@@ -1,0 +1,6 @@
+mean_storm: mean storm duration, [ T ] units may vary, depend on intensity units
+1.0
+mean_intensity: mean storm intensity, [L/T] units may vary
+20.0
+mean_interstorm: mean storm intensity, [ T ] units may vary, see mean_storm
+2.0
