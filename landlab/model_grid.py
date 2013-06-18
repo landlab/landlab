@@ -19,20 +19,24 @@ class BoundaryCondition:
           - 1 = fixed value
           - 2 = fixed gradient
           - 3 = tracks cell
+          - 4 = no-flux / inactive
+          
         * A list of boundary gradients
         * A list of cell IDs to track
     """
     def __init__( self, n_boundary_cells = 0 ):
     
         # Create the 3 vectors
-        self.boundary_code = zeros( n_boundary_cells, dtype = short )
-        self.boundary_gradient = zeros( n_boundary_cells, dtype = double )
-        self.tracks_cell = zeros( n_boundary_cells, dtype = long )
+        self.boundary_code = numpy.zeros( n_boundary_cells, dtype = short )
+        self.boundary_gradient = numpy.zeros( n_boundary_cells, dtype = double )
+        self.tracks_cell = numpy.zeros( n_boundary_cells, dtype = long )
         
         # Define the boundary-type codes
+        self.INTERIOR_NODE = 0
         self.FIXED_VALUE_BOUNDARY = 1
         self.FIXED_GRADIENT_BOUNDARY = 2
         self.TRACKS_CELL_BOUNDARY = 3
+        self.INACTIVE_BOUNDARY = 4
 
         # Set defaults
         self.boundary_code[:] = self.FIXED_VALUE_BOUNDARY
@@ -69,15 +73,15 @@ class ModelGrid:
         the number of cells.
         """
     
-        return zeros( self.ncells )
+        return numpy.zeros( self.ncells )
 
     def create_node_dvector( self ):
         """
         Returns a vector of floating point numbers the same length as 
-        the number of nodes. Same as create_cell_dvector.
+        the number of nodes.
         """
     
-        return zeros( self.ncells )
+        return numpy.zeros( self.num_nodes )
 
     def create_boundary_condition( self ):
         """
@@ -93,7 +97,7 @@ class ModelGrid:
         the number of interior faces.
         """
     
-        return zeros( self.nfaces )
+        return numpy.zeros( self.num_faces )
 
     def calculate_face_gradients( self, u ):
         """
@@ -104,9 +108,9 @@ class ModelGrid:
             grids this needs to use link length associated with each face!
         """
     
-        g = zeros( self.nfaces )
-        print 'nfaces'
-        print self.nfaces
+        g = numpy.zeros( self.nfaces )
+        #print 'nfaces'
+        #print self.num_faces
         g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
         #for i in arange( 0, self.nfaces ):
             #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self.dx
@@ -184,7 +188,7 @@ class ModelGrid:
         both.
         """
         
-        fv = zeros( self.nfaces )
+        fv = numpy.zeros( self.nfaces )
         if len(v) < len(u):
             for i in xrange( 0, self.nfaces ):
                 fv[i] = max( u[self.fromcell[i]], u[self.tocell[i]] )
@@ -208,8 +212,16 @@ class RasterModelGrid ( ModelGrid ):
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
         """
-    
         #print 'RasterModelGrid.init'
+        
+        # Define the boundary-type codes
+        self.INTERIOR_NODE = 0
+        self.FIXED_VALUE_BOUNDARY = 1
+        self.FIXED_GRADIENT_BOUNDARY = 2
+        self.TRACKS_CELL_BOUNDARY = 3
+        self.INACTIVE_BOUNDARY = 4        
+        
+        # Set number of nodes, and initialize if caller has given dimensions
         self.ncells = num_rows * num_cols   #TBX
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
@@ -249,7 +261,7 @@ class RasterModelGrid ( ModelGrid ):
         
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
-        assert self.ncells >= 9
+        assert self.num_nodes >= 9
 
         # Record number of boundary and interior cells and the number
         # of interior faces. Ultimately, this info could be overridden
@@ -258,11 +270,81 @@ class RasterModelGrid ( ModelGrid ):
         # between boundary cells.
         self.n_boundary_cells = 2 * ( num_rows - 2 ) + 2 * ( num_cols - 2 ) + 4
         self.n_interior_cells = self.ncells - self.n_boundary_cells
-        self.nfaces = ( num_rows - 1 ) * ( num_cols - 2 ) + \
+        self.num_faces = ( num_rows - 1 ) * ( num_cols - 2 ) + \
                       ( num_rows - 2 ) * ( num_cols - 1 )
+        self.nfaces = self.num_faces # TBX; for backward compatibility
         if self.debug:
-            print self.nfaces
+            print self.num_faces
         
+        # Assign and store node (x,y,z) coordinates.
+        #
+        # The relation between node (x,y) coordinates and position is
+        # illustrated here for a five-column, four-row grid. The numbers show
+        # node positions, and the - and | symbols show the links connecting
+        # the nodes.
+        #
+        # 15------16------17------18------19
+        #  |       |       |       |       |
+        #  |       |       |       |       |
+        #  |       |       |       |       |
+        # 10------11------12------13------14
+        #  |       |       |       |       |
+        #  |       |       |       |       |   
+        #  |       |       |       |       |
+        #  5-------6-------7-------8-------9
+        #  |       |       |       |       |
+        #  |       |       |       |       |
+        #  |       |       |       |       |
+        #  0-------1-------2-------3-------4
+        #
+        self.cellx = numpy.zeros( self.ncells )  #TBX
+        self.celly = numpy.zeros( self.ncells )  #TBX
+        self.node_x = numpy.zeros( self.num_nodes )
+        self.node_y = numpy.zeros( self.num_nodes )
+        self.node_z = numpy.zeros( self.num_nodes )
+        id = 0
+        for r in range( 0, num_rows ):
+            for c in xrange( 0, num_cols ):
+                self.cellx[id] = c*self.dx  #TBX
+                self.celly[id] = r*self.dx  #TBX
+                self.node_x[id] = c*self.dx
+                self.node_y[id] = r*self.dx
+                self.node_z[id] = 0.0
+                id += 1
+
+        # Node boundary/active status:
+        # Next, we set up an array of "node status" values, which indicate 
+        # whether a given node is an active, non-boundary node, or some type of 
+        # boundary. Here we default to having all perimeter nodes be active
+        # fixed-value boundaries.
+        self.node_status = numpy.zeros( self.num_nodes, numpy.int8 )
+        self.node_status[:] = self.INTERIOR_NODE
+        bottom = range(0, num_cols)
+        top = range(num_cols*(num_rows-1), self.num_nodes) 
+        left = range(0, self.num_nodes, num_cols)
+        right = range(num_cols-1, self.num_nodes, num_cols)
+        self.node_status[bottom] = self.FIXED_VALUE_BOUNDARY
+        self.node_status[top] = self.FIXED_VALUE_BOUNDARY
+        self.node_status[left] = self.FIXED_VALUE_BOUNDARY
+        self.node_status[right] = self.FIXED_VALUE_BOUNDARY
+        
+        # Cell lists:
+        # For all cells, we create a list of the corresponding node ID for 
+        # each cell.
+        # We also have a list of the cell IDs of all active cells. By default,
+        # all cells are active, so for example if there are six cells, the
+        # self.active_cells list reads: 0, 1, 2, 3, 4, 5
+        self.cell_node = []
+        node_id = 0
+        for r in range(0, num_rows):
+            for c in range(0, num_cols):
+                if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
+                    self.cell_node.append(node_id)
+                node_id += 1
+        self.active_cells = list(range(0, len(self.cell_node)))        
+        
+        #--------OLDER STUFF BELOW----------
+
         # Keep track of pairs of cells that lie on either side of
         # each face. Cells are numbered 0=(0,0), 1=(0,1), 2=(0,2), etc.
         # Faces are numbered as follows: first vertical faces, going
@@ -293,10 +375,10 @@ class RasterModelGrid ( ModelGrid ):
         # Along the way, we store the x and y coordinates of the center
         # of each face.
         #
-        self.fromcell = zeros( self.nfaces, dtype = int )
-        self.tocell = zeros( self.nfaces, dtype = int )
-        self.facex = zeros( self.nfaces )
-        self.facey = zeros( self.nfaces )
+        self.fromcell = numpy.zeros( self.nfaces, dtype = int ) #TBX
+        self.tocell = numpy.zeros( self.nfaces, dtype = int ) #TBX
+        self.facex = numpy.zeros( self.nfaces ) #TBX
+        self.facey = numpy.zeros( self.nfaces ) #TBX
         halfdx = self.dx / 2.0
         face_id = 0
         for r in xrange( 1, num_rows-1 ):
@@ -381,7 +463,7 @@ class RasterModelGrid ( ModelGrid ):
         # into the cell (the cell is higher than its neighbor on the other
         # side of the face), and negative when you "walk downhill" to the
         # cell (the cell is lower than its neighbor).
-        self.face_sign = zeros( [self.ncells, 4], dtype=short )
+        self.face_sign = numpy.zeros( [self.ncells, 4], dtype=short )
         self.face_sign[:,0:2] = -1
         self.face_sign[:,2:] = 1
         if self.debug:
@@ -390,7 +472,7 @@ class RasterModelGrid ( ModelGrid ):
         # Set up list of interior cells
         # (Note that this could be superceded if you wanted an irregular
         # boundary inside the rectangular grid)
-        self.interior_cells = zeros( self.n_interior_cells, dtype=int )
+        self.interior_cells = numpy.zeros( self.n_interior_cells, dtype=int )
         id = 0
         for r in xrange( 1, num_rows-1 ):
             for c in range( 1, num_cols-1 ):
@@ -450,7 +532,7 @@ class RasterModelGrid ( ModelGrid ):
         # boundary inside the rectangular grid)
         #
         self.boundary_ids = -ones( self.ncells, dtype=int )
-        self.boundary_cells = zeros( self.n_boundary_cells, dtype=int )
+        self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
         id = 0
         for r in xrange( 0, num_cols-1 ):       # Bottom
             self.boundary_cells[id] = r
@@ -475,22 +557,6 @@ class RasterModelGrid ( ModelGrid ):
             
         self.default_bc = BoundaryCondition( self.n_boundary_cells )
         
-        # Store node x and y coordinates
-        self.cellx = zeros( self.ncells )  #TBX
-        self.celly = zeros( self.ncells )  #TBX
-        self.node_x = zeros( self.num_nodes )
-        self.node_y = zeros( self.num_nodes )
-        self.node_z = zeros( self.num_nodes )
-        id = 0
-        for r in range( 0, num_rows ):
-            for c in xrange( 0, num_cols ):
-                self.cellx[id] = c*self.dx
-                self.celly[id] = r*self.dx
-                self.node_x[id] = c*self.dx
-                self.node_y[id] = r*self.dx
-                self.node_z[id] = 0.0
-                id += 1
-
     def get_grid_xdimension(self):
         '''
         Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
@@ -733,7 +799,7 @@ class RasterModelGrid ( ModelGrid ):
         if self.debug:
             print 'RasterModelGrid.calculate_flux_divergences here'
         
-        fd = zeros( self.ncells )
+        fd = numpy.zeros( self.ncells )
         for cell in self.interior_cells:
             if self.debug:
                 print 'Cell',cell
@@ -809,7 +875,7 @@ class RasterModelGrid ( ModelGrid ):
         can be plotted, output, etc.
         """
     
-        rast = zeros( [self.nrows, self.ncols] )
+        rast = numpy.zeros( [self.nrows, self.ncols] )
         id = 0
         for r in xrange( 0, self.nrows ):
             rast[r,:] = u[id:(id+self.ncols)]
@@ -974,8 +1040,17 @@ class RasterModelGrid ( ModelGrid ):
         print
         
         print 'Testing node lists:'
+        print 'ID   X    Y    Z    Status'
         for node in range( 0, self.num_nodes ):
-            print(str(node)+' '+str(self.node_x[node])+' '
-                  +str(self.node_y[node])+' '
-                  +str(self.node_z[node]))
+            print(str(node)+'    '+str(self.node_x[node])+'  '
+                  +str(self.node_y[node])+'  '
+                  +str(self.node_z[node])+'  '
+                  +str(self.node_status[node]))
+        print
+        
+        print 'Testing list of nodes associated with each cell.'
+        print 'Node IDs should be: 6, 7, 8, 11, 12, 13'
+        print 'Cell Node'
+        for cell in range(0, len(self.cell_node)):
+            print(str(cell)+'    '+str(self.cell_node[cell]))
         
