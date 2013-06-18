@@ -57,11 +57,18 @@ class ModelGrid:
     an input grid from the user. Also a HexModelGrid for hexagonal.
     """
 
+    # Define the boundary-type codes
+    INTERIOR_NODE = 0
+    FIXED_VALUE_BOUNDARY = 1
+    FIXED_GRADIENT_BOUNDARY = 2
+    TRACKS_CELL_BOUNDARY = 3
+    INACTIVE_BOUNDARY = 4        
+
     #-------------------------------------------------------------------
     def __init__( self ):
-    
+        
         pass
-
+    
     #-------------------------------------------------------------------
     def initialize( self ):
     
@@ -200,6 +207,27 @@ class ModelGrid:
                     fv[i] = u[self.tocell[i]]
         return fv
         
+    def reset_list_of_active_links(self):
+        """
+        Creates or resets a list of active links. We do this by sweeping
+        through the given lists of from and to nodes, and checking the status
+        of these as given in the node_status list. A link is active if both its
+        nodes are active interior points, or if one is an active interior and
+        the other is an active boundary.
+        """
+        print 'reset here'
+        self.active_links = []
+        for link in range(0, len(self.link_fromnode)):
+            self.fromnode_status = self.node_status[self.link_fromnode[link]]
+            self.tonode_status = self.node_status[self.link_tonode[link]]
+            if ((self.fromnode_status==self.INTERIOR_NODE and
+                 not self.tonode_status==self.INACTIVE_BOUNDARY ) or
+                (self.tonode_status==self.INTERIOR_NODE and
+                 not self.fromnode_status==self.INACTIVE_BOUNDARY)):
+                self.active_links.append(link)
+        print 'active_links:'
+        print self.active_links
+            
         
 class RasterModelGrid ( ModelGrid ):
     """
@@ -213,13 +241,6 @@ class RasterModelGrid ( ModelGrid ):
         inputs. If this are given, calls initialize() to set up the grid.
         """
         #print 'RasterModelGrid.init'
-        
-        # Define the boundary-type codes
-        self.INTERIOR_NODE = 0
-        self.FIXED_VALUE_BOUNDARY = 1
-        self.FIXED_GRADIENT_BOUNDARY = 2
-        self.TRACKS_CELL_BOUNDARY = 3
-        self.INACTIVE_BOUNDARY = 4        
         
         # Set number of nodes, and initialize if caller has given dimensions
         self.ncells = num_rows * num_cols   #TBX
@@ -336,6 +357,20 @@ class RasterModelGrid ( ModelGrid ):
         # We also have a list of the cell IDs of all active cells. By default,
         # all cells are active, so for example if there are six cells, the
         # self.active_cells list reads: 0, 1, 2, 3, 4, 5
+        # 
+        # Cells and faces in a five-column, four-row grid look like this
+        # (where the numbers are cell IDs and lines show faces):
+        #
+        # |-------|-------|-------|
+        # |       |       |       |
+        # |   3   |   4   |   5   |
+        # |       |       |       |
+        # |-------|-------|-------|
+        # |       |       |       |
+        # |   0   |   1   |   2   |
+        # |       |       |       |
+        # |-------|-------|-------|
+        #
         self.cell_node = []
         node_id = 0
         for r in range(0, num_rows):
@@ -350,24 +385,27 @@ class RasterModelGrid ( ModelGrid ):
         # (if any) associated with the link. If the link does not intersect a
         # face, then face is assigned None.
         # For active links, we store the corresponding link ID.
-        # The numbering scheme for links in RasterModelGrid is illustrated with
-        # the example of a five-column by four-row grid (each * is a node):
         #
-        #  *--27---*--28---*--29---*--30---*
-        #  |       |       |       |       |
+        # The numbering scheme for links in RasterModelGrid is illustrated with
+        # the example of a five-column by four-row grid (each * is a node,
+        # the lines show links, and the ^ and > symbols indicate the direction
+        # of each link: up for vertical links, and right for horizontal ones):
+        #
+        #  *--27-->*--28-->*--29-->*--30-->*
+        #  ^       ^       ^       ^       ^
         # 10      11      12      13      14
         #  |       |       |       |       |
-        #  *--23---*--24---*--25---*--26---*
-        #  |       |       |       |       |
+        #  *--23-->*--24-->*--25-->*--26-->*
+        #  ^       ^       ^       ^       ^
         #  5       6       7       8       9   
         #  |       |       |       |       |
-        #  *--19---*--20---*--21---*--22---*
-        #  |       |       |       |       |
+        #  *--19-->*--20-->*--21-->*--22-->*
+        #  ^       ^       ^       ^       ^
         #  0       1       2       3       4
         #  |       |       |       |       |
-        #  *--15---*--16---*--17---*--18---*
+        #  *--15-->*--16-->*--17-->*--18-->*
         #
-        #   create the lists
+        #   create the fromnode and tonode lists
         self.link_fromnode = []
         self.link_tonode = []
         
@@ -383,6 +421,10 @@ class RasterModelGrid ( ModelGrid ):
                 self.link_fromnode.append(c+r*num_cols)
                 self.link_tonode.append(c+r*num_cols+1)
         
+        #   set up the list of active links
+        self.reset_list_of_active_links()
+        print 'self.active_links'
+        print self.active_links
            
         
         #--------OLDER STUFF BELOW----------
@@ -1138,3 +1180,9 @@ class RasterModelGrid ( ModelGrid ):
             print(str(link)+'  '+str(self.link_fromnode[link])+'    '
                   +str(self.link_tonode[link]))
         
+        print 'Testing list of active links:'
+        print 'List should be: 1,2,3,6,7,8,11,12,13,19,20,21,22,23,24,25,26'
+        print 'There should be 17 entries.'
+        print 'Active link ID  Link ID'
+        for act_link_id in range(0,len(self.active_links)):
+            print(str(act_link_id)+' '+str(self.active_links[act_link_id]))
