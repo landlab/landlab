@@ -255,6 +255,8 @@ class RasterModelGrid ( ModelGrid ):
         self.cellarea = dx*dx
         self.num_nodes = num_rows * num_cols
         self.num_cells = (num_rows-2) * (num_cols-2)
+        #NG this is quite confusing.  num_cells and num_active_cells are the 
+        #same.  Should it be this way?
         self.num_active_cells = self.num_cells
         self.num_links = num_cols*(num_rows-1)+num_rows*(num_cols-1)
         self.num_active_links = self.num_links-(2*(num_cols-1)+2*(num_rows-1))
@@ -608,6 +610,34 @@ class RasterModelGrid ( ModelGrid ):
         Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
         '''
         return (self.nrows * self.dx)
+        
+    def get_count_of_interior_cells(self):
+        """
+        Returns the number of interior cells on the grid.  
+        NG, June 2013
+        """
+        return(self.num_active_cells)
+        
+    def get_count_of_all_cells(self):
+        """
+        Returns total number of cells, including boundaries.  
+        NG, June 2013
+        """
+        return(self.num_nodes)
+        
+    def get_count_of_cols(self):
+        """
+        Returns the number of columns, including boundaries.  
+        NG, June 2013
+        """
+        return(self.ncols)
+        
+    def get_count_of_rows(self):
+        """
+        Returns the number of rows, including boundaries.  
+        NG, June 2013
+        """
+        return(self.nrows)
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
@@ -693,7 +723,9 @@ class RasterModelGrid ( ModelGrid ):
             It then returns the node ID in the direction of the steepest 
             (most positive) of these values,  i.e., this is a 
             D8 algorithm. Slopes downward from the cell are reported as positive.
-            Based on code from GT, modified by NG, 6/2013
+            Based on code from DH, modified by NG, 6/2013
+            
+            This doesn't do any boundary checking.  Maybe it should? 
         '''
         #We have poor functionality if these are edge cells! Needs an exception
         neighbor_cells = self.get_neighbor_list(cell_id)
