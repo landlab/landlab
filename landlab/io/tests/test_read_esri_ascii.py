@@ -13,9 +13,13 @@ from landlab.io import MissingRequiredKeyError, KeyTypeError, DataSizeError
 from landlab import RasterModelGrid
 
 
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+
+
 class TestReadEsriAsciiFileHugo(unittest.TestCase):
     def test_read_file_name(self):
-        (grid, field) = read_esri_ascii(os.path.join('data', 'hugo_site.asc'))
+        (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
+                                                     'hugo_site.asc'))
 
         self.assertIsInstance(grid, RasterModelGrid)
 
@@ -23,7 +27,7 @@ class TestReadEsriAsciiFileHugo(unittest.TestCase):
         self.assertEqual(field.shape, (55 * 76, ))
 
     def test_read_file_like(self):
-        with open(os.path.join('data', 'hugo_site.asc')) as asc_file:
+        with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
             (grid, field) = read_esri_ascii(asc_file)
 
         self.assertIsInstance(grid, RasterModelGrid)
@@ -32,7 +36,7 @@ class TestReadEsriAsciiFileHugo(unittest.TestCase):
         self.assertEqual(field.shape, (55 * 76, ))
 
     def test_reshape(self):
-        with open(os.path.join('data', 'hugo_site.asc')) as asc_file:
+        with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
             (grid, field) = read_esri_ascii(asc_file, reshape=True)
 
         self.assertIsInstance(grid, RasterModelGrid)
@@ -42,7 +46,8 @@ class TestReadEsriAsciiFileHugo(unittest.TestCase):
 
 class TestReadEsriAsciiFile4x3(unittest.TestCase):
     def test_read_file_name(self):
-        (grid, field) = read_esri_ascii(os.path.join('data', '4_x_3.asc'))
+        (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
+                                                     '4_x_3.asc'))
 
         self.assertIsInstance(grid, RasterModelGrid)
 
@@ -55,7 +60,7 @@ class TestReadEsriAsciiFile4x3(unittest.TestCase):
                                                ])
 
     def test_read_file_like(self):
-        with open(os.path.join('data', '4_x_3.asc')) as asc_file:
+        with open(os.path.join(_TEST_DATA_DIR, '4_x_3.asc')) as asc_file:
             (grid, field) = read_esri_ascii(asc_file)
 
         self.assertIsInstance(grid, RasterModelGrid)
