@@ -341,7 +341,47 @@ class RasterModelGrid ( ModelGrid ):
                 if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
                     self.cell_node.append(node_id)
                 node_id += 1
-        self.active_cells = list(range(0, len(self.cell_node)))        
+        self.active_cells = list(range(0, len(self.cell_node)))
+        
+        # Link lists:
+        # For all links, we encode the "from" and "to" nodes, and the face
+        # (if any) associated with the link. If the link does not intersect a
+        # face, then face is assigned None.
+        # For active links, we store the corresponding link ID.
+        # The numbering scheme for links in RasterModelGrid is illustrated with
+        # the example of a five-column by four-row grid (each * is a node):
+        #
+        #  *--27---*--28---*--29---*--30---*
+        #  |       |       |       |       |
+        # 10      11      12      13      14
+        #  |       |       |       |       |
+        #  *--23---*--24---*--25---*--26---*
+        #  |       |       |       |       |
+        #  5       6       7       8       9   
+        #  |       |       |       |       |
+        #  *--19---*--20---*--21---*--22---*
+        #  |       |       |       |       |
+        #  0       1       2       3       4
+        #  |       |       |       |       |
+        #  *--15---*--16---*--17---*--18---*
+        #
+        #   create the lists
+        self.link_fromnode = []
+        self.link_tonode = []
+        
+        #   vertical links
+        for r in range(0, num_rows-1):
+            for c in range(0, num_cols):
+                self.link_fromnode.append(c+r*num_cols)
+                self.link_tonode.append(c+(r+1)*num_cols)
+        
+        #   horizontal links
+        for r in range(0, num_rows):
+            for c in range(0, num_cols-1):
+                self.link_fromnode.append(c+r*num_cols)
+                self.link_tonode.append(c+r*num_cols+1)
+        
+           
         
         #--------OLDER STUFF BELOW----------
 
@@ -1053,4 +1093,16 @@ class RasterModelGrid ( ModelGrid ):
         print 'Cell Node'
         for cell in range(0, len(self.cell_node)):
             print(str(cell)+'    '+str(self.cell_node[cell]))
+        print
+        
+        print 'Testing link nodes:'
+        print('Length of link_fromnode list: '+str(len(self.link_fromnode))+
+              ' (31)')
+        print('Length of link_tonode list: '+str(len(self.link_tonode))+' (31)')
+        print 'The list should start with 0 0 5, 1 1 6, ...'
+        print 'and end with ..., 29 17 18, 30 18 19'
+        print 'ID From To'
+        for link in range(0, self.num_links):
+            print(str(link)+'  '+str(self.link_fromnode[link])+'    '
+                  +str(self.link_tonode[link]))
         
