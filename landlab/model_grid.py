@@ -124,6 +124,26 @@ class ModelGrid:
             #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
         return g
         
+    def calculate_gradients_at_active_links(self, s, gradient=None):
+        """
+        Calculates the gradient in quantity s at each active link in the grid.
+        """
+        
+        if gradient==None:
+            gradient = numpy.zeros(self.num_active_links)
+            
+        assert (len(gradient)==self.num_active_links), \
+                "len(gradient)!=num_active_links"
+                
+        active_link_id = 0
+        for link_id in self.active_links:
+            gradient[active_link_id] = (s[self.link_tonode[link_id]]
+                                        -s[self.link_fromnode[link_id]]) / \
+                                        self.link_length[link_id]
+            active_link_id += 1
+        
+        return gradient
+        
     def calculate_flux_divergences( self, q ):
         """
         At the moment, this is just a virtual function that does nothing,
@@ -1186,3 +1206,18 @@ class RasterModelGrid ( ModelGrid ):
         print 'Active link ID  Link ID'
         for act_link_id in range(0,len(self.active_links)):
             print(str(act_link_id)+' '+str(self.active_links[act_link_id]))
+            
+        print 'Testing gradient calculation functions'
+        self.link_length = numpy.ones(self.num_links)
+        u = self.create_node_dvector()
+        for i in range(0,self.num_nodes):
+            u[i] = i
+        grad1 = self.calculate_gradients_at_active_links(u)
+        print grad1
+        grad1 = 0.1*grad1
+        grad2 = self.calculate_gradients_at_active_links(u, grad1)
+        print grad1
+        print grad2
+        grad1[10:12] = 100.0
+        print grad1
+        print grad2
