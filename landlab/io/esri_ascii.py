@@ -200,7 +200,7 @@ def _read_asc_data(asc_file, header={}):
     #return np.genfromtxt(asc_file)
 
 
-def read_esri_ascii(asc_file):
+def read_esri_ascii(asc_file, reshape=False):
     """
     Read data from *asc_file*, an ESRI_ ASCII file, into a
     :py:class:`~landlab.model_grid.RasterModelGrid`.  *asc_file* is either
@@ -228,9 +228,14 @@ def read_esri_ascii(asc_file):
     origin = (header['xllcorner'], header['yllcorner'])
 
     try:
-        data.shape = shape
-    except ValueError:
+        assert(data.size == shape[0] * shape[1])
+    except AssertionError:
         raise DataSizeError(shape[0] * shape[1], data.size)
+
+    if reshape:
+        data.shape = shape
+    else:
+        data.shape = (shape[0] * shape[1], )
 
     grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
                            dx=spacing[0])

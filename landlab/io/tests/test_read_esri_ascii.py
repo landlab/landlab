@@ -19,11 +19,21 @@ class TestReadEsriAsciiFileHugo(unittest.TestCase):
 
         self.assertIsInstance(grid, RasterModelGrid)
 
-        self.assertTrue(field.shape, (55, 76))
+        self.assertEqual(field.size, 55 * 76)
+        self.assertEqual(field.shape, (55 * 76, ))
 
     def test_read_file_like(self):
         with open(os.path.join('data', 'hugo_site.asc')) as asc_file:
             (grid, field) = read_esri_ascii(asc_file)
+
+        self.assertIsInstance(grid, RasterModelGrid)
+
+        self.assertEqual(field.size, 55 * 76)
+        self.assertEqual(field.shape, (55 * 76, ))
+
+    def test_reshape(self):
+        with open(os.path.join('data', 'hugo_site.asc')) as asc_file:
+            (grid, field) = read_esri_ascii(asc_file, reshape=True)
 
         self.assertIsInstance(grid, RasterModelGrid)
 
@@ -37,7 +47,7 @@ class TestReadEsriAsciiFile4x3(unittest.TestCase):
         self.assertIsInstance(grid, RasterModelGrid)
 
         self.assertIsInstance(field, np.ndarray)
-        self.assertEqual(field.shape, (4, 3))
+        self.assertEqual(field.shape, (4 * 3, ))
         self.assertListEqual(list(field.flat), [0., 1., 2.,
                                                 3., 4., 5.,
                                                 6., 7., 8.,
@@ -51,7 +61,7 @@ class TestReadEsriAsciiFile4x3(unittest.TestCase):
         self.assertIsInstance(grid, RasterModelGrid)
 
         self.assertIsInstance(field, np.ndarray)
-        self.assertEqual(field.shape, (4, 3))
+        self.assertEqual(field.shape, (4 * 3, ))
         self.assertListEqual(list(field.flat), [0., 1., 2.,
                                                 3., 4., 5.,
                                                 6., 7., 8.,
