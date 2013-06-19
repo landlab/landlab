@@ -106,17 +106,21 @@ class ParameterValueError(Error):
         return '%s: %s is not of type %s' % (self._key, self._val, self._type)
 
 
-class ModelParameterDictionary(object):
+class ModelParameterDictionary(dict):
     """
     Reads model parameters from an input file to a dictionary
     and provides functions for the user to look up particular parameters
     by key name.
     """
-    def __init__(self):
+    def __init__(self, auto_type=False, from_file=None):
         """
         Create an empty dictionary.
         """
-        self.param_dict = {}
+        super(ModelParameterDictionary, self).__init__()
+
+        self._auto_type = auto_type
+        if from_file is not None:
+            self.read_from_file(from_file)
 
     def read_from_file(self, param_file):
         """
@@ -164,16 +168,39 @@ class ModelParameterDictionary(object):
                 last_key = line[0:last_key_char]  # remember the key
                 iskey = False
             else:
-                self.param_dict[last_key] = line
+                if self._auto_type:
+                    self[last_key] = self._auto_type_value(line)
+                else:
+                    self[last_key] = line
                 iskey = True
 
         input_file.close()
+
+    def _auto_type_value(self, line):
+        import numpy as np
+
+        if ',' in line:
+            try:
+                return np.array(line.split(','), np.int)
+            except ValueError:
+                try:
+                    return np.array(line.split(','), np.float)
+                except ValueError:
+                    return line
+        else:
+            try:
+                return int(line)
+            except ValueError:
+                try:
+                    return float(line)
+                except ValueError:
+                    return line
 
     def params(self):
         """
         Return a list of all the parameters names in the parameter dictionary.
         """
-        return self.param_dict.keys()
+        return self.keys()
 
     def read_int(self, key):
         """
@@ -185,11 +212,11 @@ class ModelParameterDictionary(object):
         not an integer.
         """
         try:
-            my_int = int(self.param_dict[key])
+            my_int = int(self[key])
         except KeyError:
             raise MissingKeyError(key)
         except ValueError:
-            raise ParameterValueError(key, self.param_dict[key], 'int')
+            raise ParameterValueError(key, self[key], 'int')
         else:
             return my_int
 
@@ -203,11 +230,11 @@ class ModelParameterDictionary(object):
         if its value is not a number.
         """
         try:
-            my_float = float(self.param_dict[key])
+            my_float = float(self[key])
         except KeyError:
             raise MissingKeyError(key)
         except ValueError:
-            raise ParameterValueError(key, self.param_dict[key], 'float')
+            raise ParameterValueError(key, self[key], 'float')
         else:
             return my_float
 
@@ -220,7 +247,7 @@ class ModelParameterDictionary(object):
         An error is generated if *key* isn't in the dictionary.
         """
         try:
-            my_value = self.param_dict[key]
+            my_value = self[key]
         except KeyError:
             raise MissingKeyError(key)
         return str(my_value)
@@ -232,7 +259,7 @@ class ModelParameterDictionary(object):
         An error is generated if MY_BOOL isn't 0, 1, True or False
         """
         try:
-            my_value = self.param_dict[key]
+            my_value = self[key]
         except KeyError:
             raise MissingKeyError(key)
 
@@ -253,7 +280,7 @@ class ModelParameterDictionary(object):
         An error is generated if *key* is not an integer.
         """
         my_value = input(key + ': ')
-        self.param_dict[key] = my_value
+        self[key] = my_value
         if not isinstance(my_value, int):
             raise ParameterValueError(key, my_value, 'int')
         return my_value
@@ -268,7 +295,7 @@ class ModelParameterDictionary(object):
         An error is generated if *key* is not a float.
         """
         my_value = input(key + ': ')
-        self.param_dict[key] = my_value
+        self[key] = my_value
         try:
             my_float = float(my_value)
         except ValueError:
@@ -284,7 +311,7 @@ class ModelParameterDictionary(object):
         Usage:  = read_string_cmdline('MY_STRING')
         """
         my_str = raw_input(key + ': ')
-        self.param_dict[key] = my_str
+        self[key] = my_str
         return my_str
 
     def read_bool_cmdline(self, key):

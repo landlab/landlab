@@ -4,12 +4,13 @@ Unit tests for landlab.model_parameter_dictionary
 """
 
 import unittest
+import numpy as np
 
 from landlab import ModelParameterDictionary
 from landlab.model_parameter_dictionary import (MissingKeyError,
                                                 ParameterValueError)
 
-_TEST_PARAM_DICT_FILE = """
+_TEST_PARAM_DICT_FILE = u"""
 # A Comment
 INT_VAL:
 1
@@ -27,20 +28,19 @@ False
 
 class TestModelParameterDictionary(unittest.TestCase):
     def setUp(self):
-        from StringIO import StringIO
+        from io import StringIO
         self.param_file = StringIO(_TEST_PARAM_DICT_FILE)
         self.param_dict = ModelParameterDictionary()
 
         self.param_dict.read_from_file(self.param_file)
 
     def test_read_file(self):
-        all_keys = [
+        all_keys = set([
             'FLOAT_VAL', 'INT_VAL', 'STRING_VAL', 'TRUE_BOOL_VAL',
             'FALSE_BOOL_VAL',
-        ]
-        all_keys.sort()
-        param_list = self.param_dict.params()
-        param_list.sort()
+        ])
+        param_list = set(self.param_dict.params())
+
         self.assertEqual(param_list, all_keys)
 
     def test_read_int(self):
@@ -81,6 +81,58 @@ class TestModelParameterDictionary(unittest.TestCase):
 
         with self.assertRaises(ParameterValueError):
             self.param_dict.read_bool('STRING_VAL')
+
+    def test_dict_keys(self):
+        all_keys = set([
+            'FLOAT_VAL', 'INT_VAL', 'STRING_VAL', 'TRUE_BOOL_VAL',
+            'FALSE_BOOL_VAL',
+        ])
+        self.assertEqual(set(self.param_dict), all_keys)
+        for key in all_keys:
+            self.assertTrue(key in self.param_dict)
+
+    def test_dict_index(self):
+        self.assertEqual(self.param_dict['INT_VAL'], '1')
+
+class TestModelParameterDictionaryAutoType(unittest.TestCase):
+    def setUp(self):
+        from io import StringIO
+
+        _TEST_FILE = u"""
+# A Comment
+INT_VAL:
+1
+DBL_VAL:
+1.2
+STR_VAL:
+    landlab
+INT_ARRAY_VAL:
+1,2 ,4 ,7
+
+DBL_ARRAY_VAL:
+1.,2. ,4. ,7.
+        """
+        self.param_dict = ModelParameterDictionary(
+            auto_type=True, from_file=StringIO(_TEST_FILE))
+
+    def test_auto_type(self):
+        self.assertEqual(self.param_dict['INT_VAL'], 1)
+        self.assertEqual(self.param_dict['DBL_VAL'], 1.2)
+        self.assertEqual(self.param_dict['STR_VAL'], 'landlab')
+
+    def _test_int_vector(self):
+        val = self.param_dict['INT_ARRAY_VAL']
+
+        self.assertEqual(list(val), [1, 2, 4, 7])
+        self.assertIsInstance(val, np.ndarray)
+        self.assertEqual(val.dtype, np.int)
+
+    def _test_float_vector(self):
+        val = self.param_dict['DBL_ARRAY_VAL']
+
+        self.assertEqual(list(val), [1., 2., 4., 7.])
+        self.assertIsInstance(val, np.ndarray)
+        self.assertEqual(val.dtype, np.float)
 
 
 if __name__ == '__main__':
