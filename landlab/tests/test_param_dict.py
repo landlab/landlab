@@ -28,7 +28,7 @@ False
 
 class TestModelParameterDictionary(unittest.TestCase):
     def setUp(self):
-        from io import StringIO
+        from StringIO import StringIO
         self.param_file = StringIO(_TEST_PARAM_DICT_FILE)
         self.param_dict = ModelParameterDictionary()
 
@@ -96,7 +96,7 @@ class TestModelParameterDictionary(unittest.TestCase):
 
 class TestModelParameterDictionaryAutoType(unittest.TestCase):
     def setUp(self):
-        from io import StringIO
+        from StringIO import StringIO
 
         _TEST_FILE = u"""
 # A Comment
@@ -106,6 +106,8 @@ DBL_VAL:
 1.2
 STR_VAL:
     landlab
+BOOL_VAL:
+true
 INT_ARRAY_VAL:
 1,2 ,4 ,7
 
@@ -119,15 +121,16 @@ DBL_ARRAY_VAL:
         self.assertEqual(self.param_dict['INT_VAL'], 1)
         self.assertEqual(self.param_dict['DBL_VAL'], 1.2)
         self.assertEqual(self.param_dict['STR_VAL'], 'landlab')
+        self.assertEqual(self.param_dict['BOOL_VAL'], True)
 
-    def _test_int_vector(self):
+    def test_int_vector(self):
         val = self.param_dict['INT_ARRAY_VAL']
 
         self.assertEqual(list(val), [1, 2, 4, 7])
         self.assertIsInstance(val, np.ndarray)
         self.assertEqual(val.dtype, np.int)
 
-    def _test_float_vector(self):
+    def test_float_vector(self):
         val = self.param_dict['DBL_ARRAY_VAL']
 
         self.assertEqual(list(val), [1., 2., 4., 7.])

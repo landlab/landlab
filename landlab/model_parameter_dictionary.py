@@ -72,8 +72,8 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 # Boston, MA 02110-1301 USA.
 
 
-_VALID_TRUE_VALUES = ['TRUE', '1', 1]
-_VALID_FALSE_VALUES = ['FALSE', '0', 0]
+_VALID_TRUE_VALUES = set(['TRUE', '1', 1])
+_VALID_FALSE_VALUES = set(['FALSE', '0', 0])
 
 
 class Error(Exception):
@@ -126,6 +126,8 @@ class ModelParameterDictionary(dict):
     ... 1
     ... DBL_VAL:
     ... 1.2
+    ... BOOL_VAL:
+    ... true
     ... INT_ARRAY: 
     ... 1,2,3
     ... DBL_ARRAY: 
@@ -144,12 +146,14 @@ class ModelParameterDictionary(dict):
     regular Python dictionary to get items, keys, etc.
 
     >>> print sorted(params.keys())
-    ['DBL_ARRAY', 'DBL_VAL', 'INT_ARRAY', 'INT_VAL', 'STR_VAL']
+    ['BOOL_VAL', 'DBL_ARRAY', 'DBL_VAL', 'INT_ARRAY', 'INT_VAL', 'STR_VAL']
 
     >>> print params['INT_VAL']
     1
     >>> print params['DBL_VAL']
     1.2
+    >>> print params['BOOL_VAL']
+    True
     >>> print params['STR_VAL']
     landlab is awesome!
 
@@ -242,13 +246,16 @@ class ModelParameterDictionary(dict):
                 except ValueError:
                     return line
         else:
-            try:
-                return int(line)
-            except ValueError:
+            if line.upper() in _VALID_TRUE_VALUES | _VALID_FALSE_VALUES:
+                return line.upper() in _VALID_TRUE_VALUES
+            else:
                 try:
-                    return float(line)
+                    return int(line)
                 except ValueError:
-                    return line
+                    try:
+                        return float(line)
+                    except ValueError:
+                        return line
 
     def params(self):
         """
