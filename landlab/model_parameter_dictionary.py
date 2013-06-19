@@ -8,29 +8,32 @@ ModelParameterDictionary object reads model parameters from an input
 file to a Dictionary, and provides functions for the user to look up
 particular parameters by key name.
 
-The format of the input file looks like:
+The format of the input file looks like::
 
-PI: the text "PI" is an example of a KEY
-3.1416
-AVOGADROS_NUMBER: this is another
-6.022e23
-FAVORITE_FRUIT: yet another
-mangoes
-NUMBER_OF_MANGO_WALKS: this one is an integer
-4
-ALSO_LIKES_APPLES: this is a boolean
-true
+    >>> from StringIO import StringIO
+    >>> param_file = StringIO(\"\"\"
+    ... PI: the text "PI" is an example of a KEY
+    ... 3.1416
+    ... AVOGADROS_NUMBER: this is another
+    ... 6.022e23
+    ... FAVORITE_FRUIT: yet another
+    ... mangoes
+    ... NUMBER_OF_MANGO_WALKS: this one is an integer
+    ... 4
+    ... ALSO_LIKES_APPLES: this is a boolean
+    ... true
+    ... \"\"\")
 
 Example code that reads these parameters from a file called
-"myinputs.txt":
+*myinputs.txt*:
 
-    my_param_dict = ModelParameterDictionary()
-    my_param_dict.read_from_file( 'myinputs.txt' )
-    pi = my_param_dict.read_float( 'PI' )
-    avogado = my_param_dict.read_float( 'AVOGADROS_NUMBER' )
-    fruit = my_param_dict.read_string( 'FAVORITE_FRUIT' )
-    nmang = my_param_dict.read_int( 'NUMBER_OF_MANGO_WALKS' )
-    apples_ok = my_param_dict.read_bool( 'ALSO_LIKES_APPLES' )
+    >>> my_param_dict = ModelParameterDictionary()
+    >>> my_param_dict.read_from_file(param_file)
+    >>> pi = my_param_dict.read_float('PI')
+    >>> avogado = my_param_dict.read_float('AVOGADROS_NUMBER')
+    >>> fruit = my_param_dict.read_string('FAVORITE_FRUIT')
+    >>> nmang = my_param_dict.read_int('NUMBER_OF_MANGO_WALKS')
+    >>> apples_ok = my_param_dict.read_bool('ALSO_LIKES_APPLES')
 
 As in Python, hash marks (#) denote comments. The rules are that each
 key must have one and only one parameter value, and each value must
@@ -69,8 +72,8 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 # Boston, MA 02110-1301 USA.
 
 
-_VALID_TRUE_VALUES = ['True', '1', 1]
-_VALID_FALSE_VALUES = ['False', '0', 0]
+_VALID_TRUE_VALUES = ['TRUE', '1', 1]
+_VALID_FALSE_VALUES = ['FALSE', '0', 0]
 
 
 class Error(Exception):
@@ -111,10 +114,61 @@ class ModelParameterDictionary(dict):
     Reads model parameters from an input file to a dictionary
     and provides functions for the user to look up particular parameters
     by key name.
+
+    Example
+    =======
+
+    Create a file-like object that contains a model parameter dictionary.
+
+    >>> from StringIO import StringIO
+    >>> test_file = StringIO(\"\"\"
+    ... INT_VAL:
+    ... 1
+    ... DBL_VAL:
+    ... 1.2
+    ... INT_ARRAY: 
+    ... 1,2,3
+    ... DBL_ARRAY: 
+    ... 1.,2.,3.
+    ... STR_VAL:
+    ... landlab is awesome!
+    ... \"\"\")
+
+    Create a ModelParameterDictionary, fill it with values from the
+    parameter dictionary, and try to convert each value string to its
+    intended type.
+
+    >>> params = ModelParameterDictionary(auto_type=True, from_file=test_file)
+
+    The returned ModelParameterDictionary can now be used just like a
+    regular Python dictionary to get items, keys, etc.
+
+    >>> print sorted(params.keys())
+    ['DBL_ARRAY', 'DBL_VAL', 'INT_ARRAY', 'INT_VAL', 'STR_VAL']
+
+    >>> print params['INT_VAL']
+    1
+    >>> print params['DBL_VAL']
+    1.2
+    >>> print params['STR_VAL']
+    landlab is awesome!
+
+    Lines containing commas are converted to numpy arrays. The type of the
+    array is determined by the values.
+
+    >>> type(params['DBL_ARRAY'])
+    <type 'numpy.ndarray'>
+    >>> print params['INT_ARRAY']
+    [1 2 3]
+    >>> print params['DBL_ARRAY']
+    [ 1.  2.  3.]
     """
     def __init__(self, auto_type=False, from_file=None):
         """
-        Create an empty dictionary.
+        Create an empty dictionary. If the keyword *auto_type* is True,
+        then guess at the type for each value. Use *from_file* to read
+        in a parameter file from a file-like object or a file with the
+        given file name.
         """
         super(ModelParameterDictionary, self).__init__()
 
@@ -263,9 +317,9 @@ class ModelParameterDictionary(dict):
         except KeyError:
             raise MissingKeyError(key)
 
-        if my_value in _VALID_TRUE_VALUES:
+        if my_value.upper() in _VALID_TRUE_VALUES:
             return True
-        elif my_value in _VALID_FALSE_VALUES:
+        elif my_value.upper() in _VALID_FALSE_VALUES:
             return False
         else:
             raise ParameterValueError(key, my_value, 'boolean')
@@ -324,9 +378,9 @@ class ModelParameterDictionary(dict):
         An error is generated if *key* is not a boolean.
         """
         my_value = raw_input(key + ': ')
-        if my_value in _VALID_TRUE_VALUES:
+        if my_value.upper() in _VALID_TRUE_VALUES:
             return True
-        elif my_value in _VALID_FALSE_VALUES:
+        elif my_value.upper() in _VALID_FALSE_VALUES:
             return False
         else:
             raise ParameterValueError(key, my_value, 'boolean')
