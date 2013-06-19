@@ -172,6 +172,10 @@ class ModelGrid:
         There should be one value per active link. Returns an array of net
         total flux per unit area, one value per active cell (creates this
         array if it is not given as an argument).
+          By convention, divergence is positive for net outflow, and 
+        negative for net outflow. That's why we *add* outgoing flux and
+        *subtract* incoming flux. This makes net_unit_flux have the same sign
+        and dimensions as a typical divergence term in a conservation equation.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -183,10 +187,33 @@ class ModelGrid:
         # If needed, create net_unit_flux array
         if net_unit_flux==False:
             net_unit_flux = numpy.zeros(self.num_active_cells)
+        else:
+            net_unit_flux[:] = 0.
             
         assert (len(net_unit_flux))==self.num_active_cells
         
-        #to be continued ...
+        # For each active link, add up the flux out of the "from" cell and 
+        # into the "to" cell.
+        active_link_id = 0
+        for link_id in self.active_links:
+            from_cell = self.node_activecell[self.link_fromnode[link_id]]
+            to_cell = self.node_activecell[self.link_tonode[link_id]]
+            total_flux = active_link_flux[active_link_id] * \
+                         self.face_width[self.link_face[link_id]]
+            print('Flux '+str(total_flux)+' from '+str(from_cell) \
+                  +' to '+str(to_cell)+' along link '+str(link_id))
+            if from_cell!=None:
+                net_unit_flux[from_cell] += total_flux
+                print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
+            if to_cell!=None:
+                net_unit_flux[to_cell] -= total_flux
+                print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
+            active_link_id += 1
+        
+        # Divide by cell area
+        net_unit_flux = net_unit_flux / self.active_cell_areas
+        
+        return net_unit_flux
         
     def x( self, id ):
         """
@@ -422,12 +449,21 @@ class RasterModelGrid ( ModelGrid ):
         # |       |       |       |
         # |-------|-------|-------|
         #
+        # While we're at it, we will also build the node_activecell list. This
+        # list records, for each node, the ID of its associated active cell, 
+        # or None if it has no associated active cell (i.e., it is a boundary)
         self.cell_node = []
+        self.node_activecell = []
         node_id = 0
+        cell_id = 0
         for r in range(0, num_rows):
             for c in range(0, num_cols):
                 if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
                     self.cell_node.append(node_id)
+                    self.node_activecell.append(cell_id)
+                    cell_id += 1
+                else:
+                    self.node_activecell.append(None)
                 node_id += 1
         self.active_cells = list(range(0, len(self.cell_node)))
         
@@ -474,9 +510,23 @@ class RasterModelGrid ( ModelGrid ):
         
         #   set up the list of active links
         self.reset_list_of_active_links()
-        print 'self.active_links'
-        print self.active_links
-           
+
+        #   set up link faces
+        #
+        #   Here we assume that we've already created a list of active links
+        # in which all 4 boundaries are "open", such that each boundary node
+        # (except the 4 corners) is connected to an adjacent interior node. In
+        # this case, there will be the same number of faces as active links,
+        # and the numbering of faces will be the same as the corresponding
+        # active links. We start off creating a list of all None values. Only
+        # those links that cross a face will have this None value replaced with
+        # a face ID.
+        self.link_face = [None]*self.num_links  # make the list
+        face_id = 0
+        for link in self.active_links:
+            self.link_face[link] = face_id
+            face_id += 1
+                   
         
         #--------OLDER STUFF BELOW----------
 
@@ -1226,15 +1276,17 @@ class RasterModelGrid ( ModelGrid ):
         print('num_cells: '+str(self.num_cells)+' (6)')
         print('num_links: '+str(self.num_links)+' (31)')
         print('num_active_links: '+str(self.num_active_links)+' (17)')
+        print('num_faces: '+str(self.num_faces)+' (17)')
         print
         
         print 'Testing node lists:'
-        print 'ID   X    Y    Z    Status'
+        print 'ID   X    Y    Z    Status  Active cell'
         for node in range( 0, self.num_nodes ):
             print(str(node)+'    '+str(self.node_x[node])+'  '
                   +str(self.node_y[node])+'  '
                   +str(self.node_z[node])+'  '
-                  +str(self.node_status[node]))
+                  +str(self.node_status[node])+'  '
+                  +str(self.node_activecell[node]))
         print
         
         print 'Testing list of nodes associated with each cell.'
@@ -1250,10 +1302,11 @@ class RasterModelGrid ( ModelGrid ):
         print('Length of link_tonode list: '+str(len(self.link_tonode))+' (31)')
         print 'The list should start with 0 0 5, 1 1 6, ...'
         print 'and end with ..., 29 17 18, 30 18 19'
-        print 'ID From To'
+        print 'ID From To Face'
         for link in range(0, self.num_links):
             print(str(link)+'  '+str(self.link_fromnode[link])+'    '
-                  +str(self.link_tonode[link]))
+                  +str(self.link_tonode[link])+'  '
+                  +str(self.link_face[link]))
         
         print 'Testing list of active links:'
         print 'List should be: 1,2,3,6,7,8,11,12,13,19,20,21,22,23,24,25,26'
@@ -1262,17 +1315,43 @@ class RasterModelGrid ( ModelGrid ):
         for act_link_id in range(0,len(self.active_links)):
             print(str(act_link_id)+' '+str(self.active_links[act_link_id]))
             
-        print 'Testing gradient calculation functions'
+        print 'Testing gradient calculation functions:'
+        print 'The following list should have 17 entries, with gradient=5. for'
+        print 'the first 8, then gradient=1. for the rest'
+        print
+        print 'Active link ID  From  To  Gradient'
         self.link_length = numpy.ones(self.num_links)
         u = self.create_node_dvector()
         for i in range(0,self.num_nodes):
             u[i] = i
         grad1 = self.calculate_gradients_at_active_links(u)
-        print grad1
-        grad1 = 0.1*grad1
+        for alink in range(0, self.num_active_links):
+            print(str(alink)+' '+ \
+                  str(self.link_fromnode[self.active_links[alink]])+ \
+                  ' '+str(self.link_tonode[self.active_links[alink]])+' '+ \
+                  str(grad1[alink]))
+        print 'The next list should be the same but with gradient values 10%'
+        print 'of their previous size, and listed twice'
+        u = 0.1*u
         grad2 = self.calculate_gradients_at_active_links(u, grad1)
-        print grad1
-        print grad2
-        grad1[10:12] = 100.0
-        print grad1
-        print grad2
+        for alink in range(0, self.num_active_links):
+            print(str(alink)+' '+ \
+                  str(self.link_fromnode[self.active_links[alink]])+ \
+                  ' '+str(self.link_tonode[self.active_links[alink]])+' '+ \
+                  str(grad1[alink])+' '+str(grad2[alink]))
+                  
+        print'Testing divergence calculation function:'
+        u2 = [0., 1., 2., 3., 0.,
+              1., 2., 3., 2., 3.,
+              0., 1., 2., 1., 2.,
+              0., 0., 2., 2., 0.]
+        flux = -self.calculate_gradients_at_active_links(u2)
+        self.face_width = numpy.ones(self.num_faces)
+        self.active_cell_areas = numpy.ones(self.num_active_cells)
+        divg = self.calculate_flux_divergence_at_active_cells(flux)
+        al = 0
+        for l in self.active_links:
+            print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
+                  +str(self.link_tonode[l])+' '+str(flux[al]))
+            al += 1
+        print divg
