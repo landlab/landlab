@@ -62,7 +62,11 @@ class ModelGrid:
     FIXED_VALUE_BOUNDARY = 1
     FIXED_GRADIENT_BOUNDARY = 2
     TRACKS_CELL_BOUNDARY = 3
-    INACTIVE_BOUNDARY = 4        
+    INACTIVE_BOUNDARY = 4
+    
+    # Debugging flags (if True, activates some output statements)
+    DEBUG_VERBOSE = False
+    DEBUG_TRACK_METHODS = True
 
     #-------------------------------------------------------------------
     def __init__( self ):
@@ -128,6 +132,8 @@ class ModelGrid:
         """
         Calculates the gradient in quantity s at each active link in the grid.
         """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_gradients_at_active_links'
         
         if gradient==None:
             gradient = numpy.zeros(self.num_active_links)
@@ -151,9 +157,37 @@ class ModelGrid:
         message when called from an inherited class ...
         """
     
-        print 'ModelGrid.calculate_flux_divergences here'
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_flux_divergences here'
         #pass    # this is a virtual function
             
+    def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
+                                                  net_unit_flux=False):
+        """
+        Given an array of fluxes along links, computes the net total flux
+        within each cell, divides by cell area, and stores the result in
+        net_unit_flux. The input active_link_flux should be flux of
+        something (e.g., mass, momentum, energy) per unit face width, positive
+        if flowing in the same direction as its link, and negative otherwise.
+        There should be one value per active link. Returns an array of net
+        total flux per unit area, one value per active cell (creates this
+        array if it is not given as an argument).
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_flux_divergence_at_active_cells'
+            
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_active_cells)
+            
+        assert (len(net_unit_flux))==self.num_active_cells
+        
+        #to be continued ...
+        
     def x( self, id ):
         """
         Returns the x coordinate of cell "id".
@@ -285,9 +319,6 @@ class RasterModelGrid ( ModelGrid ):
         
         #print 'RasterModelGrid.initialize'
         
-        # Debugging output flag
-        self.debug = False
-        
         # Basic info about raster size and shape
         self.nrows = num_rows
         self.ncols = num_cols
@@ -316,7 +347,7 @@ class RasterModelGrid ( ModelGrid ):
         self.num_faces = ( num_rows - 1 ) * ( num_cols - 2 ) + \
                       ( num_rows - 2 ) * ( num_cols - 1 )
         self.nfaces = self.num_faces # TBX; for backward compatibility
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print self.num_faces
         
         # Assign and store node (x,y,z) coordinates.
@@ -499,7 +530,7 @@ class RasterModelGrid ( ModelGrid ):
                 self.facex[face_id] = c*self.dx
                 self.facey[face_id] = r*self.dx - halfdx
                 face_id += 1
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print 'fromcell:',self.fromcell
             print 'tocell:',self.tocell
             print 'facex:',self.facex
@@ -537,7 +568,7 @@ class RasterModelGrid ( ModelGrid ):
             self.faces[cell_id,2] = (r-1)*(num_cols-1)+(c-1)
         
 
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             for i in xrange( 1, self.ncells ):
                 print i,self.faces[i,:]
                 
@@ -545,7 +576,7 @@ class RasterModelGrid ( ModelGrid ):
         # list. If a caller requests it via get_neighbor_list or
         # create_neighbor_list, we'll create it if necessary.
         self.neighbor_list_created = False
-        if self.debug:
+        if self.DEBUG_VERBOSE:
         	print 'Setting nlc flag'
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
@@ -570,7 +601,7 @@ class RasterModelGrid ( ModelGrid ):
         self.face_sign = numpy.zeros( [self.ncells, 4], dtype=short )
         self.face_sign[:,0:2] = -1
         self.face_sign[:,2:] = 1
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print 'face sign:',self.face_sign
         
         # Set up list of interior cells
@@ -583,7 +614,7 @@ class RasterModelGrid ( ModelGrid ):
                 self.interior_cells[id] = r * num_cols + c
                 id += 1
         
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print self.interior_cells
         
         #
@@ -655,7 +686,7 @@ class RasterModelGrid ( ModelGrid ):
             self.boundary_ids[c] = id
             id += 1
         
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print 'Boundary CIDs:',self.boundary_cells
             print 'Cell BIDs:',self.boundary_ids
             
@@ -903,9 +934,33 @@ class RasterModelGrid ( ModelGrid ):
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - self.ncols
         
-        if self.debug:
+        if self.DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell
     
+    def calculate_gradients_at_active_links(self, s, gradient=None):
+        """
+        Calculates the gradient in quantity s at each active link in the grid.
+        This is nearly identical to the method of the same name in ModelGrid,
+        except that it uses self.dx for link length to improve efficiency.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.calculate_gradients_at_active_links'
+        
+        if gradient==None:
+            gradient = numpy.zeros(self.num_active_links)
+            
+        assert (len(gradient)==self.num_active_links), \
+                "len(gradient)!=num_active_links"
+                
+        active_link_id = 0
+        for link_id in self.active_links:
+            gradient[active_link_id] = (s[self.link_tonode[link_id]]
+                                        -s[self.link_fromnode[link_id]]) / \
+                                        self.dx
+            active_link_id += 1
+        
+        return gradient
+        
     def calculate_flux_divergences( self, q ):
         """
         Calculates the net flux at each cell by adding up the fluxes
@@ -930,12 +985,12 @@ class RasterModelGrid ( ModelGrid ):
             where fd is "flux divergence".
         """
     
-        if self.debug:
+        if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_flux_divergences here'
         
         fd = numpy.zeros( self.ncells )
         for cell in self.interior_cells:
-            if self.debug:
+            if self.DEBUG_VERBOSE:
                 print 'Cell',cell
                 print 'q:',q[self.faces[cell,0:4]]
             fd[cell] = ( -( q[self.faces[cell,2]]   # left face (positive=in)
@@ -951,7 +1006,7 @@ class RasterModelGrid ( ModelGrid ):
         it for cell "id".
         """
     
-        if self.debug:
+        if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_flux_divergence here with cell',id
             print 'q:',q[self.faces[id,0:4]]
         fd = ( -( q[self.faces[id,2]]   # left face (positive=in)
@@ -1115,7 +1170,7 @@ class RasterModelGrid ( ModelGrid ):
             elif bc.boundary_code[bid] == bc.FIXED_GRADIENT_BOUNDARY:
                 u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self.dx
 
-        if self.debug:
+        if self.DEBUG_TRACK_METHODS:
             print 'In RasterModelGrid.update_boundary_cell with cell',id
             print 'Its value is now',u[id]
             if bid < 0:
