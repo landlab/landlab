@@ -115,6 +115,10 @@ class ModelParameterDictionary(dict):
     and provides functions for the user to look up particular parameters
     by key name.
 
+    If the keyword *auto_type* is True, then guess at the type for each value.
+    Use *from_file* to read in a parameter file from a file-like object or a
+    file with the given file name.
+
     Example
     =======
 
@@ -167,13 +171,7 @@ class ModelParameterDictionary(dict):
     >>> print params['DBL_ARRAY']
     [ 1.  2.  3.]
     """
-    def __init__(self, auto_type=False, from_file=None):
-        """
-        Create an empty dictionary. If the keyword *auto_type* is True,
-        then guess at the type for each value. Use *from_file* to read
-        in a parameter file from a file-like object or a file with the
-        given file name.
-        """
+    def __init__(self, from_file=None, auto_type=False):
         super(ModelParameterDictionary, self).__init__()
 
         self._auto_type = auto_type
@@ -185,11 +183,11 @@ class ModelParameterDictionary(dict):
         Read and parse parameter dictionary information from a file or
         file-like object in *param_file*.
 
-        The format of the parameter file should be like:
+        The format of the parameter file should be like::
 
-        # A comment line
-        SOME_KEY: this the key for some parameter
-        1.234
+            # A comment line
+            SOME_KEY: this the key for some parameter
+            1.234
 
         In other words, the rules are:
             - Comments are preceded by hash characters
@@ -267,7 +265,14 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as an integer.
 
-        Usage: i = read_int('MY_INT')
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_INT:
+        ... 1
+        ... \"\"\"))
+        >>> params.read_int('MY_INT')
+        1
 
         Raise an error if *key* isn't in the dictionary or if its value is
         not an integer.
@@ -285,7 +290,14 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a float.
 
-        Usage: x = read_float('MY_FLOAT')
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_FLOAT:
+        ... 3.14
+        ... \"\"\"))
+        >>> params.read_float('MY_FLOAT')
+        3.14
 
         An error is generated if *key* isn't in the dictionary or
         if its value is not a number.
@@ -303,7 +315,14 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a string.
 
-        Usage: s = read_string('MY_STRING')
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_STRING:
+        ... landlab
+        ... \"\"\"))
+        >>> params.read_string('MY_STRING')
+        'landlab'
 
         An error is generated if *key* isn't in the dictionary.
         """
@@ -315,7 +334,14 @@ class ModelParameterDictionary(dict):
 
     def read_bool(self, key):
         """
-        Usage: b = read_bool('MY_BOOL')
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_BOOL:
+        ... true
+        ... \"\"\"))
+        >>> params.read_bool('MY_BOOL')
+        True
 
         An error is generated if MY_BOOL isn't 0, 1, True or False
         """
@@ -369,7 +395,6 @@ class ModelParameterDictionary(dict):
         Read a string from the command line and use it as a value for
         *key* in the dictonary.
 
-        Usage:  = read_string_cmdline('MY_STRING')
         """
         my_str = raw_input(key + ': ')
         self[key] = my_str
