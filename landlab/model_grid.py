@@ -166,7 +166,9 @@ class ModelGrid:
         """
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
-        net_unit_flux. The input active_link_flux should be flux of
+        net_unit_flux. 
+        
+        The input active_link_flux should be flux of
         something (e.g., mass, momentum, energy) per unit face width, positive
         if flowing in the same direction as its link, and negative otherwise.
         There should be one value per active link. Returns an array of net
@@ -176,6 +178,19 @@ class ModelGrid:
         negative for net outflow. That's why we *add* outgoing flux and
         *subtract* incoming flux. This makes net_unit_flux have the same sign
         and dimensions as a typical divergence term in a conservation equation.
+
+        In general, for a polygonal cell with N sides of lengths
+        Li and with surface area A, the net influx divided by cell
+        area would be:
+            .. math::
+                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+
+        .. note::
+            The net flux is defined as positive outward, negative
+            inward. In a diffusion problem, for example, one would use:
+                .. math::
+                    {du \over dt} = \\text{source} - \\text{fd}
+            where fd is "flux divergence".
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -200,18 +215,71 @@ class ModelGrid:
             to_cell = self.node_activecell[self.link_tonode[link_id]]
             total_flux = active_link_flux[active_link_id] * \
                          self.face_width[self.link_face[link_id]]
-            print('Flux '+str(total_flux)+' from '+str(from_cell) \
-                  +' to '+str(to_cell)+' along link '+str(link_id))
+            #print('Flux '+str(total_flux)+' from '+str(from_cell) \
+            #      +' to '+str(to_cell)+' along link '+str(link_id))
             if from_cell!=None:
                 net_unit_flux[from_cell] += total_flux
-                print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
+                #print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
             if to_cell!=None:
                 net_unit_flux[to_cell] -= total_flux
-                print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
+                #print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
             active_link_id += 1
         
         # Divide by cell area
         net_unit_flux = net_unit_flux / self.active_cell_areas
+        
+        return net_unit_flux
+        
+    def calculate_flux_divergence_at_nodes(self, active_link_flux, 
+                                           net_unit_flux=False):
+        """
+        Same as calculate_flux_divergence_at_active_cells, but works with and
+        returns a list of net unit fluxes that corresponds to all nodes, rather
+        than just active cells. 
+        
+        Note that we don't compute net unit fluxes at
+        boundary nodes (which don't have active cells associated with them, and 
+        often don't have cells of any kind, because they are on the perimeter), 
+        but simply return zeros for these entries. The advantage is that the 
+        caller can work with node-based arrays instead of active-cell-based 
+        arrays.
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_flux_divergence_at_nodes'
+            
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_nodes)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux))==self.num_nodes
+        
+        # For each active link, add up the flux out of the "from" cell and 
+        # into the "to" cell.
+        active_link_id = 0
+        for link_id in self.active_links:
+            from_node = self.link_fromnode[link_id]
+            from_cell = self.node_activecell[from_node]
+            to_node = self.link_tonode[link_id]
+            to_cell = self.node_activecell[to_node]
+            total_flux = active_link_flux[active_link_id] * \
+                         self.face_width[self.link_face[link_id]]
+            #print('Flux '+str(total_flux)+' from '+str(from_node) \
+            #      +' to '+str(to_node)+' along link '+str(link_id))
+            if from_cell!=None:
+                net_unit_flux[from_node] += total_flux / \
+                                            self.active_cell_areas[from_cell]
+                #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
+            if to_cell!=None:
+                net_unit_flux[to_node] -= total_flux / \
+                                          self.active_cell_areas[to_cell]
+                #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
+            active_link_id += 1
         
         return net_unit_flux
         
@@ -1011,8 +1079,135 @@ class RasterModelGrid ( ModelGrid ):
         
         return gradient
         
+    def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
+                                                  net_unit_flux=False):
+        """
+        Given an array of fluxes along links, computes the net total flux
+        within each cell, divides by cell area, and stores the result in
+        net_unit_flux. Overrides method of the same name in ModelGrid (nearly
+        identical, but uses scalars dx and cellarea instead of variable
+        link length and active cell area, respectively).
+        
+        The input active_link_flux should be flux of
+        something (e.g., mass, momentum, energy) per unit face width, positive
+        if flowing in the same direction as its link, and negative otherwise.
+        There should be one value per active link. Returns an array of net
+        total flux per unit area, one value per active cell (creates this
+        array if it is not given as an argument).
+          By convention, divergence is positive for net outflow, and 
+        negative for net outflow. That's why we *add* outgoing flux and
+        *subtract* incoming flux. This makes net_unit_flux have the same sign
+        and dimensions as a typical divergence term in a conservation equation.
+
+        In general, for a polygonal cell with N sides of lengths
+        Li and with surface area A, the net influx divided by cell
+        area would be:
+            .. math::
+                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+
+        For a square cell, which is what we have in RasterModelGrid,
+        the sum is over 4 sides of length dx, and
+        :math:`A = dx^2`, so:
+            .. math::
+                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
+
+        .. note::
+            The net flux is defined as positive outward, negative
+            inward. In a diffusion problem, for example, one would use:
+                .. math::
+                    {du \over dt} = \\text{source} - \\text{fd}
+            where fd is "flux divergence".
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.calculate_flux_divergence_at_active_cells'
+            
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_active_cells)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux))==self.num_active_cells
+        
+        # For each active link, add up the flux out of the "from" cell and 
+        # into the "to" cell.
+        active_link_id = 0
+        for link_id in self.active_links:
+            from_cell = self.node_activecell[self.link_fromnode[link_id]]
+            to_cell = self.node_activecell[self.link_tonode[link_id]]
+            total_flux = active_link_flux[active_link_id] * self.dx
+            #print('Flux '+str(total_flux)+' from '+str(from_cell) \
+            #      +' to '+str(to_cell)+' along link '+str(link_id))
+            if from_cell!=None:
+                net_unit_flux[from_cell] += total_flux
+                #print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
+            if to_cell!=None:
+                net_unit_flux[to_cell] -= total_flux
+                #print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
+            active_link_id += 1
+        
+        # Divide by cell area
+        net_unit_flux = net_unit_flux / self.cellarea
+        
+        return net_unit_flux
+        
+    def calculate_flux_divergence_at_nodes(self, active_link_flux, 
+                                           net_unit_flux=False):
+        """
+        Same as calculate_flux_divergence_at_active_cells, but works with and
+        returns a list of net unit fluxes that corresponds to all nodes, rather
+        than just active cells. 
+        
+        Note that we don't compute net unit fluxes at
+        boundary nodes (which don't have active cells associated with them, and 
+        often don't have cells of any kind, because they are on the perimeter), 
+        but simply return zeros for these entries. The advantage is that the 
+        caller can work with node-based arrays instead of active-cell-based 
+        arrays.
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.calculate_flux_divergence_at_nodes'
+            
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_nodes)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux))==self.num_nodes
+        
+        # For each active link, add up the flux out of the "from" cell and 
+        # into the "to" cell.
+        active_link_id = 0
+        for link_id in self.active_links:
+            from_node = self.link_fromnode[link_id]
+            from_cell = self.node_activecell[from_node]
+            to_node = self.link_tonode[link_id]
+            to_cell = self.node_activecell[to_node]
+            total_flux = active_link_flux[active_link_id] * self.dx
+            #print('Flux '+str(total_flux)+' from '+str(from_node) \
+            #      +' to '+str(to_node)+' along link '+str(link_id))
+            if from_cell!=None:
+                net_unit_flux[from_node] += total_flux / self.cellarea
+                #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
+            if to_cell!=None:
+                net_unit_flux[to_node] -= total_flux / self.cellarea
+                #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
+            active_link_id += 1
+        
+        return net_unit_flux
+        
     def calculate_flux_divergences( self, q ):
         """
+        TBX: TO BE REPLACED WITH METHODS ABOVE
         Calculates the net flux at each cell by adding up the fluxes
         through all four faces, and divides the total by cell area.
 
@@ -1267,7 +1462,7 @@ class RasterModelGrid ( ModelGrid ):
         print 'Initializing ...'
         self.initialize( num_rows_for_unit_test, 
                          num_cols_for_unit_test,
-                         1.0 )
+                         0.5 )
         print 'done.'
         print
         
@@ -1340,7 +1535,7 @@ class RasterModelGrid ( ModelGrid ):
                   ' '+str(self.link_tonode[self.active_links[alink]])+' '+ \
                   str(grad1[alink])+' '+str(grad2[alink]))
                   
-        print'Testing divergence calculation function:'
+        print'Testing divergence calculation functions:'
         u2 = [0., 1., 2., 3., 0.,
               1., 2., 3., 2., 3.,
               0., 1., 2., 1., 2.,
@@ -1349,6 +1544,14 @@ class RasterModelGrid ( ModelGrid ):
         self.face_width = numpy.ones(self.num_faces)
         self.active_cell_areas = numpy.ones(self.num_active_cells)
         divg = self.calculate_flux_divergence_at_active_cells(flux)
+        al = 0
+        for l in self.active_links:
+            print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
+                  +str(self.link_tonode[l])+' '+str(flux[al]))
+            al += 1
+        print divg
+        self.cell_area = numpy.ones(self.num_cells)
+        divg = self.calculate_flux_divergence_at_nodes(flux)
         al = 0
         for l in self.active_links:
             print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
