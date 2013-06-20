@@ -13,9 +13,9 @@ def camel_case(text, sep=None):
     separator. The default is to split on whitespace.
 
     >>> camel_case('camel case')
-    CamelCase
+    'CamelCase'
     >>> camel_case('camel_case', sep='_')
-    CamelCase
+    'CamelCase'
     """
     return ''.join(text.title().split(sep))
 
