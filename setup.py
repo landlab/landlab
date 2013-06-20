@@ -3,7 +3,7 @@
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
-
+import multiprocessing
 
 setup(name='TheLandlab',
       version='0.1.0',
@@ -13,7 +13,8 @@ setup(name='TheLandlab',
       description='Plugin-based component modeling tool.',
       long_description=open('README.rst').read(),
       #install_requires=['CmtBasicModelingInterface'],
-      setup_requires=['nose>=1.3'],
+      #setup_requires=['nose>=1.3'],
+      setup_requires=['nose>=1.0'],
       packages=['landlab',
                 'landlab.components',
                 'landlab.io',
