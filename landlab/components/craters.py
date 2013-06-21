@@ -259,7 +259,7 @@ class impactor(object):
                      [self._xcoord-self._radius,self._ycoord],
                      [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
         for x,y in slope_pts:
-            if x < grid.get_grid_xdimension and y < grid.get_grid_ydimension:
+            if x < grid.get_grid_xdimension() and y < grid.get_grid_ydimension():
                 radial_points.append(self.snap_coords_to_grid(grid, x, y))
         for a in radial_points:
             if grid.is_interior(a):
@@ -315,15 +315,17 @@ class impactor(object):
                      [self._xcoord-self._radius,self._ycoord],
                      [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
         counter=0
+        grid_xdimension = grid.get_grid_xdimension()
+        grid_ydimension = grid.get_grid_ydimension()
         for x,y in slope_pts1:
-            if 0. < x < grid.get_grid_xdimension and 0. < y < grid.get_grid_ydimension:
+            if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
                 radial_points1[counter] = self.snap_coords_to_grid(grid, x, y)
             else:
                 radial_points1[counter] = self.closest_node_index
             counter += 1
         counter=0
         for x,y in slope_pts2:
-            if 0. < x < grid.get_grid_xdimension and 0. < y < grid.get_grid_ydimension:
+            if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
                 radial_points2[counter] = self.snap_coords_to_grid(grid, x, y)
             else:
                 radial_points2[counter] = self.closest_node_index
@@ -393,9 +395,7 @@ class impactor(object):
         crater_node_list = deque([self.closest_node_index])
         elev_changes = deque()
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        flag_already_in_the_list = numpy.zeros(grid.ncells)
-        #Could we have the node properties as dictionaries of arrays?:
-        #grid.nodes[adjusted] = zeros(grid.ncells)
+        flag_already_in_the_list = numpy.zeros(grid.get_number_of_nodes())
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
@@ -618,8 +618,8 @@ def dig_some_craters(grid, data):
     elev_raster = grid.cell_vector_to_raster(data.elev)
     #contour(elev_raster)
     flipped_elev_raster = numpy.empty_like(elev_raster)
-    for i in range(0,grid.nrows):
-        flipped_elev_raster[i,:] = elev_raster[(grid.nrows-i-1),:]
+    for i in range(0,grid.get_count_of_rows()):
+        flipped_elev_raster[i,:] = elev_raster[(grid.get_count_of_rows()-i-1),:]
     
     profile = plot(elev_raster[600,:])
     xsec = plot(elev_raster[:,1100])

@@ -282,6 +282,13 @@ class ModelGrid:
             active_link_id += 1
         
         return net_unit_flux
+    
+    def get_number_of_nodes(self):
+        """
+        Returns the total number of nodes in the grid, including all boundary nodes.
+        Added DEJH June 2013.
+        """
+        return self.ncells
         
     def x( self, id ):
         """

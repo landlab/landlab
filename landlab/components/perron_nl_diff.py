@@ -25,8 +25,8 @@ class perron_nl_diff_faster(object):
         self._sed_density = 2.7
         self._kappa = 5.e-5 # ==_a
         self._S_crit = 32.*numpy.pi/180.
-        self._delta_x = grid.dx
-        self._delta_y = grid.dx
+        self._delta_x = grid.get_grid_spacing()
+        self._delta_y = self._delta_x
         self._one_over_delta_x = 1./self._delta_x
         self._one_over_delta_y = 1./self._delta_y
         self._one_over_delta_x_sqd = self._one_over_delta_x**2.
@@ -35,29 +35,30 @@ class perron_nl_diff_faster(object):
         #self._grid = grid
         #self._data = data
         
+        ncols = grid.get_count_of_cols()
         self._interior_cells = list(grid.get_interior_cells())
         _core_cells = self._interior_cells[:] #we'll thin this down into the other lists
         _interior_corners = []
         _interior_edges = []
         _interior_corners.append(_core_cells.pop())
-        _interior_edges.extend(_core_cells[(4-grid.ncols):])
-        _core_cells[(4-grid.ncols):] = []
+        _interior_edges.extend(_core_cells[(4-ncols):])
+        _core_cells[(4-ncols):] = []
         _interior_corners.append(_core_cells.pop())
         
         _interior_corners.append(_core_cells.pop(0))
-        _interior_edges.extend(_core_cells[:(grid.ncols-4)])
-        _core_cells[:(grid.ncols-4)] = []
+        _interior_edges.extend(_core_cells[:(ncols-4)])
+        _core_cells[:(ncols-4)] = []
         _interior_corners.append(_core_cells.pop(0))
         
         _interior_edges.append(_core_cells.pop(0))
         i=1
         while 1:
             try:
-                _interior_edges.append(_core_cells.pop(i*(grid.ncols-4)))
+                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
             except:
                 break
             try:
-                _interior_edges.append(_core_cells.pop(i*(grid.ncols-4)))
+                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
             except:
                 break
             else:
@@ -78,11 +79,12 @@ class perron_nl_diff_faster(object):
         '''
         #self._grid = grid
         #self._data = data
-        _operating_matrix = sparse.lil_matrix((grid.n_interior_cells, grid.n_interior_cells), dtype=float)
-        #_interior_elevs = [-1] * grid.n_interior_cells
+        n_interior_cells = grid.get_count_of_interior_cells()
+        _operating_matrix = sparse.lil_matrix((n_interior_cells, n_interior_cells), dtype=float)
+        #_interior_elevs = [-1] * n_interior_cells
 
         #Initialize the local builder lists
-        _mat_RHS = numpy.zeros(grid.n_interior_cells)
+        _mat_RHS = numpy.zeros(n_interior_cells)
         
         self.set_variables_for_core_cells(grid, data, _operating_matrix, _mat_RHS)
         self.set_variables_for_interior_edges(grid, data, _operating_matrix, _mat_RHS)
@@ -95,6 +97,7 @@ class perron_nl_diff_faster(object):
     def set_variables_for_core_cells(self, grid, data, _operating_matrix, _mat_RHS):
     
         elev = data.elev
+        ncols = grid.get_count_of_cols()
         _delta_t = self._delta_t
         _one_over_delta_x = self._one_over_delta_x
         _one_over_delta_x_sqd = self._one_over_delta_x_sqd
@@ -104,8 +107,8 @@ class perron_nl_diff_faster(object):
         _b = self._b
         _S_crit = self._S_crit
         count = 0
-        interior_grid_width = grid.ncols-2
-        core_cell_width = grid.ncols-4
+        interior_grid_width = ncols-2
+        core_cell_width = ncols-4
         for i in self._core_cells:
             n = (count//core_cell_width+1)*interior_grid_width + (count%core_cell_width) + 1 #This is the ID within the interior grid
             #n_test = self._interior_cells.index(i)
@@ -154,19 +157,20 @@ class perron_nl_diff_faster(object):
             _operating_matrix[n,n] = _operating_matrix[n,n]+1.-_delta_t*_F_ij
             _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-_delta_t*_F_ijminus1
             _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-_delta_t*_F_ijplus1
-            _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-_delta_t*_F_iminus1j
-            _operating_matrix[n,n-grid.ncols+1] = _operating_matrix[n,n-grid.ncols+1]-_delta_t*_F_iminus1jminus1
-            _operating_matrix[n,n-grid.ncols+3] = _operating_matrix[n,n-grid.ncols+3]-_delta_t*_F_iminus1jplus1
-            _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-_delta_t*_F_iplus1j
-            _operating_matrix[n,n+grid.ncols-1] = _operating_matrix[n,n+grid.ncols-1]-_delta_t*_F_iplus1jplus1
-            _operating_matrix[n,n+grid.ncols-3] = _operating_matrix[n,n+grid.ncols-3]-_delta_t*_F_iplus1jminus1
+            _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-_delta_t*_F_iminus1j
+            _operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-_delta_t*_F_iminus1jminus1
+            _operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-_delta_t*_F_iminus1jplus1
+            _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-_delta_t*_F_iplus1j
+            _operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-_delta_t*_F_iplus1jplus1
+            _operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-_delta_t*_F_iplus1jminus1
         
             count = count + 1
 
 
     def set_variables_for_interior_corners(self, grid, data, _operating_matrix, _mat_RHS):
+        ncols = grid.get_count_of_cols()
         count = 0
-        corner_ids = [-1,-(grid.ncols-2),0,grid.ncols-3] #topright,topleft,bottomleft,bottomright. This is in the ID reference frame of the INTERIOR GRID
+        corner_ids = [-1,-(ncols-2),0,ncols-3] #topright,topleft,bottomleft,bottomright. This is in the ID reference frame of the INTERIOR GRID
         for i in self._interior_corners:
             #print i
             n = corner_ids[count]
@@ -214,49 +218,51 @@ class perron_nl_diff_faster(object):
             _operating_matrix[n,n] = _operating_matrix[n,n]+1.-self._delta_t*_F_ij
             if count==0: #topright
                 _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-self._delta_t*_F_ijminus1 #left
-                _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-self._delta_t*_F_iminus1j #below
-                _operating_matrix[n,n-grid.ncols+1] = _operating_matrix[n,n-grid.ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols-1, _F_iplus1jminus1) #aboveleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, grid.ncols, _F_iplus1j) #above
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols+1, _F_iplus1jplus1) #aboveright
+                _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-self._delta_t*_F_iminus1j #below
+                _operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols-1, _F_iplus1jminus1) #aboveleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, ncols, _F_iplus1j) #above
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols+1, _F_iplus1jplus1) #aboveright
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, 1, _F_ijplus1) #right
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols+1, _F_iminus1jplus1) #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols+1, _F_iminus1jplus1) #belowright
             if count==1: #topleft
                 _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-self._delta_t*_F_ijplus1 #right
-                _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-self._delta_t*_F_iminus1j #below
-                _operating_matrix[n,n-grid.ncols+3] = _operating_matrix[n,n-grid.ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols-1, _F_iplus1jminus1) #aboveleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, grid.ncols, _F_iplus1j) #above
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols+1, _F_iplus1jplus1) #aboveright
+                _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-self._delta_t*_F_iminus1j #below
+                _operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols-1, _F_iplus1jminus1) #aboveleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, ncols, _F_iplus1j) #above
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols+1, _F_iplus1jplus1) #aboveright
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -1, _F_ijminus1) #left
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols-1, _F_iminus1jminus1) #belowleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols-1, _F_iminus1jminus1) #belowleft
             if count==2: #bottomleft
                 _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-self._delta_t*_F_ijplus1 #right
-                _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-self._delta_t*_F_iplus1j #above
-                _operating_matrix[n,n+grid.ncols-1] = _operating_matrix[n,n+grid.ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols-1, _F_iplus1jminus1) #aboveleft
+                _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-self._delta_t*_F_iplus1j #above
+                _operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols-1, _F_iplus1jminus1) #aboveleft
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -1, _F_ijminus1) #left
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols-1, _F_iminus1jminus1) #belowleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols, _F_iminus1j) #below
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols+1, _F_iminus1jplus1) #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols-1, _F_iminus1jminus1) #belowleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols, _F_iminus1j) #below
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols+1, _F_iminus1jplus1) #belowright
             if count==3: #bottomright
                 _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-self._delta_t*_F_ijminus1 #left
-                _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-self._delta_t*_F_iplus1j #above
-                _operating_matrix[n,n+grid.ncols-3] = _operating_matrix[n,n+grid.ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols+1, _F_iplus1jplus1) #aboveright
+                _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-self._delta_t*_F_iplus1j #above
+                _operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols+1, _F_iplus1jplus1) #aboveright
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, 1, _F_ijplus1) #right
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols+1, _F_iminus1jplus1) #belowright
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols, _F_iminus1j) #below
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols-1, _F_iminus1jminus1) #belowleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols+1, _F_iminus1jplus1) #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols, _F_iminus1j) #below
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols-1, _F_iminus1jminus1) #belowleft
             count = count+1
                 
 
     def set_variables_for_interior_edges(self, grid, data, _operating_matrix, _mat_RHS):
         count = 0
         side_IDs = []
-        for i in range(grid.nrows-4):
-            side_IDs.extend([(1+i)*(grid.ncols-2), (2+i)*(grid.ncols-2)-1])
-        edge_ids = range(-(grid.ncols-3),-1)+range(1,(grid.ncols-3))+side_IDs #order is [ncols-4 of TOP]+[ncols-4 of BOTTOM]+[(nrows-4)*(LEFT,RIGHT) pairs]; ID to the INTERIOR GRID
+        nrows = grid.get_count_of_rows()
+        ncols = grid.get_count_of_cols()
+        for i in range(nrows-4):
+            side_IDs.extend([(1+i)*(ncols-2), (2+i)*(ncols-2)-1])
+        edge_ids = range(-(ncols-3),-1)+range(1,(ncols-3))+side_IDs #order is [ncols-4 of TOP]+[ncols-4 of BOTTOM]+[(nrows-4)*(LEFT,RIGHT) pairs]; ID to the INTERIOR GRID
         #print edge_ids
         for i in self._interior_edges:
             #print '---'
@@ -306,46 +312,46 @@ class perron_nl_diff_faster(object):
             
             #build the operating matrix
             _operating_matrix[n,n] = _operating_matrix[n,n]+1.-self._delta_t*_F_ij
-            if count<grid.ncols-4: #top
+            if count<ncols-4: #top
                 _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-self._delta_t*_F_ijminus1 #left
                 _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-self._delta_t*_F_ijplus1 #right
-                _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-self._delta_t*_F_iminus1j #below
-                _operating_matrix[n,n-grid.ncols+1] = _operating_matrix[n,n-grid.ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
-                _operating_matrix[n,n-grid.ncols+3] = _operating_matrix[n,n-grid.ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols-1, _F_iplus1jminus1) #aboveleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, grid.ncols, _F_iplus1j) #above
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols+1, _F_iplus1jplus1) #aboveright
-            elif count<2*(grid.ncols-4): #bottom
+                _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-self._delta_t*_F_iminus1j #below
+                _operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
+                _operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols-1, _F_iplus1jminus1) #aboveleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, ncols, _F_iplus1j) #above
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols+1, _F_iplus1jplus1) #aboveright
+            elif count<2*(ncols-4): #bottom
                 _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-self._delta_t*_F_ijminus1 #left
                 _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-self._delta_t*_F_ijplus1 #right
-                _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-self._delta_t*_F_iplus1j #above
-                _operating_matrix[n,n+grid.ncols-1] = _operating_matrix[n,n+grid.ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
-                _operating_matrix[n,n+grid.ncols-3] = _operating_matrix[n,n+grid.ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols-1, _F_iminus1jminus1) #belowleft
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols, _F_iminus1j) #below
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols+1, _F_iminus1jplus1) #belowright
-            elif (count-2*(grid.ncols-4))%2: #right
+                _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-self._delta_t*_F_iplus1j #above
+                _operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
+                _operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols-1, _F_iminus1jminus1) #belowleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols, _F_iminus1j) #below
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols+1, _F_iminus1jplus1) #belowright
+            elif (count-2*(ncols-4))%2: #right
                 _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-self._delta_t*_F_ijminus1 #left
-                _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-self._delta_t*_F_iplus1j #above
-                _operating_matrix[n,n+grid.ncols-3] = _operating_matrix[n,n+grid.ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
-                _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-self._delta_t*_F_iminus1j #below
-                _operating_matrix[n,n-grid.ncols+1] = _operating_matrix[n,n-grid.ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols+1, _F_iplus1jplus1) #aboveright
+                _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-self._delta_t*_F_iplus1j #above
+                _operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-self._delta_t*_F_iplus1jminus1 #aboveleft
+                _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-self._delta_t*_F_iminus1j #below
+                _operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-self._delta_t*_F_iminus1jminus1 #leftbelow
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols+1, _F_iplus1jplus1) #aboveright
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, 1, _F_ijplus1) #right
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols+1, _F_iminus1jplus1) #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols+1, _F_iminus1jplus1) #belowright
             else: #left
                 _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-self._delta_t*_F_ijplus1 #right
-                _operating_matrix[n,n+grid.ncols-2] = _operating_matrix[n,n+grid.ncols-2]-self._delta_t*_F_iplus1j #above
-                _operating_matrix[n,n+grid.ncols-1] = _operating_matrix[n,n+grid.ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
-                _operating_matrix[n,n-grid.ncols+2] = _operating_matrix[n,n-grid.ncols+2]-self._delta_t*_F_iminus1j #below
-                _operating_matrix[n,n-grid.ncols+3] = _operating_matrix[n,n-grid.ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +grid.ncols-1, _F_iplus1jminus1) #aboveleft
+                _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-self._delta_t*_F_iplus1j #above
+                _operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-self._delta_t*_F_iplus1jplus1 #aboveright
+                _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-self._delta_t*_F_iminus1j #below
+                _operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-self._delta_t*_F_iminus1jplus1 #belowright
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, +ncols-1, _F_iplus1jminus1) #aboveleft
                 self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -1, _F_ijminus1) #left
-                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -grid.ncols-1, _F_iminus1jminus1) #belowleft
+                self.set_bc_cell(grid, data, _operating_matrix, _mat_RHS, n, -ncols-1, _F_iminus1jminus1) #belowleft
 
             count = count+1
         
-        
+    #This needs updating to reflect Greg's new BC handling in model_grid
     def set_bc_cell(self, grid, data, _operating_matrix, _mat_RHS, n, modulator, _F_value):
         bc_pos = grid.boundary_cells.tolist().index(self._interior_cells[n]+modulator)
         if grid.default_bc.boundary_code[bc_pos] == 3: #tracks cell
@@ -358,7 +364,7 @@ class perron_nl_diff_faster(object):
             #One part goes in this cell...
             _operating_matrix[n,l] = _operating_matrix[n,l]-self._delta_t*_F_value
             #And one part goes on the RHS
-            _mat_RHS[n] = _mat_RHS[n]+self._delta_t*_F_value*grid.dx*grid.default_bc.boundary_gradient[bc_pos]
+            _mat_RHS[n] = _mat_RHS[n]+self._delta_t*_F_value*self._delta_x*grid.default_bc.boundary_gradient[bc_pos]
         elif grid.default_bc.boundary_code[bc_pos] == 1: #fixed value
             #Goes to the RHS
             _mat_RHS[n] = _mat_RHS[n]+self._delta_t*_F_value*data.elev[self._interior_cells[n]+modulator]
@@ -380,7 +386,8 @@ class perron_nl_diff_faster(object):
         
         #Load the new elevs into the actual elev data
         j=0 #counter for location in the matrix _interior_elevs
-        for i in range(grid.ncells):
+        ncells = grid.get_number_of_nodes()
+        for i in range(ncells):
             if grid.is_interior(i):
                 data_in.elev[i] = _interior_elevs[j]
                 j = j+1
@@ -389,7 +396,7 @@ class perron_nl_diff_faster(object):
                 if grid.default_bc.boundary_code[bc_pos] == 3:
                     data_in.elev[i] = _interior_elevs[0,self._interior_cells.tolist().index(grid.default_bc.tracks_cell[bc_pos])]
                 elif grid.default_bc.boundary_code[bc_pos] == 2:
-                    data_in.elev[i] = _interior_elevs[0,self._interior_cells.tolist().index(grid.default_bc.tracks_cell[bc_pos])] + grid.default_bc.gradient[bc_pos]*grid.dx
+                    data_in.elev[i] = _interior_elevs[0,self._interior_cells.tolist().index(grid.default_bc.tracks_cell[bc_pos])] + grid.default_bc.gradient[bc_pos]*self._delta_x
                 elif grid.default_bc.boundary_code[bc_pos] == 1:
                     continue #The old value of elev is still correct
                 else:
