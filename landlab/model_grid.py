@@ -44,7 +44,7 @@ class BoundaryCondition:
         self.tracks_cell[:] = -1
 
 
-class ModelGrid:
+class ModelGrid(object):
     """
     Base class for creating and manipulating 2D structured or
     unstructured grids for numerical models.
@@ -74,7 +74,7 @@ class ModelGrid:
         pass
     
     #-------------------------------------------------------------------
-    def initialize( self ):
+    def initialize(self):
     
         pass
 
@@ -371,7 +371,8 @@ class ModelGrid:
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        print 'reset here'
+        if self._DEBUG_TRACK_METHODS:
+            print 'reset here'
         self.active_links = []
         for link in range(0, len(self.link_fromnode)):
             self.fromnode_status = self.node_status[self.link_fromnode[link]]
@@ -381,11 +382,12 @@ class ModelGrid:
                 (self.tonode_status==self.INTERIOR_NODE and
                  not self.fromnode_status==self.INACTIVE_BOUNDARY)):
                 self.active_links.append(link)
-        print 'active_links:'
-        print self.active_links
+        if self._DEBUG_TRACK_METHODS:
+            print 'active_links:'
+            print self.active_links
             
         
-class RasterModelGrid ( ModelGrid ):
+class RasterModelGrid(ModelGrid):
     """
     This inherited class implements a regular, raster 2D grid with uniform
     cell dimensions.
