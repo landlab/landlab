@@ -49,3 +49,10 @@ components Package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.components.flexure
+

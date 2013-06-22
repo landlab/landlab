@@ -17,6 +17,14 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`model_field` Module
+-------------------------
+
+.. automodule:: landlab.model_field
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`model_grid` Module
 ------------------------
 
