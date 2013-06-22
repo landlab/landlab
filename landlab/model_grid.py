@@ -371,7 +371,7 @@ class ModelGrid(object):
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        if self._DEBUG_TRACK_METHODS:
+        if self.DEBUG_VERBOSE:
             print 'reset here'
         self.active_links = []
         for link in range(0, len(self.link_fromnode)):
@@ -382,7 +382,7 @@ class ModelGrid(object):
                 (self.tonode_status==self.INTERIOR_NODE and
                  not self.fromnode_status==self.INACTIVE_BOUNDARY)):
                 self.active_links.append(link)
-        if self._DEBUG_TRACK_METHODS:
+        if self.DEBUG_VERBOSE:
             print 'active_links:'
             print self.active_links
             
