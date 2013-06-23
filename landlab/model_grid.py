@@ -44,7 +44,7 @@ class BoundaryCondition:
         self.tracks_cell[:] = -1
 
 
-class ModelGrid(object):
+class ModelGrid:
     """
     Base class for creating and manipulating 2D structured or
     unstructured grids for numerical models.
@@ -74,7 +74,7 @@ class ModelGrid(object):
         pass
     
     #-------------------------------------------------------------------
-    def initialize(self):
+    def initialize( self ):
     
         pass
 
@@ -290,13 +290,6 @@ class ModelGrid(object):
             active_link_id += 1
         
         return net_unit_flux
-    
-    def get_number_of_nodes(self):
-        """
-        Returns the total number of nodes in the grid, including all boundary nodes.
-        Added DEJH June 2013.
-        """
-        return self.ncells
         
     def x( self, id ):
         """
@@ -379,8 +372,7 @@ class ModelGrid(object):
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        if self.DEBUG_VERBOSE:
-            print 'reset here'
+        print 'reset here'
         self.active_links = []
         for link in range(0, len(self.link_fromnode)):
             self.fromnode_status = self.node_status[self.link_fromnode[link]]
@@ -390,12 +382,11 @@ class ModelGrid(object):
                 (self.tonode_status==self.INTERIOR_NODE and
                  not self.fromnode_status==self.INACTIVE_BOUNDARY)):
                 self.active_links.append(link)
-        if self.DEBUG_VERBOSE:
-            print 'active_links:'
-            print self.active_links
+        print 'active_links:'
+        print self.active_links
             
         
-class RasterModelGrid(ModelGrid):
+class RasterModelGrid ( ModelGrid ):
     """
     This inherited class implements a regular, raster 2D grid with uniform
     cell dimensions.
@@ -866,13 +857,6 @@ class RasterModelGrid(ModelGrid):
         NG, June 2013
         """
         return(self.nrows)
-    
-    def get_grid_spacing(self):
-        """
-        Returns the (fixed) spacing between nodes, dx.
-        DEJH June 2013
-        """
-        return self.dx
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
@@ -1034,38 +1018,21 @@ class RasterModelGrid(ModelGrid):
         """
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
-        
-        # Make lists of node IDs for each edge
-        bottom_edge = range(0,self.ncols-1)
-        right_edge = range(self.ncols-1,self.num_nodes,self.ncols)
-        top_edge = range(self.ncols*(self.nrows-1),self.num_nodes)
-        left_edge = range(0,self.num_nodes,self.ncols)
-
-        # Active or deactivate bottom edge (y=0)
+            
+        bottom_edge = range(0,self.num_cols-1)
+        right_edge = range(self.num_cols-1,self.num_nodes,self.num_cols)
+            
         if bottom_is_inactive:
             self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
         else:
-            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[0:self.num_cols-1] = self.FIXED_VALUE_BOUNDARY
 
-        # Active or deactivate right edge (x=x_max)
         if right_is_inactive:
             self.node_status[right_edge] = self.INACTIVE_BOUNDARY
         else:
-            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[(self.num_cols-1):self.num_nodes:self.num_cols] = self.FIXED_VALUE_BOUNDARY
             
-        # Active or deactivate top edge (y=y_max)
-        if top_is_inactive:
-            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
-        else:
-            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
             
-        # Active or deactivate left edge (x=0)
-        if left_is_inactive:
-            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
-        else:
-            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
-
-        # Update the list of active links
         self.reset_list_of_active_links()
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
@@ -1388,43 +1355,20 @@ class RasterModelGrid(ModelGrid):
                                              + bc.gradient[id]*self.dx
         return u
 
-    def node_vector_to_raster(self, u, flip_vertically=False,
-                              adjust_inactive_nodes=False):
+    def node_vector_to_raster( self, u ):
         """
         Converts node vector u to a 2D array and returns it, so that it
         can be plotted, output, etc.
-        
-        Inputs:
-            
-            u: 1D array of values corresponding to nodes
-            flip_vertically (defaults to False): option to reverse vertical
-                ordering so that image-plotting commands put the "bottom" of
-                the grid at the bottom of the plot.
-            adjust_inactive_nodes (defaults to False): sets the value at each
-                inactive node to the value of a neighboring active node, if any.
-                This is just an aesthetic trick to remove "cliffs" along
-                inactive-boundary edges, for smoother plots.
         """
         
         assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
                                          +' elements')
     
-        # Create 2D array and assign values to it
         rast = numpy.zeros( [self.nrows, self.ncols] )
         id = 0
-        if flip_vertically==False:
-            rows = range(0, self.nrows)
-        else:
-            rows = range(self.nrows-1, -1, -1)
-        for r in rows:
+        for r in xrange( 0, self.nrows ):
             rast[r,:] = u[id:(id+self.ncols)]
             id += self.ncols
-        
-        # Optionally handle inactive nodes
-        #TODO!
-        if adjust_inactive_nodes:
-            print 'Warning: adjust_inactive_nodes option not yet implemented.'
-        
         return rast
 
     def cell_vector_to_raster( self, u ):
@@ -1684,15 +1628,6 @@ class RasterModelGrid(ModelGrid):
             print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
                   +str(self.link_tonode[l])+' '+str(flux[al]))
             al += 1
-        print divg
-        
-        print 'Testing boundary activation/deactivation:'
-        self.set_inactive_boundaries(True, False, False, False)
-        print self.node_status
-        print self.active_links
-        grad1 = self.calculate_gradients_at_active_links(u2)
-        print grad1
-        divg = self.calculate_flux_divergence_at_active_cells(grad1)
         print divg
         
         print 'Miscellaneous tests:'
