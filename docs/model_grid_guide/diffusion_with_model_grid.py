@@ -21,12 +21,12 @@ def main():
     # INITIALIZE
     
     # User-defined parameter values
-    numrows = 10          # number of rows in the grid
-    numcols = 15          # number of columns in the grid
+    numrows = 20          # number of rows in the grid
+    numcols = 30          # number of columns in the grid
     dx = 10.0             # grid cell spacing
     kd = 0.01             # diffusivity coefficient, in m2/yr
     uplift_rate = 0.001   # baselevel/uplift rate, in m/yr
-    num_time_steps = 1000 # number of time steps in run
+    num_time_steps = 100 # number of time steps in run
     
     # Derived parameters
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
@@ -36,18 +36,18 @@ def main():
     mg.initialize(numrows, numcols, dx)
     
     # Set the boundary conditions
-    mg.set_noflux_boundaries(False, True, False, True)
+    mg.set_inactive_boundaries(False, False, True, True)
 
     # Set up scalar values
-    z = mg.create_cell_dvector()     # node/cell elevations
-    dzdt = mg.create_cell_dvector()  # node/cell rate of elevation change
+    z = mg.create_node_dvector()     # node/cell elevations
+    dzdt = mg.create_active_cell_dvector()  # node/cell rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_interior_cells()
 
     # Display a message
     print( 'Running diffusion_with_model_grid.py' )
-    print( 'Time-step size has been set to' + str( dt ) + 'years.' )
+    print( 'Time-step size has been set to ' + str( dt ) + ' years.' )
     
 
     # RUN
@@ -56,27 +56,24 @@ def main():
     for i in range(0, num_time_steps):
         
         # Calculate the gradients and sediment fluxes
-        g = mg.calculate_face_gradients(z)
+        g = mg.calculate_gradients_at_active_links(z)
         qs = -kd*g
         
         # Calculate the net deposition/erosion rate in each cell
-        dqsds = mg.calculate_flux_divergences(qs)
+        dqsds = mg.calculate_flux_divergence_at_active_cells(qs)
         
-        # Calculate the total rate of elevation change in the interior cells
-        for c in interior_cells:
-            dzdt[c] = uplift_rate - dqsds[c]
+        # Calculate the total rate of elevation change in the active cells
+        #for c in interior_cells:
+        dzdt = uplift_rate - dqsds
             
         # Update the elevations
-        z = z + dzdt * dt
-        
-        # Update the boundaries to maintain no-flux condition where needed
-        z = mg.update_noflux_boundaries(z)
-   
+        z[interior_cells] = z[interior_cells] + dzdt * dt
+           
    
     # FINALIZE
     
     # Get a 2D array version of the elevations
-    zr = mg.cell_vector_to_raster(z)
+    zr = mg.node_vector_to_raster(z, flip_vertically=True)
     
     # Create a shaded image
     im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
