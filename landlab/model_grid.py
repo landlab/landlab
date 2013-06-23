@@ -84,7 +84,15 @@ class ModelGrid(object):
         the number of cells.
         """
     
-        return numpy.zeros( self.ncells )
+        return numpy.zeros( self.num_cells )
+
+    def create_active_cell_dvector( self ):
+        """
+        Returns a vector of floating point numbers the same length as 
+        the number of active cells.
+        """
+    
+        return numpy.zeros( self.num_active_cells )
 
     def create_node_dvector( self ):
         """
@@ -997,7 +1005,68 @@ class RasterModelGrid(ModelGrid):
         all_neighbor_cells=numpy.concatenate((neighbor_cells,diagonal_cells))
         #print 'all_neighbor_cells ', all_neighbor_cells
         
-        return all_neighbor_cells[index_max]   
+        return all_neighbor_cells[index_max]
+        
+    def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
+                                top_is_inactive, left_is_inactive):
+        """
+        Handles boundary conditions by setting each of the four sides of the 
+        rectangular grid to either 'inactive' or 'active (fixed value)' status.
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left are inactive (True) or not (False).
+        
+        For an inactive boundary:
+            - the nodes are flagged INACTIVE_BOUNDARY
+            - the links between them and the adjacent interior nodes are
+              inactive (so they appear on link-based lists, but not
+              active_link-based lists)
+              
+        This means that if you call the calculate_gradients_at_active_links
+        method, the inactive boundaries will be ignored: there can be no
+        gradients or fluxes calculated, because the links that connect to that
+        edge of the grid are not included in the calculation. So, setting a
+        grid edge to INACTIVE_BOUNDARY is a convenient way to impose a no-flux
+        boundary condition. Note, however, that this applies to the grid as a
+        whole, rather than a particular variable that you might use in your
+        application. In other words, if you want a no-flux boundary in one
+        variable but a different boundary condition for another, then use 
+        another method.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_inactive_boundaries'
+        
+        # Make lists of node IDs for each edge
+        bottom_edge = range(0,self.ncols-1)
+        right_edge = range(self.ncols-1,self.num_nodes,self.ncols)
+        top_edge = range(self.ncols*(self.nrows-1),self.num_nodes)
+        left_edge = range(0,self.num_nodes,self.ncols)
+
+        # Active or deactivate bottom edge (y=0)
+        if bottom_is_inactive:
+            self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
+
+        # Active or deactivate right edge (x=x_max)
+        if right_is_inactive:
+            self.node_status[right_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
+            
+        # Active or deactivate top edge (y=y_max)
+        if top_is_inactive:
+            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
+            
+        # Active or deactivate left edge (x=0)
+        if left_is_inactive:
+            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
+
+        # Update the list of active links
+        self.reset_list_of_active_links()
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
@@ -1319,17 +1388,59 @@ class RasterModelGrid(ModelGrid):
                                              + bc.gradient[id]*self.dx
         return u
 
+    def node_vector_to_raster(self, u, flip_vertically=False,
+                              adjust_inactive_nodes=False):
+        """
+        Converts node vector u to a 2D array and returns it, so that it
+        can be plotted, output, etc.
+        
+        Inputs:
+            
+            u: 1D array of values corresponding to nodes
+            flip_vertically (defaults to False): option to reverse vertical
+                ordering so that image-plotting commands put the "bottom" of
+                the grid at the bottom of the plot.
+            adjust_inactive_nodes (defaults to False): sets the value at each
+                inactive node to the value of a neighboring active node, if any.
+                This is just an aesthetic trick to remove "cliffs" along
+                inactive-boundary edges, for smoother plots.
+        """
+        
+        assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
+                                         +' elements')
+    
+        # Create 2D array and assign values to it
+        rast = numpy.zeros( [self.nrows, self.ncols] )
+        id = 0
+        if flip_vertically==False:
+            rows = range(0, self.nrows)
+        else:
+            rows = range(self.nrows-1, -1, -1)
+        for r in rows:
+            rast[r,:] = u[id:(id+self.ncols)]
+            id += self.ncols
+        
+        # Optionally handle inactive nodes
+        #TODO!
+        if adjust_inactive_nodes:
+            print 'Warning: adjust_inactive_nodes option not yet implemented.'
+        
+        return rast
+
     def cell_vector_to_raster( self, u ):
         """
         Converts cell vector u to a 2D array and returns it, so that it
         can be plotted, output, etc.
         """
     
-        rast = numpy.zeros( [self.nrows, self.ncols] )
+        assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
+                                         +' elements')
+    
+        rast = numpy.zeros( [self.nrows-2, self.ncols-2] )
         id = 0
-        for r in xrange( 0, self.nrows ):
-            rast[r,:] = u[id:(id+self.ncols)]
-            id += self.ncols
+        for r in xrange( 0, self.nrows-2 ):
+            rast[r,:] = u[id:(id+(self.ncols-2))]
+            id += self.ncols-2
         return rast
 
     def get_neighbor_list( self, id = -1 ):
@@ -1478,7 +1589,7 @@ class RasterModelGrid(ModelGrid):
         print 'Initializing ...'
         self.initialize( num_rows_for_unit_test, 
                          num_cols_for_unit_test,
-                         0.5 )
+                         1.0 )
         print 'done.'
         print
         
@@ -1574,3 +1685,16 @@ class RasterModelGrid(ModelGrid):
                   +str(self.link_tonode[l])+' '+str(flux[al]))
             al += 1
         print divg
+        
+        print 'Testing boundary activation/deactivation:'
+        self.set_inactive_boundaries(True, False, False, False)
+        print self.node_status
+        print self.active_links
+        grad1 = self.calculate_gradients_at_active_links(u2)
+        print grad1
+        divg = self.calculate_flux_divergence_at_active_cells(grad1)
+        print divg
+        
+        print 'Miscellaneous tests:'
+        acdv = self.create_active_cell_dvector()
+        print acdv
