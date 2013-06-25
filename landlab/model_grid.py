@@ -68,7 +68,7 @@ class ModelGrid:
     
     # Debugging flags (if True, activates some output statements)
     DEBUG_VERBOSE = False
-    DEBUG_TRACK_METHODS = False
+    DEBUG_TRACK_METHODS = True
 
     #-------------------------------------------------------------------
     def __init__( self ):
@@ -380,8 +380,8 @@ class ModelGrid:
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        if self.DEBUG_VERBOSE:
-            print 'reset here'
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.reset_list_of_active_links'
         self.active_links = []
         for link in range(0, len(self.link_fromnode)):
             self.fromnode_status = self.node_status[self.link_fromnode[link]]
@@ -391,9 +391,7 @@ class ModelGrid:
                 (self.tonode_status==self.INTERIOR_NODE and
                  not self.fromnode_status==self.INACTIVE_BOUNDARY)):
                 self.active_links.append(link)
-        if self.DEBUG_VERBOSE:
-            print 'active_links:'
-            print self.active_links
+        self.num_active_links = len(self.active_links)
             
         
 class RasterModelGrid ( ModelGrid ):
@@ -447,7 +445,9 @@ class RasterModelGrid ( ModelGrid ):
             (20, 6, 31, 17)
         """
         
-        #print 'RasterModelGrid.initialize'
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.initialize('+str(num_rows)+', ' \
+                   +str(num_cols)+', '+str(dx)+')'
         
         # Basic info about raster size and shape
         self.nrows = num_rows
@@ -1056,14 +1056,24 @@ class RasterModelGrid ( ModelGrid ):
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
+        >>> rmg.num_active_links
+        12
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = RIGHT
+            top right = TOP
+            top left = LEFT
         """
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
         bottom_edge = range(0,self.ncols-1)
-        right_edge = range(self.ncols-1,self.num_nodes,self.ncols)
-        top_edge = range((self.nrows-1)*self.ncols,self.num_nodes)
-        left_edge = range(0,self.num_nodes,self.ncols)
+        right_edge = range(self.ncols-1,self.num_nodes-1,self.ncols)
+        top_edge = range((self.nrows-1)*self.ncols+1,self.num_nodes)
+        left_edge = range(self.ncols,self.num_nodes,self.ncols)
             
         if bottom_is_inactive:
             self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
@@ -1165,13 +1175,31 @@ class RasterModelGrid ( ModelGrid ):
         This is nearly identical to the method of the same name in ModelGrid,
         except that it uses self.dx for link length to improve efficiency.
         
-            >>> grad = rmg.calculate_gradients_at_active_links(s)
+        Example:
+        
+            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+                    1., 2., 3., 2., 3.,
+                    0., 1., 2., 1., 2.,
+                    0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> u
+            array([ 0.,  1.,  2.,  3.,  0.,  1.,  2.,  3.,  2.,  3.,  0.,  1.,  2.,
+                1.,  2.,  0.,  0.,  2.,  2.,  0.])
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
             
         For greater speed, sending a pre-created numpy array as an argument
         avoids having to create a new one with each call:
             
             >>> grad = numpy.zeros(rmg.num_active_links)
-            >>> grad = rmg.calculate_gradients_at_active_links(s, grad)
+            >>> u = u*10
+            >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
+            >>> grad
+            array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
+                -10.,  10.,  10.,  10., -10.,  10.])
         """
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_gradients_at_active_links'
