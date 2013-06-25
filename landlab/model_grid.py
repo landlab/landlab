@@ -23,6 +23,8 @@ class BoundaryCondition:
           
         * A list of boundary gradients
         * A list of cell IDs to track
+        
+        NOTE: we may not need this anymore ... GT 6/13
     """
     def __init__( self, n_boundary_cells = 0 ):
     
@@ -66,7 +68,7 @@ class ModelGrid:
     
     # Debugging flags (if True, activates some output statements)
     DEBUG_VERBOSE = False
-    DEBUG_TRACK_METHODS = True
+    DEBUG_TRACK_METHODS = False
 
     #-------------------------------------------------------------------
     def __init__( self ):
@@ -77,6 +79,12 @@ class ModelGrid:
     def initialize( self ):
     
         pass
+        
+    def get_node_status(self):
+        """
+        Returns an array of node boundary-status codes.
+        """
+        return self.node_status
 
     def create_cell_dvector( self ):
         """
@@ -123,8 +131,8 @@ class ModelGrid:
         Calculates and returns gradients in u across all interior faces.
 
         .. todo::
-            At the moment, we just use self.dx, but for unstructured
-            grids this needs to use link length associated with each face!
+            This is now deprecated in favor of 
+            calculate_gradients_at_active_links
         """
     
         g = numpy.zeros( self.nfaces )
@@ -392,12 +400,22 @@ class RasterModelGrid ( ModelGrid ):
     """
     This inherited class implements a regular, raster 2D grid with uniform
     cell dimensions.
+    
+    Examples:
+        
+        >>> rmg = model_grid.RasterModelGrid()
+        >>> rmg.num_nodes
+        0
+        >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.num_nodes
+        20
     """
 
     def __init__( self, num_rows=0, num_cols=0, dx=1.0 ):
         """
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
+        
         """
         #print 'RasterModelGrid.init'
         
@@ -420,6 +438,13 @@ class RasterModelGrid ( ModelGrid ):
         a "tocell"; the convention is that these always "point" up or
         right (so a negative flux across a face is either going left or
         down).
+        
+            >>> numrows = 20          # number of rows in the grid
+            >>> numcols = 30          # number of columns in the grid
+            >>> dx = 10.0             # grid cell spacing
+            >>> rmg.initialize(numrows, numcols, dx)
+            >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
+            (20, 6, 31, 17)
         """
         
         #print 'RasterModelGrid.initialize'
@@ -862,7 +887,11 @@ class RasterModelGrid ( ModelGrid ):
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
-        This method takes an x,y coordinate within the grid, then returns the IDs of the four nodes of the area (enclosure?) around that point as a 4 item list. Because the geometry of this grid is so simple, it works purely by counting the number of squares left and below the point. Method added 4/29/13 by DEJH.
+        This method takes an x,y coordinate within the grid, then returns the 
+        IDs of the four nodes of the area (enclosure?) around that point as a 
+        4 item list. Because the geometry of this grid is so simple, it works 
+        purely by counting the number of squares left and below the point. 
+        Method added 4/29/13 by DEJH.
         """
         ID = int(ycoord//self.dx * self.ncols + xcoord//self.dx)
         return [ID, ID+1, ID+self.ncols, ID+self.ncols+1]
@@ -1017,24 +1046,45 @@ class RasterModelGrid ( ModelGrid ):
         application. In other words, if you want a no-flux boundary in one
         variable but a different boundary condition for another, then use 
         another method.
+        
+        The following example sets the top and left boundaries as inactive in a
+        four-row by five-column grid that initially has all boundaries active
+        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
+        
+        >>> rmg.num_active_links
+        17
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.set_inactive_boundaries(False, False, True, True)
         """
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
-        bottom_edge = range(0,self.num_cols-1)
-        right_edge = range(self.num_cols-1,self.num_nodes,self.num_cols)
+        bottom_edge = range(0,self.ncols-1)
+        right_edge = range(self.ncols-1,self.num_nodes,self.ncols)
+        top_edge = range((self.nrows-1)*self.ncols,self.num_nodes)
+        left_edge = range(0,self.num_nodes,self.ncols)
             
         if bottom_is_inactive:
             self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
         else:
-            self.node_status[0:self.num_cols-1] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
             self.node_status[right_edge] = self.INACTIVE_BOUNDARY
         else:
-            self.node_status[(self.num_cols-1):self.num_nodes:self.num_cols] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
             
-            
+        if top_is_inactive:
+            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
+
+        if left_is_inactive:
+            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
+        
         self.reset_list_of_active_links()
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
@@ -1114,6 +1164,14 @@ class RasterModelGrid ( ModelGrid ):
         Calculates the gradient in quantity s at each active link in the grid.
         This is nearly identical to the method of the same name in ModelGrid,
         except that it uses self.dx for link length to improve efficiency.
+        
+            >>> grad = rmg.calculate_gradients_at_active_links(s)
+            
+        For greater speed, sending a pre-created numpy array as an argument
+        avoids having to create a new one with each call:
+            
+            >>> grad = numpy.zeros(rmg.num_active_links)
+            >>> grad = rmg.calculate_gradients_at_active_links(s, grad)
         """
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_gradients_at_active_links'
@@ -1357,7 +1415,7 @@ class RasterModelGrid ( ModelGrid ):
                                              + bc.gradient[id]*self.dx
         return u
 
-    def node_vector_to_raster( self, u ):
+    def node_vector_to_raster(self, u, flip_vertically=False):
         """
         Converts node vector u to a 2D array and returns it, so that it
         can be plotted, output, etc.
@@ -1367,8 +1425,12 @@ class RasterModelGrid ( ModelGrid ):
                                          +' elements')
     
         rast = numpy.zeros( [self.nrows, self.ncols] )
+        if flip_vertically==False:
+            rows = range(0, self.nrows)
+        else:
+            rows = range(self.nrows-1, -1, -1)
         id = 0
-        for r in xrange( 0, self.nrows ):
+        for r in rows:
             rast[r,:] = u[id:(id+self.ncols)]
             id += self.ncols
         return rast

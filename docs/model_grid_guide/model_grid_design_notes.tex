@@ -68,23 +68,38 @@ By default, the numbering scheme for a raster model grid works as follows. Nodes
         #  0-------1-------2-------3-------4
 \end{verbatim}
 
-Links are numbered in the same basic ordering, but starting with all vertical links first, and then proceeding through all horizontal links. Here is an example of link numbering for a five-column by four-row grid:
-
+Cell numbering follows the same scheme. However, there are no cells associated with the perimeter nodes. In the four-row, five-column example, there are 20 nodes but only six cells. The numbering of the cells is as shown here:
 \begin{verbatim}
-        #  *--27---*--28---*--29---*--30---*
-        #  |       |       |       |       |
+        # |-------|-------|-------|
+        # |       |       |       |
+        # |   3   |   4   |   5   |
+        # |       |       |       |
+        # |-------|-------|-------|
+        # |       |       |       |
+        # |   0   |   1   |   2   |
+        # |       |       |       |
+        # |-------|-------|-------|
+\end{verbatim}
+Note that in this diagram, the lines represent faces and the numbers coincide with nodes.
+
+Links are numbered in the same basic ordering, but starting with all vertical links first, and then proceeding through all horizontal links. Here is an example of link numbering for a five-column by four-row grid:
+\newpage
+\begin{verbatim}
+        #  *--27-->*--28-->*--29-->*--30-->*
+        #  ^       ^       ^       ^       ^
         # 10      11      12      13      14
         #  |       |       |       |       |
-        #  *--23---*--24---*--25---*--26---*
-        #  |       |       |       |       |
+        #  *--23-->*--24-->*--25-->*--26-->*
+        #  ^       ^       ^       ^       ^
         #  5       6       7       8       9   
         #  |       |       |       |       |
-        #  *--19---*--20---*--21---*--22---*
-        #  |       |       |       |       |
+        #  *--19-->*--20-->*--21-->*--22-->*
+        #  ^       ^       ^       ^       ^
         #  0       1       2       3       4
         #  |       |       |       |       |
-        #  *--15---*--16---*--17---*--18---*
+        #  *--15-->*--16-->*--17-->*--18-->*
 \end{verbatim}
+In the above diagram, the asterisks are nodes, the lines are links, and the \verb!^! and \verb!>! symbols are meant to indicate the direction of each link (up for vertical links, and to the right for horizontal links).
 
 %%% notes
 
