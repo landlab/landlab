@@ -401,10 +401,10 @@ class RasterModelGrid ( ModelGrid ):
     
     Examples:
         
-        >>> rmg = model_grid.RasterModelGrid()
+        >>> rmg = RasterModelGrid()
         >>> rmg.num_nodes
         0
-        >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.num_nodes
         20
     """
@@ -437,11 +437,14 @@ class RasterModelGrid ( ModelGrid ):
         right (so a negative flux across a face is either going left or
         down).
         
+            >>> rmg = RasterModelGrid()
             >>> numrows = 20          # number of rows in the grid
             >>> numcols = 30          # number of columns in the grid
             >>> dx = 10.0             # grid cell spacing
             >>> rmg.initialize(numrows, numcols, dx)
             >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
+            (600, 504, 1150, 1054)
+
             (20, 6, 31, 17)
         """
         
@@ -1051,6 +1054,7 @@ class RasterModelGrid ( ModelGrid ):
         four-row by five-column grid that initially has all boundaries active
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
         
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.num_active_links
         17
         >>> rmg.node_status
@@ -1177,19 +1181,19 @@ class RasterModelGrid ( ModelGrid ):
         
         Example:
         
-            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
             >>> u = [0., 1., 2., 3., 0.,
-                    1., 2., 3., 2., 3.,
-                    0., 1., 2., 1., 2.,
-                    0., 0., 2., 2., 0.]
+            ...     1., 2., 3., 2., 3.,
+            ...     0., 1., 2., 1., 2.,
+            ...     0., 0., 2., 2., 0.]
             >>> u = numpy.array(u)
             >>> u
             array([ 0.,  1.,  2.,  3.,  0.,  1.,  2.,  3.,  2.,  3.,  0.,  1.,  2.,
-                1.,  2.,  0.,  0.,  2.,  2.,  0.])
+                    1.,  2.,  0.,  0.,  2.,  2.,  0.])
             >>> grad = rmg.calculate_gradients_at_active_links(u)
             >>> grad
             array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
+                    1.,  1., -1.,  1.])
             
         For greater speed, sending a pre-created numpy array as an argument
         avoids having to create a new one with each call:
@@ -1199,7 +1203,7 @@ class RasterModelGrid ( ModelGrid ):
             >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
             >>> grad
             array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
-                -10.,  10.,  10.,  10., -10.,  10.])
+                   -10.,  10.,  10.,  10., -10.,  10.])
         """
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_gradients_at_active_links'
@@ -1260,11 +1264,11 @@ class RasterModelGrid ( ModelGrid ):
             
         Example:
             
-            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
             >>> u = [0., 1., 2., 3., 0.,
-                     1., 2., 3., 2., 3.,
-                     0., 1., 2., 1., 2.,
-                     0., 0., 2., 2., 0.]
+            ...      1., 2., 3., 2., 3.,
+            ...      0., 1., 2., 1., 2.,
+            ...      0., 0., 2., 2., 0.]
             >>> u = numpy.array(u)
             >>> grad = rmg.calculate_gradients_at_active_links(u)
             >>> grad
@@ -1296,7 +1300,7 @@ class RasterModelGrid ( ModelGrid ):
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
-        if net_unit_flux==False:
+        if net_unit_flux is False:
             net_unit_flux = numpy.zeros(self.num_active_cells)
         else:
             net_unit_flux[:] = 0.
@@ -1341,11 +1345,11 @@ class RasterModelGrid ( ModelGrid ):
         
         Example:
             
-            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
             >>> u = [0., 1., 2., 3., 0.,
-                     1., 2., 3., 2., 3.,
-                     0., 1., 2., 1., 2.,
-                     0., 0., 2., 2., 0.]
+            ...      1., 2., 3., 2., 3.,
+            ...      0., 1., 2., 1., 2.,
+            ...      0., 0., 2., 2., 0.]
             >>> u = numpy.array(u)
             >>> grad = rmg.calculate_gradients_at_active_links(u)
             >>> grad
@@ -1355,13 +1359,15 @@ class RasterModelGrid ( ModelGrid ):
             >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
             >>> df
             array([ 0.,  0.,  0.,  0.,  0.,  0.,  2.,  4., -2.,  0.,  0.,  0.,  1.,
-                    -4.,  0.,  0.,  0.,  0.,  0.,  0.])
+                   -4.,  0.,  0.,  0.,  0.,  0.,  0.])
             
         If calculate_gradients_at_nodes is called inside a loop, you can
         improve speed by creating an array outside the loop. For example, do
         this once, before the loop:
             
-            >>> df = rmg.create_active_cell_dvector() # outside loop
+            >>> df = rmg.create_node_dvector() # outside loop
+            >>> rmg.num_nodes
+            20
             
         Then do this inside the loop:
             
@@ -1377,12 +1383,12 @@ class RasterModelGrid ( ModelGrid ):
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
-        if net_unit_flux==False:
+        if net_unit_flux is False:
             net_unit_flux = numpy.zeros(self.num_nodes)
         else:
             net_unit_flux[:] = 0.
             
-        assert (len(net_unit_flux))==self.num_nodes
+        assert(len(net_unit_flux) == self.num_nodes)
         
         # For each active link, add up the flux out of the "from" cell and 
         # into the "to" cell.
@@ -1518,7 +1524,7 @@ class RasterModelGrid ( ModelGrid ):
         
         Example:
             
-            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
             >>> u = rmg.create_node_dvector()
             >>> u = u + range(0, len(u))
             >>> u
@@ -1564,7 +1570,7 @@ class RasterModelGrid ( ModelGrid ):
         
         Example:
             
-            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
             >>> u = rmg.create_cell_dvector()
             >>> u = u + range(0, len(u))
             >>> u
@@ -1840,3 +1846,8 @@ class RasterModelGrid ( ModelGrid ):
         print 'Miscellaneous tests:'
         acdv = self.create_active_cell_dvector()
         print acdv
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
