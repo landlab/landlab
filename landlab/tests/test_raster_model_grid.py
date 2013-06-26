@@ -36,7 +36,7 @@ class TestRasterModelGrid(unittest.TestCase):
         """
         Create a raster grid.
         """
-        grid = RasterModelGrid(num_rows=3, num_cols=4)
+        grid = RasterModelGrid(num_rows=4, num_cols=5)
 
     def test_grid_dimensions(self):
         """
@@ -44,7 +44,7 @@ class TestRasterModelGrid(unittest.TestCase):
         y-dimension is the rows.
         """
         SPACING = 2.
-        (NUM_ROWS, NUM_COLS) = (3, 4)
+        (NUM_ROWS, NUM_COLS) = (4, 5)
 
         grid = RasterModelGrid(num_rows=NUM_ROWS, num_cols=NUM_COLS,
                                dx=SPACING)
@@ -56,7 +56,7 @@ class TestRasterModelGrid(unittest.TestCase):
         """
         Use the default spacing of 1.
         """
-        (NUM_ROWS, NUM_COLS) = (3, 4)
+        (NUM_ROWS, NUM_COLS) = (4, 5)
 
         grid = RasterModelGrid(num_rows=NUM_ROWS, num_cols=NUM_COLS)
 
@@ -85,58 +85,60 @@ class TestRasterModelGrid(unittest.TestCase):
 
         self.assertEqual(list(neighbors), [-1, -1, -1, -1])
 
-#    def test_cell_x(self):
-#        expected_x = [0., 1., 2., 3., 4.,
-#                      0., 1., 2., 3., 4.,
-#                      0., 1., 2., 3., 4.,
-#                      0., 1., 2., 3., 4.]
-#
-#        for (cell_id, expected) in zip(xrange(12), expected_x):
-#            cell_x = self.grid.x(cell_id)
-#            self.assertEqual(cell_x, expected)
-#
-#    def test_cell_y(self):
-#        expected_y = [0., 0., 0., 0., 0.,
-#                      1., 1., 1., 1., 1.,
-#                      2., 2., 2., 2., 2.,
-#                      3., 3., 3., 3., 3.]
-#
-#        for (cell_id, expected) in zip(xrange(12), expected_y):
-#            cell_y = self.grid.y(cell_id)
-#            self.assertEqual(cell_y, expected)
-#
-#    def test_cell_x_coordinates(self):
-#        x_coords = self.grid.get_cell_x_coords()
-#
-#        self.assertEqual(list(x_coords), [0., 1., 2., 3.,
-#                                          0., 1., 2., 3.,
-#                                          0., 1., 2., 3.])
-#
-#    def test_cell_y_coordinates(self):
-#        y_coords = self.grid.get_cell_y_coords()
-#
-#        self.assertEqual(list(y_coords), [0., 0., 0., 0.,
-#                                          1., 1., 1., 1.,
-#                                          2., 2., 2., 2.])
-#
-#    def test_diagonal_list(self):
-#        diagonals = self.grid.get_diagonal_list(id=5)
-#        self.assertEqual(list(diagonals), [10, 8, 0, 2])
-#
-#    def test_diagonal_list_boundary(self):
-#        diagonals = self.grid.get_diagonal_list(id=0)
-#        self.assertEqual(list(diagonals), [-1, -1, -1, -1])
-#
-#    def test_is_interior(self):
-#        for cell_id in [0, 1, 2, 3, 4, 7, 8, 9, 10, 11]:
-#            self.assertFalse(self.grid.is_interior(cell_id))
-#
-#        for cell_id in [5, 6]:
-#            self.assertTrue(self.grid.is_interior(cell_id))
-#
-#    def test_get_interior_cells(self):
-#        interiors = self.grid.get_interior_cells()
-#        self.assertEqual(list(interiors), [5, 6])
+    def test_cell_x(self):
+        expected_x = [0., 1., 2., 3., 4.,
+                      0., 1., 2., 3., 4.,
+                      0., 1., 2., 3., 4.,
+                      0., 1., 2., 3., 4.]
+
+        for (cell_id, expected) in zip(xrange(12), expected_x):
+            cell_x = self.grid.x(cell_id)
+            self.assertEqual(cell_x, expected)
+
+    def test_cell_y(self):
+        expected_y = [0., 0., 0., 0., 0.,
+                      1., 1., 1., 1., 1.,
+                      2., 2., 2., 2., 2.,
+                      3., 3., 3., 3., 3.]
+
+        for (cell_id, expected) in zip(xrange(12), expected_y):
+            cell_y = self.grid.y(cell_id)
+            self.assertEqual(cell_y, expected)
+
+    def test_node_x_coordinates(self):
+        x_coords = self.grid.get_node_x_coords()
+
+        self.assertEqual(list(x_coords), [0., 1., 2., 3., 4.,
+                                          0., 1., 2., 3., 4.,
+                                          0., 1., 2., 3., 4.,
+                                          0., 1., 2., 3., 4.])
+
+    def test_cell_y_coordinates(self):
+        y_coords = self.grid.get_cell_y_coords()
+
+        self.assertEqual(list(y_coords), [0., 0., 0., 0., 0.,
+                                          1., 1., 1., 1., 1.,
+                                          2., 2., 2., 2., 2.,
+                                          3., 3., 3., 3., 3.])
+
+    def test_diagonal_list(self):
+        diagonals = self.grid.get_diagonal_list(id=6)
+        self.assertEqual(list(diagonals), [12, 10, 0, 2])
+
+    def test_diagonal_list_boundary(self):
+        diagonals = self.grid.get_diagonal_list(id=0)
+        self.assertEqual(list(diagonals), [-1, -1, -1, -1])
+
+    def test_is_interior(self):
+        for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
+            self.assertFalse(self.grid.is_interior(cell_id))
+
+        for cell_id in [6, 7, 8, 11, 12, 13]:
+            self.assertTrue(self.grid.is_interior(cell_id))
+
+    def test_get_interior_cells(self):
+        interiors = self.grid.get_interior_cells()
+        self.assertEqual(list(interiors), [6, 7, 8, 11, 12, 13])
 
 
 if __name__ == '__main__':

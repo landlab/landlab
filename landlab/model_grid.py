@@ -68,7 +68,7 @@ class ModelGrid:
     
     # Debugging flags (if True, activates some output statements)
     DEBUG_VERBOSE = False
-    DEBUG_TRACK_METHODS = True
+    DEBUG_TRACK_METHODS = False
 
     #-------------------------------------------------------------------
     def __init__( self ):
@@ -1234,12 +1234,12 @@ class RasterModelGrid ( ModelGrid ):
         There should be one value per active link. Returns an array of net
         total flux per unit area, one value per active cell (creates this
         array if it is not given as an argument).
-          By convention, divergence is positive for net outflow, and 
-        negative for net outflow. That's why we *add* outgoing flux and
-        *subtract* incoming flux. This makes net_unit_flux have the same sign
-        and dimensions as a typical divergence term in a conservation equation.
+          By convention, divergence is positive for net outflow, and negative 
+        for net outflow. That's why we *add* outgoing flux and *subtract* 
+        incoming flux. This makes net_unit_flux have the same sign and 
+        dimensions as a typical divergence term in a conservation equation.
 
-        In general, for a polygonal cell with N sides of lengths
+        In general, for a polygonal cell with $N$ sides of lengths
         Li and with surface area A, the net influx divided by cell
         area would be:
             .. math::
@@ -1257,6 +1257,36 @@ class RasterModelGrid ( ModelGrid ):
                 .. math::
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
+            
+        Example:
+            
+            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+                     1., 2., 3., 2., 3.,
+                     0., 1., 2., 1., 2.,
+                     0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                    1.,  1., -1.,  1.])
+            >>> flux = -grad    # downhill flux proportional to gradient
+            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
+            >>> divflux
+            array([ 2.,  4., -2.,  0.,  1., -4.])
+            
+        If calculate_gradients_at_active_links is called inside a loop, you can
+        improve speed by creating an array outside the loop. For example, do
+        this once, before the loop:
+            
+            >>> divflux = rmg.create_active_cell_dvector() # outside loop
+            
+        Then do this inside the loop:
+            
+            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
+            
+        In this case, the function will not have to create the divflux array.
+            
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -1308,6 +1338,36 @@ class RasterModelGrid ( ModelGrid ):
         but simply return zeros for these entries. The advantage is that the 
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
+        
+        Example:
+            
+            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+                     1., 2., 3., 2., 3.,
+                     0., 1., 2., 1., 2.,
+                     0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                    1.,  1., -1.,  1.])
+            >>> flux = -grad    # downhill flux proportional to gradient
+            >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
+            >>> df
+            array([ 0.,  0.,  0.,  0.,  0.,  0.,  2.,  4., -2.,  0.,  0.,  0.,  1.,
+                    -4.,  0.,  0.,  0.,  0.,  0.,  0.])
+            
+        If calculate_gradients_at_nodes is called inside a loop, you can
+        improve speed by creating an array outside the loop. For example, do
+        this once, before the loop:
+            
+            >>> df = rmg.create_active_cell_dvector() # outside loop
+            
+        Then do this inside the loop:
+            
+            >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
+            
+        In this case, the function will not have to create the df array.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -1348,6 +1408,7 @@ class RasterModelGrid ( ModelGrid ):
     def calculate_flux_divergences( self, q ):
         """
         TBX: TO BE REPLACED WITH METHODS ABOVE
+        
         Calculates the net flux at each cell by adding up the fluxes
         through all four faces, and divides the total by cell area.
 
@@ -1387,6 +1448,8 @@ class RasterModelGrid ( ModelGrid ):
         
     def calculate_flux_divergence( self, q, id ):
         """
+        TODO: UPDATE THIS TO USE NEW DATA STRUCTURES!
+        
         This is like calculate_flux_divergences (plural!), but only does
         it for cell "id".
         """
@@ -1447,6 +1510,32 @@ class RasterModelGrid ( ModelGrid ):
         """
         Converts node vector u to a 2D array and returns it, so that it
         can be plotted, output, etc.
+        
+        If the optional argument flip_vertically=True, the function returns an 
+        array that has the rows in reverse order, for use in plot commands (such
+        as the image display functions) that put the (0,0) axis at the top left 
+        instead of the bottom left.
+        
+        Example:
+            
+            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> u = rmg.create_node_dvector()
+            >>> u = u + range(0, len(u))
+            >>> u
+            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
+            >>> ur = rmg.node_vector_to_raster(u)
+            >>> ur
+            array([[  0.,   1.,   2.,   3.,   4.],
+                   [  5.,   6.,   7.,   8.,   9.],
+                   [ 10.,  11.,  12.,  13.,  14.],
+                   [ 15.,  16.,  17.,  18.,  19.]])
+            >>> ur = rmg.node_vector_to_raster(u, flip_vertically=True)        
+            >>> ur
+            array([[ 15.,  16.,  17.,  18.,  19.],
+                   [ 10.,  11.,  12.,  13.,  14.],
+                   [  5.,   6.,   7.,   8.,   9.],
+                   [  0.,   1.,   2.,   3.,   4.]])
         """
         
         assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
@@ -1463,18 +1552,43 @@ class RasterModelGrid ( ModelGrid ):
             id += self.ncols
         return rast
 
-    def cell_vector_to_raster( self, u ):
+    def cell_vector_to_raster(self, u, flip_vertically=False):
         """
         Converts cell vector u to a 2D array and returns it, so that it
         can be plotted, output, etc.
+        
+        If the optional argument flip_vertically=True, the function returns an 
+        array that has the rows in reverse order, for use in plot commands (such
+        as the image display functions) that put the (0,0) axis at the top left 
+        instead of the bottom left.
+        
+        Example:
+            
+            >>> rmg = model_grid.RasterModelGrid(4, 5, 1.0)
+            >>> u = rmg.create_cell_dvector()
+            >>> u = u + range(0, len(u))
+            >>> u
+            array([ 0.,  1.,  2.,  3.,  4.,  5.])
+            >>> ur = rmg.cell_vector_to_raster(u)
+            >>> ur
+            array([[ 0.,  1.,  2.],
+                   [ 3.,  4.,  5.]])
+            >>> ur = rmg.cell_vector_to_raster(u, flip_vertically=True)        
+            >>> ur
+            array([[ 3.,  4.,  5.],
+                   [ 0.,  1.,  2.]])
         """
     
-        assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
+        assert(len(u)==self.num_cells), ('u should have '+str(self.num_cells) \
                                          +' elements')
     
         rast = numpy.zeros( [self.nrows-2, self.ncols-2] )
+        if flip_vertically==False:
+            rows = range(0, self.nrows-2)
+        else:
+            rows = range(self.nrows-3, -1, -1)
         id = 0
-        for r in xrange( 0, self.nrows-2 ):
+        for r in rows:
             rast[r,:] = u[id:(id+(self.ncols-2))]
             id += self.ncols-2
         return rast
@@ -1600,6 +1714,7 @@ class RasterModelGrid ( ModelGrid ):
 
     def get_face_connecting_cell_pair( self, cid1, cid2 ):
         """
+        TODO: UPDATE FOR NEW DATA STRUCTURES
         Returns the face that connects cells cid1 and cid2, or -1 if
         no such face is found.
         """
