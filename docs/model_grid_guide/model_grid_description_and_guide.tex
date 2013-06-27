@@ -2,6 +2,7 @@
 \documentclass[12pt]{article}
 \usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
 \usepackage{graphicx}
+\usepackage{graphics}
 \usepackage{natbib}
 \usepackage{amsmath}
 \usepackage{listings}
@@ -66,13 +67,45 @@ Figure~\ref{grid} illustrates how ModelGrid represents a simulation grid. The gr
 
 In the simple case of a regular (raster) grid, the cells are square, the nodes are the center points of the cells (Figure~\ref{grid}a), and the faces have identical length (equal to the node spacing). In a Voronoi-Delaunay grid, the cells are Voronoi polygons (also known as Theissen polygons) (Figure~\ref{grid}b). In this case, each cell represents the surface area that is closer to its own node than to any other node in the grid. The faces then represent locations that are equidistant between two adjacent nodes. Other grid configurations are possible as well. For examples, cells could be square elements in a quad-tree grid (Figure~\ref{grid}c), or triangular elements with nodes at their circumcenters (Figure~\ref{grid}d).
 
-Each pair of adjacent cells is connected by a line segment called a {\em link} (Figure~\ref{grid}, dashed line). In some cases, as we will see in a worked example below, it is useful to have each pair of adjacent cells connected by two vectors: one pointing one way, and a second pointing the opposite way \citep{guibas1985primitives,tucker2001object}. These vectors are known as {\em directed edges} (Figure~\ref{grid}, gray arrows). 
+Each pair of adjacent cells is connected by a line segment called a {\em link} (Figure~\ref{grid}, dashed line). Each link connects a {\em from node} and a {to node}, so it has direction as well as position and length. In some cases, it may be useful to have each pair of adjacent cells connected by two vectors: one pointing one way, and a second pointing the opposite way \citep{guibas1985primitives,tucker2001object}. These vectors are known as {\em directed edges} (Figure~\ref{grid}, gray arrows). 
 
-Finite-difference and finite-volume models usually need to calculate spatial gradients in one or more scalar variables, and often these gradients are evaluated between pairs of adjacent nodes. ModelGrid makes these calculations easier for programmers by providing built-in functions to calculate gradients along links or directed edges, and allowing applications to associate an array of gradient values with their corresponding links or edges.
+Finite-difference and finite-volume models usually need to calculate spatial gradients in one or more scalar variables, and often these gradients are evaluated between pairs of adjacent nodes. ModelGrid makes these calculations easier for programmers by providing built-in functions to calculate gradients along links, and allowing applications to associate an array of gradient values with their corresponding links or edges.
 
 The cell vertices are called {\em corners} (Figure~\ref{grid}, solid squares). Each face is therefore a line segment connecting two corners. The intersection of a face and a link (or directed edge) is known as a {\em junction} (Figure~\ref{grid}, open diamonds). Often, it is useful to calculate scalar values (say, ice thickness in a glacier) at nodes, and vector values (say, ice velocity) at junctions. This approach is sometimes referred to as a staggered-grid scheme. It lends itself naturally to finite-volume methods, in which one computes fluxes of mass, momentum, or energy across cell faces, and maintains conservation of mass within cells \citep[e.g.,][]{versteeg2007introduction}.
 
-Notice that the links also enclose a set of polygons that are offset from the cells. These secondary polygons are known as {\em patches} (Figure~\ref{grid}, dotted). This means that any grid comprises two complementary tesselations: one made of cells, and one made of patches. If one of these is a Voronoi tessellation, the other is a Delaunay triangulation. For this reason, Delaunay triangulations and Voronoi diagrams are said to be dual to one another: for any given Delaunay triangulation, there is a unique corresponding Voronoi diagram \citep[e.g.,][]{braun1997modelling,tucker2001object}. With ModelGrid, one can create a mesh with either Voronoi polygons or Delaunay triangles as cells (Figure~\ref{grid}, b and d). Alternatively, with a raster grid, one simply has two sets of square elements that are offset by half the grid spacing (Figure~\ref{grid}a. Whatever the form of the tessellation, ModelGrid keeps track of the geometry and topology of the grid. For example, one can call various ModelGrid functions to obtain lists of the $(x,y)$ coordinates of nodes, corners, and junctions; get lists of neighbors for any cell; get the endpoints of any link or directed edge, and so on. These functions are listed and described below. Before diving into the nitty-gritty, however, it is useful to walk through an example of how one can use ModelGrid to quickly construct a simple numerical model.
+Notice that the links also enclose a set of polygons that are offset from the cells. These secondary polygons are known as {\em patches} (Figure~\ref{grid}, dotted). This means that any grid comprises two complementary tesselations: one made of cells, and one made of patches. If one of these is a Voronoi tessellation, the other is a Delaunay triangulation. For this reason, Delaunay triangulations and Voronoi diagrams are said to be dual to one another: for any given Delaunay triangulation, there is a unique corresponding Voronoi diagram \citep[e.g.,][]{braun1997modelling,tucker2001object}. With ModelGrid, one can create a mesh with either Voronoi polygons or Delaunay triangles as cells (Figure~\ref{grid}, b and d). Alternatively, with a raster grid, one simply has two sets of square elements that are offset by half the grid spacing (Figure~\ref{grid}a). Whatever the form of the tessellation, ModelGrid keeps track of the geometry and topology of the grid. For example, one can call various ModelGrid functions to obtain lists of the $(x,y)$ coordinates of nodes, corners, and junctions; get lists of neighbors for any cell; get the endpoints of any link or directed edge, and so on. These functions are listed and described below. 
+
+\subsection{How Boundaries are Managed}
+
+An important component of any numerical model is the method for handling boundary conditions. In general, it's up to the application developer to manage boundary conditions for each variable. However, ModelGrid makes this task a bit easier by providing lists of nodes and links that lie along the boundary of the grid, and those that lie in the interior. It also allows you to ``de-activate'' portions of the grid perimeter, so that they effectively act as walls.
+
+Let's look first at how ModelGrid treats its own geometrical boundaries. The outermost elements of a grid are nodes and links (as opposed to corners and faces). For example, Figure~\ref{raster4x5} show a sketch of a regular four-row by five-column grid created by RasterModelGrid. The edges of the grid are composed of nodes and links. Only the inner six nodes have cells around them; the remaining 14 nodes form the perimeter of the grid.
+
+All nodes and links are tagged as being either {\em active} or {\em inactive}. In addition, nodes are tagged as either {\em boundary} or {\em interior}. All nodes on the perimeter of the grid are automatically tagged as boundary nodes. Nodes on the inside are {\em interior} by default, but it is possible to tag some of them as {\em boundary} instead (this would be useful, for example, if you wanted to represent an irregular region inside a regular grid). In the example shown in Figure~\ref{raster4x5}, all the inner nodes are {\em active interior}, and all perimeter nodes are {\em active boundary}. A link is {\em active} if it connects two {\em interior} nodes, or if it connects an  
+{\em interior} and an {\em active boundary} node. Later on, we'll take a look at how you can use the concept of active/inactive and boundary/interior to set up your boundary conditions. Before diving into the nitty-gritty, however, it is useful to walk through an example of how one can use ModelGrid to quickly construct a simple numerical model.
+
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{example_raster_grid.pdf}
+    \caption{Illustration of a simple four-row by five-column raster grid created with RasterModelGrid. By default, all perimeter nodes are tagged as active (fixed value) boundaries, and all interior cells are tagged as active interior. An active link is one that connects either two active interior cells, or one active interior and one active boundary.}
+   \label{raster4x5}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%In ModelGrid, the boundaries of the grid are treated by assigning a {\em boundary code} to each node. The boundary codes are:
+%\begin{itemize}
+%\item \verb|INTERIOR_NODE|: node is a normal, active interior node.
+%\item \verb|FIXED_VALUE_BOUNDARY = 1|: node is meant to have a prescribed value, set by the application. For example, one might maintain a constant elevation, temperature, or ice thickness here.
+%\item \verb|FIXED_GRADIENT_BOUNDARY = 2|: indicates that a prescribed gradient is meant to exist between the node and any adjacent interior nodes.
+%\item \verb|TRACKS_CELL_BOUNDARY = 3|: indicates that the value at the node is meant to mirror that at another node.
+%\item \verb|INACTIVE_BOUNDARY = 4|: indicates that the node is ``inactive,'' meaning that it should not give or receive any flow.
+%\end{itemize}
+%For the most part, these codes are provided for the convenience of the application developer. The key distinction that ModelGrid actually uses
+
 
 \section{ModelGrid Example: Building a Diffusion Model} 
 
