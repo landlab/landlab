@@ -349,9 +349,17 @@ class ModelGrid:
 
     def get_interior_cells( self ):
         """
+        DEPRECATED; USE get_active_cell_node_ids
+        
         Returns an integer vector of the IDs of all interior cells.
         """
         return self.interior_cells
+                
+    def get_active_cell_node_ids( self ):
+        """
+        Returns an integer vector of the node IDs of all active cells.
+        """
+        return self.activecell_node
                 
     def assign_upslope_vals_to_faces( self, u, v=0 ):
         """
@@ -572,6 +580,7 @@ class RasterModelGrid ( ModelGrid ):
                     self.node_activecell.append(None)
                 node_id += 1
         self.active_cells = list(range(0, len(self.cell_node)))
+        self.activecell_node = self.cell_node   # default to all cells active
         
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face

@@ -14,8 +14,8 @@ import pylab
 def main():
     """
     In this simple tutorial example, the main function does all the work: 
-    it sets the parameter values, creates and initializes a grid, 
-    sets up the state variables, runs the main loop, and cleans up.
+    it sets the parameter values, creates and initializes a grid, sets up 
+    the state variables, runs the main loop, and cleans up.
     """
     
     # INITIALIZE
@@ -26,7 +26,7 @@ def main():
     dx = 10.0             # grid cell spacing
     kd = 0.01             # diffusivity coefficient, in m2/yr
     uplift_rate = 0.001   # baselevel/uplift rate, in m/yr
-    num_time_steps = 100 # number of time steps in run
+    num_time_steps = 1000 # number of time steps in run
     
     # Derived parameters
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
@@ -39,11 +39,11 @@ def main():
     mg.set_inactive_boundaries(False, False, True, True)
 
     # Set up scalar values
-    z = mg.create_node_dvector()     # node/cell elevations
-    dzdt = mg.create_active_cell_dvector()  # node/cell rate of elevation change
+    z = mg.create_node_dvector()            # node elevations
+    dzdt = mg.create_active_cell_dvector()  # cell rate of elevation change
     
     # Get a list of the interior cells
-    interior_cells = mg.get_interior_cells()
+    interior_cells = mg.get_active_cell_node_ids()
 
     # Display a message
     print( 'Running diffusion_with_model_grid.py' )
