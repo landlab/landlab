@@ -211,20 +211,22 @@ Now that we know the unit fluxes associated with each link and its corresponding
 
 \lstinputlisting[firstnumber=65,firstline=65,lastline=70]{diffusion_with_model_grid.py}
 
-When we calculated flux divergence, we got back an array of numbers, \code{dasds}, that represent the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. We don't want to apply this calculation to the boundary cells, however. We therefore use a \code{for} loop to calculate the rate of elevation change \code{dzdt} at only the interior cells. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size. (Note that we could have combined the calculation of rates of change and updating of new elevations into a single line; this would slightly improve performance, but the code would be less clear).
+When we calculated flux divergence, we got back an array of numbers, \code{dqsds}, that represents the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. We don't want to apply this calculation to the boundary cells, however. We therefore use a \code{for} loop to calculate the rate of elevation change \code{dzdt} at only the interior cells. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size.
 
-\subsection{Updating no-flux boundaries}
+%\subsection{Updating no-flux boundaries}
+%
+%\lstinputlisting[firstnumber=72,firstline=72,lastline=73]{diffusion_with_model_grid.py}
+%
+%The last step in the loop is to update any zero-gradient (no-flux) boundaries. The call to \code{update\_noflux\_boundaries} simply sets the elevation of any no-flux boundary nodes to the elevation of the adjacent interior neighbor. This way, the gradient and hence the flux will be zero at that interface.
 
-\lstinputlisting[firstnumber=72,firstline=72,lastline=73]{diffusion_with_model_grid.py}
 
-The last step in the loop is to update any zero-gradient (no-flux) boundaries. The call to \code{update\_noflux\_boundaries} simply sets the elevation of any no-flux boundary nodes to the elevation of the adjacent interior neighbor. This way, the gradient and hence the flux will be zero at that interface.
+\subsection{Plotting the Result}
 
+\lstinputlisting[firstnumber=73,firstline=73,lastline=92]{diffusion_with_model_grid.py}
 
-\section{Plotting the Result}
+The last section of the \code{main} function plots the result of our calculation. We do this using pylab's \code{imshow} and \code{contour} functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our \code{z} values through a call to RasterModelGrid's \code{node\_vector\_to\_raster} method.
 
-\lstinputlisting[firstnumber=78,firstline=78,lastline=95]{diffusion_with_model_grid.py}
-
-The last section of the \code{main} function plots the result of our calculation. We do this using pylab's \code{imshow} and \code{contour} functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our \code{z} values through a call to RasterModelGrid's \code{cell\_vector\_to\_raster} method.
+\lstinputlisting[firstnumber=95,firstline=95,lastline=96]{diffusion_with_model_grid.py}
 
 The last two lines of code are standard Python syntax. They will execute the \code{main} function when the code is run, but not when the code is simply imported as a module.
 

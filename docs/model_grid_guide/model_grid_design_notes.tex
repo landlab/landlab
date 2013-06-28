@@ -101,7 +101,30 @@ Links are numbered in the same basic ordering, but starting with all vertical li
 \end{verbatim}
 In the above diagram, the asterisks are nodes, the lines are links, and the \verb!^! and \verb!>! symbols are meant to indicate the direction of each link (up for vertical links, and to the right for horizontal links).
 
+
+\section{Time tests}
+
+Comparing diffusion code with and without giving gradient or flux as arguments to gradient and flux divergence functions:
+
+20 x 30 grid without: 5.1, 4.9, 4.8, 4.9, 5.0 sec (avg 4.92)
+
+20 x 30 grid with: 4.8, 4.8, 4.9, 4.8, 4.8 sec (avg 4.82)
 %%% notes
+
+Using this alternative to gradient:
+
+        alarray = array(self.active_links)
+        lfna = array(self.link_fromnode)
+        ltna = array(self.link_tonode)
+        fromnodes = lfna[alarray]
+        tonodes = ltna[alarray]
+        sto = s[tonodes]
+        sfrom = s[fromnodes]
+        gradient = (sto-sfrom)/self.dx
+        
+        return gradient
+
+has timing: 3.3, 3.3, 3.4, 3.3, 3.3
 
 NOTES
 

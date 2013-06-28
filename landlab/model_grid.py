@@ -109,6 +109,22 @@ class ModelGrid:
         """
     
         return numpy.zeros( self.num_nodes )
+        
+    def create_link_dvector(self):
+        """
+        Returns a 1D numpy array of floating point numbers the same length as 
+        the number of links.
+        """
+        
+        return numpy.zeros(self.num_links)
+
+    def create_active_link_dvector(self):
+        """
+        Returns a 1D numpy array of floating point numbers the same length as 
+        the number of active links.
+        """
+        
+        return numpy.zeros(self.num_active_links)
 
     def create_boundary_condition( self ):
         """
@@ -1229,6 +1245,58 @@ class RasterModelGrid ( ModelGrid ):
                                         -s[self.link_fromnode[link_id]]) / \
                                         self.dx
             active_link_id += 1
+        
+        return gradient
+        
+    def calculate_gradients_at_active_links2(self, s, gradient=None):
+        """
+        Calculates the gradient in quantity s at each active link in the grid.
+        This is nearly identical to the method of the same name in ModelGrid,
+        except that it uses self.dx for link length to improve efficiency.
+        
+        Example:
+        
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+            ...     1., 2., 3., 2., 3.,
+            ...     0., 1., 2., 1., 2.,
+            ...     0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> u
+            array([ 0.,  1.,  2.,  3.,  0.,  1.,  2.,  3.,  2.,  3.,  0.,  1.,  2.,
+                    1.,  2.,  0.,  0.,  2.,  2.,  0.])
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                    1.,  1., -1.,  1.])
+            
+        For greater speed, sending a pre-created numpy array as an argument
+        avoids having to create a new one with each call:
+            
+            >>> grad = numpy.zeros(rmg.num_active_links)
+            >>> u = u*10
+            >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
+            >>> grad
+            array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
+                   -10.,  10.,  10.,  10., -10.,  10.])
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.calculate_gradients_at_active_links'
+        
+        if gradient==None:
+            gradient = numpy.zeros(self.num_active_links)
+            
+        assert (len(gradient)==self.num_active_links), \
+                "len(gradient)!=num_active_links"
+                
+        alarray = array(self.active_links)
+        lfna = array(self.link_fromnode)
+        ltna = array(self.link_tonode)
+        fromnodes = lfna[alarray]
+        tonodes = ltna[alarray]
+        sto = s[tonodes]
+        sfrom = s[fromnodes]
+        gradient = (sto-sfrom)/self.dx
         
         return gradient
         

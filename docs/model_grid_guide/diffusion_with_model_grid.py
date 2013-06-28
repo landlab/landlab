@@ -9,7 +9,7 @@ Last updated GT June 2013
 """
 
 from landlab import model_grid
-import pylab
+import pylab, time
 
 def main():
     """
@@ -48,7 +48,7 @@ def main():
     # Display a message
     print( 'Running diffusion_with_model_grid.py' )
     print( 'Time-step size has been set to ' + str( dt ) + ' years.' )
-    
+    start_time = time.time()
 
     # RUN
     
@@ -90,7 +90,7 @@ def main():
 
     # Display the plot
     pylab.show()
-   
+    print('Run time = '+str(time.time()-start_time))
 
 if __name__ == "__main__":
     main()
