@@ -127,7 +127,7 @@ class TestRasterModelGrid(unittest.TestCase):
 
     def test_diagonal_list_boundary(self):
         diagonals = self.grid.get_diagonal_list(id=0)
-        self.assertEqual(list(diagonals), [-1, -1, -1, -1])
+        self.assertEqual(list(diagonals), [1, -1, -1, -1])
 
     def test_is_interior(self):
         for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:

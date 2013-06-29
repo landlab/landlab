@@ -56,7 +56,7 @@ def main():
     for i in range(0, num_time_steps):
         
         # Calculate the gradients and sediment fluxes
-        g = mg.calculate_gradients_at_active_links(z)
+        g = mg.calculate_gradients_at_active_links2(z)
         qs = -kd*g
         
         # Calculate the net deposition/erosion rate in each cell
