@@ -4,6 +4,7 @@ Runs RasterModelGrid's unit_test() method
 """
 
 from landlab import model_grid
+import numpy
 
 def main():
     reload(model_grid)
