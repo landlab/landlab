@@ -40,7 +40,7 @@ def main():
 
     # Set up scalar values
     z = mg.create_node_dvector()            # node elevations
-    dzdt = mg.create_active_cell_dvector()  # cell rate of elevation change
+    dzdt = mg.create_node_dvector()  # cell rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()
@@ -56,18 +56,17 @@ def main():
     for i in range(0, num_time_steps):
         
         # Calculate the gradients and sediment fluxes
-        g = mg.calculate_gradients_at_active_links2(z)
+        g = mg.calculate_gradients_at_active_links(z)
         qs = -kd*g
         
-        # Calculate the net deposition/erosion rate in each cell
-        dqsds = mg.calculate_flux_divergence_at_active_cells(qs)
+        # Calculate the net deposition/erosion rate in each node
+        dqsds = mg.calculate_flux_divergence_at_nodes(qs)
         
-        # Calculate the total rate of elevation change in the active cells
-        #for c in interior_cells:
+        # Calculate the total rate of elevation change
         dzdt = uplift_rate - dqsds
             
         # Update the elevations
-        z[interior_cells] = z[interior_cells] + dzdt * dt
+        z[interior_cells] = z[interior_cells] + dzdt[interior_cells] * dt
            
    
     # FINALIZE
@@ -76,6 +75,7 @@ def main():
     zr = mg.node_vector_to_raster(z, flip_vertically=True)
     
     # Create a shaded image
+    pylab.cla()  # clear any pre-existing plot
     im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
     
     # add contour lines with labels
