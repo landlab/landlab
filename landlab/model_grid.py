@@ -1038,7 +1038,7 @@ class RasterModelGrid ( ModelGrid ):
         Method added 4/29/13 by DEJH.
         """
         ID = int(ycoord//self.dx * self.ncols + xcoord//self.dx)
-        return [ID, ID+1, ID+self.ncols, ID+self.ncols+1]
+        return numpy.array([ID, ID+1, ID+self.ncols, ID+self.ncols+1])
     
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''

@@ -11,7 +11,7 @@ from landlab.model_grid import RasterModelGrid #this is the tMesh equivalent mod
 
 #these ones only so we can run this module ad-hoc:
 from pylab import plot, draw, show, contour, imshow, colorbar
-#from copy import copy
+from copy import copy
 
 sys.setrecursionlimit(1500)
 
@@ -680,39 +680,39 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     flipped_elev_raster = numpy.empty_like(elev_raster)
     for i in range(0,nr):
         flipped_elev_raster[i,:] = elev_raster[(nr-i-1),:]
-    imshow(flipped_elev_raster)
-    colorbar()
+    #imshow(flipped_elev_raster)
+    #colorbar()
     #show()
     vectors.viewing_raster = flipped_elev_raster
     return cr, mg, vectors
 
 
 def main():
-    start_time = time.time()
+    #start_time = time.time()
 #   cr, mg, vectors = dig_some_craters_on_fresh_surface()
-    cr, mg, vectors = dig_one_crater(120, 120, 0.025, 0.5, 0.5, 1.)
+    #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
 #   mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-#    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-#    #How many times round?
-#    loops = 5 #500,000 craters!!
-#    #Build the dictionary:
-#    crater_time_sequ = {}
-#    profile_list = []
-#    xsec_list = []
-#    #Initialize the starting condition:
-#    cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, 1.)
-#    #Save the starting conds:
-#    crater_time_sequ[0] = copy(vectors)
-#    #Run the loops
-#    for i in range(0,loops):
-#        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-#        crater_time_sequ[i] = copy(vectors)
-#        profile_list.append(profile)
-#        xsec_list.append(xsec)
-#    show(profile_list)
-    end_time = time.time()
-    print('Elapsed time was %g seconds' % (end_time - start_time))
+    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+    #How many times round?
+    loops = 50 #500,000 craters!!
+    #Build the dictionary:
+    crater_time_sequ = {}
+    profile_list = []
+    xsec_list = []
+    #Initialize the starting condition:
+    cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
+    #Save the starting conds:
+    crater_time_sequ[0] = copy(vectors)
+    #Run the loops
+    for i in range(0,loops):
+        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+        crater_time_sequ[i] = copy(vectors)
+        profile_list.append(profile)
+        xsec_list.append(xsec)
+    show(profile_list)
+    #end_time = time.time()
+    #print('Elapsed time was %g seconds' % (end_time - start_time))
 
 if __name__=='__main__':
     main()
