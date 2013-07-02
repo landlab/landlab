@@ -15,6 +15,7 @@
 ## Written by Erkan Istanbulluoglu & Sai Nudurupati, 2013.
 ###########################################
 
+import os
 from numpy import *
 from math import *
 import landlab
@@ -22,6 +23,9 @@ from landlab.components.RainfallDriver import PrecipitationDistribution
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 from matplotlib.pyplot import *
 
+
+_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
+                                  'soilmoisture_input.txt')
 
 class SoilMoisture():
 
@@ -85,7 +89,7 @@ class SoilMoisture():
     def initialize( self ):
 
         MPD = ModelParameterDictionary()
-        MPD.read_from_file( '/Users/saisiddu/landlab/landlab/components/soilmoisture.txt' )
+        MPD.read_from_file(_DEFAULT_INPUT_FILE)
 
         self._iterate_storm = MPD.read_int( 'strms' )
         print '\nNumber of storms: ', self._iterate_storm

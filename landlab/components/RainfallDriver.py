@@ -12,10 +12,15 @@
 ## Written by Jordan Adams, 2013.
 ###########################################
 
+import os
+
 import numpy as np 
 import random
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 
+
+_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
+                                  'preciptest.in')
 
 class PrecipitationDistribution:
 
@@ -37,7 +42,7 @@ class PrecipitationDistribution:
         self.storm_depth = 0.0
         self.intensity = 0.0
 
-    def initialize(self):
+    def initialize(self, input_file=None):
         MPD = ModelParameterDictionary()
         '''
         We imported methods from ModelParameterDictionary
@@ -54,7 +59,9 @@ class PrecipitationDistribution:
         The random variables of storm_duration, interstorm_duration, storm_depth
         and intensity are found using methods declared later in the class
         '''
-        input_file = raw_input('Enter the input file location: ')
+        if input_file is None:
+            input_file = _DEFAULT_INPUT_FILE
+            #input_file = raw_input('Enter the input file location: ')
         MPD.read_from_file(input_file)
         
         
@@ -182,7 +189,3 @@ class PrecipitationDistribution:
                             '''
         self.intensity = self.storm_depth / self.storm_duration
         return self.intensity
-  
-
-
-
