@@ -65,12 +65,14 @@ class TestRasterModelGrid(unittest.TestCase):
 
     def test_nodes_around_point(self):
         surrounding_ids = self.grid.get_nodes_around_point(2.1, 1.1)
-        self.assertEqual(surrounding_ids, [7, 8, 12, 13],
-                         'incorrect surrounding ids in test_nodes_around_point')
+        self.assertListEqual(
+            list(surrounding_ids), [7, 8, 12, 13],
+            'incorrect surrounding ids in test_nodes_around_point')
 
         surrounding_ids = self.grid.get_nodes_around_point(2.1, .9)
-        self.assertEqual(surrounding_ids, [2, 3, 7, 8],
-                         'incorrect surrounding ids in test_nodes_around_point')
+        self.assertListEqual(
+            list(surrounding_ids), [2, 3, 7, 8],
+            'incorrect surrounding ids in test_nodes_around_point')
 
     def test_neighbor_list(self):
         neighbors = self.grid.get_neighbor_list(id=6)
