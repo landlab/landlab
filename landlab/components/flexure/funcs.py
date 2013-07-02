@@ -19,7 +19,8 @@ def get_flexure_parameter(h, E, n_dim):
     flexure parameter is used. The number of dimension must be either 1, or
     2.
 
-    === Example ===
+    Example
+    -------
 
     >>> from landlab.components.flexure.funcs import get_flexure_parameter
 
@@ -77,7 +78,8 @@ def subside_point_load(load, loc, coords, eet, youngs, deflection=None):
     grid (in meters). The scalars *eet* and *youngs* define the crustal
     properties.
 
-    === Example ===
+    Example
+    -------
 
     >>> from landlab.components.flexure.funcs import subside_point_load
 

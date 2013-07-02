@@ -11,6 +11,8 @@ class RasterModelField(RasterModelGrid, dict):
     >>> field.add_field('surface__elevation', values)
     >>> field.keys()
     ['surface__elevation']
+    >>> print field['surface__elevation']
+    [  0.   1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  11.]
     """
     def __init__(self, shape, *args):
         try:
@@ -40,6 +42,13 @@ class RasterModelField(RasterModelGrid, dict):
                                 self.get_count_of_cols())
 
     def calculate_gradients_at_active_links(self, var_name):
+        """
+        Calculate the gradient of the variable with name *var_name* at all
+        active links in the grid.
+        
+        Return the result as a numpy array and also stores the result in a
+        new field variable with *var_name* suffixed with '_gradient'.
+        """
         grad_name = var_name + '_gradient'
 
         try:
