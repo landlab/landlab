@@ -40,7 +40,7 @@ def main():
     for (loc, size) in zip(load_locs, load_sizes):
         load.flat[loc] = size
 
-    flex.update()
+    flex.update(n_procs=args.n_procs)
 
     if args.plot:
         pylab.imshow(flex['lithosphere__elevation'])
