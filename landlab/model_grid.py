@@ -9,7 +9,7 @@ import numpy
 from numpy import *
 
 
-class BoundaryCondition:
+class BoundaryCondition(object):
     """
     The BoundaryCondition class stores boundary condition information for
     a particular variable. It includes:
@@ -46,7 +46,7 @@ class BoundaryCondition:
         self.tracks_cell[:] = -1
 
 
-class ModelGrid:
+class ModelGrid(object):
     """
     Base class for creating and manipulating 2D structured or
     unstructured grids for numerical models.
@@ -433,7 +433,7 @@ class ModelGrid:
         self.setup_active_inlink_and_outlink_matrices()
             
         
-class RasterModelGrid ( ModelGrid ):
+class RasterModelGrid(ModelGrid):
     """
     This inherited class implements a regular, raster 2D grid with uniform
     cell dimensions.
