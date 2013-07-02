@@ -31,12 +31,13 @@ class RasterModelField(RasterModelGrid, dict):
                                                num_cols=shape[1],
                                                dx=spacing[0])
 
-    def add_field(self, name, values, centering='point'):
+    def add_field(self, name, values, centering='point', reshape=False):
         assert(values.size == self.get_count_of_all_cells())
 
         self[name] = values
-        self[name].shape = (self.get_count_of_rows(),
-                            self.get_count_of_cols())
+        if reshape:
+            self[name].shape = (self.get_count_of_rows(),
+                                self.get_count_of_cols())
 
     def calculate_gradients_at_active_links(self, var_name):
         grad_name = var_name + '_gradient'
