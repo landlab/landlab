@@ -3,7 +3,7 @@
 import numpy as np
 
 from landlab.model_field import RasterModelField
-from landlab.components.flexure.funcs import subside_grid
+from landlab.components.flexure.funcs import subside_point_loads
 
 
 class Flexure(RasterModelField):
@@ -37,7 +37,7 @@ class Flexure(RasterModelField):
     True
 
     >>> load = flex['lithosphere__overlying_pressure']
-    >>> load[2, 2] = 1e9
+    >>> load[4] = 1e9
     >>> dz = flex['lithosphere__elevation_increment']
     >>> np.all(dz == 0.)
     True
@@ -78,9 +78,6 @@ class Flexure(RasterModelField):
             self.add_field(name, np.zeros(shape[0] * shape[1], dtype=np.float))
 
         self._last_load = self['lithosphere__overlying_pressure'].copy()
-        (self._x, self._y) = np.meshgrid(
-            np.linspace(origin[0], origin[0] + (shape[0] + 1) * spacing[0]),
-            np.linspace(origin[1], origin[1] + (shape[1] + 1) * spacing[1]))
 
         self._eet = 65000.
         self._youngs = 7e10
@@ -101,10 +98,15 @@ class Flexure(RasterModelField):
     def units(self):
         return self._var_units
 
-    #def initialize(self):
-    #    pass
+    @property
+    def shape(self):
+        return self._shape
 
-    def update(self):
+    @property
+    def coords(self):
+        return (self.get_cell_x_coords(), self.get_cell_y_coords())
+
+    def update(self, n_procs=1):
         elevation = self['lithosphere__elevation']
         load = self['lithosphere__overlying_pressure']
         deflection = self['lithosphere__elevation_increment']
@@ -113,19 +115,26 @@ class Flexure(RasterModelField):
 
         self._last_load = load.copy()
 
-        (x_coords, y_coords) = (self.get_cell_x_coords(),
-                                self.get_cell_y_coords())
-
-        x_coords.shape = deflection.shape
-        y_coords.shape = deflection.shape
-
-        subside_grid(deflection, x_coords, y_coords, new_load, self._eet,
-                     self._youngs)
+        deflection.fill(0.)
+        self.subside_loads(new_load, self.coords, deflection=deflection,
+                           n_procs=n_procs)
 
         elevation += deflection
 
-    def finalize(self):
-        pass
+    def subside_loads(self, loads, locs, deflection=None, n_procs=1):
+        if deflection is None:
+            deflection = np.empty(self.shape, dtype=np.float)
+
+        subside_point_loads(loads, locs, self.coords, self._eet, self._youngs,
+                            deflection=deflection, n_procs=n_procs)
+
+        return deflection
+
+    def subside_load(self, load, loc, deflection=None):
+        subside_point_load(load, loc, self.coords, self._eet, self._youngs,
+                           deflection=self['lithosphere__elevation_increment'])
+
+        return deflection
 
 
 if __name__ == "__main__":

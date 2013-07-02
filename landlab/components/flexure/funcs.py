@@ -46,10 +46,32 @@ def get_flexure_parameter(h, E, n_dim):
     return alpha
 
 
-def subside_point_load(x, y, load, eet, youngs, i_load, j_load):
+def _calculate_distances(locs, coords):
+    if isinstance(locs[0], (float, int)):
+        return np.sqrt(pow(coords[0] - locs[0], 2) +
+                       pow(coords[1] - locs[1], 2))
+    else:
+        r = pow(coords[0][:, np.newaxis] - locs[0], 2)
+        r += pow(coords[1][:, np.newaxis] - locs[1], 2)
+        return np.sqrt(r, out=r)
+
+
+def _calculate_deflections(load, locs, coords, alpha, out=None):
+    c = - load / (2. * np.pi * _RHO_MANTLE * _GRAVITY * pow(alpha, 2.))
+    r = _calculate_distances(locs, coords) / alpha
+
+    if isinstance(c, (float, int)):
+        return np.multiply(scipy.special.kei(r), c, out=out)
+    else:
+        scipy.special.kei(r, out=r)
+        np.multiply(r, c[np.newaxis, :], out=r)
+        return np.sum(r, axis=1, out=out)
+
+
+def subside_point_load(load, loc, coords, eet, youngs, deflection=None):
     """
-    Calculate deflections on a grid due to a point load of magnitude *load*
-    applied at the index *i_load*, *j_load*.
+    Calculate deflections on a grid, defined by the points in the *coords*
+    tuple, due to a point load of magnitude *load* applied at *loc*.
 
     *x* and *y* are the x and y coordinates of each node of the solution
     grid (in meters). The scalars *eet* and *youngs* define the crustal
@@ -59,79 +81,113 @@ def subside_point_load(x, y, load, eet, youngs, i_load, j_load):
 
     >>> from landlab.components.flexure.funcs import subside_point_load
 
-    >>> EET = 65000.
-    >>> Youngs = 7e10
+    >>> eet = 65000.
+    >>> youngs = 7e10
     >>> load = 1e9
+
+    Define a unifrom rectilinear grid.
+
     >>> x = np.arange(0, 10000, 100.)
     >>> y = np.arange(0, 5000, 100.)
-    >>> (x,y) = np.meshgrid(x, y)
-    >>> dz = subside_point_load(x, y, load, EET, Youngs, 25, 50)
+    >>> (x, y) = np.meshgrid(x, y)
+    >>> x.shape = (x.size, )
+    >>> y.shape = (y.size, )
+
+    Calculate deflections due to a load applied at position (5000., 2500.).
+
+    >>> x = np.arange(0, 10000, 1000.)
+    >>> y = np.arange(0, 5000, 1000.)
+    >>> (x, y) = np.meshgrid(x, y)
+    >>> x.shape = (x.size, )
+    >>> y.shape = (y.size, )
+    >>> dz = subside_point_load(load, (5000., 2500.), (x, y), eet, youngs)
     >>> print round(dz.sum(), 9)
-    0.002652179
+    2.652e-05
     >>> print round(dz.min(), 9)
     5.29e-07
     >>> print round(dz.max(), 9)
     5.31e-07
+
+    >>> dz = subside_point_load((1e9, 1e9), ((5000., 5000.), (2500., 2500.)),
+    ...                         (x, y), eet, youngs)
+    >>> print round(dz.min(), 9) / 2.
+    5.285e-07
+    >>> print round(dz.max(), 9) / 2.
+    5.315e-07
     """
-    alpha = get_flexure_parameter(eet, youngs, x.ndim)
+    assert(len(loc) in [1, 2])
+    assert(len(coords) == len(loc))
+    assert(len(coords[0].shape) == 1)
 
-    if x.ndim == 2:
-        x_0 = x[i_load][j_load]
-        y_0 = y[i_load][j_load]
-        c = load / (2. * np.pi * _RHO_MANTLE * _GRAVITY * pow(alpha, 2.))
-        r = np.sqrt(pow(x - x_0, 2) + pow(y - y_0, 2)) / alpha
-        dz = - c * scipy.special.kei(r)
-    elif x.ndim == 1:
-        x_0 = x[i_load]
-        c = load / (2. * alpha * _RHO_MANTLE * _GRAVITY)
-        r = abs(x - x_0)/alpha
-        dz = c * np.exp(-r) * (np.cos(r) + np.sin(r))
+    if not isinstance(load, (int, float, np.ndarray)):
+        load = np.array(load)
 
-    return dz
+    if deflection is None:
+        deflection = np.empty(coords[0].size, dtype=np.float)
 
+    alpha = get_flexure_parameter(eet, youngs, len(loc))
 
-def subside_grid(dz, x, y, load, eet, youngs, parallel=True):
-    if dz.ndim == 2:
-        if parallel:
-            _subside_in_parallel(dz, x, y, load, eet, youngs)
-        else:
-            load_locs = scipy.where(load > 0)
-            for (i, j) in zip(*load_locs):
-                dz += subside_point_load(x, y, load[i, j], eet, youngs, i, j)
+    if len(loc) == 2:
+        _calculate_deflections(load, loc, coords, alpha, out=deflection)
     else:
-        for i in xrange(load.shape[0]):
-            if abs(load[i]) > 0:
-                dz += subside_point_load(x, None, load[i], eet, youngs,
-                                         i, None)
-    return dz
+        c = load / (2. * alpha * _RHO_MANTLE * _GRAVITY)
+        r = abs(coords[0] - loc[0]) / alpha
+        deflection[:] = c * np.exp(-r) * (np.cos(r) + np.sin(r))
+
+    return deflection
+
+
+def subside_point_loads(loads, locs, coords, eet, youngs, deflection=None,
+                        n_procs=1):
+    """
+    Calculate lithospheric deflections due to *loads* at coordinates
+    specified by the *locs* tuple. *coords* is a tuple that gives the
+    coordinates of each point where deflections are calculated; *locs* is
+    positions of the applied loads. Since this function calculates the 1D
+    or 2D flexure equation, *coords* and *locs* must have either one or two
+    elements.
+    """
+    if deflection is None:
+        deflection = np.empty(coords[0].size, dtype=np.float)
+
+    assert(len(coords) in [1, 2])
+    assert(len(locs) == len(coords))
+    assert(loads.size == locs[0].size)
+
+    if n_procs > 1:
+        _subside_in_parallel(deflection, loads, locs, coords, eet, youngs,
+                             n_procs=n_procs)
+    else:
+        #load_locs = scipy.where(loads.flat > 0)
+        #for index in load_locs[0]:
+        for index in loads.nonzero()[0]:
+            loc = [dim.flat[index] for dim in locs]
+            deflection += subside_point_load(loads.flat[index], loc,
+                                             coords, eet, youngs)
+    return deflection
 
 
 def _subside_point_load_helper(args):
     return subside_point_load(*args)
 
 
-def _subside_in_parallel(dz, x, y, load, eet, youngs, n_procs=4):
-    load_locs = scipy.where(load > 0)
-
+def _subside_in_parallel(dz, loads, locs, coords, eet, youngs, n_procs=4):
     args = []
-    for (i, j) in zip(*load_locs):
-        args.append((x, y, load[i, j], eet, youngs, i, j))
+    for index in loads.nonzero()[0]:
+        loc = (locs[0].flat[index], locs[1].flat[index])
+        args.append((loads.flat[index], loc, coords, eet, youngs))
+
     pool = Pool(processes=n_procs)
 
     results = pool.map(_subside_point_load_helper, args)
     for result in results:
-        dz += result
-
-
-def calc_def(func, args):
-    return func(*args)
-
-
-def worker(input, output):
-    for func, args in iter(input.get, 'STOP'):
-        result = calc_def(func, args)
-        output.put(result)
+        try:
+            dz += result
+        except ValueError:
+            result.shape = dz.shape
+            dz += result
 
 
 if __name__ == '__main__':
-    main()
+    import doctest
+    doctest.testmod()

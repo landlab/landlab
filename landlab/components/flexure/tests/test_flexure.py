@@ -67,8 +67,8 @@ class TestFlexureFields(unittest.TestCase):
         for name in self.flex:
             field = self.flex[name]
             self.assertIsInstance(field, np.ndarray)
-            self.assertEqual(field.shape, (self.flex.get_count_of_rows(),
-                                           self.flex.get_count_of_cols()))
+            self.assertEqual(field.shape, (self.flex.get_count_of_rows() *
+                                           self.flex.get_count_of_cols(), ))
 
         with self.assertRaises(KeyError):
             self.flex['not_a_var_name']
