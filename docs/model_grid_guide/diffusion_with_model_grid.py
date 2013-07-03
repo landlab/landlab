@@ -26,7 +26,7 @@ def main():
     dx = 10.0             # grid cell spacing
     kd = 0.01             # diffusivity coefficient, in m2/yr
     uplift_rate = 0.001   # baselevel/uplift rate, in m/yr
-    num_time_steps = 1000 # number of time steps in run
+    num_time_steps = 10000 # number of time steps in run
     
     # Derived parameters
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
@@ -75,7 +75,7 @@ def main():
     zr = mg.node_vector_to_raster(z, flip_vertically=True)
     
     # Create a shaded image
-    pylab.cla()  # clear any pre-existing plot
+    pylab.close()  # clear any pre-existing plot
     im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
     
     # add contour lines with labels
