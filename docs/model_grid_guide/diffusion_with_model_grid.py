@@ -40,7 +40,7 @@ def main():
 
     # Set up scalar values
     z = mg.create_node_dvector()            # node elevations
-    dzdt = mg.create_node_dvector()  # cell rate of elevation change
+    dzdt = mg.create_node_dvector()  # node rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()
@@ -59,7 +59,7 @@ def main():
         g = mg.calculate_gradients_at_active_links(z)
         qs = -kd*g
         
-        # Calculate the net deposition/erosion rate in each node
+        # Calculate the net deposition/erosion rate at each node
         dqsds = mg.calculate_flux_divergence_at_nodes(qs)
         
         # Calculate the total rate of elevation change
