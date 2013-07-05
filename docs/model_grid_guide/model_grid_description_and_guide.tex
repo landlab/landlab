@@ -81,13 +81,12 @@ Notice that the links also enclose a set of polygons that are offset from the ce
 
 An important component of any numerical model is the method for handling boundary conditions. In general, it's up to the application developer to manage boundary conditions for each variable. However, ModelGrid makes this task a bit easier by providing lists of nodes and links that lie along the boundary of the grid, and those that lie in the interior. It also allows you to ``de-activate'' portions of the grid perimeter, so that they effectively act as walls.
 
-Let's look first at how ModelGrid treats its own geometrical boundaries. The outermost elements of a grid are nodes and links (as opposed to corners and faces). For example, Figure~\ref{raster4x5} show a sketch of a regular four-row by five-column grid created by RasterModelGrid. The edges of the grid are composed of nodes and links. Only the inner six nodes have cells around them; the remaining 14 nodes form the perimeter of the grid.
+Let's look first at how ModelGrid treats its own geometrical boundaries. The outermost elements of a grid are nodes and links (as opposed to corners and faces). For example, Figure~\ref{raster4x5} shows a sketch of a regular four-row by five-column grid created by RasterModelGrid. The edges of the grid are composed of nodes and links. Only the inner six nodes have cells around them; the remaining 14 nodes form the perimeter of the grid.
 
 All nodes are tagged as either {\em boundary} or {\em interior}. Those on the perimeter of the grid are automatically tagged as boundary nodes. Nodes on the inside are {\em interior} by default, but it is possible to tag some of them as {\em boundary} instead (this would be useful, for example, if you wanted to represent an irregular region inside a regular grid). In the example shown in Figure~\ref{raster4x5}, all the inner nodes are {\em active interior}, and all perimeter nodes are {\em active boundary}. 
 
 Boundary nodes are flagged as either {\em open (active)} or {\em closed (inactive),} all links are tagged as active or inactive. An {\em active link} is one that joins either two interior nodes, or an  
-{\em interior} and an {\em open boundary} node (Figure~\ref{raster4x5openclosed}). You can use this distinction in models to implement closed boundaries by performing flow calculations only on active links. 
-Later on, we'll take a look at how this is actually implemented in ModelGrid. Before diving into the nitty-gritty, however, it is useful to walk through an example of how one can use ModelGrid to quickly construct a simple numerical model.
+{\em interior} and an {\em open boundary} node (Figure~\ref{raster4x5openclosed}). You can use this distinction in models to implement closed boundaries by performing flow calculations only on active links, as the following simple example illustrates.
 
 
 %%%%%%%%%%% FIGURE %%%%%%%%%%%
@@ -130,7 +129,7 @@ To work through this example, you can type in and run the code below, or find a 
 \lstinputlisting[language=Python,caption={diffusion\_with\_model\_grid.py}]{diffusion_with_model_grid.py}
 
 
-
+\newpage
 \subsection{Importing Packages}
 
 \begin{lstlisting}[firstnumber=11]
@@ -138,7 +137,7 @@ from landlab import model_grid
 import pylab
 \end{lstlisting}
 
-We start by importing {\tt model\_grid} from the {\tt land lab} package (note that the {\tt landlab} package must first be installed; see instructions XX). We'll also import {\tt pylab} so we can plot the results.
+We start by importing {\tt model\_grid} from the {\tt landlab} package (note that the {\tt landlab} package must first be installed; see instructions XX[TO BE ADDED]). We'll also import {\tt pylab} so we can plot the results.
 
 
 \subsection{Setting the User-Defined Parameters}
@@ -173,10 +172,10 @@ For our boundary conditions, we would like to keep the nodes along the bottom an
 Our state variable, $z(x,y,t)$, represents the land surface elevation. One of the unique aspects of ModelGrid is that grid-based variables like $z$ are represented as 1D rather than 2D numpy arrays. Why do it this way, if we have a regular grid that naturally lends itself to 2D arrays? The answer is that we might want to have an irregular, unstructured grid, which is much easier to handle with 1D arrays of values. By using 1D arrays for all types of ModelGrid, we allow the user to switch seamlessly between structured and unstructured grids.
 
 We create our data structure for $z$ values with a call to the \code{create\_node\_dvector} method. The method simply returns a 1D numpy array filled with zeros. The length of the array is equal to the number of nodes in the grid ($20\times 30=600$), which makes sense because we want to have an elevation value associated with every node in the grid.
+On the next line, we create a second array, \code{dzdt}, to store the time rate of change of elevation. 
+%We only need to calculate $dz/dt$ at the active cells. There are $18\times 28 = 504$ cells, and all of them are active. We create our list of $dz/dt$ values at cells with a call to \code{create\_active\_cell\_dvector}, which creates a numpy array with 504 entries.
 
-On the next line, we create a second array, \code{dzdt}, to store the time rate of change of elevation. We only need to calculate $dz/dt$ at the active cells. There are $18\times 28 = 504$ cells, and all of them are active. We create our list of $dz/dt$ values at cells with a call to \code{create\_active\_cell\_dvector}, which creates a numpy array with 504 entries.
-
-When we update elevation values, we will want to operate only on the active cells. To help with this, we obtain an of active cell ID numbers with a call to the \code{get\_interior\_cells} method. Finally, we display a message to tell the user that we're about to run and with what time step size.
+When we update elevation values, we will want to operate only on the active cells. To help with this, we call the \code{get\_active\_cell\_node\_ids} method. This method returns a 1D numpy array of integers that represent the node ID numbers associated with all of the active cells (of which there are $18\times 28 = 504$). Finally, we display a message to tell the user that we're about to run and with what time step size.
 
 
 \section{Main Loop}
@@ -193,11 +192,13 @@ Here, $z_i^T$ is the elevation at node $i$ at time step $T$, $t$ is time, $\Lamb
 \end{equation}
 where $L_{ij}$ is the length of the link connecting nodes $i$ and $j$. Notice that elevation values (which are scalars) are associated with nodes, while slopes and sediment fluxes (which are vectors) are associated with links and faces. If we want to think of the slopes and fluxes as being calculated at a particular point, that point is the junction between a link and its corresponding face (Figure~\ref{grid}).
 
+Because we are using a regular (raster) grid with node spacing $\Delta x$, the face width and link length are both equal to $\Delta x$ everywhere, and the cell area $\Lambda=\Delta x^2$. This would not be true, however, for an unstructured grid.
+
 \subsection{Calculating gradients and sediment fluxes}
 
 \lstinputlisting[firstnumber=55,firstline=55,lastline=60]{diffusion_with_model_grid.py}
 
-In order to calculate new elevation values, the first quantity we need to know is the gradient (slope) values between all the node pairs. We can calculate this in a single line of code using ModelGrid's \code{calculate\_gradients\_at\_active\_links} method. This method takes a single argument: a 1D numpy array of scalar values associated with nodes. The length of this array must be the same as the number of nodes in the grid. The method calculates the gradients in \code{z} between each pair of nodes. It returns a 1D numpy array, \code{g} (for gradient), the size of which is the same as the number of links in the grid. The sign of each value of \code{g} is positive when the slope runs uphill from a link's {\em from node} to its {\em to node}, and negative otherwise.
+In order to calculate new elevation values, the first quantity we need to know is the gradient (slope) values between all the node pairs. We can calculate this in a single line of code using ModelGrid's \code{calculate\_gradients\_at\_active\_links} method. This method takes a single argument: a 1D numpy array of scalar values associated with nodes. The length of this array must be the same as the number of nodes in the grid. The method calculates the gradients in \code{z} between each pair of nodes. It returns a 1D numpy array, \code{g} (for gradient), the size of which is the same as the number of active links in the grid (the difference between active and inactive links is illustrated Figures~\ref{raster4x5} and \ref{raster4x5openclosed}). The sign of each value of \code{g} is positive when the slope runs uphill from a link's {\em from node} to its {\em to node}, and negative otherwise.
 
 To calculate the sediment fluxes, we multiply each gradient value by the transport coefficient \code{kd}. The minus sign simply means that the sediment goes downhill: where the gradient is negative, the flux should be positive, and vice versa. Here, we are taking advantage of numpy's ability to perform mathematical operations on entire arrays in a single line of code, rather than having to write out a \code{for} loop. Line 60 in our code multiplies \code{ks} by every value of \code{g}, and returns the result as a numpy array the same size as \code{g}.
 
@@ -205,13 +206,16 @@ To calculate the sediment fluxes, we multiply each gradient value by the transpo
 
 \lstinputlisting[firstnumber=62,firstline=62,lastline=63]{diffusion_with_model_grid.py}
 
-Now that we know the unit fluxes associated with each link and its corresponding cell face, the next thing we need to do is add up the total flux around the perimeter of each cell. In other words, we need to calculate the summation in equation (\ref{eq:dzdt}). ModelGrid allows us to do this in one line of code, by calling the \code{calculate\_flux\_divergence\_at\_active\_cells} method. This method takes a single argument: a 1D numpy array containing the flux per unit width at each face in the grid. The method multiplies each unit flux by its corresponding face width, adds up the fluxes across each face for each cell, and divides the result by the surface area of the cell. It returns a 1D numpy array that contains the net rate of change of volume per unit cell area. The length of this array is the same as the number of cells in the grid. Note, though, that the returned value will be zero for any and all boundary cells. In our diffusion example, we will store the result in \code{dqsds}.
+Now that we know the unit flux associated with each link and its corresponding cell face, the next thing we need to do is add up the total flux around the perimeter of each cell. In other words, we need to calculate the summation in equation (\ref{eq:dzdt}). ModelGrid allows us to do this in one line of code, by calling the \code{calculate\_flux\_divergence\_at\_nodes} method. This method takes a single argument: a 1D numpy array containing the flux per unit width at each face in the grid. The method multiplies each unit flux by its corresponding face width, adds up the fluxes across each face for each cell, and divides the result by the surface area of the cell. It returns a 1D numpy array that contains the net rate of change of volume per unit cell area. The length of this array is the same as the number of nodes in the grid. We will store the result in \code{dqsds}.
 
+If the boundary nodes around the grid perimeter do not have associated cells, why do we bother calculating net fluxes for them? In fact, we do not need to; we could have called the method \code{calculate\_flux\_divergence\_at\_active\_cells} instead. This would have given us an array the length of the number of active cells, not nodes. There are two reasons to do the net flux calculation at all nodes. The first is simply that the node-based method is slightly faster than the cell-based version. The second is that by using nodes, we retain some information about the flow of mass into the boundary cells. This could be useful in testing whether our model correctly balances mass (though we do not actually use that capability in this example).
+
+\newpage
 \subsection{Updating elevations}
 
 \lstinputlisting[firstnumber=65,firstline=65,lastline=70]{diffusion_with_model_grid.py}
 
-When we calculated flux divergence, we got back an array of numbers, \code{dqsds}, that represents the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. We don't want to apply this calculation to the boundary cells, however. We therefore use a \code{for} loop to calculate the rate of elevation change \code{dzdt} at only the interior cells. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size.
+When we calculated flux divergence, we got back an array of numbers, \code{dqsds}, that represents the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size. We do not want to change the elevations of the boundary nodes, however, and so we perform the update only on the interior cells. Because we are using numpy arrays, we can isolate the interior cells simply by putting our array of node IDs for interior cells inside square brackets. 
 
 %\subsection{Updating no-flux boundaries}
 %
@@ -222,14 +226,18 @@ When we calculated flux divergence, we got back an array of numbers, \code{dqsds
 
 \subsection{Plotting the Result}
 
-\lstinputlisting[firstnumber=73,firstline=73,lastline=92]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=74,firstline=74,lastline=92]{diffusion_with_model_grid.py}
 
 The last section of the \code{main} function plots the result of our calculation. We do this using pylab's \code{imshow} and \code{contour} functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our \code{z} values through a call to RasterModelGrid's \code{node\_vector\_to\_raster} method.
+
+%\newpage
+\subsection{Running the \code{main()} function}
 
 \lstinputlisting[firstnumber=95,firstline=95,lastline=96]{diffusion_with_model_grid.py}
 
 The last two lines of code are standard Python syntax. They will execute the \code{main} function when the code is run, but not when the code is simply imported as a module.
 
+That's it. The 2D diffusion code is less than 100 lines long. In fact, only about 20 of these actually implement the diffusion calculation; the rest handle plotting, comments, blank lines, etc.
 
  
 \newpage
