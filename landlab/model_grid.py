@@ -431,7 +431,49 @@ class ModelGrid(object):
         
         # Set up active inlink and outlink matrices
         self.setup_active_inlink_and_outlink_matrices()
+        
+    def deactivate_nodata_nodes(self, node_data, nodata_value):
+        """
+        Sets self.node_status to INACTIVE_BOUNDARY for all nodes whose value of
+        node_data is equal to the nodata_value.
+        
+        Example:
             
+            >>> mg = RasterModelGrid(3, 4, 1.0)
+            >>> mg.node_status
+            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+            >>> h=array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+            >>> mg.deactivate_nodata_nodes(h, -9999)
+            >>> mg.node_status
+            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        """
+        
+        nodata_locations = numpy.nonzero(node_data==nodata_value)
+        self.node_status[nodata_locations] = self.INACTIVE_BOUNDARY
+        self.reset_list_of_active_links()
+        
+    def active_link_max(self, node_data):
+        
+        """
+        For each active link, finds and returns the maximum value of node_data
+        at either of the two ends. Use this, for example, if you want to find
+        the maximum value of water depth at linked pairs of nodes (by passing
+        in an array of water depth values at nodes).
+        
+        node_data: a 1D numpy array with length = number of nodes
+        returns: a 1D numpy array of maximum values, with length = number of
+            active links.
+        
+        Example:
+            
+            >>> mg = RasterModelGrid(3, 4, 1.0)
+            >>> h=array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+            >>> mg.active_link_max(h)
+            array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
+        """
+        return numpy.maximum(node_data[self.activelink_fromnode],
+                             node_data[self.activelink_tonode])
+        
         
 class RasterModelGrid(ModelGrid):
     """
