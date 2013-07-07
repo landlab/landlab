@@ -4,6 +4,7 @@ Python implementation of ModelGrid, a class used to
 create and manage grids for 2D numerical models.
 
 First version GT, July 2010
+Last modified July 2013
 """
 import numpy
 from numpy import *
@@ -448,8 +449,16 @@ class ModelGrid(object):
             array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         
+        # Find locations where value equals the NODATA code and set these nodes
+        # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
         self.node_status[nodata_locations] = self.INACTIVE_BOUNDARY
+        
+        # Recreate the list of active cell IDs
+        node_ids = array(range(0,self.num_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status==self.INTERIOR_NODE)]
+        
+        # Recreate the list of active links
         self.reset_list_of_active_links()
         
     def active_link_max(self, node_data):
