@@ -2048,6 +2048,58 @@ class RasterModelGrid(ModelGrid):
                 return fid
         return -1
         
+    def top_edge_node_ids(self):
+        """
+        Returns a 1D numpy integer array containing the node ID numbers of the 
+        nodes along the top (y=ymax) grid edge.
+        
+        Example:
+            
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> rmg.top_edge_node_ids()
+            array([15, 16, 17, 18, 19])
+        """
+        return array(range((self.nrows-1)*self.ncols,self.num_nodes))
+        
+    def bottom_edge_node_ids(self):
+        """
+        Returns a 1D numpy integer array containing the node ID numbers of the 
+        nodes along the bottom (y=0) grid edge.
+        
+        Example:
+            
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> rmg.bottom_edge_node_ids()
+            array([0, 1, 2, 3, 4])
+        """
+        return array(range(0,self.ncols))
+        
+    def left_edge_node_ids(self):
+        """
+        Returns a 1D numpy integer array containing the node ID numbers of the 
+        nodes along the left (x=0) grid edge.
+        
+        Example:
+            
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> rmg.left_edge_node_ids()
+            array([ 0,  5, 10, 15])
+        """
+        return array(range(0,self.num_nodes,self.ncols))
+        
+    def right_edge_node_ids(self):
+        """
+        Returns a 1D numpy integer array containing the node ID numbers of the 
+        nodes along the right (x=xmax) grid edge.
+        
+        Example:
+            
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> rmg.right_edge_node_ids()
+            array([ 4,  9, 14, 19])
+        """
+        return array(range(self.ncols-1,self.num_nodes,self.ncols))
+        
     def unit_test( self ):
         
         print 'Performing unit test for RasterModelGrid ...'
