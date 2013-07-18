@@ -45,6 +45,7 @@ class BoundaryCondition(object):
         self.boundary_code[:] = self.FIXED_VALUE_BOUNDARY
         self.boundary_gradient[:] = 0.0
         self.tracks_cell[:] = -1
+        #DEJH, 7/17/13 - I don't think we should be using -1. This way, accidentally using one of these cells will silently just reference the final cell in the dvector, rather than throwing an exception. " = numpy.nan" would probably work better.
 
 
 class ModelGrid(object):
@@ -1058,14 +1059,28 @@ class RasterModelGrid(ModelGrid):
         NG, June 2013
         """
         return(self.num_active_cells)
+    
+    def get_count_of_interior_nodes(self):
+        """
+        Returns the number of interior nodes on the grid. Functionally identical to get_count_of_interior_cells()
+        DEJH, July 2013
+        """
+        return(self.num_active_cells)
         
     def get_count_of_all_cells(self):
         """
-        Returns total number of cells, including boundaries.  
+        Returns total number of nodes, including boundaries. Note this call is misleadingly named; it returns the number of nodes, not cells (i.e., it includes all boundary nodes).
         NG, June 2013
         """
         return(self.num_nodes)
-        
+    
+    def get_count_of_all_nodes(self):
+        """
+        Returns total number of nodes, including boundaries. Functionally identical to get_count_of_all_cells().
+        DEJH, July 2013
+        """
+        return(self.num_nodes)
+    
     def get_count_of_cols(self):
         """
         Returns the number of columns, including boundaries.  
@@ -1873,8 +1888,8 @@ class RasterModelGrid(ModelGrid):
 
     def cell_vector_to_raster(self, u, flip_vertically=False):
         """
-        Converts cell vector u to a 2D array and returns it, so that it
-        can be plotted, output, etc.
+        Converts cell (i.e., interior node) vector u to a 2D array and returns it, 
+        so that it can be plotted, output, etc.
         
         If the optional argument flip_vertically=True, the function returns an 
         array that has the rows in reverse order, for use in plot commands (such

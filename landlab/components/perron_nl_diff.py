@@ -36,37 +36,49 @@ class perron_nl_diff_faster(object):
         #self._data = data
         
         ncols = grid.get_count_of_cols()
-        self._interior_cells = list(grid.get_interior_cells())
-        _core_cells = self._interior_cells[:] #we'll thin this down into the other lists
-        _interior_corners = []
-        _interior_edges = []
-        _interior_corners.append(_core_cells.pop())
-        _interior_edges.extend(_core_cells[(4-ncols):])
-        _core_cells[(4-ncols):] = []
-        _interior_corners.append(_core_cells.pop())
+        nrows = grid.get_count_of_rows()
+        nnodes = grid.get_count_of_all_nodes()
+        #Superceded by next text block (faster)
+#        self._interior_cells = list(grid.get_interior_cells())
+#        _core_cells = self._interior_cells[:] #we'll thin this down into the other lists
+#        _interior_corners = []
+#        _interior_edges = []
+#        _interior_corners.append(_core_cells.pop())
+#        _interior_edges.extend(_core_cells[(4-ncols):])
+#        _core_cells[(4-ncols):] = []
+#        _interior_corners.append(_core_cells.pop())
+#        
+#        _interior_corners.append(_core_cells.pop(0))
+#        _interior_edges.extend(_core_cells[:(ncols-4)])
+#        _core_cells[:(ncols-4)] = []
+#        _interior_corners.append(_core_cells.pop(0))
+#        
+#        _interior_edges.append(_core_cells.pop(0))
+#        i=1
+#        while 1:
+#            try:
+#                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
+#            except:
+#                break
+#            try:
+#                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
+#            except:
+#                break
+#            else:
+#                i = i+1
+    
+        self._interior_corners = numpy.array(ncols+1,2*ncols-2,nnodes-2*ncols+1,nnodes-ncols-2)
+        _left_list = range(2*ncols+1,nnodes-2*ncols,ncols)
+        _right_list = range(3*ncols-2,nnodes-2*ncols,ncols)
+        _left_right = list(itertools.chain.fromiterable(itertools.izip(_left_list, _right_list)))
+        self._interior_edges = numpy.array(itertools.chain(range((ncols+2),(2*ncols-2)),_left_right,range(nnodes-2*ncols+2,nnodes-ncols-2)))
+        self._core_cells = numpy.zeros(grid.get_count_of_interior_nodes()-2*ncols-4-2*(nrows-4),dtype=int)
+        for i in range(nrows-4):
+            _core_cells[i*(ncols-4):(i+1)*(ncols-4)] = range((2+i)*ncols+2,(3+i)*ncols-2) #fill IDs into core cell matrix
         
-        _interior_corners.append(_core_cells.pop(0))
-        _interior_edges.extend(_core_cells[:(ncols-4)])
-        _core_cells[:(ncols-4)] = []
-        _interior_corners.append(_core_cells.pop(0))
-        
-        _interior_edges.append(_core_cells.pop(0))
-        i=1
-        while 1:
-            try:
-                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
-            except:
-                break
-            try:
-                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
-            except:
-                break
-            else:
-                i = i+1
-        
-        self._core_cells = numpy.array(_core_cells)
-        self._interior_edges = numpy.array(_interior_edges) #order is [ncols-4 of TOP]+[ncols-4 of BOTTOM]+[(nrows-4)*(LEFT,RIGHT) pairs]
-        self._interior_corners = numpy.array(_interior_corners) #order is topright,topleft,bottomleft,bottomright
+        #self._core_cells = numpy.array(_core_cells)
+        #self._interior_edges = numpy.array(_interior_edges) #order is [ncols-4 of TOP]+[ncols-4 of BOTTOM]+[(nrows-4)*(LEFT,RIGHT) pairs]
+        #self._interior_corners = numpy.array(_interior_corners) #order is topright,topleft,bottomleft,bottomright
         #print _interior_corners
         #print _interior_edges
         #print _core_cells
@@ -154,15 +166,18 @@ class perron_nl_diff_faster(object):
             _mat_RHS[n] = _mat_RHS[n] + data.elev[i] + _delta_t*(_func_on_z - (_F_ij*data.elev[i]+_F_ijminus1*data.elev[cell_neighbors[2]]+_F_ijplus1*data.elev[cell_neighbors[0]]+_F_iminus1j*data.elev[cell_neighbors[3]]+_F_iplus1j*data.elev[cell_neighbors[1]]+_F_iminus1jminus1*data.elev[cell_diagonals[2]]+_F_iplus1jplus1*data.elev[cell_diagonals[0]]+_F_iplus1jminus1*data.elev[cell_diagonals[1]]+_F_iminus1jplus1*data.elev[cell_diagonals[3]]))
             
             #build the operating matrix. No logic operations needed as these are all core cells
-            _operating_matrix[n,n] = _operating_matrix[n,n]+1.-_delta_t*_F_ij
-            _operating_matrix[n,n-1] = _operating_matrix[n,n-1]-_delta_t*_F_ijminus1
-            _operating_matrix[n,n+1] = _operating_matrix[n,n+1]-_delta_t*_F_ijplus1
-            _operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-_delta_t*_F_iminus1j
-            _operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-_delta_t*_F_iminus1jminus1
-            _operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-_delta_t*_F_iminus1jplus1
-            _operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-_delta_t*_F_iplus1j
-            _operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-_delta_t*_F_iplus1jplus1
-            _operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-_delta_t*_F_iplus1jminus1
+            _operating_matrix[n,(n-1):(n+2)] += [-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1]
+            #_operating_matrix[n,n] = _operating_matrix[n,n]+1.-_delta_t*_F_ij
+            #_operating_matrix[n,n-1] = _operating_matrix[n,n-1]-_delta_t*_F_ijminus1
+            #_operating_matrix[n,n+1] = _operating_matrix[n,n+1]-_delta_t*_F_ijplus1
+            _operating_matrix[n,(n-ncols+1):(n-ncols+4)] -= [_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1]*_delta_t
+            #_operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-_delta_t*_F_iminus1j
+            #_operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-_delta_t*_F_iminus1jminus1
+            #_operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-_delta_t*_F_iminus1jplus1
+            _operating_matrix[n,(n+ncols-3):(n+ncols)] -= [_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1]*_delta_t
+            #_operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-_delta_t*_F_iplus1j
+            #_operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-_delta_t*_F_iplus1jplus1
+            #_operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-_delta_t*_F_iplus1jminus1
         
             count = count + 1
 

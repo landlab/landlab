@@ -20,10 +20,10 @@ class data(object):
     This is where all the whole-grid data lives, as arrays over the various elements of the grid.
     '''
     #Data goes here!!!
-    def __init__(self):
-        self.elev = [] #some data
-        self.flag_already_in_the_list = []
-        self.craters_over_max_radius_not_plotted = []
+    def __init__(self, grid):
+        self.elev = grid.create_node_dvector() #some data
+        self.flag_already_in_the_list = grid.create_node_dvector()
+        self.craters_over_max_radius_not_plotted = grid.create_node_dvector()
         self.impact_sequence = []
 
 class impactor(object):
@@ -164,8 +164,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random() * (grid.get_grid_xdimension()-grid.dx)
-        self._ycoord = random() * (grid.get_grid_ydimension()-grid.dx)
+        self._xcoord = random() * (grid.get_grid_xdimension()-grid.get_grid_spacing())
+        self._ycoord = random() * (grid.get_grid_ydimension()-grid.get_grid_spacing())
         #Snap impact to grid:
         vertices_array = grid.get_nodes_around_point(self._xcoord, self._ycoord)
         distances_to_vertices = numpy.empty(vertices_array.size)
@@ -242,6 +242,7 @@ class impactor(object):
     def set_crater_mean_slope(self, grid, data):
         '''
         This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. For computational efficiency reasons, the average slope is a mean of local slopes at 8 points 45 degrees apart around the crater rim, plus the center point. This function also  sets the mean surface dip direction.
+            NOW DEPRECIATED, USE V2!
         '''
         #This might not be the best way to do this... There are issues with the magnitude of the slope being high if the individual points slope steeply even if they point in different directions.
         half_crater_radius = 0.707 * self._radius
@@ -317,6 +318,7 @@ class impactor(object):
         counter=0
         grid_xdimension = grid.get_grid_xdimension()
         grid_ydimension = grid.get_grid_ydimension()
+        #this loop tests if the points round the rim are within the grid, then makes a list of nodes closest to that point. If not, it adds the central point to the list.
         for x,y in slope_pts1:
             if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
                 radial_points1[counter] = self.snap_coords_to_grid(grid, x, y)
@@ -344,6 +346,9 @@ class impactor(object):
             else:
                 slope_array.append(numpy.nan)
         slope_array = numpy.array(slope_array)
+        #add test to see if crashing is due to problems in slope extraction:
+        if numpy.isnan(slope_array).all():
+            print 'All slopes beneath area did not evaluate! ABORT ABORT ABORT!!!'
         hi_mag_slope_index = numpy.argmax(numpy.fabs(slope_array))
         hi_mag_slope = slope_array[hi_mag_slope_index]
         #print hi_mag_slope
@@ -375,7 +380,7 @@ class impactor(object):
         '''
         This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
         '''
-                
+        
         #Load in the data, for speed:
         _angle_to_horizontal=self._angle_to_horizontal
         _surface_slope=self._surface_slope
@@ -395,7 +400,7 @@ class impactor(object):
         crater_node_list = deque([self.closest_node_index])
         elev_changes = deque()
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        flag_already_in_the_list = numpy.zeros(grid.get_number_of_nodes())
+        flag_already_in_the_list = numpy.zeros(grid.get_count_of_all_nodes())
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
@@ -427,6 +432,8 @@ class impactor(object):
             else:
                 print 'Refreshing the impactor angle'
                 self.set_impactor_angles()
+                _azimuth_of_travel = self._azimuth_of_travel
+                _angle_to_horizontal = self._angle_to_horizontal
         _impactor_angle_to_surface_normal = 0.5*pi - beta_eff
         print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
         #print 'Beta effective: ', beta_eff
@@ -440,7 +447,8 @@ class impactor(object):
         thickness_at_rim = (_radius - radius_calc)*tan_repose
         #...where thickness(r) = thickness_at_rim*(r/R_true)**-2.75
 
-        while 1: 
+        #This code crawls out iteratively over the grid under the crater footprint, away from the centerpoint. This could be made much faster in Python if it wasn't a loop. Maybe an alternative would be to define the radius corresponding to the minimum loop, then trim out a box 2*R by 2*R to operate on, and perform all actions on arrays for speed.
+        while 1:
             try:
                 active_node = crater_node_list.popleft() #i.e., array is not empty
             except:
@@ -577,8 +585,8 @@ def dig_some_craters_on_fresh_surface():
     #Setup
     mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
-    vectors = data()
-    vectors.elev = [100.] * mg.ncells
+    vectors = data(mg)
+    vectors.elev[:] = 100.
     cr = impactor()
 
     #Update until
@@ -587,16 +595,13 @@ def dig_some_craters_on_fresh_surface():
         cr.excavate_a_crater(mg, vectors)
 
     #Finalize
-    elev_raster = mg.cell_vector_to_raster(vectors.elev)
+    elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
     #contour(elev_raster)
-    flipped_elev_raster = numpy.empty_like(elev_raster)
-    for i in range(0,nr):
-        flipped_elev_raster[i,:] = elev_raster[(nr-i-1),:]
 
-    imshow(flipped_elev_raster)
+    imshow(elev_raster)
     colorbar()
     show()
-    vectors.viewing_raster = flipped_elev_raster
+    vectors.viewing_raster = elev_raster
     return cr, mg, vectors
 
 def dig_some_craters(grid, data):
@@ -615,18 +620,15 @@ def dig_some_craters(grid, data):
         cr.excavate_a_crater(grid, data)
     
     #Finalize
-    elev_raster = grid.cell_vector_to_raster(data.elev)
+    elev_raster = grid.node_vector_to_raster(data.elev, flip_vertically=True)
     #contour(elev_raster)
-    flipped_elev_raster = numpy.empty_like(elev_raster)
-    for i in range(0,grid.get_count_of_rows()):
-        flipped_elev_raster[i,:] = elev_raster[(grid.get_count_of_rows()-i-1),:]
     
     profile = plot(elev_raster[600,:])
     xsec = plot(elev_raster[:,1100])
-    #imshow(flipped_elev_raster)
+    #imshow(elev_raster)
     #colorbar()
     #show()
-    data.viewing_raster = flipped_elev_raster
+    data.viewing_raster = elev_raster
     return grid, data, profile, xsec
     
 
@@ -644,11 +646,8 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     #Setup
     mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
-    vectors = data()
-    vectors.elev = []
-    for i in range(0, nr):
-        vectors.elev = vectors.elev + [100.]*nc
-        #vectors.elev = vectors.elev + [100.-i*0.003]*nc
+    vectors = data(mg)
+    vectors.elev[:] = 100.
     cr = impactor()
 
     cr._radius = radius
@@ -675,44 +674,41 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     print 'Impact angle to ground normal: ', cr.impactor_angle_to_surface_normal
 
     #Finalize
-    elev_raster = mg.cell_vector_to_raster(vectors.elev)
+    elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
     #contour(elev_raster)
-    flipped_elev_raster = numpy.empty_like(elev_raster)
-    for i in range(0,nr):
-        flipped_elev_raster[i,:] = elev_raster[(nr-i-1),:]
-    #imshow(flipped_elev_raster)
+    #imshow(elev_raster)
     #colorbar()
     #show()
-    vectors.viewing_raster = flipped_elev_raster
+    vectors.viewing_raster = elev_raster
     return cr, mg, vectors
 
 
-def main():
-    #start_time = time.time()
-#   cr, mg, vectors = dig_some_craters_on_fresh_surface()
-    #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
-#   mg_10k, vectors_10k = dig_some_craters(mg, vectors)
+#def main():
+#start_time = time.time()
+#cr, mg, vectors = dig_some_craters_on_fresh_surface()
+#cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
+#mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-    #How many times round?
-    loops = 50 #500,000 craters!!
-    #Build the dictionary:
-    crater_time_sequ = {}
-    profile_list = []
-    xsec_list = []
-    #Initialize the starting condition:
-    cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
-    #Save the starting conds:
-    crater_time_sequ[0] = copy(vectors)
-    #Run the loops
-    for i in range(0,loops):
-        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-        crater_time_sequ[i] = copy(vectors)
-        profile_list.append(profile)
-        xsec_list.append(xsec)
-    show(profile_list)
-    #end_time = time.time()
-    #print('Elapsed time was %g seconds' % (end_time - start_time))
+#This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+#How many times round?
+loops = 25 #250,000 craters
+#Build the dictionary:
+crater_time_sequ = {}
+profile_list = []
+xsec_list = []
+#Initialize the starting condition:
+cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
+#Save the starting conds:
+crater_time_sequ[0] = copy(vectors)
+#Run the loops
+for i in range(0,loops):
+    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+    crater_time_sequ[i] = copy(vectors)
+    profile_list.append(profile)
+    xsec_list.append(xsec)
+show(profile_list)
+#end_time = time.time()
+#print('Elapsed time was %g seconds' % (end_time - start_time))
 
-if __name__=='__main__':
-    main()
+#if __name__=='__main__':
+#    main()
