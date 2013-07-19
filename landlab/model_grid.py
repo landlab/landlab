@@ -1094,6 +1094,13 @@ class RasterModelGrid(ModelGrid):
         NG, June 2013
         """
         return(self.nrows)
+    
+    def get_grid_spacing(self):
+        """
+        Returns the spacing between grid nodes.
+        DEJH July 2013
+        """
+        return(self.dx)
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
