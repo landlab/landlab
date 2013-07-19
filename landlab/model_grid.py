@@ -547,7 +547,7 @@ class RasterModelGrid(ModelGrid):
         self.nrows = num_rows
         self.ncols = num_cols
         self.ncells = num_rows * num_cols # soon to be deprecated, June 2013
-        self.dx = dx
+        self._dx = dx
         self.cellarea = dx*dx
         self.num_nodes = num_rows * num_cols
         self.num_cells = (num_rows-2) * (num_cols-2)
@@ -946,7 +946,11 @@ class RasterModelGrid(ModelGrid):
             print 'Cell BIDs:',self.boundary_ids
             
         self.default_bc = BoundaryCondition( self.n_boundary_cells )
-        
+
+    @property
+    def dx(self):
+        return self._dx
+
     def setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks
