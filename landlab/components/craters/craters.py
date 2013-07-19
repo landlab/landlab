@@ -683,7 +683,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     return cr, mg, vectors
 
 
-def main():
+def one_crater_then_degrade():
     #start_time = time.time()
     #cr, mg, vectors = dig_some_craters_on_fresh_surface()
     #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
@@ -691,7 +691,7 @@ def main():
 
     #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
     #How many times round?
-    loops = 1 #250,000 craters
+    loops = 50 #500,000 craters
     #Build the dictionary:
     crater_time_sequ = {}
     profile_list = []
@@ -709,7 +709,8 @@ def main():
     show(profile_list)
     #end_time = time.time()
     #print('Elapsed time was %g seconds' % (end_time - start_time))
+    return crater_time_sequ
 
 
-if __name__=='__main__':
-    main()
+#if __name__=='__main__':
+#    main()
