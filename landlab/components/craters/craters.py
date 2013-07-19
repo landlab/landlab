@@ -164,8 +164,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random() * (grid.get_grid_xdimension()-grid.get_grid_spacing())
-        self._ycoord = random() * (grid.get_grid_ydimension()-grid.get_grid_spacing())
+        self._xcoord = random() * (grid.get_grid_xdimension() - grid.dx)
+        self._ycoord = random() * (grid.get_grid_ydimension() - grid.dx)
         #Snap impact to grid:
         vertices_array = grid.get_nodes_around_point(self._xcoord, self._ycoord)
         distances_to_vertices = numpy.empty(vertices_array.size)
@@ -683,32 +683,33 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     return cr, mg, vectors
 
 
-#def main():
-#start_time = time.time()
-#cr, mg, vectors = dig_some_craters_on_fresh_surface()
-#cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
-#mg_10k, vectors_10k = dig_some_craters(mg, vectors)
+def main():
+    #start_time = time.time()
+    #cr, mg, vectors = dig_some_craters_on_fresh_surface()
+    #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
+    #mg_10k, vectors_10k = dig_some_craters(mg, vectors)
 
-#This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-#How many times round?
-loops = 25 #250,000 craters
-#Build the dictionary:
-crater_time_sequ = {}
-profile_list = []
-xsec_list = []
-#Initialize the starting condition:
-cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
-#Save the starting conds:
-crater_time_sequ[0] = copy(vectors)
-#Run the loops
-for i in range(0,loops):
-    mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-    crater_time_sequ[i] = copy(vectors)
-    profile_list.append(profile)
-    xsec_list.append(xsec)
-show(profile_list)
-#end_time = time.time()
-#print('Elapsed time was %g seconds' % (end_time - start_time))
+    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
+    #How many times round?
+    loops = 1 #250,000 craters
+    #Build the dictionary:
+    crater_time_sequ = {}
+    profile_list = []
+    xsec_list = []
+    #Initialize the starting condition:
+    cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
+    #Save the starting conds:
+    crater_time_sequ[0] = copy(vectors)
+    #Run the loops
+    for i in range(0,loops):
+        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
+        crater_time_sequ[i] = copy(vectors)
+        profile_list.append(profile)
+        xsec_list.append(xsec)
+    show(profile_list)
+    #end_time = time.time()
+    #print('Elapsed time was %g seconds' % (end_time - start_time))
 
-#if __name__=='__main__':
-#    main()
+
+if __name__=='__main__':
+    main()
