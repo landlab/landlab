@@ -178,7 +178,7 @@ On the next line, we create a second array, \code{dzdt}, to store the time rate 
 When we update elevation values, we will want to operate only on the active cells. To help with this, we call the \code{get\_active\_cell\_node\_ids} method. This method returns a 1D numpy array of integers that represent the node ID numbers associated with all of the active cells (of which there are $18\times 28 = 504$). Finally, we display a message to tell the user that we're about to run and with what time step size.
 
 
-\section{Main Loop}
+\subsection{Main Loop}
 
 Our model implements a finite-volume solution to the diffusion equation. The idea here is that we calculate sediment fluxes around the perimeter of each cell. We then integrate these fluxes forward in time to calculate the net change in volume, which is divided by the cell's surface area to obtain an equivalent change in height. The numerical solution is given by:
 \begin{equation}
@@ -238,6 +238,77 @@ The last section of the \code{main} function plots the result of our calculation
 The last two lines of code are standard Python syntax. They will execute the \code{main} function when the code is run, but not when the code is simply imported as a module.
 
 That's it. The 2D diffusion code is less than 100 lines long. In fact, only about 20 of these actually implement the diffusion calculation; the rest handle plotting, comments, blank lines, etc.
+
+%%%%%%%%
+
+\section{Example 2: Overland Flow}
+
+In this second example, we look at an implementation of the storage-cell algorithm of \citet{bates2010simple} for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid.
+
+\subsection{Overland Flow Code Listing}
+
+The source code can be found in \code{overland\_flow\_with\_model\_grid.py}.
+
+\lstinputlisting[firstnumber=1,firstline=1,lastline=143]{overland_flow_with_model_grid.py}
+
+\subsection{Packages}
+
+\lstinputlisting[firstnumber=11,firstline=11,lastline=13]{overland_flow_with_model_grid.py}
+
+For this program, we'll need ModelGrid as well as the pylab, time, and numpy packages.
+
+\subsection{User-Defined Parameters}
+
+\lstinputlisting[firstnumber=24,firstline=24,lastline=33]{overland_flow_with_model_grid.py}
+
+Several of the user-defined parameters are the same as those used in the diffusion example: the dimensions and cell size of our raster grid, and the duration of the run. Here the duration is in seconds. In addition, we need to specify the Manning roughness coefficient (\code{n}), the initial water depth (here set to 1 mm), the water depth along the left-hand boundary, gravitational acceleration, and a time-step factor.
+
+\subsection{Derived Parameters}
+
+\lstinputlisting[firstnumber=35,firstline=35,lastline=39]{overland_flow_with_model_grid.py}
+
+Here, we pre-calculate the value of 10/3 so as to avoid repeating a division operation throughout the main loop. We also set up some variables to track the progress of the run. The elapsed time refers here to model time. In this model, we use a variable time-step size, and so rather than counting through a predetermined number of iterations, we instead keep track of the elapsed run time and halt the simulation when we reach the desired run duration.
+
+The \code{report\_interval} refers to clock time rather than run time. Every two seconds of clock time, we will report the percentage completion to the user, so that he/she is aware that the run is progressing and has an idea how much more is left to go. The variable \code{next\_report} keeps track of the next time (on the clock) to report progress to the user.
+
+\subsection{Setting up the grid and state variables}
+
+\lstinputlisting[firstnumber=41,firstline=41,lastline=60]{overland_flow_with_model_grid.py}
+
+Next, we create and configure a raster grid. In this example, we'll have the left and right boundaries open and the top and bottom closed; we set this up with a call to \code{set\_inactive\_boundaries} on line 47.
+
+Our key variables are as follows: land elevation, \code{z} (which remains constant and uniform at zero in this example), water depth, \code{h} (which starts out at \code{h\_init}), discharge per unit width, \code{q}, and the rate of change of water depth, \code{dhdt}. Three of these---elevation, depth, and $dh/dt$, are scalars that are evaluated at nodes. The fourth, discharge, is evaluated at active links.
+
+In this example, we will have the left boundary maintain a fixed water depth of 2.5 m. To accomplish this, we first obtain a list of the ID numbers of the boundary nodes that lie along the left grid edge by calling RasterModelGrid's \code{left\_edge\_node\_ids()} method, which returns a Numpy array containing the IDs. We then use them to set the new depth values on the following line. Finally, on line 60, we obtain a list of interior node IDs, just as we did in the diffusion example.
+
+\subsection{Main loop, part 1}
+
+\lstinputlisting[firstnumber=68,firstline=68,lastline=93]{overland_flow_with_model_grid.py}
+
+The main loop uses a \code{while} rather than a \code{for} loop because the time-step size is variable. We begin with a block of code that prints the percentage completion to the screen every two seconds. After this, we calculate a maximum time-step size size using the formula of \citet{bates2010simple}, which depends on grid-cell spacing and on the shallow water wave celerity, $\sqrt{g h}$. For water depth, we use the maximum value in the grid, because it is this value that will have the greatest celerity and therefore be most restrictive.
+
+The next several lines calculate unit discharge values along each active link. To do this, we need to know the effective water depth at each of these locations. \citet{bates2010simple} recommend using the difference between the highest water-surface elevation and the highest bed-surface elevation at each pair of adjacent nodes---that is, at each active link. To find these maximum values, we call the \code{active\_link\_max} function, first with bed elevation, and then with water-surface elevation, \code{w}. The resulting effective flow depths at the active links are stored in Numpy array called \code{hflow}. 
+
+Calculating discharge also requires us to know the water-surface gradient at each active link. We find this by calling \code{calculate\_gradients\_at\_active\_links} and passing it the water-surface height. We then have everything we need to calculate the discharge values using the \citet{bates2010simple} formula, which is done on lines 92 and 93.
+
+\subsection{Main loop, part 2}
+
+\lstinputlisting[firstnumber=95,firstline=95,lastline=113]{overland_flow_with_model_grid.py}
+
+Because we have no source term in the flow equations---we are assuming there is no rainfall or infiltration to add or remove water in each cell---the rate of depth change is equal to $-\nabla q$, the divergence of water discharge. Just as in the diffusion example, we can calculate the flux divergence in a single line with help from the \code{calculate\_flux\_divergence\_at\_nodes} method.
+
+The next block of code provides a second limit on time-step size, designed to prevent water depth from becoming negative. At some locations in the grid, it is possible that the rate of change of water depth will be negative, meaning that the water depth is becoming shallower over time. If we were to extrapolate this shallowing too far into the future, by taking too big a time step, we could end up with negative water depth. To avoid this situation, we first determine whether there are any locations where \code{dhdt} is negative, using the Numpy \code{amin} function. If there are, we call the Numpy \code{where} function to obtain a list of the node IDs at which the water depth is shallowing. The next line calculates the time it would take to reach zero water thickness. On line 104, we find the minimum of these time intervals, and multiply it by the \code{alpha} time-step parameter. This ensures that we won't actually completely drain any cells of water. Finally, we determine which limiting time-step is smaller: \code{dtmax}, which reflects the limitation due to fluid velocity, or \code{dtmax2}, which is the limitation due to cell drainage. If no cells have $dh/dt<0$, then we simply use the fluid-velocity time step size.
+
+Line 110 updates the values of water depth at all interior cells. Finally, line 113 increments the total elapsed time.
+
+\subsection{Plotting the results}
+
+\lstinputlisting[firstnumber=118,firstline=118,lastline=141]{overland_flow_with_model_grid.py}
+
+The final portion of the code uses Pylab functions and the ModelGrid \code{node\_vector\_to\_raster} method to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
+
+
+
 
  
 \newpage

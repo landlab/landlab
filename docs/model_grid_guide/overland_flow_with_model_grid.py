@@ -50,7 +50,7 @@ def main():
     z = mg.create_node_dvector()   # land elevation
     h = mg.create_node_dvector() + h_init     # water depth (m)
     q = mg.create_active_link_dvector()  # unit discharge (m2/s)
-    dhdt = mg.create_active_cell_dvector()  # rate of water-depth change
+    dhdt = mg.create_node_dvector()  # rate of water-depth change
     
     # Left side has deep water
     leftside = mg.left_edge_node_ids()
@@ -92,11 +92,9 @@ def main():
         q = (q-g*hflow*dtmax*water_surface_slope)/ \
             (1.+g*hflow*dtmax*n*n*q/(hflow**ten_thirds))
         
-        # Calculate water-flux divergence at nodes
-        dqds = mg.calculate_flux_divergence_at_nodes(q)
-        
-        # Calculate rate of change of water depth
-        dhdt = -dqds
+        # Calculate water-flux divergence and time rate of change of water depth
+        # at nodes
+        dhdt = -mg.calculate_flux_divergence_at_nodes(q)
         
         # Second time-step limiter (experimental): make sure you don't allow
         # water-depth to go negative
