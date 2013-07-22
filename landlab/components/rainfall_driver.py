@@ -1,4 +1,4 @@
-########## RainfallDriver.py ###############
+########## rainfall_driver.py ###############
 ##
 ## This component generates rainfall  
 ## events based on statistical distributions.
