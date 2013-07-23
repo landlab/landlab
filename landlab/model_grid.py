@@ -65,7 +65,7 @@ class ModelGrid(object):
     INTERIOR_NODE = 0
     FIXED_VALUE_BOUNDARY = 1
     FIXED_GRADIENT_BOUNDARY = 2
-    TRACKS_CELL_BOUNDARY = 3
+    NODE_TRACKING_BOUNDARY = 3
     INACTIVE_BOUNDARY = 4
     
     # Debugging flags (if True, activates some output statements)
@@ -143,6 +143,13 @@ class ModelGrid(object):
         """
     
         return numpy.zeros( self.num_faces )
+        
+    def set_fixed_value_boundaries(self, node_ids):
+        """
+        Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
+        """
+        self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
+        self.reset_list_of_active_links()
 
     def calculate_face_gradients( self, u ):
         """
@@ -1318,7 +1325,7 @@ class RasterModelGrid(ModelGrid):
             self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
         
         self.reset_list_of_active_links()
-                
+        
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
         """
@@ -2125,6 +2132,19 @@ class RasterModelGrid(ModelGrid):
             array([ 4,  9, 14, 19])
         """
         return array(range(self.ncols-1,self.num_nodes,self.ncols))
+        
+    def grid_coords_to_node_id(self, row, col):
+        """
+        Returns the ID of the node at the specified row and column of the raster
+        grid.
+        
+        Example:
+            
+            >>> mg = RasterModelGrid(4, 5)
+            >>> mg.grid_coords_to_node_id(2, 3)
+            13
+        """
+        return row*self.ncols+col
         
     def unit_test( self ):
         

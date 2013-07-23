@@ -1,0 +1,163 @@
+#! /usr/env/python
+"""
+
+2D numerical model of shallow-water flow over topography, using the
+Bates et al. (2010) algorithm for storage-cell inundation modeling.
+
+Last updated GT July 2013
+
+"""
+
+from landlab.io import read_esri_ascii
+import time
+import os
+import pylab
+import numpy as np
+
+
+def main():
+    """
+    In this simple tutorial example, the main function does all the work: 
+    it sets the parameter values, creates and initializes a grid, sets up 
+    the state variables, runs the main loop, and cleans up.
+    """
+    
+    # INITIALIZE
+    
+    # User-defined parameter values
+    dem_name = 'ExampleDEM/west_bijou_gully.asc'
+    outlet_row = 82
+    outlet_column = 38
+    next_to_outlet_row = 81
+    next_to_outlet_column = 38
+    n = 0.15              # roughness coefficient
+    h_init = 0.001        # initial thin layer of water (m)
+    g = 9.8
+    alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
+    run_time = 2400       # duration of run, seconds
+    rainfall_mmhr = 100   # rainfall rate, in mm/hr
+    
+    # Derived parameters
+    rainfall_rate = (rainfall_mmhr/1000.)/3600.  # rainfall in m/s
+    ten_thirds = 10./3.   # pre-calculate 10/3 for speed
+    elapsed_time = 0.0    # total time in simulation
+    report_interval = 10.  # interval to report progress (seconds)
+    next_report = time.time()+report_interval   # next time to report progress
+    DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
+    
+    # Create and initialize a raster model grid by reading a DEM
+    print(str(DATA_FILE))
+    (mg, z) = read_esri_ascii(DATA_FILE)
+    print('DEM has '+str(mg.nrows)+' rows, '+str(mg.ncols)+' columns, and cell size '+str(mg.dx))
+    
+    # Modify the grid DEM to set all nodata nodes to inactive boundaries
+    mg.deactivate_nodata_nodes(z, 0) # set nodata nodes to inactive bounds
+    
+    # Set the open boundary (outlet) cell. We want to remember the ID of the 
+    # outlet node and the ID of the interior node adjacent to it. We'll make
+    # the outlet node an open boundary.
+    outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
+    node_next_to_outlet = mg.grid_coords_to_node_id(next_to_outlet_row, 
+                                                    next_to_outlet_column)
+    mg.set_fixed_value_boundaries(outlet_node)
+
+    # Set up scalar values
+    h = mg.create_node_dvector() + h_init     # water depth (m)
+    q = mg.create_active_link_dvector()  # unit discharge (m2/s)
+    dhdt = mg.create_active_cell_dvector()  # rate of water-depth change
+    
+    # Get a list of the interior cells
+    interior_cells = mg.get_active_cell_node_ids()
+    
+    # Display a message
+    print( 'Running ...' )
+    start_time = time.time()
+
+    # RUN
+    
+    # Main loop
+    while elapsed_time < run_time:
+        
+        # Report progress
+        if time.time()>=next_report:
+            print('Time = '+str(elapsed_time)+' ('
+                  +str(100.*elapsed_time/run_time)+'%)')
+            next_report += report_interval
+        
+        # Calculate time-step size for this iteration (Bates et al., eq 14)
+        dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
+        
+        # Calculate the effective flow depth at active links. Bates et al. 2010
+        # recommend using the difference between the highest water-surface
+        # and the highest bed elevation between each pair of cells.
+        zmax = mg.active_link_max(z)
+        w = h+z   # water-surface height
+        wmax = mg.active_link_max(w)
+        hflow = wmax - zmax
+        
+        # Calculate water-surface slopes
+        water_surface_slope = mg.calculate_gradients_at_active_links(w)
+       
+        # Calculate the unit discharges (Bates et al., eq 11)
+        q = (q-g*hflow*dtmax*water_surface_slope)/ \
+            (1.+g*hflow*dtmax*n*n*q/(hflow**ten_thirds))
+        
+        # Calculate water-flux divergence at nodes
+        dqds = mg.calculate_flux_divergence_at_nodes(q)
+        
+        # Calculate rate of change of water depth
+        dhdt = rainfall_rate-dqds
+        
+        # Second time-step limiter (experimental): make sure you don't allow
+        # water-depth to go negative
+        if np.amin(dhdt) < 0.:
+            shallowing_locations = np.where(dhdt<0.)
+            time_to_drain = -h[shallowing_locations]/dhdt[shallowing_locations]
+            dtmax2 = alpha*np.amin(time_to_drain)
+            dt = np.min([dtmax, dtmax2])
+        else:
+            dt = dtmax
+        
+        # Update the water-depth field
+        h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+        
+        h[outlet_node] = h[node_next_to_outlet]
+        
+        # Update current time
+        elapsed_time += dt
+
+      
+    # FINALIZE
+    
+    # Set the elevations of the nodata cells to the minimum active cell
+    # elevation (convenient for plotting)
+    z[np.where(z<=0.)] = 9999            # temporarily change their elevs ...
+    zmin = np.amin(z)                    # ... so we can find the minimum ...
+    z[np.where(z==9999)] = zmin          # ... and assign them this value.
+
+    # Get a 2D array version of the water depths and elevations
+    hr = mg.node_vector_to_raster(h)
+    zr = mg.node_vector_to_raster(z)
+    
+    # Plot topography
+    pylab.close()  # clear any pre-existing plot
+    pylab.subplot(121)
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
+    pylab.colorbar(im)
+    pylab.title('Topography')
+    
+    # Plot water depth
+    pylab.subplot(122)
+    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu)  # display a colored image
+    pylab.clim(0, 0.25)
+    pylab.colorbar(im2)
+    pylab.title('Water depth')
+
+    # Display the plot
+    pylab.show()
+    print('Done.')
+    print('Total run time = '+str(time.time()-start_time)+' seconds.')
+
+
+if __name__ == "__main__":
+    main()
