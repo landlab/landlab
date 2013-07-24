@@ -385,6 +385,27 @@ class ModelGrid(object):
         Returns an integer vector of the node IDs of all active cells.
         """
         return self.activecell_node
+        
+    def get_active_link_connecting_node_pair(self, node1, node2):
+        """
+        Returns the ID number of the active link that connects the given pair of
+        nodes, or None if not found.
+        
+        Example:
+            
+            >>> rmg=RasterModelGrid(4, 5)
+            >>> rmg.get_active_link_connecting_node_pair(8, 3)
+            2
+        """
+        active_link = None
+        for alink in range(0, self.num_active_links):
+            if (self.activelink_fromnode[alink]==node1 \
+                and self.activelink_tonode[alink]==node2) \
+               or (self.activelink_tonode[alink]==node1
+                and self.activelink_fromnode[alink]==node2):
+                active_link = alink
+                break
+        return active_link
                 
     def assign_upslope_vals_to_faces( self, u, v=0 ):
         """
@@ -535,6 +556,8 @@ class RasterModelGrid(ModelGrid):
         right (so a negative flux across a face is either going left or
         down).
         
+        Examples and doctests:
+        
             >>> rmg = RasterModelGrid()
             >>> numrows = 20          # number of rows in the grid
             >>> numcols = 30          # number of columns in the grid
@@ -542,8 +565,52 @@ class RasterModelGrid(ModelGrid):
             >>> rmg.initialize(numrows, numcols, dx)
             >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
             (600, 504, 1150, 1054)
-
+            >>> rmg = RasterModelGrid(4, 5)
+            >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
             (20, 6, 31, 17)
+            >>> rmg.node_status
+            array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+            >>> rmg.node_activecell[3]
+            >>> rmg.node_activecell[8]
+            2
+            >>> rmg.node_numinlink
+            array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
+            >>> rmg.node_inlink_matrix
+            array([[-1, 15, 16, 17, 18,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+                    12, 13, 14],
+                   [-1, -1, -1, -1, -1, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1, 27,
+                    28, 29, 30]])
+            >>> rmg.node_numoutlink
+            array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
+            >>> rmg.node_outlink_matrix[0]
+            array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 27, 28,
+                   29, 30, -1])
+            >>> rmg.node_numactiveinlink
+            array([0, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0, 2, 2, 2, 1, 0, 1, 1, 1, 0])
+            >>> rmg.node_active_inlink_matrix
+            array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, 12, -1,  3,  4,  5, 16, -1,  6,
+                     7,  8, -1],
+                   [-1, -1, -1, -1, -1, -1,  9, 10, 11, -1, -1, 13, 14, 15, -1, -1, -1,
+                    -1, -1, -1]])
+            >>> rmg.node_numactiveoutlink
+            array([0, 1, 1, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0])
+            >>> rmg.node_active_outlink_matrix
+            array([[-1,  0,  1,  2, -1,  9,  3,  4,  5, -1, 13,  6,  7,  8, -1, -1, -1,
+                    -1, -1, -1],
+                   [-1, -1, -1, -1, -1, -1, 10, 11, 12, -1, -1, 14, 15, 16, -1, -1, -1,
+                    -1, -1, -1]])
+            >>> rmg.cell_node
+            [6, 7, 8, 11, 12, 13]
+            >>> rmg.link_fromnode
+            array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
+                    2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
+            >>> rmg.link_tonode
+            array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
+                    3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
+            >>> rmg.link_face[20]
+            10
+            >>> rmg.active_links
+            array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -1705,21 +1772,6 @@ class RasterModelGrid(ModelGrid):
             >>> df
             array([ 0.,  0.,  0.,  0.,  0.,  0.,  2.,  4., -2.,  0.,  0.,  0.,  1.,
                    -4.,  0.,  0.,  0.,  0.,  0.,  0.])
-            
-        If calculate_gradients_at_nodes is called inside a loop, you can
-        improve speed by creating an array outside the loop. For example, do
-        this once, before the loop:
-            
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> df = rmg.create_node_dvector() # outside loop
-            >>> rmg.num_nodes
-            20
-            
-        Then do this inside the loop:
-            
-            >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
-            
-        In this case, the function will not have to create the df array.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -2147,8 +2199,13 @@ class RasterModelGrid(ModelGrid):
         return row*self.ncols+col
         
     def unit_test( self ):
+        """
+        This is just scratch space for testing while developing. More proper
+        tests are in the doctests for each function, and in  
+        test_raster_model_grid.py.
+        """
         
-        print 'Performing unit test for RasterModelGrid ...'
+        print 'Performing some tests for RasterModelGrid ...'
         print
         
         num_rows_for_unit_test = 4
@@ -2161,111 +2218,28 @@ class RasterModelGrid(ModelGrid):
         print 'done.'
         print
         
-        print 'Testing numbers of elements (correct values in parens):'
-        print('num_nodes: '+str(self.num_nodes)+' (20)')
-        print('num_cells: '+str(self.num_cells)+' (6)')
-        print('num_links: '+str(self.num_links)+' (31)')
-        print('num_active_links: '+str(self.num_active_links)+' (17)')
-        print('num_faces: '+str(self.num_faces)+' (17)')
-        print
-        
-        print 'Testing node lists:'
-        print 'ID   X    Y    Z    Status  Active_cell  #in in1 in2 #out out1 out2'
-        for node in range( 0, self.num_nodes ):
-            print(str(node)+'    '+str(self.node_x[node])+'  '
-                  +str(self.node_y[node])+'  '
-                  +str(self.node_z[node])+'  '
-                  +str(self.node_status[node])+'  '
-                  +str(self.node_activecell[node])+'  '
-                  +str(self.node_numinlink[node])+'  '
-                  +str(self.node_inlink_matrix[0][node])+'  '
-                  +str(self.node_inlink_matrix[1][node])+'  '
-                  +str(self.node_numoutlink[node])+'  '
-                  +str(self.node_outlink_matrix[0][node])+'  '
-                  +str(self.node_outlink_matrix[1][node])+'  '
-                  +str(self.node_numactiveinlink[node])+'  '
-                  +str(self.node_active_inlink_matrix[0][node])+'  '
-                  +str(self.node_active_inlink_matrix[1][node])+'  '
-                  +str(self.node_numactiveoutlink[node])+'  '
-                  +str(self.node_active_outlink_matrix[0][node])+'  '
-                  +str(self.node_active_outlink_matrix[1][node]))
-        print
-        
-        print 'Testing list of nodes associated with each cell.'
-        print 'Node IDs should be: 6, 7, 8, 11, 12, 13'
-        print 'Cell Node'
-        for cell in range(0, len(self.cell_node)):
-            print(str(cell)+'    '+str(self.cell_node[cell]))
-        print
-        
-        print 'Testing link nodes:'
-        print('Length of link_fromnode list: '+str(len(self.link_fromnode))+
-              ' (31)')
-        print('Length of link_tonode list: '+str(len(self.link_tonode))+' (31)')
-        print 'The list should start with 0 0 5, 1 1 6, ...'
-        print 'and end with ..., 29 17 18, 30 18 19'
-        print 'ID From To Face'
-        for link in range(0, self.num_links):
-            print(str(link)+'  '+str(self.link_fromnode[link])+'    '
-                  +str(self.link_tonode[link])+'  '
-                  +str(self.link_face[link]))
-        
-        print 'Testing list of active links:'
-        print 'List should be: 1,2,3,6,7,8,11,12,13,19,20,21,22,23,24,25,26'
-        print 'There should be 17 entries.'
-        print 'Active link ID  Link ID'
-        for act_link_id in range(0,len(self.active_links)):
-            print(str(act_link_id)+' '+str(self.active_links[act_link_id]))
-            
-        print 'Testing gradient calculation functions:'
-        print 'The following list should have 17 entries, with gradient=5. for'
-        print 'the first 8, then gradient=1. for the rest'
-        print
-        print 'Active link ID  From  To  Gradient'
-        self.link_length = numpy.ones(self.num_links)
-        u = self.create_node_dvector()
-        for i in range(0,self.num_nodes):
-            u[i] = i
-        grad1 = self.calculate_gradients_at_active_links(u)
-        for alink in range(0, self.num_active_links):
-            print(str(alink)+' '+ \
-                  str(self.link_fromnode[self.active_links[alink]])+ \
-                  ' '+str(self.link_tonode[self.active_links[alink]])+' '+ \
-                  str(grad1[alink]))
-        print 'The next list should be the same but with gradient values 10%'
-        print 'of their previous size, and listed twice'
-        u = 0.1*u
-        grad2 = self.calculate_gradients_at_active_links(u, grad1)
-        for alink in range(0, self.num_active_links):
-            print(str(alink)+' '+ \
-                  str(self.link_fromnode[self.active_links[alink]])+ \
-                  ' '+str(self.link_tonode[self.active_links[alink]])+' '+ \
-                  str(grad1[alink])+' '+str(grad2[alink]))
-                  
-        print'Testing divergence calculation functions:'
-        u2 = [0., 1., 2., 3., 0.,
-              1., 2., 3., 2., 3.,
-              0., 1., 2., 1., 2.,
-              0., 0., 2., 2., 0.]
-        u2 = array(u2)
-        flux = -self.calculate_gradients_at_active_links(u2)
-        self.face_width = numpy.ones(self.num_faces)
-        self.active_cell_areas = numpy.ones(self.num_active_cells)
-        divg = self.calculate_flux_divergence_at_active_cells(flux)
-        al = 0
-        for l in self.active_links:
-            print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
-                  +str(self.link_tonode[l])+' '+str(flux[al]))
-            al += 1
-        print divg
-        self.cell_area = numpy.ones(self.num_cells)
-        divg = self.calculate_flux_divergence_at_nodes(flux)
-        al = 0
-        for l in self.active_links:
-            print(str(al)+' '+str(l)+' '+str(self.link_fromnode[l])+' '
-                  +str(self.link_tonode[l])+' '+str(flux[al]))
-            al += 1
-        print divg
+        #print 'Testing node lists:'
+        #print 'ID   X    Y    Z    Status  Active_cell  #in in1 in2 #out out1 out2'
+        #for node in range( 0, self.num_nodes ):
+        #    print(str(node)+'    '+str(self.node_x[node])+'  '
+        #          +str(self.node_y[node])+'  '
+        #          +str(self.node_z[node])+'  '
+        #          +str(self.node_status[node])+'  '
+        #          +str(self.node_activecell[node])+'  '
+        #          +str(self.node_numinlink[node])+'  '
+        #          +str(self.node_inlink_matrix[0][node])+'  '
+        #          +str(self.node_inlink_matrix[1][node])+'  '
+        #          +str(self.node_numoutlink[node])+'  '
+        #          +str(self.node_outlink_matrix[0][node])+'  '
+        #          +str(self.node_outlink_matrix[1][node])+'  '
+        #          +str(self.node_numactiveinlink[node])+'  '
+        #          +str(self.node_active_inlink_matrix[0][node])+'  '
+        #          +str(self.node_active_inlink_matrix[1][node])+'  '
+        #          +str(self.node_numactiveoutlink[node])+'  '
+        #          +str(self.node_active_outlink_matrix[0][node])+'  '
+        #          +str(self.node_active_outlink_matrix[1][node]))
+        #print
+        #
         
         print 'Testing fluxes and in/out links:'
         flux2 = numpy.zeros(len(flux)+1)
@@ -2284,10 +2258,6 @@ class RasterModelGrid(ModelGrid):
         divg2 = self.calculate_flux_divergence_at_nodes(flux)
         print divg2
         
-        print 'Miscellaneous tests:'
-        acdv = self.create_active_cell_dvector()
-        print acdv
-
 
 if __name__ == '__main__':
     import doctest

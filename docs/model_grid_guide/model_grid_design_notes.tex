@@ -6,6 +6,8 @@
 % \geometry{landscape} % rotated page geometry
 
 % See the ``Article customise'' template for come common customisations
+\newcommand{\code}[1]{{\tt #1}}
+
 
 \title{Model Grid Design and Programming Notes}
 \author{Greg Tucker}
@@ -18,6 +20,47 @@
 %\tableofcontents
 
 \section{ModelGrid General}
+
+\subsection{Data structures for grid elements and connectivity}
+
+\begin{table}[htbp]
+   \centering
+   \topcaption{Grid data structures} % requires the topcapt package
+   \begin{tabular}{@{} lccc @{}} % Column formatting, @{} suppresses leading/trailing space
+      \toprule
+      
+      %\cmidrule(r){1-2} % Partial rule. (r) trims the line a little bit on the right; (l) & (lr) also possible
+      Name & Type$^1$ & Indexed by & Description \\
+      \midrule
+      node\_activecell & list  & nodes & ID of active cell, or None \\
+      node\_status 	& NP & nodes & Boundary code \\
+      node\_numinlink  & NP & nodes & Number of incoming links  \\
+      node\_numoutlink  & NP & nodes & Number of outgoing links  \\
+      node\_numactiveinlink  & NP & nodes & Number of incoming active links  \\
+      node\_numactiveoutlink  & NP & nodes & Number of outgoing active links  \\
+      node\_x & NP & nodes & $x$-coordinate \\
+      node\_y & NP & nodes & $y$-coordinate \\
+      node\_z & NP & nodes & $z$-coordinate \\
+      node\_inlink\_matrix & NP2D & (note 2) & IDs of incoming links, or -1 \\
+      node\_outlink\_matrix & NP2D &  (note 2) & IDs of outgoing links, or -1 \\
+      node\_active\_inlink\_matrix & NP2D &  (note 2) & IDs of incoming active links, or -1 \\
+      node\_active\_outlink\_matrix & NP2D &  (note 2) & IDs of outgoing active links, or -1 \\
+      cell\_node & list & cells & ID of associated node \\
+      activecell\_node & list & active cells & ID of associated node \\
+      active\_cell\_areas & ? & ? & Surface area of cell \\
+      link\_fromnode & NP & links & ID of ``from'' node \\
+      link\_tonode & NP & links & ID of ``to'' node \\
+      link\_length & NP & links & Planview length \\
+      link\_face & list & links & ID of face, or None \\
+      activelink\_fromnode & NP & links & ID of ``from'' node \\
+      activelink\_tonode & NP & links & ID of ``to'' node \\
+      \bottomrule
+      \multicolumn{4}{l}{$^1$ NP = 1D Numpy array; NP2D = 2D Numpy array} \\
+      \multicolumn{4}{l}{$^2$ No.\ nodes by max no.\ in/out links (see text)} \\
+   \end{tabular}
+   %\caption{Remember, \emph{never} use vertical lines in tables.}
+   \label{tab:formulas}
+\end{table}
 
 
 
@@ -104,6 +147,15 @@ Links are numbered in the same basic ordering, but starting with all vertical li
         #  *--15-->*--16-->*--17-->*--18-->*
 \end{verbatim}
 In the above diagram, the asterisks are nodes, the lines are links, and the \verb!^! and \verb!>! symbols are meant to indicate the direction of each link (up for vertical links, and to the right for horizontal links).
+
+\subsection{Data structures for node-link connectivity}
+
+There are two basic types of information we wish to store: information about the nodes connected to each link, and information about the links connected to each node.
+The first of these is fairly straightforward. 
+The nodes that form the ``from'' and ``to'' nodes for each are stored in two lists: \code{link\_fromnode} and \code{link\_tonode}. For example, the ID of the ``from'' node of link number 7 is stored in \code{link\_fromnode[7]}. 
+
+Storing information about the links connected to 
+
 
 
 

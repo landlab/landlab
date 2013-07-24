@@ -1,8 +1,8 @@
 #! /usr/env/python
 """
 
-2D numerical model of shallow-water flow over topography, using the
-Bates et al. (2010) algorithm for storage-cell inundation modeling.
+2D numerical model of shallow-water flow over topography read from a DEM, using
+the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 Last updated GT July 2013
 
@@ -30,25 +30,27 @@ def main():
     outlet_column = 38
     next_to_outlet_row = 81
     next_to_outlet_column = 38
-    n = 0.15              # roughness coefficient
+    n = 0.06              # roughness coefficient (Manning's n)
     h_init = 0.001        # initial thin layer of water (m)
-    g = 9.8
+    g = 9.8               # gravitational acceleration (m/s2)
     alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
     run_time = 2400       # duration of run, seconds
     rainfall_mmhr = 100   # rainfall rate, in mm/hr
+    rain_duration = 15*60 # rainfall duration, in seconds
     
     # Derived parameters
     rainfall_rate = (rainfall_mmhr/1000.)/3600.  # rainfall in m/s
     ten_thirds = 10./3.   # pre-calculate 10/3 for speed
     elapsed_time = 0.0    # total time in simulation
-    report_interval = 10.  # interval to report progress (seconds)
+    report_interval = 5.  # interval to report progress (seconds)
     next_report = time.time()+report_interval   # next time to report progress
     DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
     
     # Create and initialize a raster model grid by reading a DEM
-    print(str(DATA_FILE))
+    print('Reading data from "'+str(DATA_FILE)+'"')
     (mg, z) = read_esri_ascii(DATA_FILE)
-    print('DEM has '+str(mg.nrows)+' rows, '+str(mg.ncols)+' columns, and cell size '+str(mg.dx))
+    print('DEM has '+str(mg.nrows)+' rows, '+str(mg.ncols)+ \
+          ' columns, and cell size '+str(mg.dx))
     
     # Modify the grid DEM to set all nodata nodes to inactive boundaries
     mg.deactivate_nodata_nodes(z, 0) # set nodata nodes to inactive bounds
@@ -61,13 +63,22 @@ def main():
                                                     next_to_outlet_column)
     mg.set_fixed_value_boundaries(outlet_node)
 
-    # Set up scalar values
+    # Set up state variables
     h = mg.create_node_dvector() + h_init     # water depth (m)
-    q = mg.create_active_link_dvector()  # unit discharge (m2/s)
-    dhdt = mg.create_active_cell_dvector()  # rate of water-depth change
+    q = mg.create_active_link_dvector()       # unit discharge (m2/s)
+    dhdt = mg.create_active_cell_dvector()    # rate of water-depth change
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()
+    
+    # To track discharge at the outlet through time, we create initially empty
+    # lists for time and outlet discharge.
+    q_outlet = []
+    t = []
+    q_outlet.append(0.)
+    t.append(0.)
+    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
+                                                          node_next_to_outlet)
     
     # Display a message
     print( 'Running ...' )
@@ -105,6 +116,10 @@ def main():
         # Calculate water-flux divergence at nodes
         dqds = mg.calculate_flux_divergence_at_nodes(q)
         
+        # Update rainfall rate
+        if elapsed_time > rain_duration:
+            rainfall_rate = 0.
+        
         # Calculate rate of change of water depth
         dhdt = rainfall_rate-dqds
         
@@ -120,12 +135,15 @@ def main():
         
         # Update the water-depth field
         h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
-        
         h[outlet_node] = h[node_next_to_outlet]
         
         # Update current time
         elapsed_time += dt
-
+        
+        # Remember discharge and time
+        t.append(elapsed_time)
+        q_outlet.append(q[outlet_link])
+        
       
     # FINALIZE
     
@@ -139,8 +157,21 @@ def main():
     hr = mg.node_vector_to_raster(h)
     zr = mg.node_vector_to_raster(z)
     
+    # Clear previous plots
+    pylab.figure(1)
+    pylab.close()
+    pylab.figure(2)
+    pylab.close()
+    
+    # Plot discharge vs. time
+    pylab.figure(1)
+    pylab.plot(np.array(t), np.array(q_outlet)*mg.dx)
+    pylab.xlabel('Time (s)')
+    pylab.ylabel('Q (m3/s)')
+    pylab.title('Outlet discharge')
+    
     # Plot topography
-    pylab.close()  # clear any pre-existing plot
+    pylab.figure(2)
     pylab.subplot(121)
     im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
     pylab.colorbar(im)
@@ -152,8 +183,8 @@ def main():
     pylab.clim(0, 0.25)
     pylab.colorbar(im2)
     pylab.title('Water depth')
-
-    # Display the plot
+    
+    # Display the plots
     pylab.show()
     print('Done.')
     print('Total run time = '+str(time.time()-start_time)+' seconds.')
