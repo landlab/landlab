@@ -128,14 +128,14 @@ class ModelGrid(object):
         
         return numpy.zeros(self.num_active_links)
 
-    def create_boundary_condition( self ):
-        """
-        Creates, initializes, and returns a BoundaryCondition of the 
-        proper size.
-        """
-    
-        return BoundaryCondition( self.n_boundary_cells )
-        
+    #def create_boundary_condition( self ):
+    #    """
+    #    Creates, initializes, and returns a BoundaryCondition of the 
+    #    proper size.
+    #    """
+    #
+    #    return BoundaryCondition( self.n_boundary_cells )
+    #    
     def create_face_dvector( self ):
         """
         Returns a vector of floating point numbers the same length as 
@@ -151,23 +151,23 @@ class ModelGrid(object):
         self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
         self.reset_list_of_active_links()
 
-    def calculate_face_gradients( self, u ):
-        """
-        Calculates and returns gradients in u across all interior faces.
-
-        .. todo::
-            This is now deprecated in favor of 
-            calculate_gradients_at_active_links
-        """
-    
-        g = numpy.zeros( self.nfaces )
-        #print 'nfaces'
-        #print self.num_faces
-        g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
-        #for i in arange( 0, self.nfaces ):
-            #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self.dx
-            #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
-        return g
+#    def calculate_face_gradients( self, u ):
+#        """
+#        Calculates and returns gradients in u across all interior faces.
+#
+#        .. todo::
+#            This is now deprecated in favor of 
+#            calculate_gradients_at_active_links
+#        """
+#    
+#        g = numpy.zeros( self.nfaces )
+#        #print 'nfaces'
+#        #print self.num_faces
+#        g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
+#        #for i in arange( 0, self.nfaces ):
+#            #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self.dx
+#            #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
+#        return g
         
     def calculate_gradients_at_active_links(self, s, gradient=None):
         """
@@ -191,16 +191,16 @@ class ModelGrid(object):
         
         return gradient
         
-    def calculate_flux_divergences( self, q ):
-        """
-        At the moment, this is just a virtual function that does nothing,
-        and in fact I don't understand why it doesn't print its "hello"
-        message when called from an inherited class ...
-        """
-    
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergences here'
-        #pass    # this is a virtual function
+    #def calculate_flux_divergences( self, q ):
+    #    """
+    #    At the moment, this is just a virtual function that does nothing,
+    #    and in fact I don't understand why it doesn't print its "hello"
+    #    message when called from an inherited class ...
+    #    """
+    #
+    #    if self.DEBUG_TRACK_METHODS:
+    #        print 'ModelGrid.calculate_flux_divergences here'
+    #    #pass    # this is a virtual function
             
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=False):
@@ -232,6 +232,10 @@ class ModelGrid(object):
                 .. math::
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
+            
+        .. todo::
+            This needs to be re-implemented with the faster algorithm used in
+            the RasterModelGrid version.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -284,6 +288,10 @@ class ModelGrid(object):
         but simply return zeros for these entries. The advantage is that the 
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
+
+        .. todo::
+            This needs to be re-implemented with the faster algorithm used in
+            the RasterModelGrid version.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -324,18 +332,18 @@ class ModelGrid(object):
         
         return net_unit_flux
         
-    def x( self, id ):
-        """
-        Returns the x coordinate of cell "id".
-        """
-        return self.cellx[id]
-        
-    def y( self, id ):
-        """
-        Returns the y coordinate of cell "id".
-        """
-        return self.celly[id]
-        
+    #def x( self, id ):
+    #    """
+    #    Returns the x coordinate of cell "id".
+    #    """
+    #    return self.cellx[id]
+    #    
+    #def y( self, id ):
+    #    """
+    #    Returns the y coordinate of cell "id".
+    #    """
+    #    return self.celly[id]
+    #    
     def get_cell_x_coords( self ):
         """
         Returns vector of node x coordinates (same as get_node_x_coords).
@@ -352,34 +360,40 @@ class ModelGrid(object):
         """
         Returns vector of node x coordinates.
         """
-        return self.cellx           
+        return self.node_x           
 
     def get_node_y_coords( self ):
         """
         Returns vector of node y coordinates.
         """
-        return self.celly           
+        return self.node_y           
 
-    def get_face_x_coords( self ):
+    def get_node_z_coords( self ):
         """
-        Returns vector of cell x coordinates.
+        Returns vector of node z coordinates.
         """
-        return self.facex           
+        return self.node_z           
 
-    def get_face_y_coords( self ):
-        """
-        Returns vector of face y coordinates.
-        """
-        return self.facey           
-
-    def get_interior_cells( self ):
-        """
-        DEPRECATED; USE get_active_cell_node_ids
-        
-        Returns an integer vector of the IDs of all interior cells.
-        """
-        return self.interior_cells
-                
+#    def get_face_x_coords( self ):
+#        """
+#        Returns vector of cell x coordinates.
+#        """
+#        return self.facex           
+#
+#    def get_face_y_coords( self ):
+#        """
+#        Returns vector of face y coordinates.
+#        """
+#        return self.facey           
+#
+    #def get_interior_cells( self ):
+    #    """
+    #    DEPRECATED; USE get_active_cell_node_ids
+    #    
+    #    Returns an integer vector of the IDs of all interior cells.
+    #    """
+    #    return self.interior_cells
+    #            
     def get_active_cell_node_ids( self ):
         """
         Returns an integer vector of the node IDs of all active cells.
