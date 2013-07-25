@@ -1,0 +1,55 @@
+
+\documentclass[12pt]{amsart}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\usepackage{booktabs}
+\usepackage{topcapt}
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+\newcommand{\code}[1]{{\tt #1}}
+
+
+\title{Guide to Building Landlab Models and Components}
+\author{Greg Tucker}
+\date{July 2013} % delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+%\tableofcontents
+
+\section{Development Notes}
+
+This section has temporary notes used in sketching out ideas, etc. The idea is that as a design firms up, any useful text/tables/algorithms will be moved up into permanent sections of this guide.
+
+\subsection{Sketch for an overall architecture}
+
+Attributes of a {\em Landlab model}:
+\begin{itemize}
+\item Combines one or more Landlab components to simulate some process(es) of interest
+\item Can be run standalone (i.e., includes a main function)
+\item Can act as a CSDMS component; therefore it includes a BMI
+\item Has a grid that it shares with components (note: there may be exceptions to this for models that aren't grid-based, such as a storm-generator model)
+\item Is interoperable with Scott Peckham's ``mini CMT''
+\item Has a very simple, easy to understand and easy to program overall design (so that user/developers can create it without needing to know arcane software concepts)
+\item Model ``owns'' most of the data (e.g., state variables) and gives these to its component(s) as arguments in function calls
+\end{itemize}
+
+Attributes of a {\em Landlab component}:
+\begin{itemize}
+\item Is implemented as a class
+\item Not standalone. If it needs a grid, it gets it from its owner-model.
+\item Owns/stores parameters that are specific to it, but generally does not own/store parameters/variables that are global or shared.
+\item Has an interface that is customized to suit the needs of the particular system being modeled (but may be ``BMI-like'')
+\item Nonetheless, has some standard aspects to its interface; for example, components always have an initialize and finalize method.
+\end{itemize}
+
+
+\subsection{Sketch of a class-based design for models}
+
+
+
+	
+			
+\end{document}
