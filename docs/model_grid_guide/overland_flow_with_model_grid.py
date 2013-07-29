@@ -90,7 +90,7 @@ def main():
        
         # Calculate the unit discharges (Bates et al., eq 11)
         q = (q-g*hflow*dtmax*water_surface_slope)/ \
-            (1.+g*hflow*dtmax*n*n*q/(hflow**ten_thirds))
+            (1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
         
         # Calculate water-flux divergence and time rate of change of water depth
         # at nodes
