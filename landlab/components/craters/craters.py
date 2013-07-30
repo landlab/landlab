@@ -49,6 +49,7 @@ class impactor(object):
         self._impactor_angle_to_surface = -999.
         self._angle_to_horizontal = -999.
         self._minimum_ejecta_thickness = 0.000001
+        #NB - If this min thickness is changed, the optimization point in excavate_a_crater_optimized() will also need to be changed
         self._beta_factor = 0.5 #this is the arbitrary term that controls how "stretched out" the ejecta field is. <+0.5 prevents "outside the ejecta field" regions forming
         
         self.total_counted_craters = self.ivanov_prod_equ_as_Nequals(self._minimum_crater*2.)
@@ -172,7 +173,7 @@ class impactor(object):
         counter = 0
         for x in vertices_array:
             #print 'The ID is:', x
-            distances_to_vertices[counter] = numpy.sqrt(self._xcoord-grid.x(x)**2. + self._ycoord-grid.y(x)**2.)
+            distances_to_vertices[counter] = numpy.sqrt(self._xcoord-grid.node_x[x]**2. + self._ycoord-grid.node_y[x]**2.)
             counter += 1
         self.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
         self.closest_node_elev = data.elev[self.closest_node_index]
@@ -371,8 +372,8 @@ class impactor(object):
         distances_to_vertices = numpy.empty(len(vertices_array),dtype=float)
         counter = 0
         for x in vertices_array:
-            distances_to_vertices[counter] = numpy.sqrt((xcoord-grid.x(x))**2. + (ycoord-grid.y(x))**2.)
-        counter += 1
+            distances_to_vertices[counter] = numpy.sqrt((xcoord-grid.node_x[x])**2. + (ycoord-grid.node_y[x])**2.)
+            counter += 1
         return vertices_array[numpy.argmin(distances_to_vertices)]
 
 
@@ -454,8 +455,8 @@ class impactor(object):
             except:
                 break
             else:
-                active_node_x_to_center = grid.x(active_node) - self._xcoord
-                active_node_y_to_center = grid.y(active_node) - self._ycoord
+                active_node_x_to_center = grid.node_x[active_node] - self._xcoord
+                active_node_y_to_center = grid.node_y[active_node] - self._ycoord
                 active_node_r_to_center = sqrt(active_node_x_to_center*active_node_x_to_center + active_node_y_to_center*active_node_y_to_center)
                 #Special case for if the impact location is right on a gridline:
                 if not active_node_x_to_center:
@@ -631,8 +632,8 @@ class impactor(object):
         #So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
         _vec_new_z = where(_vec_r_to_center<=_radius, self.closest_node_elev - self._depth * (1. - (_vec_r_to_center/_radius)**crater_bowl_exp) + thickness_at_rim, self.closest_node_elev + thickness_at_rim + (_vec_r_to_center-_radius)*tan_repose)
     #!!Need to come back to loading data into elev_changes, which keeps track of the mass balance - tho it's less important here.
-        nodes_below_surface = where(_vec_new_z<elev)
-        nodes_above_surface = where(_vec_new_z>=elev)
+        nodes_below_surface = where(_vec_new_z<elev)[0]
+        nodes_above_surface = where(_vec_new_z>=elev)[0]
         #Check if we need to adjust for a central peak
         if self._crater_type:
             central_peak_pts = where(_vec_r_to_center<=self._complex_peak_radius)
@@ -646,12 +647,13 @@ class impactor(object):
         _vec_cos_theta = cos(_vec_theta_eff)
         #REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
         nodes_inside_ejecta = where(_vec_sin_theta_sqd*tan_beta_sqd <= 1.) #these are indices to an array of length nodes_above_surface only
-        _vec_thickness = numpy.zeros(len(nodes_above_surface)) #i.e., it's zero outside the ejecta
+        _vec_thickness = numpy.zeros(nodes_above_surface.size) #i.e., it's zero outside the ejecta
         _vec_mu_theta_by_mu0 = tan_beta * _vec_cos_theta[nodes_inside_ejecta] + sqrt(1. - _vec_sin_theta_sqd[nodes_inside_ejecta] * tan_beta_sqd)
         _vec_f_theta = (tan_beta_sqd*(_vec_cos_theta[nodes_inside_ejecta]**2.-_vec_sin_theta_sqd[nodes_inside_ejecta]) + 2.*tan_beta*_vec_cos_theta[nodes_inside_ejecta]*sqrt(1.-tan_beta_sqd*_vec_sin_theta_sqd[nodes_inside_ejecta]) + 1.) / twopi
         #So, distn_at_angle = distn_vertical_impact*f_theta/mu_theta_by_mu0. Draw the thickness at the active node:
         #NB-the 2pi is to correct for mismatch in the dimensions of mu and f
         thickness_at_nodes_under_ejecta = _vec_f_theta/_vec_mu_theta_by_mu0 * twopi * _vec_flat_thickness_above_surface[nodes_inside_ejecta]
+        #Set the thicknesses <0 to 0:
         thickness_at_nodes_under_ejecta = where(thickness_at_nodes_under_ejecta>=0.,thickness_at_nodes_under_ejecta, 0.)
         #make the ejecta thickness map for all nodes above surface:
         _vec_thickness[nodes_inside_ejecta] = thickness_at_nodes_under_ejecta
@@ -665,14 +667,36 @@ class impactor(object):
         self.impactor_angle_to_surface_normal = _impactor_angle_to_surface_normal
 
 
-
-
-
     def excavate_a_crater(self, grid, data):
         '''
         This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
+        Unless devtesting, this method has been superceded by excavate_a_crater_optimized().
         '''
         self.set_cr_radius_from_shoemaker(data)
+        #self._radius = forced_size
+        print 'Radius: ', self._radius
+        self.set_depth_from_size()
+        self.set_crater_volume()
+        self.set_coords(grid, data)
+        self.set_impactor_angles()
+        self.set_crater_mean_slope_v2(grid, data)
+        if numpy.isnan(self._surface_slope):
+            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+        else:
+            self.set_elev_change_at_pts(grid, data)
+            print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
+            print 'Mean mass balance/px: ', self.mass_balance_in_impact
+        print '*****'
+        #Record the data:
+        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
+
+    def excavate_a_crater_whole_grid(self, grid, data):
+        '''
+            This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
+            Unless devtesting, this method has been superceded by excavate_a_crater_optimized().
+            '''
+        self.set_cr_radius_from_shoemaker(data)
+        #self._radius = forced_size
         print 'Radius: ', self._radius
         self.set_depth_from_size()
         self.set_crater_volume()
@@ -683,6 +707,33 @@ class impactor(object):
             print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
         else:
             self.set_elev_change_across_grid(grid, data)
+            print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
+            print 'Mean mass balance/px: ', self.mass_balance_in_impact
+        print '*****'
+        #Record the data:
+        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
+
+    def excavate_a_crater_optimized(self, grid, data):
+        '''
+            This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
+            This method is optimized to not sweep the whole grid if the crater is small.
+            '''
+        self.set_cr_radius_from_shoemaker(data)
+        #self._radius = forced_size
+        print 'Radius: ', self._radius
+        self.set_depth_from_size()
+        self.set_crater_volume()
+        self.set_coords(grid, data)
+        self.set_impactor_angles()
+        self.set_crater_mean_slope_v2(grid, data)
+        if numpy.isnan(self._surface_slope):
+            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+        else:
+            #NB - this is an empirical optimization. If the minimum crater thickness in set_elev_change_at_pts() changes, so will the optimized value! 0.000001 min thickness == 0.024 km radius here.
+            if self._radius < 0.024:
+                self.set_elev_change_at_pts(grid, data)
+            else:
+                self.set_elev_change_across_grid(grid, data)
             print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
             print 'Mean mass balance/px: ', self.mass_balance_in_impact
         print '*****'
@@ -713,7 +764,7 @@ def dig_some_craters_on_fresh_surface():
     #Update until
     for i in range(0,nt):
         print 'Crater number ', i
-        cr.excavate_a_crater(mg, vectors)
+        cr.excavate_a_crater_optimized(mg, vectors)
 
     #Finalize
     elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
@@ -738,7 +789,7 @@ def dig_some_craters(grid, data):
     #Update until
     for i in range(0,nt):
         print 'Crater number ', i
-        cr.excavate_a_crater(grid, data)
+        cr.excavate_a_crater_optimized(grid, data)
     
     #Finalize
     elev_raster = grid.node_vector_to_raster(data.elev, flip_vertically=True)
@@ -768,7 +819,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
     vectors = data(mg)
-    vectors.elev[:] = 100.
+    vectors.elev[:] = 0.
     cr = impactor()
 
     cr._radius = radius
@@ -781,7 +832,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     vertices_array = mg.get_nodes_around_point(cr._xcoord, cr._ycoord)
     distances_to_vertices = []
     for x in vertices_array:
-        distances_to_vertices.append(numpy.sqrt((cr._xcoord-mg.x(x))**2. + (cr._ycoord-mg.y(x))**2.))
+        distances_to_vertices.append(numpy.sqrt((cr._xcoord-mg.node_x[x])**2. + (cr._ycoord-mg.node_y[x])**2.))
     cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
     cr.closest_node_elev = vectors.elev[cr.closest_node_index]
 
@@ -791,7 +842,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     print 'Azimuth of travel: ', cr._azimuth_of_travel
     print 'Angle of ground: ', cr._surface_slope
     print 'Dip direction of ground: ', cr._surface_dip_direction
-    cr.set_elev_change_at_pts(mg, vectors)
+    cr.set_elev_change_across_grid(mg, vectors)
     print 'Impact angle to ground normal: ', cr.impactor_angle_to_surface_normal
 
     #Finalize
