@@ -729,8 +729,8 @@ class impactor(object):
         if numpy.isnan(self._surface_slope):
             print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
         else:
-            #NB - this is an empirical optimization. If the minimum crater thickness in set_elev_change_at_pts() changes, so will the optimized value! 0.000001 min thickness == 0.024 km radius here.
-            if self._radius < 0.024:
+            #NB - this is an empirical optimization. If the minimum crater thickness in set_elev_change_at_pts() changes, so will the optimized value! 0.000001 min thickness == 0.024 km radius here. Normalize by R=0.0025 here => 9.6
+            if self._radius/grid.dx < 9.6:
                 self.set_elev_change_at_pts(grid, data)
             else:
                 self.set_elev_change_across_grid(grid, data)
@@ -762,7 +762,7 @@ def dig_some_craters_on_fresh_surface():
     cr = impactor()
 
     #Update until
-    for i in range(0,nt):
+    for i in xrange(0,nt):
         print 'Crater number ', i
         cr.excavate_a_crater_optimized(mg, vectors)
 
@@ -781,13 +781,13 @@ def dig_some_craters(grid, data):
     Takes an existing DTM and peppers it with craters.
     '''
     #dt = 1.
-    nt = 10000
+    nt = 20000
 
     #Setup
     cr = impactor()
 
     #Update until
-    for i in range(0,nt):
+    for i in xrange(0,nt):
         print 'Crater number ', i
         cr.excavate_a_crater_optimized(grid, data)
     
@@ -873,7 +873,7 @@ def one_crater_then_degrade():
     #Save the starting conds:
     crater_time_sequ[0] = copy(vectors)
     #Run the loops
-    for i in range(0,loops):
+    for i in xrange(0,loops):
         mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
         crater_time_sequ[i] = copy(vectors)
         profile_list.append(profile)
