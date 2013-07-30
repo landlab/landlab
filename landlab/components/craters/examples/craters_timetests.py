@@ -69,7 +69,7 @@ imshow(vectors.viewing_raster)
 show()
 
 start_time = time.time()
-mg, vectors_eroded, profile, xsec = craters.dig_some_craters(mg, vectors)
+mg, vectors_eroded, profile, xsec = craters.dig_some_craters(mg, vectors, 20000)
 end_time = time.time()
 print('Elapsed time was %g seconds' % ((end_time - start_time)))
 

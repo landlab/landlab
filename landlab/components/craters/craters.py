@@ -776,18 +776,17 @@ def dig_some_craters_on_fresh_surface():
     vectors.viewing_raster = elev_raster
     return cr, mg, vectors
 
-def dig_some_craters(grid, data):
+def dig_some_craters(grid, data, nt_in):
     '''
     Takes an existing DTM and peppers it with craters.
     '''
     #dt = 1.
-    nt = 20000
 
     #Setup
     cr = impactor()
 
     #Update until
-    for i in xrange(0,nt):
+    for i in xrange(0,nt_in):
         print 'Crater number ', i
         cr.excavate_a_crater_optimized(grid, data)
     
