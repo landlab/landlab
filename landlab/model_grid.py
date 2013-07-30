@@ -163,9 +163,9 @@ class ModelGrid(object):
 #        g = numpy.zeros( self.nfaces )
 #        #print 'nfaces'
 #        #print self.num_faces
-#        g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self.dx
+#        g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self._dx
 #        #for i in arange( 0, self.nfaces ):
-#            #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self.dx
+#            #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self._dx
 #            #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
 #        return g
         
@@ -332,18 +332,28 @@ class ModelGrid(object):
         
         return net_unit_flux
         
-    #def x( self, id ):
-    #    """
-    #    Returns the x coordinate of cell "id".
-    #    """
-    #    return self.cellx[id]
-    #    
-    #def y( self, id ):
-    #    """
-    #    Returns the y coordinate of cell "id".
-    #    """
-    #    return self.celly[id]
-    #    
+    def get_node_x( self, id ):
+        """
+        Returns the x coordinate of node "id".
+        """
+        return self._node_x[id]
+        
+    def get_node_y( self, id ):
+        """
+        Returns the y coordinate of node "id".
+        """
+        return self._node_y[id]
+
+    #Decorator alternatives to above node getters added DEJH late Jul '13.
+    #Should allow either .get_property(ID) or .property[ID]
+    @property
+    def node_x(self):
+        return self._node_x
+    
+    @property
+    def node_y(self):
+        return self._node_y
+        
     def get_cell_x_coords( self ):
         """
         Returns vector of node x coordinates (same as get_node_x_coords).
@@ -360,19 +370,19 @@ class ModelGrid(object):
         """
         Returns vector of node x coordinates.
         """
-        return self.node_x           
+        return self._node_x           
 
     def get_node_y_coords( self ):
         """
         Returns vector of node y coordinates.
         """
-        return self.node_y           
+        return self._node_y           
 
     def get_node_z_coords( self ):
         """
         Returns vector of node z coordinates.
         """
-        return self.node_z           
+        return self._node_z           
 
 #    def get_face_x_coords( self ):
 #        """
@@ -685,17 +695,17 @@ class RasterModelGrid(ModelGrid):
         #
         self.cellx = numpy.zeros( self.ncells )  #TBX
         self.celly = numpy.zeros( self.ncells )  #TBX
-        self.node_x = numpy.zeros( self.num_nodes )
-        self.node_y = numpy.zeros( self.num_nodes )
-        self.node_z = numpy.zeros( self.num_nodes )
+        self._node_x = numpy.zeros( self.num_nodes )
+        self._node_y = numpy.zeros( self.num_nodes )
+        self._node_z = numpy.zeros( self.num_nodes )
         id = 0
         for r in range( 0, num_rows ):
             for c in xrange( 0, num_cols ):
-                self.cellx[id] = c*self.dx  #TBX
-                self.celly[id] = r*self.dx  #TBX
-                self.node_x[id] = c*self.dx
-                self.node_y[id] = r*self.dx
-                self.node_z[id] = 0.0
+                self.cellx[id] = c*self._dx  #TBX
+                self.celly[id] = r*self._dx  #TBX
+                self._node_x[id] = c*self._dx
+                self._node_y[id] = r*self._dx
+                self._node_z[id] = 0.0
                 id += 1
 
         # Node boundary/active status:
@@ -857,21 +867,21 @@ class RasterModelGrid(ModelGrid):
         self.tocell = numpy.zeros( self.nfaces, dtype = int ) #TBX
         self.facex = numpy.zeros( self.nfaces ) #TBX
         self.facey = numpy.zeros( self.nfaces ) #TBX
-        halfdx = self.dx / 2.0
+        halfdx = self._dx / 2.0
         face_id = 0
         for r in xrange( 1, num_rows-1 ):
             for c in range( 1, num_cols ):
                 self.fromcell[face_id] = r * num_cols + ( c - 1 )
                 self.tocell[face_id] = self.fromcell[face_id] + 1
-                self.facex[face_id] = c*self.dx - halfdx
-                self.facey[face_id] = r*self.dx
+                self.facex[face_id] = c*self._dx - halfdx
+                self.facey[face_id] = r*self._dx
                 face_id += 1
         for r in xrange( 1, num_rows ):
             for c in range( 1, num_cols-1 ):
                 self.fromcell[face_id] = ( r - 1 ) * num_cols + c
                 self.tocell[face_id] = self.fromcell[face_id] + num_cols
-                self.facex[face_id] = c*self.dx
-                self.facey[face_id] = r*self.dx - halfdx
+                self.facex[face_id] = c*self._dx
+                self.facey[face_id] = r*self._dx - halfdx
                 face_id += 1
         if self.DEBUG_VERBOSE:
             print 'fromcell:',self.fromcell
@@ -1137,13 +1147,13 @@ class RasterModelGrid(ModelGrid):
         '''
         Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
         '''
-        return (self.ncols * self.dx)
+        return (self.ncols * self._dx)
     
     def get_grid_ydimension(self):
         '''
         Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
         '''
-        return (self.nrows * self.dx)
+        return (self.nrows * self._dx)
         
     def get_count_of_interior_cells(self):
         """
@@ -1192,7 +1202,7 @@ class RasterModelGrid(ModelGrid):
         Returns the spacing between grid nodes.
         DEJH July 2013
         """
-        return(self.dx)
+        return(self._dx)
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """
@@ -1202,7 +1212,7 @@ class RasterModelGrid(ModelGrid):
         purely by counting the number of squares left and below the point. 
         Method added 4/29/13 by DEJH.
         """
-        ID = int(ycoord//self.dx * self.ncols + xcoord//self.dx)
+        ID = int(ycoord//self._dx * self.ncols + xcoord//self._dx)
         return numpy.array([ID, ID+1, ID+self.ncols, ID+self.ncols+1])
     
     def calculate_max_gradient_across_node(self, u, cell_id):
@@ -1233,7 +1243,7 @@ class RasterModelGrid(ModelGrid):
         for a in neighbor_cells:
             #ng I think this is actually slope as defined by a geomorphologist,
             #that is -dz/dx and not the gradient (dz/dx)
-            single_slope = (u[cell_id] - u[a])/self.dx
+            single_slope = (u[cell_id] - u[a])/self._dx
             #print 'cell id: ', cell_id
             #print 'neighbor id: ', a
             #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
@@ -1299,7 +1309,7 @@ class RasterModelGrid(ModelGrid):
         slopes = []
         diagonal_dx = numpy.sqrt(2.)
         for a in neighbor_cells:
-            single_slope = (u[cell_id] - u[a])/self.dx
+            single_slope = (u[cell_id] - u[a])/self._dx
             #print 'cell id: ', cell_id
             #print 'neighbor id: ', a
             #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
@@ -1483,7 +1493,7 @@ class RasterModelGrid(ModelGrid):
         """
         Calculates the gradient in quantity s at each active link in the grid.
         This is nearly identical to the method of the same name in ModelGrid,
-        except that it uses self.dx for link length to improve efficiency.
+        except that it uses self._dx for link length to improve efficiency.
         
         Example:
         
@@ -1520,7 +1530,7 @@ class RasterModelGrid(ModelGrid):
         assert (len(gradient)==self.num_active_links), \
                 "len(gradient)!=num_active_links"
      
-        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self.dx
+        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self._dx
         
         return gradient
         
@@ -1542,7 +1552,7 @@ class RasterModelGrid(ModelGrid):
         for link_id in self.active_links:
             gradient[active_link_id] = (s[self.link_tonode[link_id]]
                                         -s[self.link_fromnode[link_id]]) / \
-                                        self.dx
+                                        self._dx
             active_link_id += 1
         
         return gradient
@@ -1670,7 +1680,7 @@ class RasterModelGrid(ModelGrid):
         for link_id in self.active_links:
             from_cell = self.node_activecell[self.link_fromnode[link_id]]
             to_cell = self.node_activecell[self.link_tonode[link_id]]
-            total_flux = active_link_flux[active_link_id] * self.dx
+            total_flux = active_link_flux[active_link_id] * self._dx
             #print('Flux '+str(total_flux)+' from '+str(from_cell) \
             #      +' to '+str(to_cell)+' along link '+str(link_id))
             if from_cell!=None:
@@ -1746,7 +1756,7 @@ class RasterModelGrid(ModelGrid):
         assert(len(net_unit_flux) == self.num_nodes)
         
         flux = numpy.zeros(len(active_link_flux)+1)
-        flux[:len(active_link_flux)] = active_link_flux * self.dx
+        flux[:len(active_link_flux)] = active_link_flux * self._dx
         
         net_unit_flux = ((flux[self.node_active_outlink_matrix[0][:]] + \
                           flux[self.node_active_outlink_matrix[1][:]]) - \
@@ -1810,7 +1820,7 @@ class RasterModelGrid(ModelGrid):
             from_cell = self.node_activecell[from_node]
             to_node = self.link_tonode[link_id]
             to_cell = self.node_activecell[to_node]
-            total_flux = active_link_flux[active_link_id] * self.dx
+            total_flux = active_link_flux[active_link_id] * self._dx
             #print('Flux '+str(total_flux)+' from '+str(from_node) \
             #      +' to '+str(to_node)+' along link '+str(link_id))
             if from_cell!=None:
@@ -1861,7 +1871,7 @@ class RasterModelGrid(ModelGrid):
                 + q[self.faces[cell,3]] )           # bottom face (positive=in)
                 + q[self.faces[cell,0]]             # right face (positive=out)
                 + q[self.faces[cell,1]]             # top face (positive=out)
-                  ) / self.dx
+                  ) / self._dx
         return fd
         
     def calculate_flux_divergence( self, q, id ):
@@ -1879,7 +1889,7 @@ class RasterModelGrid(ModelGrid):
             + q[self.faces[id,3]] )           # bottom face (positive=in)
             + q[self.faces[id,0]]             # right face (positive=out)
             + q[self.faces[id,1]]             # top face (positive=out)
-              ) / self.dx
+              ) / self._dx
         return fd
         
     def update_noflux_boundaries( self, u, bc = None ):
@@ -1921,7 +1931,7 @@ class RasterModelGrid(ModelGrid):
                 u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
             elif bc.boundary_code[id] == bc.FIXED_GRADIENT_BOUNDARY:
                 u[self.boundary_cells[id]] = u[bc.tracks_cell[id]] \
-                                             + bc.gradient[id]*self.dx
+                                             + bc.gradient[id]*self._dx
         return u
 
     def node_vector_to_raster(self, u, flip_vertically=False):
@@ -2098,7 +2108,7 @@ class RasterModelGrid(ModelGrid):
 
         .. todo::
             Generalize, or create base-class version, that uses local
-            link length instead of self.dx.
+            link length instead of self._dx.
         """
 
         if bc == None:
@@ -2108,7 +2118,7 @@ class RasterModelGrid(ModelGrid):
             if bc.boundary_code[bid] == bc.TRACKS_CELL_BOUNDARY:
             	u[id] = u[bc.tracks_cell[bid]]
             elif bc.boundary_code[bid] == bc.FIXED_GRADIENT_BOUNDARY:
-                u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self.dx
+                u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self._dx
 
         if self.DEBUG_TRACK_METHODS:
             print 'In RasterModelGrid.update_boundary_cell with cell',id
@@ -2235,9 +2245,9 @@ class RasterModelGrid(ModelGrid):
         #print 'Testing node lists:'
         #print 'ID   X    Y    Z    Status  Active_cell  #in in1 in2 #out out1 out2'
         #for node in range( 0, self.num_nodes ):
-        #    print(str(node)+'    '+str(self.node_x[node])+'  '
-        #          +str(self.node_y[node])+'  '
-        #          +str(self.node_z[node])+'  '
+        #    print(str(node)+'    '+str(self._node_x[node])+'  '
+        #          +str(self._node_y[node])+'  '
+        #          +str(self._node_z[node])+'  '
         #          +str(self.node_status[node])+'  '
         #          +str(self.node_activecell[node])+'  '
         #          +str(self.node_numinlink[node])+'  '
