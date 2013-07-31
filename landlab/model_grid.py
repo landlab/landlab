@@ -8,6 +8,52 @@ Last modified July 2013
 """
 import numpy
 from numpy import *
+from landlab import ModelParameterDictionary
+
+
+def create_and_initialize_grid(input_source):
+    """
+    Creates, initializes, and returns a new grid object using parametes 
+    specified either in a ModelParameterDictionary (param_dict) or a named input
+    file (input_file_name).
+    
+    Example:
+        
+    >>> from StringIO import StringIO
+    >>> test_file = StringIO(\"\"\"
+    ... GRID_TYPE:
+    ... raster
+    ... NUM_ROWS:
+    ... 4
+    ... NUM_COLS:
+    ... 5
+    ... DX: 
+    ... 2.5
+    ... \"\"\")
+        
+    """    
+    # Handle input source. 
+    #In this code block, we do the following:
+    #   - handle the case in which caller provides neither a parameter
+    #     dictionary nor an input file name.
+    #   - if we're given an input file name, create a parameter dictionary
+    #     object that reads the specified file name
+    if type(input_source) is ModelParameterDictionary:
+        param_dict = input_source
+    else:
+        param_dict = ModelParameterDictionary(from_file=input_source)
+        
+    # Find out what type of grid the user wants
+    #
+    # Dev note: could handle defaults like: param_dict.get('GRID_TYPE','raster')
+    # so if no GRID_TYPE is specified you get the second arg as default. If no
+    # second arg, then exception
+    grid_type = param_dict['GRID_TYPE']
+    print 'grid type = '+grid_type
+    
+    # Read parameters appropriate to that type, create it, and initialize it
+    
+    # Return the created and initialized grid
 
 
 class BoundaryCondition(object):
