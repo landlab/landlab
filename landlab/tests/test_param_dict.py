@@ -43,6 +43,15 @@ class TestModelParameterDictionary(unittest.TestCase):
 
         self.assertEqual(param_list, all_keys)
 
+    def test_read_file_like_twice(self):
+        from StringIO import StringIO
+        param_file = StringIO(_TEST_PARAM_DICT_FILE)
+        param_dict_1 = ModelParameterDictionary()
+        param_dict_2 = ModelParameterDictionary()
+
+        param_dict_1.read_from_file(param_file)
+        param_dict_2.read_from_file(param_file)
+
     def test_read_int(self):
         self.assertEqual(self.param_dict.read_int('INT_VAL'), 1)
 
