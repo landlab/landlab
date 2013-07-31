@@ -74,6 +74,7 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 _VALID_TRUE_VALUES = set(['TRUE', '1', 1])
 _VALID_FALSE_VALUES = set(['FALSE', '0', 0])
+_VALID_BOOLEAN_VALUES = _VALID_TRUE_VALUES | _VALID_FALSE_VALUES
 
 
 class Error(Exception):
@@ -108,6 +109,26 @@ class ParameterValueError(Error):
     def __str__(self):
         return '%s: %s is not of type %s' % (self._key, self._val, self._type)
 
+
+def _to_bool(string):
+    upper = string.upper()
+    if upper in _VALID_TRUE_VALUES:
+        return True
+    elif upper in _VALID_FALSE_VALUES:
+        return False
+    else:
+        raise ValueError('invalid literal for _to_bool()')
+
+
+_CONVERT_FROM_STR = {
+    'float': float,
+    'int': int,
+    'str': str,
+    'bool': _to_bool,
+}
+
+
+_VALID_VALUE_TYPES = set(_CONVERT_FROM_STR)
 
 class ModelParameterDictionary(dict):
     """
@@ -207,6 +228,13 @@ class ModelParameterDictionary(dict):
 
     @staticmethod
     def _get_stripped_lines(param_file):
+        """
+        Strip lines from the iterable, *param_file*. Ignore lines, that upon
+        being stripped, are either blank or only contain a comment.
+        Comments are lines that contain a hash preceeded only by whitespace.
+
+        Returns a list of the stripped lines.
+        """
         stripped_line_list = []
         for line in param_file:
             line = line.strip()   # strip leading spaces
@@ -215,6 +243,10 @@ class ModelParameterDictionary(dict):
         return stripped_line_list
 
     def _read_from_file_like(self, param_file):
+        """
+        Read parameters from the file-like object, *param_file*. In fact, 
+        *param_file* really only needs to be an iterable of strings.
+        """
         stripped_line_list = self._get_stripped_lines(param_file)
 
         iskey = True
@@ -237,7 +269,17 @@ class ModelParameterDictionary(dict):
                     self[last_key] = line
                 iskey = True
 
-    def _auto_type_value(self, line):
+    @staticmethod
+    def _auto_type_value(line):
+        """
+        Read a value from a string and try to guess its type. If the line
+        contains any commas, try to convert it to a numpy array of ints and,
+        if that doesn't work, an array of floats, otherwise it's just a
+        string. 
+
+        If there are no commas, the order of types is bool, int, float, and
+        str.
+        """
         import numpy as np
 
         if ',' in line:
@@ -249,7 +291,7 @@ class ModelParameterDictionary(dict):
                 except ValueError:
                     return line
         else:
-            if line.upper() in _VALID_TRUE_VALUES | _VALID_FALSE_VALUES:
+            if line.upper() in _VALID_BOOLEAN_VALUES:
                 return line.upper() in _VALID_TRUE_VALUES
             else:
                 try:
@@ -286,15 +328,49 @@ class ModelParameterDictionary(dict):
         1
         >>> params.get('MY_MISSING_INT', 2, ptype=int)
         2
+
+        Be careful when dealing with booleans. If you want to be returned
+        a boolean value, *DO NOT* set the *ptype* keyword to the builtin
+        *bool*. This will not work as the Python *bool* function does not
+        convert strings to booleans as you might expect. For example,
+
+        >>> bool('True')
+        True
+        >>> bool('False')
+        True
+
+        If you would like to get a boolean, use *ptype='bool'*.
+
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_BOOL:
+        ... false
+        ... \"\"\"))
+        >>> params.get('MY_BOOL')
+        'false'
+        >>> params.get('MY_BOOL', ptype=bool)
+        True
+        >>> params.get('MY_BOOL', ptype='bool')
+        False
         """
         ptype = kwds.pop('ptype', str)
+        assert(len(kwds) == 0)
 
         value = super(ModelParameterDictionary, self).get(key, *args)
         if value is None:
             raise MissingKeyError(key)
 
+        if isinstance(ptype, str):
+            try:
+                converter = _CONVERT_FROM_STR[ptype]
+            except KeyError:
+                converter = str
+        else:
+            converter = ptype
+
         try:
-            typed_value = ptype(value)
+            typed_value = converter(value)
         except ValueError:
             raise ParameterValueError(key, value, ptype)
         else:
