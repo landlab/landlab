@@ -52,6 +52,20 @@ class TestModelParameterDictionary(unittest.TestCase):
         with self.assertRaises(MissingKeyError):
             self.param_dict.read_int('MISSING_INT')
 
+        self.assertEqual(self.param_dict.read_int('MISSING_INT', 2), 2)
+
+    def test_get_int(self):
+        self.assertEqual(self.param_dict.get('INT_VAL', ptype=int), 1)
+
+        with self.assertRaises(ParameterValueError):
+            self.param_dict.get('FLOAT_VAL', ptype=int)
+
+        with self.assertRaises(MissingKeyError):
+            self.param_dict.get('MISSING_INT', ptype=int)
+
+    def test_set_default(self):
+        self.param_dict.setdefault('MISSING_INT', 2)
+        self.assertEqual(self.param_dict.read_int('MISSING_INT'), 2)
 
     def test_read_float(self):
         self.assertEqual(self.param_dict.read_float('FLOAT_VAL'), 2.2)

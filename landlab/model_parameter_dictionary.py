@@ -198,17 +198,24 @@ class ModelParameterDictionary(dict):
         """
         if isinstance(param_file, str):
             try:
-                input_file = open(param_file)
+                with open(param_file) as opened_file:
+                    self._read_from_file_like(param_file)
             except IOError:
                 raise
         else:
-            input_file = param_file
+            self._read_from_file_like(param_file)
 
+    @staticmethod
+    def _get_stripped_lines(param_file):
         stripped_line_list = []
-        for line in input_file:
+        for line in param_file:
             line = line.strip()   # strip leading spaces
             if len(line) > 0 and line[0] != '#':
                 stripped_line_list.append(line)
+        return stripped_line_list
+
+    def _read_from_file_like(self, param_file):
+        stripped_line_list = self._get_stripped_lines(param_file)
 
         iskey = True
         for line in stripped_line_list:
@@ -229,8 +236,6 @@ class ModelParameterDictionary(dict):
                 else:
                     self[last_key] = line
                 iskey = True
-
-        input_file.close()
 
     def _auto_type_value(self, line):
         import numpy as np
@@ -261,7 +266,42 @@ class ModelParameterDictionary(dict):
         """
         return self.keys()
 
-    def read_int(self, key):
+    def get(self, key, *args, **kwds):
+        """
+        Get a value from a model parameter dictionary. Use the *ptype*
+        keyword to convert the value to a given type. *ptype* is a function
+        that converts the retreived value to the desired value. If a second
+        argument after *key* is provided, use it as a default in case *key*
+        is not contained in the ModelParameterDictionary.
+
+        >>> from StringIO import StringIO
+        >>> params = ModelParameterDictionary(StringIO(
+        ... \"\"\"
+        ... MY_INT:
+        ... 1
+        ... \"\"\"))
+        >>> params.get('MY_INT')
+        '1'
+        >>> params.get('MY_INT', ptype=int)
+        1
+        >>> params.get('MY_MISSING_INT', 2, ptype=int)
+        2
+        """
+        ptype = kwds.pop('ptype', str)
+
+        value = super(ModelParameterDictionary, self).get(key, *args)
+        if value is None:
+            raise MissingKeyError(key)
+
+        try:
+            typed_value = ptype(value)
+        except ValueError:
+            raise ParameterValueError(key, value, ptype)
+        else:
+            return typed_value
+
+
+    def read_int(self, key, *args):
         """
         Locate *key* in the input file and return it as an integer.
 
@@ -277,14 +317,7 @@ class ModelParameterDictionary(dict):
         Raise an error if *key* isn't in the dictionary or if its value is
         not an integer.
         """
-        try:
-            my_int = int(self[key])
-        except KeyError:
-            raise MissingKeyError(key)
-        except ValueError:
-            raise ParameterValueError(key, self[key], 'int')
-        else:
-            return my_int
+        return self.get(key, *args, ptype=int)
 
     def read_float(self, key):
         """
