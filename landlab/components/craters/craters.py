@@ -31,7 +31,7 @@ class impactor(object):
     This class holds all parameters decribing properties of a single impact structure, and contains methods for recalculating fresh and internally consistent data describing such a impact structure.
     Built DEJH Spring 2013.
     '''
-    def __init__(self):
+    def __init__(self, min_radius=0.005):
         self._xcoord = -999.
         self._ycoord = -999.
         self._str_regime_cutoff = 0.3 #??? #Holsapple gives 0.1km as the cutoff for R/d scaling, Moore in Housen gives this as the likely Lunar cutoff for true str regime (p. 2495 Housen)
@@ -44,7 +44,7 @@ class impactor(object):
         #self._power_for_complex_crater = 2. #i.e., d = D(r/R)^power. =2 is a parabola. This is no longer used; replaced by get_crater_shape_exp() for all craters simple and complex.
         #we follow Garvin et al 2011 and assume power=1.45 for simple crater
         #NB - if we assume a power law and dictate S=32deg at the rim, we recover n=0.51R/D - gives n~1.3 for Linne (synthetic; if real depth it's ~1) and maxes out ~2 for biggest craters. (Plus infill by lava?) ->This is a nice way to do it. This parameter is presently unused.
-        self._minimum_crater = 0.005 #km. This is the smallest modelled crater radius. 10m diameter is the strict cutoff for known cr distns
+        self._minimum_crater = min_radius #km. This is the smallest modelled crater radius. 10m diameter is the strict cutoff for known cr distns
         self.ivanov_a = [-3.0876, -3.557528, 0.781027, 1.021521, -0.156012, -0.444058, 0.019977, 0.08685, -0.005874, -0.006809, 0.000825, 0.0000554] #The coefficients for Ivanov's crater distn function
         self._impactor_angle_to_surface = -999.
         self._angle_to_horizontal = -999.
@@ -413,6 +413,7 @@ class impactor(object):
         while 1:
             #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_horizontal ~pi/2, then the surface dip direction needs to be the dominant term.
             denominator = cos(_angle_to_horizontal) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
+            #SOURCE OF THE DIVBYZERO!!!
             #print 'Terms in denominator: ', cos(_angle_to_horizontal),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
             tan_angle_from_imp_az = sin(_surface_slope)*sin(_surface_dip_direction - _azimuth_of_travel) / denominator
             if denominator > 0.:
@@ -713,18 +714,32 @@ class impactor(object):
         #Record the data:
         data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
 
-    def excavate_a_crater_optimized(self, grid, data):
+    def excavate_a_crater_optimized(self, grid, data, forced_radius=numpy.nan, forced_angle=numpy.nan, forced_pos=numpy.nan):
         '''
             This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
             This method is optimized to not sweep the whole grid if the crater is small.
+            A fixed crater size can be specified with the input variable "forced_radius" (in km), and a fixed impact angle with "forced_angle" (in degrees from vertical - impact azimuth will always be assumed as travel eastwards). Position can be specified with forced_pos, which takes an array-like object with two entries, which are the x and y coordinate in relative position on the grid (e.g., [0.5, 0.5]).
             '''
-        self.set_cr_radius_from_shoemaker(data)
+        if numpy.isnan(forced_radius):
+            self.set_cr_radius_from_shoemaker(data)
+        else:
+            self._radius = forced_radius
         #self._radius = forced_size
         print 'Radius: ', self._radius
         self.set_depth_from_size()
         self.set_crater_volume()
-        self.set_coords(grid, data)
-        self.set_impactor_angles()
+        if numpy.any(forced_pos):
+            self.set_coords(grid, data)
+        else:
+            self._xcoord = forced_pos[0]*(mg.get_grid_xdimension()-mg.dx)
+            self._ycoord = forced_pos[1]*(mg.get_grid_ydimension()-mg.dx)
+            print self._xcoord, self._ycoord
+        if numpy.isnan(forced_angle):
+            self.set_impactor_angles()
+            #print 'Angle was NaN!'
+        else:
+            self._angle_to_horizontal = forced_angle/numpy.pi*180.
+            self._azimuth_of_travel = 0.5*numpy.pi
         self.set_crater_mean_slope_v2(grid, data)
         if numpy.isnan(self._surface_slope):
             print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
@@ -776,14 +791,14 @@ def dig_some_craters_on_fresh_surface():
     vectors.viewing_raster = elev_raster
     return cr, mg, vectors
 
-def dig_some_craters(grid, data, nt_in):
+def dig_some_craters(grid, data, nt_in=10000, min_radius=0.005):
     '''
     Takes an existing DTM and peppers it with craters.
     '''
     #dt = 1.
 
     #Setup
-    cr = impactor()
+    cr = impactor(min_radius)
 
     #Update until
     for i in xrange(0,nt_in):
@@ -882,6 +897,18 @@ def one_crater_then_degrade():
     #print('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
 
+def five_times_reduction(mg_in, vectors_in):
+    loops = 25
+    crater_time_sequ = {}
+    profile_list = []
+    xsec_list = []
+    for i in xrange(0,loops):
+        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.025)
+        crater_time_sequ[i] = copy(vectors_in)
+    for i in xrange(0, loops):
+        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.005)
+        crater_time_sequ[loops+i] = copy(vectors_in)
+    return crater_time_sequ
 
 #if __name__=='__main__':
 #    main()
