@@ -49,5 +49,16 @@ mg.initialize(1200, 1200, 0.0025)
 vectors = data(mg)
 vectors.elev[:] = 0.
 
-dict_of_vectors = craters.five_times_reduction(mg, vectors)
+dict_of_vectors_50m_min, dict_of_vectors_5m_min = craters.ten_times_reduction(mg, vectors)
 
+#This code snippet produces a smaller (800x800) grid where we let the basic crater routine run for a long time (1M impacts). The aim is to see if we get a steady state landscape.
+
+mg2 = RasterModelGrid()
+mg2.initialize(800, 800, 0.0025)
+vectors2 = data(mg2)
+vectors2.elev[:] = 0.
+
+for i in xrange(0, 50):
+    print 'LOOP NUMBER ', i
+    mg2, vectors2, profile, xsec = dig_some_craters(mg2, vectors2, nt_in=20000)
+    dict_of_vectors2_5m_min[i] = copy(vectors2)

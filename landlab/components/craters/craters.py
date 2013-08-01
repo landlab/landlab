@@ -897,18 +897,19 @@ def one_crater_then_degrade():
     #print('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
 
-def five_times_reduction(mg_in, vectors_in):
+def ten_times_reduction(mg_in, vectors_in):
     loops = 25
-    crater_time_sequ = {}
+    crater_time_sequ_50_m_min = {}
+    crater_time_sequ_5_m_min = {}
     profile_list = []
     xsec_list = []
     for i in xrange(0,loops):
-        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.025)
-        crater_time_sequ[i] = copy(vectors_in)
+        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.05)
+        crater_time_sequ_50_m_min[i] = copy(vectors_in)
     for i in xrange(0, loops):
         mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.005)
-        crater_time_sequ[loops+i] = copy(vectors_in)
-    return crater_time_sequ
+        crater_time_sequ_5_m_min[i] = copy(vectors_in)
+    return crater_time_sequ_50_m_min, crater_time_sequ_5_m_min
 
 #if __name__=='__main__':
 #    main()
