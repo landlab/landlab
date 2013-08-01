@@ -73,6 +73,7 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 
 import warnings
+import types
 
 
 _VALID_TRUE_VALUES = set(['TRUE', '1', 1])
@@ -220,9 +221,9 @@ class ModelParameterDictionary(dict):
             - The key must be followed by a space, colon, or eol
             - The parameter can be numeric or text
         """
-        if isinstance(param_file, str):
+        if isinstance(param_file, types.StringTypes):
             try:
-                with open(param_file) as opened_file:
+                with open(param_file, 'r') as opened_file:
                     self._read_from_file_like(opened_file)
             except IOError:
                 raise
@@ -312,7 +313,8 @@ class ModelParameterDictionary(dict):
         return self.keys()
 
     def get(self, key, *args, **kwds):
-        """
+        """get(key, [default], ptype=str)
+
         Get a value from a model parameter dictionary. Use the *ptype*
         keyword to convert the value to a given type. *ptype* is a function
         that converts the retreived value to the desired value. If a second
