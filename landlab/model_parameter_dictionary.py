@@ -72,6 +72,9 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 # Boston, MA 02110-1301 USA.
 
 
+import warnings
+
+
 _VALID_TRUE_VALUES = set(['TRUE', '1', 1])
 _VALID_FALSE_VALUES = set(['FALSE', '0', 0])
 _VALID_BOOLEAN_VALUES = _VALID_TRUE_VALUES | _VALID_FALSE_VALUES
@@ -356,6 +359,12 @@ class ModelParameterDictionary(dict):
         """
         ptype = kwds.pop('ptype', str)
         assert(len(kwds) == 0)
+
+        if ptype is bool:
+            warnings.warn(
+                "Using bool function to convert value. This probably isn't "
+                "what you want. Use ptype='bool' instead.",
+                RuntimeWarning)
 
         value = super(ModelParameterDictionary, self).get(key, *args)
         if value is None:
