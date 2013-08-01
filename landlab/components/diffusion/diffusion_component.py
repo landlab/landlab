@@ -22,8 +22,9 @@ class DiffusionComponent():
         inputs = ModelParameterDictionary(input_stream)
         
         # Read input/configuration parameters
-        self.kd = inputs.get('KD', ptype=float)
+        self.kd = inputs.get('DIFMOD_KD', ptype=float)
+        self.uplift_rate = inputs.get('DIFMOD_UPLIFT_RATE', 0., ptype=float)
         
         # Create grid if one doesn't already exist
         if self.grid==None:
-            pass
+            pass   # to be implemented

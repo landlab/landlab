@@ -11,6 +11,7 @@ Last updated July 2013 GT
 import sys                                    # for command-line arguments
 from landlab import ModelParameterDictionary  # for input file
 from landlab import model_grid                # for grid
+import diffusion_component
 
 class DiffusionModel():
     
@@ -22,10 +23,13 @@ class DiffusionModel():
             input_stream = str(raw_input('Enter name of input file: '))
         
         # Open input file
-        inputs = ModelParameterDictionary(from_file=input_stream)
+        inputs = ModelParameterDictionary(input_stream)
     
         # Create grid
-        grid = model_grid.create_and_initialize_grid(inputs)
+        self.grid = model_grid.create_and_initialize_grid(inputs)
+        
+        # Create a diffusion component
+        self.diffusion_component = diffusion_component.DiffusionComponent(self.grid)
     
         # Read parameters
         
