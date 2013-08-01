@@ -8,7 +8,7 @@ Last modified July 2013
 """
 import numpy
 from numpy import *
-from landlab import ModelParameterDictionary
+from landlab import model_parameter_dictionary as mpd
 
 
 def create_and_initialize_grid(input_source):
@@ -27,9 +27,13 @@ def create_and_initialize_grid(input_source):
     ... 4
     ... NUM_COLS:
     ... 5
-    ... DX: 
+    ... GRID_SPACING: 
     ... 2.5
     ... \"\"\")
+    >>> from landlab import model_grid
+    >>> mg = model_grid.create_and_initialize_grid(test_file)
+    >>> mg.num_nodes
+    20
         
     """    
     # Handle input source. 
@@ -38,22 +42,31 @@ def create_and_initialize_grid(input_source):
     #     dictionary nor an input file name.
     #   - if we're given an input file name, create a parameter dictionary
     #     object that reads the specified file name
-    if type(input_source) is ModelParameterDictionary:
+    if type(input_source) is mpd.ModelParameterDictionary:
         param_dict = input_source
     else:
-        param_dict = ModelParameterDictionary(from_file=input_source)
+        param_dict = mpd.ModelParameterDictionary(from_file=input_source)
         
     # Find out what type of grid the user wants
     #
     # Dev note: could handle defaults like: param_dict.get('GRID_TYPE','raster')
     # so if no GRID_TYPE is specified you get the second arg as default. If no
     # second arg, then exception
-    grid_type = param_dict['GRID_TYPE']
-    print 'grid type = '+grid_type
+    grid_type = param_dict.read_string('GRID_TYPE')
+    grid_type.strip().lower()   # make LC w/o leading/trailing spaces
     
     # Read parameters appropriate to that type, create it, and initialize it
+    if grid_type=='raster':
+        nrows = param_dict.read_int('NUM_ROWS')
+        ncols = param_dict.read_int('NUM_COLS')
+        dx = param_dict.read_float('GRID_SPACING')
+        mg = RasterModelGrid(nrows, ncols, dx)
+    else:
+        print 'Non-raster grids not yet available in ModelGrid'
+        mg = None
     
     # Return the created and initialized grid
+    return mg
 
 
 class BoundaryCondition(object):

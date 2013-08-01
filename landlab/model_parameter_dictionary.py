@@ -223,7 +223,7 @@ class ModelParameterDictionary(dict):
         if isinstance(param_file, str):
             try:
                 with open(param_file) as opened_file:
-                    self._read_from_file_like(param_file)
+                    self._read_from_file_like(opened_file)
             except IOError:
                 raise
         else:

@@ -12,6 +12,26 @@ import sys                                    # for command-line arguments
 from landlab import ModelParameterDictionary  # for input file
 from landlab import model_grid                # for grid
 
+class DiffusionModel():
+    
+    def initialize(self, input_stream=None):
+    
+        # If no input file/stream specified, use default (or command line?)
+        # (or default values?)
+        if input_stream==None:
+            input_stream = str(raw_input('Enter name of input file: '))
+        
+        # Open input file
+        inputs = ModelParameterDictionary(from_file=input_stream)
+    
+        # Create grid
+        grid = model_grid.create_and_initialize_grid(inputs)
+    
+        # Read parameters
+        
+        
+        
+        
 def main():
     
     # Instantiate the model
@@ -28,23 +48,6 @@ def main():
 
 
 
-class DiffusionModel():
-    
-    def initialize(self, input_stream=None):
-    
-        # If no input file/stream specified, use default (or command line?)
-        # (or default values?)
-        if input_stream==None:
-            input_stream = raw_input('Enter name of input file: ')
-        
-        # Open input file
-        inputs = ModelParameterDictionary(input_stream)
-    
-        # Create grid
-        grid = model_grid.create_and_initialize_grid(inputs)
-    
-        # Read parameters (for now, based on a raster grid)
-        
     
 
 
