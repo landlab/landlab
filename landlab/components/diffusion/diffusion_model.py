@@ -4,7 +4,7 @@
 Landlab model of 2D diffusion, using DiffusionComponent.
 
 Created July 2013 GT
-Last updated July 2013 GT
+Last updated August 2013 GT
 
 """
 
@@ -32,8 +32,20 @@ class DiffusionModel():
         self.diffusion_component = diffusion_component.DiffusionComponent(self.grid)
     
         # Read parameters
+        run_duration = inputs.get('RUN_DURATION')
+        self.num_time_steps = int(run_duration/self.diffusion_component.dt)
         
+        # Create state variables
+        self.z = self.grid.create_node_dvector()
         
+    def update(self):
+        
+        self.diffusion_component.update(self.z)
+        
+    def run(self):
+        
+        for t in range(0, self.num_time_steps):
+            self.update()
         
         
 def main():
@@ -50,8 +62,11 @@ def main():
     # Initialize the model
     difmod.initialize(input_file_name)
 
-
-
+    # Run the model
+    difmod.run()
+    
+    # Finalize
+    difmod.finalize()
     
 
 

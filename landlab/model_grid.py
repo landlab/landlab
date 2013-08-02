@@ -187,14 +187,6 @@ class ModelGrid(object):
         
         return numpy.zeros(self.num_active_links)
 
-    #def create_boundary_condition( self ):
-    #    """
-    #    Creates, initializes, and returns a BoundaryCondition of the 
-    #    proper size.
-    #    """
-    #
-    #    return BoundaryCondition( self.n_boundary_cells )
-    #    
     def create_face_dvector( self ):
         """
         Returns a vector of floating point numbers the same length as 
@@ -210,24 +202,6 @@ class ModelGrid(object):
         self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
         self.reset_list_of_active_links()
 
-#    def calculate_face_gradients( self, u ):
-#        """
-#        Calculates and returns gradients in u across all interior faces.
-#
-#        .. todo::
-#            This is now deprecated in favor of 
-#            calculate_gradients_at_active_links
-#        """
-#    
-#        g = numpy.zeros( self.nfaces )
-#        #print 'nfaces'
-#        #print self.num_faces
-#        g = ( u[self.tocell[:]] - u[self.fromcell[:]] ) / self._dx
-#        #for i in arange( 0, self.nfaces ):
-#            #g[i] = ( u[self.tocell[i]] - u[self.fromcell[i]] ) / self._dx
-#            #print 'face',i,'from',self.fromcell[i],'to',self.tocell[i]
-#        return g
-        
     def calculate_gradients_at_active_links(self, s, gradient=None):
         """
         Calculates the gradient in quantity s at each active link in the grid.
@@ -250,17 +224,6 @@ class ModelGrid(object):
         
         return gradient
         
-    #def calculate_flux_divergences( self, q ):
-    #    """
-    #    At the moment, this is just a virtual function that does nothing,
-    #    and in fact I don't understand why it doesn't print its "hello"
-    #    message when called from an inherited class ...
-    #    """
-    #
-    #    if self.DEBUG_TRACK_METHODS:
-    #        print 'ModelGrid.calculate_flux_divergences here'
-    #    #pass    # this is a virtual function
-            
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=False):
         """
@@ -443,26 +406,6 @@ class ModelGrid(object):
         """
         return self._node_z           
 
-#    def get_face_x_coords( self ):
-#        """
-#        Returns vector of cell x coordinates.
-#        """
-#        return self.facex           
-#
-#    def get_face_y_coords( self ):
-#        """
-#        Returns vector of face y coordinates.
-#        """
-#        return self.facey           
-#
-    #def get_interior_cells( self ):
-    #    """
-    #    DEPRECATED; USE get_active_cell_node_ids
-    #    
-    #    Returns an integer vector of the IDs of all interior cells.
-    #    """
-    #    return self.interior_cells
-    #            
     def get_active_cell_node_ids( self ):
         """
         Returns an integer vector of the node IDs of all active cells.
@@ -489,7 +432,13 @@ class ModelGrid(object):
                 active_link = alink
                 break
         return active_link
-                
+        
+    def get_minimum_active_link_length():
+        """
+        Returns the horizontal length of the shortest active link in the grid.
+        """
+        return amin(self.link_length[self.active_links])
+
     def assign_upslope_vals_to_faces( self, u, v=0 ):
         """
         Assigns to each face the values of u at whichever of its
@@ -1274,6 +1223,13 @@ class RasterModelGrid(ModelGrid):
         ID = int(ycoord//self._dx * self.ncols + xcoord//self._dx)
         return numpy.array([ID, ID+1, ID+self.ncols, ID+self.ncols+1])
     
+    def get_minimum_active_link_length():
+        """
+        Returns the horizontal length of the shortest active link in the grid.
+        Overrides ModelGrid.get_minimum_active_link_length().
+        """
+        return self._dx
+
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
             This method calculates the gradients in u across all 4 faces of the 
