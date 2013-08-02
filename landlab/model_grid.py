@@ -10,7 +10,6 @@ import numpy
 from numpy import *
 from landlab import model_parameter_dictionary as mpd
 
-
 def create_and_initialize_grid(input_source):
     """
     Creates, initializes, and returns a new grid object using parametes 
@@ -657,8 +656,6 @@ class RasterModelGrid(ModelGrid):
         self.cellarea = dx*dx
         self.num_nodes = num_rows * num_cols
         self.num_cells = (num_rows-2) * (num_cols-2)
-        #NG this is quite confusing.  num_cells and num_active_cells are the 
-        #same.  Should it be this way?
         self.num_active_cells = self.num_cells
         self.num_links = num_cols*(num_rows-1)+num_rows*(num_cols-1)
         self.num_active_links = self.num_links-(2*(num_cols-1)+2*(num_rows-1))
@@ -672,6 +669,8 @@ class RasterModelGrid(ModelGrid):
         # if using an irregular geometry of "interior" cells within the
         # rectangular domain. Note that we don't include any faces
         # between boundary cells.
+        # NG Do we still have boundary cells?  I thought that cells were only
+        # defined on interior nodes.
         self.n_boundary_cells = 2 * ( num_rows - 2 ) + 2 * ( num_cols - 2 ) + 4
         self.n_interior_cells = self.ncells - self.n_boundary_cells
         self.num_faces = ( num_rows - 1 ) * ( num_cols - 2 ) + \
@@ -980,6 +979,12 @@ class RasterModelGrid(ModelGrid):
         
         #
         # Boundary condition handling: 
+        #
+        # NG I'm totally confused.  I thought that boundary locations only
+        # had nodes, not cells.  Maybe we just need to change cell to node 
+        # in these comments?
+        # Actually, node status is set above.  I'm not really sure what this is
+        # for. 
         # 
         # To handle the boundaries properly, we need to do the following:
         #  1. Find out whether cell J is a boundary, and what type
@@ -1030,6 +1035,8 @@ class RasterModelGrid(ModelGrid):
         self.boundary_ids = -ones( self.ncells, dtype=int )
         self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
         id = 0
+        #ng based on this code, it looks like this is the outside row of nodes
+        #to me, not cells, i.e. 0 to num_cols-1 is the bottom row of nodes
         for r in xrange( 0, num_cols-1 ):       # Bottom
             self.boundary_cells[id] = r
             self.boundary_ids[r] = id
@@ -1163,12 +1170,13 @@ class RasterModelGrid(ModelGrid):
         '''
         return (self.nrows * self._dx)
         
-    def get_count_of_interior_cells(self):
-        """
-        Returns the number of interior cells on the grid.  
-        NG, June 2013
-        """
-        return(self.num_active_cells)
+    # no such thing as interior cells anymore.  NG got rid of this.    
+    #def get_count_of_interior_cells(self):
+    #    """
+    #    Returns the number of interior cells on the grid.  
+    #    NG, June 2013
+    #    """
+    #    return(self.num_active_cells)
     
     def get_count_of_interior_nodes(self):
         """
@@ -1177,12 +1185,13 @@ class RasterModelGrid(ModelGrid):
         """
         return(self.num_active_cells)
         
-    def get_count_of_all_cells(self):
-        """
-        Returns total number of nodes, including boundaries. Note this call is misleadingly named; it returns the number of nodes, not cells (i.e., it includes all boundary nodes).
-        NG, June 2013
-        """
-        return(self.num_nodes)
+    #this was wrong, delete if it doesn't blow-up code.
+    #def get_count_of_all_cells(self):
+    #    """
+    #    Returns total number of nodes, including boundaries. Note this call is misleadingly named; it returns the number of nodes, not cells (i.e., it includes all boundary nodes).
+    #    NG, June 2013
+    #    """
+    #    return(self.num_nodes)
     
     def get_count_of_all_nodes(self):
         """
@@ -1300,33 +1309,45 @@ class RasterModelGrid(ModelGrid):
         #return min_slope, angles[index_min]
         return max_slope, angles[index_max]
         
-    def find_node_in_direction_of_max_slope(self, u, cell_id):
+    def find_node_in_direction_of_max_slope(self, u, node_id):
         '''
             This method calculates the slopes (-dz/dx) in u across all 4 faces of 
-            the cell with ID cell_id, and across the four diagonals. 
+            the cell with ID node_id, and across the four diagonals. 
             It then returns the node ID in the direction of the steepest 
             (most positive) of these values,  i.e., this is a 
             D8 algorithm. Slopes downward from the cell are reported as positive.
             Based on code from DH, modified by NG, 6/2013
             
-            This doesn't do any boundary checking.  Maybe it should? 
+            This doesn't deal with the fixed gradient boundary condition.  
+            NG is still confused about that one.
+            
+            NMG Update.  This is super clumsy. 
         '''
-        #We have poor functionality if these are edge cells! Needs an exception
-        neighbor_cells = self.get_neighbor_list(cell_id)
-        neighbor_cells.sort()
+        #We have poor functionality if these are closed boundary nodes! 
+        neighbor_nodes = self.get_neighbor_list(node_id)
+        neighbor_nodes.sort()
         #print 'Node is internal: ', self.is_interior(cell_id)
         #print 'Neighbor cells: ', neighbor_cells
-        diagonal_cells = []
-        if neighbor_cells[0]!=-1:
-            diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
-        if neighbor_cells[3]!=-1:
-            diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
+        diagonal_nodes = []
+        #NG also think that this won't happen if you are always sending this 
+        #function an id of an interior node.  But maybe there is a case where 
+        #this would happen?
+        if neighbor_nodes[0]!=-1:
+            diagonal_nodes.extend([neighbor_nodes[0]-1, neighbor_nodes[0]+1])
+        #ng, if neighbor_nodes is sorted, how could [3] be -1?
+        #try commenting out.
+        #if neighbor_cells[3]!=-1:
+        diagonal_nodes.extend([neighbor_nodes[3]-1, neighbor_nodes[3]+1])
         slopes = []
         diagonal_dx = numpy.sqrt(2.)
-        for a in neighbor_cells:
-            single_slope = (u[cell_id] - u[a])/self._dx
+        for a in neighbor_nodes:
+            if self.node_status[a] != self.INACTIVE_BOUNDARY:
+                single_slope = (u[node_id] - u[a])/self._dx
+            else:
+                single_slope = -9999
             #print 'cell id: ', cell_id
             #print 'neighbor id: ', a
+            #print 'status: ', self.node_status[a]
             #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
             #print 'cell elev: ', u[cell_id]
             #print 'neighbor elev: ', u[a]
@@ -1335,8 +1356,11 @@ class RasterModelGrid(ModelGrid):
                 slopes.append(single_slope)
             else:
                 print 'NaNs present in the grid!'
-        for a in diagonal_cells:
-            single_slope = (u[cell_id] - u[a])/diagonal_dx
+        for a in diagonal_nodes:
+            if self.node_status[a] != self.INACTIVE_BOUNDARY:
+                single_slope = (u[node_id] - u[a])/diagonal_dx
+            else:
+                single_slope = -9999
             #print single_slope
             if not numpy.isnan(single_slope):
                 slopes.append(single_slope)
@@ -1351,10 +1375,10 @@ class RasterModelGrid(ModelGrid):
             max_slope = numpy.nan
             index_max = 8
         
-        all_neighbor_cells=numpy.concatenate((neighbor_cells,diagonal_cells))
+        all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
         #print 'all_neighbor_cells ', all_neighbor_cells
         
-        return all_neighbor_cells[index_max]
+        return all_neighbor_nodes[index_max]
         
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
@@ -1937,6 +1961,8 @@ class RasterModelGrid(ModelGrid):
         .. todo::
             use the cell-local distance rather than dx, for use in the base
             class!
+            
+        NG Wondering if this should be boundary nodes, not cells.    
         """
     
         if bc==None:
@@ -1958,6 +1984,9 @@ class RasterModelGrid(ModelGrid):
         array that has the rows in reverse order, for use in plot commands (such
         as the image display functions) that put the (0,0) axis at the top left 
         instead of the bottom left.
+        
+        NG : The comment above confuses me.  Based on the example below, looks
+        (0,0) goes on the top left if it's False.
         
         Example:
             
@@ -2036,45 +2065,90 @@ class RasterModelGrid(ModelGrid):
             id += self.ncols-2
         return rast
 
+    #OLD CODE, same code is below, but with cells changed to node because
+    #NG is easily confused.
+    #def get_neighbor_list( self, id = -1 ):
+    #    """
+    #    If id is specified, returns a list of neighboring cell IDs for
+    #    the node "id". Otherwise, returns lists for all cells as a 2D
+    #    array. The list is in the order [right, top, left, bottom].
+    #    """
+    #
+    #    if self.neighbor_list_created==False:
+    #        self.create_neighbor_list()
+    #    
+    #    if id > -1:
+    #        return self.neighbor_cells[id,:]
+    #    else:
+    #        return self.neighbor_cells
+    #        
+    #def create_neighbor_list( self ):
+    #    """
+    #    Creates a list of IDs of neighbor cells for each cell, as a
+    #    2D array. Only interior cells are assigned neighbors; boundary
+    #    cells get -1 for each neighbor. The order of the neighbors is [right, top, left, bottom].
+    #    
+    #    """
+    #
+    #    assert self.neighbor_list_created == False
+    #    
+    #    self.neighbor_list_created = True       
+    #    self.neighbor_cells = -ones( [self.ncells, 4], dtype=int )
+    #    for r in xrange( 1, self.nrows-1 ):
+    #        for c in xrange( 1, self.ncols-1 ):
+    #            cell_id = r * self.ncols + c
+    #            self.neighbor_cells[cell_id,2] = cell_id - 1   # left
+    #            self.neighbor_cells[cell_id,0] = cell_id + 1  # right
+    #            self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
+    #            self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
+
     def get_neighbor_list( self, id = -1 ):
         """
-        If id is specified, returns a list of neighboring cell IDs for
-        the node "id". Otherwise, returns lists for all cells as a 2D
+        If id is specified, returns a list of neighboring node IDs. 
+        Otherwise, returns lists for all nodes as a 2D
         array. The list is in the order [right, top, left, bottom].
+        DH created this.  NG only changed labels.
         """
     
         if self.neighbor_list_created==False:
             self.create_neighbor_list()
         
         if id > -1:
-            return self.neighbor_cells[id,:]
+            return self.neighbor_nodes[id,:]
         else:
-            return self.neighbor_cells
+            return self.neighbor_nodes
             
     def create_neighbor_list( self ):
         """
-        Creates a list of IDs of neighbor cells for each cell, as a
-        2D array. Only interior cells are assigned neighbors; boundary
-        cells get -1 for each neighbor. The order of the neighbors is [right, top, left, bottom].
+        Creates a list of IDs of neighbor nodes for each node, as a
+        2D array. Only interior nodes are assigned neighbors; boundary
+        nodes get -1 for each neighbor. 
+        The order of the neighbors is [right, top, left, bottom].
+        DH created this.  NG only changed labels.
         """
     
         assert self.neighbor_list_created == False
         
-        self.neighbor_list_created = True       
-        self.neighbor_cells = -ones( [self.ncells, 4], dtype=int )
+        self.neighbor_list_created = True 
+        #below had ncells instead of num_nodes.  This could be an issue? 
+        #looks like it should still work though.  I think ncells was defined
+        #as rows*cols before, so same as num_nodes     
+        self.neighbor_nodes = -ones( [self.num_nodes, 4], dtype=int )
         for r in xrange( 1, self.nrows-1 ):
             for c in xrange( 1, self.ncols-1 ):
-                cell_id = r * self.ncols + c
-                self.neighbor_cells[cell_id,2] = cell_id - 1   # left
-                self.neighbor_cells[cell_id,0] = cell_id + 1  # right
-                self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
-                self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
+                node_id = r * self.ncols + c
+                self.neighbor_nodes[node_id,2] = node_id - 1   # left
+                self.neighbor_nodes[node_id,0] = node_id + 1  # right
+                self.neighbor_nodes[node_id,3] = node_id - self.ncols # bottom
+                self.neighbor_nodes[node_id,1] = node_id + self.ncols # top
     
     def get_diagonal_list( self, id = -1 ):
         """
         If id is specified, returns a list of IDs for the diagonal cells of the node "id". 
         Otherwise, returns lists for all cells as a 2D array. 
         The list is in the order [topright, topleft, bottomleft, bottomright].
+        
+        NG didn't touch this, but she thinks this should be nodes, not cells.
         """
         #Added DEJH 051513
     
@@ -2091,6 +2165,8 @@ class RasterModelGrid(ModelGrid):
         Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
         Only interior cells are assigned neighbors; boundary cells get -1 for each neighbor. 
         The order of the diagonal cells is [topright, topleft, bottomleft, bottomright].
+        
+        NG didn't touch this, but she thinks this should be nodes, not cells.
         """
         #Added DEJH 051513
         
@@ -2113,6 +2189,13 @@ class RasterModelGrid(ModelGrid):
         """
     
         return self.boundary_ids[id] < 0
+        
+    def get_boundary_code( self, id ):
+        """
+        Returns the boundary status of a node.
+        ng june 2013
+        """
+        return self.node_status[id] 
         
     def update_boundary_cell( self, id, u, bc = None ):
         """
