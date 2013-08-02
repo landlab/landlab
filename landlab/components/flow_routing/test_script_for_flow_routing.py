@@ -5,7 +5,7 @@ and drainage area calculation
 """
 
 from landlab.model_grid import RasterModelGrid
-from landlab.examples.flowRoutingD8 import RouteFlowD8
+import flow_routing_D8
 from landlab.examples.drainageArea import CalcDrainageArea
 from numpy import *
 from pylab import plot, draw, show, contour, imshow, colorbar
@@ -46,7 +46,7 @@ def main():
     #print elevations
 
     #instantiate flow routing variable
-    flow = RouteFlowD8(ncells)
+    flow = flow_routing_D8.RouteFlowD8(ncells)
     #calculate flow directions
     flow_directions = flow.calc_flowdirs(rg, elevations) 
     fd_raster = rg.node_vector_to_raster(flow_directions,True)   
