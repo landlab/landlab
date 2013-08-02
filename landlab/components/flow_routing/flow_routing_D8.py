@@ -8,7 +8,7 @@ Some issues that might come up ...
 This class relies on a method in model_grid called
 find_node_in_direction_of_max_slope.  That method does not do
 any boundary checking.  It needs to be done somewhere, maybe here,
-maybe there.  Alternatively, if boundary elevations are always set
+maybe there?  Alternatively, if boundary elevations are always set
 in a consistent way depending on the type of bounary, maybe no boundary
 checking is needed?
 
@@ -28,14 +28,14 @@ class RouteFlowD8(object):
     grid.
     """
     
-    def __init__(self, num_cells):
+    def __init__(self, num_nodes):
         """
         This sets the num_cells parameter.
         This class assumes that the number of cells does not change after a 
         class item has been instantiated.
         """
 
-        self.num_cells = num_cells
+        self.num_nodes = num_nodes
         self.initialize()
         
         #print 'RouteFlowD8.__init__'
@@ -47,7 +47,8 @@ class RouteFlowD8(object):
         A -1 flowdirs value indicates a boundary node.
         """
         
-        self.flowdirs = -ones(self.num_cells, dtype=int)
+        self.flowdirs = -ones(self.num_nodes, dtype=int)
+        
       
     def calc_flowdirs(self, mg, z):
         """
@@ -56,11 +57,14 @@ class RouteFlowD8(object):
         The flowdirs vector contains the node id that a node flows to. 
         If the node is a boundary node, the flowdirs vector has a value of -1.
         
+        NG should the flowdirection vector only apply to the interior nodes? 
+        That is, should you not have values for the boundary nodes?
+        
         Method inputs: the model grid and elevation vector 
         Method returns: the flow direction vector
         """
         
-        for i in range(0, self.num_cells):
+        for i in range(0, self.num_nodes):
             if mg.is_interior(i):
                 self.flowdirs[i] = mg.find_node_in_direction_of_max_slope(z, i)
         
