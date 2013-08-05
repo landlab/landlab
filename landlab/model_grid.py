@@ -2141,6 +2141,41 @@ class RasterModelGrid(ModelGrid):
                 self.neighbor_nodes[node_id,0] = node_id + 1  # right
                 self.neighbor_nodes[node_id,3] = node_id - self.ncols # bottom
                 self.neighbor_nodes[node_id,1] = node_id + self.ncols # top
+                
+    def has_boundary_neighbor( self, id ):
+        """
+        Checks to see if one of the eight neighbor nodes of node with passed id
+        is a boundary node.  Returns true if it has a boundary node, false if
+        all neighbors are interior.
+        
+        Assumes that a valid id is passed.
+        
+        ng aug 2013
+        """
+        
+        nbr_cells=self.get_neighbor_list(id)
+        diag_nbrs=self.get_diagonal_list(id)
+        
+        i=0
+        #print 'id ',nbr_cells[i],' i ',i,' is interior? ',self.is_interior(nbr_cells[i])
+        while (i<4 and self.is_interior(nbr_cells[i]) ) :
+            i += 1
+            #print 'id ',nbr_cells[i],' i ',i
+        
+        if i<4:
+            return True
+        else:
+            r=0
+            while (r<4 and self.is_interior(diag_nbrs[r]) ):
+                r += 1
+                #print 'id ',self.diag_nbrs[r],' r ',r
+        
+        if r<4 :
+            return True
+        else:
+            return False
+              
+        
     
     def get_diagonal_list( self, id = -1 ):
         """
@@ -2311,6 +2346,10 @@ class RasterModelGrid(ModelGrid):
         """
         Returns the ID of the node at the specified row and column of the raster
         grid.
+        
+        ng notes:
+        note that syntax assumes that first row and column are 0,
+        so max entry for a mg with 4 rows and 5 cols is row =3, col=4
         
         Example:
             
