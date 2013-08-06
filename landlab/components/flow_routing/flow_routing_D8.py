@@ -12,7 +12,7 @@ maybe there?  Alternatively, if boundary elevations are always set
 in a consistent way depending on the type of bounary, maybe no boundary
 checking is needed?
 
-Last updated NG 6/2013
+Last updated NG 8/2013
 
 """
 
@@ -57,8 +57,9 @@ class RouteFlowD8(object):
         The flowdirs vector contains the node id that a node flows to. 
         If the node is a boundary node, the flowdirs vector has a value of -1.
         
-        NG should the flowdirection vector only apply to the interior nodes? 
-        That is, should you not have values for the boundary nodes?
+        This now only applies to interior nodes.
+        However, should a fixed value node, which counts as an interior node,
+        have a flow direction?  Still not sure about this.
         
         Method inputs: the model grid and elevation vector 
         Method returns: the flow direction vector
