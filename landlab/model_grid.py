@@ -6,9 +6,24 @@ create and manage grids for 2D numerical models.
 First version GT, July 2010
 Last modified July 2013
 """
+
 import numpy
 from numpy import *
 from landlab import model_parameter_dictionary as mpd
+import landlab.utils.structured_grid as sgrid
+from landlab.utils import count_repeats
+
+BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
+
+# Define the boundary-type codes
+INTERIOR_NODE = 0
+FIXED_VALUE_BOUNDARY = 1
+FIXED_GRADIENT_BOUNDARY = 2
+TRACKS_CELL_BOUNDARY = 3
+INACTIVE_BOUNDARY = 4
+
+_SLOW = True
+
 
 def create_and_initialize_grid(input_source):
     """
@@ -199,7 +214,10 @@ class ModelGrid(object):
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
-        self.reset_list_of_active_links()
+        if _SLOW:
+            self.reset_list_of_active_links_slow()
+        else:
+            self.reset_list_of_active_links()
 
     def calculate_gradients_at_active_links(self, s, gradient=None):
         """
@@ -468,6 +486,34 @@ class ModelGrid(object):
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.reset_list_of_active_links'
             
+        fromnode_status = self.node_status[self.link_fromnode]
+        tonode_status = self.node_status[self.link_tonode]
+
+        active_links = (((fromnode_status == self.INTERIOR_NODE) & ~
+                         (tonode_status == self.INACTIVE_BOUNDARY)) |
+                        ((tonode_status == self.INTERIOR_NODE) & ~
+                         (fromnode_status == self.INACTIVE_BOUNDARY)))
+
+        (self.active_links, ) = numpy.where(active_links)
+
+        self.num_active_links = len(self.active_links)
+        self.activelink_fromnode = self.link_fromnode[self.active_links]
+        self.activelink_tonode = self.link_tonode[self.active_links]
+        
+        # Set up active inlink and outlink matrices
+        self.setup_active_inlink_and_outlink_matrices()
+
+    def reset_list_of_active_links_slow(self):
+        """
+        Creates or resets a list of active links. We do this by sweeping
+        through the given lists of from and to nodes, and checking the status
+        of these as given in the node_status list. A link is active if both its
+        nodes are active interior points, or if one is an active interior and
+        the other is an active boundary.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.reset_list_of_active_links'
+            
         # Create or reset empy list of active links (we'll convert this to
         # a numpy array below)
         self.active_links = []
@@ -485,13 +531,14 @@ class ModelGrid(object):
                 (tonode_status==self.INTERIOR_NODE and
                  not fromnode_status==self.INACTIVE_BOUNDARY)):
                 self.active_links.append(link)
+        
         self.num_active_links = len(self.active_links)
         self.active_links = numpy.array(self.active_links)
         self.activelink_fromnode = numpy.array(self.link_fromnode[self.active_links])
         self.activelink_tonode = numpy.array(self.link_tonode[self.active_links])
         
         # Set up active inlink and outlink matrices
-        self.setup_active_inlink_and_outlink_matrices()
+        self.setup_active_inlink_and_outlink_matrices_slow()
         
     def deactivate_nodata_nodes(self, node_data, nodata_value):
         """
@@ -543,7 +590,7 @@ class ModelGrid(object):
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
         
-        
+
 class RasterModelGrid(ModelGrid):
     """
     This inherited class implements a regular, raster 2D grid with uniform
@@ -559,7 +606,7 @@ class RasterModelGrid(ModelGrid):
         20
     """
 
-    def __init__( self, num_rows=0, num_cols=0, dx=1.0 ):
+    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
         """
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
@@ -700,20 +747,26 @@ class RasterModelGrid(ModelGrid):
         #  |       |       |       |       |
         #  0-------1-------2-------3-------4
         #
-        self.cellx = numpy.zeros( self.ncells )  #TBX
-        self.celly = numpy.zeros( self.ncells )  #TBX
-        self._node_x = numpy.zeros( self.num_nodes )
-        self._node_y = numpy.zeros( self.num_nodes )
-        self._node_z = numpy.zeros( self.num_nodes )
-        id = 0
-        for r in range( 0, num_rows ):
-            for c in xrange( 0, num_cols ):
-                self.cellx[id] = c*self._dx  #TBX
-                self.celly[id] = r*self._dx  #TBX
-                self._node_x[id] = c*self._dx
-                self._node_y[id] = r*self._dx
-                self._node_z[id] = 0.0
-                id += 1
+        if _SLOW:
+            self.cellx = numpy.zeros( self.ncells )  #TBX
+            self.celly = numpy.zeros( self.ncells )  #TBX
+            self._node_x = numpy.zeros( self.num_nodes )
+            self._node_y = numpy.zeros( self.num_nodes )
+            self._node_z = numpy.zeros( self.num_nodes )
+            id = 0
+            for r in range( 0, num_rows ):
+                for c in xrange( 0, num_cols ):
+                    self.cellx[id] = c*self._dx  #TBX
+                    self.celly[id] = r*self._dx  #TBX
+                    self._node_x[id] = c*self._dx
+                    self._node_y[id] = r*self._dx
+                    self._node_z[id] = 0.0
+                    id += 1
+        else:
+            (self._node_x,
+             self._node_y,
+             self._node_z) = sgrid.node_xyz((num_rows, num_cols),
+                                            (self._dx, self._dx), (0., 0.))
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate 
@@ -754,22 +807,28 @@ class RasterModelGrid(ModelGrid):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell, 
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = []
-        self.node_activecell = []
-        node_id = 0
-        cell_id = 0
-        for r in range(0, num_rows):
-            for c in range(0, num_cols):
-                if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
-                    self.cell_node.append(node_id)
-                    self.node_activecell.append(cell_id)
-                    cell_id += 1
-                else:
-                    self.node_activecell.append(None)
-                node_id += 1
-        self.active_cells = list(range(0, len(self.cell_node)))
-        self.activecell_node = self.cell_node   # default to all cells active
-        
+        if _SLOW:
+            self.cell_node = []
+            self.node_activecell = []
+            node_id = 0
+            cell_id = 0
+            for r in range(0, num_rows):
+                for c in range(0, num_cols):
+                    if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
+                        self.cell_node.append(node_id)
+                        self.node_activecell.append(cell_id)
+                        cell_id += 1
+                    else:
+                        self.node_activecell.append(None)
+                    node_id += 1
+            self.active_cells = list(range(0, len(self.cell_node)))
+            self.activecell_node = self.cell_node   # default to all cells active
+        else:
+            self.cell_node = sgrid.cell_node_index((num_rows, num_cols))
+            self.node_activecell = sgrid.node_active_cell((num_rows, num_cols))
+            self.active_cells = sgrid.active_cells((num_rows, num_cols))
+            self.activecell_node = self.cell_node.copy()
+
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
         # (if any) associated with the link. If the link does not intersect a
@@ -796,30 +855,40 @@ class RasterModelGrid(ModelGrid):
         #  *--15-->*--16-->*--17-->*--18-->*
         #
         #   create the fromnode and tonode lists
-        self.link_fromnode = []
-        self.link_tonode = []
-        
-        #   vertical links
-        for r in range(0, num_rows-1):
-            for c in range(0, num_cols):
-                self.link_fromnode.append(c+r*num_cols)
-                self.link_tonode.append(c+(r+1)*num_cols)
-        
-        #   horizontal links
-        for r in range(0, num_rows):
-            for c in range(0, num_cols-1):
-                self.link_fromnode.append(c+r*num_cols)
-                self.link_tonode.append(c+r*num_cols+1)
-        
-        #   convert to numpy arrays
-        self.link_fromnode = numpy.array(self.link_fromnode)
-        self.link_tonode = numpy.array(self.link_tonode)
-        
+        if _SLOW:
+            self.link_fromnode = []
+            self.link_tonode = []
+            
+            #   vertical links
+            for r in range(0, num_rows-1):
+                for c in range(0, num_cols):
+                    self.link_fromnode.append(c+r*num_cols)
+                    self.link_tonode.append(c+(r+1)*num_cols)
+            
+            #   horizontal links
+            for r in range(0, num_rows):
+                for c in range(0, num_cols-1):
+                    self.link_fromnode.append(c+r*num_cols)
+                    self.link_tonode.append(c+r*num_cols+1)
+            
+            #   convert to numpy arrays
+            self.link_fromnode = numpy.array(self.link_fromnode)
+            self.link_tonode = numpy.array(self.link_tonode)
+        else:
+            (self.link_fromnode,
+             self.link_tonode) = sgrid.node_link_index((num_rows, num_cols))
+
         #   set up in-link and out-link matrices and numbers
-        self.setup_inlink_and_outlink_matrices()
+        if _SLOW:
+            self.setup_inlink_and_outlink_matrices_slow()
+        else:
+            self.setup_inlink_and_outlink_matrices()
         
         #   set up the list of active links
-        self.reset_list_of_active_links()
+        if _SLOW:
+            self.reset_list_of_active_links_slow()
+        else:
+            self.reset_list_of_active_links()
 
         #   set up link faces
         #
@@ -831,234 +900,233 @@ class RasterModelGrid(ModelGrid):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = [None]*self.num_links  # make the list
-        face_id = 0
-        for link in self.active_links:
-            self.link_face[link] = face_id
-            face_id += 1
-                   
-        
+        if _SLOW:
+            self.link_face = [None]*self.num_links  # make the list
+            face_id = 0
+            for link in self.active_links:
+                self.link_face[link] = face_id
+                face_id += 1
+        else:
+            self.link_face = sgrid.link_faces((num_rows, num_cols),
+                                              actives=self.active_links)
+
         #--------OLDER STUFF BELOW----------
+        if 1:
+            # Keep track of pairs of cells that lie on either side of
+            # each face. Cells are numbered 0=(0,0), 1=(0,1), 2=(0,2), etc.
+            # Faces are numbered as follows: first vertical faces, going
+            # left to right then bottom to top, then horizontal faces, again
+            # left to right then bottom to top.
+            #
+            # Example, 3-row by 4-column grid, with 12 cells, 2 interior
+            # cells, 10 boundary cells, and 7 faces (3 vertical and
+            # 4 horizontal):
+            #
+            # |-------|-------|-------|-------|
+            # |       |       |       |       |
+            # |   8   |   9   |  10   |  11   |
+            # |       |       |       |       |
+            # |-------|---5---|---6---|-------|
+            # |       |       |       |       |
+            # |   4   0   5   1   6   2   7   |
+            # |       |       |       |       |
+            # |-------|---3---|---4---|-------|
+            # |       |       |       |       |
+            # |   0   |   1   |   2   |   3   |
+            # |       |       |       |       |
+            # |-------|-------|-------|-------|
+            #
+            # The from and to cells of face 0 are 4 and 5, respectively.
+            # The faces of cell 5 are 0, 1, 3 and 5.
+            #
+            # Along the way, we store the x and y coordinates of the center
+            # of each face.
+            #
+            self.fromcell = numpy.zeros( self.nfaces, dtype = int ) #TBX
+            self.tocell = numpy.zeros( self.nfaces, dtype = int ) #TBX
+            self.facex = numpy.zeros( self.nfaces ) #TBX
+            self.facey = numpy.zeros( self.nfaces ) #TBX
+            halfdx = self._dx / 2.0
+            face_id = 0
+            for r in xrange( 1, num_rows-1 ):
+                for c in range( 1, num_cols ):
+                    self.fromcell[face_id] = r * num_cols + ( c - 1 )
+                    self.tocell[face_id] = self.fromcell[face_id] + 1
+                    self.facex[face_id] = c*self._dx - halfdx
+                    self.facey[face_id] = r*self._dx
+                    face_id += 1
+            for r in xrange( 1, num_rows ):
+                for c in range( 1, num_cols-1 ):
+                    self.fromcell[face_id] = ( r - 1 ) * num_cols + c
+                    self.tocell[face_id] = self.fromcell[face_id] + num_cols
+                    self.facex[face_id] = c*self._dx
+                    self.facey[face_id] = r*self._dx - halfdx
+                    face_id += 1
+            if self.DEBUG_VERBOSE:
+                print 'fromcell:',self.fromcell
+                print 'tocell:',self.tocell
+                print 'facex:',self.facex
+                print 'facey:',self.facey
 
-        # Keep track of pairs of cells that lie on either side of
-        # each face. Cells are numbered 0=(0,0), 1=(0,1), 2=(0,2), etc.
-        # Faces are numbered as follows: first vertical faces, going
-        # left to right then bottom to top, then horizontal faces, again
-        # left to right then bottom to top.
-        #
-        # Example, 3-row by 4-column grid, with 12 cells, 2 interior
-        # cells, 10 boundary cells, and 7 faces (3 vertical and
-        # 4 horizontal):
-        #
-        # |-------|-------|-------|-------|
-        # |       |       |       |       |
-        # |   8   |   9   |  10   |  11   |
-        # |       |       |       |       |
-        # |-------|---5---|---6---|-------|
-        # |       |       |       |       |
-        # |   4   0   5   1   6   2   7   |
-        # |       |       |       |       |
-        # |-------|---3---|---4---|-------|
-        # |       |       |       |       |
-        # |   0   |   1   |   2   |   3   |
-        # |       |       |       |       |
-        # |-------|-------|-------|-------|
-        #
-        # The from and to cells of face 0 are 4 and 5, respectively.
-        # The faces of cell 5 are 0, 1, 3 and 5.
-        #
-        # Along the way, we store the x and y coordinates of the center
-        # of each face.
-        #
-        self.fromcell = numpy.zeros( self.nfaces, dtype = int ) #TBX
-        self.tocell = numpy.zeros( self.nfaces, dtype = int ) #TBX
-        self.facex = numpy.zeros( self.nfaces ) #TBX
-        self.facey = numpy.zeros( self.nfaces ) #TBX
-        halfdx = self._dx / 2.0
-        face_id = 0
-        for r in xrange( 1, num_rows-1 ):
-            for c in range( 1, num_cols ):
-                self.fromcell[face_id] = r * num_cols + ( c - 1 )
-                self.tocell[face_id] = self.fromcell[face_id] + 1
-                self.facex[face_id] = c*self._dx - halfdx
-                self.facey[face_id] = r*self._dx
-                face_id += 1
-        for r in xrange( 1, num_rows ):
-            for c in range( 1, num_cols-1 ):
-                self.fromcell[face_id] = ( r - 1 ) * num_cols + c
-                self.tocell[face_id] = self.fromcell[face_id] + num_cols
-                self.facex[face_id] = c*self._dx
-                self.facey[face_id] = r*self._dx - halfdx
-                face_id += 1
-        if self.DEBUG_VERBOSE:
-            print 'fromcell:',self.fromcell
-            print 'tocell:',self.tocell
-            print 'facex:',self.facex
-            print 'facey:',self.facey
-
-        # Now we find the face IDs connected to each cell.
-        # The boundary cells don't have faces between them, so they will be flagged
-        # with a -1. However, the bottom row of boundary cells have top faces,
-        # the top row has bottom faces, etc.
-        # Note that the four faces are numbered counter-clockwise
-        # starting from the right face, that is, 0 is right, 1 is top,
-        # 2 is left, and 3 is bottom.
-        self.faces = -ones( [self.ncells, 4], dtype=int )
-        n_vert_faces = ( num_rows - 2 ) * ( num_cols - 1 )
-        for r in xrange( 1, num_rows-1 ):   # Faces for interior cells
-            for c in xrange( 1, num_cols-1 ):
+            # Now we find the face IDs connected to each cell.
+            # The boundary cells don't have faces between them, so they will be flagged
+            # with a -1. However, the bottom row of boundary cells have top faces,
+            # the top row has bottom faces, etc.
+            # Note that the four faces are numbered counter-clockwise
+            # starting from the right face, that is, 0 is right, 1 is top,
+            # 2 is left, and 3 is bottom.
+            self.faces = -ones( [self.ncells, 4], dtype=int )
+            n_vert_faces = ( num_rows - 2 ) * ( num_cols - 1 )
+            for r in xrange( 1, num_rows-1 ):   # Faces for interior cells
+                for c in xrange( 1, num_cols-1 ):
+                    cell_id = r * num_cols + c
+                    self.faces[cell_id,2] = (r-1)*(num_cols-1)+(c-1)   # left
+                    self.faces[cell_id,0] = self.faces[cell_id,2] + 1  # right
+                    self.faces[cell_id,3] = n_vert_faces+(r-1)*(num_cols-2)+(c-1) # bottom
+                    self.faces[cell_id,1] = self.faces[cell_id,3] + (num_cols-2)  # top
+            for cell_id in xrange( 1, num_cols-1 ):  # Top faces for bottom row
+                self.faces[cell_id,1] = n_vert_faces+(cell_id-1)
+            r = num_rows - 1
+            for c in xrange( 1, num_cols-1 ): # Bottom faces for top row
                 cell_id = r * num_cols + c
-                self.faces[cell_id,2] = (r-1)*(num_cols-1)+(c-1)   # left
-                self.faces[cell_id,0] = self.faces[cell_id,2] + 1  # right
-                self.faces[cell_id,3] = n_vert_faces+(r-1)*(num_cols-2)+(c-1) # bottom
-                self.faces[cell_id,1] = self.faces[cell_id,3] + (num_cols-2)  # top
-        for cell_id in xrange( 1, num_cols-1 ):  # Top faces for bottom row
-            self.faces[cell_id,1] = n_vert_faces+(cell_id-1)
-        r = num_rows - 1
-        for c in xrange( 1, num_cols-1 ): # Bottom faces for top row
-            cell_id = r * num_cols + c
-            self.faces[cell_id,3] = n_vert_faces+(r-1)*(num_cols-2)+(c-1)
-        c = 0
-        for r in xrange( 1, num_rows-1 ): # Right faces for left column
-            cell_id = r * num_cols + c
-            self.faces[cell_id,0] = (r-1)*(num_cols-1)+c
-        c = num_cols-1
-        for r in xrange( 1, num_rows-1 ): # Left faces for right column
-            cell_id = r * num_cols + c
-            self.faces[cell_id,2] = (r-1)*(num_cols-1)+(c-1)
-        
-
-        if self.DEBUG_VERBOSE:
-            for i in xrange( 1, self.ncells ):
-                print i,self.faces[i,:]
-                
-        # List of neighbors for each cell: we will start off with no
-        # list. If a caller requests it via get_neighbor_list or
-        # create_neighbor_list, we'll create it if necessary.
-        self.neighbor_list_created = False
-        if self.DEBUG_VERBOSE:
-        	print 'Setting nlc flag'
-
-        # List of diagonal neighbors. As with the neighbor list, we'll only
-        # create it if requested.
-        self.diagonal_list_created = False
-
-        # For each node, we also need to know which way the face
-        # points. A flux of mass across a face is considered positive
-        # when it flows toward the "to" cell, and negative otherwise.
-        # The "face_sign" matrix records whether the face points
-        # toward the cell (+1) or away from it (-1). Note that in this
-        # raster grid, the left and bottom faces (2 and 3) point into the cell,
-        # while the right and top faces (0 and 1) point away from the cell.
-        #    This means that you can calculate the "cell gradient", the
-        # gradient of a field from the perspective of a cell, using:
-        #        self.face_sign[id,:] * g[self.faces[id,:]]
-        # where g is a gradient of a field defined at faces. The
-        # "cell gradient" at a face is positive when you have to "walk uphill"
-        # into the cell (the cell is higher than its neighbor on the other
-        # side of the face), and negative when you "walk downhill" to the
-        # cell (the cell is lower than its neighbor).
-        self.face_sign = numpy.zeros( [self.ncells, 4], dtype=short )
-        self.face_sign[:,0:2] = -1
-        self.face_sign[:,2:] = 1
-        if self.DEBUG_VERBOSE:
-            print 'face sign:',self.face_sign
-        
-        # Set up list of interior cells
-        # (Note that this could be superceded if you wanted an irregular
-        # boundary inside the rectangular grid)
-        self.interior_cells = numpy.zeros( self.n_interior_cells, dtype=int )
-        id = 0
-        for r in xrange( 1, num_rows-1 ):
-            for c in range( 1, num_cols-1 ):
-                self.interior_cells[id] = r * num_cols + c
-                id += 1
-        
-        if self.DEBUG_VERBOSE:
-            print self.interior_cells
-        
-        #
-        # Boundary condition handling: 
-        #
-        # NG I'm totally confused.  I thought that boundary locations only
-        # had nodes, not cells.  Maybe we just need to change cell to node 
-        # in these comments?
-        # Actually, node status is set above.  I'm not really sure what this is
-        # for. 
-        # 
-        # To handle the boundaries properly, we need to do the following:
-        #  1. Find out whether cell J is a boundary, and what type
-        #  2. Identify which cells are fixed-value boundaries, so they
-        #     can be updated as needed.
-        #  3. For boundary cells that track the value of another cell,
-        #     update all their values.
-        #  4. For these cells, remember the cell IDs of the cells they
-        #     are to track.
-        #  5. For any single boundary cell J, update its value according
-        #     to its boundary type.
-        #
-        # To do accomplish these, we use three data structures. The first
-        # is a vector of the cell ID ("CID") of all
-        # boundary cells (self.boundary_cells). The second is
-        # a list of the boundary id ("BID") for all cells. The boundary
-        # id is the index number (0 to self.n_boundary_cells-1) of the
-        # corresponding cell in the self.boundary_cells vector. In this
-        # respect, self.boundary_cells and self.boundary_ids point to each
-        # other. Obviously, not all cells are boundaries, and so those 
-        # cells that are interior cells are simply flagged with a -1.
-        # This way, the self.boundary_ids list encodes two pieces of
-        # information: (1) whether the cell is a boundary or not, and 
-        # (2) where to look for more info if it is a boundary (i.e., 
-        # what is its BID).
-        #
-        # Finally, for those cells (if any) that are no-flux or periodic,
-        # we need to know the CID of the cell whose value they mirror.
-        # Now, the user may want to have different kinds of boundary 
-        # conditions apply to different variables. For example, for
-        # modeling floods across an active fault, you might want the
-        # land surface elevation boundary condition to be fixed value
-        # at some places, while the water depth is fixed gradient.
-        # For this reason, we might need multiple version of boundary
-        # status and related information, depending on the user's needs.
-        # To manage this, we use the BoundaryCondition class. We have
-        # BoundaryCondition called self.default_bc that represents the
-        # default handling; if the user wants, they can make more 
-        # BoundaryCondition objects and treat them differently.
-        #
-        # Here we work counter-clockwise around the perimeter, starting
-        # with CID/BID 0 at the lower left. BID's increase in counter-
-        # clockwise order around the edge.
-        #
-        # (Note that this could be superceded if you wanted an irregular
-        # boundary inside the rectangular grid)
-        #
-        self.boundary_ids = -ones( self.ncells, dtype=int )
-        self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
-        id = 0
-        #ng based on this code, it looks like this is the outside row of nodes
-        #to me, not cells, i.e. 0 to num_cols-1 is the bottom row of nodes
-        for r in xrange( 0, num_cols-1 ):       # Bottom
-            self.boundary_cells[id] = r
-            self.boundary_ids[r] = id
-            id += 1
-        for c in xrange( num_cols-1, self.ncells-num_cols, num_cols ):  # Right
-            self.boundary_cells[id] = c
-            self.boundary_ids[c] = id
-            id += 1
-        for r in xrange( self.ncells-1, num_cols*(num_rows-1), -1 ):       # Top
-            self.boundary_cells[id] = r
-            self.boundary_ids[r] = id
-            id += 1
-        for c in xrange( num_cols*(num_rows-1), 0, -num_cols ):  # Left
-            self.boundary_cells[id] = c
-            self.boundary_ids[c] = id
-            id += 1
-        
-        if self.DEBUG_VERBOSE:
-            print 'Boundary CIDs:',self.boundary_cells
-            print 'Cell BIDs:',self.boundary_ids
+                self.faces[cell_id,3] = n_vert_faces+(r-1)*(num_cols-2)+(c-1)
+            c = 0
+            for r in xrange( 1, num_rows-1 ): # Right faces for left column
+                cell_id = r * num_cols + c
+                self.faces[cell_id,0] = (r-1)*(num_cols-1)+c
+            c = num_cols-1
+            for r in xrange( 1, num_rows-1 ): # Left faces for right column
+                cell_id = r * num_cols + c
+                self.faces[cell_id,2] = (r-1)*(num_cols-1)+(c-1)
             
-        self.default_bc = BoundaryCondition( self.n_boundary_cells )
+
+            if self.DEBUG_VERBOSE:
+                for i in xrange( 1, self.ncells ):
+                    print i,self.faces[i,:]
+                    
+            # List of neighbors for each cell: we will start off with no
+            # list. If a caller requests it via get_neighbor_list or
+            # create_neighbor_list, we'll create it if necessary.
+            self.neighbor_list_created = False
+            if self.DEBUG_VERBOSE:
+              print 'Setting nlc flag'
+
+            # List of diagonal neighbors. As with the neighbor list, we'll only
+            # create it if requested.
+            self.diagonal_list_created = False
+
+            # For each node, we also need to know which way the face
+            # points. A flux of mass across a face is considered positive
+            # when it flows toward the "to" cell, and negative otherwise.
+            # The "face_sign" matrix records whether the face points
+            # toward the cell (+1) or away from it (-1). Note that in this
+            # raster grid, the left and bottom faces (2 and 3) point into the cell,
+            # while the right and top faces (0 and 1) point away from the cell.
+            #    This means that you can calculate the "cell gradient", the
+            # gradient of a field from the perspective of a cell, using:
+            #        self.face_sign[id,:] * g[self.faces[id,:]]
+            # where g is a gradient of a field defined at faces. The
+            # "cell gradient" at a face is positive when you have to "walk uphill"
+            # into the cell (the cell is higher than its neighbor on the other
+            # side of the face), and negative when you "walk downhill" to the
+            # cell (the cell is lower than its neighbor).
+            self.face_sign = numpy.zeros( [self.ncells, 4], dtype=short )
+            self.face_sign[:,0:2] = -1
+            self.face_sign[:,2:] = 1
+            if self.DEBUG_VERBOSE:
+                print 'face sign:',self.face_sign
+            
+            # Set up list of interior cells
+            # (Note that this could be superceded if you wanted an irregular
+            # boundary inside the rectangular grid)
+            self.interior_cells = numpy.zeros( self.n_interior_cells, dtype=int )
+            id = 0
+            for r in xrange( 1, num_rows-1 ):
+                for c in range( 1, num_cols-1 ):
+                    self.interior_cells[id] = r * num_cols + c
+                    id += 1
+            
+            if self.DEBUG_VERBOSE:
+                print self.interior_cells
+            
+            #
+            # Boundary condition handling: 
+            # 
+            # To handle the boundaries properly, we need to do the following:
+            #  1. Find out whether cell J is a boundary, and what type
+            #  2. Identify which cells are fixed-value boundaries, so they
+            #     can be updated as needed.
+            #  3. For boundary cells that track the value of another cell,
+            #     update all their values.
+            #  4. For these cells, remember the cell IDs of the cells they
+            #     are to track.
+            #  5. For any single boundary cell J, update its value according
+            #     to its boundary type.
+            #
+            # To do accomplish these, we use three data structures. The first
+            # is a vector of the cell ID ("CID") of all
+            # boundary cells (self.boundary_cells). The second is
+            # a list of the boundary id ("BID") for all cells. The boundary
+            # id is the index number (0 to self.n_boundary_cells-1) of the
+            # corresponding cell in the self.boundary_cells vector. In this
+            # respect, self.boundary_cells and self.boundary_ids point to each
+            # other. Obviously, not all cells are boundaries, and so those 
+            # cells that are interior cells are simply flagged with a -1.
+            # This way, the self.boundary_ids list encodes two pieces of
+            # information: (1) whether the cell is a boundary or not, and 
+            # (2) where to look for more info if it is a boundary (i.e., 
+            # what is its BID).
+            #
+            # Finally, for those cells (if any) that are no-flux or periodic,
+            # we need to know the CID of the cell whose value they mirror.
+            # Now, the user may want to have different kinds of boundary 
+            # conditions apply to different variables. For example, for
+            # modeling floods across an active fault, you might want the
+            # land surface elevation boundary condition to be fixed value
+            # at some places, while the water depth is fixed gradient.
+            # For this reason, we might need multiple version of boundary
+            # status and related information, depending on the user's needs.
+            # To manage this, we use the BoundaryCondition class. We have
+            # BoundaryCondition called self.default_bc that represents the
+            # default handling; if the user wants, they can make more 
+            # BoundaryCondition objects and treat them differently.
+            #
+            # Here we work counter-clockwise around the perimeter, starting
+            # with CID/BID 0 at the lower left. BID's increase in counter-
+            # clockwise order around the edge.
+            #
+            # (Note that this could be superceded if you wanted an irregular
+            # boundary inside the rectangular grid)
+            #
+            self.boundary_ids = -ones( self.ncells, dtype=int )
+            self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
+            id = 0
+            for r in xrange( 0, num_cols-1 ):       # Bottom
+                self.boundary_cells[id] = r
+                self.boundary_ids[r] = id
+                id += 1
+            for c in xrange( num_cols-1, self.ncells-num_cols, num_cols ):  # Right
+                self.boundary_cells[id] = c
+                self.boundary_ids[c] = id
+                id += 1
+            for r in xrange( self.ncells-1, num_cols*(num_rows-1), -1 ):       # Top
+                self.boundary_cells[id] = r
+                self.boundary_ids[r] = id
+                id += 1
+            for c in xrange( num_cols*(num_rows-1), 0, -num_cols ):  # Left
+                self.boundary_cells[id] = c
+                self.boundary_ids[c] = id
+                id += 1
+            
+            if self.DEBUG_VERBOSE:
+                print 'Boundary CIDs:',self.boundary_cells
+                print 'Cell BIDs:',self.boundary_ids
+                
+            self.default_bc = BoundaryCondition( self.n_boundary_cells )
+
+    @property
+    def shape(self):
+        return (self.nrows, self.ncols)
 
     @property
     def dx(self):
@@ -1099,7 +1167,64 @@ class RasterModelGrid(ModelGrid):
             
             >>> rmg = RasterModelGrid(4, 5, 1.0)
         """
+        # Create active in-link and out-link matrices.
+        self.node_inlink_matrix = - numpy.ones((2, self.num_nodes),
+                                               dtype=int)
+        self.node_outlink_matrix = - numpy.ones((2, self.num_nodes),
+                                                dtype=int)
+
+        # Set up the inlink arrays
+        tonodes = self.link_tonode
+        self.node_numinlink = numpy.bincount(tonodes,
+                                             minlength=self.num_nodes)
+
+        counts = count_repeats(self.link_tonode)
+        for (count, (tonodes, link_ids)) in enumerate(counts):
+            self.node_inlink_matrix[count][tonodes] = link_ids
+
+        # Set up the outlink arrays
+        fromnodes = self.link_fromnode
+        self.node_numoutlink = numpy.bincount(fromnodes,
+                                              minlength=self.num_nodes)
+        counts = count_repeats(self.link_fromnode)
+        for (count, (fromnodes, link_ids)) in enumerate(counts):
+            self.node_outlink_matrix[count][fromnodes] = link_ids
         
+    def setup_inlink_and_outlink_matrices_slow(self):
+        """
+        Creates data structures to record the numbers of inlinks and outlinks
+        for each node. An inlink of a node is simply a link that has the node as
+        its "to" node, and an outlink is a link that has the node as its "from".
+        
+        We store the inlinks in a 2-row by num_nodes-column matrix called
+        node_inlink_matrix. It has two rows because we know that the nodes in
+        our raster grid will never have more than two inlinks an two outlinks
+        each (a given node could also have zero or one of either). The outlinks
+        are stored in a similar matrix.
+        
+        We also keep track of the total number of inlinks and outlinks at each
+        node in the num_inlinks and num_outlinks arrays.
+        
+        The inlink and outlink matrices are useful in numerical calculations.
+        Each row of each matrix contains one inlink or outlink per node. So, if
+        you have a corresponding "flux" matrix, you can map incoming or
+        outgoing fluxes onto the appropriate nodes. More information on this is
+        in the various calculate_flux_divergence... functions.
+        
+        What happens if a given node does not have two inlinks or outlinks? We
+        simply put the default value -1 in this case. This allows us to use a 
+        cute little trick when computing inflows and outflows. We make our 
+        "flux" array one element longer than the number of links, with the last
+        element containing the value 0. Thus, any time we add an influx from 
+        link number -1, Python takes the value of the last element in the array,
+        which is zero. By doing it this way, we maintain the efficiency that 
+        comes with the use of numpy. Again, more info can be found in the 
+        description of the flux divergence functions.
+        
+        Example:
+            
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+        """
         # Create in-link and out-link matrices.
         self.node_numinlink = numpy.zeros(self.num_nodes,dtype=int)
         self.node_numoutlink = numpy.zeros(self.num_nodes,dtype=int)
@@ -1126,6 +1251,35 @@ class RasterModelGrid(ModelGrid):
             self.node_numoutlink[fromnode] += 1
         
     def setup_active_inlink_and_outlink_matrices(self):
+        """
+        Creates data structures to record the numbers of active inlinks and 
+        active outlinks for each node. These data structures are equivalent to
+        the "regular" inlink and outlink matrices, except that it uses the IDs
+        of active links (only).
+        """
+        # Create active in-link and out-link matrices.
+        self.node_active_inlink_matrix = - numpy.ones((2, self.num_nodes),
+                                                       dtype=int)
+        self.node_active_outlink_matrix = - numpy.ones((2, self.num_nodes),
+                                                        dtype=int)
+        # Set up the inlink arrays
+        tonodes = self.activelink_tonode
+        self.node_numactiveinlink = numpy.bincount(tonodes,
+                                                   minlength=self.num_nodes)
+
+        counts = count_repeats(self.activelink_tonode)
+        for (count, (tonodes, active_link_ids)) in enumerate(counts):
+            self.node_active_inlink_matrix[count][tonodes] = active_link_ids
+
+        # Set up the outlink arrays
+        fromnodes = self.activelink_fromnode
+        self.node_numactiveoutlink = numpy.bincount(fromnodes,
+                                                    minlength=self.num_nodes)
+        counts = count_repeats(self.activelink_fromnode)
+        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
+            self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+
+    def setup_active_inlink_and_outlink_matrices_slow(self):
         """
         Creates data structures to record the numbers of active inlinks and 
         active outlinks for each node. These data structures are equivalent to
@@ -1454,7 +1608,10 @@ class RasterModelGrid(ModelGrid):
         else:
             self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
         
-        self.reset_list_of_active_links()
+        if _SLOW:
+            self.reset_list_of_active_links_slow()
+        else:
+            self.reset_list_of_active_links()
         
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
