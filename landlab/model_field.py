@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
+import numpy as np
 from landlab import RasterModelGrid
-
 
 class RasterModelField(RasterModelGrid, dict):
     """
@@ -32,14 +32,21 @@ class RasterModelField(RasterModelGrid, dict):
         super(RasterModelField, self).__init__(num_rows=shape[0],
                                                num_cols=shape[1],
                                                dx=spacing[0])
+        self._units = dict()
 
-    def add_field(self, name, values, centering='point', reshape=False):
+    @property
+    def units(self):
+        return self._units
+
+    def add_field(self, name, values, centering='point', reshape=False,
+                 units='-'):
         assert(values.size == self.get_count_of_all_cells())
 
         self[name] = values
         if reshape:
             self[name].shape = (self.get_count_of_rows(),
                                 self.get_count_of_cols())
+        self.units[name] = units
 
     def calculate_gradients_at_active_links(self, var_name):
         """
@@ -60,6 +67,10 @@ class RasterModelField(RasterModelGrid, dict):
                     self[var_name]))
 
         return self[grad_name]
+
+    def imshow(self, name, **kwds):
+        from landlab.plot.imshow import imshow_field
+        imshow_field(self, name, **kwds)
 
 
 if __name__ == '__main__':
