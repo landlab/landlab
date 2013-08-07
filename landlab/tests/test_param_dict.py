@@ -4,6 +4,8 @@ Unit tests for landlab.model_parameter_dictionary
 """
 
 import unittest
+import os
+import tempfile
 import numpy as np
 
 from landlab import ModelParameterDictionary
@@ -42,6 +44,27 @@ class TestModelParameterDictionary(unittest.TestCase):
         param_list = set(self.param_dict.params())
 
         self.assertEqual(param_list, all_keys)
+
+    def test_read_file_name(self):
+        (prm_fd, prm_file_name) = tempfile.mkstemp()
+
+        prm_file = os.fdopen(prm_fd, 'w')
+        prm_file.write(_TEST_PARAM_DICT_FILE)
+        prm_file.close()
+
+        param_dict = ModelParameterDictionary()
+        param_dict.read_from_file(prm_file_name)
+
+        os.remove(prm_file_name)
+
+        all_keys = set([
+            'FLOAT_VAL', 'INT_VAL', 'STRING_VAL', 'TRUE_BOOL_VAL',
+            'FALSE_BOOL_VAL',
+        ])
+        param_list = set(param_dict.params())
+
+        self.assertEqual(param_list, all_keys)
+
 
     def test_read_file_like_twice(self):
         from StringIO import StringIO
