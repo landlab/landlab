@@ -40,7 +40,7 @@ class RasterModelField(RasterModelGrid, dict):
 
     def add_field(self, name, values, centering='point', reshape=False,
                  units='-'):
-        assert(values.size == self.get_count_of_all_cells())
+        assert(values.size == self.get_count_of_all_nodes())
 
         self[name] = values
         if reshape:
