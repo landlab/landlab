@@ -4,7 +4,7 @@
 Component that models 2D diffusion using an explicit finite-volume method.
 
 Created July 2013 GT
-Last updated July 2013 GT
+Last updated August 2013 GT
 
 """
 
@@ -23,7 +23,10 @@ class DiffusionComponent():
     def initialize(self, input_stream):
         
         # Create a ModelParameterDictionary for the inputs
-        inputs = ModelParameterDictionary(input_stream)
+        if type(input_stream)==ModelParameterDictionary:
+            inputs = input_stream
+        else:
+            inputs = ModelParameterDictionary(input_stream)
         
         # Read input/configuration parameters
         self.kd = inputs.get('DIFMOD_KD', ptype=float)
@@ -61,14 +64,25 @@ class DiffusionComponent():
         
         # Calculate the total rate of elevation change
         dzdt = self.uplift_rate - self.dqsds
-
+        
         # Update the elevations
         z[self.interior_cells] = z[self.interior_cells] \
                                  + dzdt[self.interior_cells] * self.dt
-           
+                                 
         # Update current time and return it
         self.current_time += self.dt
         return self.current_time
         
         
+    def update_until(self, t, z):
+        
+        while self.current_time < t:
+            self.update(z)
+            
+        
+    def get_time_step(self):
+        """
+        Returns time-step size.
+        """
+        return self.dt
         

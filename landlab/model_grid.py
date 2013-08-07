@@ -432,7 +432,7 @@ class ModelGrid(object):
                 break
         return active_link
         
-    def get_minimum_active_link_length():
+    def get_minimum_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
         """
@@ -1232,7 +1232,7 @@ class RasterModelGrid(ModelGrid):
         ID = int(ycoord//self._dx * self.ncols + xcoord//self._dx)
         return numpy.array([ID, ID+1, ID+self.ncols, ID+self.ncols+1])
     
-    def get_minimum_active_link_length():
+    def get_minimum_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
         Overrides ModelGrid.get_minimum_active_link_length().

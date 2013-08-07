@@ -378,7 +378,20 @@ The plotting section is similar to what we saw in the previous two examples. One
 
 
 %%%%%%%%%%%%%%%%%%%%%
-%\newpage
+
+\section{Using ModelGrid with a Landlab Component}
+
+So far, we've seen examples in which you use ModelGrid to create a new model from scratch. You can also use ModelGrid together with a pre-existing Landlab component to create a model. There are two ways to do this. The first is to create a Landlab Model, which is the recommended way to link together Landlab components because it provides helpful capabilities (such as easy file I/O and display handling, and compatibility with the CSDMS Framework). Instructions on how to create a Landlab Model are provided in {\em [NAME OF DOCUMENT]}. The second is simply to write a short Python program that instantiates one or more components, initializes them, and then uses a loop to call their \code{update} methods in turn. Here, we will illustrate this second method in order to give an introduction to how Landlab components work.
+
+The listing below shows a version of the diffusion model in which we use a DiffusionComponent. In this case, the model parameters will be read from a formatted text file rather than being hard-coded (with one exception: we have hard-coded the name of the input file).
+
+ \lstinputlisting[firstnumber=1,firstline=1,lastline=77]{example_diffusion_component_driver.py}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \bibliography{/Users/gtucker/Documents/Literature/gt_library.bib}
 \bibliographystyle{/Users/gtucker/Documents/Literature/agufull08}
 

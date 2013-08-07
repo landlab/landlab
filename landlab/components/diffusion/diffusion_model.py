@@ -30,7 +30,8 @@ class DiffusionModel():
         
         # Create a diffusion component
         self.diffusion_component = diffusion_component.DiffusionComponent(self.grid)
-    
+        self.diffusion_component.initialize(input_stream)
+        
         # Read parameters
         run_duration = inputs.get('RUN_DURATION')
         self.num_time_steps = int(run_duration/self.diffusion_component.dt)
