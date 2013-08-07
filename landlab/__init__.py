@@ -24,3 +24,5 @@ from landlab.framework.decorators import Implements, ImplementsOrRaise
 from landlab.framework.framework import Framework
 from landlab.model_grid import (BoundaryCondition, ModelGrid,
                                 RasterModelGrid)
+from landlab.model_field import RasterModelField
+from landlab.model_component import Component
