@@ -63,27 +63,25 @@ class WatershedBoundaryConditions(object):
         
         This must be passed the grid, node_data and nodata_value.
         """
+        #for this to be a watershed, need to make sure that there is a ring
+        #of no data values around the outside of the watershed, barring the 
+        #outlet location.  So enforce that all outer nodes 
+        #are inactive boundaries now, then set the outlet location later.
+        #By enforcing the ring of closed values first, then fixing the outlet
+        #later, it should be OK if the outlet is on the outer ring.
+        mg.set_inactive_boundaries(True, True, True, True)
         
         #set no data nodes to inactive boundaries
+        #this may be redundant, but must do in case there are no data
+        #values that are not on the outer boundary
         mg.deactivate_nodata_nodes(node_data, nodata_value)
-        
-        #first, order the nodes by value.
-        #if the no data value is less than the data values, set the no
-        #data value to greater than the max data value.
-        #Then, order by value, and go through and find the lowest value
-        #that is also adjacent to a boundary.
         
         #This method works well if the watershed topography is already 
         #established.  If it's not, then this is an ineffiient method, but 
         #seems likely that one would only call this if the watershed
         #topography was already established.
         
-        #indices contains the indices of node_data sorted from smallest vals 
-        #to largest vals
-        #not sure I need this
-        #indices = np.argsort(node_data)
-        
-        #ng this could maybe be generalized so you don't need this if/else
+        #ng this could maybe be generalized (?) so you don't need this if/else
         #first case is if nodata_value is minimum value
         if (min(node_data) == nodata_value):
             #min value is nodata_value, so need to find values
@@ -110,8 +108,7 @@ class WatershedBoundaryConditions(object):
             not_found=True          
             while not_found:
                 #now check these locations to see if any are next to 
-                #a boundary node
-            
+                #a boundary node          
                 local_not_found=True
                 i=0
                 while (i<len(min_locs) and local_not_found):
@@ -133,14 +130,13 @@ class WatershedBoundaryConditions(object):
                     locs=list(np.where(node_data>min_val)[0])
                     #now find new minimum of these values
                     min_val=np.min(node_data[locs])
-                    #now find where minimum values are
                     min_locs=list(np.where(node_data==min_val)[0])
                 else:
                     #if locally found, it is also globally found
                     #so done with outer while
                     not_found = False   
         else:
-            #entering this else b/c nodata_valueis not the minimum value
+            #entering this else b/c nodata_value is not the minimum value
             #can I generalize this?
             #will the no data value ever be anything other than the minimum
             #value?
@@ -202,7 +198,7 @@ class WatershedBoundaryConditions(object):
                     #if locally found, it is also globally found
                     #so done with outer while
                     not_found = False   
-        
+                    
         #set outlet boundary condition
         mg.set_fixed_value_boundaries(outlet_loc)
         
