@@ -1073,6 +1073,8 @@ class RasterModelGrid(ModelGrid):
             if self.DEBUG_VERBOSE:
                 print self.interior_cells
             
+            #NG is pretty sure that the code below these comments are obsolete.
+            #For now it is just commented out.  Maybe we can delete it?
             #
             # Boundary condition handling: 
             # 
@@ -1122,29 +1124,29 @@ class RasterModelGrid(ModelGrid):
             # (Note that this could be superceded if you wanted an irregular
             # boundary inside the rectangular grid)
             #
-            self.boundary_ids = -ones( self.ncells, dtype=int )
-            self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
-            id = 0
-            for r in xrange( 0, num_cols-1 ):       # Bottom
-                self.boundary_cells[id] = r
-                self.boundary_ids[r] = id
-                id += 1
-            for c in xrange( num_cols-1, self.ncells-num_cols, num_cols ):  # Right
-                self.boundary_cells[id] = c
-                self.boundary_ids[c] = id
-                id += 1
-            for r in xrange( self.ncells-1, num_cols*(num_rows-1), -1 ):       # Top
-                self.boundary_cells[id] = r
-                self.boundary_ids[r] = id
-                id += 1
-            for c in xrange( num_cols*(num_rows-1), 0, -num_cols ):  # Left
-                self.boundary_cells[id] = c
-                self.boundary_ids[c] = id
-                id += 1
-            
-            if self.DEBUG_VERBOSE:
-                print 'Boundary CIDs:',self.boundary_cells
-                print 'Cell BIDs:',self.boundary_ids
+            #self.boundary_ids = -ones( self.ncells, dtype=int )
+            #self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
+            #id = 0
+            #for r in xrange( 0, num_cols-1 ):       # Bottom
+            #    self.boundary_cells[id] = r
+            #    self.boundary_ids[r] = id
+            #    id += 1
+            #for c in xrange( num_cols-1, self.ncells-num_cols, num_cols ):  # Right
+            #    self.boundary_cells[id] = c
+            #    self.boundary_ids[c] = id
+            #    id += 1
+            #for r in xrange( self.ncells-1, num_cols*(num_rows-1), -1 ):       # Top
+            #    self.boundary_cells[id] = r
+            #    self.boundary_ids[r] = id
+            #    id += 1
+            #for c in xrange( num_cols*(num_rows-1), 0, -num_cols ):  # Left
+            #    self.boundary_cells[id] = c
+            #    self.boundary_ids[c] = id
+            #    id += 1
+            #
+            #if self.DEBUG_VERBOSE:
+            #    print 'Boundary CIDs:',self.boundary_cells
+            #    print 'Cell BIDs:',self.boundary_ids
                 
             self.default_bc = BoundaryCondition( self.n_boundary_cells )
 
@@ -2338,14 +2340,16 @@ class RasterModelGrid(ModelGrid):
         ng aug 2013
         """
         
-        nbr_cells=self.get_neighbor_list(id)
+        nbr_nodes=self.get_neighbor_list(id)
+        #print "nbr nodes ", nbr_nodes
         diag_nbrs=self.get_diagonal_list(id)
+        #print "diag nbrs ",diag_nbrs
         
         i=0
         #print 'id ',nbr_cells[i],' i ',i,' is interior? ',self.is_interior(nbr_cells[i])
-        while (i<4 and self.is_interior(nbr_cells[i]) ) :
+        while (i<4 and self.is_interior(nbr_nodes[i]) ) :
             i += 1
-            #print 'id ',nbr_cells[i],' i ',i
+            #print 'id ',nbr_nodes[i],' i ',i
         
         if i<4:
             return True
@@ -2405,10 +2409,13 @@ class RasterModelGrid(ModelGrid):
     def is_interior( self, id ):
         """
         Returns True if the cell is an interior cell, False otherwise. 
-        Interior status is indicated by a value of -1 in boundary_ids.
-        """
+        Interior status is indicated by a value of 0 in node_status.
     
-        return self.boundary_ids[id] < 0
+        NG changed this.
+        """
+        #ng thinks there may be a problem here.
+        #return self.boundary_ids[id] < 0
+        return self.node_status[id] < 1
         
     def get_boundary_code( self, id ):
         """
@@ -2417,36 +2424,38 @@ class RasterModelGrid(ModelGrid):
         """
         return self.node_status[id] 
         
-    def update_boundary_cell( self, id, u, bc = None ):
-        """
-        If cell ID tracks the value at another cell, this function sets
-        the value of U at cell ID to the value at its tracking cell in
-        BoundaryCondition "bc", which defaults to the self.default_bc.
-        If it is a fixed-gradient boundary, it updates the gradient.
-
-        .. todo::
-            Generalize, or create base-class version, that uses local
-            link length instead of self._dx.
-        """
-
-        if bc == None:
-            bc = self.default_bc
-        bid = self.boundary_ids[id]
-        if bid > -1:
-            if bc.boundary_code[bid] == bc.TRACKS_CELL_BOUNDARY:
-            	u[id] = u[bc.tracks_cell[bid]]
-            elif bc.boundary_code[bid] == bc.FIXED_GRADIENT_BOUNDARY:
-                u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self._dx
-
-        if self.DEBUG_TRACK_METHODS:
-            print 'In RasterModelGrid.update_boundary_cell with cell',id
-            print 'Its value is now',u[id]
-            if bid < 0:
-                print 'It is NOT a boundary cell!'
-            if ( bid > -1 ) and ( bc.tracks_cell[bid] > -1 ):
-                print 'It tracks cell',bc.tracks_cell[bid]
-            else:
-                print 'It does not track any cell.'
+#    def update_boundary_cell( self, id, u, bc = None ):
+#        """
+#        If cell ID tracks the value at another cell, this function sets
+#        the value of U at cell ID to the value at its tracking cell in
+#        BoundaryCondition "bc", which defaults to the self.default_bc.
+#        If it is a fixed-gradient boundary, it updates the gradient.
+#
+#        .. todo::
+#            Generalize, or create base-class version, that uses local
+#            link length instead of self._dx.
+#            
+#        NG thinks this method is obsolete.  Maybe we can delete it?
+#        """
+#
+#        if bc == None:
+#            bc = self.default_bc
+#        bid = self.boundary_ids[id]
+#        if bid > -1:
+#            if bc.boundary_code[bid] == bc.TRACKS_CELL_BOUNDARY:
+#            	u[id] = u[bc.tracks_cell[bid]]
+#            elif bc.boundary_code[bid] == bc.FIXED_GRADIENT_BOUNDARY:
+#                u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self._dx
+#
+#        if self.DEBUG_TRACK_METHODS:
+#            print 'In RasterModelGrid.update_boundary_cell with cell',id
+#            print 'Its value is now',u[id]
+#            if bid < 0:
+#                print 'It is NOT a boundary cell!'
+#            if ( bid > -1 ) and ( bc.tracks_cell[bid] > -1 ):
+#                print 'It tracks cell',bc.tracks_cell[bid]
+#            else:
+#                print 'It does not track any cell.'
 
     #-------------------------------------------------------------------
     # RasterModelGrid.calculate_cell_pair_gradient:
