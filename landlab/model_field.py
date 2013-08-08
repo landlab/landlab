@@ -29,6 +29,8 @@ class RasterModelField(RasterModelGrid, dict):
         assert(len(spacing) == 2)
         assert(len(origin) == 2)
 
+        self._units = dict()
+
         super(RasterModelField, self).__init__(num_rows=shape[0],
                                                num_cols=shape[1],
                                                dx=spacing[0])
@@ -46,7 +48,10 @@ class RasterModelField(RasterModelGrid, dict):
         if reshape:
             self[name].shape = (self.get_count_of_rows(),
                                 self.get_count_of_cols())
-        self.units[name] = units
+        self._units[name] = units
+
+    def units(self, name):
+        return self._units[name]
 
     def calculate_gradients_at_active_links(self, var_name):
         """
