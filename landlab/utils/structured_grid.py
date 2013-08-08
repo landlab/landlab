@@ -15,11 +15,27 @@ BAD_INDEX_VALUE = np.iinfo(np.int).max
 
 
 def node_count(shape):
+    """
+    The total number of nodes in a structured grid with dimensions given
+    by the tuple, *shape*. Where *shape* is the number of node rows and
+    node columns.
+
+    >>> node_count((3, 4))
+    12
+    """
     assert(len(shape) == 2)
     return shape[0] * shape[1]
 
 
 def cell_count(shape):
+    """
+    The total number of cells in a structured grid with dimensions, *shape*.
+    Where *shape* is a tuple that gives the dimensions of the grid as number
+    of rows of nodes followed by number of columns of nodes.
+
+    >>> cell_count((3, 4))
+    2
+    """
     assert(len(shape) == 2)
 
     try:
@@ -31,18 +47,26 @@ def cell_count(shape):
 
 
 def active_cell_count(shape):
+    """
+    Number of active cells. By default, all cells are active so this is
+    the same as cell_count.
+    """
     return cell_count(shape)
 
 
 def active_link_count(shape):
+    """
+    Number of active links in a structured grid with dimensions, *shape*.
+    """
     assert(len(shape) == 2)
     return link_count(shape) - 2 * (shape[0] - 1) + 2 * (shape[1] - 1)
 
 
 def link_count(shape):
     """
-    Returns the number of links in a structured grid with dimensions, *shape*.
-    This is the number of to-links and from-links, not the total of the two.
+    Total (active and inactive) number of links in a structured grid with
+    dimensions, *shape*. This is the number of to-links and from-links, not
+    the total of the two.
 
     >>> link_count((3,2))
     7
@@ -52,35 +76,75 @@ def link_count(shape):
 
 
 def boundary_cell_count(shape):
+    """
+    Number of cells that are on the boundary of a structured grid with
+    dimensions, *shape*. In fact, cells centered on boundary nodes are not
+    really cells. If they were, though, this is how many there would be.
+
+    >>> boundary_cell_count((3, 4))
+    10
+    """
     assert(len(shape) == 2)
     return 2 * (shape[0] - 2) + 2 * (shape[1] - 2) + 4
 
 
 def interior_cell_count(shape):
-    return cell_count(shape) - boundary_cell_count(shape)
+    """
+    Number of interior cells. Since cells are only defined on interior nodes,
+    this is the same as cell_count.
+    """
+    return cell_count(shape)
 
 
 def face_count(shape):
+    """
+    Total number of faces in a structured grid with dimensions, *shape*. Each
+    cell has four faces, and shared faces only count once.
+
+    >>> face_count((3, 4))
+    7
+    """
     return (shape[0] - 1) * (shape[1] - 2) + (shape[0] - 2) * (shape[1] - 1)
 
 
 def top_index_iter(shape):
+    """
+    Iterator for the top boundary indices of a structured grid.
+    """
     return xrange(shape[1] * (shape[0] - 1), shape[0] * shape[1])
 
 
 def bottom_index_iter(shape):
+    """
+    Iterator for the bottom boundary indices of a structured grid.
+    """
     return xrange(0, shape[1])
 
 
 def left_index_iter(shape):
+    """
+    Iterator for the left boundary indices of a structured grid.
+    """
     return xrange(0, shape[0] * shape[1], shape[1])
 
 
 def right_index_iter(shape):
+    """
+    Iterator for the right boundary indices of a structured grid.
+    """
     return xrange(shape[1] - 1, shape[0] * shape[1], shape[1])
 
 
 def left_right_iter(shape, *args):
+    """
+    Iterator for the left and right boundary indices of a structured grid.
+    This iterates over the indices in order rather than iterating all of
+    the left boundary and then all of the right boundary.
+
+    >>> import numpy as np
+    >>> np.fromiter(left_right_iter((4, 3)), dtype=np.int)
+    array([ 0,  2,  3,  5,  6,  8,  9, 11])
+    """
     if len(args) == 0:
         iter_rows = xrange(0, shape[0], 1)
     elif len(args) == 1:
@@ -96,17 +160,31 @@ def left_right_iter(shape, *args):
 
 
 def bottom_top_iter(shape):
+    """
+    Iterates of the bottom indices and then the top indices of a structured
+    grid.
+    """
     return itertools.chain(bottom_index_iter(shape),
                            top_index_iter(shape))
 
 
 def boundary_iter(shape):
+    """
+    Iterates over all of the boundary node indices of a structured grid in
+    order.
+    """
     return itertools.chain(bottom_index_iter(shape),
                            left_right_iter(shape, 1, shape[0] - 1),
                            top_index_iter(shape))
 
 
 def boundary_nodes(shape):
+    """
+    An array of the indices of the boundary nodes.
+
+    >>> boundary_nodes((3, 4))
+    array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
+    """
     return np.fromiter(boundary_iter(shape), dtype=np.int)
 
 
