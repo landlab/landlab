@@ -809,8 +809,8 @@ def dig_some_craters(grid, data, nt_in=10000, min_radius=0.005):
     elev_raster = grid.node_vector_to_raster(data.elev, flip_vertically=True)
     #contour(elev_raster)
     
-    profile = plot(elev_raster[600,:])
-    xsec = plot(elev_raster[:,1100])
+    profile = plot(elev_raster[300,:])
+    xsec = plot(elev_raster[:,100])
     #imshow(elev_raster)
     #colorbar()
     #show()
@@ -897,8 +897,10 @@ def one_crater_then_degrade():
     #print('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
 
-def ten_times_reduction(mg_in, vectors_in):
-    loops = 25
+def ten_times_reduction(mg_in, vectors_in, loops=25):
+    """
+    Depreciated in favour of step_reduce_size.
+    """
     crater_time_sequ_50_m_min = {}
     crater_time_sequ_5_m_min = {}
     profile_list = []
@@ -910,6 +912,49 @@ def ten_times_reduction(mg_in, vectors_in):
         mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=10000, min_radius=0.005)
         crater_time_sequ_5_m_min[i] = copy(vectors_in)
     return crater_time_sequ_50_m_min, crater_time_sequ_5_m_min
+
+def step_reduce_size(mg_in, vectors_in, loops=[25,25], interval=10000, min_radius_in=[0.05, 0.005]):
+    crater_time_sequ_1st = {}
+    crater_time_sequ_2nd = {}
+    profile_list = []
+    xsec_list = []
+    for i in xrange(0,loops[0]):
+        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[0])
+        crater_time_sequ_1st[i] = copy(vectors_in)
+    for i in xrange(0, loops[1]):
+        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[1])
+        crater_time_sequ_2nd[i] = copy(vectors_in)
+    return crater_time_sequ_1st, crater_time_sequ_2nd
+
+def plot_hypsometry(plotting_rasters):
+    """
+    This function plots hypsometry (elev above minimum vs no. of px below it) for each of plotting rasters provided to the function. If plotting_rasters is a dictionary of data, where the plotting rasters are stored as data.plotting_raster, the function will return all entries. If it is a single plotting raster, or a single 'data' object, only that raster will plot. Call 'show()' manually after running this code.
+    """
+    
+    def plot_a_hypsometry_curve(elevs, color=0):
+        min_elev=numpy.amin(elevs)
+        rel_relief = (elevs.flatten() - min_elev)/(numpy.amax(elevs)-min_elev)
+        rel_relief.sort()
+        hyps_x_axis = (1.-numpy.array(range(rel_relief.size), dtype=float)/rel_relief.size)
+        #print hyps_x_axis
+        #print rel_relief
+        input_color = color*0.9
+        plot(hyps_x_axis, rel_relief, color=str(input_color))
+    
+    if type(plotting_rasters) == dict:
+        for i in range(len(plotting_rasters)):
+            fraction = float(i)/len(plotting_rasters)
+            plot_a_hypsometry_curve(plotting_rasters[i].viewing_raster, color=fraction)
+    elif type(plotting_rasters) == numpy.ndarray:
+        plot_a_hypsometry_curve(plotting_rasters)
+    else:
+        try:
+            plot_a_hypsometry_curve(plotting_rasters.viewing_raster)
+        except:
+            print 'Input type not recognised!'
+        
+            
+
 
 #if __name__=='__main__':
 #    main()
