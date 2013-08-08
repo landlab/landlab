@@ -193,57 +193,6 @@ def cell_node_index(shape):
     return cell_node
 
 
-def link_lists(shape):
-    """
-    Link lists:
-    For all links, we encode the "from" and "to" nodes, and the face
-    (if any) associated with the link. If the link does not intersect a
-    face, then face is assigned None.
-    For active links, we store the corresponding link ID.
-
-    The numbering scheme for links in RasterModelGrid is illustrated with
-    the example of a five-column by four-row grid (each * is a node,
-    the lines show links, and the ^ and > symbols indicate the direction
-    of each link: up for vertical links, and right for horizontal ones)::
-
-        *--27-->*--28-->*--29-->*--30-->*
-        ^       ^       ^       ^       ^
-        10      11      12      13      14
-        |       |       |       |       |
-        *--23-->*--24-->*--25-->*--26-->*
-        ^       ^       ^       ^       ^
-        5       6       7       8       9   
-        |       |       |       |       |
-        *--19-->*--20-->*--21-->*--22-->*
-        ^       ^       ^       ^       ^
-        0       1       2       3       4
-        |       |       |       |       |
-        *--15-->*--16-->*--17-->*--18-->*
-    
-    create the fromnode and tonode lists
-    """
-    (num_rows, num_cols) = shape
-
-    self.link_fromnode = []
-    self.link_tonode = []
-        
-    #   vertical links
-    for r in range(0, num_rows-1):
-        for c in range(0, num_cols):
-            self.link_fromnode.append(c+r*num_cols)
-            self.link_tonode.append(c+(r+1)*num_cols)
-        
-    #   horizontal links
-    for r in range(0, num_rows):
-        for c in range(0, num_cols-1):
-            self.link_fromnode.append(c+r*num_cols)
-            self.link_tonode.append(c+r*num_cols+1)
-        
-    #   convert to np arrays
-    self.link_fromnode = np.array(self.link_fromnode)
-    self.link_tonode = np.array(self.link_tonode)
-    
-
 def node_link_index(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
