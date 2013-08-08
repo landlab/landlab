@@ -22,5 +22,6 @@ Subpackages
 
 .. toctree::
 
+    landlab.io.netcdf
     landlab.io.tests
 

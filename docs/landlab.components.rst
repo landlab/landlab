@@ -1,26 +1,18 @@
 components Package
 ==================
 
-:mod:`RainfallDriver` Module
-----------------------------
+:mod:`components` Package
+-------------------------
 
-.. automodule:: landlab.components.RainfallDriver
+.. automodule:: landlab.components
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`RainfallDriver_Test` Module
----------------------------------
+:mod:`dem_boundary_conditions` Module
+-------------------------------------
 
-.. automodule:: landlab.components.RainfallDriver_Test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`craters` Module
----------------------
-
-.. automodule:: landlab.components.craters
+.. automodule:: landlab.components.dem_boundary_conditions
     :members:
     :undoc-members:
     :show-inheritance:
@@ -41,10 +33,34 @@ components Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`rainfall_driver` Module
+-----------------------------
+
+.. automodule:: landlab.components.rainfall_driver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`sample` Module
 --------------------
 
 .. automodule:: landlab.components.sample
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`soil_moisture` Module
+---------------------------
+
+.. automodule:: landlab.components.soil_moisture
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`soil_moisture_driver` Module
+----------------------------------
+
+.. automodule:: landlab.components.soil_moisture_driver
     :members:
     :undoc-members:
     :show-inheritance:
@@ -54,5 +70,7 @@ Subpackages
 
 .. toctree::
 
+    landlab.components.craters
     landlab.components.flexure
+    landlab.components.flow_routing
 

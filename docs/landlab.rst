@@ -17,6 +17,14 @@ landlab Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`model_component` Module
+-----------------------------
+
+.. automodule:: landlab.model_component
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`model_field` Module
 -------------------------
 
@@ -50,5 +58,7 @@ Subpackages
     landlab.examples
     landlab.framework
     landlab.io
+    landlab.plot
     landlab.tests
+    landlab.utils
 
