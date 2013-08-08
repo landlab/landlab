@@ -417,6 +417,30 @@ class ModelGrid(object):
         """
         return self._node_y           
 
+    def get_node_coords(self, axis=0):
+        assert(axis in (0, 1))
+
+        if axis == 0:
+            return self.get_node_y_coords()
+        else:
+            return self.get_node_x_coords()
+
+    def get_coordinate_units(self, axis=0):
+        assert(axis in (0, 1))
+
+        if axis == 0:
+            return 'degrees_north'
+        else:
+            return 'degrees_east'
+
+    def get_coordinate_name(self, axis=0):
+        assert(axis in (0, 1))
+
+        if axis == 0:
+            return 'latitude'
+        else:
+            return 'longitude'
+
     def get_node_z_coords( self ):
         """
         Returns vector of node z coordinates.
@@ -1131,6 +1155,10 @@ class RasterModelGrid(ModelGrid):
     @property
     def dx(self):
         return self._dx
+
+    @property
+    def shape(self):
+        return (self.nrows, self.ncols)
 
     def setup_inlink_and_outlink_matrices(self):
         """
