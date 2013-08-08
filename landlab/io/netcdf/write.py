@@ -128,7 +128,7 @@ def _add_variables_at_points(root, fields):
         else:
             var[n_times] = fields[var_name].flat[0]
 
-        var.units = fields.units(var_name)
+        var.units = fields.units[var_name]
         var.long_name = var_name
 
 
@@ -158,7 +158,7 @@ def _add_variables_at_cells(root, fields):
         else:
             var[n_times] = fields[var_name].flat[0]
 
-        var.units = fields.units(var_name)
+        var.units = fields.units[var_name]
         var.long_name = var_name
 
 
