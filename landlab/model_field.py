@@ -50,9 +50,6 @@ class RasterModelField(RasterModelGrid, dict):
                                 self.get_count_of_cols())
         self._units[name] = units
 
-    def units(self, name):
-        return self._units[name]
-
     def calculate_gradients_at_active_links(self, var_name):
         """
         Calculate the gradient of the variable with name *var_name* at all
