@@ -98,7 +98,7 @@ class TestNodeActiveCell(unittest.TestCase):
         assert_array_equal(
             active_cells,
             np.array([BAD_INDEX_VALUE, BAD_INDEX_VALUE, BAD_INDEX_VALUE,
-                      BAD_INDEX_VALUE,               4, BAD_INDEX_VALUE,
+                      BAD_INDEX_VALUE,               0, BAD_INDEX_VALUE,
                       BAD_INDEX_VALUE, BAD_INDEX_VALUE, BAD_INDEX_VALUE])
         )
 
@@ -136,6 +136,16 @@ class TestCellCount(unittest.TestCase):
         self.assertEqual(n_cells, 0)
 
 
+class TestInteriorCellCount(unittest.TestCase):
+    def test_one_cell(self):
+        n_cells = sgrid.interior_cell_count((3, 3))
+        self.assertEqual(n_cells, 1)
+
+    def test_no_cells(self):
+        n_cells = sgrid.interior_cell_count((2, 3))
+        self.assertEqual(n_cells, 0)
+
+
 class TestActiveCellCount(unittest.TestCase):
     def test_one_cell(self):
         n_cells = sgrid.active_cell_count((3, 3))
@@ -158,7 +168,8 @@ class TestInteriorNodes(unittest.TestCase):
 
 class TestNodeStatus(unittest.TestCase):
     def test_4_by_5(self):
-        status = sgrid.node_boundary_status((4, 5))
+        status = sgrid.node_status((4, 5))
+        self.assertEqual(status.dtype, np.int8)
         assert_array_equal(status,
                            np.array([1, 1, 1, 1, 1,
                                      1, 0, 0, 0, 1,
@@ -166,7 +177,8 @@ class TestNodeStatus(unittest.TestCase):
                                      1, 1, 1, 1, 1, ]))
 
     def test_no_interiors(self):
-        status = sgrid.node_boundary_status((2, 3))
+        status = sgrid.node_status((2, 3))
+        self.assertEqual(status.dtype, np.int8)
         assert_array_equal(status,
                            np.array([1, 1, 1,
                                      1, 1, 1,]))
@@ -193,11 +205,12 @@ class TestActiveLinks(unittest.TestCase):
         assert_array_equal(active_links,
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                      19, 20, 21, 22, 23, 24, 25, 26]))
+        self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
 
     def test_with_node_status(self):
-        status = sgrid.node_boundary_status((4, 5))
+        status = sgrid.node_status((4, 5))
         status[6] = sgrid.INACTIVE_BOUNDARY
-        active_links = sgrid.active_links((4, 5), node_status=status)
+        active_links = sgrid.active_links((4, 5), node_status_array=status)
 
         assert_array_equal(active_links,
                            np.array([2, 3, 7, 8, 11, 12, 13,
@@ -210,6 +223,7 @@ class TestActiveLinks(unittest.TestCase):
         assert_array_equal(active_links,
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                      19, 20, 21, 22, 23, 24, 25, 26]))
+        self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
 
 
 class TestLinkFaces(unittest.TestCase):
@@ -240,6 +254,120 @@ class TestLinkFaces(unittest.TestCase):
                                                  9, 10, 11, 12,
                                                  13, 14, 15, BAD,
                                                  BAD, BAD, BAD, BAD]))
+
+
+class TestReshapeArray(unittest.TestCase):
+    def test_default(self):
+        x = np.arange(12.)
+        y = sgrid.reshape_array((3, 4), x)
+
+        self.assertEqual(y.shape, (3, 4))
+        assert_array_equal(x, y.flat)
+        self.assertTrue(y.flags['C_CONTIGUOUS'])
+        self.assertTrue(y.base is x)
+
+    def test_copy(self):
+        x = np.arange(12.)
+        y = sgrid.reshape_array((3, 4), x, copy=True)
+
+        self.assertEqual(y.shape, (3, 4))
+        assert_array_equal(x, y.flat)
+        self.assertTrue(y.flags['C_CONTIGUOUS'])
+        self.assertFalse(y.base is x)
+
+    def test_flip(self):
+        x = np.arange(12.)
+        y = sgrid.reshape_array((3, 4), x, flip_vertically=True)
+
+        self.assertEqual(y.shape, (3, 4))
+        assert_array_equal(y, np.array([[ 8.,  9., 10., 11.],
+                                        [ 4.,  5.,  6., 7.],
+                                        [ 0.,  1.,  2., 3.]]))
+        self.assertFalse(y.flags['C_CONTIGUOUS'])
+        self.assertTrue(y.base is x)
+
+    def test_flip_copy(self):
+        x = np.arange(12.)
+        y = sgrid.reshape_array((3, 4), x, flip_vertically=True, copy=True)
+
+        self.assertEqual(y.shape, (3, 4))
+        assert_array_equal(y, np.array([[ 8.,  9., 10., 11.],
+                                        [ 4.,  5.,  6., 7.],
+                                        [ 0.,  1.,  2., 3.]]))
+        self.assertTrue(y.flags['C_CONTIGUOUS'])
+        self.assertFalse(y.base is x)
+
+
+class TestDiagonalArray(unittest.TestCase):
+    def test_default(self):
+        diags = sgrid.diagonal_array((2, 3), out_of_bounds=-1)
+        assert_array_equal(diags,
+                           np.array([[-1, -1,  4, -1],
+                                     [-1, -1,  5,  3],
+                                     [-1, -1, -1,  4],
+                                     [-1,  1, -1, -1],
+                                     [ 0,  2, -1, -1],
+                                     [ 1, -1, -1, -1]]))
+
+        self.assertTrue(diags.base is None)
+        self.assertTrue(diags.flags['C_CONTIGUOUS'])
+
+    def test_non_contiguous(self):
+        diags = sgrid.diagonal_array((2, 3), out_of_bounds=-1,
+                                     contiguous=False)
+        assert_array_equal(diags,
+                           np.array([[-1, -1,  4, -1],
+                                     [-1, -1,  5,  3],
+                                     [-1, -1, -1,  4],
+                                     [-1,  1, -1, -1],
+                                     [ 0,  2, -1, -1],
+                                     [ 1, -1, -1, -1]]))
+
+        self.assertTrue(isinstance(diags.base, np.ndarray))
+        self.assertFalse(diags.flags['C_CONTIGUOUS'])
+
+
+class TestNeighborArray(unittest.TestCase):
+    def test_default(self):
+        neighbors = sgrid.neighbor_array((2, 3))
+
+        BAD = sgrid.BAD_INDEX_VALUE
+
+        assert_array_equal(
+            neighbors,
+            np.array([[BAD, BAD,   1,   3],
+                      [  0, BAD,   2,   4],
+                      [  1, BAD, BAD,   5],
+                      [BAD,   0,   4, BAD],
+                      [  3,   1,   5, BAD],
+                      [  4,   2, BAD, BAD]]))
+
+        self.assertTrue(neighbors.flags['C_CONTIGUOUS'])
+        self.assertTrue(neighbors.base is None)
+
+    def test_set_out_of_bounds(self):
+        neighbors = sgrid.neighbor_array((2, 3), out_of_bounds=-1)
+        assert_array_equal(neighbors,
+                           np.array([[-1, -1,  1,  3],
+                                     [ 0, -1,  2,  4],
+                                     [ 1, -1, -1,  5],
+                                     [-1,  0,  4, -1],
+                                     [ 3,  1,  5, -1],
+                                     [ 4,  2, -1, -1]]))
+
+    def test_as_view(self):
+        neighbors = sgrid.neighbor_array((2, 3), out_of_bounds=-1,
+                                        contiguous=False)
+        assert_array_equal(neighbors,
+                           np.array([[-1, -1,  1,  3],
+                                     [ 0, -1,  2,  4],
+                                     [ 1, -1, -1,  5],
+                                     [-1,  0,  4, -1],
+                                     [ 3,  1,  5, -1],
+                                     [ 4,  2, -1, -1]]))
+
+        self.assertFalse(neighbors.flags['C_CONTIGUOUS'])
+        self.assertTrue(isinstance(neighbors.base, np.ndarray))
 
 
 if __name__ == '__main__':

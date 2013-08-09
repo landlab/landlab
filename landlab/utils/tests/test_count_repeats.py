@@ -3,18 +3,18 @@
 import unittest
 import numpy as np
 
-from landlab.utils import count_repeats
+from landlab.utils import count_repeated_values
 
 
 class TestCountRepeats(unittest.TestCase):
     def test_empty_array(self):
         x = np.array([])
-        counts = count_repeats(x)
+        counts = count_repeated_values(x)
         self.assertEqual(len(counts), 0)
 
     def test_no_dups(self):
         x = np.array([10, 20, 30])
-        counts = count_repeats(x)
+        counts = count_repeated_values(x)
         self.assertEqual(len(counts), 1)
 
         (vals, inds) = counts[0]
@@ -23,7 +23,7 @@ class TestCountRepeats(unittest.TestCase):
 
     def test_with_dups(self):
         x = np.array([10, 20, 30, 20])
-        counts = count_repeats(x)
+        counts = count_repeated_values(x)
         self.assertEqual(len(counts), 2)
 
         (vals, inds) = counts[0]

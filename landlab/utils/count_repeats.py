@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def count_repeats(x):
+def count_repeated_values(x):
     """
     Count how many times in an array values repeat and where they appear.
 
@@ -19,7 +19,7 @@ def count_repeats(x):
     just returns a copy of *x*, and the indices to each element.
     
     >>> import numpy as np
-    >>> counts = count_repeats(np.array([20, 30, 40]))
+    >>> counts = count_repeated_values(np.array([20, 30, 40]))
     >>> len(counts)
     1
     >>> counts[0]
@@ -30,7 +30,7 @@ def count_repeats(x):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeats(np.array([20, 30, 40, 30]))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30]))
     >>> len(counts)
     2
     >>> counts[0]
@@ -57,7 +57,3 @@ def count_repeats(x):
                 break
 
     return counts
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

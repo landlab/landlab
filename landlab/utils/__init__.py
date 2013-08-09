@@ -1,3 +1,5 @@
 #! /usr/bin/env
 
-from landlab.utils.count_repeats import count_repeats
+#import landlab.utils.count_repeats
+#from landlab.utils.count_repeats import count_repeats
+from landlab.utils.count_repeats import count_repeated_values
