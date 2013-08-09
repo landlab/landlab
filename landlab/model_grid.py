@@ -8,10 +8,11 @@ Last modified July 2013
 """
 
 import numpy
-from numpy import *
+import warnings
+
 from landlab import model_parameter_dictionary as mpd
 import landlab.utils.structured_grid as sgrid
-from landlab.utils import count_repeats
+from landlab.utils import count_repeated_values
 
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 
@@ -22,7 +23,10 @@ FIXED_GRADIENT_BOUNDARY = 2
 TRACKS_CELL_BOUNDARY = 3
 INACTIVE_BOUNDARY = 4
 
-_SLOW = True
+_SLOW = False
+
+if _SLOW:
+    BAD_INDEX_VALUE = None
 
 
 def create_and_initialize_grid(input_source):
@@ -103,9 +107,9 @@ class BoundaryCondition(object):
     def __init__( self, n_boundary_cells = 0 ):
     
         # Create the 3 vectors
-        self.boundary_code = numpy.zeros( n_boundary_cells, dtype = short )
-        self.boundary_gradient = numpy.zeros( n_boundary_cells, dtype = double )
-        self.tracks_cell = numpy.zeros( n_boundary_cells, dtype = long )
+        self.boundary_code = numpy.zeros(n_boundary_cells, dtype=numpy.short)
+        self.boundary_gradient = numpy.zeros(n_boundary_cells, dtype=numpy.double)
+        self.tracks_cell = numpy.zeros(n_boundary_cells, dtype=numpy.long)
         
         # Define the boundary-type codes
         self.INTERIOR_NODE = 0
@@ -301,10 +305,10 @@ class ModelGrid(object):
                          self.face_width[self.link_face[link_id]]
             #print('Flux '+str(total_flux)+' from '+str(from_cell) \
             #      +' to '+str(to_cell)+' along link '+str(link_id))
-            if from_cell!=None:
+            if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_cell] += total_flux
                 #print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
-            if to_cell!=None:
+            if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_cell] -= total_flux
                 #print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
             active_link_id += 1
@@ -359,11 +363,11 @@ class ModelGrid(object):
                          self.face_width[self.link_face[link_id]]
             #print('Flux '+str(total_flux)+' from '+str(from_node) \
             #      +' to '+str(to_node)+' along link '+str(link_id))
-            if from_cell!=None:
+            if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_node] += total_flux / \
                                             self.active_cell_areas[from_cell]
                 #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
-            if to_cell!=None:
+            if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_node] -= total_flux / \
                                           self.active_cell_areas[to_cell]
                 #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
@@ -397,13 +401,15 @@ class ModelGrid(object):
         """
         Returns vector of node x coordinates (same as get_node_x_coords).
         """
-        return self.cellx           
+        warnings.warn('Use get_node_x_coords instead', DeprecationWarning)
+        return self._node_x
 
     def get_cell_y_coords( self ):
         """
         Returns vector of node y coordinates (same as get_node_y_coords).
         """
-        return self.celly           
+        warnings.warn('Use get_node_y_coords instead', DeprecationWarning)
+        return self._node_y
 
     def get_node_x_coords( self ):
         """
@@ -574,7 +580,7 @@ class ModelGrid(object):
             >>> mg = RasterModelGrid(3, 4, 1.0)
             >>> mg.node_status
             array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h=array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
             >>> mg.deactivate_nodata_nodes(h, -9999)
             >>> mg.node_status
             array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
@@ -586,8 +592,8 @@ class ModelGrid(object):
         self.node_status[nodata_locations] = self.INACTIVE_BOUNDARY
         
         # Recreate the list of active cell IDs
-        node_ids = array(range(0,self.num_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status==self.INTERIOR_NODE)]
+        node_ids = numpy.array(range(0,self.num_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status == self.INTERIOR_NODE)]
         
         # Recreate the list of active links
         self.reset_list_of_active_links()
@@ -607,7 +613,7 @@ class ModelGrid(object):
         Example:
             
             >>> mg = RasterModelGrid(3, 4, 1.0)
-            >>> h=array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+            >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
             >>> mg.active_link_max(h)
             array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
         """
@@ -672,7 +678,8 @@ class RasterModelGrid(ModelGrid):
             (20, 6, 31, 17)
             >>> rmg.node_status
             array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-            >>> rmg.node_activecell[3]
+            >>> rmg.node_activecell[3] == BAD_INDEX_VALUE
+            True
             >>> rmg.node_activecell[8]
             2
             >>> rmg.node_numinlink
@@ -702,7 +709,7 @@ class RasterModelGrid(ModelGrid):
                    [-1, -1, -1, -1, -1, -1, 10, 11, 12, -1, -1, 14, 15, 16, -1, -1, -1,
                     -1, -1, -1]])
             >>> rmg.cell_node
-            [6, 7, 8, 11, 12, 13]
+            array([ 6,  7,  8, 11, 12, 13])
             >>> rmg.link_fromnode
             array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
                     2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
@@ -733,7 +740,7 @@ class RasterModelGrid(ModelGrid):
         
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
-        assert self.num_nodes >= 9
+        assert(numpy.min((num_rows, num_cols)) >= 3)
 
         # Record number of boundary and interior cells and the number
         # of interior faces. Ultimately, this info could be overridden
@@ -797,16 +804,20 @@ class RasterModelGrid(ModelGrid):
         # whether a given node is an active, non-boundary node, or some type of 
         # boundary. Here we default to having all perimeter nodes be active
         # fixed-value boundaries.
-        self.node_status = numpy.zeros( self.num_nodes, numpy.int8 )
-        self.node_status[:] = self.INTERIOR_NODE
-        bottom = range(0, num_cols)
-        top = range(num_cols*(num_rows-1), self.num_nodes) 
-        left = range(0, self.num_nodes, num_cols)
-        right = range(num_cols-1, self.num_nodes, num_cols)
-        self.node_status[bottom] = self.FIXED_VALUE_BOUNDARY
-        self.node_status[top] = self.FIXED_VALUE_BOUNDARY
-        self.node_status[left] = self.FIXED_VALUE_BOUNDARY
-        self.node_status[right] = self.FIXED_VALUE_BOUNDARY
+        if 0:
+            self.node_status = numpy.zeros( self.num_nodes, numpy.int8 )
+            self.node_status[:] = self.INTERIOR_NODE
+            bottom = range(0, num_cols)
+            top = range(num_cols*(num_rows-1), self.num_nodes) 
+            left = range(0, self.num_nodes, num_cols)
+            right = range(num_cols-1, self.num_nodes, num_cols)
+            self.node_status[bottom] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[top] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[left] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[right] = self.FIXED_VALUE_BOUNDARY
+        else:
+            self.node_status = sgrid.node_status(
+                self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
         
         # Cell lists:
         # For all cells, we create a list of the corresponding node ID for 
@@ -934,8 +945,19 @@ class RasterModelGrid(ModelGrid):
             self.link_face = sgrid.link_faces((num_rows, num_cols),
                                               actives=self.active_links)
 
+        # List of neighbors for each cell: we will start off with no
+        # list. If a caller requests it via get_neighbor_list or
+        # create_neighbor_list, we'll create it if necessary.
+        self.neighbor_list_created = False
+        if self.DEBUG_VERBOSE:
+          print 'Setting nlc flag'
+
+        # List of diagonal neighbors. As with the neighbor list, we'll only
+        # create it if requested.
+        self.diagonal_list_created = False
+
         #--------OLDER STUFF BELOW----------
-        if 1:
+        if 0:
             # Keep track of pairs of cells that lie on either side of
             # each face. Cells are numbered 0=(0,0), 1=(0,1), 2=(0,2), etc.
             # Faces are numbered as follows: first vertical faces, going
@@ -966,8 +988,8 @@ class RasterModelGrid(ModelGrid):
             # Along the way, we store the x and y coordinates of the center
             # of each face.
             #
-            self.fromcell = numpy.zeros( self.nfaces, dtype = int ) #TBX
-            self.tocell = numpy.zeros( self.nfaces, dtype = int ) #TBX
+            self.fromcell = numpy.zeros(self.nfaces, dtype=numpy.int) #TBX
+            self.tocell = numpy.zeros(self.nfaces, dtype=numpy.int) #TBX
             self.facex = numpy.zeros( self.nfaces ) #TBX
             self.facey = numpy.zeros( self.nfaces ) #TBX
             halfdx = self._dx / 2.0
@@ -999,7 +1021,7 @@ class RasterModelGrid(ModelGrid):
             # Note that the four faces are numbered counter-clockwise
             # starting from the right face, that is, 0 is right, 1 is top,
             # 2 is left, and 3 is bottom.
-            self.faces = -ones( [self.ncells, 4], dtype=int )
+            self.faces = - numpy.ones([self.ncells, 4], dtype=numpy.int)
             n_vert_faces = ( num_rows - 2 ) * ( num_cols - 1 )
             for r in xrange( 1, num_rows-1 ):   # Faces for interior cells
                 for c in xrange( 1, num_cols-1 ):
@@ -1054,7 +1076,7 @@ class RasterModelGrid(ModelGrid):
             # into the cell (the cell is higher than its neighbor on the other
             # side of the face), and negative when you "walk downhill" to the
             # cell (the cell is lower than its neighbor).
-            self.face_sign = numpy.zeros( [self.ncells, 4], dtype=short )
+            self.face_sign = numpy.zeros( [self.ncells, 4], dtype=numpy.short )
             self.face_sign[:,0:2] = -1
             self.face_sign[:,2:] = 1
             if self.DEBUG_VERBOSE:
@@ -1063,7 +1085,7 @@ class RasterModelGrid(ModelGrid):
             # Set up list of interior cells
             # (Note that this could be superceded if you wanted an irregular
             # boundary inside the rectangular grid)
-            self.interior_cells = numpy.zeros( self.n_interior_cells, dtype=int )
+            self.interior_cells = numpy.zeros(self.n_interior_cells, dtype=numpy.int)
             id = 0
             for r in xrange( 1, num_rows-1 ):
                 for c in range( 1, num_cols-1 ):
@@ -1124,8 +1146,8 @@ class RasterModelGrid(ModelGrid):
             # (Note that this could be superceded if you wanted an irregular
             # boundary inside the rectangular grid)
             #
-            #self.boundary_ids = -ones( self.ncells, dtype=int )
-            #self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=int )
+            #self.boundary_ids = - numpy.ones( self.ncells, dtype=numpy.int )
+            #self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=numpy.int )
             #id = 0
             #for r in xrange( 0, num_cols-1 ):       # Bottom
             #    self.boundary_cells[id] = r
@@ -1197,28 +1219,36 @@ class RasterModelGrid(ModelGrid):
             
             >>> rmg = RasterModelGrid(4, 5, 1.0)
         """
-        # Create active in-link and out-link matrices.
-        self.node_inlink_matrix = - numpy.ones((2, self.num_nodes),
-                                               dtype=int)
-        self.node_outlink_matrix = - numpy.ones((2, self.num_nodes),
-                                                dtype=int)
 
-        # Set up the inlink arrays
-        tonodes = self.link_tonode
-        self.node_numinlink = numpy.bincount(tonodes,
-                                             minlength=self.num_nodes)
+        (self.node_inlink_matrix,
+         self.node_numinlink) = sgrid.setup_inlink_matrix(
+             self.shape, tonodes=self.link_tonode)
 
-        counts = count_repeats(self.link_tonode)
-        for (count, (tonodes, link_ids)) in enumerate(counts):
-            self.node_inlink_matrix[count][tonodes] = link_ids
+        (self.node_outlink_matrix,
+         self.node_numoutlink) = sgrid.setup_outlink_matrix(
+             self.shape, fromnodes=self.link_fromnode)
 
-        # Set up the outlink arrays
-        fromnodes = self.link_fromnode
-        self.node_numoutlink = numpy.bincount(fromnodes,
-                                              minlength=self.num_nodes)
-        counts = count_repeats(self.link_fromnode)
-        for (count, (fromnodes, link_ids)) in enumerate(counts):
-            self.node_outlink_matrix[count][fromnodes] = link_ids
+        if 0:
+            # Create active in-link and out-link matrices.
+            self.node_inlink_matrix = - numpy.ones((2, self.num_nodes), dtype=numpy.int)
+            self.node_outlink_matrix = - numpy.ones((2, self.num_nodes), dtype=numpy.int)
+
+            # Set up the inlink arrays
+            tonodes = self.link_tonode
+            self.node_numinlink = numpy.bincount(tonodes,
+                                                 minlength=self.num_nodes)
+
+            counts = count_repeated_values(self.link_tonode)
+            for (count, (tonodes, link_ids)) in enumerate(counts):
+                self.node_inlink_matrix[count][tonodes] = link_ids
+
+            # Set up the outlink arrays
+            fromnodes = self.link_fromnode
+            self.node_numoutlink = numpy.bincount(fromnodes,
+                                                  minlength=self.num_nodes)
+            counts = count_repeated_values(self.link_fromnode)
+            for (count, (fromnodes, link_ids)) in enumerate(counts):
+                self.node_outlink_matrix[count][fromnodes] = link_ids
         
     def setup_inlink_and_outlink_matrices_slow(self):
         """
@@ -1256,10 +1286,10 @@ class RasterModelGrid(ModelGrid):
             >>> rmg = RasterModelGrid(4, 5, 1.0)
         """
         # Create in-link and out-link matrices.
-        self.node_numinlink = numpy.zeros(self.num_nodes,dtype=int)
-        self.node_numoutlink = numpy.zeros(self.num_nodes,dtype=int)
-        self.node_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=int)
-        self.node_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=int)
+        self.node_numinlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
+        self.node_numoutlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
+        self.node_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
+        self.node_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
         
         # For each link, assign it as an "inlink" of its "to" node and an 
         # "outlink" of its from node. Keep track of the total number of inlinks
@@ -1289,15 +1319,15 @@ class RasterModelGrid(ModelGrid):
         """
         # Create active in-link and out-link matrices.
         self.node_active_inlink_matrix = - numpy.ones((2, self.num_nodes),
-                                                       dtype=int)
+                                                       dtype=numpy.int)
         self.node_active_outlink_matrix = - numpy.ones((2, self.num_nodes),
-                                                        dtype=int)
+                                                        dtype=numpy.int)
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
         self.node_numactiveinlink = numpy.bincount(tonodes,
                                                    minlength=self.num_nodes)
 
-        counts = count_repeats(self.activelink_tonode)
+        counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
             self.node_active_inlink_matrix[count][tonodes] = active_link_ids
 
@@ -1305,7 +1335,7 @@ class RasterModelGrid(ModelGrid):
         fromnodes = self.activelink_fromnode
         self.node_numactiveoutlink = numpy.bincount(fromnodes,
                                                     minlength=self.num_nodes)
-        counts = count_repeats(self.activelink_fromnode)
+        counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
@@ -1318,10 +1348,10 @@ class RasterModelGrid(ModelGrid):
         """
         
         # Create active in-link and out-link matrices.
-        self.node_numactiveinlink = numpy.zeros(self.num_nodes,dtype=int)
-        self.node_numactiveoutlink = numpy.zeros(self.num_nodes,dtype=int)
-        self.node_active_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=int)
-        self.node_active_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=int)
+        self.node_numactiveinlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
+        self.node_numactiveoutlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
+        self.node_active_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
+        self.node_active_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
         
         # For each active link, assign it as an "inlink" of its "to" node and an 
         # "outlink" of its from node. Keep track of the total number of active
@@ -1675,7 +1705,7 @@ class RasterModelGrid(ModelGrid):
         
         # For no-flux boundaries, we need to know which interior
         # cells to mirror.
-        #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=int )
+        #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=numpy.int )
         lower_left = 0
         lower_right = self.ncols-1
         upper_right = self.ncols+self.nrows-2
@@ -1909,10 +1939,10 @@ class RasterModelGrid(ModelGrid):
             total_flux = active_link_flux[active_link_id] * self._dx
             #print('Flux '+str(total_flux)+' from '+str(from_cell) \
             #      +' to '+str(to_cell)+' along link '+str(link_id))
-            if from_cell!=None:
+            if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_cell] += total_flux
                 #print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
-            if to_cell!=None:
+            if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_cell] -= total_flux
                 #print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
             active_link_id += 1
@@ -2019,7 +2049,7 @@ class RasterModelGrid(ModelGrid):
                     1.,  1., -1.,  1.])
             >>> flux = -grad    # downhill flux proportional to gradient
             >>> df = rmg.calculate_flux_divergence_at_nodes_slow(flux)
-            >>> df
+            >>> df # doctest: +NORMALIZE_WHITESPACE
             array([ 0.,  0.,  0.,  0.,  0.,  0.,  2.,  4., -2.,  0.,  0.,  0.,  1.,
                    -4.,  0.,  0.,  0.,  0.,  0.,  0.])
         """
@@ -2049,16 +2079,16 @@ class RasterModelGrid(ModelGrid):
             total_flux = active_link_flux[active_link_id] * self._dx
             #print('Flux '+str(total_flux)+' from '+str(from_node) \
             #      +' to '+str(to_node)+' along link '+str(link_id))
-            if from_cell!=None:
+            if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_node] += total_flux / self.cellarea
                 #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
-            if to_cell!=None:
+            if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_node] -= total_flux / self.cellarea
                 #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
             active_link_id += 1
-        
+
         return net_unit_flux
-        
+
     def calculate_flux_divergences( self, q ):
         """
         TBX: TO BE REPLACED WITH METHODS ABOVE
@@ -2130,9 +2160,15 @@ class RasterModelGrid(ModelGrid):
     
         if bc==None:
             bc = self.default_bc
-        for id in xrange( 0, self.n_boundary_cells ):
-            if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
-                u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
+
+        if _SLOW:
+            for id in xrange( 0, self.n_boundary_cells ):
+                if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
+                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
+        else:
+            inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
+            u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
+
         return u
 
     def update_boundaries( self, u, bc = None ):
@@ -2152,14 +2188,24 @@ class RasterModelGrid(ModelGrid):
         NG Wondering if this should be boundary nodes, not cells.    
         """
     
-        if bc==None:
+        if bc == None:
             bc = self.default_bc
-        for id in xrange( 0, self.n_boundary_cells ):
-            if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
-                u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
-            elif bc.boundary_code[id] == bc.FIXED_GRADIENT_BOUNDARY:
-                u[self.boundary_cells[id]] = u[bc.tracks_cell[id]] \
-                                             + bc.gradient[id]*self._dx
+
+        if _SLOW:
+            for id in xrange( 0, self.n_boundary_cells ):
+                if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
+                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
+                elif bc.boundary_code[id] == bc.FIXED_GRADIENT_BOUNDARY:
+                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]] \
+                                                 + bc.gradient[id]*self._dx
+        else:
+            inds = (bc.boundary_code == bc.TRACKS_CELL_BOUNDARY)
+            u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
+
+            inds = (bc.boundary_code == bc.FIXED_GRADIENT_BOUNDARY)
+            u[self.boundary_cells[inds]] = (u[bc.tracks_cell[id]] +
+                                            bc.gradient[id] * self._dx)
+
         return u
 
     def node_vector_to_raster(self, u, flip_vertically=False):
@@ -2280,7 +2326,7 @@ class RasterModelGrid(ModelGrid):
     #    assert self.neighbor_list_created == False
     #    
     #    self.neighbor_list_created = True       
-    #    self.neighbor_cells = -ones( [self.ncells, 4], dtype=int )
+    #    self.neighbor_cells = -ones( [self.ncells, 4], dtype=numpy.int )
     #    for r in xrange( 1, self.nrows-1 ):
     #        for c in xrange( 1, self.ncols-1 ):
     #            cell_id = r * self.ncols + c
@@ -2320,7 +2366,7 @@ class RasterModelGrid(ModelGrid):
         #below had ncells instead of num_nodes.  This could be an issue? 
         #looks like it should still work though.  I think ncells was defined
         #as rows*cols before, so same as num_nodes     
-        self.neighbor_nodes = -ones( [self.num_nodes, 4], dtype=int )
+        self.neighbor_nodes = - numpy.ones([self.num_nodes, 4], dtype=numpy.int)
         for r in xrange( 1, self.nrows-1 ):
             for c in xrange( 1, self.ncols-1 ):
                 node_id = r * self.ncols + c
@@ -2339,7 +2385,6 @@ class RasterModelGrid(ModelGrid):
         
         ng aug 2013
         """
-        
         nbr_nodes=self.get_neighbor_list(id)
         #print "nbr nodes ", nbr_nodes
         diag_nbrs=self.get_diagonal_list(id)
@@ -2397,7 +2442,7 @@ class RasterModelGrid(ModelGrid):
         assert self.diagonal_list_created == False
         
         self.diagonal_list_created = True
-        self.diagonal_cells = -ones( [self.ncells, 4], dtype=int )
+        self.diagonal_cells = - numpy.ones([self.ncells, 4], dtype=numpy.int)
         for r in xrange( 1, self.nrows-1 ):
             for c in xrange( 1, self.ncols-1 ):
                 cell_id = r * self.ncols + c
@@ -2415,7 +2460,8 @@ class RasterModelGrid(ModelGrid):
         """
         #ng thinks there may be a problem here.
         #return self.boundary_ids[id] < 0
-        return self.node_status[id] < 1
+        #return self.node_status[id] < 1
+        return self.node_status[id] == INTERIOR_NODE
         
     def get_boundary_code( self, id ):
         """
@@ -2495,7 +2541,7 @@ class RasterModelGrid(ModelGrid):
             >>> rmg.top_edge_node_ids()
             array([15, 16, 17, 18, 19])
         """
-        return array(range((self.nrows-1)*self.ncols,self.num_nodes))
+        return sgrid.top_edge_node_ids(self.shape)
         
     def bottom_edge_node_ids(self):
         """
@@ -2508,7 +2554,7 @@ class RasterModelGrid(ModelGrid):
             >>> rmg.bottom_edge_node_ids()
             array([0, 1, 2, 3, 4])
         """
-        return array(range(0,self.ncols))
+        return sgrid.bottom_edge_node_ids(self.shape)
         
     def left_edge_node_ids(self):
         """
@@ -2521,7 +2567,7 @@ class RasterModelGrid(ModelGrid):
             >>> rmg.left_edge_node_ids()
             array([ 0,  5, 10, 15])
         """
-        return array(range(0,self.num_nodes,self.ncols))
+        return sgrid.left_edge_node_ids(self.shape)
         
     def right_edge_node_ids(self):
         """
@@ -2534,7 +2580,7 @@ class RasterModelGrid(ModelGrid):
             >>> rmg.right_edge_node_ids()
             array([ 4,  9, 14, 19])
         """
-        return array(range(self.ncols-1,self.num_nodes,self.ncols))
+        return sgrid.right_edge_node_ids(self.shape)
         
     def grid_coords_to_node_id(self, row, col):
         """
