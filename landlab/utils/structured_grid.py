@@ -403,7 +403,9 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
     """
     num_nodes = node_count(shape)
 
-    node_inlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
+    #node_inlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
+    node_inlink_matrix = np.empty((2, num_nodes), dtype=np.int)
+    node_inlink_matrix.fill(BAD_INDEX_VALUE)
 
     if tonodes is None:
         tonodes = node_tolink_index(shape)
@@ -413,6 +415,9 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
     for (count, (tonodes, link_ids)) in enumerate(counts):
         node_inlink_matrix[count][tonodes] = link_ids
 
+    node_inlink_matrix.sort(axis=0)
+    node_inlink_matrix[node_inlink_matrix == BAD_INDEX_VALUE] = -1
+    
     if return_count:
         return (node_inlink_matrix, node_numinlink)
     else:
@@ -437,7 +442,9 @@ def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
     """
     num_nodes = node_count(shape)
 
-    node_outlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
+    #node_outlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
+    node_outlink_matrix = np.empty((2, num_nodes), dtype=np.int)
+    node_outlink_matrix.fill(BAD_INDEX_VALUE)
 
     if fromnodes is None:
         fromnodes = node_fromlink_index(shape)
@@ -447,6 +454,9 @@ def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
     for (count, (fromnodes, link_ids)) in enumerate(counts):
         node_outlink_matrix[count][fromnodes] = link_ids
 
+    node_outlink_matrix.sort(axis=0)
+    node_outlink_matrix[node_outlink_matrix == BAD_INDEX_VALUE] = -1
+    
     if return_count:
         return (node_outlink_matrix, node_numoutlink)
     else:
