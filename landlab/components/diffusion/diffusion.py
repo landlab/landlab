@@ -53,7 +53,11 @@ class DiffusionComponent():
         self.dqds = self.grid.create_node_dvector()  # sed flux derivative
         
         
-    def update(self, z):
+    def update(self, z, delt):
+        
+        # Take the smaller of delt or built-in time-step size self.dt
+        dt = min(self.dt, delt)
+        print dt
         
         # Calculate the gradients and sediment fluxes
         self.g = self.grid.calculate_gradients_at_active_links(z)
@@ -67,17 +71,24 @@ class DiffusionComponent():
         
         # Update the elevations
         z[self.interior_cells] = z[self.interior_cells] \
-                                 + dzdt[self.interior_cells] * self.dt
+                                 + dzdt[self.interior_cells] * dt
                                  
         # Update current time and return it
-        self.current_time += self.dt
+        self.current_time += dt
         return self.current_time
         
         
     def update_until(self, t, z):
         
+        count = 0
+        
         while self.current_time < t:
-            self.update(z)
+            remaining_time = t - self.current_time
+            print remaining_time
+            self.update(z, remaining_time)
+            count += 1
+            if count>100:
+                break
             
         
     def get_time_step(self):
