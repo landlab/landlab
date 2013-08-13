@@ -286,6 +286,14 @@ class TestRasterModelGrid(unittest.TestCase):
                                      13, 14, 15, 16,
                                      BAD, BAD, BAD, BAD]))
 
+    def test_grid_coords_to_node_id(self):
+        self.assertEqual(self.grid.grid_coords_to_node_id(3, 4), 19)
+        assert_array_equal(self.grid.grid_coords_to_node_id((3, 2), (4, 1)),
+                           np.array([19, 11]))
+
+        with self.assertRaises(ValueError):
+            self.grid.grid_coords_to_node_id(5, 0)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2548,22 +2548,33 @@ class RasterModelGrid(ModelGrid):
         """
         return sgrid.right_edge_node_ids(self.shape)
         
-    def grid_coords_to_node_id(self, row, col):
+    def grid_coords_to_node_id(self, row, col, **kwds):
         """
-        Returns the ID of the node at the specified row and column of the raster
-        grid.
+        Returns the ID of the node at the specified row and column of the
+        raster grid. Since this is a wrapper for the numpy ravel_multi_index
+        function, the keyword arguments are the same as that function. In
+        addition, *row* and *col* can both be either scalars or arrays (of the
+        same length) to get multiple ids.
+
+        As with ravel_multi_index use the *mode* keyword to change the
+        behavior of the method when passed an out-of-range *row* and *col*.
+        The default is the raise ValueError (not IndexError, as you might
+        expect).
         
-        ng notes:
-        note that syntax assumes that first row and column are 0,
-        so max entry for a mg with 4 rows and 5 cols is row =3, col=4
+        .. note::
+            The syntax assumes that first row and column are 0,
+            so max entry for a mg with 4 rows and 5 cols is row=3, col=4
         
         Example:
             
             >>> mg = RasterModelGrid(4, 5)
             >>> mg.grid_coords_to_node_id(2, 3)
             13
+
+            >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
+            array([13,  4])
         """
-        return row*self.ncols+col
+        return numpy.ravel_multi_index((row, col), self.shape, **kwds)
         
     def unit_test( self ):
         """
