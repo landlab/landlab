@@ -29,6 +29,12 @@ if _SLOW:
     BAD_INDEX_VALUE = None
 
 
+def _is_closed_boundary(boundary_string):
+    
+    return boundary_string.lower()=='closed'
+
+    
+
 def create_and_initialize_grid(input_source):
     """
     Creates, initializes, and returns a new grid object using parametes 
@@ -75,10 +81,23 @@ def create_and_initialize_grid(input_source):
     
     # Read parameters appropriate to that type, create it, and initialize it
     if grid_type=='raster':
+        
+        # Read and create basic raster grid
         nrows = param_dict.read_int('NUM_ROWS')
         ncols = param_dict.read_int('NUM_COLS')
         dx = param_dict.read_float('GRID_SPACING')
         mg = RasterModelGrid(nrows, ncols, dx)
+        
+        # Set boundaries
+        left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
+        right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
+        top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
+        bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
+        mg.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type), 
+                                   _is_closed_boundary(right_boundary_type),
+                                   _is_closed_boundary(top_boundary_type),
+                                   _is_closed_boundary(left_boundary_type))
+
     else:
         print 'Non-raster grids not yet available in ModelGrid'
         mg = None

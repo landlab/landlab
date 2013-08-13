@@ -8,19 +8,17 @@ Last updated August 2013 GT
 
 """
 
-import diffusion_component
+from landlab.components.diffusion import DiffusionComponent
 from landlab import model_grid
 from landlab import ModelParameterDictionary
 import pylab
 import numpy
 
-reload(diffusion_component)
-
 
 def display_model(grid, elevation):
     
     # Convert z to a 2D array
-    zr = grid.node_vector_to_raster(elevation)
+    zr = grid.node_vector_to_raster(elevation, flip_vertically=True)
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
@@ -59,7 +57,7 @@ def main():
     z = mg.create_node_dvector()
     
     # Create and initialize a diffusion component
-    dc = diffusion_component.DiffusionComponent(mg)
+    dc = DiffusionComponent(mg)
     dc.initialize(mpd)
     
     # RUN
@@ -70,7 +68,9 @@ def main():
 
     # FINALIZE
     
+    # Display results to screen
     display_model(mg, z)
+    
             
     
 if __name__ == "__main__":

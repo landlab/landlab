@@ -57,7 +57,6 @@ class DiffusionComponent():
         
         # Take the smaller of delt or built-in time-step size self.dt
         dt = min(self.dt, delt)
-        print dt
         
         # Calculate the gradients and sediment fluxes
         self.g = self.grid.calculate_gradients_at_active_links(z)
@@ -80,15 +79,9 @@ class DiffusionComponent():
         
     def update_until(self, t, z):
         
-        count = 0
-        
         while self.current_time < t:
             remaining_time = t - self.current_time
-            print remaining_time
             self.update(z, remaining_time)
-            count += 1
-            if count>100:
-                break
             
         
     def get_time_step(self):

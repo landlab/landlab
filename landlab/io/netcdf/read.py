@@ -6,6 +6,7 @@ Read data from a NetCDF file into a RasterModelGrid.
 try:
     import netCDF4 as nc
 except ImportError:
+    import warnings
     warnings.warn('Unable to input netCDF4.', ImportWarning)
 
 import os
