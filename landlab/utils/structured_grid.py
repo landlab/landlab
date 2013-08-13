@@ -30,8 +30,26 @@ def node_count(shape):
 
 
 def interior_node_count(shape):
+    """
+    Return the count of the number of interior nodes of a structured grid
+    of dimensions, *shape*.
+
+    >>> node_count((2, 4))
+    8
+    >>> interior_node_count((2, 4))
+    0
+    >>> interior_node_count((1, 4))
+    0
+    >>> interior_node_count((3, 4))
+    2
+    """
     assert(len(shape) == 2)
-    return (shape[0] - 2) * (shape[1] - 2)
+    try:
+        assert(np.min(shape) > 2)
+    except AssertionError:
+        return 0
+    else:
+        return (shape[0] - 2) * (shape[1] - 2)
 
 
 def cell_count(shape):
@@ -42,6 +60,8 @@ def cell_count(shape):
 
     >>> cell_count((3, 4))
     2
+    >>> cell_count((1, 4))
+    0
     """
     assert(len(shape) == 2)
 
@@ -64,9 +84,22 @@ def active_cell_count(shape):
 def active_link_count(shape):
     """
     Number of active links in a structured grid with dimensions, *shape*.
+    S link is active if it connects to at least one active node.
+
+    >>> link_count((3, 2))
+    7
+    >>> active_link_count((3, 2))
+    0
+    >>> active_link_count((3, 4))
+    7
     """
     assert(len(shape) == 2)
-    return link_count(shape) - 2 * (shape[0] - 1) - 2 * (shape[1] - 1)
+    try:
+        assert(np.min(shape) > 2)
+    except AssertionError:
+        return 0
+    else:
+        return 2 * shape[0] * shape[1] - 3 * (shape[0] + shape[1]) + 4
 
 
 def link_count(shape):
@@ -189,6 +222,10 @@ def boundary_iter(shape):
     """
     Iterates over all of the boundary node indices of a structured grid in
     order.
+
+    >>> import numpy as np
+    >>> np.fromiter(boundary_iter((4, 3)), dtype=np.int)
+    array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
     return itertools.chain(bottom_index_iter(shape),
                            left_right_iter(shape, 1, shape[0] - 1),
@@ -222,6 +259,13 @@ def right_edge_node_ids(shape):
 
 
 def interior_iter(shape):
+    """
+    Iterate over the interior nodes of a structured grid.
+
+    >>> import numpy as np
+    >>> np.fromiter(interior_iter((4, 3)), dtype=np.int)
+    array([4, 7])
+    """
     interiors = []
     interiors_per_row = shape[1] - 2
     for row in xrange(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
@@ -233,13 +277,19 @@ def interior_nodes(shape):
     return np.fromiter(interior_iter(shape), dtype=np.int)
 
 
-def node_xyz(shape, *args):
+def node_coords(shape, *args):
     """
-    Get x, y, and z coordinates for nodes in a structured grid with
-    dimensions, *shape*.
-    """
-    assert(len(shape) == 2)
+    Get x, y coordinates for nodes in a structured grid with dimensions,
+    *shape*. Use the optional argument *spacing* to give to give the spacing
+    in each dimension, and *origin* the start of the coordinates in each
+    dimension.
 
+    >>> (cols, rows) = node_coords((3, 2))
+    >>> rows
+    array([ 0.,  0.,  1.,  1.,  2.,  2.])
+    >>> cols
+    array([ 0.,  1.,  0.,  1.,  0.,  1.])
+    """
     try:
         spacing = args[0]
     except IndexError:
@@ -257,39 +307,65 @@ def node_xyz(shape, *args):
     node_count = np.prod(shape)
 
     row_y = np.arange(origin[0], shape[0] * spacing[0] + origin[0],
-                         spacing[0])
+                      spacing[0])
     col_x = np.arange(origin[1], shape[1] * spacing[1] + origin[0],
-                         spacing[1])
+                      spacing[1])
 
     (node_x, node_y) = np.meshgrid(col_x, row_y)
-    node_z = np.zeros(node_count)
 
     node_x.shape = (node_count, )
     node_y.shape = (node_count, )
 
-    return (node_x, node_y, node_z)
+    return (node_x, node_y)
 
 
 def active_cells(shape):
+    """
+    Ordered indices of the active cells of a structured grid.
+    """
     return np.arange(active_cell_count(shape))
 
 
 def active_cell_node(shape):
+    """
+    Indices of the nodes belonging to each cell. Since all cells are active,
+    this is the same as cell_node_index.
+
+    >>> active_cell_node((4,3))
+    array([4, 7])
+    """
     return cell_node_index(shape)
 
 
-def node_active_cell(shape):
+def node_active_cell(shape, boundary_node_index=BAD_INDEX_VALUE):
+    """
+    Indices of the cells associated with the nodes of the structured grid.
+    For nodes that don't have cell (that is, boundary nodes) set indices
+    to BAD_INDEX_VALUE. Use the *boundary_node_index* key word to change
+    the value of indices to boundary nodes.
+
+    >>> node_active_cell((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
+    array([-1, -1, -1, -1,
+           -1,  0,  1, -1,
+           -1, -1, -1, -1])
+    """
     n_nodes = node_count(shape)
 
     node_ids = np.empty(n_nodes, dtype=np.int)
 
-    node_ids[boundary_nodes(shape)] = BAD_INDEX_VALUE
+    node_ids[boundary_nodes(shape)] = boundary_node_index
     node_ids[interior_nodes(shape)] = np.arange(interior_node_count(shape))
 
     return node_ids
 
 
 def cell_node_index(shape):
+    """
+    Indices of the nodes belonging to each cell.
+
+    >>> cell_node_index((4, 3))
+    array([4, 7])
+    """
     node_ids = np.arange(node_count(shape))
     node_ids.shape = shape
 

@@ -10,51 +10,46 @@ from landlab.utils.structured_grid import BAD_INDEX_VALUE
 
 class TestGetNodeCoords(unittest.TestCase):
     def test_node_x_2d(self):
-        (x, _, _) = sgrid.node_xyz((3,2))
+        (x, _) = sgrid.node_coords((3,2))
 
         assert_array_equal(x, np.array([0., 1.,
                                         0., 1.,
                                         0., 1.,]))
 
     def test_node_x_2d_with_spacing(self):
-        (x, _, _) = sgrid.node_xyz((3,2), (2., 10.))
+        (x, _) = sgrid.node_coords((3,2), (2., 10.))
 
         assert_array_equal(x, np.array([0., 10.,
                                         0., 10.,
                                         0., 10.,]))
 
     def test_node_x_2d_with_origin(self):
-        (x, _, _) = sgrid.node_xyz((3,2), (2., 10.), (-1., 1.))
+        (x, _) = sgrid.node_coords((3,2), (2., 10.), (-1., 1.))
 
         assert_array_equal(x, np.array([1., 11.,
                                         1., 11.,
                                         1., 11.,]))
 
     def test_node_y_2d(self):
-        (_, y, _) = sgrid.node_xyz((3,2))
+        (_, y) = sgrid.node_coords((3,2))
 
         assert_array_equal(y, np.array([0., 0.,
                                         1., 1.,
                                         2., 2.,]))
 
     def test_node_y_2d_with_spacing(self):
-        (_, y, _) = sgrid.node_xyz((3,2), (2., 10.))
+        (_, y) = sgrid.node_coords((3,2), (2., 10.))
 
         assert_array_equal(y, np.array([0., 0.,
                                         2., 2.,
                                         4., 4.,]))
 
     def test_node_y_2d_with_origin(self):
-        (_, y, _) = sgrid.node_xyz((3,2), (2., 10.), (-1., 1.))
+        (_, y) = sgrid.node_coords((3,2), (2., 10.), (-1., 1.))
 
         assert_array_equal(y, np.array([-1., -1.,
                                          1.,  1.,
                                          3.,  3.,]))
-
-    def test_node_z_2d(self):
-        (_, _, z) = sgrid.node_xyz((3,2))
-
-        assert_array_equal(z, np.zeros(3 * 2))
 
 
 class TestGetCellNode(unittest.TestCase):
