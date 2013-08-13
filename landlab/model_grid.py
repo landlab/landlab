@@ -825,27 +825,10 @@ class RasterModelGrid(ModelGrid):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell, 
         # or None if it has no associated active cell (i.e., it is a boundary)
-        if _SLOW:
-            self.cell_node = []
-            self.node_activecell = []
-            node_id = 0
-            cell_id = 0
-            for r in range(0, num_rows):
-                for c in range(0, num_cols):
-                    if r!=0 and r!=(num_rows-1) and c!=0 and c!=(num_cols-1):
-                        self.cell_node.append(node_id)
-                        self.node_activecell.append(cell_id)
-                        cell_id += 1
-                    else:
-                        self.node_activecell.append(None)
-                    node_id += 1
-            self.active_cells = list(range(0, len(self.cell_node)))
-            self.activecell_node = self.cell_node   # default to all cells active
-        else:
-            self.cell_node = sgrid.cell_node_index((num_rows, num_cols))
-            self.node_activecell = sgrid.node_active_cell((num_rows, num_cols))
-            self.active_cells = sgrid.active_cells((num_rows, num_cols))
-            self.activecell_node = self.cell_node.copy()
+        self.cell_node = sgrid.cell_node_index((num_rows, num_cols))
+        self.node_activecell = sgrid.node_active_cell((num_rows, num_cols))
+        self.active_cells = sgrid.active_cells((num_rows, num_cols))
+        self.activecell_node = self.cell_node.copy()
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
