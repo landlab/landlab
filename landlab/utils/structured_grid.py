@@ -703,9 +703,13 @@ def reshape_array(shape, u, flip_vertically=False, copy=False):
         raise
 
     if flip_vertically:
-        reshaped_u = reshaped_u[::-1, :]
-
-    if copy:
-        return reshaped_u.copy()
+        flipped_u = reshaped_u[::-1, :]
+        if copy:
+            return flipped_u.copy()
+        else:
+            return flipped_u
     else:
-        return reshaped_u
+        if copy:
+            return reshaped_u.copy()
+        else:
+            return reshaped_u
