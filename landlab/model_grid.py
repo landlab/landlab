@@ -466,12 +466,6 @@ class ModelGrid(object):
         else:
             return 'longitude'
 
-    def get_node_z_coords( self ):
-        """
-        Returns vector of node z coordinates.
-        """
-        return self._node_z           
-
     def get_active_cell_node_ids( self ):
         """
         Returns an integer vector of the node IDs of all active cells.
@@ -797,26 +791,8 @@ class RasterModelGrid(ModelGrid):
         #  |       |       |       |       |
         #  0-------1-------2-------3-------4
         #
-        if _SLOW:
-            self.cellx = numpy.zeros( self.ncells )  #TBX
-            self.celly = numpy.zeros( self.ncells )  #TBX
-            self._node_x = numpy.zeros( self.num_nodes )
-            self._node_y = numpy.zeros( self.num_nodes )
-            self._node_z = numpy.zeros( self.num_nodes )
-            id = 0
-            for r in range( 0, num_rows ):
-                for c in xrange( 0, num_cols ):
-                    self.cellx[id] = c*self._dx  #TBX
-                    self.celly[id] = r*self._dx  #TBX
-                    self._node_x[id] = c*self._dx
-                    self._node_y[id] = r*self._dx
-                    self._node_z[id] = 0.0
-                    id += 1
-        else:
-            (self._node_x,
-             self._node_y,
-             self._node_z) = sgrid.node_xyz((num_rows, num_cols),
-                                            (self._dx, self._dx), (0., 0.))
+        (self._node_x, self._node_y) = sgrid.node_coords(
+            (num_rows, num_cols), (self._dx, self._dx), (0., 0.))
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate 
