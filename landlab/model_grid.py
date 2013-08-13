@@ -799,20 +799,8 @@ class RasterModelGrid(ModelGrid):
         # whether a given node is an active, non-boundary node, or some type of 
         # boundary. Here we default to having all perimeter nodes be active
         # fixed-value boundaries.
-        if 0:
-            self.node_status = numpy.zeros( self.num_nodes, numpy.int8 )
-            self.node_status[:] = self.INTERIOR_NODE
-            bottom = range(0, num_cols)
-            top = range(num_cols*(num_rows-1), self.num_nodes) 
-            left = range(0, self.num_nodes, num_cols)
-            right = range(num_cols-1, self.num_nodes, num_cols)
-            self.node_status[bottom] = self.FIXED_VALUE_BOUNDARY
-            self.node_status[top] = self.FIXED_VALUE_BOUNDARY
-            self.node_status[left] = self.FIXED_VALUE_BOUNDARY
-            self.node_status[right] = self.FIXED_VALUE_BOUNDARY
-        else:
-            self.node_status = sgrid.node_status(
-                self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
+        self.node_status = sgrid.node_status(
+            self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
         
         # Cell lists:
         # For all cells, we create a list of the corresponding node ID for 
