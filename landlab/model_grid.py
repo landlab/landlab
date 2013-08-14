@@ -4,7 +4,7 @@ Python implementation of ModelGrid, a class used to
 create and manage grids for 2D numerical models.
 
 First version GT, July 2010
-Last modified July 2013
+Last modified August 2013
 """
 
 import numpy
@@ -106,42 +106,42 @@ def create_and_initialize_grid(input_source):
     return mg
 
 
-class BoundaryCondition(object):
-    """
-    The BoundaryCondition class stores boundary condition information for
-    a particular variable. It includes:
-
-        * A list of boundary codes
-
-          - 1 = fixed value
-          - 2 = fixed gradient
-          - 3 = tracks cell
-          - 4 = no-flux / inactive
-          
-        * A list of boundary gradients
-        * A list of cell IDs to track
-        
-        NOTE: we may not need this anymore ... GT 6/13
-    """
-    def __init__( self, n_boundary_cells = 0 ):
-    
-        # Create the 3 vectors
-        self.boundary_code = numpy.zeros(n_boundary_cells, dtype=numpy.short)
-        self.boundary_gradient = numpy.zeros(n_boundary_cells, dtype=numpy.double)
-        self.tracks_cell = numpy.zeros(n_boundary_cells, dtype=numpy.long)
-        
-        # Define the boundary-type codes
-        self.INTERIOR_NODE = 0
-        self.FIXED_VALUE_BOUNDARY = 1
-        self.FIXED_GRADIENT_BOUNDARY = 2
-        self.TRACKS_CELL_BOUNDARY = 3
-        self.INACTIVE_BOUNDARY = 4
-
-        # Set defaults
-        self.boundary_code[:] = self.FIXED_VALUE_BOUNDARY
-        self.boundary_gradient[:] = 0.0
-        self.tracks_cell[:] = -1
-        #DEJH, 7/17/13 - I don't think we should be using -1. This way, accidentally using one of these cells will silently just reference the final cell in the dvector, rather than throwing an exception. " = numpy.nan" would probably work better.
+#class BoundaryCondition(object):
+#    """
+#    The BoundaryCondition class stores boundary condition information for
+#    a particular variable. It includes:
+#
+#        * A list of boundary codes
+#
+#          - 1 = fixed value
+#          - 2 = fixed gradient
+#          - 3 = tracks cell
+#          - 4 = no-flux / inactive
+#          
+#        * A list of boundary gradients
+#        * A list of cell IDs to track
+#        
+#        NOTE: we may not need this anymore ... GT 6/13
+#    """
+#    def __init__( self, n_boundary_cells = 0 ):
+#    
+#        # Create the 3 vectors
+#        self.boundary_code = numpy.zeros(n_boundary_cells, dtype=numpy.short)
+#        self.boundary_gradient = numpy.zeros(n_boundary_cells, dtype=numpy.double)
+#        self.tracks_cell = numpy.zeros(n_boundary_cells, dtype=numpy.long)
+#        
+#        # Define the boundary-type codes
+#        self.INTERIOR_NODE = 0
+#        self.FIXED_VALUE_BOUNDARY = 1
+#        self.FIXED_GRADIENT_BOUNDARY = 2
+#        self.TRACKS_CELL_BOUNDARY = 3
+#        self.INACTIVE_BOUNDARY = 4
+#
+#        # Set defaults
+#        self.boundary_code[:] = self.FIXED_VALUE_BOUNDARY
+#        self.boundary_gradient[:] = 0.0
+#        self.tracks_cell[:] = -1
+#        #DEJH, 7/17/13 - I don't think we should be using -1. This way, accidentally using one of these cells will silently just reference the final cell in the dvector, rather than throwing an exception. " = numpy.nan" would probably work better.
 
 
 class ModelGrid(object):
@@ -419,6 +419,10 @@ class ModelGrid(object):
     def get_cell_x_coords( self ):
         """
         Returns vector of node x coordinates (same as get_node_x_coords).
+        
+        ..todo: 
+            Could be useful to return a Numpy array of x-coords of the cell's
+            corners.
         """
         warnings.warn('Use get_node_x_coords instead', DeprecationWarning)
         return self._node_x
@@ -451,6 +455,10 @@ class ModelGrid(object):
             return self.get_node_x_coords()
 
     def get_coordinate_units(self, axis=0):
+        """
+        ..todo:
+            GT: coordinate units should be model/component dependent.
+        """
         assert(axis in (0, 1))
 
         if axis == 0:
@@ -459,6 +467,10 @@ class ModelGrid(object):
             return 'degrees_east'
 
     def get_coordinate_name(self, axis=0):
+        """
+        ..todo:
+            GT: coordinate units should be model/component dependent.
+        """
         assert(axis in (0, 1))
 
         if axis == 0:
@@ -497,25 +509,25 @@ class ModelGrid(object):
         """
         Returns the horizontal length of the shortest active link in the grid.
         """
-        return amin(self.link_length[self.active_links])
+        return numpy.amin(self.link_length[self.active_links])
 
-    def assign_upslope_vals_to_faces( self, u, v=0 ):
+    def assign_upslope_vals_to_active_links( self, u, v=0 ):
         """
-        Assigns to each face the values of u at whichever of its
+        Assigns to each active link the value of u at whichever of its
         neighbors has a higher value of v. If v is omitted, uses u for
         both.
         """
-        
-        fv = numpy.zeros( self.nfaces )
+        fv = numpy.zeros( self.num_active_links )
         if len(v) < len(u):
-            for i in xrange( 0, self.nfaces ):
-                fv[i] = max( u[self.fromcell[i]], u[self.tocell[i]] )
+            for i in xrange( 0, self.num_active_links ):
+                fv[i] = max( u[self.activelink_fromnode[i]], 
+                             u[self.activelink_tonode[i]] )
         else:
-            for i in xrange( 0, self.nfaces ):
-                if v[self.fromcell[i]] > v[self.tocell[i]]:
-                    fv[i] = u[self.fromcell[i]]
+            for i in xrange( 0, self.num_active_links ):
+                if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
+                    fv[i] = u[self.activelink_fromnode[i]]
                 else:
-                    fv[i] = u[self.tocell[i]]
+                    fv[i] = u[self.activelink_tonode[i]]
         return fv
         
     def reset_list_of_active_links(self):
@@ -555,7 +567,7 @@ class ModelGrid(object):
         the other is an active boundary.
         """
         if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.reset_list_of_active_links'
+            print 'ModelGrid.reset_list_of_active_links_slow'
             
         # Create or reset empy list of active links (we'll convert this to
         # a numpy array below)
@@ -915,8 +927,6 @@ class RasterModelGrid(ModelGrid):
         # list. If a caller requests it via get_neighbor_list or
         # create_neighbor_list, we'll create it if necessary.
         self.neighbor_list_created = False
-        if self.DEBUG_VERBOSE:
-          print 'Setting nlc flag'
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
@@ -1061,82 +1071,6 @@ class RasterModelGrid(ModelGrid):
             if self.DEBUG_VERBOSE:
                 print self.interior_cells
             
-            #NG is pretty sure that the code below these comments are obsolete.
-            #For now it is just commented out.  Maybe we can delete it?
-            #
-            # Boundary condition handling: 
-            # 
-            # To handle the boundaries properly, we need to do the following:
-            #  1. Find out whether cell J is a boundary, and what type
-            #  2. Identify which cells are fixed-value boundaries, so they
-            #     can be updated as needed.
-            #  3. For boundary cells that track the value of another cell,
-            #     update all their values.
-            #  4. For these cells, remember the cell IDs of the cells they
-            #     are to track.
-            #  5. For any single boundary cell J, update its value according
-            #     to its boundary type.
-            #
-            # To do accomplish these, we use three data structures. The first
-            # is a vector of the cell ID ("CID") of all
-            # boundary cells (self.boundary_cells). The second is
-            # a list of the boundary id ("BID") for all cells. The boundary
-            # id is the index number (0 to self.n_boundary_cells-1) of the
-            # corresponding cell in the self.boundary_cells vector. In this
-            # respect, self.boundary_cells and self.boundary_ids point to each
-            # other. Obviously, not all cells are boundaries, and so those 
-            # cells that are interior cells are simply flagged with a -1.
-            # This way, the self.boundary_ids list encodes two pieces of
-            # information: (1) whether the cell is a boundary or not, and 
-            # (2) where to look for more info if it is a boundary (i.e., 
-            # what is its BID).
-            #
-            # Finally, for those cells (if any) that are no-flux or periodic,
-            # we need to know the CID of the cell whose value they mirror.
-            # Now, the user may want to have different kinds of boundary 
-            # conditions apply to different variables. For example, for
-            # modeling floods across an active fault, you might want the
-            # land surface elevation boundary condition to be fixed value
-            # at some places, while the water depth is fixed gradient.
-            # For this reason, we might need multiple version of boundary
-            # status and related information, depending on the user's needs.
-            # To manage this, we use the BoundaryCondition class. We have
-            # BoundaryCondition called self.default_bc that represents the
-            # default handling; if the user wants, they can make more 
-            # BoundaryCondition objects and treat them differently.
-            #
-            # Here we work counter-clockwise around the perimeter, starting
-            # with CID/BID 0 at the lower left. BID's increase in counter-
-            # clockwise order around the edge.
-            #
-            # (Note that this could be superceded if you wanted an irregular
-            # boundary inside the rectangular grid)
-            #
-            #self.boundary_ids = - numpy.ones( self.ncells, dtype=numpy.int )
-            #self.boundary_cells = numpy.zeros( self.n_boundary_cells, dtype=numpy.int )
-            #id = 0
-            #for r in xrange( 0, num_cols-1 ):       # Bottom
-            #    self.boundary_cells[id] = r
-            #    self.boundary_ids[r] = id
-            #    id += 1
-            #for c in xrange( num_cols-1, self.ncells-num_cols, num_cols ):  # Right
-            #    self.boundary_cells[id] = c
-            #    self.boundary_ids[c] = id
-            #    id += 1
-            #for r in xrange( self.ncells-1, num_cols*(num_rows-1), -1 ):       # Top
-            #    self.boundary_cells[id] = r
-            #    self.boundary_ids[r] = id
-            #    id += 1
-            #for c in xrange( num_cols*(num_rows-1), 0, -num_cols ):  # Left
-            #    self.boundary_cells[id] = c
-            #    self.boundary_ids[c] = id
-            #    id += 1
-            #
-            #if self.DEBUG_VERBOSE:
-            #    print 'Boundary CIDs:',self.boundary_cells
-            #    print 'Cell BIDs:',self.boundary_ids
-                
-            self.default_bc = BoundaryCondition( self.n_boundary_cells )
 
     @property
     def shape(self):
@@ -1215,6 +1149,7 @@ class RasterModelGrid(ModelGrid):
             counts = count_repeated_values(self.link_fromnode)
             for (count, (fromnodes, link_ids)) in enumerate(counts):
                 self.node_outlink_matrix[count][fromnodes] = link_ids
+                
         
     def setup_inlink_and_outlink_matrices_slow(self):
         """
@@ -1350,14 +1285,6 @@ class RasterModelGrid(ModelGrid):
         '''
         return (self.nrows * self._dx)
         
-    # no such thing as interior cells anymore.  NG got rid of this.    
-    #def get_count_of_interior_cells(self):
-    #    """
-    #    Returns the number of interior cells on the grid.  
-    #    NG, June 2013
-    #    """
-    #    return(self.num_active_cells)
-    
     def get_count_of_interior_nodes(self):
         """
         Returns the number of interior nodes on the grid. Functionally identical to get_count_of_interior_cells()
@@ -1431,6 +1358,9 @@ class RasterModelGrid(ModelGrid):
             The max gradient is the most negative, but the max slope is the most
             positive.  So, this was updated to return the max value, not the 
             min.
+            
+        GT: Might be possible to speed this up using inlink_matrix and 
+        outlink_matrix.
         '''
         #We have poor functionality if these are edge cells! Needs an exception
         neighbor_cells = self.get_neighbor_list(cell_id)
@@ -1664,6 +1594,9 @@ class RasterModelGrid(ModelGrid):
         For no-flux boundaries, the corner cells (which don't really
         matter much anyway), the neighbor is arbitrarily chosen as either 
         the righthand or lefthand cell.
+        
+        GT: I believe this is now obsolete, because we can do no-flux simply by 
+        setting closed boundaries (Aug 2013).
         """
         
         if bc==None:
@@ -2055,50 +1988,50 @@ class RasterModelGrid(ModelGrid):
 
         return net_unit_flux
 
-    def calculate_flux_divergences( self, q ):
-        """
-        TBX: TO BE REPLACED WITH METHODS ABOVE
-        
-        Calculates the net flux at each cell by adding up the fluxes
-        through all four faces, and divides the total by cell area.
-
-        In general, for a polygonal cell with N sides of lengths
-        Li and with surface area A, the net influx divided by cell
-        area would be:
-            .. math::
-                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
-
-        For a square cell, the sum is over 4 sides of length dx, and
-        :math:`A = dx^2`, so:
-            .. math::
-                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
-
-        .. note::
-            The net flux is defined as positive outward, negative
-            inward. In a diffusion problem, for example, one would use:
-                .. math::
-                    {du \over dt} = \\text{source} - \\text{fd}
-            where fd is "flux divergence".
-        """
-    
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergences here'
-        
-        fd = numpy.zeros( self.ncells )
-        for cell in self.interior_cells:
-            if self.DEBUG_VERBOSE:
-                print 'Cell',cell
-                print 'q:',q[self.faces[cell,0:4]]
-            fd[cell] = ( -( q[self.faces[cell,2]]   # left face (positive=in)
-                + q[self.faces[cell,3]] )           # bottom face (positive=in)
-                + q[self.faces[cell,0]]             # right face (positive=out)
-                + q[self.faces[cell,1]]             # top face (positive=out)
-                  ) / self._dx
-        return fd
+#    def calculate_flux_divergences( self, q ):
+#        """
+#        TBX: TO BE REPLACED WITH METHODS ABOVE
+#        
+#        Calculates the net flux at each cell by adding up the fluxes
+#        through all four faces, and divides the total by cell area.
+#
+#        In general, for a polygonal cell with N sides of lengths
+#        Li and with surface area A, the net influx divided by cell
+#        area would be:
+#            .. math::
+#                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+#
+#        For a square cell, the sum is over 4 sides of length dx, and
+#        :math:`A = dx^2`, so:
+#            .. math::
+#                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
+#
+#        .. note::
+#            The net flux is defined as positive outward, negative
+#            inward. In a diffusion problem, for example, one would use:
+#                .. math::
+#                    {du \over dt} = \\text{source} - \\text{fd}
+#            where fd is "flux divergence".
+#        """
+#    
+#        if self.DEBUG_TRACK_METHODS:
+#            print 'RasterModelGrid.calculate_flux_divergences here'
+#        
+#        fd = numpy.zeros( self.ncells )
+#        for cell in self.interior_cells:
+#            if self.DEBUG_VERBOSE:
+#                print 'Cell',cell
+#                print 'q:',q[self.faces[cell,0:4]]
+#            fd[cell] = ( -( q[self.faces[cell,2]]   # left face (positive=in)
+#                + q[self.faces[cell,3]] )           # bottom face (positive=in)
+#                + q[self.faces[cell,0]]             # right face (positive=out)
+#                + q[self.faces[cell,1]]             # top face (positive=out)
+#                  ) / self._dx
+#        return fd
         
     def calculate_flux_divergence( self, q, id ):
         """
-        TODO: UPDATE THIS TO USE NEW DATA STRUCTURES!
+        ..todo: UPDATE THIS TO USE NEW DATA STRUCTURES!
         
         This is like calculate_flux_divergences (plural!), but only does
         it for cell "id".
@@ -2150,6 +2083,7 @@ class RasterModelGrid(ModelGrid):
         .. todo::
             use the cell-local distance rather than dx, for use in the base
             class!
+            probably now obsolete (GT Aug 2013)
             
         NG Wondering if this should be boundary nodes, not cells.    
         """
@@ -2307,6 +2241,8 @@ class RasterModelGrid(ModelGrid):
         Otherwise, returns lists for all nodes as a 2D
         array. The list is in the order [right, top, left, bottom].
         DH created this.  NG only changed labels.
+        
+        ..todo: could use inlink_matrix, outlink_matrix
         """
     
         if self.neighbor_list_created==False:
@@ -2324,6 +2260,8 @@ class RasterModelGrid(ModelGrid):
         nodes get -1 for each neighbor. 
         The order of the neighbors is [right, top, left, bottom].
         DH created this.  NG only changed labels.
+        
+        ..todo: could use inlink_matrix, outlink_matrix
         """
     
         assert self.neighbor_list_created == False

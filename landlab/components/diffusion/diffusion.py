@@ -53,7 +53,7 @@ class DiffusionComponent():
         self.dqds = self.grid.create_node_dvector()  # sed flux derivative
         
         
-    def update(self, z, delt):
+    def run_one_step(self, z, delt):
         
         # Take the smaller of delt or built-in time-step size self.dt
         dt = min(self.dt, delt)
@@ -77,11 +77,11 @@ class DiffusionComponent():
         return self.current_time
         
         
-    def update_until(self, t, z):
+    def run_until(self, t, z):
         
         while self.current_time < t:
             remaining_time = t - self.current_time
-            self.update(z, remaining_time)
+            self.run_one_step(z, remaining_time)
             
         
     def get_time_step(self):

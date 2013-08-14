@@ -385,11 +385,62 @@ So far, we've seen examples in which you use ModelGrid to create a new model fro
 
 The listing below shows a version of the diffusion model in which we use a DiffusionComponent. In this case, the model parameters will be read from a formatted text file rather than being hard-coded (with one exception: we have hard-coded the name of the input file).
 
- \lstinputlisting[firstnumber=1,firstline=1,lastline=77]{example_diffusion_component_driver.py}
+ \lstinputlisting[firstnumber=1,firstline=1,lastline=74]{example_diffusion_component_driver.py}
+
+\subsection{Packages}
+
+ \lstinputlisting[firstnumber=11,firstline=11,lastline=15]{example_diffusion_component_driver.py}
+
+In addition to Numpy and Pylab, we will need ModelGrid, DiffusionComponent, and ModelParameterDictionary. The latter is a utility for reading model parameters and options from a formatted (ascii text) file.
 
 \subsection{Display function}
 
 [PROBABLY REPLACE THIS WITH INSTRUCTIONS ON USING MODELGRID BUILT-IN PLOTTING FUNCTION]
+
+\subsection{Getting Input from a File}
+
+\lstinputlisting[firstnumber=41,firstline=41,lastline=50]{example_diffusion_component_driver.py}
+
+In this example, instead of putting the various input parameters directly in the code, we store them in a separate text file. This way, we can change the configuration and parameters of the model without altering the code itself. On line 46 we specify the name of the input file. The contents of this file are as follows:
+
+\lstinputlisting{test_inputs_for_diffusion_model.txt}
+
+The format of the file has two lines for each parameter. The first line contains a ``tag,'' which is a string of characters (by convention in ALL\_CAPS with underscores where needed) that denotes the name of the variable. The tag may be followed by a comment line. The next line contains the value of the parameter. Lines beginning with a hash mark (\#) are comments. Parameters can be listed in any order, though grouping related parameters makes it easier other human beings to read.
+
+We open and read this file on line 49 by creating a ModelParameterDictionary and passing it the name of the file. A ModelParameterDictionary is a Python dictionary that contains the parameters listed in the file as key-value pairs. For example, after reading the file shown above, one of the dictionary entries in \code{mpd} will have NUM\_ROWS as the key and 20 as the value. 
+
+On line 50, we retrieve the value for the parameter RUN\_DURATION, which is the duration of our model run in years. By passing the \code{ptype=float} argument, we guard errors in the input-file format; if the user, for example, wrote the string `thirty years', the code would produce an error because the value is not a floating-point number.
+
+\subsection{Building the Grid and State Variable}
+
+\lstinputlisting[firstnumber=52,firstline=52,lastline=56]{example_diffusion_component_driver.py}
+
+In this example, we build and configure the grid in a single line of code, by calling ModelGrid's \code{create\_and\_initialize\_grid} function. This function takes a ModelParameterDictionary as an argument. It reads all the parameters necessary to determine the type of grid, the source (generated from scratch, read from a file, etc.), the boundary conditions, and other aspects. On line 56, we create our state variable, elevation (\code{z}), just as we did in previous examples.
+
+\subsection{Creating and Initializing a Diffusion Component}
+
+\lstinputlisting[firstnumber=58,firstline=58,lastline=60]{example_diffusion_component_driver.py}
+
+All we need to do here is create a new instance of a diffusion component and then call its \code{initialize} method. When creating the component, we pass it the ModelGrid. This allows the component to create any internal variables it needs (such as sediment flux) that are tied to the grid. The \code{initialize} method takes a ModelParameterDictionary as an argument, and reads the necessary parameters. In our example input file above, there are two diffusion-related parameters, listed on lines 30--33: the creep coefficient (\code{DIFMOD\_KD}) and the effective uplift rate (\code{DIFMOD\_UPLIFT\_RATE}).
+
+\subsection{Running the Diffusion Component}
+
+\lstinputlisting[firstnumber=64,firstline=64,lastline=65]{example_diffusion_component_driver.py}
+
+To run the diffusion component, we simply call its \code{run\_until} method, passing it the desired duration of the run and the elevation array. Recall that Numpy arrays (like other objects) are passed by reference, so that there is only one copy of \code{z}. The diffusion component will modify this copy, so that when the \code{run\_until} method finishes, we will have an altered (updated) elevation field.
+
+\subsection{Cleaning Up}
+
+\lstinputlisting[firstnumber=69,firstline=69,lastline=74]{example_diffusion_component_driver.py}
+
+[SUBJECT TO CHANGE ONCE WE SORT OUT THE DISPLAY/WRITE]
+
+
+
+
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%

@@ -38,7 +38,6 @@ def display_model(grid, elevation):
     pylab.show()
     
     
-
 def main():
     
     # INITIALIZE
@@ -63,16 +62,13 @@ def main():
     # RUN
     
     # Run the diffusion component until it's time for the next output
-    dc.update_until(run_duration, z)
+    dc.run_until(run_duration, z)
     
-
     # FINALIZE
     
     # Display results to screen
     display_model(mg, z)
     
-            
-    
+ 
 if __name__ == "__main__":
     main()
-    
