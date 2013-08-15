@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.model_grid import BAD_INDEX_VALUE
+from landlab.model_grid import BadCenteringString
 
 
 _SPACING = 1.
@@ -293,6 +294,47 @@ class TestRasterModelGrid(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.grid.grid_coords_to_node_id(5, 0)
+
+
+class TestRasterModelGridZeroArrays(unittest.TestCase):
+    def test_default(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(), np.zeros((20, ), dtype=np.float))
+
+    def test_at_nodes(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(centering='node'),
+                           np.zeros((20, ), dtype=np.float))
+
+    def test_at_cells(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(centering='cell'),
+                           np.zeros((6, ), dtype=np.float))
+
+    def test_at_links(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(centering='link'),
+                           np.zeros((17, ), dtype=np.float))
+
+    def test_at_faces(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(centering='face'),
+                           np.zeros((17, ), dtype=np.float))
+
+    def test_bad_centering(self):
+        mg = RasterModelGrid(4, 5)
+        with self.assertRaises(BadCenteringString):
+            mg.zeros(centering='bad_centering_string')
+
+    def test_int(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(dtype=np.int),
+                           np.zeros((20, ), dtype=np.int))
+
+    def test_int8(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(dtype=np.int8),
+                           np.zeros((20, ), dtype=np.int8))
 
 
 if __name__ == '__main__':
