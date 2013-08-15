@@ -16,6 +16,15 @@ from landlab.utils import count_repeated_values
 
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 
+# Map names grid elements to the ModelGrid attribute that contains the count
+# of that element in the grid.
+_ARRAY_LENGTH_ATTRIBUTES = {
+    'node': 'num_nodes',
+    'cell': 'num_active_cells',
+    'link': 'num_active_links',
+    'face': 'num_faces',
+}
+
 # Define the boundary-type codes
 INTERIOR_NODE = 0
 FIXED_VALUE_BOUNDARY = 1
@@ -27,6 +36,25 @@ _SLOW = False
 
 if _SLOW:
     BAD_INDEX_VALUE = None
+
+
+class Error(Exception):
+    """
+    Base class for exceptions from this module.
+    """
+    pass
+
+
+class BadCenteringString(Exception):
+    """
+    Raise this exception if an unknown centering string is used.
+    """
+    def __init__(self, centering):
+        self._centering = centering
+
+    def __str__(self):
+        return '%s: Unknown centering string: Should be one of %s' % (
+            self._centering, ', '.join(_ARRAY_LENGTH_ATTRIBUTES.keys()))
 
 
 def _is_closed_boundary(boundary_string):
@@ -231,7 +259,25 @@ class ModelGrid(object):
         """
     
         return numpy.zeros( self.num_faces )
-        
+
+    def _array_length(self, centering):
+        try:
+            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[centering])
+        except KeyError:
+            raise BadCenteringString(centering)
+
+    def zeros(self, **kwds):
+        centering = kwds.pop('centering', 'node')
+        return numpy.zeros(self._array_length(centering), **kwds)
+
+    def empty(self, **kwds):
+        centering = kwds.pop('centering', 'node')
+        return numpy.empty(self._array_length(centering), **kwds)
+
+    def ones(self, **kwds):
+        centering = kwds.pop('centering', 'node')
+        return numpy.ones(self._array_length(centering), **kwds)
+
     def set_fixed_value_boundaries(self, node_ids):
         """
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
