@@ -340,9 +340,9 @@ class TestDiagonalArray(unittest.TestCase):
         diags = sgrid.diagonal_node_array((3, 3), out_of_bounds=-1,
                                           boundary_node_mask=-2)
         assert_array_equal(diags, 
-                           array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
-                                  [-2, -2, -2, -2], [ 8,  6,  0,  2], [-2, -2, -2, -2],
-                                  [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
+                           np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
+                                     [-2, -2, -2, -2], [ 8,  6,  0,  2], [-2, -2, -2, -2],
+                                     [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
 
 
 class TestNeighborArray(unittest.TestCase):
@@ -386,6 +386,19 @@ class TestNeighborArray(unittest.TestCase):
 
         self.assertFalse(neighbors.flags['C_CONTIGUOUS'])
         self.assertTrue(isinstance(neighbors.base, np.ndarray))
+
+    def test_boundary_node_mask_no_actives(self):
+        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
+                                          boundary_node_mask=-2)
+        assert_array_equal(neighbors, - 2 * np.ones((6, 4)))
+
+    def test_boundary_node_mask(self):
+        neighbors = sgrid.neighbor_node_array((3, 3), out_of_bounds=-1,
+                                              boundary_node_mask=-2)
+        assert_array_equal(neighbors, 
+                           np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
+                                     [-2, -2, -2, -2], [ 5,  7,  3,  1], [-2, -2, -2, -2],
+                                     [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
 
 
 if __name__ == '__main__':

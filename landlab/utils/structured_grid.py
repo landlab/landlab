@@ -583,7 +583,8 @@ def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
     return ids
 
 
-def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
+                        boundary_node_mask=None):
     """
     >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1)
     >>> neighbors
@@ -606,6 +607,12 @@ def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         ids[2:, 1:shape[1] + 1].flat,
         ids[1:shape[0] + 1, :shape[1]].flat,
         ids[:shape[0], 1:shape[1] + 1].flat,)).T
+
+    if boundary_node_mask is not None:
+        boundaries = np.empty(4, dtype=np.int)
+        boundaries.fill(boundary_node_mask)
+        neighbors[boundary_nodes(shape)] = boundaries
+
     if contiguous:
         return neighbors.copy()
     else:
