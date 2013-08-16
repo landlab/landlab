@@ -587,12 +587,12 @@ def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     """
     >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1)
     >>> neighbors
-    array([[-1, -1,  1,  3],
-           [ 0, -1,  2,  4],
-           [ 1, -1, -1,  5],
-           [-1,  0,  4, -1],
-           [ 3,  1,  5, -1],
-           [ 4,  2, -1, -1]])
+    array([[ 1,  3, -1, -1],
+           [ 2,  4,  0, -1],
+           [-1,  5,  1, -1],
+           [ 4, -1, -1,  0],
+           [ 5, -1,  3,  1],
+           [-1, -1,  4,  2]])
     >>> neighbors.flags['C_CONTIGUOUS']
     True
     >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1, contiguous=False)
@@ -624,9 +624,9 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
 
     >>> neighbors = neighbor_cell_array((5, 4), out_of_bounds=-1)
     >>> neighbors # doctest: +NORMALIZE_WHITESPACE
-    array([[-1, -1,  1,  2], [ 0, -1, -1,  3],
-           [-1,  0,  3,  4], [ 2,  1, -1,  5],
-           [-1,  2,  5, -1], [ 4,  3, -1, -1]])
+    array([[ 1,  2, -1, -1], [-1,  3,  0, -1],
+           [ 3,  4, -1,  0], [-1,  5,  2,  1],
+           [ 5, -1, -1,  2], [-1, -1,  4,  3]])
     """
     if cell_count(shape) > 0:
         shape = np.array(shape) - 2
@@ -656,15 +656,15 @@ def neighbor_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
     >>> neighbors = neighbor_cell_array_with_inactives((3, 3), out_of_bounds=-1)
     >>> neighbors # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [ 5,  7,  3,  1], [-1, -1, -1, -1],
            [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
 
     >>> neighbors = neighbor_cell_array_with_inactives((5, 4), out_of_bounds=-1)
     >>> neighbors # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1, -1,  6,  9], [ 5, -1, -1, 10], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1,  5, 10, 13], [ 9,  6, -1, 14], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1,  9, 14, -1], [13, 10, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [ 6,  9,  4,  1], [ 7, 10,  5,  2], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [10, 13,  8,  5], [11, 14,  9,  6], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [14, 17, 12,  9], [15, 18, 13, 10], [-1, -1, -1, -1],
            [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
     """
     if node_count(shape) > 0:
@@ -752,7 +752,7 @@ def diagonal_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
     >>> diags = diagonal_cell_array_with_inactives((3, 3), out_of_bounds=-1)
     >>> diags # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [ 8,  6,  0,  2], [-1, -1, -1, -1],
            [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
 
     A larger grid that has four active cells, each with one active diagonal
@@ -760,21 +760,13 @@ def diagonal_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
     >>> diags = diagonal_cell_array_with_inactives((4, 4), out_of_bounds=-1)
     >>> diags # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [10, -1, -1, -1], [-1,  9, -1, -1], [-1, -1, -1, -1],
-           [-1, -1, -1, -1], [-1, -1, -1,  6], [-1, -1,  5, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [10,  8,  0,  2], [11,  9,  1,  3], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [14, 12,  4,  6], [15, 13,  5,  7], [-1, -1, -1, -1],
            [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
     """
-    #diags = diagonal_node_array(shape, out_of_bounds=out_of_bounds)
-    #all_diags = np.empty((node_count(shape), 4), dtype=np.int)
-    #all_diags.fill(-1)
-    #if cell_count(shape) > 0:
-    #    all_diags[interior_nodes(shape)] = diags[interior_nodes(shape)]
-
-    #return all_diags
     if node_count(shape) > 0:
         ids = cell_index_with_halo(shape, halo_indices=out_of_bounds,
                                    inactive_indices=None)
-                                   #inactive_indices=out_of_bounds)
 
         boundaries = np.empty(4, dtype=np.int)
         boundaries.fill(out_of_bounds)

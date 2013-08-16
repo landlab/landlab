@@ -330,12 +330,12 @@ class TestNeighborArray(unittest.TestCase):
 
         assert_array_equal(
             neighbors,
-            np.array([[BAD, BAD,   1,   3],
-                      [  0, BAD,   2,   4],
-                      [  1, BAD, BAD,   5],
-                      [BAD,   0,   4, BAD],
-                      [  3,   1,   5, BAD],
-                      [  4,   2, BAD, BAD]]))
+            np.array([[  1,   3, BAD, BAD],
+                      [  2,   4,   0, BAD],
+                      [BAD,   5,   1, BAD],
+                      [  4, BAD, BAD,   0],
+                      [  5, BAD,   3,   1],
+                      [BAD, BAD,   4,   2]]))
 
         self.assertTrue(neighbors.flags['C_CONTIGUOUS'])
         self.assertTrue(neighbors.base is None)
@@ -343,23 +343,23 @@ class TestNeighborArray(unittest.TestCase):
     def test_set_out_of_bounds(self):
         neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1)
         assert_array_equal(neighbors,
-                           np.array([[-1, -1,  1,  3],
-                                     [ 0, -1,  2,  4],
-                                     [ 1, -1, -1,  5],
-                                     [-1,  0,  4, -1],
-                                     [ 3,  1,  5, -1],
-                                     [ 4,  2, -1, -1]]))
+                           np.array([[ 1,  3, -1, -1],
+                                     [ 2,  4,  0, -1],
+                                     [-1,  5,  1, -1],
+                                     [ 4, -1, -1,  0],
+                                     [ 5, -1,  3,  1],
+                                     [-1, -1,  4,  2]]))
 
     def test_as_view(self):
         neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
                                               contiguous=False)
         assert_array_equal(neighbors,
-                           np.array([[-1, -1,  1,  3],
-                                     [ 0, -1,  2,  4],
-                                     [ 1, -1, -1,  5],
-                                     [-1,  0,  4, -1],
-                                     [ 3,  1,  5, -1],
-                                     [ 4,  2, -1, -1]]))
+                           np.array([[ 1,  3, -1, -1],
+                                     [ 2,  4,  0, -1],
+                                     [-1,  5,  1, -1],
+                                     [ 4, -1, -1,  0],
+                                     [ 5, -1,  3,  1],
+                                     [-1, -1,  4,  2]]))
 
         self.assertFalse(neighbors.flags['C_CONTIGUOUS'])
         self.assertTrue(isinstance(neighbors.base, np.ndarray))
