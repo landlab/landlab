@@ -689,7 +689,8 @@ def neighbor_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
         return np.array([], dtype=np.int)
 
 
-def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
+                        boundary_node_mask=None):
     """
     Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
     Only interior cells are assigned neighbors; boundary cells get -1 for
@@ -719,6 +720,12 @@ def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         ids[2:, :shape[1]].flat,
         ids[:shape[0], :shape[1]].flat,
         ids[:shape[0], 2:].flat,)).T
+
+    if boundary_node_mask is not None:
+        boundaries = np.empty(4, dtype=np.int)
+        boundaries.fill(boundary_node_mask)
+        diags[boundary_nodes(shape)] = boundaries
+
     if contiguous:
         return diags.copy()
     else:

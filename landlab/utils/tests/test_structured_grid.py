@@ -331,6 +331,19 @@ class TestDiagonalArray(unittest.TestCase):
         self.assertTrue(isinstance(diags.base, np.ndarray))
         self.assertFalse(diags.flags['C_CONTIGUOUS'])
 
+    def test_boundary_node_mask_no_actives(self):
+        diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1,
+                                          boundary_node_mask=-2)
+        assert_array_equal(diags, - 2 * np.ones((6, 4)))
+
+    def test_boundary_node_mask(self):
+        diags = sgrid.diagonal_node_array((3, 3), out_of_bounds=-1,
+                                          boundary_node_mask=-2)
+        assert_array_equal(diags, 
+                           array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
+                                  [-2, -2, -2, -2], [ 8,  6,  0,  2], [-2, -2, -2, -2],
+                                  [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
+
 
 class TestNeighborArray(unittest.TestCase):
     def test_default(self):
