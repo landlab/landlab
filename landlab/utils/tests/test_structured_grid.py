@@ -259,7 +259,7 @@ class TestReshapeArray(unittest.TestCase):
         self.assertEqual(y.shape, (3, 4))
         assert_array_equal(x, y.flat)
         self.assertTrue(y.flags['C_CONTIGUOUS'])
-        self.assertTrue(y.base is x)
+        self.assertIs(y.base, x)
 
     def test_copy(self):
         x = np.arange(12.)
@@ -268,7 +268,12 @@ class TestReshapeArray(unittest.TestCase):
         self.assertEqual(y.shape, (3, 4))
         assert_array_equal(x, y.flat)
         self.assertTrue(y.flags['C_CONTIGUOUS'])
-        self.assertFalse(y.base is x)
+        self.assertIsNone(y.base)
+
+        y[0][0] = 0.
+        assert_array_equal(x, np.array([ 0.,  1.,  2., 3.,
+                                         4.,  5.,  6., 7.,
+                                         8.,  9., 10., 11.]))
 
     def test_flip(self):
         x = np.arange(12.)
@@ -279,7 +284,12 @@ class TestReshapeArray(unittest.TestCase):
                                         [ 4.,  5.,  6., 7.],
                                         [ 0.,  1.,  2., 3.]]))
         self.assertFalse(y.flags['C_CONTIGUOUS'])
-        self.assertTrue(y.base is x)
+        self.assertIsNotNone(y.base)
+
+        y[0][0] = 0.
+        assert_array_equal(x, np.array([ 0.,  1.,  2., 3.,
+                                         4.,  5.,  6., 7.,
+                                         0.,  9., 10., 11.]))
 
     def test_flip_copy(self):
         x = np.arange(12.)
@@ -290,7 +300,7 @@ class TestReshapeArray(unittest.TestCase):
                                         [ 4.,  5.,  6., 7.],
                                         [ 0.,  1.,  2., 3.]]))
         self.assertTrue(y.flags['C_CONTIGUOUS'])
-        self.assertFalse(y.base is x)
+        self.assertIsNot(y.base, x)
 
 
 class TestDiagonalArray(unittest.TestCase):
