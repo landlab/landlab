@@ -2290,15 +2290,14 @@ class RasterModelGrid(ModelGrid):
         
         ..todo: could use inlink_matrix, outlink_matrix
         """
-    
-        if self.neighbor_list_created==False:
+        if self.neighbor_list_created == False:
             self.create_neighbor_list()
-        
+
         if id > -1:
             return self.neighbor_nodes[id,:]
         else:
             return self.neighbor_nodes
-            
+
     def create_neighbor_list( self ):
         """
         Creates a list of IDs of neighbor nodes for each node, as a
@@ -2307,23 +2306,27 @@ class RasterModelGrid(ModelGrid):
         The order of the neighbors is [right, top, left, bottom].
         DH created this.  NG only changed labels.
         
-        ..todo: could use inlink_matrix, outlink_matrix
-        """
-    
-        assert self.neighbor_list_created == False
+        Creates a list of IDs of the neighbor nodes to each node, as a 2D
+        array.  Only interior nodes are assigned neighbors; boundary
+        nodes get -1 for each neighbor. The order of the diagonal nodes is
+        [right, top, left, bottom].
         
+        .. note:: This is equivalent to the neighbors of all "active" cells,
+            and setting the neighbors of "inactive" cells to -1. In such a
+            case, each node has one cell and each node-cell pair have the
+            same ID. However, this is the old-style grid structure and there
+            are no longer "active" and "inactive" cells. Boundary nodes now
+            simply do not have associated cells.
+
+        .. todo: could use inlink_matrix, outlink_matrix
+
+        .. todo: Change to use BAD_INDEX_VALUE instead of -1.
+        """
+        assert(self.neighbor_list_created == False)
+
         self.neighbor_list_created = True 
-        #below had ncells instead of num_nodes.  This could be an issue? 
-        #looks like it should still work though.  I think ncells was defined
-        #as rows*cols before, so same as num_nodes     
-        self.neighbor_nodes = - numpy.ones([self.num_nodes, 4], dtype=numpy.int)
-        for r in xrange( 1, self.nrows-1 ):
-            for c in xrange( 1, self.ncols-1 ):
-                node_id = r * self.ncols + c
-                self.neighbor_nodes[node_id,2] = node_id - 1   # left
-                self.neighbor_nodes[node_id,0] = node_id + 1  # right
-                self.neighbor_nodes[node_id,3] = node_id - self.ncols # bottom
-                self.neighbor_nodes[node_id,1] = node_id + self.ncols # top
+        self.neighbor_nodes = sgrid.neighbor_node_array(
+            self.shape, out_of_bounds=-1, boundary_node_mask=-1)
                 
     def has_boundary_neighbor( self, id ):
         """
@@ -2358,9 +2361,7 @@ class RasterModelGrid(ModelGrid):
             return True
         else:
             return False
-              
-        
-    
+
     def get_diagonal_list( self, id = -1 ):
         """
         If id is specified, returns a list of IDs for the diagonal cells of the node "id". 
@@ -2379,27 +2380,27 @@ class RasterModelGrid(ModelGrid):
         else:
             return self.diagonal_cells
 
-    def create_diagonal_list( self ):
+    def create_diagonal_list(self):
         """
-        Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
-        Only interior cells are assigned neighbors; boundary cells get -1 for each neighbor. 
-        The order of the diagonal cells is [topright, topleft, bottomleft, bottomright].
+        Creates a list of IDs of the diagonal nodes to each node, as a 2D
+        array.  Only interior nodes are assigned diagonal neighbors; boundary
+        nodes get -1 for each neighbor. The order of the diagonal nodes is
+        [topright, topleft, bottomleft, bottomright].
         
-        NG didn't touch this, but she thinks this should be nodes, not cells.
+        .. note:: This is equivalent to the diagonals of all "active" cells,
+            and setting the neighbors of "inactive" cells to -1. In such a
+            case, each node has one cell and each node-cell pair have the
+            same ID. However, this is the old-style grid structure and there
+            are no longer "active" and "inactive" cells. Boundary nodes now
+            simply do not have associated cells.
+
+        .. todo: Change to use BAD_INDEX_VALUE instead of -1.
         """
-        #Added DEJH 051513
-        
-        assert self.diagonal_list_created == False
-        
+        assert(self.diagonal_list_created == False)
+
         self.diagonal_list_created = True
-        self.diagonal_cells = - numpy.ones([self.ncells, 4], dtype=numpy.int)
-        for r in xrange( 1, self.nrows-1 ):
-            for c in xrange( 1, self.ncols-1 ):
-                cell_id = r * self.ncols + c
-                self.diagonal_cells[cell_id,2] = cell_id - self.ncols - 1   # bottom left
-                self.diagonal_cells[cell_id,0] = cell_id + self.ncols + 1  # top right
-                self.diagonal_cells[cell_id,3] = cell_id - self.ncols + 1 # bottom right
-                self.diagonal_cells[cell_id,1] = cell_id + self.ncols - 1 # top left
+        self.diagonal_cells = sgrid.diagonal_node_array(
+            self.shape, out_of_bounds=-1, boundary_node_mask=-1)
 
     def is_interior( self, id ):
         """
