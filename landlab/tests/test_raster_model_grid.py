@@ -80,15 +80,22 @@ class TestRasterModelGrid(unittest.TestCase):
             'incorrect surrounding ids in test_nodes_around_point')
 
     def test_neighbor_list(self):
-        neighbors = self.grid.get_neighbor_list(id=6)
-        self.assertEqual(list(neighbors), [7, 11, 5, 1],
-                         'incorrect neighbors in test_neighbor_list')
+        neighbors = self.grid.get_neighbor_list(6)
+        assert_array_equal(neighbors, np.array([7, 11, 5, 1]))
+
+        neighbors = self.grid.get_neighbor_list()
+        assert_array_equal(
+            neighbors,
+            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [ 7, 11,  5,  1], [ 8, 12,  6,  2], [ 9, 13,  7,  3], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [12, 16, 10,  6], [13, 17, 11,  7], [14, 18, 12,  8], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
 
     def test_neighbor_list_boundary(self):
         """
         All of the neighbor IDs for a boundary cell are -1.
         """
-        neighbors = self.grid.get_neighbor_list(id=0)
+        neighbors = self.grid.get_neighbor_list(0)
 
         self.assertEqual(list(neighbors), [-1, -1, -1, -1])
 
@@ -135,11 +142,19 @@ class TestRasterModelGrid(unittest.TestCase):
                                           3., 3., 3., 3., 3.])
 
     def test_diagonal_list(self):
-        diagonals = self.grid.get_diagonal_list(id=6)
-        self.assertEqual(list(diagonals), [12, 10, 0, 2])
+        diagonals = self.grid.get_diagonal_list(6)
+        assert_array_equal(diagonals, np.array([12, 10, 0, 2]))
+
+        diagonals = self.grid.get_diagonal_list()
+        assert_array_equal(
+            diagonals,
+            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [12, 10,  0,  2], [13, 11,  1,  3], [14, 12,  2,  4], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [17, 15,  5,  7], [18, 16,  6,  8], [19, 17,  7,  9], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
 
     def test_diagonal_list_boundary(self):
-        diagonals = self.grid.get_diagonal_list(id=0)
+        diagonals = self.grid.get_diagonal_list(0)
         self.assertEqual(list(diagonals), [-1, -1, -1, -1])
 
     def test_is_interior(self):
@@ -295,6 +310,44 @@ class TestRasterModelGrid(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.grid.grid_coords_to_node_id(5, 0)
 
+    def test_create_diagonal_list(self):
+        self.grid.create_diagonal_list()
+
+        assert_array_equal(
+            self.grid.get_diagonal_list(),
+            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [-1, -1, -1, -1], [12, 10,  0,  2], [13, 11,  1,  3],
+                      [14, 12,  2,  4], [-1, -1, -1, -1], [-1, -1, -1, -1], [17, 15,  5,  7],
+                      [18, 16,  6,  8], [19, 17,  7,  9], [-1, -1, -1, -1], [-1, -1, -1, -1],
+                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
+
+
+class TestZerosArray(unittest.TestCase):
+    def test_default(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros()
+        assert_array_equal(v, np.zeros(20., dtype=np.float))
+
+    def test_int_array(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(dtype=np.int)
+        assert_array_equal(v, np.zeros(20., dtype=np.int))
+
+    def test_at_cells(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(centering='cell')
+        assert_array_equal(v, np.zeros(6, dtype=np.float))
+
+    def test_at_links(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(centering='link')
+        assert_array_equal(v, np.zeros(17, dtype=np.float))
+
+    def test_at_faces(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(centering='face')
+        assert_array_equal(v, np.zeros(17, dtype=np.float))
+
 
 class TestRasterModelGridZeroArrays(unittest.TestCase):
     def test_default(self):
@@ -335,7 +388,6 @@ class TestRasterModelGridZeroArrays(unittest.TestCase):
         mg = RasterModelGrid(4, 5)
         assert_array_equal(mg.zeros(dtype=np.int8),
                            np.zeros((20, ), dtype=np.int8))
-
 
 if __name__ == '__main__':
     unittest.main()
