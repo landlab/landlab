@@ -295,28 +295,28 @@ class TestReshapeArray(unittest.TestCase):
 
 class TestDiagonalArray(unittest.TestCase):
     def test_default(self):
-        diags = sgrid.diagonal_array((2, 3), out_of_bounds=-1)
+        diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1)
         assert_array_equal(diags,
-                           np.array([[-1, -1,  4, -1],
-                                     [-1, -1,  5,  3],
-                                     [-1, -1, -1,  4],
-                                     [-1,  1, -1, -1],
-                                     [ 0,  2, -1, -1],
-                                     [ 1, -1, -1, -1]]))
+                           np.array([[ 4, -1, -1, -1],
+                                     [ 5,  3, -1, -1],
+                                     [-1,  4, -1, -1],
+                                     [-1, -1, -1,  1],
+                                     [-1, -1,  0,  2],
+                                     [-1, -1,  1, -1]]))
 
         self.assertTrue(diags.base is None)
         self.assertTrue(diags.flags['C_CONTIGUOUS'])
 
     def test_non_contiguous(self):
-        diags = sgrid.diagonal_array((2, 3), out_of_bounds=-1,
-                                     contiguous=False)
+        diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1,
+                                          contiguous=False)
         assert_array_equal(diags,
-                           np.array([[-1, -1,  4, -1],
-                                     [-1, -1,  5,  3],
-                                     [-1, -1, -1,  4],
-                                     [-1,  1, -1, -1],
-                                     [ 0,  2, -1, -1],
-                                     [ 1, -1, -1, -1]]))
+                           np.array([[ 4, -1, -1, -1],
+                                     [ 5,  3, -1, -1],
+                                     [-1,  4, -1, -1],
+                                     [-1, -1, -1,  1],
+                                     [-1, -1,  0,  2],
+                                     [-1, -1,  1, -1]]))
 
         self.assertTrue(isinstance(diags.base, np.ndarray))
         self.assertFalse(diags.flags['C_CONTIGUOUS'])
@@ -324,7 +324,7 @@ class TestDiagonalArray(unittest.TestCase):
 
 class TestNeighborArray(unittest.TestCase):
     def test_default(self):
-        neighbors = sgrid.neighbor_array((2, 3))
+        neighbors = sgrid.neighbor_node_array((2, 3))
 
         BAD = sgrid.BAD_INDEX_VALUE
 
@@ -341,7 +341,7 @@ class TestNeighborArray(unittest.TestCase):
         self.assertTrue(neighbors.base is None)
 
     def test_set_out_of_bounds(self):
-        neighbors = sgrid.neighbor_array((2, 3), out_of_bounds=-1)
+        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1)
         assert_array_equal(neighbors,
                            np.array([[-1, -1,  1,  3],
                                      [ 0, -1,  2,  4],
@@ -351,8 +351,8 @@ class TestNeighborArray(unittest.TestCase):
                                      [ 4,  2, -1, -1]]))
 
     def test_as_view(self):
-        neighbors = sgrid.neighbor_array((2, 3), out_of_bounds=-1,
-                                        contiguous=False)
+        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
+                                              contiguous=False)
         assert_array_equal(neighbors,
                            np.array([[-1, -1,  1,  3],
                                      [ 0, -1,  2,  4],

@@ -560,9 +560,32 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     return ids
 
 
-def neighbor_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
+                        inactive_indices=None):
     """
-    >>> neighbors = neighbor_array((2, 3), out_of_bounds=-1)
+    >>> cell_index_with_halo((2, 3), halo_indices=-1)
+    array([[-1, -1, -1, -1, -1],
+           [-1,  0,  1,  2, -1],
+           [-1,  3,  4,  5, -1],
+           [-1, -1, -1, -1, -1]])
+
+    >>> cell_index_with_halo((2, 3), halo_indices=-1, inactive_indices=-1)
+    array([[-1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1]])
+    """
+    ids = node_index_with_halo(shape, halo_indices=halo_indices)
+    if inactive_indices is not None:
+        ids[:, (1, -2)] = inactive_indices
+        ids[(1, -2), :] = inactive_indices
+
+    return ids
+
+
+def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+    """
+    >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1)
     >>> neighbors
     array([[-1, -1,  1,  3],
            [ 0, -1,  2,  4],
@@ -572,25 +595,101 @@ def neighbor_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
            [ 4,  2, -1, -1]])
     >>> neighbors.flags['C_CONTIGUOUS']
     True
-    >>> neighbors = neighbor_array((2, 3), out_of_bounds=-1, contiguous=False)
+    >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1, contiguous=False)
     >>> neighbors.flags['C_CONTIGUOUS']
     False
     """
     ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
 
     neighbors = np.vstack((
-        ids[1:shape[0] + 1, :shape[1]].flat,
-        ids[:shape[0], 1:shape[1] + 1].flat,
         ids[1:shape[0] + 1, 2:].flat,
         ids[2:, 1:shape[1] + 1].flat,
-    )).T
+        ids[1:shape[0] + 1, :shape[1]].flat,
+        ids[:shape[0], 1:shape[1] + 1].flat,)).T
     if contiguous:
         return neighbors.copy()
     else:
         return neighbors
 
 
-def diagonal_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+    """
+    >>> neighbors = neighbor_cell_array((2, 3), out_of_bounds=-1)
+    >>> neighbors
+    array([], dtype=int64)
+
+    >>> neighbors = neighbor_cell_array((3, 3), out_of_bounds=-1)
+    >>> neighbors
+    array([[-1, -1, -1, -1]])
+
+    >>> neighbors = neighbor_cell_array((5, 4), out_of_bounds=-1)
+    >>> neighbors # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1,  1,  2], [ 0, -1, -1,  3],
+           [-1,  0,  3,  4], [ 2,  1, -1,  5],
+           [-1,  2,  5, -1], [ 4,  3, -1, -1]])
+    """
+    if cell_count(shape) > 0:
+        shape = np.array(shape) - 2
+        ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
+
+        neighbors = np.vstack((
+            ids[1:shape[0] + 1, 2:].flat,
+            ids[2:, 1:shape[1] + 1].flat,
+            ids[1:shape[0] + 1, :shape[1]].flat,
+            ids[:shape[0], 1:shape[1] + 1].flat,)).T
+        if contiguous:
+            return neighbors.copy()
+        else:
+            return neighbors 
+    else:
+        return np.array([], dtype=np.int)
+
+
+def neighbor_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
+                                       contiguous=True):
+    """
+    >>> neighbors = neighbor_cell_array_with_inactives((2, 3), out_of_bounds=-1)
+    >>> neighbors # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+
+    >>> neighbors = neighbor_cell_array_with_inactives((3, 3), out_of_bounds=-1)
+    >>> neighbors # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+
+    >>> neighbors = neighbor_cell_array_with_inactives((5, 4), out_of_bounds=-1)
+    >>> neighbors # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1,  6,  9], [ 5, -1, -1, 10], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1,  5, 10, 13], [ 9,  6, -1, 14], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1,  9, 14, -1], [13, 10, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+    """
+    if node_count(shape) > 0:
+        ids = cell_index_with_halo(shape, halo_indices=out_of_bounds,
+                                   inactive_indices=None)
+                                   #inactive_indices=out_of_bounds)
+
+        boundaries = np.empty(4, dtype=np.int)
+        boundaries.fill(out_of_bounds)
+
+        neighbors = np.vstack((
+            ids[1:shape[0] + 1, 2:].flat,
+            ids[2:, 1:shape[1] + 1].flat,
+            ids[1:shape[0] + 1, :shape[1]].flat,
+            ids[:shape[0], 1:shape[1] + 1].flat,)).T
+        neighbors[boundary_nodes(shape)] = boundaries
+        if contiguous:
+            return neighbors.copy()
+        else:
+            return neighbors
+    else:
+        return np.array([], dtype=np.int)
+
+
+def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     """
     Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
     Only interior cells are assigned neighbors; boundary cells get -1 for
@@ -599,31 +698,143 @@ def diagonal_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     
     NG didn't touch this, but she thinks this should be nodes, not cells.
 
-    >>> diags = diagonal_array((2, 3), out_of_bounds=-1)
+    >>> diags = diagonal_node_array((2, 3), out_of_bounds=-1)
     >>> diags
-    array([[-1, -1,  4, -1],
-           [-1, -1,  5,  3],
-           [-1, -1, -1,  4],
-           [-1,  1, -1, -1],
-           [ 0,  2, -1, -1],
-           [ 1, -1, -1, -1]])
+    array([[ 4, -1, -1, -1],
+           [ 5,  3, -1, -1],
+           [-1,  4, -1, -1],
+           [-1, -1, -1,  1],
+           [-1, -1,  0,  2],
+           [-1, -1,  1, -1]])
     >>> diags.flags['C_CONTIGUOUS']
     True
-    >>> diags = diagonal_array((2, 3), out_of_bounds=-1, contiguous=False)
+    >>> diags = diagonal_node_array((2, 3), out_of_bounds=-1, contiguous=False)
     >>> diags.flags['C_CONTIGUOUS']
     False
     """
     ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
 
     diags = np.vstack((
-        ids[:shape[0], :shape[1]].flat,
-        ids[:shape[0], 2:].flat,
         ids[2:, 2:].flat,
-        ids[2:, :shape[1]].flat)).T
+        ids[2:, :shape[1]].flat,
+        ids[:shape[0], :shape[1]].flat,
+        ids[:shape[0], 2:].flat,)).T
     if contiguous:
         return diags.copy()
     else:
         return diags
+
+
+def diagonal_cell_array_with_inactives(shape, out_of_bounds=BAD_INDEX_VALUE,
+                                       contiguous=True):
+    """
+    Construct a matrix of cell indices to each diagonally adjacent cell of a
+    structured grid. Cells centered on boundary nodes are considered to be
+    inactive. Each of the diagonals for these cells are set to *out_of_bounds*,
+    as are any indices that refer to these cells.
+
+    .. note::
+        This function has not been optimized for speed and will probably be
+        deprecated in the future. We no longer use the idea of "active" and
+        "inactive" cells. All cells are active and boundary nodes do not have
+        nodes associated with them.
+
+    An example of a grid that is too small to have any cells. All of the cells
+    are inactive so their neighbor indices are set to *out_of_bounds*.
+    >>> diags = diagonal_cell_array_with_inactives((2, 3), out_of_bounds=-1)
+    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+
+    A grid that has only one active cell. Even though there is one active cell,
+    all of its diagonal neighbors are inactive and so the indices of its
+    diagonals are set to *out_of_bounds*.
+    >>> diags = diagonal_cell_array_with_inactives((3, 3), out_of_bounds=-1)
+    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+
+    A larger grid that has four active cells, each with one active diagonal
+    neighbor.
+    >>> diags = diagonal_cell_array_with_inactives((4, 4), out_of_bounds=-1)
+    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [10, -1, -1, -1], [-1,  9, -1, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1,  6], [-1, -1,  5, -1], [-1, -1, -1, -1],
+           [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]])
+    """
+    #diags = diagonal_node_array(shape, out_of_bounds=out_of_bounds)
+    #all_diags = np.empty((node_count(shape), 4), dtype=np.int)
+    #all_diags.fill(-1)
+    #if cell_count(shape) > 0:
+    #    all_diags[interior_nodes(shape)] = diags[interior_nodes(shape)]
+
+    #return all_diags
+    if node_count(shape) > 0:
+        ids = cell_index_with_halo(shape, halo_indices=out_of_bounds,
+                                   inactive_indices=None)
+                                   #inactive_indices=out_of_bounds)
+
+        boundaries = np.empty(4, dtype=np.int)
+        boundaries.fill(out_of_bounds)
+
+        diags = np.vstack((
+            ids[2:, 2:].flat,
+            ids[2:, :shape[1]].flat,
+            ids[:shape[0], :shape[1]].flat,
+            ids[:shape[0], 2:].flat,)).T
+        diags[boundary_nodes(shape)] = boundaries
+        if contiguous:
+            return diags.copy()
+        else:
+            return diags
+    else:
+        return np.array([], dtype=np.int)
+
+
+def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
+    """
+    Construct a matrix of cell indices to each diagonally adjacent cell of a
+    structured grid. If a cell does not have a diagonal neighbor, set the
+    index for that neighbor to *out_of_bounds*.
+
+    An grid without any cells returns an empty array.
+    >>> diags = diagonal_cell_array((2, 3), out_of_bounds=-1)
+    >>> diags
+    array([], dtype=int64)
+
+    A grid that has only one cell does not have any neighbors so all of its
+    diagonals are set to *out_of_bounds*.
+    >>> diags = diagonal_cell_array((3, 3), out_of_bounds=-1)
+    >>> diags
+    array([[-1, -1, -1, -1]])
+
+    >>> diags = diagonal_cell_array((4, 4), out_of_bounds=-1)
+    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    array([[ 3, -1, -1, -1], [-1,  2, -1, -1],
+           [-1, -1, -1,  1], [-1, -1,  0, -1]])
+
+    >>> diags = diagonal_cell_array((4, 5), out_of_bounds=-1)
+    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
+           [-1, -1, -1,  1], [-1, -1,  0,  2], [-1, -1,  1, -1]])
+    """
+    if cell_count(shape) > 0:
+        shape = np.array(shape) - 2
+        ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
+
+        diags = np.vstack((
+            ids[2:, 2:].flat,
+            ids[2:, :shape[1]].flat,
+            ids[:shape[0], :shape[1]].flat,
+            ids[:shape[0], 2:].flat,)).T
+        if contiguous:
+            return diags.copy()
+        else:
+            return diags
+    else:
+        return np.array([], dtype=np.int)
 
 
 def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
