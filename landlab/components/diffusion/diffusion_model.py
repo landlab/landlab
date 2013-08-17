@@ -11,7 +11,7 @@ Last updated August 2013 GT
 import sys                                    # for command-line arguments
 from landlab import ModelParameterDictionary  # for input file
 from landlab import model_grid                # for grid
-import diffusion_component
+import diffusion
 
 class DiffusionModel():
     
@@ -29,24 +29,26 @@ class DiffusionModel():
         self.grid = model_grid.create_and_initialize_grid(inputs)
         
         # Create a diffusion component
-        self.diffusion_component = diffusion_component.DiffusionComponent(self.grid)
+        self.diffusion_component = diffusion.DiffusionComponent(self.grid)
         self.diffusion_component.initialize(input_stream)
         
         # Read parameters
-        run_duration = inputs.get('RUN_DURATION')
-        self.num_time_steps = int(run_duration/self.diffusion_component.dt)
+        self.run_duration = inputs.get('RUN_DURATION', ptype=float)
         
         # Create state variables
         self.z = self.grid.create_node_dvector()
         
     def update(self):
         
-        self.diffusion_component.update(self.z)
+        self.diffusion_component.run_one_step(self.z)
         
     def run(self):
         
-        for t in range(0, self.num_time_steps):
-            self.update()
+        self.diffusion_component.run_until(self.run_duration, self.z)
+        
+    def finalize(self):
+        
+        pass
         
         
 def main():

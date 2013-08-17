@@ -61,7 +61,6 @@ def _is_closed_boundary(boundary_string):
     
     return boundary_string.lower()=='closed'
 
-    
 
 def create_and_initialize_grid(input_source):
     """
@@ -133,6 +132,91 @@ def create_and_initialize_grid(input_source):
     # Return the created and initialized grid
     return mg
 
+
+def simple_poly_area(x,y):
+    """
+    Calculates and returns the area of a 2-D simple polygon.
+    Input vertices must be in sequence (clockwise or counterclockwise)
+
+        x = x-axis coordinates of vertex array
+        y = y-axis coordinates of vertex array
+        
+    Example:
+        
+        >>> import numpy as np
+        >>> x = np.array([3., 1., 1., 3.])
+        >>> y = np.array([1.5, 1.5, 0.5, 0.5])
+        >>> a = simple_poly_area(x, y)
+        >>> print a
+        2.0
+    """
+
+    indices = numpy.arange(len(x))
+    s = sum(x[indices-1]*y[indices]-x[indices]*y[indices-1])
+
+    return abs(s)*0.5
+
+
+def create_links_from_triangulation(tri):
+    """
+    From a Delaunay Triangulation of a set of points, contained in a
+    scipy.spatial.Delaunay object "tri", creates and returns:
+        1) a numpy array containing the ID of the "from" node for each link
+        2) a numpy array containing the ID of the "to" node for each link
+        3) the number of links in the triangulation
+        
+    Example:
+        
+        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from scipy.spatial import Delaunay
+        >>> dt = Delaunay(pts)
+        >>> [myfrom,myto,nl] = create_links_from_triangulation(dt)
+        >>> print myfrom, myto, nl
+        [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
+        
+    .. note: 
+        This could be method of class VoronoiDelaunay or DelaunayVoronoi
+    """
+    
+    # Calculate how many links there will be and create the arrays.
+    #
+    # The number of links equals 3 times the number of triangles minus
+    # half the number of shared links. Finding out the number of shared links
+    # is easy: for every shared link, there is an entry in the tri.neighbors
+    # array that is > -1 (indicating that the triangle has a neighbor opposite
+    # a given vertex; in other words, two triangles are sharing an edge).
+    #
+    num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
+    num_links = 3*tri.nsimplex - num_shared_links/2
+    link_fromnode = numpy.zeros(num_links, dtype=int)
+    link_tonode = numpy.zeros(num_links, dtype=int)
+    
+    # Sweep through the list of triangles, assigning "from" and "to" nodes to
+    # the list of links.
+    #
+    # The basic algorithm works as follows. For each triangle, we will add its
+    # 3 edges as links. However, we have to make sure that each shared edge
+    # is added only once. To do this, we keep track of whether or not each
+    # triangle has been processed yet using a boolean array called "tridone".
+    # When we look at a given triangle, we check each vertex in turn. If there
+    # is no neighboring triangle opposite that vertex, then we need to add the
+    # corresponding edge. If there is a neighboring triangle but we haven't
+    # processed it yet, we also need to add the edge. If neither condition is
+    # true, then this edge has already been added, so we skip it.
+    link_id = 0
+    tridone = numpy.zeros(tri.nsimplex, dtype=bool)    
+    for t in range(tri.nsimplex):  # loop over triangles
+        for i in range(0, 3):       # loop over vertices & neighbors
+            if tri.neighbors[t,i] == -1 or not tridone[tri.neighbors[t,i]]:
+                link_fromnode[link_id] = tri.simplices[t,numpy.mod(i+1,3)]
+                link_tonode[link_id] = tri.simplices[t,numpy.mod(i+2,3)]
+                link_id += 1
+        tridone[t] = True
+    
+    # Return the results
+    return link_fromnode, link_tonode, num_links
+    
+    
 
 #class BoundaryCondition(object):
 #    """
@@ -729,11 +813,8 @@ class RasterModelGrid(ModelGrid):
 
         To be consistent with unstructured grids, the raster grid is
         managed not as a 2D array but rather as a set of vectors that
-        describe connectivity information between cells and faces. Each
-        cell in the grid has four faces. Each face has a "fromcell" and
-        a "tocell"; the convention is that these always "point" up or
-        right (so a negative flux across a face is either going left or
-        down).
+        describe connectivity information between nodes, links, active links,
+        cells, active cells, faces, patches, junctions, and corners.
         
         Examples and doctests:
         
@@ -2620,6 +2701,120 @@ class RasterModelGrid(ModelGrid):
                         +' '+str(mysum))
         divg2 = self.calculate_flux_divergence_at_nodes(flux)
         print divg2
+        
+        
+class HexModelGrid(ModelGrid):
+    """
+    This inherited class implements a regular 2D grid with hexagonal cells and
+    triangular patches.
+    
+    Examples:
+        
+        #>>> rmg = HexModelGrid()
+        #>>> rmg.num_nodes
+        #0
+        #>>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        #>>> rmg.num_nodes
+        #20
+    """
+    
+    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
+        """
+        Optionally takes numbers of rows and columns and cell size as
+        inputs. If this are given, calls initialize() to set up the grid.
+        
+        """
+        #print 'HexModelGrid.init'
+        
+        # Set number of nodes, and initialize if caller has given dimensions
+        self.num_nodes = num_rows * num_cols
+        if self.num_nodes > 0:
+            self.initialize( num_rows, num_cols, dx )
+
+
+    def initialize( self, num_rows, num_cols, dx ):
+        """
+        Sets up a num_rows by num_cols grid with cell spacing dx and
+        (by default) regular boundaries (that is, all perimeter cells are
+        boundaries and all interior cells are active).
+
+        To be consistent with unstructured grids, the hex grid is
+        managed not as a 2D array but rather as a set of arrays that
+        describe connectivity information between nodes, links, cells, faces,
+        patches, corners, and junctions.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
+                   +str(num_cols)+', '+str(dx)+')'
+        
+        # TO BE IMPLEMENTED!
+        
+    def make_hex_points(self, num_rows, base_num_cols, dxh):
+        """
+        Creates and returns a set of (x,y) points in a staggered grid in which the 
+        points represent the centers of regular hexagonal cells, and the points
+        could be connected to form equilateral triangles. The overall shape of the
+        lattice is hexagonal.
+        
+        Inputs: num_rows = number of rows in lattice
+                base_num_cols = number of columns in the bottom and top rows
+                                (middle rows have more)
+                dxh = horizontal and diagonal spacing between points
+                
+        Return: 2D numpy array containing point (x,y) coordinates, and total number
+                of points.
+                
+        Example:
+            
+            >>> hmg = HexModelGrid()
+            >>> [p, npt] = hmg.make_hex_points(3, 2, 1.0)
+            >>> npt
+            7
+            >>> p[1,:]
+            array([ 1.,  0.])
+            >>> p[:3,0]
+            array([ 0. ,  1. , -0.5])
+        """
+
+        dxv = dxh*numpy.sqrt(3.)/2.
+        half_dxh = dxh/2.
+
+        if numpy.mod(num_rows, 2)==0:  # even number of rows
+            npts = num_rows*base_num_cols+(num_rows*num_rows)/4
+            #print 'even # rows, npts=', npts
+        else:  # odd number of rows
+            npts = num_rows*base_num_cols + ((num_rows-1)/2)*((num_rows-1)/2)
+            #print 'odd # rows, npts=', npts
+        pts = numpy.zeros((npts,2))
+        middle_row = num_rows/2
+        extra_cols = 0
+        xshift = 0.
+        i=0
+        for r in range(num_rows):
+            for c in range(base_num_cols+extra_cols):
+                pts[i,0] = c*dxh+xshift
+                pts[i,1] = r*dxv
+                i += 1
+            if r<middle_row:
+                extra_cols += 1
+            else:
+                extra_cols -= 1
+            xshift = -half_dxh*extra_cols
+        
+        return pts, npts
+    
+
+        
+class VoronoiDelaunayGrid(ModelGrid):
+    """
+    This inherited class implements an unstructured grid in which cells are
+    Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
+    scipy.spatial module to build the triangulation.
+    
+    """
+    pass
+    
+
         
 
 if __name__ == '__main__':
