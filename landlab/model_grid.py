@@ -775,6 +775,160 @@ class ModelGrid(object):
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
         
+    def calculate_link_lengths(self, pts, link_from, link_to):
+        """
+        Calculates and returns length of links between nodes.
+        
+        Inputs: pts - Nx2 numpy array containing (x,y) values
+                link_from - 1D numpy array containing index numbers of nodes at 
+                            starting point ("from") of links
+                link_to - 1D numpy array containing index numbers of nodes at 
+                          ending point ("to") of links
+                          
+        Returns: 1D numpy array containing horizontal length of each link
+        
+        Example:
+            
+            >>> pts = numpy.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
+            >>> lfrom = numpy.array([0,1,2])
+            >>> lto = numpy.array([1,2,0])
+            >>> mg = ModelGrid()
+            >>> ll = mg.calculate_link_lengths(pts, lfrom, lto)
+            >>> ll
+            array([ 3.,  4.,  5.])
+        """
+        dx = pts[link_to,0]-pts[link_from,0]
+        dy = pts[link_to,1]-pts[link_from,1]
+        link_length = numpy.sqrt( dx*dx + dy*dy )
+        return link_length
+        
+        
+    def calculate_numbers_of_node_neighbors(self):
+        """
+        Calculates the number of neighboring nodes for each node, and returns
+        the result as a 1D numpy array. Used to find the maximum number of
+        neighbors, so that inlink and outlink matrices can be dimensioned
+        accordingly. Assumes that self.num_nodes, self.link_fromnode, and
+        self.link_tonode have already been set up.
+        
+        Algorithm works by simply looping through all links; for each, the 
+        endpoints are neighbors of one another, so we increment the number of
+        neighbors for both the endpoint nodes.
+        """
+        num_nbrs = numpy.zeros(self.num_nodes, dtype=int)
+        for link in range(self.num_links):
+            num_nbrs[self.link_fromnode[link]] += 1
+            num_nbrs[self.link_tonode[link]] += 1
+        return num_nbrs
+
+
+    def setup_inlink_and_outlink_matrices(self):
+        """
+        Creates data structures to record the numbers of inlinks and outlinks
+        for each node. An inlink of a node is simply a link that has the node as
+        its "to" node, and an outlink is a link that has the node as its "from".
+        
+        We store the inlinks in an NM-row by num_nodes-column matrix called
+        node_inlink_matrix. NM is the maximum number of neighbors for any node.
+        
+        We also keep track of the total number of inlinks and outlinks at each
+        node in the num_inlinks and num_outlinks arrays.
+        
+        The inlink and outlink matrices are useful in numerical calculations.
+        Each row of each matrix contains one inlink or outlink per node. So, if
+        you have a corresponding "flux" matrix, you can map incoming or
+        outgoing fluxes onto the appropriate nodes. More information on this is
+        in the various calculate_flux_divergence... functions.
+        
+        What happens if a given node does not have two inlinks or outlinks? We
+        simply put the default value -1 in this case. This allows us to use a 
+        cute little trick when computing inflows and outflows. We make our 
+        "flux" array one element longer than the number of links, with the last
+        element containing the value 0. Thus, any time we add an influx from 
+        link number -1, Python takes the value of the last element in the array,
+        which is zero. By doing it this way, we maintain the efficiency that 
+        comes with the use of numpy. Again, more info can be found in the 
+        description of the flux divergence functions.
+        
+        Example:
+            
+        """
+        
+        # Find the maximum number of neighbors for any node
+        num_nbrs = self.calculate_numbers_of_node_neighbors()
+        self.max_num_nbrs = numpy.amax(num_nbrs)
+
+        # Create active in-link and out-link matrices.
+        self.node_inlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+        self.node_outlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+
+        # Set up the inlink arrays
+        tonodes = self.link_tonode
+        self.node_numinlink = numpy.bincount(tonodes,
+                                                 minlength=self.num_nodes)
+
+        counts = count_repeated_values(self.link_tonode)
+        for (count, (tonodes, link_ids)) in enumerate(counts):
+            self.node_inlink_matrix[count][tonodes] = link_ids
+
+        # Set up the outlink arrays
+        fromnodes = self.link_fromnode
+        self.node_numoutlink = numpy.bincount(fromnodes,
+                                              minlength=self.num_nodes)
+        counts = count_repeated_values(self.link_fromnode)
+        for (count, (fromnodes, link_ids)) in enumerate(counts):
+            self.node_outlink_matrix[count][fromnodes] = link_ids
+                
+        
+    def setup_active_inlink_and_outlink_matrices(self):
+        """
+        Creates data structures to record the numbers of active inlinks and 
+        active outlinks for each node. These data structures are equivalent to
+        the "regular" inlink and outlink matrices, except that it uses the IDs
+        of active links (only).
+        """
+        # Create active in-link and out-link matrices.
+        self.node_active_inlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes),
+                                                       dtype=numpy.int)
+        self.node_active_outlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes),
+                                                        dtype=numpy.int)
+        # Set up the inlink arrays
+        tonodes = self.activelink_tonode
+        self.node_numactiveinlink = numpy.bincount(tonodes,
+                                                   minlength=self.num_nodes)
+
+        counts = count_repeated_values(self.activelink_tonode)
+        for (count, (tonodes, active_link_ids)) in enumerate(counts):
+            self.node_active_inlink_matrix[count][tonodes] = active_link_ids
+
+        # Set up the outlink arrays
+        fromnodes = self.activelink_fromnode
+        self.node_numactiveoutlink = numpy.bincount(fromnodes,
+                                                    minlength=self.num_nodes)
+        counts = count_repeated_values(self.activelink_fromnode)
+        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
+            self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+
+    
+    def display_grid(self):
+        """
+        Displays the grid (mainly for purposes of debugging/testing and
+        visual examples).
+        """
+        import matplotlib.pyplot as plt
+        
+        plt.plot(self._node_x[self.interior_nodes], 
+                 self._node_y[self.interior_nodes], 'go')
+        plt.plot(self._node_x[self.boundary_nodes], 
+                 self._node_y[self.boundary_nodes], 'ro')
+        for i in range(self.num_links):
+            plt.plot([self._node_x[self.link_fromnode[i]],
+                     self._node_x[self.link_tonode[i]]],
+                     [self._node_y[self.link_fromnode[i]],
+                     self._node_y[self.link_tonode[i]]], 'k-')
+        plt.show()
+        
+
 
 class RasterModelGrid(ModelGrid):
     """
@@ -2703,52 +2857,207 @@ class RasterModelGrid(ModelGrid):
         print divg2
         
         
-class HexModelGrid(ModelGrid):
+#class HexModelGrid(ModelGrid):
+#    """
+#    This inherited class implements a regular 2D grid with hexagonal cells and
+#    triangular patches.
+#    
+#    Examples:
+#        
+#        #>>> rmg = HexModelGrid()
+#        #>>> rmg.num_nodes
+#        #0
+#        #>>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+#        #>>> rmg.num_nodes
+#        #20
+#    """
+#    
+#    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
+#        """
+#        Optionally takes numbers of rows and columns and cell size as
+#        inputs. If this are given, calls initialize() to set up the grid.
+#        
+#        """
+#        #print 'HexModelGrid.init'
+#        
+#        # Set number of nodes, and initialize if caller has given dimensions
+#        self.num_nodes = num_rows * num_cols
+#        if self.num_nodes > 0:
+#            self.initialize( num_rows, num_cols, dx )
+#
+#
+#    def initialize( self, num_rows, num_cols, dx ):
+#        """
+#        Sets up a num_rows by num_cols grid with cell spacing dx and
+#        (by default) regular boundaries (that is, all perimeter cells are
+#        boundaries and all interior cells are active).
+#
+#        To be consistent with unstructured grids, the hex grid is
+#        managed not as a 2D array but rather as a set of arrays that
+#        describe connectivity information between nodes, links, cells, faces,
+#        patches, corners, and junctions.
+#        """
+#        if self.DEBUG_TRACK_METHODS:
+#            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
+#                   +str(num_cols)+', '+str(dx)+')'
+#        
+#        # TO BE IMPLEMENTED!
+        
+
+        
+class VoronoiDelaunayGrid(ModelGrid):
     """
-    This inherited class implements a regular 2D grid with hexagonal cells and
-    triangular patches.
+    This inherited class implements an unstructured grid in which cells are
+    Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
+    scipy.spatial module to build the triangulation.
     
-    Examples:
-        
-        #>>> rmg = HexModelGrid()
-        #>>> rmg.num_nodes
-        #0
-        #>>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-        #>>> rmg.num_nodes
-        #20
     """
+    def __init__(self):
+        pass
+        
+    def initialize(self, x, y):
+        """
+        Creates an unstructured grid around the given (x,y) points.
+        """
+        
+        assert type(x)==numpy.ndarray, 'x must be a numpy array'
+        assert type(y)==numpy.ndarray, 'y must be a numpy array'
+        assert len(x)==len(y), 'x and y arrays must have the same size'
+        
+        # Make a copy of the points in a 2D array (useful for calls to geometry
+        # routines, but takes extra memory space).
+        pts = numpy.zeros((len(x), 2))
+        pts[:,0] = x
+        pts[:,1] = y
+        
+        # NODES AND CELLS: Set up information pertaining to nodes and cells:
+        #   - number of nodes
+        #   - node x, y coordinates
+        #   - default boundary status 
+        #   - interior and boundary nodes
+        #   - nodes associated with each cell and active cell
+        #   - cells and active cells associated with each node 
+        #     (or BAD_VALUE_INDEX if none)
+        #
+        # Assumptions we make here:
+        #   - all interior (non-perimeter) nodes have cells (this should be 
+        #       guaranteed in a Delaunay triangulation, but there may be 
+        #       special cases)
+        #   - all cells are active (later we'll build a mechanism for the user
+        #       specify a subset of cells as active)
+        #
+        self.num_nodes = len(x)
+        print x, y
+        self._node_x = x
+        self._node_y = y
+        [self.node_status, self.interior_nodes, self.boundary_nodes] = \
+                self.find_perimeter_nodes(pts)
+        self.num_cells = len(self.interior_nodes)
+        self.num_activecells = self.num_cells
+        [self.node_cell, self.cell_node] = self.setup_node_cell_connectivity( \
+                                            self.node_status, self.num_cells)
+        self.node_activecell = self.node_cell
+        self.activecell_node = self.cell_node
+        
+        # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
+        # each active cell.
+        from scipy.spatial import Voronoi
+        vor = Voronoi(pts)
+        self.active_cell_areas = numpy.zeros(self.num_activecells)
+        for node in self.activecell_node:
+            xv = vor.vertices[vor.regions[vor.point_region[node]],0]
+            yv = vor.vertices[vor.regions[vor.point_region[node]],1]
+            self.active_cell_areas[self.node_activecell[node]] = simple_poly_area(xv, yv)
+        
+        # LINKS: Construct Delaunay triangulation and construct lists of link
+        # "from" and "to" nodes.
+        from scipy.spatial import Delaunay
+        tri = Delaunay(pts)
+        [self.link_fromnode, self.link_tonode, self.num_links] = \
+                    create_links_from_triangulation(tri)
+                    
+        # LINKS: Calculate link lengths
+        self.link_length = self.calculate_link_lengths(pts, self.link_fromnode, 
+                                                       self.link_tonode)
+                                                       
+        # LINKS: inlink and outlink matrices
+        self.setup_inlink_and_outlink_matrices()
+        
+        # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
+        # nodes of active links.
+        self.reset_list_of_active_links()
+
+
+    def find_perimeter_nodes(self, pts):
     
-    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
-        """
-        Optionally takes numbers of rows and columns and cell size as
-        inputs. If this are given, calls initialize() to set up the grid.
+        # Calculate the convex hull for the set of points
+        from scipy.spatial import ConvexHull
+        hull = ConvexHull(pts)
+    
+        # The ConvexHull object lists the edges that form the hull. We need to
+        # get from this list of edges the unique set of nodes. To do this, we
+        # first flatten the list of vertices that make up all the hull edges 
+        # ("simplices"), so it becomes a 1D array. With that, we can use the set()
+        # function to turn the array into a set, which removes duplicate vertices.
+        # Then we turn it back into an array, which now contains the set of IDs for
+        # the nodes that make up the convex hull.
+        boundary_nodes = numpy.array(list(set(hull.simplices.flatten())))
+    
+        # Now we'll create the "node_status" array, which contains the code
+        # indicating whether the node is interior and active (=0) or a
+        # boundary (=1). This means that all perimeter (convex hull) nodes are
+        # initially flagged as boundary code 1. An application might wish to change
+        # this so that, for example, some boundaries are inactive.
+        node_status = numpy.zeros(len(pts[:,0]))
+        node_status[boundary_nodes] = 1
         
-        """
-        #print 'HexModelGrid.init'
+        # It's also useful to have a list of interior nodes
+        interior_nodes = numpy.where(node_status==0)[0]
+    
+        # Return the results
+        return node_status, interior_nodes, boundary_nodes
         
-        # Set number of nodes, and initialize if caller has given dimensions
-        self.num_nodes = num_rows * num_cols
-        if self.num_nodes > 0:
-            self.initialize( num_rows, num_cols, dx )
+        
+    def setup_node_cell_connectivity(self, node_status, ncells):
+        """
+        Creates and returns the following arrays:
+            1) for each node, the ID of the corresponding cell, or
+                BAD_INDEX_VALUE if the node has no cell.
+            2) for each cell, the ID of the corresponding node.
+            
+        Inputs:
+            node_status: 1D numpy array containing the boundary status code
+                         for each node
+            ncells: the number of cells (must equal the number of occurrences of
+                    INTERIOR_NODE in node_status)
+                    
+        Example:
+            
+            >>> vdmg = VoronoiDelaunayGrid()
+            >>> ns = numpy.array([1,0,0,1,0])  # 3 interior, 2 boundary nodes
+            >>> [node_cell,cell_node] = vdmg.setup_node_cell_connectivity(ns, 3)
+            >>> node_cell[1:3]
+            array([0, 1])
+            >>> node_cell[0]==BAD_INDEX_VALUE
+            True
+            >>> cell_node
+            array([1, 2, 4])
+        """
+        assert ncells==numpy.count_nonzero(node_status==INTERIOR_NODE), \
+               'ncells must equal number of INTERIOR_NODE values in node_status'
 
-
-    def initialize( self, num_rows, num_cols, dx ):
-        """
-        Sets up a num_rows by num_cols grid with cell spacing dx and
-        (by default) regular boundaries (that is, all perimeter cells are
-        boundaries and all interior cells are active).
-
-        To be consistent with unstructured grids, the hex grid is
-        managed not as a 2D array but rather as a set of arrays that
-        describe connectivity information between nodes, links, cells, faces,
-        patches, corners, and junctions.
-        """
-        if self.DEBUG_TRACK_METHODS:
-            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
-                   +str(num_cols)+', '+str(dx)+')'
+        cell = 0
+        node_cell = numpy.ones(len(node_status), dtype=int)*BAD_INDEX_VALUE
+        cell_node = numpy.zeros(ncells, dtype=int)
+        for node in range(len(node_cell)):
+            if node_status[node] == INTERIOR_NODE:
+                node_cell[node] = cell
+                cell_node[cell] = node
+                cell += 1
+                
+        return node_cell, cell_node
         
-        # TO BE IMPLEMENTED!
-        
+
     def make_hex_points(self, num_rows, base_num_cols, dxh):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which the 
@@ -2766,8 +3075,8 @@ class HexModelGrid(ModelGrid):
                 
         Example:
             
-            >>> hmg = HexModelGrid()
-            >>> [p, npt] = hmg.make_hex_points(3, 2, 1.0)
+            >>> vdmg = VoronoiDelaunayGrid()
+            >>> [p, npt] = vdmg.make_hex_points(3, 2, 1.0)
             >>> npt
             7
             >>> p[1,:]
@@ -2804,18 +3113,7 @@ class HexModelGrid(ModelGrid):
         return pts, npts
     
 
-        
-class VoronoiDelaunayGrid(ModelGrid):
-    """
-    This inherited class implements an unstructured grid in which cells are
-    Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
-    scipy.spatial module to build the triangulation.
-    
-    """
-    pass
-    
-
-        
+            
 
 if __name__ == '__main__':
     import doctest
