@@ -910,22 +910,42 @@ class ModelGrid(object):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
     
-    def display_grid(self):
+    def display_grid(self, draw_voronoi=False):
         """
         Displays the grid (mainly for purposes of debugging/testing and
         visual examples).
         """
         import matplotlib.pyplot as plt
         
+        # Plot nodes, colored by boundary vs interior
         plt.plot(self._node_x[self.interior_nodes], 
                  self._node_y[self.interior_nodes], 'go')
         plt.plot(self._node_x[self.boundary_nodes], 
                  self._node_y[self.boundary_nodes], 'ro')
+                 
+        # Draw links
         for i in range(self.num_links):
             plt.plot([self._node_x[self.link_fromnode[i]],
                      self._node_x[self.link_tonode[i]]],
                      [self._node_y[self.link_fromnode[i]],
                      self._node_y[self.link_tonode[i]]], 'k-')
+                     
+        # Draw active links
+        for link in self.active_links:
+            plt.plot([self._node_x[self.link_fromnode[link]],
+                     self._node_x[self.link_tonode[link]]],
+                     [self._node_y[self.link_fromnode[link]],
+                     self._node_y[self.link_tonode[link]]], 'g-')
+                     
+        # If caller asked for a voronoi diagram, draw that too
+        if draw_voronoi!=None:
+            from scipy.spatial import Voronoi, voronoi_plot_2d
+            pts = numpy.zeros((self.num_nodes, 2))
+            pts[:,0] = self._node_x
+            pts[:,1] = self._node_y
+            vor = Voronoi(pts)
+            voronoi_plot_2d(vor)
+        
         plt.show()
         
 
@@ -2987,13 +3007,20 @@ class VoronoiDelaunayGrid(ModelGrid):
         # nodes of active links.
         self.reset_list_of_active_links()
 
+        # LINKS: ID of corresponding face, if any
+        self.link_face = numpy.zeros(self.num_links, dtype=int)+BAD_INDEX_VALUE  # make the list
+        face_id = 0
+        for link in self.active_links:
+            self.link_face[link] = face_id
+            face_id += 1
+            
 
     def find_perimeter_nodes(self, pts):
     
         # Calculate the convex hull for the set of points
         from scipy.spatial import ConvexHull
-        hull = ConvexHull(pts)
-    
+        hull = ConvexHull(pts, qhull_options='Qc') # see below why we use 'Qt'
+        
         # The ConvexHull object lists the edges that form the hull. We need to
         # get from this list of edges the unique set of nodes. To do this, we
         # first flatten the list of vertices that make up all the hull edges 
@@ -3001,7 +3028,19 @@ class VoronoiDelaunayGrid(ModelGrid):
         # function to turn the array into a set, which removes duplicate vertices.
         # Then we turn it back into an array, which now contains the set of IDs for
         # the nodes that make up the convex hull.
-        boundary_nodes = numpy.array(list(set(hull.simplices.flatten())))
+        #   The next thing to worry about is the fact that the mesh perimeter 
+        # might contain nodes that are co-planar (that is, co-linear in our 2D 
+        # world). For example, if you make a set of staggered points for a
+        # hexagonal lattice using make_hex_points(), there will be some 
+        # co-linear points along the perimeter. The ones of these that don't 
+        # form convex corners won't be included in convex_hull_nodes, but they
+        # are nonetheless part of the perimeter and need to be included in
+        # the list of boundary_nodes. To deal with this, we pass the 'Qt'
+        # option to ConvexHull, which makes it generate a list of coplanar
+        # points. We include these in our set of boundary nodes.
+        convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
+        coplanar_nodes = hull.coplanar[:,0]
+        boundary_nodes = numpy.concatenate((convex_hull_nodes, coplanar_nodes))
     
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
