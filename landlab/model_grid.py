@@ -157,66 +157,7 @@ def simple_poly_area(x,y):
     return abs(s)*0.5
 
 
-def create_links_from_triangulation(tri):
-    """
-    From a Delaunay Triangulation of a set of points, contained in a
-    scipy.spatial.Delaunay object "tri", creates and returns:
-        1) a numpy array containing the ID of the "from" node for each link
-        2) a numpy array containing the ID of the "to" node for each link
-        3) the number of links in the triangulation
-        
-    Example:
-        
-        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
-        >>> from scipy.spatial import Delaunay
-        >>> dt = Delaunay(pts)
-        >>> [myfrom,myto,nl] = create_links_from_triangulation(dt)
-        >>> print myfrom, myto, nl
-        [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
-        
-    .. note: 
-        This could be method of class VoronoiDelaunay or DelaunayVoronoi
-    """
-    
-    # Calculate how many links there will be and create the arrays.
-    #
-    # The number of links equals 3 times the number of triangles minus
-    # half the number of shared links. Finding out the number of shared links
-    # is easy: for every shared link, there is an entry in the tri.neighbors
-    # array that is > -1 (indicating that the triangle has a neighbor opposite
-    # a given vertex; in other words, two triangles are sharing an edge).
-    #
-    num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
-    num_links = 3*tri.nsimplex - num_shared_links/2
-    link_fromnode = numpy.zeros(num_links, dtype=int)
-    link_tonode = numpy.zeros(num_links, dtype=int)
-    
-    # Sweep through the list of triangles, assigning "from" and "to" nodes to
-    # the list of links.
-    #
-    # The basic algorithm works as follows. For each triangle, we will add its
-    # 3 edges as links. However, we have to make sure that each shared edge
-    # is added only once. To do this, we keep track of whether or not each
-    # triangle has been processed yet using a boolean array called "tridone".
-    # When we look at a given triangle, we check each vertex in turn. If there
-    # is no neighboring triangle opposite that vertex, then we need to add the
-    # corresponding edge. If there is a neighboring triangle but we haven't
-    # processed it yet, we also need to add the edge. If neither condition is
-    # true, then this edge has already been added, so we skip it.
-    link_id = 0
-    tridone = numpy.zeros(tri.nsimplex, dtype=bool)    
-    for t in range(tri.nsimplex):  # loop over triangles
-        for i in range(0, 3):       # loop over vertices & neighbors
-            if tri.neighbors[t,i] == -1 or not tridone[tri.neighbors[t,i]]:
-                link_fromnode[link_id] = tri.simplices[t,numpy.mod(i+1,3)]
-                link_tonode[link_id] = tri.simplices[t,numpy.mod(i+2,3)]
-                link_id += 1
-        tridone[t] = True
-    
-    # Return the results
-    return link_fromnode, link_tonode, num_links
-    
-    
+
 
 #class BoundaryCondition(object):
 #    """
@@ -2877,51 +2818,6 @@ class RasterModelGrid(ModelGrid):
         print divg2
         
         
-#class HexModelGrid(ModelGrid):
-#    """
-#    This inherited class implements a regular 2D grid with hexagonal cells and
-#    triangular patches.
-#    
-#    Examples:
-#        
-#        #>>> rmg = HexModelGrid()
-#        #>>> rmg.num_nodes
-#        #0
-#        #>>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-#        #>>> rmg.num_nodes
-#        #20
-#    """
-#    
-#    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
-#        """
-#        Optionally takes numbers of rows and columns and cell size as
-#        inputs. If this are given, calls initialize() to set up the grid.
-#        
-#        """
-#        #print 'HexModelGrid.init'
-#        
-#        # Set number of nodes, and initialize if caller has given dimensions
-#        self.num_nodes = num_rows * num_cols
-#        if self.num_nodes > 0:
-#            self.initialize( num_rows, num_cols, dx )
-#
-#
-#    def initialize( self, num_rows, num_cols, dx ):
-#        """
-#        Sets up a num_rows by num_cols grid with cell spacing dx and
-#        (by default) regular boundaries (that is, all perimeter cells are
-#        boundaries and all interior cells are active).
-#
-#        To be consistent with unstructured grids, the hex grid is
-#        managed not as a 2D array but rather as a set of arrays that
-#        describe connectivity information between nodes, links, cells, faces,
-#        patches, corners, and junctions.
-#        """
-#        if self.DEBUG_TRACK_METHODS:
-#            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
-#                   +str(num_cols)+', '+str(dx)+')'
-#        
-#        # TO BE IMPLEMENTED!
         
 
         
@@ -2967,7 +2863,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       specify a subset of cells as active)
         #
         self.num_nodes = len(x)
-        print x, y
+        #print x, y
         self._node_x = x
         self._node_y = y
         [self.node_status, self.interior_nodes, self.boundary_nodes] = \
@@ -2991,10 +2887,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        from scipy.spatial import Delaunay
-        tri = Delaunay(pts)
-        [self.link_fromnode, self.link_tonode, self.num_links] = \
-                    create_links_from_triangulation(tri)
+        [self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
+                = self.create_links_and_faces_from_voronoi_diagram(vor)
+        self.num_links = len(self.link_fromnode)
                     
         # LINKS: Calculate link lengths
         self.link_length = self.calculate_link_lengths(pts, self.link_fromnode, 
@@ -3097,6 +2992,195 @@ class VoronoiDelaunayGrid(ModelGrid):
         return node_cell, cell_node
         
 
+    def create_links_from_triangulation(self, tri):
+        """
+        From a Delaunay Triangulation of a set of points, contained in a
+        scipy.spatial.Delaunay object "tri", creates and returns:
+            1) a numpy array containing the ID of the "from" node for each link
+            2) a numpy array containing the ID of the "to" node for each link
+            3) the number of links in the triangulation
+        
+        Example:
+            
+            >>> vdmg = VoronoiDelaunayGrid()
+            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+            >>> from scipy.spatial import Delaunay
+            >>> dt = Delaunay(pts)
+            >>> [myfrom,myto,nl] = vdmg.create_links_from_triangulation(dt)
+            >>> print myfrom, myto, nl
+            [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
+        
+        """
+    
+        # Calculate how many links there will be and create the arrays.
+        #
+        # The number of links equals 3 times the number of triangles minus
+        # half the number of shared links. Finding out the number of shared links
+        # is easy: for every shared link, there is an entry in the tri.neighbors
+        # array that is > -1 (indicating that the triangle has a neighbor opposite
+        # a given vertex; in other words, two triangles are sharing an edge).
+        #
+        num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
+        num_links = 3*tri.nsimplex - num_shared_links/2
+        link_fromnode = numpy.zeros(num_links, dtype=int)
+        link_tonode = numpy.zeros(num_links, dtype=int)
+        
+        # Sweep through the list of triangles, assigning "from" and "to" nodes to
+        # the list of links.
+        #
+        # The basic algorithm works as follows. For each triangle, we will add its
+        # 3 edges as links. However, we have to make sure that each shared edge
+        # is added only once. To do this, we keep track of whether or not each
+        # triangle has been processed yet using a boolean array called "tridone".
+        # When we look at a given triangle, we check each vertex in turn. If there
+        # is no neighboring triangle opposite that vertex, then we need to add the
+        # corresponding edge. If there is a neighboring triangle but we haven't
+        # processed it yet, we also need to add the edge. If neither condition is
+        # true, then this edge has already been added, so we skip it.
+        link_id = 0
+        tridone = numpy.zeros(tri.nsimplex, dtype=bool)    
+        for t in range(tri.nsimplex):  # loop over triangles
+            for i in range(0, 3):       # loop over vertices & neighbors
+                if tri.neighbors[t,i] == -1 or not tridone[tri.neighbors[t,i]]:
+                    link_fromnode[link_id] = tri.simplices[t,numpy.mod(i+1,3)]
+                    link_tonode[link_id] = tri.simplices[t,numpy.mod(i+2,3)]
+                    link_id += 1
+            tridone[t] = True
+    
+        # Return the results
+        return link_fromnode, link_tonode, num_links
+    
+
+    def create_links_and_faces_from_voronoi_diagram(self, vor):
+        """
+        From a Voronoi diagram object created by scipy.spatial.Voronoi(),
+        builds and returns:
+            1) Arrays of link "from" and "to" nodes
+            2) Array of link IDs for each active link
+            3) Array containing with of each face
+        
+        Inputs: vor = a scipy.spatial.Voronoi() object that was initialized
+                      with the grid nodes.
+                      
+        Returns four 1D numpy arrays:
+            
+            link_fromnode = "from" node for each link (len=num_links)
+            link_tonode   = "to" node for each link (len=num_links)
+            active_links  = link ID for each active link (len=num_active_links)
+            face_width    = width of each face (len=num_active_links
+        
+        Example:
+            
+            >>> vdmg = VoronoiDelaunayGrid()
+            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1.5, 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+            >>> from scipy.spatial import Voronoi
+            >>> vor = Voronoi(pts)
+            >>> [fr,to,al,fw] = vdmg.create_links_and_faces_from_voronoi_diagram(vor)
+            >>> fr
+            array([0, 0, 0, 1, 1, 3, 3, 6, 6, 6, 4, 4])
+            >>> to
+            array([3, 1, 4, 2, 4, 4, 5, 4, 2, 5, 2, 5])
+            >>> al
+            array([ 2,  4,  5,  7, 10, 11])
+            >>> fw
+            array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
+                    0.57836419])
+        """
+        # Each Voronoi "ridge" corresponds to a link. The Voronoi object has an
+        # attribute ridge_points that contains the IDs of the nodes on either
+        # side (including ridges that have one of their endpoints undefined).
+        # So, we set the number of links equal to the number of ridges.
+        num_links = len(vor.ridge_points)
+        
+        # Create the arrays for link from and to nodes
+        link_fromnode = -numpy.ones(num_links, dtype=int)
+        link_tonode = -numpy.ones(num_links, dtype=int)
+        
+        # Ridges along the perimeter of the grid will have one of their 
+        # endpoints undefined. The endpoints of each ridge are contained in
+        # vor.ridge_vertices, and an undefined vertex is flagged with -1.
+        # Ridges with both vertices defined correspond to faces and active 
+        # links, while ridges with an undefined vertex correspond to inactive
+        # links. So, to find the number of active links, we subtract from the
+        # total number of links the number of occurrences of an undefined
+        # vertex.
+        num_active_links = num_links \
+                    - numpy.count_nonzero(numpy.array(vor.ridge_vertices)==-1)
+        #print 'num_links=', num_links,'num_active_links=',num_active_links
+        
+        # Create arrays for active links and width of faces (which are Voronoi
+        # ridges).
+        active_links = -numpy.ones(num_active_links, dtype=int)
+        face_width = -numpy.ones(num_active_links)
+    
+        # Loop through the list of ridges. For each ridge, there is a link, and
+        # its "from" and "to" nodes are the associated "points". In addition, if
+        # the ridge endpoints are defined, we have a face and an active link,
+        # so we add them to our arrays as well.
+        j = 0
+        for i in range(num_links):
+            link_fromnode[i] = vor.ridge_points[i,0]
+            link_tonode[i] = vor.ridge_points[i,1]
+            face_corner1 = vor.ridge_vertices[i][0]
+            face_corner2 = vor.ridge_vertices[i][1]
+            if face_corner1>-1 and face_corner2>-1:  # means it's a valid face
+                dx = vor.vertices[face_corner2,0]-vor.vertices[face_corner1,0]
+                dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
+                face_width[j] = numpy.sqrt(dx*dx+dy*dy)
+                #print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
+                active_links[j] = i
+                j += 1
+        #print 'active links:',active_links
+        #print 'vor ridge points:',vor.ridge_points
+        return link_fromnode, link_tonode, active_links, face_width
+
+
+class HexModelGrid(VoronoiDelaunayGrid):
+    """
+    This inherited class implements a regular 2D grid with hexagonal cells and
+    triangular patches. It is a special type of VoronoiDelaunay grid in which
+    the initial set of points is arranged in a triangular/hexagonal lattice.
+    
+    Examples:
+        
+        >>> hmg = HexModelGrid(3, 2, 1.0)
+        >>> hmg.num_nodes
+        7
+    """
+    
+    def __init__(self, num_rows=0, base_num_cols=0, dx=1.0):
+        """
+        Optionally takes numbers of rows and columns and cell size as
+        inputs. If this are given, calls initialize() to set up the grid.
+        
+        """
+        #print 'HexModelGrid.init'
+        
+        # Set number of nodes, and initialize if caller has given dimensions
+        #self.num_nodes = num_rows * num_cols
+        if num_rows*base_num_cols > 0:
+            self.initialize( num_rows, base_num_cols, dx )
+
+
+    def initialize( self, num_rows, base_num_cols, dx ):
+        """
+        Sets up a num_rows by num_cols grid with cell spacing dx and
+        (by default) regular boundaries (that is, all perimeter cells are
+        boundaries and all interior cells are active).
+
+        To be consistent with unstructured grids, the hex grid is
+        managed not as a 2D array but rather as a set of arrays that
+        describe connectivity information between nodes, links, cells, faces,
+        patches, corners, and junctions.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
+                   +str(base_num_cols)+', '+str(dx)+')'
+        
+        [pts, self.num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
+        super(HexModelGrid, self).initialize(pts[:,0], pts[:,1])
+        
+
     def make_hex_points(self, num_rows, base_num_cols, dxh):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which the 
@@ -3114,8 +3198,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                 
         Example:
             
-            >>> vdmg = VoronoiDelaunayGrid()
-            >>> [p, npt] = vdmg.make_hex_points(3, 2, 1.0)
+            >>> hmg = HexModelGrid()
+            >>> [p, npt] = hmg.make_hex_points(3, 2, 1.0)
             >>> npt
             7
             >>> p[1,:]
@@ -3152,7 +3236,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         return pts, npts
     
 
-            
+
 
 if __name__ == '__main__':
     import doctest
