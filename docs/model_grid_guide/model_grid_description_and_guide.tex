@@ -124,7 +124,18 @@ Boundary nodes are flagged as either {\em open (active)} or {\em closed (inactiv
 
 The following is a simple tutorial in which we use ModelGrid to build an explicit, staggered-grid model of diffusion. The mathematics of diffusion describe quite a few different phenomena, among them heat conduction in solids, chemical diffusion of dissolved material, transport of momentum in a viscous shear flow, and transport of soil on hillslopes. To make this exercise concrete, we will use the latter as our working example, though in fact the solution could apply to any of these systems.
 
-To work through this example, you can type in and run the code below, or find a copy at \url{http://csdms.colorado.edu/wiki/Model:LandLab}. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn.
+To work through this example, you can type in and run the code below, or find a copy at \url{http://csdms.colorado.edu/wiki/Model:LandLab}. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn. Output from the the diffusion model is shown in Figure~\ref{basicdiffmod}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.45]{basic_diffusion_example.png}
+    \caption{Output from \code{diffusion\_with\_model\_grid.py}.}
+   \label{basicdiffmod}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 \lstinputlisting[language=Python,caption={diffusion\_with\_model\_grid.py}]{diffusion_with_model_grid.py}
 

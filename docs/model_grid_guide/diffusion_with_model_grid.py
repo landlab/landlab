@@ -25,7 +25,7 @@ def main():
     numcols = 30          # number of columns in the grid
     dx = 10.0             # grid cell spacing
     kd = 0.01             # diffusivity coefficient, in m2/yr
-    uplift_rate = 0.001   # baselevel/uplift rate, in m/yr
+    uplift_rate = 0.0001  # baselevel/uplift rate, in m/yr
     num_time_steps = 10000 # number of time steps in run
     
     # Derived parameters
@@ -76,17 +76,20 @@ def main():
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])  # display a colored image
     
     # add contour lines with labels
-    cset = pylab.contour(zr)
+    cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0])
     pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
     
     # add a color bar on the side
-    pylab.colorbar(im)
+    cb = pylab.colorbar(im)
+    cb.set_label('Elevation in meters')
     
-    # add a title
+    # add a title and axis labels
     pylab.title('Simulated topography with uplift and diffusion')
+    pylab.xlabel('Distance (m)')
+    pylab.ylabel('Distance (m)')
 
     # Display the plot
     pylab.show()

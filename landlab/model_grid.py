@@ -427,6 +427,7 @@ class ModelGrid(object):
             the RasterModelGrid version.
         """
         
+        #print 'cfdn here'
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_nodes'
             
@@ -456,11 +457,15 @@ class ModelGrid(object):
             if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_node] += total_flux / \
                                             self.active_cell_areas[from_cell]
-                #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
+                #if from_node==46:
+                #    print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
+                #    print 'fw=', self.face_width[self.link_face[link_id]]
             if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_node] -= total_flux / \
                                           self.active_cell_areas[to_cell]
-                #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
+                #if to_node==46:
+                #    print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
+                #    print 'fw=', self.face_width[self.link_face[link_id]]
             active_link_id += 1
         
         return net_unit_flux
@@ -889,7 +894,132 @@ class ModelGrid(object):
         
         plt.show()
         
+    
+    def assign_boundary_nodes_to_grid_sides(self):
+        """
+        For each boundary node, determines whether it belongs to the left, 
+        right, top or bottom of the grid, based on its distance from the grid's
+        centerpoint (mean (x,y) position). Returns lists of nodes on each of 
+        the four grid sides. Assumes self.node_status, self.num_nodes, 
+        self.boundary_nodes, self._node_x, and self._node_y have been initialized.
+        
+        Example:
+            
+            >>> m = HexModelGrid(5, 3, 1.0)
+            >>> [l,r,t,b] = m.assign_boundary_nodes_to_grid_sides()
+            >>> l
+            array([ 7, 12,  3], dtype=int32)
+            >>> r
+            array([11, 15,  6], dtype=int32)
+            >>> t
+            array([16, 18, 17], dtype=int32)
+            >>> b
+            array([0, 2, 1], dtype=int32)
+        """
+        # Find the grid's centerpoint
+        xmean = numpy.mean(self._node_x)
+        ymean = numpy.mean(self._node_y)
+        
+        # Calculate x and y distance from centerpoint
+        dx = self._node_x[self.boundary_nodes] - xmean
+        dy = self._node_y[self.boundary_nodes] - ymean
+        
+        # Make lists of edge nodes
+        right_nodes = []
+        left_nodes = []
+        top_nodes = []
+        bottom_nodes = []
+        
+        i = 0
+        for n in self.boundary_nodes:
+            if abs(dx[i])>abs(dy[i]):
+                if dx[i] > 0.:
+                    right_nodes.append(n)
+                else:
+                    left_nodes.append(n)
+            elif dy[i] > 0.:
+                top_nodes.append(n)
+            else:
+                bottom_nodes.append(n)
+            i += 1
+            
+        return numpy.array(left_nodes), numpy.array(right_nodes), \
+               numpy.array(top_nodes), numpy.array(bottom_nodes)
+        
+        
+    def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
+                                top_is_inactive, left_is_inactive):
+        """
+        Handles boundary conditions by setting each of the four sides of the 
+        rectangular grid to either 'inactive' or 'active (fixed value)' status.
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left are inactive (True) or not (False).
+        
+        For an inactive boundary:
+            - the nodes are flagged INACTIVE_BOUNDARY
+            - the links between them and the adjacent interior nodes are
+              inactive (so they appear on link-based lists, but not
+              active_link-based lists)
+              
+        This means that if you call the calculate_gradients_at_active_links
+        method, the inactive boundaries will be ignored: there can be no
+        gradients or fluxes calculated, because the links that connect to that
+        edge of the grid are not included in the calculation. So, setting a
+        grid edge to INACTIVE_BOUNDARY is a convenient way to impose a no-flux
+        boundary condition. Note, however, that this applies to the grid as a
+        whole, rather than a particular variable that you might use in your
+        application. In other words, if you want a no-flux boundary in one
+        variable but a different boundary condition for another, then use 
+        another method.
+        
+        The following example sets the top and left boundaries as inactive in a
+        four-row by five-column grid that initially has all boundaries active
+        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
+        
+        >>> rmg = HexModelGrid(5, 3, 1.0) # rows, columns, spacing
+        >>> rmg.num_active_links
+        30
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.set_inactive_boundaries(False, False, True, True)
+        >>> rmg.num_active_links
+        21
+        >>> rmg.node_status
+        array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_inactive_boundaries'
+            
+        [left_edge, right_edge, top_edge, bottom_edge] = \
+                self.assign_boundary_nodes_to_grid_sides()
+            
+        if bottom_is_inactive:
+            self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
 
+        if right_is_inactive:
+            self.node_status[right_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
+            
+        if top_is_inactive:
+            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
+
+        if left_is_inactive:
+            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
+        else:
+            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
+        
+        if _SLOW:
+            self.reset_list_of_active_links_slow()
+        else:
+            self.reset_list_of_active_links()
+
+                
+        
 
 class RasterModelGrid(ModelGrid):
     """
@@ -1810,7 +1940,8 @@ class RasterModelGrid(ModelGrid):
             self.reset_list_of_active_links_slow()
         else:
             self.reset_list_of_active_links()
-        
+
+                
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
         """
@@ -2942,7 +3073,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # boundary (=1). This means that all perimeter (convex hull) nodes are
         # initially flagged as boundary code 1. An application might wish to change
         # this so that, for example, some boundaries are inactive.
-        node_status = numpy.zeros(len(pts[:,0]))
+        node_status = numpy.zeros(len(pts[:,0]), dtype=numpy.int8)
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
@@ -3051,6 +3182,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         return link_fromnode, link_tonode, num_links
     
 
+    def is_valid_voronoi_ridge(self, vor, n):
+        
+        SUSPICIOUSLY_BIG = 40000000.0
+        return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
+                and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
+
+        
+        
     def create_links_and_faces_from_voronoi_diagram(self, vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
@@ -3123,11 +3262,17 @@ class VoronoiDelaunayGrid(ModelGrid):
             link_tonode[i] = vor.ridge_points[i,1]
             face_corner1 = vor.ridge_vertices[i][0]
             face_corner2 = vor.ridge_vertices[i][1]
-            if face_corner1>-1 and face_corner2>-1:  # means it's a valid face
+            if self.is_valid_voronoi_ridge(vor, i):  # means it's a valid face
                 dx = vor.vertices[face_corner2,0]-vor.vertices[face_corner1,0]
                 dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
                 face_width[j] = numpy.sqrt(dx*dx+dy*dy)
-                #print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
+                if abs(face_width[j])>=40000.0:
+                    print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
+                    print vor.ridge_vertices[i]
+                    print vor.vertices[vor.ridge_vertices[i]]
+                    from scipy.spatial import voronoi_plot_2d
+                    voronoi_plot_2d(vor)
+                assert face_width[j] < 40000., 'face width must be less than earth circumference!'
                 active_links[j] = i
                 j += 1
         #print 'active links:',active_links
@@ -3236,6 +3381,68 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts, npts
     
 
+
+class RadialModelGrid(VoronoiDelaunayGrid):
+    """
+    This inherited class implements a circular grid in which grid nodes are
+    placed at regular radial and semi-regular arc-wise intervals. That is, if
+    the radial spacing between "shells" is dr, the nodes are placed around the
+    circular shell at regular intervals that get as close as possible to dr.
+    The points are then arranged in a Delaunay triangulation with Voronoi cells.
+    
+   # Examples:
+   #     
+   #     >>> hmg = HexModelGrid(3, 2, 1.0)
+   #     >>> hmg.num_nodes
+   #     7
+    """
+    
+    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0):
+        """
+        Optionally takes number of shells and radial distance between shells. 
+        If this are given, calls initialize() to set up the grid.
+        
+        """
+        #print 'RadialModelGrid.init'
+        
+        # Set number of nodes, and initialize if caller has given dimensions
+        #self.num_nodes = num_rows * num_cols
+        if num_shells > 0:
+            self.initialize(num_shells, dr, origin_x, origin_y)
+
+
+    def initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
+        """
+        """
+        #if self.DEBUG_TRACK_METHODS:
+        print 'RadialModelGrid.initialize('+str(num_shells)+', '+str(dr)+')'
+        
+        [pts, npts] = self.make_radial_points(num_shells, dr)
+        super(RadialModelGrid, self).initialize(pts[:,0], pts[:,1])
+        
+        
+    def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
+        """
+        Creates and returns a set of (x,y) points placed in a series of
+        concentric circles around the origin.
+        """
+        shells = numpy.arange(0, num_shells)+1
+        twopi = 2*numpy.pi
+        n_pts_in_shell = numpy.round( twopi*shells ) # number of points in each shell
+        dtheta = twopi / n_pts_in_shell
+        npts = int(sum(n_pts_in_shell)+1)
+        pts = numpy.zeros((npts,2))
+        r =  shells*dr
+        startpt = 1
+        for i in numpy.arange(0, num_shells):
+            theta = dtheta[i]*numpy.arange(0, n_pts_in_shell[i])+dtheta[i]/(i+1)
+            pts[startpt:(startpt+n_pts_in_shell[i]),0] = r[i]*numpy.cos(theta)
+            pts[startpt:(startpt+n_pts_in_shell[i]),1] = r[i]*numpy.sin(theta)
+            startpt += n_pts_in_shell[i]
+        pts[:,0] += origin_x
+        pts[:,1] += origin_y
+        
+        return pts, npts
 
 
 if __name__ == '__main__':
