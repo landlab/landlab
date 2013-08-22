@@ -1,5 +1,5 @@
 import landlab.components.craters as craters
-from landlab.model_grid import RasterModelGrid
+from landlab import RasterModelGrid
 import numpy
 from pylab import show, imshow, colorbar, plot
 from copy import copy

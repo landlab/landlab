@@ -203,12 +203,12 @@ def _read_asc_data(asc_file, header={}):
 def read_esri_ascii(asc_file, reshape=False):
     """
     Read data from *asc_file*, an ESRI_ ASCII file, into a
-    :py:class:`~landlab.model_grid.RasterModelGrid`.  *asc_file* is either
+    :py:class:`~landlab.RasterModelGrid`.  *asc_file* is either
     the name of the data file or is a file-like object.
 
     The grid and data read from the file are returned as a tuple
     (*grid*, *data*) where *grid* is an instance of
-    :py:class:`~landlab.model_grid.RasterModelGrid` and *data* is a numpy
+    :py:class:`~landlab.RasterModelGrid` and *data* is a numpy
     array of doubles with that has been reshaped to have the number of rows
     and columns given in the header.
 

@@ -3,13 +3,10 @@
 Runs RasterModelGrid's unit_test() method
 """
 
-from landlab import model_grid
-import numpy
+import landlab as ll
 
 def main():
-    reload(model_grid)
-    
-    mg = model_grid.RasterModelGrid()
+    mg = ll.RasterModelGrid()
     mg.unit_test()
 
 if __name__ == '__main__':

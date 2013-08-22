@@ -4,7 +4,7 @@ just a little script for testing the d8 flow routing class
 and drainage area calculation 
 """
 
-from landlab.model_grid import RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.examples.flowRoutingD8 import RouteFlowD8
 from landlab.examples.drainageArea import CalcDrainageArea
 from numpy import *

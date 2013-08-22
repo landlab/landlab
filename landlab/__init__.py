@@ -22,6 +22,9 @@ from landlab.model_parameter_dictionary import ModelParameterDictionary
 from landlab.framework.collections import Palette, Arena, NoProvidersError
 from landlab.framework.decorators import Implements, ImplementsOrRaise
 from landlab.framework.framework import Framework
-from landlab.model_grid import ModelGrid, RasterModelGrid
+#from landlab.grid import (ModelGrid, HexModelGrid, RasterModelGrid,
+#                          RadialModelGrid, VoronoiDelaunayGrid,
+#                          BAD_INDEX_VALUE)
+from landlab.grid import *
 from landlab.model_field import RasterModelField
 from landlab.model_component import Component

@@ -10,7 +10,7 @@ Last updated August 2013 GT
 
 import sys                                    # for command-line arguments
 from landlab import ModelParameterDictionary  # for input file
-from landlab import model_grid                # for grid
+from landlab import create_and_initialize_grid
 import diffusion
 
 class DiffusionModel():
@@ -26,7 +26,7 @@ class DiffusionModel():
         inputs = ModelParameterDictionary(input_stream)
     
         # Create grid
-        self.grid = model_grid.create_and_initialize_grid(inputs)
+        self.grid = create_and_initialize_grid(inputs)
         
         # Create a diffusion component
         self.diffusion_component = diffusion.DiffusionComponent(self.grid)

@@ -7,7 +7,7 @@ from collections import deque
 import sys
 import time
 import scipy.optimize as opt
-from landlab.model_grid import RasterModelGrid #this is the tMesh equivalent module
+from landlab import RasterModelGrid #this is the tMesh equivalent module
 
 #these ones only so we can run this module ad-hoc:
 from pylab import plot, draw, show, contour, imshow, colorbar

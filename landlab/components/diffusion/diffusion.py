@@ -9,7 +9,7 @@ Last updated August 2013 GT
 """
 
 from landlab import ModelParameterDictionary
-from landlab import model_grid
+from landlab import create_and_initialize_grid
 
 _ALPHA = 0.1   # time-step stability factor
 
@@ -34,7 +34,7 @@ class DiffusionComponent():
         
         # Create grid if one doesn't already exist
         if self.grid==None:
-            self.grid = model_grid.create_and_initialize_grid(input_stream)
+            self.grid = create_and_initialize_grid(input_stream)
             
         # Set internal time step
         # ..todo:

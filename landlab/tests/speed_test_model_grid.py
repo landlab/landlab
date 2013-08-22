@@ -2,13 +2,12 @@
 simple script to run speed tests of various functions in model grid
 """
 
-from landlab import model_grid
+import landlab as ll
 import time
-import numpy
 
 
 def main():
-    mg = model_grid.RasterModelGrid(20, 30, 1.0)
+    mg = ll.RasterModelGrid(20, 30, 1.0)
 
     nt = 1000
 

@@ -9,7 +9,7 @@ Last updated NG 8/2013
 
 """
 
-from landlab.model_grid import RasterModelGrid
+from landlab import RasterModelGrid
 import numpy as np
 import pylab
 

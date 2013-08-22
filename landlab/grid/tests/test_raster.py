@@ -7,9 +7,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
-from landlab.model_grid import BAD_INDEX_VALUE
-from landlab.model_grid import BadCenteringString
+from landlab import RasterModelGrid, BAD_INDEX_VALUE
 
 
 _SPACING = 1.
@@ -287,7 +285,7 @@ class TestRasterModelGrid(unittest.TestCase):
                                      -1, -1, -1, -1, -1]))
 
     def test_link_face(self):
-        from landlab.model_grid import _SLOW
+        from landlab.grid.base import _SLOW
         if _SLOW:
             BAD = None
         else:
@@ -376,7 +374,7 @@ class TestRasterModelGridZeroArrays(unittest.TestCase):
 
     def test_bad_centering(self):
         mg = RasterModelGrid(4, 5)
-        with self.assertRaises(BadCenteringString):
+        with self.assertRaises(TypeError):
             mg.zeros(centering='bad_centering_string')
 
     def test_int(self):

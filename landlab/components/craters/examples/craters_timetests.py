@@ -1,6 +1,6 @@
 import landlab.components.craters as craters
 craters = reload(craters)
-from landlab.model_grid import RasterModelGrid
+from landlab import RasterModelGrid
 import numpy
 import time
 from pylab import show, imshow, colorbar, plot
