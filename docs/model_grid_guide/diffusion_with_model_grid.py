@@ -76,8 +76,7 @@ def main():
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])  # display a colored image
-    
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
     # add contour lines with labels
     cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0])
     pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)

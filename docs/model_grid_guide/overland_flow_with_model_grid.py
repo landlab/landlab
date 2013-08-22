@@ -120,14 +120,18 @@ def main():
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
-    im = pylab.imshow(hr, cmap=pylab.cm.RdBu)  # display a colored image
+    image_extent = [0, 0.001*dx*numcols, 0, 0.001*dx*numrows] # in km
+    im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=image_extent)
+    pylab.xlabel('Distance (km)', fontsize=12)
+    pylab.ylabel('Distance (km)', fontsize=12)
     
     # add contour lines with labels
-    cset = pylab.contour(hr)
+    cset = pylab.contour(hr, extent=image_extent)
     pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
     
     # add a color bar on the side
-    pylab.colorbar(im)
+    cb = pylab.colorbar(im)
+    cb.set_label('Water depth (m)', fontsize=12)
     
     # add a title
     pylab.title('Simulated inundation')

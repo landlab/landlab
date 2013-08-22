@@ -250,11 +250,42 @@ The last two lines of code are standard Python syntax. They will execute the \co
 
 That's it. The 2D diffusion code is less than 100 lines long. In fact, only about 20 of these actually implement the diffusion calculation; the rest handle plotting, comments, blank lines, etc.
 
+\subsection{Checking against the analytical solution}
+
+To test the diffusion model against an analytical solution, we can change the setup to have closed boundaries on two opposite sides, by modifying line 39 to read:
+
+\code{mg.set\_inactive\_boundaries(True, False, True, False)}
+
+This change makes the solution symmetrical in the $y$ direction, so that we can compare it with a 1D analytical solution. For a 1D steady state configuration with a constant source term (baselevel lowering) and two fixed boundaries, the elevation field is a parabola:
+\begin{equation}
+z(x') = \frac{U}{2K_d} \left( L^2 - x'^2 \right),
+\end{equation}
+where $L$ is the half-length of the domain and $x'$ is a transformed $x$ coordinate such that $x'=0$ at the ridge crest. The numerical solution fits the analytical solution quite well (Figure~\ref{diffrasteranalytical}).
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{diffusion_raster_with_analytical.pdf}
+    \caption{Diffusion model with two opposite sides as open boundaries. Left: overhead view. Right: side view showing nodes (blue dots) and 1D analytical solution (red line).}
+   \label{diffrasteranalytical}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%
 
 \section{Example 2: Overland Flow}
 
-In this second example, we look at an implementation of the storage-cell algorithm of \citet{bates2010simple} for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid.
+In this second example, we look at an implementation of the storage-cell algorithm of \citet{bates2010simple} for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid. The output is shown in Figure~\ref{inundation}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{inundation.pdf}
+    \caption{Simulated flood-wave propagation.}
+   \label{inundation}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Overland Flow Code Listing}
 
