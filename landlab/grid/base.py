@@ -31,6 +31,16 @@ FIXED_GRADIENT_BOUNDARY = 2
 TRACKS_CELL_BOUNDARY = 3
 INACTIVE_BOUNDARY = 4
 
+BOUNDARY_STATUS_FLAGS_LIST = [
+    FIXED_VALUE_BOUNDARY,
+    FIXED_GRADIENT_BOUNDARY,
+    TRACKS_CELL_BOUNDARY,
+    INACTIVE_BOUNDARY,
+]
+BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
+
+
+
 _SLOW = False
 
 if _SLOW:
@@ -177,14 +187,38 @@ class ModelGrid(object):
             raise TypeError('centering value not understood')
 
     def zeros(self, **kwds):
+        """
+        Returns a numpy array of zeros that is the same length as the number
+        of nodes in the grid. Use the *centering* keyword to return an
+        array for other elements of the grid. *centering* is a string that is
+        one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+        """
         centering = kwds.pop('centering', 'node')
         return numpy.zeros(self._array_length(centering), **kwds)
 
     def empty(self, **kwds):
+        """
+        Returns a numpy array of uninitialized values that is the same length
+        as the number of nodes in the grid. Use the *centering* keyword to
+        return an array for other elements of the grid. *centering* is a
+        string that is one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+        """
         centering = kwds.pop('centering', 'node')
         return numpy.empty(self._array_length(centering), **kwds)
 
     def ones(self, **kwds):
+        """
+        Returns a numpy array of ones that is the same length as the number
+        of nodes in the grid. Use the *centering* keyword to return an
+        array for other elements of the grid. *centering* is a string that is
+        one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+        """
         centering = kwds.pop('centering', 'node')
         return numpy.ones(self._array_length(centering), **kwds)
 
@@ -782,6 +816,11 @@ class ModelGrid(object):
         
         plt.show()
         
+    def is_boundary(self, ids, boundary_flag=None):
+        if boundary_flag is None:
+            return ~ (self.node_status[ids] == INTERIOR_NODE)
+        else:
+            return self.node_status[ids] == boundary_flag
     
     def assign_boundary_nodes_to_grid_sides(self):
         """
@@ -909,7 +948,6 @@ class ModelGrid(object):
             self.reset_list_of_active_links()
 
                 
-        
 
 if __name__ == '__main__':
     import doctest
