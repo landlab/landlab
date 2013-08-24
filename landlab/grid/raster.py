@@ -13,6 +13,20 @@ from landlab import model_parameter_dictionary as mpd
 from landlab.grid.base import _SLOW
 
 
+def node_has_boundary_neighbor(mg, id):
+    for neighbor in mg.get_neighbor_list(id):
+        if mg.node_status[neighbor] != INTERIOR_NODE:
+            return True
+    for neighbor in mg.get_diagonal_list(id):
+        if mg.node_status[neighbor] != INTERIOR_NODE:
+            return True
+    return False
+
+
+has_boundary_neighbor = numpy.vectorize(node_has_boundary_neighbor,
+                                        excluded=['mg'])
+
+
 class RasterModelGrid(ModelGrid):
     """
     This inherited class implements a regular, raster 2D grid with uniform
@@ -638,6 +652,27 @@ class RasterModelGrid(ModelGrid):
             self.node_active_outlink_matrix[outlinknum][fromnode] = active_link_id
             self.node_numactiveoutlink[fromnode] += 1
         
+    def cell_faces(self, cell_id):
+        """
+        Returns an array of the face IDs for the faces of a cell with ID,
+        *cell_id*. The faces are listed clockwise, starting with the bottom
+        face. *cell_id* can be either a scalar or an array. If an array,
+        return the faces for each cell of the array.
+        
+        >>> mg = RasterModelGrid(4, 5)
+        >>> mg.cell_faces(0)
+        array([ 0,  9,  3, 10])
+
+        >>> mg.cell_faces([0, 5])
+        array([[ 0,  9,  3, 10],
+               [ 5, 15,  8, 16]])
+        """
+        node_id = self.cell_node[cell_id]
+        inlinks = self.node_inlink_matrix[:, node_id].T
+        outlinks = self.node_outlink_matrix[:, node_id].T
+        return numpy.concatenate(
+            (self.link_face[inlinks], self.link_face[outlinks]), axis=1)
+
     def get_grid_xdimension(self):
         '''
         Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
@@ -702,7 +737,7 @@ class RasterModelGrid(ModelGrid):
         Method added 4/29/13 by DEJH.
         """
         ID = int(ycoord//self._dx * self.ncols + xcoord//self._dx)
-        return numpy.array([ID, ID+1, ID+self.ncols, ID+self.ncols+1])
+        return numpy.array([ID, ID+self.ncols, ID+self.ncols+1, ID+1])
     
     def get_minimum_active_link_length(self):
         """
@@ -1601,22 +1636,33 @@ class RasterModelGrid(ModelGrid):
     #            self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
     #            self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
 
-    def get_neighbor_list( self, id = -1 ):
-        """
-        If id is specified, returns a list of neighboring node IDs. 
-        Otherwise, returns lists for all nodes as a 2D
-        array. The list is in the order [right, top, left, bottom].
-        DH created this.  NG only changed labels.
+    def get_neighbor_list(self, *args):
+        """get_neighbor_list([ids])
+
+        Return lists of neighbor nodes for cells with given *ids*. If *ids*
+        is not given, return the neighbors for all of the cells in the grid.
+        For each node, the list gives neighbor ids as [right, top, left,
+        bottom]. Since boundary nodes do not have an associated cell, set all
+        neighbors for these cells to be -1.
         
+        >>> mg = RasterModelGrid(4, 5)
+        >>> mg.get_neighbor_list([-1, 6])
+        array([[-1, -1, -1, -1],
+               [ 7, 11,  5,  1]])
+        >>> mg.get_neighbor_list(7)
+        array([ 8, 12,  6,  2])
+
         ..todo: could use inlink_matrix, outlink_matrix
         """
         if self.neighbor_list_created == False:
             self.create_neighbor_list()
 
-        if id > -1:
-            return self.neighbor_nodes[id,:]
-        else:
+        if len(args) == 0:
             return self.neighbor_nodes
+        elif len(args) == 1:
+            return self.neighbor_nodes[args[0], :]
+        else:
+            raise ValueError('only zero or one arguments accepted')
 
     def create_neighbor_list( self ):
         """
@@ -1648,57 +1694,60 @@ class RasterModelGrid(ModelGrid):
         self.neighbor_nodes = sgrid.neighbor_node_array(
             self.shape, out_of_bounds=-1, boundary_node_mask=-1)
                 
-    def has_boundary_neighbor( self, id ):
+    def has_boundary_neighbor(self, ids):
         """
-        Checks to see if one of the eight neighbor nodes of node with passed id
-        is a boundary node.  Returns true if it has a boundary node, false if
-        all neighbors are interior.
-        
-        Assumes that a valid id is passed.
-        
-        ng aug 2013
-        """
-        nbr_nodes=self.get_neighbor_list(id)
-        #print "nbr nodes ", nbr_nodes
-        diag_nbrs=self.get_diagonal_list(id)
-        #print "diag nbrs ",diag_nbrs
-        
-        i=0
-        #print 'id ',nbr_cells[i],' i ',i,' is interior? ',self.is_interior(nbr_cells[i])
-        while (i<4 and self.is_interior(nbr_nodes[i]) ) :
-            i += 1
-            #print 'id ',nbr_nodes[i],' i ',i
-        
-        if i<4:
-            return True
-        else:
-            r=0
-            while (r<4 and self.is_interior(diag_nbrs[r]) ):
-                r += 1
-                #print 'id ',self.diag_nbrs[r],' r ',r
-        
-        if r<4 :
-            return True
-        else:
-            return False
+        Checks to see if one of the eight neighbor nodes of node(s) with
+        *id* has a boundary node.  Returns True if a node has a boundary node,
+        False if all neighbors are interior.
 
-    def get_diagonal_list( self, id = -1 ):
+        >>> mg = RasterModelGrid(5, 5)
+        >>> mg.has_boundary_neighbor(6)
+        True
+        >>> mg.has_boundary_neighbor(12)
+        False
+        >>> mg.has_boundary_neighbor([12, -1])
+        array([False,  True], dtype=bool)
+
+        >>> mg.has_boundary_neighbor(25)
+        Traceback (most recent call last):
+            ...
+        IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-        If id is specified, returns a list of IDs for the diagonal cells of the node "id". 
-        Otherwise, returns lists for all cells as a 2D array. 
-        The list is in the order [topright, topleft, bottomleft, bottomright].
+        ans = has_boundary_neighbor(self, ids)
+        if ans.ndim == 0:
+            return bool(ans)
+        else:
+            return ans
+
+    def get_diagonal_list(self, *args):
+        """get_diagonal_list([ids])
+
+        Return lists of diagonals nodes for cells with given *ids*. If *ids*
+        is not given, return the diagonals for all of the cells in the grid.
+        For each node, the list gives diagonal ids as [topright, topleft,
+        bottomleft, bottomright]. Since boundary nodes do not have an
+        associated cell, set all diagonals for these cells to be -1.
         
-        NG didn't touch this, but she thinks this should be nodes, not cells.
+        >>> mg = RasterModelGrid(4, 5)
+        >>> mg.get_diagonal_list([-1, 6])
+        array([[-1, -1, -1, -1],
+               [12, 10,  0,  2]])
+        >>> mg.get_diagonal_list(7)
+        array([13, 11,  1,  3])
+
+        ..todo: could use inlink_matrix, outlink_matrix
         """
         #Added DEJH 051513
     
         if self.diagonal_list_created==False:
             self.create_diagonal_list()
         
-        if id > -1:
-            return self.diagonal_cells[id,:]
-        else:
+        if len(args) == 0:
             return self.diagonal_cells
+        elif len(args) == 1:
+            return self.diagonal_cells[args[0], :]
+        else:
+            raise ValueError('only zero or one arguments accepted')
 
     def create_diagonal_list(self):
         """
@@ -1784,23 +1833,15 @@ class RasterModelGrid(ModelGrid):
 #       my_faces = self.faces[cid1]
         #if self.
 
-    def get_face_connecting_cell_pair( self, cid1, cid2 ):
+    def get_face_connecting_cell_pair(self, cell_a, cell_b):
         """
-        TODO: UPDATE FOR NEW DATA STRUCTURES
-        Returns the face that connects cells cid1 and cid2, or -1 if
-        no such face is found.
+        Returns an array of face indices that *cell_a* and *cell_b* share.
+        If the cells do not share any faces, returns an empty array.
         """
-        
-        #print 'Cells',cid1,'and',cid2
-        for i in xrange( 0, 4 ):
-            #print 'face num:',i
-            fid = self.faces[cid1,i]
-            #print 'face id:',fid,'fc:',self.fromcell[fid],'tc:',self.tocell[fid]
-            if ( ( fid > -1 ) and ( ( cid1==self.fromcell[fid] and cid2==self.tocell[fid] )
-               or ( cid1==self.tocell[fid] and cid2==self.fromcell[fid] ) ) ):
-                return fid
-        return -1
-        
+        cell_faces = self.cell_faces([cell_a, cell_b])
+        return numpy.intersect1d(cell_faces[0], cell_faces[1],
+                                 assume_unique=True)
+
     def top_edge_node_ids(self):
         """
         Returns a 1D numpy integer array containing the node ID numbers of the 
