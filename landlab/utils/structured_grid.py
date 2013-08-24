@@ -340,8 +340,8 @@ def active_cell_node(shape):
 def node_active_cell(shape, boundary_node_index=BAD_INDEX_VALUE):
     """
     Indices of the cells associated with the nodes of the structured grid.
-    For nodes that don't have cell (that is, boundary nodes) set indices
-    to BAD_INDEX_VALUE. Use the *boundary_node_index* key word to change
+    For nodes that don't have a cell (that is, boundary nodes) set indices
+    to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
     >>> node_active_cell((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
@@ -408,14 +408,28 @@ def from_node_links(node_ids):
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def link_faces(shape, actives=None):
+def link_faces(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
+    """
+    Returns an array that maps link ids to face ids. For inactive links,
+    which do not have associated faces, set their ids to
+    *inactive_link_index*. Use the *actives* keyword to specify an array that
+    contains the ids of all active links in the grid. The default assumes
+    that only the perimeter nodes are inactive.
+
+
+    >>> faces = link_faces((3, 4), inactive_link_index=-1)
+    >>> faces # doctest: +NORMALIZE_WHITESPACE
+    array([-1,  0,  1, -1, -1,  2,  3,
+           -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
+    
+    """
     if actives is None:
         actives = active_links(shape)
 
     num_links = link_count(shape)
 
     link_faces = np.empty(num_links, dtype=np.int)
-    link_faces.fill(BAD_INDEX_VALUE)
+    link_faces.fill(inactive_link_index)
     link_faces[actives] = np.arange(len(actives))
 
     return link_faces
@@ -826,3 +840,59 @@ def reshape_array(shape, u, flip_vertically=False, copy=False):
             return reshaped_u.copy()
         else:
             return reshaped_u
+
+def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
+    """
+    Returns the nodes around a point on a structured grid with unit spacing
+    and zero origin.
+
+    >>> nodes_around_points_on_unit_grid((3, 3), (.1, .1))
+    array([0, 3, 4, 1])
+
+    >>> nodes_around_points_on_unit_grid((3, 3), (1., 1.))
+    array([4, 7, 8, 5])
+    """
+    if isinstance(coords[0], np.ndarray):
+        (rows, cols) = (coords[0].astype(np.int), coords[1].astype(np.int))
+    else:
+        (rows, cols) = (int(coords[0]), int(coords[1]))
+
+    try:
+        return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
+                                     (cols, cols, cols + 1, cols + 1)),
+                                    shape, mode=mode).T
+    except ValueError as e:
+        raise
+
+def nodes_around_points(shape, coords, spacing=(1., 1.),
+                        origin=(0., 0.)):
+    """
+    Returns the nodes around a point on a structured grid with row and column
+    *spacing*, and *origin*.
+
+    >>> x = np.array([.9, 1.])
+    >>> y = np.array([.1, 1.])
+    >>> nodes_around_points((3, 3), (y, x))
+    array([[0, 3, 4, 1],
+           [4, 7, 8, 5]])
+
+    >>> nodes_around_points((3, 3), (2., 1.))
+    Traceback (most recent call last):
+        ...
+    ValueError: invalid entry in coordinates array
+    """
+    try:
+        return nodes_around_points_on_unit_grid(
+            shape,
+            ((coords[0] - origin[0]) / spacing[0],
+             (coords[1] - origin[1]) / spacing[1]))
+    except ValueError as e:
+        raise
+
+def nodes_around_point(shape, coords, spacing=(1., 1.)):
+    node_id = int(coords[0] // spacing[0] * shape[1] + coords[1] // spacing[1])
+    if node_id + shape[1] + 1 >= shape[0] * shape[1] or node_id < 0:
+        raise ValueError('invalid entry in coordinates array')
+
+    return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
+                     node_id + 1])
