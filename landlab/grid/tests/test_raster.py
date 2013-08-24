@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid, BAD_INDEX_VALUE
+from landlab import RasterModelGrid, BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY
 
 
 _SPACING = 1.
@@ -69,17 +69,26 @@ class TestRasterModelGrid(unittest.TestCase):
     def test_nodes_around_point(self):
         surrounding_ids = self.grid.get_nodes_around_point(2.1, 1.1)
         self.assertListEqual(
-            list(surrounding_ids), [7, 8, 12, 13],
+            list(surrounding_ids), [7, 12, 13, 8],
+            #list(surrounding_ids), [7, 8, 12, 13],
             'incorrect surrounding ids in test_nodes_around_point')
 
         surrounding_ids = self.grid.get_nodes_around_point(2.1, .9)
         self.assertListEqual(
-            list(surrounding_ids), [2, 3, 7, 8],
+            list(surrounding_ids), [2, 7, 8, 3],
+            #list(surrounding_ids), [2, 3, 7, 8],
             'incorrect surrounding ids in test_nodes_around_point')
 
     def test_neighbor_list(self):
         neighbors = self.grid.get_neighbor_list(6)
         assert_array_equal(neighbors, np.array([7, 11, 5, 1]))
+
+        neighbors = self.grid.get_neighbor_list(-1)
+        assert_array_equal(neighbors, np.array([-1, -1, -1, -1]))
+
+        neighbors = self.grid.get_neighbor_list([6, -1])
+        assert_array_equal(neighbors,
+                           np.array([[7, 11, 5, 1], [-1, -1, -1, -1]]))
 
         neighbors = self.grid.get_neighbor_list()
         assert_array_equal(
@@ -142,6 +151,13 @@ class TestRasterModelGrid(unittest.TestCase):
     def test_diagonal_list(self):
         diagonals = self.grid.get_diagonal_list(6)
         assert_array_equal(diagonals, np.array([12, 10, 0, 2]))
+
+        diagonals = self.grid.get_diagonal_list(-1)
+        assert_array_equal(diagonals, np.array([-1, -1, -1, -1]))
+
+        diagonals = self.grid.get_diagonal_list([6, -1])
+        assert_array_equal(diagonals,
+                           np.array([[12, 10, 0, 2], [-1, -1, -1, -1]]))
 
         diagonals = self.grid.get_diagonal_list()
         assert_array_equal(
@@ -386,6 +402,146 @@ class TestRasterModelGridZeroArrays(unittest.TestCase):
         mg = RasterModelGrid(4, 5)
         assert_array_equal(mg.zeros(dtype=np.int8),
                            np.zeros((20, ), dtype=np.int8))
+
+class TestRasterModelGridIsBoundary(unittest.TestCase):
+    def test_id_as_int(self):
+        mg = RasterModelGrid(4, 5)
+        self.assertTrue(mg.is_boundary(0))
+
+    def test_id_as_small_list(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.is_boundary([0]),
+            np.array([True]))
+
+    def test_id_as_array(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.is_boundary(np.arange(20)),
+            np.array([True,  True,  True,  True,  True,
+                      True, False, False, False,  True,  
+                      True, False, False, False,  True,  
+                      True,  True,  True,  True,  True], dtype=bool))
+
+    def test_id_as_list(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.is_boundary([8, 9]),
+            np.array([False, True]))
+
+    def test_boundary_flag(self):
+        mg = RasterModelGrid(4, 5)
+        mg.node_status[0] = FIXED_GRADIENT_BOUNDARY
+        assert_array_equal(
+            mg.is_boundary(np.arange(20)),
+            np.array([True,  True,  True,  True,  True,
+                      True, False, False, False,  True,  
+                      True, False, False, False,  True,  
+                      True,  True,  True,  True,  True], dtype=bool))
+
+        assert_array_equal(
+            mg.is_boundary(np.arange(20), boundary_flag=FIXED_GRADIENT_BOUNDARY),
+            np.array([ True, False, False, False, False,
+                      False, False, False, False, False,
+                      False, False, False, False, False,
+                      False, False, False, False, False], dtype=bool))
+
+
+class TestRasterModelGridHasBoundaryNeighbor(unittest.TestCase):
+    def test_boundary_node(self):
+        mg = RasterModelGrid(5, 6)
+        self.assertTrue(mg.has_boundary_neighbor(0))
+        self.assertFalse(mg.has_boundary_neighbor(14))
+
+    def test_last_index(self):
+        mg = RasterModelGrid(4, 5)
+        self.assertTrue(mg.has_boundary_neighbor(-1))
+
+    def test_id_as_list(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.has_boundary_neighbor([-1, 0]),
+            np.array([True, True])
+        )
+
+    def test_id_as_array(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.has_boundary_neighbor(np.arange(20)),
+            np.array(
+                [True, True, True, True, True,
+                 True, True, True, True, True,
+                 True, True, True, True, True,
+                 True, True, True, True, True]))
+
+        mg = RasterModelGrid(5, 5)
+        assert_array_equal(
+            mg.has_boundary_neighbor(np.arange(25)),
+            np.array(
+                [True, True,  True, True, True,
+                 True, True,  True, True, True,
+                 True, True, False, True, True,
+                 True, True,  True, True, True,
+                 True, True,  True, True, True]))
+
+
+class TestRasterModelGridConnectingFaces(unittest.TestCase):
+    def test_horizontally_adjacent_cells(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.get_face_connecting_cell_pair(0, 1),
+            np.array([10]))
+
+    def test_vertically_adjacent_cells(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.get_face_connecting_cell_pair(0, 3),
+            np.array([3]))
+
+    def test_diagonally_adjacent_cells(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.get_face_connecting_cell_pair(1, 5),
+            np.array([]))
+
+    def test_non_adjacent_cells(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.get_face_connecting_cell_pair(0, 2),
+            np.array([]))
+
+
+class TestRasterModelGridCellFaces(unittest.TestCase):
+    def test_id_as_int(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.cell_faces(0),
+            np.array([0, 9, 3, 10]))
+
+    def test_id_as_array(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(
+            mg.cell_faces(np.array([0, 1])),
+            np.array([[0, 9, 3, 10],
+                      [1, 10, 4, 11]]))
+
+
+class TestRasterModelGridNodesAroundPoint(unittest.TestCase):
+    def test_lower_left_cell(self):
+        mg = RasterModelGrid(3, 3)
+        assert_array_equal(
+            mg.get_nodes_around_point(.1, .1),
+            np.array([0, 3, 4, 1]))
+        assert_array_equal(
+            mg.get_nodes_around_point(.1, .9),
+            np.array([0, 3, 4, 1]))
+        assert_array_equal(
+            mg.get_nodes_around_point(.9, .9),
+            np.array([0, 3, 4, 1]))
+        assert_array_equal(
+            mg.get_nodes_around_point(.9, .1),
+            np.array([0, 3, 4, 1]))
+
 
 if __name__ == '__main__':
     unittest.main()
