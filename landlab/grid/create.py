@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+import types
+
 from landlab import model_parameter_dictionary as mpd
 from landlab.grid.raster import from_dict as raster_from_dict
 from landlab.grid.hex import from_dict as hex_from_dict
@@ -55,10 +57,10 @@ def create_and_initialize_grid(input_source):
     #     dictionary nor an input file name.
     #   - if we're given an input file name, create a parameter dictionary
     #     object that reads the specified file name
-    if isinstance(input_source, types.StringTypes)
-        param_dict = mpd.ModelParameterDictionary(from_file=input_source)
-    else:
+    if isinstance(input_source, dict):
         param_dict = input_source
+    else:
+        param_dict = mpd.ModelParameterDictionary(from_file=input_source)
         
     # Find out what type of grid the user wants
     #
