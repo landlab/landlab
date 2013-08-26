@@ -8,4 +8,4 @@ from landlab.grid.base import (BAD_INDEX_VALUE, INTERIOR_NODE,
                                FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY,
                                TRACKS_CELL_BOUNDARY, INACTIVE_BOUNDARY,
                               )
-from landlab.grid.raster import create_and_initialize_grid
+from landlab.grid.create import create_and_initialize_grid

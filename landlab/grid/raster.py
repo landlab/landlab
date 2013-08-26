@@ -9,7 +9,6 @@ from landlab.grid.base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
                                FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                                INACTIVE_BOUNDARY, BAD_INDEX_VALUE,
                               )
-from landlab import model_parameter_dictionary as mpd
 from landlab.grid.base import _SLOW
 
 
@@ -1988,74 +1987,21 @@ def _is_closed_boundary(boundary_string):
     return boundary_string.lower()=='closed'
 
 
-def create_and_initialize_grid(input_source):
-    """
-    Creates, initializes, and returns a new grid object using parametes 
-    specified either in a ModelParameterDictionary (param_dict) or a named input
-    file (input_file_name).
-    
-    Example:
+def from_dict(param_dict):
+    # Read and create basic raster grid
+    nrows = param_dict.read_int('NUM_ROWS')
+    ncols = param_dict.read_int('NUM_COLS')
+    dx = param_dict.read_float('GRID_SPACING')
+    mg = RasterModelGrid(nrows, ncols, dx)
         
-    >>> from StringIO import StringIO
-    >>> test_file = StringIO(\"\"\"
-    ... GRID_TYPE:
-    ... raster
-    ... NUM_ROWS:
-    ... 4
-    ... NUM_COLS:
-    ... 5
-    ... GRID_SPACING: 
-    ... 2.5
-    ... \"\"\")
-    >>> from landlab import create_and_initialize_grid
-    >>> mg = create_and_initialize_grid(test_file)
-    >>> mg.num_nodes
-    20
-        
-    """    
-    # Handle input source. 
-    #In this code block, we do the following:
-    #   - handle the case in which caller provides neither a parameter
-    #     dictionary nor an input file name.
-    #   - if we're given an input file name, create a parameter dictionary
-    #     object that reads the specified file name
-    if type(input_source) is mpd.ModelParameterDictionary:
-        param_dict = input_source
-    else:
-        param_dict = mpd.ModelParameterDictionary(from_file=input_source)
-        
-    # Find out what type of grid the user wants
-    #
-    # Dev note: could handle defaults like: param_dict.get('GRID_TYPE','raster')
-    # so if no GRID_TYPE is specified you get the second arg as default. If no
-    # second arg, then exception
-    grid_type = param_dict.read_string('GRID_TYPE')
-    grid_type.strip().lower()   # make LC w/o leading/trailing spaces
-    
-    # Read parameters appropriate to that type, create it, and initialize it
-    if grid_type=='raster':
-        
-        # Read and create basic raster grid
-        nrows = param_dict.read_int('NUM_ROWS')
-        ncols = param_dict.read_int('NUM_COLS')
-        dx = param_dict.read_float('GRID_SPACING')
-        mg = RasterModelGrid(nrows, ncols, dx)
-        
-        # Set boundaries
-        left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
-        right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
-        top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
-        bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
-        mg.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type), 
-                                   _is_closed_boundary(right_boundary_type),
-                                   _is_closed_boundary(top_boundary_type),
-                                   _is_closed_boundary(left_boundary_type))
-
-    else:
-        print 'Non-raster grids not yet available in ModelGrid'
-        mg = None
-    
+    # Set boundaries
+    left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
+    right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
+    top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
+    bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
+    mg.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type), 
+                               _is_closed_boundary(right_boundary_type),
+                               _is_closed_boundary(top_boundary_type),
+                               _is_closed_boundary(left_boundary_type))
     # Return the created and initialized grid
     return mg
-
-
