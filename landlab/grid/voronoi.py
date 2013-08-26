@@ -15,7 +15,7 @@ def simple_poly_area(x, y):
     >>> import numpy as np
     >>> x = np.array([3., 1., 1., 3.])
     >>> y = np.array([1.5, 1.5, 0.5, 0.5])
-    >>> simple_poly_area_fast(x, y)
+    >>> simple_poly_area(x, y)
     2.0
 
     If the input coordinate arrays are 2D, calculate the area of each polygon.
@@ -26,7 +26,7 @@ def simple_poly_area(x, y):
     ...               [-2., -2., -1., -1.]]).T
     >>> y = np.array([[1.5, 1.5, 0.5, 0.5],
     ...               [ 0.,  1.,  2.,  0.]]).T
-    >>> simple_poly_area_fast(x, y)
+    >>> simple_poly_area(x, y)
     array([ 2. ,  1.5])
     """
     # For short arrays (less than about 100 elements) it seems that the
