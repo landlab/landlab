@@ -5,28 +5,35 @@ import numpy
 from landlab.grid.base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
 
 
-def simple_poly_area(x,y):
+def simple_poly_area(x, y):
     """
-    Calculates and returns the area of a 2-D simple polygon.
-    Input vertices must be in sequence (clockwise or counterclockwise)
+    Calculates and returns the area of a 2-D simple polygon.  Input vertices
+    must be in sequence (clockwise or counterclockwise). *x* and *y* are
+    arrays that give the x- and y-axis coordinates of the polygon's
+    vertices.
+        
+    >>> import numpy as np
+    >>> x = np.array([3., 1., 1., 3.])
+    >>> y = np.array([1.5, 1.5, 0.5, 0.5])
+    >>> simple_poly_area_fast(x, y)
+    2.0
 
-        x = x-axis coordinates of vertex array
-        y = y-axis coordinates of vertex array
-        
-    Example:
-        
-        >>> import numpy as np
-        >>> x = np.array([3., 1., 1., 3.])
-        >>> y = np.array([1.5, 1.5, 0.5, 0.5])
-        >>> a = simple_poly_area(x, y)
-        >>> print a
-        2.0
+    If the input coordinate arrays are 2D, calculate the area of each polygon.
+    Note that when used in this mode, all polygons must have the same
+    number of vertices, and polygon vertices are listed column-by-column.
+
+    >>> x = np.array([[ 3.,  1.,  1.,  3.],
+    ...               [-2., -2., -1., -1.]]).T
+    >>> y = np.array([[1.5, 1.5, 0.5, 0.5],
+    ...               [ 0.,  1.,  2.,  0.]]).T
+    >>> simple_poly_area_fast(x, y)
+    array([ 2. ,  1.5])
     """
-
-    indices = numpy.arange(len(x))
-    s = sum(x[indices-1]*y[indices]-x[indices]*y[indices-1])
-
-    return abs(s)*0.5
+    # For short arrays (less than about 100 elements) it seems that the
+    # Python sum is faster than the numpy sum. Likewise for the Python
+    # built-in abs.
+    return .5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) +
+                    x[-1] * y[0] - x[0] * y[-1])
 
 
 class VoronoiDelaunayGrid(ModelGrid):
