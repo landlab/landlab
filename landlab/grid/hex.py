@@ -104,3 +104,25 @@ class HexModelGrid(VoronoiDelaunayGrid):
             xshift = -half_dxh*extra_cols
         
         return pts, npts
+
+
+def from_dict(param_dict):
+    """
+    Create a HexModelGrid from the dictionary-like object, *param_dict*.
+    Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
+    if either of these are missing.  If GRID_SPACING is given, use it as the
+    HexModelGrid *dx* parameter, otherwise default to unit spacing.
+    """
+    # Read and create a basic HexModelGrid
+    try:
+        n_rows = int(param_dict['NUM_ROWS'])
+        n_cols = int(param_dict['NUM_COLS'])
+        dx = float(param_dict.get('GRID_SPACING', 1.))
+    except KeyError as e:
+        raise
+    except ValueError as e:
+        raise
+    else:
+        hg = HexModelGrid(n_rows, n_cols, dx)
+        
+    return hg

@@ -2,6 +2,7 @@
 
 from landlab import model_parameter_dictionary as mpd
 from landlab.grid.raster import from_dict as raster_from_dict
+from landlab.grid.hex import from_dict as hex_from_dict
 
 
 class Error(Exception):
@@ -18,14 +19,16 @@ class BadGridTypeError(Error):
 
 _GRID_READERS = {
     'raster': raster_from_dict,
+    'hex': hex_from_dict,
 }
 
 
 def create_and_initialize_grid(input_source):
     """
-    Creates, initializes, and returns a new grid object using parametes 
-    specified either in a ModelParameterDictionary (param_dict) or a named input
-    file (input_file_name).
+    Creates, initializes, and returns a new grid object using parameters 
+    specified in *input_source*. *input_source* is either a
+    ModelParameterDictionary instance (or, really, just dict-like) or a
+    named input file.
     
     Example:
         
@@ -52,17 +55,22 @@ def create_and_initialize_grid(input_source):
     #     dictionary nor an input file name.
     #   - if we're given an input file name, create a parameter dictionary
     #     object that reads the specified file name
-    if type(input_source) is mpd.ModelParameterDictionary:
-        param_dict = input_source
-    else:
+    if isinstance(input_source, types.StringTypes)
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
+    else:
+        param_dict = input_source
         
     # Find out what type of grid the user wants
     #
-    # Dev note: could handle defaults like: param_dict.get('GRID_TYPE','raster')
+    # Dev note: could handle defaults like:
+    #    param_dict.get('GRID_TYPE','raster')
     # so if no GRID_TYPE is specified you get the second arg as default. If no
     # second arg, then exception
-    grid_type = param_dict.read_string('GRID_TYPE')
+    try:
+        grid_type = param_dict['GRID_TYPE']
+    except KeyError:
+        raise
+
     grid_type.strip().lower()   # make LC w/o leading/trailing spaces
     
     # Read parameters appropriate to that type, create it, and initialize it

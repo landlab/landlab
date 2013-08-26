@@ -1984,15 +1984,27 @@ class RasterModelGrid(ModelGrid):
 
 def _is_closed_boundary(boundary_string):
     
-    return boundary_string.lower()=='closed'
+    return boundary_string.lower() == 'closed'
 
 
 def from_dict(param_dict):
+    """
+    Create a RasterModelGrid from the dictionary-like object, *param_dict*.
+    Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
+    if either of these are missing.  If GRID_SPACING is given, use it as the
+    HexModelGrid *dx* parameter, otherwise default to unit spacing.
+    """
     # Read and create basic raster grid
-    nrows = param_dict.read_int('NUM_ROWS')
-    ncols = param_dict.read_int('NUM_COLS')
-    dx = param_dict.read_float('GRID_SPACING')
-    mg = RasterModelGrid(nrows, ncols, dx)
+    try:
+        nrows = int(param_dict['NUM_ROWS'])
+        ncols = int(param_dict['NUM_COLS'])
+        dx = float(param_dict.get('GRID_SPACING', 1.))
+    except KeyError:
+        raise
+    except ValueError:
+        raise
+    else:
+        mg = RasterModelGrid(nrows, ncols, dx)
         
     # Set boundaries
     left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
@@ -2003,5 +2015,6 @@ def from_dict(param_dict):
                                _is_closed_boundary(right_boundary_type),
                                _is_closed_boundary(top_boundary_type),
                                _is_closed_boundary(left_boundary_type))
+
     # Return the created and initialized grid
     return mg
