@@ -173,15 +173,17 @@ def main():
     # Plot topography
     pylab.figure(2)
     pylab.subplot(121)
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
-    pylab.colorbar(im)
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0, mg.ncols*mg.dx, 0, mg.nrows*mg.dx])
+    cb = pylab.colorbar(im)
+    cb.set_label('Elevation (m)', fontsize=12)
     pylab.title('Topography')
     
     # Plot water depth
     pylab.subplot(122)
-    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu)  # display a colored image
+    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=[0, mg.ncols*mg.dx, 0, mg.nrows*mg.dx])
     pylab.clim(0, 0.25)
-    pylab.colorbar(im2)
+    cb = pylab.colorbar(im2)
+    cb.set_label('Water depth (m)', fontsize=12)
     pylab.title('Water depth')
     
     # Display the plots

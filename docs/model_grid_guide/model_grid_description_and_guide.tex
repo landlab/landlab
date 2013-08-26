@@ -356,7 +356,16 @@ The final portion of the code uses Pylab functions and the ModelGrid \code{node\
 \section{Example 3: Overland Flow using a DEM}
 
 In the next example, we create a version of the storage-cell overland-flow model that uses a DEM for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor.
-The complete code listing is below.
+The complete code listing is below. Output is shown in Figure~\ref{olflowdem}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{overland_flow_dem.pdf}
+    \caption{Output from a model of overland flow run on a DEM. Left: images showing topography, and water depth at end of run. Right: hydrograph at catchment outlet.}
+   \label{olflowdem}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \lstinputlisting[firstnumber=1,firstline=1,lastline=193]{overland_flow_with_model_grid_dem.py}
 

@@ -9,7 +9,7 @@ Last updated August 2013 GT
 """
 
 from landlab.components.diffusion import DiffusionComponent
-from landlab import model_grid
+from landlab.grid import ModelGrid
 from landlab import ModelParameterDictionary
 import pylab
 import numpy
@@ -50,7 +50,7 @@ def main():
     run_duration = mpd.get('RUN_DURATION', ptype=float)
     
     # Create and initialize a grid
-    mg = model_grid.create_and_initialize_grid(mpd)
+    mg = ModelGrid.create_and_initialize_grid(mpd)
     
     # Create state variable (elevation)
     z = mg.create_node_dvector()

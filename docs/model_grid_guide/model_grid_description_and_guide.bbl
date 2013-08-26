@@ -1,0 +1,35 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+
+\bibitem[{\textit{Bates et~al.}(2010)\textit{Bates, Horritt, and
+  Fewtrell}}]{bates2010simple}
+Bates, P., M.~Horritt, and T.~Fewtrell (2010), A simple inertial formulation of
+  the shallow water equations for efficient two-dimensional flood inundation
+  modelling, \textit{Journal of Hydrology}, \textit{387}(1), 33--45.
+
+\bibitem[{\textit{Braun and Sambridge}(1997)}]{braun1997modelling}
+Braun, J., and M.~Sambridge (1997), Modelling landscape evolution on geological
+  time scales: a new method based on irregular spatial discretization,
+  \textit{Basin Research}, \textit{9}, 27--52.
+
+\bibitem[{\textit{Guibas and Stolfi}(1985)}]{guibas1985primitives}
+Guibas, L., and J.~Stolfi (1985), Primitives for the manipulation of general
+  subdivisions and the computation of voronoi, \textit{ACM Transactions on
+  Graphics (TOG)}, \textit{4}(2), 74--123.
+
+\bibitem[{\textit{Tucker et~al.}(2001)\textit{Tucker, Lancaster, Gasparini,
+  Bras, and Rybarczyk}}]{tucker2001object}
+Tucker, G.~E., S.~T. Lancaster, N.~M. Gasparini, R.~L. Bras, and S.~M.
+  Rybarczyk (2001), An object-oriented framework for hydrologic and geomorphic
+  modeling using triangular irregular networks, \textit{Computers and
+  Geosciences}, \textit{27}, 959--973.
+
+\bibitem[{\textit{Versteeg and Malalasekera}(2007)}]{versteeg2007introduction}
+Versteeg, H.~K., and W.~Malalasekera (2007), \textit{An introduction to
+  computational fluid dynamics: the finite volume method}, Prentice Hall.
+
+\end{thebibliography}
