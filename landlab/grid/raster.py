@@ -560,7 +560,7 @@ class RasterModelGrid(ModelGrid):
         slopes = []
         diagonal_dx = numpy.sqrt(2.)
         for a in neighbor_nodes:
-            if self.node_status[a] != self.INACTIVE_BOUNDARY:
+            if self.node_status[a] != INACTIVE_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/self._dx
             else:
                 single_slope = -9999
@@ -576,7 +576,7 @@ class RasterModelGrid(ModelGrid):
             else:
                 print 'NaNs present in the grid!'
         for a in diagonal_nodes:
-            if self.node_status[a] != self.INACTIVE_BOUNDARY:
+            if self.node_status[a] != INACTIVE_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/diagonal_dx
             else:
                 single_slope = -9999
@@ -654,24 +654,24 @@ class RasterModelGrid(ModelGrid):
         left_edge = range(self.ncols,self.num_nodes,self.ncols)
             
         if bottom_is_inactive:
-            self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[bottom_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
-            self.node_status[right_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[right_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
             
         if top_is_inactive:
-            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[top_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_inactive:
-            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[left_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
         self.reset_list_of_active_links()
 

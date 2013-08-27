@@ -99,11 +99,11 @@ class ModelGrid(object):
     """
 
     # Define the boundary-type codes
-    INTERIOR_NODE = 0
-    FIXED_VALUE_BOUNDARY = 1
-    FIXED_GRADIENT_BOUNDARY = 2
-    NODE_TRACKING_BOUNDARY = 3
-    INACTIVE_BOUNDARY = 4
+    #INTERIOR_NODE = 0
+    #FIXED_VALUE_BOUNDARY = 1
+    #FIXED_GRADIENT_BOUNDARY = 2
+    #NODE_TRACKING_BOUNDARY = 3
+    #INACTIVE_BOUNDARY = 4
     
     # Debugging flags (if True, activates some output statements)
     DEBUG_VERBOSE = False
@@ -219,7 +219,7 @@ class ModelGrid(object):
         """
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
-        self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
+        self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self.reset_list_of_active_links()
 
     def calculate_gradients_at_active_links(self, s, gradient=None):
@@ -530,10 +530,10 @@ class ModelGrid(object):
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
 
-        active_links = (((fromnode_status == self.INTERIOR_NODE) & ~
-                         (tonode_status == self.INACTIVE_BOUNDARY)) |
-                        ((tonode_status == self.INTERIOR_NODE) & ~
-                         (fromnode_status == self.INACTIVE_BOUNDARY)))
+        active_links = (((fromnode_status == INTERIOR_NODE) & ~
+                         (tonode_status == INACTIVE_BOUNDARY)) |
+                        ((tonode_status == INTERIOR_NODE) & ~
+                         (fromnode_status == INACTIVE_BOUNDARY)))
 
         (self.active_links, ) = numpy.where(active_links)
 
@@ -564,11 +564,11 @@ class ModelGrid(object):
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
-        self.node_status[nodata_locations] = self.INACTIVE_BOUNDARY
+        self.node_status[nodata_locations] = INACTIVE_BOUNDARY
         
         # Recreate the list of active cell IDs
         node_ids = numpy.array(range(0,self.num_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status == self.INTERIOR_NODE)]
+        self.activecell_node = node_ids[numpy.where(self.node_status == INTERIOR_NODE)]
         
         # Recreate the list of active links
         self.reset_list_of_active_links()
@@ -876,24 +876,24 @@ class ModelGrid(object):
                 self.assign_boundary_nodes_to_grid_sides()
             
         if bottom_is_inactive:
-            self.node_status[bottom_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[bottom_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[bottom_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
-            self.node_status[right_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[right_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[right_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
             
         if top_is_inactive:
-            self.node_status[top_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[top_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[top_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_inactive:
-            self.node_status[left_edge] = self.INACTIVE_BOUNDARY
+            self.node_status[left_edge] = INACTIVE_BOUNDARY
         else:
-            self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
+            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
         self.reset_list_of_active_links()
                 
