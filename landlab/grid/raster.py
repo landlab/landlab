@@ -9,7 +9,6 @@ from landlab.grid.base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
                                FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                                INACTIVE_BOUNDARY, BAD_INDEX_VALUE,
                               )
-from landlab.grid.base import _SLOW
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -246,40 +245,14 @@ class RasterModelGrid(ModelGrid):
         #  *--15-->*--16-->*--17-->*--18-->*
         #
         #   create the fromnode and tonode lists
-        if _SLOW:
-            self.link_fromnode = []
-            self.link_tonode = []
-            
-            #   vertical links
-            for r in range(0, num_rows-1):
-                for c in range(0, num_cols):
-                    self.link_fromnode.append(c+r*num_cols)
-                    self.link_tonode.append(c+(r+1)*num_cols)
-            
-            #   horizontal links
-            for r in range(0, num_rows):
-                for c in range(0, num_cols-1):
-                    self.link_fromnode.append(c+r*num_cols)
-                    self.link_tonode.append(c+r*num_cols+1)
-            
-            #   convert to numpy arrays
-            self.link_fromnode = numpy.array(self.link_fromnode)
-            self.link_tonode = numpy.array(self.link_tonode)
-        else:
-            (self.link_fromnode,
-             self.link_tonode) = sgrid.node_link_index((num_rows, num_cols))
+        (self.link_fromnode,
+         self.link_tonode) = sgrid.node_link_index((num_rows, num_cols))
 
         #   set up in-link and out-link matrices and numbers
-        if _SLOW:
-            self.setup_inlink_and_outlink_matrices_slow()
-        else:
-            self.setup_inlink_and_outlink_matrices()
+        self.setup_inlink_and_outlink_matrices()
         
         #   set up the list of active links
-        if _SLOW:
-            self.reset_list_of_active_links_slow()
-        else:
-            self.reset_list_of_active_links()
+        self.reset_list_of_active_links()
 
         #   set up link faces
         #
@@ -291,15 +264,8 @@ class RasterModelGrid(ModelGrid):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        if _SLOW:
-            self.link_face = [None]*self.num_links  # make the list
-            face_id = 0
-            for link in self.active_links:
-                self.link_face[link] = face_id
-                face_id += 1
-        else:
-            self.link_face = sgrid.link_faces((num_rows, num_cols),
-                                              actives=self.active_links)
+        self.link_face = sgrid.link_faces((num_rows, num_cols),
+                                          actives=self.active_links)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
@@ -365,89 +331,6 @@ class RasterModelGrid(ModelGrid):
         (self.node_outlink_matrix,
          self.node_numoutlink) = sgrid.setup_outlink_matrix(
              self.shape, fromnodes=self.link_fromnode)
-
-        if 0:
-            # Create active in-link and out-link matrices.
-            self.node_inlink_matrix = - numpy.ones((2, self.num_nodes), dtype=numpy.int)
-            self.node_outlink_matrix = - numpy.ones((2, self.num_nodes), dtype=numpy.int)
-
-            # Set up the inlink arrays
-            tonodes = self.link_tonode
-            self.node_numinlink = numpy.bincount(tonodes,
-                                                 minlength=self.num_nodes)
-
-            counts = count_repeated_values(self.link_tonode)
-            for (count, (tonodes, link_ids)) in enumerate(counts):
-                self.node_inlink_matrix[count][tonodes] = link_ids
-
-            # Set up the outlink arrays
-            fromnodes = self.link_fromnode
-            self.node_numoutlink = numpy.bincount(fromnodes,
-                                                  minlength=self.num_nodes)
-            counts = count_repeated_values(self.link_fromnode)
-            for (count, (fromnodes, link_ids)) in enumerate(counts):
-                self.node_outlink_matrix[count][fromnodes] = link_ids
-                
-        
-    def setup_inlink_and_outlink_matrices_slow(self):
-        """
-        Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the node as
-        its "to" node, and an outlink is a link that has the node as its "from".
-        
-        We store the inlinks in a 2-row by num_nodes-column matrix called
-        node_inlink_matrix. It has two rows because we know that the nodes in
-        our raster grid will never have more than two inlinks an two outlinks
-        each (a given node could also have zero or one of either). The outlinks
-        are stored in a similar matrix.
-        
-        We also keep track of the total number of inlinks and outlinks at each
-        node in the num_inlinks and num_outlinks arrays.
-        
-        The inlink and outlink matrices are useful in numerical calculations.
-        Each row of each matrix contains one inlink or outlink per node. So, if
-        you have a corresponding "flux" matrix, you can map incoming or
-        outgoing fluxes onto the appropriate nodes. More information on this is
-        in the various calculate_flux_divergence... functions.
-        
-        What happens if a given node does not have two inlinks or outlinks? We
-        simply put the default value -1 in this case. This allows us to use a 
-        cute little trick when computing inflows and outflows. We make our 
-        "flux" array one element longer than the number of links, with the last
-        element containing the value 0. Thus, any time we add an influx from 
-        link number -1, Python takes the value of the last element in the array,
-        which is zero. By doing it this way, we maintain the efficiency that 
-        comes with the use of numpy. Again, more info can be found in the 
-        description of the flux divergence functions.
-        
-        Example:
-            
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-        """
-        # Create in-link and out-link matrices.
-        self.node_numinlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
-        self.node_numoutlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
-        self.node_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
-        self.node_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
-        
-        # For each link, assign it as an "inlink" of its "to" node and an 
-        # "outlink" of its from node. Keep track of the total number of inlinks
-        # and outlinks of each node.
-        for link_id in range(0, self.num_links):
-            
-            # enter this link as an inlink of its "to" node, and increment the
-            # total number of inlinks for this node
-            tonode = self.link_tonode[link_id]
-            inlinknum = self.node_numinlink[tonode]
-            self.node_inlink_matrix[inlinknum][tonode] = link_id
-            self.node_numinlink[tonode] += 1
-
-            # enter this link as an outlink of its "from" node, and increment the
-            # total number of outlinks for this node
-            fromnode = self.link_fromnode[link_id]
-            outlinknum = self.node_numoutlink[fromnode]
-            self.node_outlink_matrix[outlinknum][fromnode] = link_id
-            self.node_numoutlink[fromnode] += 1
         
     def setup_active_inlink_and_outlink_matrices(self):
         """
@@ -478,39 +361,6 @@ class RasterModelGrid(ModelGrid):
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
-    def setup_active_inlink_and_outlink_matrices_slow(self):
-        """
-        Creates data structures to record the numbers of active inlinks and 
-        active outlinks for each node. These data structures are equivalent to
-        the "regular" inlink and outlink matrices, except that it uses the IDs
-        of active links (only).
-        """
-        
-        # Create active in-link and out-link matrices.
-        self.node_numactiveinlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
-        self.node_numactiveoutlink = numpy.zeros(self.num_nodes,dtype=numpy.int)
-        self.node_active_inlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
-        self.node_active_outlink_matrix = -numpy.ones((2,self.num_nodes),dtype=numpy.int)
-        
-        # For each active link, assign it as an "inlink" of its "to" node and an 
-        # "outlink" of its from node. Keep track of the total number of active
-        # inlinks and outlinks of each node.
-        for active_link_id in range(0, self.num_active_links):
-            
-            # enter this link as an inlink of its "to" node, and increment the
-            # total number of inlinks for this node
-            tonode = self.activelink_tonode[active_link_id]
-            inlinknum = self.node_numactiveinlink[tonode]
-            self.node_active_inlink_matrix[inlinknum][tonode] = active_link_id
-            self.node_numactiveinlink[tonode] += 1
-
-            # enter this link as an outlink of its "from" node, and increment the
-            # total number of outlinks for this node
-            fromnode = self.activelink_fromnode[active_link_id]
-            outlinknum = self.node_numactiveoutlink[fromnode]
-            self.node_active_outlink_matrix[outlinknum][fromnode] = active_link_id
-            self.node_numactiveoutlink[fromnode] += 1
-        
     def cell_faces(self, cell_id):
         """
         Returns an array of the face IDs for the faces of a cell with ID,
@@ -823,10 +673,7 @@ class RasterModelGrid(ModelGrid):
         else:
             self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
         
-        if _SLOW:
-            self.reset_list_of_active_links_slow()
-        else:
-            self.reset_list_of_active_links()
+        self.reset_list_of_active_links()
 
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
@@ -949,29 +796,6 @@ class RasterModelGrid(ModelGrid):
         
         return gradient
         
-    def calculate_gradients_at_active_links_slow(self, s, gradient=None):
-        """
-        Slow implementation of calculate_gradients_at_active_links, kept here
-        as an example of slow vs fast code using numpy arrays.
-        """
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_gradients_at_active_links_slow'
-        
-        if gradient==None:
-            gradient = numpy.zeros(self.num_active_links)
-            
-        assert (len(gradient)==self.num_active_links), \
-                "len(gradient)!=num_active_links"
-                
-        active_link_id = 0
-        for link_id in self.active_links:
-            gradient[active_link_id] = (s[self.link_tonode[link_id]]
-                                        -s[self.link_fromnode[link_id]]) / \
-                                        self._dx
-            active_link_id += 1
-        
-        return gradient
-        
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=False):
         """
@@ -1067,50 +891,6 @@ class RasterModelGrid(ModelGrid):
         
         return net_unit_flux
 
-    def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
-                                                  net_unit_flux=False):
-        """
-        Slower version of calculate_flux_divergence_at_active_cells. Retained
-        here to illustrate value of using numpy array operations instead of
-        FOR loops.
-        """
-        
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergence_at_active_cells_slow'
-            
-        assert (len(active_link_flux)==self.num_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux is False:
-            net_unit_flux = numpy.zeros(self.num_active_cells)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert (len(net_unit_flux))==self.num_active_cells
-        
-        # For each active link, add up the flux out of the "from" cell and 
-        # into the "to" cell.
-        active_link_id = 0
-        for link_id in self.active_links:
-            from_cell = self.node_activecell[self.link_fromnode[link_id]]
-            to_cell = self.node_activecell[self.link_tonode[link_id]]
-            total_flux = active_link_flux[active_link_id] * self._dx
-            #print('Flux '+str(total_flux)+' from '+str(from_cell) \
-            #      +' to '+str(to_cell)+' along link '+str(link_id))
-            if from_cell != BAD_INDEX_VALUE:
-                net_unit_flux[from_cell] += total_flux
-                #print('cell '+str(from_cell)+' net='+str(net_unit_flux[from_cell]))
-            if to_cell != BAD_INDEX_VALUE:
-                net_unit_flux[to_cell] -= total_flux
-                #print('cell '+str(to_cell)+' net='+str(net_unit_flux[to_cell]))
-            active_link_id += 1
-        
-        # Divide by cell area
-        net_unit_flux = net_unit_flux / self.cellarea
-        
-        return net_unit_flux  
-        
     def calculate_flux_divergence_at_nodes(self, active_link_flux, 
                                            net_unit_flux=False):
         """
@@ -1180,115 +960,6 @@ class RasterModelGrid(ModelGrid):
 
         return net_unit_flux
         
-    def calculate_flux_divergence_at_nodes_slow(self, active_link_flux, 
-                                           net_unit_flux=False):
-        """
-        Same as calculate_flux_divergence_at_active_cells, but works with and
-        returns a list of net unit fluxes that corresponds to all nodes, rather
-        than just active cells. 
-        
-        Note that we don't compute net unit fluxes at
-        boundary nodes (which don't have active cells associated with them, and 
-        often don't have cells of any kind, because they are on the perimeter), 
-        but simply return zeros for these entries. The advantage is that the 
-        caller can work with node-based arrays instead of active-cell-based 
-        arrays.
-        
-        Example:
-            
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> df = rmg.calculate_flux_divergence_at_nodes_slow(flux)
-            >>> df # doctest: +NORMALIZE_WHITESPACE
-            array([ 0.,  0.,  0.,  0.,  0.,  0.,  2.,  4., -2.,  0.,  0.,  0.,  1.,
-                   -4.,  0.,  0.,  0.,  0.,  0.,  0.])
-        """
-        
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergence_at_nodes_slow'
-            
-        assert (len(active_link_flux)==self.num_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux is False:
-            net_unit_flux = numpy.zeros(self.num_nodes)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert(len(net_unit_flux) == self.num_nodes)
-        
-        # For each active link, add up the flux out of the "from" cell and 
-        # into the "to" cell.
-        active_link_id = 0
-        for link_id in self.active_links:
-            from_node = self.link_fromnode[link_id]
-            from_cell = self.node_activecell[from_node]
-            to_node = self.link_tonode[link_id]
-            to_cell = self.node_activecell[to_node]
-            total_flux = active_link_flux[active_link_id] * self._dx
-            #print('Flux '+str(total_flux)+' from '+str(from_node) \
-            #      +' to '+str(to_node)+' along link '+str(link_id))
-            if from_cell != BAD_INDEX_VALUE:
-                net_unit_flux[from_node] += total_flux / self.cellarea
-                #print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
-            if to_cell != BAD_INDEX_VALUE:
-                net_unit_flux[to_node] -= total_flux / self.cellarea
-                #print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
-            active_link_id += 1
-
-        return net_unit_flux
-
-#    def calculate_flux_divergences( self, q ):
-#        """
-#        TBX: TO BE REPLACED WITH METHODS ABOVE
-#        
-#        Calculates the net flux at each cell by adding up the fluxes
-#        through all four faces, and divides the total by cell area.
-#
-#        In general, for a polygonal cell with N sides of lengths
-#        Li and with surface area A, the net influx divided by cell
-#        area would be:
-#            .. math::
-#                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
-#
-#        For a square cell, the sum is over 4 sides of length dx, and
-#        :math:`A = dx^2`, so:
-#            .. math::
-#                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
-#
-#        .. note::
-#            The net flux is defined as positive outward, negative
-#            inward. In a diffusion problem, for example, one would use:
-#                .. math::
-#                    {du \over dt} = \\text{source} - \\text{fd}
-#            where fd is "flux divergence".
-#        """
-#    
-#        if self.DEBUG_TRACK_METHODS:
-#            print 'RasterModelGrid.calculate_flux_divergences here'
-#        
-#        fd = numpy.zeros( self.ncells )
-#        for cell in self.interior_cells:
-#            if self.DEBUG_VERBOSE:
-#                print 'Cell',cell
-#                print 'q:',q[self.faces[cell,0:4]]
-#            fd[cell] = ( -( q[self.faces[cell,2]]   # left face (positive=in)
-#                + q[self.faces[cell,3]] )           # bottom face (positive=in)
-#                + q[self.faces[cell,0]]             # right face (positive=out)
-#                + q[self.faces[cell,1]]             # top face (positive=out)
-#                  ) / self._dx
-#        return fd
-        
     def calculate_flux_divergence( self, q, id ):
         """
         ..todo: UPDATE THIS TO USE NEW DATA STRUCTURES!
@@ -1320,13 +991,8 @@ class RasterModelGrid(ModelGrid):
         if bc==None:
             bc = self.default_bc
 
-        if _SLOW:
-            for id in xrange( 0, self.n_boundary_cells ):
-                if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
-                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
-        else:
-            inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
-            u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
+        inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
+        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
 
         return u
 
@@ -1351,20 +1017,12 @@ class RasterModelGrid(ModelGrid):
         if bc == None:
             bc = self.default_bc
 
-        if _SLOW:
-            for id in xrange( 0, self.n_boundary_cells ):
-                if bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY:
-                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]]
-                elif bc.boundary_code[id] == bc.FIXED_GRADIENT_BOUNDARY:
-                    u[self.boundary_cells[id]] = u[bc.tracks_cell[id]] \
-                                                 + bc.gradient[id]*self._dx
-        else:
-            inds = (bc.boundary_code == bc.TRACKS_CELL_BOUNDARY)
-            u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
+        inds = (bc.boundary_code == bc.TRACKS_CELL_BOUNDARY)
+        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
 
-            inds = (bc.boundary_code == bc.FIXED_GRADIENT_BOUNDARY)
-            u[self.boundary_cells[inds]] = (u[bc.tracks_cell[id]] +
-                                            bc.gradient[id] * self._dx)
+        inds = (bc.boundary_code == bc.FIXED_GRADIENT_BOUNDARY)
+        u[self.boundary_cells[inds]] = (u[bc.tracks_cell[id]] +
+                                        bc.gradient[id] * self._dx)
 
         return u
 

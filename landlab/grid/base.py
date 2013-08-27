@@ -40,13 +40,6 @@ BOUNDARY_STATUS_FLAGS_LIST = [
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
 
-
-_SLOW = False
-
-if _SLOW:
-    BAD_INDEX_VALUE = None
-
-
 class Error(Exception):
     """
     Base class for exceptions from this module.
@@ -227,10 +220,7 @@ class ModelGrid(object):
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = self.FIXED_VALUE_BOUNDARY
-        if _SLOW:
-            self.reset_list_of_active_links_slow()
-        else:
-            self.reset_list_of_active_links()
+        self.reset_list_of_active_links()
 
     def calculate_gradients_at_active_links(self, s, gradient=None):
         """
@@ -554,43 +544,6 @@ class ModelGrid(object):
         # Set up active inlink and outlink matrices
         self.setup_active_inlink_and_outlink_matrices()
 
-    def reset_list_of_active_links_slow(self):
-        """
-        Creates or resets a list of active links. We do this by sweeping
-        through the given lists of from and to nodes, and checking the status
-        of these as given in the node_status list. A link is active if both its
-        nodes are active interior points, or if one is an active interior and
-        the other is an active boundary.
-        """
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.reset_list_of_active_links_slow'
-            
-        # Create or reset empy list of active links (we'll convert this to
-        # a numpy array below)
-        self.active_links = []
-        
-        # Create or reset lists of active outlinks and active inlinks for each
-        # node. These are lists of lists.
-        #self.node_activeoutlinks = [[] for x in xrange(self.num_nodes)]
-        #self.node_activeinlinks = [[] for x in xrange(self.num_nodes)]
-        
-        for link in range(0, len(self.link_fromnode)):
-            fromnode_status = self.node_status[self.link_fromnode[link]]
-            tonode_status = self.node_status[self.link_tonode[link]]
-            if ((fromnode_status==self.INTERIOR_NODE and
-                 not tonode_status==self.INACTIVE_BOUNDARY ) or
-                (tonode_status==self.INTERIOR_NODE and
-                 not fromnode_status==self.INACTIVE_BOUNDARY)):
-                self.active_links.append(link)
-        
-        self.num_active_links = len(self.active_links)
-        self.active_links = numpy.array(self.active_links)
-        self.activelink_fromnode = numpy.array(self.link_fromnode[self.active_links])
-        self.activelink_tonode = numpy.array(self.link_tonode[self.active_links])
-        
-        # Set up active inlink and outlink matrices
-        self.setup_active_inlink_and_outlink_matrices_slow()
-        
     def deactivate_nodata_nodes(self, node_data, nodata_value):
         """
         Sets self.node_status to INACTIVE_BOUNDARY for all nodes whose value of
@@ -942,11 +895,7 @@ class ModelGrid(object):
         else:
             self.node_status[left_edge] = self.FIXED_VALUE_BOUNDARY
         
-        if _SLOW:
-            self.reset_list_of_active_links_slow()
-        else:
-            self.reset_list_of_active_links()
-
+        self.reset_list_of_active_links()
                 
 
 if __name__ == '__main__':
