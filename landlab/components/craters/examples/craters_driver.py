@@ -71,4 +71,10 @@ mg3.initialize(1200, 1200, 0.0025)
 vectors = data(mg3)
 vectors.elev[:] = 0.
 
-dict_1200_50k_15m_min, dict_1200_150k_5m_min = craters.step_reduce_size(mg3, vectors, loops=[10,30], interval=5000, min_radius_in=[0.015,0.005])
+dict1_1200_50k_15m_min, dict1_1200_150k_5m_min = craters.step_reduce_size(mg3, vectors, loops=[10,30], interval=5000, min_radius_in=[0.015,0.005])
+
+vectors.elev[:] = 0.
+
+dict2_1200_150k_10m_min, dict2_1200_150k_5m_min = craters.step_reduce_size(mg3, vectors, loops=[30,30], interval=5000, min_radius_in=[0.01,0.005])
+
+

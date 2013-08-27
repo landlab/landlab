@@ -850,7 +850,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
     cr.closest_node_elev = vectors.elev[cr.closest_node_index]
 
-    cr._angle_to_horizontal = numpy.pi*0.5*3./3.
+    cr._angle_to_horizontal = numpy.pi*0.5*2./3.
     cr._azimuth_of_travel = numpy.pi*1.5
     cr.set_crater_mean_slope_v2(mg, vectors)
     print 'Azimuth of travel: ', cr._azimuth_of_travel
