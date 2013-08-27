@@ -288,6 +288,20 @@ class RasterModelGrid(ModelGrid):
     def shape(self):
         return (self.nrows, self.ncols)
 
+    def get_cell_areas(self, ID=numpy.nan):
+        """
+        This function returns the area of an interior cell, or an array of all interior cell areas if no ID is given. Ranges of cells are permitted. This function is overrides its equivalent in base.py for speed.
+        Added DEJH 8/2013.
+        """
+        if np.isnan(ID):
+            return numpy.ones(self.num_active_cells)*self._dx*self._dx
+        else:
+            return numpy.ones(len(ID))*self._dx*self._dx
+
+    @property
+    def cell_areas(self):
+        return numpy.ones(self.num_active_cells)*self._dx*self._dx
+
     def setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks

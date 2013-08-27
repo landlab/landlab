@@ -463,6 +463,25 @@ class ModelGrid(object):
         else:
             return 'longitude'
 
+    def get_cell_areas(self, ID=numpy.nan):
+        """
+        This function returns the area of an interior cell, or an array of all interior cell areas if no ID is given. Ranges of cells are permitted. Although defined at this level, it requires that it be inherited and self.active_cell_areas be defined in the daughter grid (e.g., Voronoi). This function is overridden in raster.py for speed.
+        Added DEJH 8/2013.
+        """
+        if np.isnan(ID):
+            return self.active_cell_areas
+        else:
+            try:
+                return self.active_cell_areas[ID]
+            except:
+                print 'Given cell ID was outside permitted range. Returning NaN.'
+                return numpy.nan
+    
+    @property
+    def cell_areas(self):
+        return self.active_cell_areas
+
+
     def get_active_cell_node_ids( self ):
         """
         Returns an integer vector of the node IDs of all active cells.
