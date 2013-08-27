@@ -301,11 +301,7 @@ class TestRasterModelGrid(unittest.TestCase):
                                      -1, -1, -1, -1, -1]))
 
     def test_link_face(self):
-        from landlab.grid.base import _SLOW
-        if _SLOW:
-            BAD = None
-        else:
-            BAD = BAD_INDEX_VALUE
+        BAD = BAD_INDEX_VALUE
 
         assert_array_equal(self.grid.link_face,
                            np.array([BAD, 0, 1, 2, BAD,
