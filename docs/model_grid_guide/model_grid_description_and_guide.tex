@@ -8,6 +8,8 @@
 \usepackage{listings}
 \usepackage{url}
 \usepackage{needspace}
+\usepackage{booktabs}
+\usepackage{topcapt}
 %\geometry{a4paper} % or letter or a5paper or ... etc
 % \geometry{landscape} % rotated page geometry
 
@@ -348,7 +350,7 @@ Line 110 updates the values of water depth at all interior cells. Finally, line 
 
 \lstinputlisting[firstnumber=118,firstline=118,lastline=141]{overland_flow_with_model_grid.py}
 
-The final portion of the code uses Pylab functions and the ModelGrid \code{node\_vector\_to\_raster} method to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
+The final portion of the code uses the ModelGrid \code{node\_vector\_to\_raster} method along with some Pylab functions to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
 
 
 %%%%%%%%%%%%%
@@ -426,6 +428,39 @@ The last few lines in the main loop keep track of discharge at the outlet by app
 \subsection{Plotting the result}
 
 The plotting section is similar to what we saw in the previous two examples. One difference is that we now use two figures: one for the topography and water depth, and one for outlet discharge over time. We also use Pylab's sub-plot capability to place images of topography and water depth side by side.
+
+
+%%%%%%%%%%%%%%%%%%%%%
+
+\section{Using a Different Grid Type}
+
+As noted earlier, ModelGrid provides several different types of grid. Available grids (as of this writing) are listed in Table~\ref{gridtypestable}.
+
+\begin{table}[htbp]
+   \centering
+   \topcaption{List of available grid types} % requires the topcapt package
+   \begin{tabular}{@{} lccl @{}} % Column formatting, @{} suppresses leading/trailing space
+      \toprule
+      
+      %\cmidrule(r){1-2} % Partial rule. (r) trims the line a little bit on the right; (l) & (lr) also possible
+      Grid type & Inherits from & Nodes & Cells \\
+      \midrule
+      RasterModelGrid  & ModelGrid & regular & square \\
+      
+      VoronoiDelaunayGrid & ModelGrid & Delaunay$^1$ & Voronoi$^2$ \\
+      HexModelGrid & VoronoiDelaunayGrid & triagonal$^{1,3}$ & hexagonal$^4$ \\
+      RadialModelGrid & VoronoiDelaunayGrid & concentric$^{1,5}$ & Voronoi$^2$ \\
+      \bottomrule
+      \multicolumn{4}{l}{$^1$ Nodes are connected by a Delaunay triangulation; user specifies node coordinates} \\
+      \multicolumn{4}{l}{$^2$ Cells are Voronoi polygons} \\
+      \multicolumn{4}{l}{$^3$ Nodes in regular triangular lattice with spacing $\delta$} \\
+      \multicolumn{4}{l}{$^4$ Regular hexagons with side length $\delta/\sqrt{3}$ and area $\sqrt{3} \delta^2 / 2$} \\
+      \multicolumn{4}{l}{$^5$ Points arranged in concentric circles with radial spacing $r$ and arc spacing $\approx r$} \\
+   \end{tabular}
+   %\caption{Remember, \emph{never} use vertical lines in tables.}
+   \label{gridtypestable}
+\end{table}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%
