@@ -25,3 +25,35 @@ utils Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`test` Module
+------------------
+
+.. automodule:: landlab.utils.test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`time_tests` Module
+------------------------
+
+.. automodule:: landlab.utils.time_tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`unstructured_grid` Module
+-------------------------------
+
+.. automodule:: landlab.utils.unstructured_grid
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`voronoi` Module
+---------------------
+
+.. automodule:: landlab.utils.voronoi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

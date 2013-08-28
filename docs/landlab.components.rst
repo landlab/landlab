@@ -72,5 +72,6 @@ Subpackages
 
     landlab.components.craters
     landlab.components.flexure
+    landlab.components.flow_accum
     landlab.components.flow_routing
 

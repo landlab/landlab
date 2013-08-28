@@ -405,7 +405,7 @@ class ModelGrid(object):
         """
         Returns vector of node x coordinates (same as get_node_x_coords).
         
-        ..todo: 
+        .. todo: 
             Could be useful to return a Numpy array of x-coords of the cell's
             corners.
         """
@@ -432,6 +432,11 @@ class ModelGrid(object):
         return self._node_y           
 
     def get_node_coords(self, axis=0):
+        """
+        Return node coordinates from a given *axis* (defaulting to 0). Axis
+        numbering is the same as that for numpy arrays. That is, the zeroth
+        axis is along the rows, and the first along the columns.
+        """
         assert(axis in (0, 1))
 
         if axis == 0:
@@ -441,7 +446,7 @@ class ModelGrid(object):
 
     def get_coordinate_units(self, axis=0):
         """
-        ..todo:
+        .. todo:
             GT: coordinate units should be model/component dependent.
         """
         assert(axis in (0, 1))
@@ -453,7 +458,7 @@ class ModelGrid(object):
 
     def get_coordinate_name(self, axis=0):
         """
-        ..todo:
+        .. todo:
             GT: coordinate units should be model/component dependent.
         """
         assert(axis in (0, 1))
@@ -470,9 +475,9 @@ class ModelGrid(object):
         all interior cell areas if *ids* is not given. *ids* can be either
         a scalar index, or an array of cell indices.
 
-        ..note::
+        .. note::
             It is up to a specific grid class, which has inherited from
-            ModelGrid to construct its own cell_areas array.
+            ModelGrid, to construct its own cell_areas array.
         """
         assert(len(args) <= 1)
 
@@ -486,7 +491,7 @@ class ModelGrid(object):
         """
         Returns an array of grid-cell areas.
 
-        ..note::
+        .. note::
             Sometimes it may make sense for a grid to not always calculate
             its cell areas but, instead, only calculate them once they are
             required. In such cases, the grid class must implement a

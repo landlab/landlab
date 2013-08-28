@@ -49,11 +49,3 @@ tests Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_raster_model_grid` Module
-------------------------------------
-
-.. automodule:: landlab.tests.test_raster_model_grid
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
