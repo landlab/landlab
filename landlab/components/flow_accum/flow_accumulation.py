@@ -23,6 +23,8 @@ class AccumFlow(object):
 
     def calc_flowacc(self, grid, data):
         active_cell_ids = grid.get_active_cell_node_ids()
+        #Perform test to see if the flowdir data is a single vector, or multidimensional, here. Several ways possible: 1. Is the vector multidimensional?, e.g., try: data.flowdirs.shape[1] 2. set a flag in flowdir.
+        
         try:
             height_order = np.argsort(data.elev[active_cell_ids])[::-1] #descending order
         except:
