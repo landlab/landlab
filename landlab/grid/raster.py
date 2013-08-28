@@ -54,9 +54,6 @@ class RasterModelGrid(ModelGrid):
         if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )
 
-        self.active_cell_areas = numpy.empty(self.num_active_cells)
-        self.active_cell_areas.fill(self._dx ** 2)
-
     def initialize( self, num_rows, num_cols, dx ):
         """
         Sets up a num_rows by num_cols grid with cell spacing dx and
@@ -278,6 +275,11 @@ class RasterModelGrid(ModelGrid):
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
         self.diagonal_list_created = False
+
+    def _setup_cell_areas_array(self):
+        self.active_cell_areas = numpy.empty(self.num_active_cells)
+        self.active_cell_areas.fill(self._dx ** 2)
+        return self.active_cell_areas
 
     @property
     def shape(self):

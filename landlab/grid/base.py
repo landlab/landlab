@@ -463,24 +463,40 @@ class ModelGrid(object):
         else:
             return 'longitude'
 
-    def get_cell_areas(self, ID=numpy.nan):
+    def get_cell_areas(self, *args):
+        """get_cell_areas([ids])
+
+        This function returns the area of an interior cell, or an array of
+        all interior cell areas if *ids* is not given. *ids* can be either
+        a scalar index, or an array of cell indices.
+
+        ..note::
+            It is up to a specific grid class, which has inherited from
+            ModelGrid to construct its own cell_areas array.
         """
-        This function returns the area of an interior cell, or an array of all interior cell areas if no ID is given. Ranges of cells are permitted. Although defined at this level, it requires that it be inherited and self.active_cell_areas be defined in the daughter grid (e.g., Voronoi). This function is overridden in raster.py for speed.
-        Added DEJH 8/2013.
-        """
-        if np.isnan(ID):
-            return self.active_cell_areas
+        assert(len(args) <= 1)
+
+        if len(args) == 0:
+            return self.cell_areas
         else:
-            try:
-                return self.active_cell_areas[ID]
-            except:
-                print 'Given cell ID was outside permitted range. Returning NaN.'
-                return numpy.nan
+            return self.cell_areas[args[0]]
     
     @property
     def cell_areas(self):
-        return self.active_cell_areas
+        """
+        Returns an array of grid-cell areas.
 
+        ..note::
+            Sometimes it may make sense for a grid to not always calculate
+            its cell areas but, instead, only calculate them once they are
+            required. In such cases, the grid class must implement a
+            _setup_cell_areas_array method, which will be called the first
+            time cell areas are requested.
+        """
+        try:
+            return self.active_cell_areas
+        except AttributeError:
+            return self._setup_cell_areas_array()
 
     def get_active_cell_node_ids( self ):
         """
