@@ -546,6 +546,12 @@ class RasterModelGrid(ModelGrid):
             NG is still confused about that one.
             
             NMG Update.  This is super clumsy. 
+            
+            DEJH update: Gets confused for the lowest node if w/i grid
+            (i.e., closed)- will return a higher neighbour, when it should
+            return itself. ->  Now returns itself, but a flagging mechanism
+            may be preferable. (i.e., unthinking application will result in a
+            doubling of discharge at that node.
         '''
         #We have poor functionality if these are closed boundary nodes! 
         neighbor_nodes = self.get_neighbor_list(node_id)
@@ -602,7 +608,23 @@ class RasterModelGrid(ModelGrid):
         all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
         #print 'all_neighbor_cells ', all_neighbor_cells
         
-        return all_neighbor_nodes[index_max]
+        #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
+        #This remains extremely ad-hoc. An internal node points to itself, but this should never
+        #be used to actually route flow. In flow_accumulation, there is an explicit check that flow
+        #is not routed to yourself.
+        steepest_node = all_neighbor_nodes[index_max]
+        #...now if a node is the lowest thing, this method returns that node, not a neighbor:
+        if u[steepest_node] > u[node_id]:
+            steepest_node=node_id
+            #When accumulating flow, it is ESSENTIAL to check if a node routes to itself!!
+            #An alternative, creating a list of the internally draining cells
+            #try:
+            #    self.internal_draining_nodes.append(node_id)
+            #except:
+            #    self.internal_draining_nodes = [node_id]
+            #self.node_status[node_id] = INTERNAL_DRAINING_NODE #==5? ...this doesn't exist yet.
+        
+        return steepest_node
         
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
