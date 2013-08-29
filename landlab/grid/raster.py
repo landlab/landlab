@@ -1065,20 +1065,8 @@ class RasterModelGrid(ModelGrid):
                    [  5.,   6.,   7.,   8.,   9.],
                    [  0.,   1.,   2.,   3.,   4.]])
         """
-        
-        assert(len(u)==self.num_nodes), ('u should have '+str(self.num_nodes) \
-                                         +' elements')
-    
-        rast = numpy.zeros( [self.nrows, self.ncols] )
-        if flip_vertically==False:
-            rows = range(0, self.nrows)
-        else:
-            rows = range(self.nrows-1, -1, -1)
-        id = 0
-        for r in rows:
-            rast[r,:] = u[id:(id+self.ncols)]
-            id += self.ncols
-        return rast
+        return sgrid.reshape_array(self.shape, u,
+                                   flip_vertically=flip_vertically)
 
     def cell_vector_to_raster(self, u, flip_vertically=False):
         """
@@ -1106,20 +1094,8 @@ class RasterModelGrid(ModelGrid):
             array([[ 3.,  4.,  5.],
                    [ 0.,  1.,  2.]])
         """
-    
-        assert(len(u)==self.num_cells), ('u should have '+str(self.num_cells) \
-                                         +' elements')
-    
-        rast = numpy.zeros( [self.nrows-2, self.ncols-2] )
-        if flip_vertically==False:
-            rows = range(0, self.nrows-2)
-        else:
-            rows = range(self.nrows-3, -1, -1)
-        id = 0
-        for r in rows:
-            rast[r,:] = u[id:(id+(self.ncols-2))]
-            id += self.ncols-2
-        return rast
+        return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
+                                   u, flip_vertically=flip_vertically)
 
     #OLD CODE, same code is below, but with cells changed to node because
     #NG is easily confused.
@@ -1190,21 +1166,16 @@ class RasterModelGrid(ModelGrid):
         """
         Creates a list of IDs of neighbor nodes for each node, as a
         2D array. Only interior nodes are assigned neighbors; boundary
-        nodes get -1 for each neighbor. 
-        The order of the neighbors is [right, top, left, bottom].
+        nodes get -1 for each neighbor. The order of the neighbors is [right,
+        top, left, bottom].
+
         DH created this.  NG only changed labels.
         
-        Creates a list of IDs of the neighbor nodes to each node, as a 2D
-        array.  Only interior nodes are assigned neighbors; boundary
-        nodes get -1 for each neighbor. The order of the diagonal nodes is
-        [right, top, left, bottom].
-        
-        .. note:: This is equivalent to the neighbors of all "active" cells,
-            and setting the neighbors of "inactive" cells to -1. In such a
+        .. note:: This is equivalent to the neighbors of all cells,
+            and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
-            same ID. However, this is the old-style grid structure and there
-            are no longer "active" and "inactive" cells. Boundary nodes now
-            simply do not have associated cells.
+            same ID. However, this is the old-style grid structure as
+            boundary nodes no longer have associated cells.
 
         .. todo: could use inlink_matrix, outlink_matrix
 
@@ -1278,12 +1249,11 @@ class RasterModelGrid(ModelGrid):
         nodes get -1 for each neighbor. The order of the diagonal nodes is
         [topright, topleft, bottomleft, bottomright].
         
-        .. note:: This is equivalent to the diagonals of all "active" cells,
-            and setting the neighbors of "inactive" cells to -1. In such a
+        .. note:: This is equivalent to the diagonals of all cells,
+            and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
-            same ID. However, this is the old-style grid structure and there
-            are no longer "active" and "inactive" cells. Boundary nodes now
-            simply do not have associated cells.
+            same ID. However, this is the old-style grid structure as
+            boundary nodes no longer have associated cells.
 
         .. todo: Change to use BAD_INDEX_VALUE instead of -1.
         """
@@ -1425,8 +1395,8 @@ class RasterModelGrid(ModelGrid):
         same length) to get multiple ids.
 
         As with ravel_multi_index use the *mode* keyword to change the
-        behavior of the method when passed an out-of-range *row* and *col*.
-        The default is the raise ValueError (not IndexError, as you might
+        behavior of the method when passed an out-of-range *row* or *col*.
+        The default is to raise ValueError (not IndexError, as you might
         expect).
         
         .. note::
