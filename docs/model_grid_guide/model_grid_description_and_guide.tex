@@ -461,6 +461,26 @@ As noted earlier, ModelGrid provides several different types of grid. Available 
    \label{gridtypestable}
 \end{table}
 
+Suppose, for example, that we wanted to model a scenario in which the domain is a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To run our diffusion model with this geometry, we only need to make some relatively simple changes. A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing, so we change lines 24--26 to:
+
+\lstinputlisting[firstnumber=24,firstline=24,lastline=26]{diffusion_with_radial_model_grid.py}
+and also change \code{dx} to \code{dr} on line 32. To create a RadialModelGrid instead of a RasterModelGrid, we modify lines 35--36:
+
+\lstinputlisting[firstnumber=35,firstline=35,lastline=36]{diffusion_with_radial_model_grid.py}
+Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands (lines 74--94) with the following:
+
+\lstinputlisting[firstnumber=74,firstline=74,lastline=89]{diffusion_with_radial_model_grid.py}
+The result of our run is shown in Figure~\ref{radialdiffusion}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{radial_example.pdf}
+    \caption{Diffusion model implemented with a radial model grid. (a) Nodes and links. Green nodes are active interior points, and red nodes are open boundaries. Active links in green; inactive links in black. Node gray shading is proportional to height. (b) Voronoi diagram, highlighting cells. Blue dots are nodes, and green circles are corners (cell vertices. Lines are faces (Voronoi polygon edges, sometimes called ``Voronoi ridges''). Dashed lines show orientation of undefined Voronoi edges. (c) Side view of model, showing nodes (blue dots) in comparison with analytical solution (red curve). All axes in meters.}
+   \label{radialdiffusion}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
 %%%%%%%%%%%%%%%%%%%%%

@@ -806,8 +806,9 @@ class ModelGrid(object):
             pts[:,1] = self._node_y
             vor = Voronoi(pts)
             voronoi_plot_2d(vor)
-        
+                     
         plt.show()
+        
         
     def is_boundary(self, ids, boundary_flag=None):
         if boundary_flag is None:
