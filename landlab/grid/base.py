@@ -84,6 +84,18 @@ class Error(Exception):
 #        self.tracks_cell[:] = -1
 #        #DEJH, 7/17/13 - I don't think we should be using -1. This way, accidentally using one of these cells will silently just reference the final cell in the dvector, rather than throwing an exception. " = numpy.nan" would probably work better.
 
+def _divide_nodes(dx, dy, nodes):
+    above_x_axis = dy > 0
+    right_of_y_axis = dx > 0
+    closer_to_y_axis = numpy.abs(dy) >= numpy.abs(dx)
+
+    north_nodes = nodes[above_x_axis & closer_to_y_axis]
+    south_nodes = nodes[(~ above_x_axis) & closer_to_y_axis]
+    east_nodes = nodes[right_of_y_axis & (~ closer_to_y_axis)]
+    west_nodes = nodes[(~ right_of_y_axis) & (~ closer_to_y_axis)]
+
+    return (west_nodes, east_nodes, north_nodes, south_nodes)
+
 
 class ModelGrid(object):
     """
@@ -842,36 +854,11 @@ class ModelGrid(object):
             >>> b
             array([0, 2, 1], dtype=int32)
         """
-        # Find the grid's centerpoint
-        xmean = numpy.mean(self._node_x)
-        ymean = numpy.mean(self._node_y)
-        
         # Calculate x and y distance from centerpoint
-        dx = self._node_x[self.boundary_nodes] - xmean
-        dy = self._node_y[self.boundary_nodes] - ymean
-        
-        # Make lists of edge nodes
-        right_nodes = []
-        left_nodes = []
-        top_nodes = []
-        bottom_nodes = []
-        
-        i = 0
-        for n in self.boundary_nodes:
-            if abs(dx[i])>abs(dy[i]):
-                if dx[i] > 0.:
-                    right_nodes.append(n)
-                else:
-                    left_nodes.append(n)
-            elif dy[i] > 0.:
-                top_nodes.append(n)
-            else:
-                bottom_nodes.append(n)
-            i += 1
-            
-        return numpy.array(left_nodes), numpy.array(right_nodes), \
-               numpy.array(top_nodes), numpy.array(bottom_nodes)
-        
+        dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
+        dy = self._node_y[self.boundary_nodes] - numpy.mean(self._node_y)
+
+        return _divide_nodes(dx, dy, self.boundary_nodes)
         
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
