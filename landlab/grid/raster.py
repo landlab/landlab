@@ -401,23 +401,13 @@ class RasterModelGrid(ModelGrid):
         
     def get_count_of_interior_nodes(self):
         """
-        Returns the number of interior nodes on the grid. Functionally identical to get_count_of_interior_cells()
-        DEJH, July 2013
+        Returns the number of interior nodes on the grid.
         """
-        return(self.num_active_cells)
+        return sgrid.interior_node_count(self.shape)
         
-    #this was wrong, delete if it doesn't blow-up code.
-    #def get_count_of_all_cells(self):
-    #    """
-    #    Returns total number of nodes, including boundaries. Note this call is misleadingly named; it returns the number of nodes, not cells (i.e., it includes all boundary nodes).
-    #    NG, June 2013
-    #    """
-    #    return(self.num_nodes)
-    
     def get_count_of_all_nodes(self):
         """
-        Returns total number of nodes, including boundaries. Functionally identical to get_count_of_all_cells().
-        DEJH, July 2013
+        Returns total number of nodes, including boundaries.
         """
         return(self.num_nodes)
     
@@ -1055,37 +1045,38 @@ class RasterModelGrid(ModelGrid):
 
     def node_vector_to_raster(self, u, flip_vertically=False):
         """
-        Converts node vector u to a 2D array and returns it, so that it
+        Converts node vector *u* to a 2D array and returns it, so that it
         can be plotted, output, etc.
         
-        If the optional argument flip_vertically=True, the function returns an 
-        array that has the rows in reverse order, for use in plot commands (such
-        as the image display functions) that put the (0,0) axis at the top left 
-        instead of the bottom left.
-        
-        NG : The comment above confuses me.  Based on the example below, looks
-        (0,0) goes on the top left if it's False.
+        If the *flip_vertically* keyword is True, this function returns an 
+        array that has the rows in reverse order. This is useful for use in
+        plot commands (such as the image display functions) that puts the 
+        first row at the top of the image. In the landlab coordinate system,
+        the first row is thought to be at the bottom. Thus, a flipped matrix
+        will plot in the landlab style with the first row at the bottom.
+
+        The returned array is a view of *u*, not a copy.
         
         Example:
             
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = rmg.create_node_dvector()
-            >>> u = u + range(0, len(u))
-            >>> u
-            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
-            >>> ur = rmg.node_vector_to_raster(u)
-            >>> ur
-            array([[  0.,   1.,   2.,   3.,   4.],
-                   [  5.,   6.,   7.,   8.,   9.],
-                   [ 10.,  11.,  12.,  13.,  14.],
-                   [ 15.,  16.,  17.,  18.,  19.]])
-            >>> ur = rmg.node_vector_to_raster(u, flip_vertically=True)        
-            >>> ur
-            array([[ 15.,  16.,  17.,  18.,  19.],
-                   [ 10.,  11.,  12.,  13.,  14.],
-                   [  5.,   6.,   7.,   8.,   9.],
-                   [  0.,   1.,   2.,   3.,   4.]])
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = rmg.create_node_dvector()
+        >>> u = u + range(0, len(u))
+        >>> u
+        array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
+        >>> ur = rmg.node_vector_to_raster(u)
+        >>> ur
+        array([[  0.,   1.,   2.,   3.,   4.],
+               [  5.,   6.,   7.,   8.,   9.],
+               [ 10.,  11.,  12.,  13.,  14.],
+               [ 15.,  16.,  17.,  18.,  19.]])
+        >>> ur = rmg.node_vector_to_raster(u, flip_vertically=True)        
+        >>> ur
+        array([[ 15.,  16.,  17.,  18.,  19.],
+               [ 10.,  11.,  12.,  13.,  14.],
+               [  5.,   6.,   7.,   8.,   9.],
+               [  0.,   1.,   2.,   3.,   4.]])
         """
         return sgrid.reshape_array(self.shape, u,
                                    flip_vertically=flip_vertically)
@@ -1119,51 +1110,13 @@ class RasterModelGrid(ModelGrid):
         return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
                                    u, flip_vertically=flip_vertically)
 
-    #OLD CODE, same code is below, but with cells changed to node because
-    #NG is easily confused.
-    #def get_neighbor_list( self, id = -1 ):
-    #    """
-    #    If id is specified, returns a list of neighboring cell IDs for
-    #    the node "id". Otherwise, returns lists for all cells as a 2D
-    #    array. The list is in the order [right, top, left, bottom].
-    #    """
-    #
-    #    if self.neighbor_list_created==False:
-    #        self.create_neighbor_list()
-    #    
-    #    if id > -1:
-    #        return self.neighbor_cells[id,:]
-    #    else:
-    #        return self.neighbor_cells
-    #        
-    #def create_neighbor_list( self ):
-    #    """
-    #    Creates a list of IDs of neighbor cells for each cell, as a
-    #    2D array. Only interior cells are assigned neighbors; boundary
-    #    cells get -1 for each neighbor. The order of the neighbors is [right, top, left, bottom].
-    #    
-    #    """
-    #
-    #    assert self.neighbor_list_created == False
-    #    
-    #    self.neighbor_list_created = True       
-    #    self.neighbor_cells = -ones( [self.ncells, 4], dtype=numpy.int )
-    #    for r in xrange( 1, self.nrows-1 ):
-    #        for c in xrange( 1, self.ncols-1 ):
-    #            cell_id = r * self.ncols + c
-    #            self.neighbor_cells[cell_id,2] = cell_id - 1   # left
-    #            self.neighbor_cells[cell_id,0] = cell_id + 1  # right
-    #            self.neighbor_cells[cell_id,3] = cell_id - self.ncols # bottom
-    #            self.neighbor_cells[cell_id,1] = cell_id + self.ncols # top
-
     def get_neighbor_list(self, *args):
         """get_neighbor_list([ids])
 
-        Return lists of neighbor nodes for cells with given *ids*. If *ids*
-        is not given, return the neighbors for all of the cells in the grid.
+        Return lists of neighbor nodes for nodes with given *ids*. If *ids*
+        is not given, return the neighbors for all of the nodes in the grid.
         For each node, the list gives neighbor ids as [right, top, left,
-        bottom]. Since boundary nodes do not have an associated cell, set all
-        neighbors for these cells to be -1.
+        bottom]. Set all neighbors of boundary nodes to -1.
         
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.get_neighbor_list([-1, 6])
@@ -1191,8 +1144,6 @@ class RasterModelGrid(ModelGrid):
         nodes get -1 for each neighbor. The order of the neighbors is [right,
         top, left, bottom].
 
-        DH created this.  NG only changed labels.
-        
         .. note:: This is equivalent to the neighbors of all cells,
             and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
@@ -1203,6 +1154,7 @@ class RasterModelGrid(ModelGrid):
 
         .. todo: Change to use BAD_INDEX_VALUE instead of -1.
         """
+        # DH created this.  NG only changed labels.
         assert(self.neighbor_list_created == False)
 
         self.neighbor_list_created = True 
@@ -1237,11 +1189,10 @@ class RasterModelGrid(ModelGrid):
     def get_diagonal_list(self, *args):
         """get_diagonal_list([ids])
 
-        Return lists of diagonals nodes for cells with given *ids*. If *ids*
-        is not given, return the diagonals for all of the cells in the grid.
+        Return lists of diagonals nodes for nodes with given *ids*. If *ids*
+        is not given, return the diagonals for all of the nodes in the grid.
         For each node, the list gives diagonal ids as [topright, topleft,
-        bottomleft, bottomright]. Since boundary nodes do not have an
-        associated cell, set all diagonals for these cells to be -1.
+        bottomleft, bottomright]. Set all diagonals for boundary nodes to -1.
         
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.get_diagonal_list([-1, 6])
@@ -1287,11 +1238,10 @@ class RasterModelGrid(ModelGrid):
 
     def is_interior( self, id ):
         """
-        Returns True if the cell is an interior cell, False otherwise. 
+        Returns True if the node is an interior node, False otherwise. 
         Interior status is indicated by a value of 0 in node_status.
-    
-        NG changed this.
         """
+        # NG changed this.
         #ng thinks there may be a problem here.
         #return self.boundary_ids[id] < 0
         #return self.node_status[id] < 1
@@ -1300,53 +1250,10 @@ class RasterModelGrid(ModelGrid):
     def get_boundary_code( self, id ):
         """
         Returns the boundary status of a node.
-        ng june 2013
         """
+        # ng june 2013
         return self.node_status[id] 
         
-#    def update_boundary_cell( self, id, u, bc = None ):
-#        """
-#        If cell ID tracks the value at another cell, this function sets
-#        the value of U at cell ID to the value at its tracking cell in
-#        BoundaryCondition "bc", which defaults to the self.default_bc.
-#        If it is a fixed-gradient boundary, it updates the gradient.
-#
-#        .. todo::
-#            Generalize, or create base-class version, that uses local
-#            link length instead of self._dx.
-#            
-#        NG thinks this method is obsolete.  Maybe we can delete it?
-#        """
-#
-#        if bc == None:
-#            bc = self.default_bc
-#        bid = self.boundary_ids[id]
-#        if bid > -1:
-#            if bc.boundary_code[bid] == bc.TRACKS_CELL_BOUNDARY:
-#            	u[id] = u[bc.tracks_cell[bid]]
-#            elif bc.boundary_code[bid] == bc.FIXED_GRADIENT_BOUNDARY:
-#                u[id] = u[bc.tracks_cell[bid]] + bc.gradient[bid]*self._dx
-#
-#        if self.DEBUG_TRACK_METHODS:
-#            print 'In RasterModelGrid.update_boundary_cell with cell',id
-#            print 'Its value is now',u[id]
-#            if bid < 0:
-#                print 'It is NOT a boundary cell!'
-#            if ( bid > -1 ) and ( bc.tracks_cell[bid] > -1 ):
-#                print 'It tracks cell',bc.tracks_cell[bid]
-#            else:
-#                print 'It does not track any cell.'
-
-    #-------------------------------------------------------------------
-    # RasterModelGrid.calculate_cell_pair_gradient:
-    #
-    # 
-    #-------------------------------------------------------------------
-#   def calculate_cell_pair_gradient( self, cid1, cid2 ):
-#   
-#       my_faces = self.faces[cid1]
-        #if self.
-
     def get_face_connecting_cell_pair(self, cell_a, cell_b):
         """
         Returns an array of face indices that *cell_a* and *cell_b* share.
@@ -1410,7 +1317,7 @@ class RasterModelGrid(ModelGrid):
         
     def grid_coords_to_node_id(self, row, col, **kwds):
         """
-        Returns the ID of the node at the specified row and column of the
+        Returns the ID of the node at the specified *row* and *col* of the
         raster grid. Since this is a wrapper for the numpy ravel_multi_index
         function, the keyword arguments are the same as that function. In
         addition, *row* and *col* can both be either scalars or arrays (of the
