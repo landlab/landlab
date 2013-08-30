@@ -47,47 +47,21 @@ class Error(Exception):
     pass
 
 
-#class BoundaryCondition(object):
-#    """
-#    The BoundaryCondition class stores boundary condition information for
-#    a particular variable. It includes:
-#
-#        * A list of boundary codes
-#
-#          - 1 = fixed value
-#          - 2 = fixed gradient
-#          - 3 = tracks cell
-#          - 4 = no-flux / inactive
-#          
-#        * A list of boundary gradients
-#        * A list of cell IDs to track
-#        
-#        NOTE: we may not need this anymore ... GT 6/13
-#    """
-#    def __init__( self, n_boundary_cells = 0 ):
-#    
-#        # Create the 3 vectors
-#        self.boundary_code = numpy.zeros(n_boundary_cells, dtype=numpy.short)
-#        self.boundary_gradient = numpy.zeros(n_boundary_cells, dtype=numpy.double)
-#        self.tracks_cell = numpy.zeros(n_boundary_cells, dtype=numpy.long)
-#        
-#        # Define the boundary-type codes
-#        self.INTERIOR_NODE = 0
-#        self.FIXED_VALUE_BOUNDARY = 1
-#        self.FIXED_GRADIENT_BOUNDARY = 2
-#        self.TRACKS_CELL_BOUNDARY = 3
-#        self.INACTIVE_BOUNDARY = 4
-#
-#        # Set defaults
-#        self.boundary_code[:] = self.FIXED_VALUE_BOUNDARY
-#        self.boundary_gradient[:] = 0.0
-#        self.tracks_cell[:] = -1
-#        #DEJH, 7/17/13 - I don't think we should be using -1. This way, accidentally using one of these cells will silently just reference the final cell in the dvector, rather than throwing an exception. " = numpy.nan" would probably work better.
+def _divide_nodes(x, y, nodes):
+    """
+    Divide points with locations given in the *x*, and *y* arrays into north,
+    south, east, and west quadrants. Returns nodes contained in quadrants
+    (west, east, north, south).
 
-def _divide_nodes(dx, dy, nodes):
-    above_x_axis = dy > 0
-    right_of_y_axis = dx > 0
-    closer_to_y_axis = numpy.abs(dy) >= numpy.abs(dx)
+    >>> x = numpy.array([0, 1, 0, -1])
+    >>> y = numpy.array([1, 0, -1, 0])
+    >>> nodes = numpy.array([1, 2, 3, 4])
+    >>> _divide_nodes(x, y, nodes)
+    (array([4]), array([2]), array([1]), array([3]))
+    """
+    above_x_axis = y > 0
+    right_of_y_axis = x > 0
+    closer_to_y_axis = numpy.abs(y) >= numpy.abs(x)
 
     north_nodes = nodes[above_x_axis & closer_to_y_axis]
     south_nodes = nodes[(~ above_x_axis) & closer_to_y_axis]
