@@ -47,7 +47,7 @@ class Error(Exception):
     pass
 
 
-def _divide_nodes(x, y, nodes):
+def _sort_points_into_quadrants(x, y, nodes):
     """
     Divide points with locations given in the *x*, and *y* arrays into north,
     south, east, and west quadrants. Returns nodes contained in quadrants
@@ -56,7 +56,7 @@ def _divide_nodes(x, y, nodes):
     >>> x = numpy.array([0, 1, 0, -1])
     >>> y = numpy.array([1, 0, -1, 0])
     >>> nodes = numpy.array([1, 2, 3, 4])
-    >>> _divide_nodes(x, y, nodes)
+    >>> _sort_points_into_quadrants(x, y, nodes)
     (array([4]), array([2]), array([1]), array([3]))
     """
     above_x_axis = y > 0
@@ -832,7 +832,7 @@ class ModelGrid(object):
         dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
         dy = self._node_y[self.boundary_nodes] - numpy.mean(self._node_y)
 
-        return _divide_nodes(dx, dy, self.boundary_nodes)
+        return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
         
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
