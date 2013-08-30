@@ -811,6 +811,10 @@ class ModelGrid(object):
         
         
     def is_boundary(self, ids, boundary_flag=None):
+        """
+        Check if nodes at given *ids* are boundary nodes. Use the
+        *boundary_flag* to specify a particular boundary type status flag.
+        """
         if boundary_flag is None:
             return ~ (self.node_status[ids] == INTERIOR_NODE)
         else:
