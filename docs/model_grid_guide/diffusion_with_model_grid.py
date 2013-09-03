@@ -8,7 +8,7 @@ Last updated GT June 2013
 
 """
 
-from landlab import model_grid
+import landlab
 import pylab, time
 
 def main():
@@ -32,7 +32,7 @@ def main():
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
     
     # Create and initialize a raster model grid
-    mg = model_grid.RasterModelGrid()
+    mg = landlab.RasterModelGrid()
     mg.initialize(numrows, numcols, dx)
     
     # Set the boundary conditions
