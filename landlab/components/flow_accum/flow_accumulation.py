@@ -44,24 +44,30 @@ class AccumFlow(object):
         #print data.flowdirs
         #print self.flow_accum_by_area.reshape(5,5)
 
+#---
+# Two ways of routing flow are provided. All route flow in descending height order.
+#The first, using weave, is not working due to an installation-dependent with the C++ compiler weave uses. However, it will be a massive improvement over other methods
+#The second is an inefficient but functional looped method.
+
         cpp_code_fragment = """
 printf ('Test');
 """
         #Note the -1 in the loop. Don't want to move flow out of the lowest cell. (Issues with BCells resurface here. Active BCells need to receive, but don't have areas, so aren't in the flowaccum_by_area array)
         #Shouldn't need to return_val, as we're handling mutable objects not ints
 
-        flow_accum_by_area = self.flow_accum_by_area
-        a=1.
-        weave.inline(cpp_code_fragment, ['a'], compiler='gcc') #['flow_accum_by_area', 'height_order_active_cells', 'sorted_flowdirs', 'active_cell_ids']) #,verbose=2, compiler='gcc')
-        
-        ##inefficient Python code to mimic the above weave:
-        #for i in range(len(sorted_flowdirs)):
-        #    if sorted_flowdirs[i] != active_cell_ids[height_order_active_cells[i]]: #...don't route flow to yourself
-        #        self.flow_accum_by_area[sorted_flowdirs[i]] += (self.flow_accum_by_area[active_cell_ids])[height_order_active_cells[i]]
-            
-        return self.flow_accum_by_area
+#        flow_accum_by_area = self.flow_accum_by_area
+#        a=1.
+#        weave.inline(cpp_code_fragment, ['a'], compiler='gcc') #['flow_accum_by_area', 'height_order_active_cells', 'sorted_flowdirs', 'active_cell_ids']) #,verbose=2, compiler='gcc')
 
-#Treatment of active nodes very quickly becomes an issue! Will this work? flowdirs should be len(n_active_nodes), but will it be in the right order?
+#---
+        ##inefficient Python code to mimic the above weave:
+        for i in range(len(sorted_flowdirs)):
+            iter_height_order = height_order_active_cells[i]
+            iter_sorted_fldirs = sorted_flowdirs[i]
+            if iter_sorted_fldirs != active_cell_ids[iter_height_order]: #...don't route flow to yourself
+                self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]                     
+                                                            
+        return self.flow_accum_by_area
 
         #int downhill_node;
         #int active_node;

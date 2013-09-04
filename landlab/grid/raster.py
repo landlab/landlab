@@ -908,6 +908,36 @@ class RasterModelGrid(ModelGrid):
         
         return net_unit_flux
 
+    def calculate_max_gradients_at_nodes(self, link_gradients, max_gradient=False):
+        """
+        Created DEJH Sept 2013. Needs proper documentation. Based on approach of calc_flux_divergence..., below.
+        NOT YET FUNCTIONAL.
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'RasterModelGrid.calculate_max_gradients_at_nodes'
+            
+        assert (len(link_gradients)==self.num_links), \
+               "incorrect length of active_link_flux array"
+
+        # If needed, create max_gradient array
+        if max_gradient is False:
+            max_gradient = numpy.zeros(self.num_nodes)
+        else:
+            max_gradient[:] = 0.
+
+        assert(len(max_gradient) == self.num_nodes)
+
+        gradients = numpy.zeros(len(link_gradients)+1)
+        gradients[:-1] = link_gradients
+        
+        #Extract the values for each node_inlink/outlink_matrix, remembering to make the inlinks negative.
+        #Search for the maxima.
+        #Introduce a way of working on the diagonals!!!
+        
+        gradients[self.node_active_outlink_matrix[0][:]]
+
+
     def calculate_flux_divergence_at_nodes(self, active_link_flux, 
                                            net_unit_flux=False):
         """
