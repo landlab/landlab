@@ -12,30 +12,30 @@ class TestModelDataFields(unittest.TestCase):
         fields = ModelDataFields()
         self.assertSetEqual(set(), fields.groups)
 
-    def test_add_group(self):
+    def test_new_field_location(self):
         fields = ModelDataFields()
-        fields.add_group('nodes', 12)
+        fields.new_field_location('nodes', 12)
         self.assertSetEqual(set(['nodes']), fields.groups)
 
     def test_add_existing_group(self):
         fields = ModelDataFields()
-        fields.add_group('nodes', 12)
+        fields.new_field_location('nodes', 12)
         with self.assertRaises(ValueError):
-            fields.add_group('nodes', 24)
+            fields.new_field_location('nodes', 24)
 
     def test_add_multiple_groups(self):
         fields = ModelDataFields()
-        fields.add_group('nodes', 12)
-        fields.add_group('cells', 2)
-        fields.add_group('faces', 7)
-        fields.add_group('links', 7)
+        fields.new_field_location('nodes', 12)
+        fields.new_field_location('cells', 2)
+        fields.new_field_location('faces', 7)
+        fields.new_field_location('links', 7)
         self.assertSetEqual(set(['nodes', 'cells', 'faces', 'links']),
                             fields.groups)
 
     def test_ones(self):
         fields = ModelDataFields()
-        fields.add_group('nodes', 12)
-        fields.add_group('cells', 2)
+        fields.new_field_location('nodes', 12)
+        fields.new_field_location('cells', 2)
 
         value_array = fields.ones('nodes')
         assert_array_equal(np.ones(12.), value_array)
@@ -45,8 +45,8 @@ class TestModelDataFields(unittest.TestCase):
 
     def test_add_ones(self):
         fields = ModelDataFields()
-        fields.add_group('nodes', 12)
-        fields.add_group('cells', 2)
+        fields.new_field_location('nodes', 12)
+        fields.new_field_location('cells', 2)
 
         fields.add_ones('nodes', 'z')
         assert_array_equal(np.ones(12.), fields['nodes']['z'])

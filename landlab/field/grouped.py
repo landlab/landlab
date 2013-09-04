@@ -14,7 +14,7 @@ class ModelDataFields(dict):
     def groups(self):
         return set(self.keys())
 
-    def add_group(self, group, size):
+    def new_field_location(self, group, size):
         if group not in self:
             self[group] = ScalarDataFields(size)
             setattr(self, 'at_' + group, self[group])
