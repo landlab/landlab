@@ -3,12 +3,12 @@
 import types
 import inspect
 
-from landlab.field import ModelFields
+from landlab.field import ScalarDataFields
 
 
-class GroupedModelFields(dict):
+class ModelDataFields(dict):
     def __init__(self):
-        super(GroupedModelFields, self).__init__()
+        super(ModelDataFields, self).__init__()
 
     @property
     def groups(self):
@@ -16,10 +16,10 @@ class GroupedModelFields(dict):
 
     def add_group(self, group, size):
         if group not in self:
-            self[group] = ModelFields(size)
+            self[group] = ScalarDataFields(size)
             setattr(self, 'at_' + group, self[group])
         else:
-            raise ValueError('GroupedModelFields already contains %s' % group)
+            raise ValueError('ModelDataField already contains %s' % group)
 
     def field_values(self, group, field):
         return self[group][field]
@@ -58,12 +58,12 @@ def prepend_arg_list_with_dict_value(destination_class, method):
 
 
 def add_methods_to_grouped_fields_class():
-    for name in (regular_method_names(ModelFields) -
-                 regular_method_names(GroupedModelFields)):
-        method = get_method_from_class(ModelFields, name)
-        new_method = prepend_arg_list_with_dict_value(GroupedModelFields,
+    for name in (regular_method_names(ScalarDataFields) -
+                 regular_method_names(ModelDataFields)):
+        method = get_method_from_class(ScalarDataFields, name)
+        new_method = prepend_arg_list_with_dict_value(ModelDataFields,
                                                       method)
-        setattr(GroupedModelFields, name, new_method)
+        setattr(ModelDataFields, name, new_method)
 
 
 add_methods_to_grouped_fields_class()

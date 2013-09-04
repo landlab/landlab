@@ -4,27 +4,27 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.field.grouped import GroupedModelFields
+from landlab.field.grouped import ModelDataFields
 
 
-class TestGroupedModelFields(unittest.TestCase):
+class TestModelDataFields(unittest.TestCase):
     def test_init(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         self.assertSetEqual(set(), fields.groups)
 
     def test_add_group(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         fields.add_group('nodes', 12)
         self.assertSetEqual(set(['nodes']), fields.groups)
 
     def test_add_existing_group(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         fields.add_group('nodes', 12)
         with self.assertRaises(ValueError):
             fields.add_group('nodes', 24)
 
     def test_add_multiple_groups(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         fields.add_group('nodes', 12)
         fields.add_group('cells', 2)
         fields.add_group('faces', 7)
@@ -33,7 +33,7 @@ class TestGroupedModelFields(unittest.TestCase):
                             fields.groups)
 
     def test_ones(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         fields.add_group('nodes', 12)
         fields.add_group('cells', 2)
 
@@ -44,7 +44,7 @@ class TestGroupedModelFields(unittest.TestCase):
         assert_array_equal(np.ones(2.), value_array)
 
     def test_add_ones(self):
-        fields = GroupedModelFields()
+        fields = ModelDataFields()
         fields.add_group('nodes', 12)
         fields.add_group('cells', 2)
 

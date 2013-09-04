@@ -6,11 +6,11 @@ import numpy as np
 _UNKNOWN_UNITS = '?'
 
 
-class ModelFields(dict):
+class ScalarDataFields(dict):
     def __init__(self, size):
         self._size = size
 
-        super(ModelFields, self).__init__()
+        super(ScalarDataFields, self).__init__()
         self._units = dict()
 
     @property
@@ -56,4 +56,4 @@ class ModelFields(dict):
         if name not in self:
             self.set_units(name, None)
 
-        super(ModelFields, self).__setitem__(name, value_array)
+        super(ScalarDataFields, self).__setitem__(name, value_array)

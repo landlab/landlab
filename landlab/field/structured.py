@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
 import numpy as np
-from landlab.field import ModelFields
+from landlab.field import ScalarDataFields
 
-class ModelStructuredFields(ModelFields):
+class ModelStructuredFields(ScalarDataFields):
     """
     >>> import numpy as np
     >>> field = ModelStructuredFields((4, 3))
