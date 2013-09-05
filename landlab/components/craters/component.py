@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab import RasterModelField, Component
+from landlab import Component
 import landlab.components.craters as craters
 
 

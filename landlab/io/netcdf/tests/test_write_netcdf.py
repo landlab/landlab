@@ -8,7 +8,7 @@ import os
 import numpy as np
 from StringIO import StringIO
 
-from landlab import RasterModelField
+from landlab import RasterModelGrid
 from landlab.io.netcdf import write_netcdf, NotRasterGridError
 from landlab.io.netcdf.read import _get_raster_spacing
 
@@ -18,9 +18,10 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 class TestWriteNetcdf(unittest.TestCase):
     def test_write(self):
-        field = RasterModelField((4, 3))
+        field = RasterModelGrid(4, 3)
+        field.new_field_location('node', 12.)
         values = np.arange(12.)
-        field.add_field('surface__elevation', values)
+        field.add_field('node', 'planet_surface__elevation', values)
 
         write_netcdf('test.nc', field)
 
@@ -34,7 +35,7 @@ class TestWriteNetcdf(unittest.TestCase):
         self.assertTrue(root.dimensions['nt'].isunlimited())
 
         self.assertEqual(set(root.variables),
-                         set(['x', 'y', 'surface__elevation']))
+                         set(['x', 'y', 'planet_surface__elevation']))
 
         self.assertListEqual(list(root.variables['x'][:].flat),
                              [0., 1., 2.,
@@ -47,7 +48,7 @@ class TestWriteNetcdf(unittest.TestCase):
                               2., 2., 2.,
                               3., 3., 3., ])
         self.assertListEqual(
-            list(root.variables['surface__elevation'][:].flat),
+            list(root.variables['planet_surface__elevation'][:].flat),
             range(12))
         root.close()
 

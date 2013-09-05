@@ -6,7 +6,7 @@ Unit tests for landlab.components.flexure.flexure
 import unittest
 import numpy as np
 
-from landlab import RasterModelField
+from landlab import RasterModelGrid
 from landlab.components.flexure.flexure import FlexureComponent
 
 
@@ -16,7 +16,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 class TestFlexureInfo(unittest.TestCase):
     def setUp(self):
-        grid = RasterModelField(*_ARGS)
+        grid = RasterModelGrid(20, 20, 10e3)
         self.flex = FlexureComponent(grid)
 
     def test_name(self):
@@ -54,7 +54,7 @@ class TestFlexureInfo(unittest.TestCase):
 
 class TestFlexureGrid(unittest.TestCase):
     def setUp(self):
-        grid = RasterModelField(*_ARGS)
+        grid = RasterModelGrid(20, 20, 10e3)
         self.flex = FlexureComponent(grid)
 
     def test_grid_shape(self):
@@ -72,12 +72,12 @@ class TestFlexureGrid(unittest.TestCase):
 
 class TestFlexureFields(unittest.TestCase):
     def setUp(self):
-        grid = RasterModelField(*_ARGS)
+        grid = RasterModelGrid(20, 20, 10e3)
         self.flex = FlexureComponent(grid)
 
     def test_field_getters(self):
-        for name in self.flex.grid:
-            field = self.flex.grid[name]
+        for name in self.flex.grid['nodes']:
+            field = self.flex.grid['nodes'][name]
             self.assertIsInstance(field, np.ndarray)
             self.assertEqual(field.shape,
                              (self.flex.grid.get_count_of_rows() *
@@ -87,8 +87,8 @@ class TestFlexureFields(unittest.TestCase):
             self.flex.grid['not_a_var_name']
 
     def test_field_initialized_to_zero(self):
-        for name in self.flex.grid:
-            field = self.flex.grid[name]
+        for name in self.flex.grid['nodes']:
+            field = self.flex.grid['nodes'][name]
             self.assertTrue(np.all(field == 0.))
 
 

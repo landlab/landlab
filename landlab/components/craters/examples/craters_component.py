@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from landlab import RasterModelField
+from landlab import RasterModelGrid
 from landlab.components.craters.component import CratersComponent
 
 
@@ -33,7 +33,7 @@ def main():
     else:
         seed = args.with_seed
 
-    grid = RasterModelField(shape, spacing, (0., 0.))
+    grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     craters_comp = CratersComponent(grid, seed=seed)
     for _ in xrange(impact_count):

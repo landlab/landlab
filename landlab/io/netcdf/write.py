@@ -71,8 +71,8 @@ def _set_netcdf_variables(root, fields, **kwds):
     then the variables at the grid nodes and cells.
     """
     _add_spatial_variables(root, fields, **kwds)
+    #_add_variables_at_points(root, fields['nodes'])
     _add_variables_at_points(root, fields)
-    #_add_variables_at_cells(root, fields)
 
 
 def _add_spatial_variables(root, grid, **kwds):
@@ -111,24 +111,25 @@ def _add_variables_at_points(root, fields):
     except KeyError:
         n_times = 0
 
+    node_fields = fields['node']
     #for var_name in fields.get_point_fields():
-    for var_name in fields:
+    for var_name in node_fields:
         try:
             var = vars[var_name]
         except KeyError:
             var = root.createVariable(
-                var_name, _NP_TO_NC_TYPE[str(fields[var_name].dtype)],
+                var_name, _NP_TO_NC_TYPE[str(node_fields[var_name].dtype)],
                 ['nt'] + spatial_variable_shape)
 
-        if fields[var_name].size > 1:
+        if node_fields[var_name].size > 1:
             try:
-                var[n_times, :] = fields[var_name].flat
+                var[n_times, :] = node_fields[var_name].flat
             except ValueError:
                 raise
         else:
-            var[n_times] = fields[var_name].flat[0]
+            var[n_times] = node_fields[var_name].flat[0]
 
-        var.units = fields.units[var_name]
+        var.units = node_fields.units[var_name]
         var.long_name = var_name
 
 
