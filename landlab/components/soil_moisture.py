@@ -1,8 +1,3 @@
-# Sri Satchitananda Sadguru Sainath Maharaj Ki Jai!
-# Jai Sri Sainath!
-# Jai Sri Sai Ram Jai Sri Sai Ram Jai Sri Sai Ram #
-# Jai Sri Sai Ram Jai Sri Sai Ram Jai Sri Sai Ram #
-
 ########## soil_moisture.py ###############
 ##
 ##  This component calculates and updates soil moisture after each storm.
