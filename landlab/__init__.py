@@ -23,4 +23,5 @@ from landlab.framework.collections import Palette, Arena, NoProvidersError
 from landlab.framework.decorators import Implements, ImplementsOrRaise
 from landlab.framework.framework import Framework
 from landlab.grid import *
+from landlab.plot import *
 from landlab.model_component import Component
