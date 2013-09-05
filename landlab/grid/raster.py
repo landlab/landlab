@@ -809,7 +809,7 @@ class RasterModelGrid(ModelGrid):
         assert (len(gradient)==self.num_active_links), \
                 "len(gradient)!=num_active_links"
      
-        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self._dx
+        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self.dx
         
         return gradient
         
@@ -908,17 +908,19 @@ class RasterModelGrid(ModelGrid):
         
         return net_unit_flux
 
-    def calculate_max_gradients_at_nodes(self, link_gradients, max_gradient=False):
+    def calculate_max_gradients_at_nodes(self, elevs_in, link_gradients, max_gradient=False):
         """
         Created DEJH Sept 2013. Needs proper documentation. Based on approach of calc_flux_divergence..., below.
-        NOT YET FUNCTIONAL.
+        Now working. Needs expanding to return which node is the steepest descent, not just the magnitude of the slope.
+        
+        Downhill slopes are again positive.
         """
         
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_max_gradients_at_nodes'
             
-        assert (len(link_gradients)==self.num_links), \
-               "incorrect length of active_link_flux array"
+        assert (len(link_gradients)==self.num_active_links), \
+               "incorrect length of active_link_gradients array"
 
         # If needed, create max_gradient array
         if max_gradient is False:
@@ -931,12 +933,22 @@ class RasterModelGrid(ModelGrid):
         gradients = numpy.zeros(len(link_gradients)+1)
         gradients[:-1] = link_gradients
         
-        #Extract the values for each node_inlink/outlink_matrix, remembering to make the inlinks negative.
-        #Search for the maxima.
-        #Introduce a way of working on the diagonals!!!
-        
-        gradients[self.node_active_outlink_matrix[0][:]]
+        #Make a matrix of the links. Need to append to this the gradients *on the diagonals*.
+        node_links = numpy.vstack((gradients[self.node_active_outlink_matrix[0][:]], gradients[self.node_active_outlink_matrix[1][:]], -gradients[self.node_active_inlink_matrix[0][:]], -gradients[self.node_active_inlink_matrix[1][:]]))
 
+        #calc the gradients on the diagonals:
+        diagonal_nodes = (sgrid.diagonal_node_array(self.shape, out_of_bounds=-1)).T
+        #Repeat the -1 indexing trick from above:
+        elevs = numpy.zeros(len(elevs_in)+1)
+        elevs[-1] = 9999999999999. #...as we want the gradients to inhibit flow
+        elevs[:-1] = elevs_in
+        
+        diagonal_slopes = ((elevs[diagonal_nodes])-numpy.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
+        gradients_all_nodes = numpy.vstack((node_links, diagonal_nodes))
+        max_gradient = -numpy.amin(gradients_all_nodes, axis=0)
+        
+        return max_gradient #should be: max_gradient, downslope_node_ID_if_max_grad_>0
+ 
 
     def calculate_flux_divergence_at_nodes(self, active_link_flux, 
                                            net_unit_flux=False):
