@@ -11,7 +11,7 @@ import numpy
 import warnings
 
 from landlab.utils import count_repeated_values
-
+from landlab.field import ModelDataFields
 
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 
@@ -71,7 +71,7 @@ def _sort_points_into_quadrants(x, y, nodes):
     return (west_nodes, east_nodes, north_nodes, south_nodes)
 
 
-class ModelGrid(object):
+class ModelGrid(ModelDataFields):
     """
     Base class for creating and manipulating 2D structured or
     unstructured grids for numerical models.
@@ -84,21 +84,17 @@ class ModelGrid(object):
     an input grid from the user. Also a HexModelGrid for hexagonal.
     """
 
-    # Define the boundary-type codes
-    #INTERIOR_NODE = 0
-    #FIXED_VALUE_BOUNDARY = 1
-    #FIXED_GRADIENT_BOUNDARY = 2
-    #NODE_TRACKING_BOUNDARY = 3
-    #INACTIVE_BOUNDARY = 4
-    
     # Debugging flags (if True, activates some output statements)
     DEBUG_VERBOSE = False
     DEBUG_TRACK_METHODS = False
 
     #-------------------------------------------------------------------
-    def __init__( self ):
-        
-        pass
+    def __init__(self):
+        for centering in ['node', 'cell', 'link', 'face', ]:
+            try:
+                self.add_group(centering, self._array_length(centering))
+            except AttributeError:
+                pass
     
     #-------------------------------------------------------------------
     def initialize( self ):
