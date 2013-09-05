@@ -1,9 +1,16 @@
+# Sri Satchitananda Sadguru Sainath Maharaj Ki Jai!
+# Jai Sri Sainath!
+# Jai Sri Sai Ram Jai Sri Sai Ram Jai Sri Sai Ram #
+# Jai Sri Sai Ram Jai Sri Sai Ram Jai Sri Sai Ram #
+
 ########## soil_moisture.py ###############
 ##
 ##  This component calculates and updates soil moisture after each storm.
 ##  Multiple storms can be considered which is fed as an input.
 ##  This code implements Laio's(2001) solution for soil moisture calculation.
 ##  Input file is named soilmoisture_input.txt and is temporarily placed under landlab.components.
+##  All input values can be altered using set_*** functions
+##  All output arrays can be retrieved using get_*** functions
 ##
 ##  Storms are considered to be instantaneous events.
 ##  Storm duration, depth and interstorm duration are obtained from RainfallDriver.py
@@ -19,7 +26,7 @@ import os
 from numpy import *
 from math import *
 import landlab
-from landlab.components.RainfallDriver import PrecipitationDistribution
+from landlab.components.rainfall_driver import PrecipitationDistribution
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 from matplotlib.pyplot import *
 
@@ -86,6 +93,21 @@ class SoilMoisture():
         """ so - Soil moisture of the ground before storm """
         so = 0.0
 
+        """ Initialize output variables """
+        self._Pa = 0.0
+        self._Pin = 0.0
+        self._P = 0.0
+        self._ETA = 0.0
+        self._Sini = 0.0
+        self._S = 0.0
+        self._D = 0.0
+        self._Tb = 0.0
+        self._Tr = 0.0
+        self._Ro = 0.0
+        self._tfc = 0.0
+        self._tsc = 0.0
+        self._twp = 0.0
+
     def initialize( self ):
 
         MPD = ModelParameterDictionary()
@@ -108,6 +130,7 @@ class SoilMoisture():
         self._so = MPD.read_float( 'so' )        
         self._si = self._so
         print '\n Initial soil moisture: ', self._so
+
         
         self._soil_type = MPD.read_float( 'SoilType' )
         self._soil_Ib = MPD.read_float( 'Ib' )
@@ -128,27 +151,8 @@ class SoilMoisture():
         print '\n hgw: ', self._soil_hgw
         self._soil_beta = MPD.read_float( 'Beta' )
         print '\n Beta: ', self._soil_beta
-        
-        self._length = self._iterate_storm
-        """ Initializing arrays to store values of variables """
-        self._Pin = zeros( self._length, dtype = float )
-        self._Pa = zeros( self._length, dtype = float )
-        self._P = zeros( self._length, dtype = float )
-        self._ETA = zeros( self._length, dtype = float )
-        self._Sini = zeros( self._length, dtype = float )
-        self._S = zeros( self._length, dtype = float )
-        self._D = zeros( self._length, dtype = float )
-        self._Tb = zeros( self._length, dtype = float )
-        self._Tr = zeros( self._length, dtype = float )
-        self._Ro = zeros( self._length, dtype = float )
-        self._tfc = zeros( self._length, dtype = float )
-        self._tsc = zeros( self._length, dtype = float )
-        self._twp = zeros( self._length, dtype = float )
 
-        self._Total = zeros( self._length, dtype = float )
-        self._percentage = zeros( self._length, dtype = float )
-
-    def update( self ):
+    def update( self, P, Pin, Tb, Tr ):
 
         V = self._vegcover
         fb = self._fbare
@@ -160,147 +164,236 @@ class SoilMoisture():
         sc = self._soil_sc
         wp = self._soil_wp
         hgw = self._soil_hgw
-        beta = self._soil_beta
-           
-        """ Create an instance of Storm Class """
-        PD = PrecipitationDistribution()
-        """ Initialize Storm - Create first storm """
-        PD.initialize()
-        
-        for i in range( 0, self._iterate_storm ):
-            
-           if i != 0:
-               """ Create a new storm """ 
-               PD.update()
+        beta = self._soil_beta  
+        Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V
+        Int_cap = min(V*self._interception_cap, P)
+        Peff = max(P-Int_cap, 0.0)
+        mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))
+        Ep = max((PET*V+fbare*PET*(1-V)) - Int_cap, 0.0)
+        nu = ((Ep/24.0)/1000.0)/(pc*ZR)
+        nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR)
+        sini = self._so + (Peff/(pc*ZR*1000.0))+self._runon
 
-           """ Soil moisture dynamics """
-           P = PD.storm_depth
-           Pin = PD.intensity
-           Tb = PD.interstorm_duration
-           Tr = PD.storm_duration                      
-           
-           Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V
-           Int_cap = min(V*self._interception_cap, P)
-           Peff = max(P-Int_cap, 0.0)
-           mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))
-           Ep = max((PET*V+fbare*PET*(1-V)) - Int_cap, 0.0)
-           nu = ((Ep/24.0)/1000.0)/(pc*ZR)
-           nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR)
+        if sini>1:
+           runoff = (sini-1)*pc*ZR*1000
+           sini = 1
+        else:
+           runoff = 0
 
-           sini = self._so + (Peff/(pc*ZR*1000.0))+self._runon
+        if sini>=fc:
+            tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+log((nu-mu+mu*exp(beta*(sini-fc)))/nu))
+            tsc = ((fc-sc)/nu)+tfc
+            twp = ((sc-wp)/(nu-nuw))*log(nu/nuw)+tsc
 
-           if sini>1:
-               runoff = (sini-1)*pc*ZR*1000
-               sini = 1
-           else:
-               runoff = 0
+            if Tb<tfc:
+                s = abs(sini-(1/beta)*log(((nu-mu+mu*exp(beta*(sini-fc)))*exp(beta*(nu-mu)*Tb)-mu*exp(beta*(sini-fc)))/(nu-mu)))
+                Dd = ((pc*ZR*1000)*(sini-s))-(Tb*(Ep/24))
+                ETA = (Tb*(Ep/24))
 
-           if sini>=fc:
-                tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+log((nu-mu+mu*exp(beta*(sini-fc)))/nu))
-                tsc = ((fc-sc)/nu)+tfc
-                twp = ((sc-wp)/(nu-nuw))*log(nu/nuw)+tsc
+            elif Tb>=tfc and Tb<tsc:
+                s = fc-(nu*(Tb-tfc))
+                Dd = ((pc*ZR*1000)*(sini-fc))-((tfc)*(Ep/24))
+                ETA = (Tb*(Ep/24))
 
-                if Tb<tfc:
-                    s = abs(sini-(1/beta)*log(((nu-mu+mu*exp(beta*(sini-fc)))*exp(beta*(nu-mu)*Tb)-mu*exp(beta*(sini-fc)))/(nu-mu)))
-                    Dd = ((pc*ZR*1000)*(sini-s))-(Tb*(Ep/24))
-                    ETA = (Tb*(Ep/24))
+            elif Tb>=tsc and Tb<twp:
+                s = wp+(sc-wp)*((nu/(nu-nuw))*exp((-1)*((nu-nuw)/(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
+                Dd = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
+                ETA = (1000*ZR*pc*(sini-s))-Dd
 
-                elif Tb>=tfc and Tb<tsc:
-                    s = fc-(nu*(Tb-tfc))
-                    Dd = ((pc*ZR*1000)*(sini-fc))-((tfc)*(Ep/24))
-                    ETA = (Tb*(Ep/24))
+            else:
+                s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*max(Tb-twp,0))
+                Dd = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
+                ETA = (1000*ZR*pc*(sini-s))-Dd
 
-                elif Tb>=tsc and Tb<twp:
-                    s = wp+(sc-wp)*((nu/(nu-nuw))*exp((-1)*((nu-nuw)/(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
-                    Dd = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
-                    ETA = (1000*ZR*pc*(sini-s))-Dd
+        elif sini<fc and sini>=sc:
+            tfc = 0
+            tsc = (sini-sc)/nu
+            twp = ((sc-wp)/(nu-nuw))*log(nu/nuw)+tsc
 
-                else:
-                    s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*max(Tb-twp,0))
-                    Dd = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
-                    ETA = (1000*ZR*pc*(sini-s))-Dd
+            if Tb<tsc:
+                s = sini - nu*Tb
+                Dd = 0
+                ETA = 1000*ZR*pc*(sini-s)
 
-           elif sini<fc and sini>=sc:
-                tfc = 0
-                tsc = (sini-sc)/nu
-                twp = ((sc-wp)/(nu-nuw))*log(nu/nuw)+tsc
-
-                if Tb<tsc:
-                    s = sini - nu*Tb
-                    Dd = 0
-                    ETA = 1000*ZR*pc*(sini-s)
-
-                elif Tb>=tsc and Tb<twp:
-                    s = wp+(sc-wp)*((nu/(nu-nuw))*exp((-1)*((nu-nuw)/(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
-                    Dd = 0
-                    ETA = (1000*ZR*pc*(sini-s))
-
-                else:
-                    s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
-                    Dd = 0
-                    ETA = (1000*ZR*pc*(sini-s))
-                    
-           elif sini<sc and sini>=wp:
-                tfc = 0
-                tsc = 0
-                twp = ((sc-wp)/(nu-nuw))*log(1+(nu-nuw)*(sini-wp)/(nuw*(sc-wp)))
-
-                if Tb<twp:
-                    s = wp+((sc-wp)/(nu-nuw))*((exp((-1)*((nu-nuw)/(sc-wp))*Tb))*(nuw+((nu-nuw)/(sc-wp))*(sini-wp))-nuw)
-                    Dd = 0
-                    ETA = (1000*ZR*pc*(sini-s))
-
-                else:
-                    s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
-                    Dd = 0
-                    ETA = (1000*ZR*pc*(sini-s))
-
-           else:
-                tfc = 0
-                tsc = 0
-                twp = 0
-
-                s = hgw+(sini-hgw)*exp((-1)*(nuw/(wp-hgw))*Tb)
+            elif Tb>=tsc and Tb<twp:
+                s = wp+(sc-wp)*((nu/(nu-nuw))*exp((-1)*((nu-nuw)/(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
                 Dd = 0
                 ETA = (1000*ZR*pc*(sini-s))
 
-           self._Pa[i] = P
-           self._Pin[i] = Pin
-           self._P[i] = Peff
-           self._ETA[i] = ETA
-           self._Sini[i] = sini
-           self._S[i] = s
-           self._D[i] = Dd
-           self._Tb[i] = Tb
-           self._Tr[i] = Tr
-           self._Ro[i] = runoff
-           self._tfc[i] = tfc
-           self._tsc[i] = tsc
-           self._twp[i] = twp
+            else:
+                s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
+                Dd = 0
+                ETA = (1000*ZR*pc*(sini-s))
+                
+        elif sini<sc and sini>=wp:
+            tfc = 0
+            tsc = 0
+            twp = ((sc-wp)/(nu-nuw))*log(1+(nu-nuw)*(sini-wp)/(nuw*(sc-wp)))
 
-           self._so = s
+            if Tb<twp:
+                s = wp+((sc-wp)/(nu-nuw))*((exp((-1)*((nu-nuw)/(sc-wp))*Tb))*(nuw+((nu-nuw)/(sc-wp))*(sini-wp))-nuw)
+                Dd = 0
+                ETA = (1000*ZR*pc*(sini-s))
 
-    def plott( self ):
+            else:
+                s = hgw+(wp-hgw)*exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
+                Dd = 0
+                ETA = (1000*ZR*pc*(sini-s))
+
+        else:
+            tfc = 0
+            tsc = 0
+            twp = 0
+
+            s = hgw+(sini-hgw)*exp((-1)*(nuw/(wp-hgw))*Tb)
+            Dd = 0
+            ETA = (1000*ZR*pc*(sini-s))
+
+        self._Pa = P
+        self._Pin = Pin
+        self._P = Peff
+        self._ETA = ETA
+        self._Sini = sini
+        self._S = s
+        self._D = Dd
+        self._Tb = Tb
+        self._Tr = Tr
+        self._Ro = runoff
+        self._tfc = tfc
+        self._tsc = tsc
+        self._twp = twp
+
+        self._so = s   
+
+    """ Return Effective Precipitation Array mm """
+    def get_Peff( self ):
+        return self._P
+
+    """ Return Total Moisture from Storm mm """
+    def get_Sini( self ):
+        return self._Sini
+
+    """ Return Evapotranspiration Array mm """
+    def get_ET( self ):
+        return self._ETA
+
+    """ Return Soil Moisture Array """
+    def get_S( self ):
+        return self._S
+
+    """ Return Drainage from Root Zone Array mm """
+    def get_D( self ):
+        return self._D
+
+    """ Return Runoff Array mm """
+    def get_Ro( self ):
+        return self._Ro
+
+    """ Return Laio's tfc hrs"""
+    def get_tfc( self ):
+        return self._tfc
+
+    """ Return Laio's tsc hrs"""
+    def get_tsc( self ):
+        return self._tsc
+
+    """ Return Laio's twp hrs"""
+    def get_twp( self ):
+        return self._twp
+
+    """ Set Number of Storms """
+    def set_strms( self, strms ):
+        self._iterate_storm = strms
+
+    """ Set Vegetation Cover """
+    def set_VegCover( self, VegCover ):
+        self._vegcover = VegCover
+
+    """ Set Maximum Interception Capacity mm/per V=1 """
+    def set_InterceptionCap( self, InterceptionCap ):
+        self._interception_cap = InterceptionCap
+
+    """ Set Root Depth m"""
+    def set_ZR( self, ZR ):
+        self._zr = ZR
+
+    """ Set Runon from Upstream """
+    def set_Runon( self, Runon ):
+        self._runon = Runon
+
+    """ Set Potential Evapotranspiration Value """
+    def set_PET( self, PET ):
+        self._PET = PET
+
+    """ Set Fraction to define Bare Surface """
+    def set_F_Bare( self, F_Bare ):
+        self._fbare = F_Bare
+
+    """ Set Initial Soil Moisture """
+    def set_so( self, so ):
+        self._so = so
+        self._si = so
+
+    """ Set Soil Properties """
+    """ Bare Soil Infiltration Capacity [mm/h] """
+    def set_Ib( self, Ib ):
+        self._soil_Ib = Ib
+
+    """ Vegetated Surface Infiltration Capacity [mm/h] """
+    def set_Iv( self, Iv ):
+        self._soil_Iv
+
+    """ Residual Evaporation after Wilting [mm/day] """
+    def set_Ew( self, Ew ):
+        self._soil_Ew = Ew
+
+    """ Set porosity of soil """
+    def set_pc( self, pc ):
+        self._soil_pc = pc
+
+    """ Set field capacity point of soil """
+    def set_fc( self, fc ):
+        self._soil_fc = fc
+
+    """ Set stomotal closure point of soil """
+    def set_sc( self, sc ):
+        self._soil_sc = sc
+
+    """ Set wilting point of soil """
+    def set_wp( self, wp ):
+        self._soil_wp = wp
+
+    """ Set hygroscopic point of soil """
+    def set_hgw( self, hgw ):
+        self._soil_hgw = hgw
+
+    """ Set Beta - Deep Percolation Rate Constant """
+    def set_Beta( self, Beta ):
+        self._soil_beta = Beta
+        
+        
+
+    def plott( self, P_, S_, ETA_, D_, Ro_ ):
 
         figure(1)
         self._px = xrange( 0, self._iterate_storm )
-        plot( self._px, self._P )
+        plot( self._px, P_ )
         ylabel( 'Effective Precipitation Depth in mm' )
         title( 'Precipitation Record' )
         xlabel( 'Storms' )
 
         figure(2)
-        plot( self._px, self._S )
+        plot( self._px, S_ )
         ylabel( 'Soil Moisture - fraction' )
         title( 'Soil Moisture Dynamics' )
         xlabel( 'Storms' )
 
         figure(3)
-        plot( self._px, self._ETA, '+', label = 'Evapotranspiration' )
+        plot( self._px, ETA_, '+', label = 'Evapotranspiration' )
         hold(True)
-        plot( self._px, self._D, '-', label = 'Drainage from Root Zone' )
+        plot( self._px, D_, '-', label = 'Drainage from Root Zone' )
         hold(True)
-        plot( self._px, self._Ro, '*', label = 'Runoff' )
+        plot( self._px, Ro_, '*', label = 'Runoff' )
         hold(False)
         xlabel( 'Storms' )
         ylabel( 'Depth in mm' )
