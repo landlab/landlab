@@ -21,6 +21,13 @@ class AccumFlow(object):
 
     def initialize(self, grid, data):
         self.flow_accum_by_area = grid.create_node_dvector() #prefilled with zeros, size of WHOLE grid
+        #Test if this module is to produce the flowacc data. It should be!
+        try:
+            data.flowacc
+        except:
+            data.flowacc = self.flow_accum_by_area
+        else:
+            print "Another module has created the flow accumulation grid. Undesirable conflicts may occur!"
 
     def calc_flowacc(self, grid, data):
         active_cell_ids = grid.get_active_cell_node_ids()

@@ -562,7 +562,7 @@ class RasterModelGrid(ModelGrid):
         diagonal_dx = numpy.sqrt(2.)
         for a in neighbor_nodes:
             if self.node_status[a] != INACTIVE_BOUNDARY:
-                single_slope = (u[node_id] - u[a])/self._dx
+                single_slope = (u[node_id] - u[a])/self.dx
             else:
                 single_slope = -9999
             #print 'cell id: ', cell_id
