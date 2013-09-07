@@ -18,6 +18,10 @@ def main():
     the state variables, runs the main loop, and cleans up.
     """
     
+    import time
+    
+    start_time = time.time()
+    
     # INITIALIZE
     
     # User-defined parameter values
@@ -87,6 +91,10 @@ def main():
     pylab.ylabel('Height (m)')
     
     pylab.show()
+    
+    end_time = time.time()
+    
+    print 'Elapsed time',end_time-start_time
     
 
 if __name__ == "__main__":

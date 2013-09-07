@@ -217,6 +217,23 @@ class ModelGrid(ModelDataFields):
         assert (len(gradient)==self.num_active_links), \
                 "len(gradient)!=num_active_links"
                 
+        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self.link_length[self.active_links]
+        
+        return gradient
+        
+    def calculate_gradients_at_active_links_slow(self, s, gradient=None):
+        """
+        Calculates the gradient in quantity s at each active link in the grid.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_gradients_at_active_links_slow'
+        
+        if gradient==None:
+            gradient = numpy.zeros(self.num_active_links)
+            
+        assert (len(gradient)==self.num_active_links), \
+                "len(gradient)!=num_active_links"
+                
         active_link_id = 0
         for link_id in self.active_links:
             gradient[active_link_id] = (s[self.link_tonode[link_id]]
@@ -231,7 +248,14 @@ class ModelGrid(ModelDataFields):
         """
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
-        net_unit_flux. 
+        net_unit_flux. Overrides method of the same name in ModelGrid (nearly
+        identical, but uses scalars dx and cellarea instead of variable
+        link length and active cell area, respectively).
+        
+        The function works by calling calculate_flux_divergence_at_nodes, then
+        slicing out only the values at active cells. Therefore, it is slower
+        than calculate_flux_divergence_at_nodes, even though it returns a
+        shorter list of numbers.
         
         The input active_link_flux should be flux of
         something (e.g., mass, momentum, energy) per unit face width, positive
@@ -239,16 +263,22 @@ class ModelGrid(ModelDataFields):
         There should be one value per active link. Returns an array of net
         total flux per unit area, one value per active cell (creates this
         array if it is not given as an argument).
-          By convention, divergence is positive for net outflow, and 
-        negative for net outflow. That's why we *add* outgoing flux and
-        *subtract* incoming flux. This makes net_unit_flux have the same sign
-        and dimensions as a typical divergence term in a conservation equation.
+          By convention, divergence is positive for net outflow, and negative 
+        for net outflow. That's why we *add* outgoing flux and *subtract* 
+        incoming flux. This makes net_unit_flux have the same sign and 
+        dimensions as a typical divergence term in a conservation equation.
 
-        In general, for a polygonal cell with N sides of lengths
+        In general, for a polygonal cell with $N$ sides of lengths
         Li and with surface area A, the net influx divided by cell
         area would be:
             .. math::
                 {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+
+        For a square cell, which is what we have in RasterModelGrid,
+        the sum is over 4 sides of length dx, and
+        :math:`A = dx^2`, so:
+            .. math::
+                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
 
         .. note::
             The net flux is defined as positive outward, negative
@@ -257,9 +287,65 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-        .. todo::
-            This needs to be re-implemented with the faster algorithm used in
-            the RasterModelGrid version.
+        Example:
+            
+            >>> from landlab import RasterModelGrid
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+            ...      1., 2., 3., 2., 3.,
+            ...      0., 1., 2., 1., 2.,
+            ...      0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                    1.,  1., -1.,  1.])
+            >>> flux = -grad    # downhill flux proportional to gradient
+            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
+            >>> divflux
+            array([ 2.,  4., -2.,  0.,  1., -4.])
+            
+        If calculate_gradients_at_active_links is called inside a loop, you can
+        improve speed slightly by creating an array outside the loop. For 
+        example, do this once, before the loop:
+            
+            >>> divflux = rmg.create_active_cell_dvector() # outside loop
+            
+        Then do this inside the loop:
+            
+            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
+            
+        In this case, the function will not have to create the divflux array.
+            
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_flux_divergence_at_active_cells'
+            
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_active_cells)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux))==self.num_active_cells
+        
+        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
+                
+        net_unit_flux = node_net_unit_flux[self.activecell_node]
+                
+        return net_unit_flux
+        
+    def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
+                                                  net_unit_flux=False):
+        """
+        Original, slower version of calculate_flux_divergence_at_active_cells, 
+        using a for-loop instead of simply calling the node-based version of
+        the method. Kept here as illustration of what the method is intended
+        to do.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -312,16 +398,58 @@ class ModelGrid(ModelDataFields):
         but simply return zeros for these entries. The advantage is that the 
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
-
-        .. todo::
-            This needs to be re-implemented with the faster algorithm used in
-            the RasterModelGrid version.
         """
         
         #print 'cfdn here'
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_nodes'
             
+        assert (len(active_link_flux)==self.num_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux==False:
+            net_unit_flux = numpy.zeros(self.num_nodes)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux))==self.num_nodes
+        
+        # Create a flux array one item longer than the number of active links.
+        # Populate it with flux times face width (so, total flux rather than
+        # unit flux). Here, face_width is an array with one entry for each
+        # active link, so we are multiplying the unit flux at each link by the
+        # width of its corresponding face.
+        flux = numpy.zeros(len(active_link_flux)+1)
+        flux[:len(active_link_flux)] = active_link_flux * self.face_width
+        
+        # Next, we need to add up the incoming and outgoing fluxes.
+        #
+        # Notes: 
+        #    1) because "net flux" is defined as positive outward, we add the
+        #       outflux and subtract the influx
+        #    2) the loop is over the number of rows in the inlink/outlink
+        #       matrices. This dimension is equal to the maximum number of links
+        #       attached to a node, so should be of order 6 or 7 and won't
+        #       generally increase with the number of nodes in the grid.
+        # 
+        for i in range(numpy.size(self.node_active_inlink_matrix,0)):
+            net_unit_flux += flux[self.node_active_outlink_matrix[i][:]]
+            net_unit_flux -= flux[self.node_active_inlink_matrix[i][:]]
+            
+        # Now divide by cell areas ... where there are active cells.
+        net_unit_flux[self.activecell_node] /= self.active_cell_areas
+                
+        return net_unit_flux
+        
+    def calculate_flux_divergence_at_nodes_slow(self, active_link_flux, 
+                                           net_unit_flux=False):
+        """
+        This is the original, slower, for-loop-based version. We keep it here
+        just as an illustration of what the flux divergence functions are 
+        meant to do.
+        """
+        
         assert (len(active_link_flux)==self.num_active_links), \
                "incorrect length of active_link_flux array"
             
@@ -343,20 +471,12 @@ class ModelGrid(ModelDataFields):
             to_cell = self.node_activecell[to_node]
             total_flux = active_link_flux[active_link_id] * \
                          self.face_width[self.link_face[link_id]]
-            #print('Flux '+str(total_flux)+' from '+str(from_node) \
-            #      +' to '+str(to_node)+' along link '+str(link_id))
             if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_node] += total_flux / \
                                             self.active_cell_areas[from_cell]
-                #if from_node==46:
-                #    print('node '+str(from_node)+' net='+str(net_unit_flux[from_node]))
-                #    print 'fw=', self.face_width[self.link_face[link_id]]
             if to_cell != BAD_INDEX_VALUE:
                 net_unit_flux[to_node] -= total_flux / \
                                           self.active_cell_areas[to_cell]
-                #if to_node==46:
-                #    print('node '+str(to_node)+' net='+str(net_unit_flux[to_node]))
-                #    print 'fw=', self.face_width[self.link_face[link_id]]
             active_link_id += 1
         
         return net_unit_flux
