@@ -244,7 +244,7 @@ class ModelGrid(ModelDataFields):
         return gradient
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
-                                                  net_unit_flux=False):
+                                                  net_unit_flux=None):
         """
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
@@ -326,7 +326,7 @@ class ModelGrid(ModelDataFields):
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
-        if net_unit_flux==False:
+        if net_unit_flux is None:
             net_unit_flux = numpy.zeros(self.num_active_cells)
         else:
             net_unit_flux[:] = 0.
