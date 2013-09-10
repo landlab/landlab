@@ -4,9 +4,11 @@ import os
 import warnings
 
 try:
-    import netCDF4 as nc
+    import netCDF4 as nc4
 except ImportError:
-    warnings.warn('Unable to input netCDF4.', ImportWarning)
+    warnings.warn('Unable to import netCDF4.', ImportWarning)
+
+from scipy.io import netcdf as nc
 
 
 from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
@@ -92,7 +94,10 @@ def _add_spatial_variables(root, grid, **kwds):
             var = vars[name]
         except KeyError:
             var = root.createVariable(name, 'f8', spatial_variable_shape)
-        var[:] = grid.get_node_coords(axis=axis)
+
+        coords = grid.get_node_coords(axis=axis).view()
+        coords.shape = var.shape
+        var[:] = coords
 
         var.units = grid.get_coordinate_units(axis=axis)
         try:
@@ -112,7 +117,6 @@ def _add_variables_at_points(root, fields):
         n_times = 0
 
     node_fields = fields['node']
-    #for var_name in fields.get_point_fields():
     for var_name in node_fields:
         try:
             var = vars[var_name]
@@ -122,44 +126,16 @@ def _add_variables_at_points(root, fields):
                 ['nt'] + spatial_variable_shape)
 
         if node_fields[var_name].size > 1:
+            data = node_fields[var_name].view()
+            data.shape = var.shape[1:]
             try:
-                var[n_times, :] = node_fields[var_name].flat
+                var[n_times, :] = data
             except ValueError:
                 raise
         else:
             var[n_times] = node_fields[var_name].flat[0]
 
         var.units = node_fields.units[var_name]
-        var.long_name = var_name
-
-
-def _add_variables_at_cells(root, fields):
-    vars = root.variables
-
-    variable_dimension_names = ['nz', 'ny', 'nx']
-    dim_names = []
-    for name in variable_dimension_names:
-        if name in root.dimensions:
-            dim_names.append(name)
-
-    try:
-        n_times = len(vars['t']) - 1
-    except KeyError:
-        n_times = 0
-
-    for var_name in fields.get_cell_fields():
-        try:
-            var = vars[var_name]
-        except KeyError:
-            var = root.createVariable(var_name,
-                                      _NP_TO_NC_TYPE[str(array.dtype)],
-                                      ['nt'] + dim_names)
-        if fields[var_name].size > 1:
-            var[n_times, :] = fields[var_name].flat
-        else:
-            var[n_times] = fields[var_name].flat[0]
-
-        var.units = fields.units[var_name]
         var.long_name = var_name
 
 
@@ -183,18 +159,32 @@ def _add_time_variable(root, time, **kwds):
         t[n_times] = n_times
 
 
-def write_netcdf(path, fields, attrs={}, append=False):
+_VALID_NETCDF_FORMATS = set([
+    'NETCDF3_CLASSIC',
+    'NETCDF3_64BIT',
+    'NETCDF4_CLASSIC',
+    'NETCDF4',
+])
+
+def write_netcdf(path, fields, attrs={}, append=False, format='NETCDF3_64BIT'):
     """
     Write the data and grid information for *fields* to *path* as NetCDF.
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
     """
+    assert(format in _VALID_NETCDF_FORMATS)
+
     if os.path.isfile(path) and append:
         mode = 'a'
     else:
         mode = 'w'
 
-    root = nc.Dataset(path, mode, format='NETCDF4')
+    if format == 'NETCDF3_CLASSIC':
+        root = nc.netcdf_file(path, mode, version=1)
+    elif format == 'NETCDF3_64BIT':
+        root = nc.netcdf_file(path, mode, version=2)
+    else:
+        root = nc4.Dataset(path, mode, format=format)
 
     _set_netcdf_attributes(root, attrs)
     _set_netcdf_structured_dimensions(root, fields.shape)

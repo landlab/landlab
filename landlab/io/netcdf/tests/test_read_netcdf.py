@@ -15,8 +15,12 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 class TestReadNetcdf(unittest.TestCase):
-    def test_read(self):
-        (grid, field) = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test.nc'))
+    def test_read_netcdf3_64bit(self):
+        grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf3-64bit.nc'))
+        self.assertEqual(grid.shape, (4, 3))
+
+    def test_read_netcdf4(self):
+        grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf4.nc'))
         self.assertEqual(grid.shape, (4, 3))
 
 

@@ -4,10 +4,12 @@ Read data from a NetCDF file into a RasterModelGrid.
 """
 
 try:
-    import netCDF4 as nc
+    import netCDF4 as nc4
 except ImportError:
     import warnings
-    warnings.warn('Unable to input netCDF4.', ImportWarning)
+    warnings.warn('Unable to import netCDF4.', ImportWarning)
+
+from scipy.io import netcdf as nc
 
 import os
 import types
@@ -22,11 +24,18 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _COORDINATE_NAMES)
 
 
+def _length_of_axis_dimension(root, axis_name):
+    try:
+        return len(root.dimensions[axis_name])
+    except TypeError:
+        return root.dimensions[axis_name]
+
+
 def _read_netcdf_grid_shape(root):
     shape = []
     for axis_name in _AXIS_DIMENSION_NAMES:
         try:
-            shape.append(len(root.dimensions[axis_name]))
+            shape.append(_length_of_axis_dimension(root, axis_name))
         except KeyError:
             pass
     return shape
@@ -68,7 +77,6 @@ def _read_netcdf_structured_data(root):
     for (name, var) in root.variables.items():
         if not name in _COORDINATE_NAMES:
             fields[name] = var[:]
-
     return fields
 
 
@@ -92,21 +100,16 @@ def _get_raster_spacing(coords):
 
 
 def read_netcdf(nc_file, reshape=False, just_grid=False):
-    root = nc.Dataset(nc_file, 'r', format='NETCDF4')
+    try:
+        root = nc.netcdf_file(nc_file, 'r', version=2)
+    except TypeError:
+        root = nc4.Dataset(nc_file, 'r', format='NETCDF4')
 
-    #(node_coords, units) = _read_netcdf_structured_grid(root)
     node_coords = _read_netcdf_structured_grid(root)
 
-    try:
-        assert(len(node_coords) == 2)
-    except AssertionError:
-        raise
+    assert(len(node_coords) == 2)
 
-    try:
-        spacing = _get_raster_spacing(node_coords)
-    except NotRasterGridError:
-        print node_coords
-        raise 
+    spacing = _get_raster_spacing(node_coords)
 
     shape = node_coords[0].shape
 
@@ -115,9 +118,9 @@ def read_netcdf(nc_file, reshape=False, just_grid=False):
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)
-    else:
-        fields = dict()
+        for (name, values) in fields.items():
+            grid.add_field('node', name, values)
 
     root.close()
 
-    return (grid, fields)
+    return grid

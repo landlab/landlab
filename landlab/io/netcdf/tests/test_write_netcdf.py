@@ -19,7 +19,7 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 class TestWriteNetcdf(unittest.TestCase):
     def test_write(self):
         field = RasterModelGrid(4, 3)
-        field.new_field_location('node', 12.)
+        #field.new_field_location('node', 12.)
         values = np.arange(12.)
         field.add_field('node', 'planet_surface__elevation', values)
 
