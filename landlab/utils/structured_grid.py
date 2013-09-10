@@ -84,7 +84,7 @@ def active_cell_count(shape):
 def active_link_count(shape):
     """
     Number of active links in a structured grid with dimensions, *shape*.
-    S link is active if it connects to at least one active node.
+    A link is active if it connects to at least one active node.
 
     >>> link_count((3, 2))
     7
@@ -113,6 +113,16 @@ def link_count(shape):
     """
     assert(len(shape) == 2)
     return shape[1] * (shape[0] - 1) + shape[0] * (shape[1] - 1)
+
+
+def vertical_link_count(shape):
+    assert(len(shape) == 2)
+    return (shape[0] - 1) * shape[1]
+
+
+def horizontal_link_count(shape):
+    assert(len(shape) == 2)
+    return shape[0] * (shape[1] - 1)
 
 
 def boundary_cell_count(shape):
@@ -512,6 +522,162 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
         return (node_inlink_matrix, node_numinlink)
     else:
         return node_inlink_matrix
+
+
+def setup_inlink_matrix_fast(shape, tonodes=None, return_count=True):
+    return np.vstack((south_links(shape), west_links(shape)))
+
+
+def setup_outlink_matrix_fast(shape, tonodes=None, return_count=True):
+    return np.vstack((north_links(shape), east_links(shape)))
+
+
+def setup_active_inlink_matrix_fast(shape, tonodes=None, return_count=True):
+    return np.vstack((active_south_links(shape), active_west_links(shape)))
+
+
+def setup_active_outlink_matrix_fast(shape, tonodes=None, return_count=True):
+    return np.vstack((active_north_links(shape), active_east_links(shape)))
+
+
+def vertical_link_ids(shape):
+    return np.arange(0, vertical_link_count(shape), dtype=np.int)
+
+
+def horizontal_link_ids(shape):
+    link_id_offset = vertical_link_count(shape)
+    return np.arange(link_id_offset,
+                     link_id_offset + horizontal_link_count(shape),
+                     dtype=np.int)
+
+def vertical_active_link_count(shape):
+    return (shape[0] - 1) * (shape[1] - 2)
+
+
+def horizontal_active_link_count(shape):
+    return (shape[0] - 2) * (shape[1] - 1)
+
+
+def vertical_active_link_ids(shape):
+    return np.arange(vertical_active_link_count(shape), dtype=np.int)
+
+
+def horizontal_active_link_ids(shape):
+    link_id_offset = vertical_active_link_count(shape)
+    return np.arange(link_id_offset,
+                     link_id_offset + horizontal_active_link_count(shape),
+                     dtype=np.int)
+
+
+def west_links(shape):
+    """
+    >>> west_links((3, 4))
+    array([[-1,  8,  9, 10],
+           [-1, 11, 12, 13],
+           [-1, 14, 15, 16]])
+    """
+    link_ids = horizontal_link_ids(shape)
+    link_ids.shape = (shape[0], shape[1] - 1)
+    return np.hstack((- np.ones((shape[0], 1), dtype=np.int), link_ids))
+
+
+def north_links(shape):
+    """
+    >>> north_links((3, 4))
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [-1, -1, -1, -1]])
+    """
+    link_ids = vertical_link_ids(shape)
+    link_ids.shape = (shape[0] - 1, shape[1])
+    return np.vstack((link_ids, - np.ones((1, shape[1]), dtype=np.int)))
+
+
+def south_links(shape):
+    """
+    >>> south_links((3, 4))
+    array([[-1, -1, -1, -1],
+           [ 0,  1,  2,  3],
+           [ 4,  5,  6,  7]])
+    """
+    link_ids = vertical_link_ids(shape)
+    link_ids.shape = (shape[0] - 1, shape[1])
+    return np.vstack((- np.ones((1, shape[1]), dtype=np.int), link_ids))
+
+def east_links(shape):
+    """
+    >>> east_links((3, 4))
+    array([[ 8,  9, 10, -1],
+           [11, 12, 13, -1],
+           [14, 15, 16, -1]])
+    """
+    link_ids = horizontal_link_ids(shape)
+    link_ids.shape = (shape[0], shape[1] - 1)
+    return np.hstack((link_ids, - np.ones((shape[0], 1), dtype=int)))
+
+
+def active_north_links(shape):
+    """
+    >>> active_north_links((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1,  0,  1, -1],
+           [-1,  2,  3, -1]])
+    """
+    active_north_links = np.empty(shape, dtype=int)
+    links = vertical_active_link_ids(shape)
+    links.shape = (2, 2)
+    active_north_links[1:, 1:-1] = links
+    active_north_links[:, (0, -1)] = -1
+    active_north_links[0, :] = -1
+
+    return active_north_links
+
+
+def active_south_links(shape):
+    """
+    >>> active_south_links((3, 4))
+    array([[-1,  0,  1, -1],
+           [-1,  2,  3, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_south_links = np.empty(shape, dtype=int)
+    links = vertical_active_link_ids(shape)
+    links.shape = (2, 2)
+    active_south_links[:-1, 1:-1] = links
+    active_south_links[:, (0, -1)] = -1
+    active_south_links[-1, :] = -1
+
+    return active_south_links
+
+
+def active_west_links(shape):
+    """
+    >>> active_west_links((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1,  4,  5,  6],
+           [-1, -1, -1, -1]])
+    """
+    active_west_links = np.empty(shape, dtype=int)
+    active_west_links[1:-1, 1:] = horizontal_active_link_ids(shape)
+    active_west_links[(0, -1), :] = -1
+    active_west_links[:, 0] = -1
+
+    return active_west_links
+
+
+def active_east_links(shape):
+    """
+    >>> active_east_links((3, 4))
+    array([[-1, -1, -1, -1],
+           [ 4,  5,  6, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_east_links = np.empty(shape, dtype=int)
+    active_east_links[1:-1, :-1] = horizontal_active_link_ids(shape)
+    active_east_links[(0, -1), :] = -1
+    active_east_links[:, -1] = -1
+
+    return active_east_links
 
 
 def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
