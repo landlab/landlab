@@ -32,27 +32,23 @@ class RasterModelGrid(ModelGrid):
     
     Examples:
         
-        >>> rmg = RasterModelGrid()
-        >>> rmg.num_nodes
-        0
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.num_nodes
         20
     """
 
-    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
+    def __init__(self, num_rows, num_cols, dx=1.0):
         """
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
         
         """
-        #print 'RasterModelGrid.init'
-        
         # Set number of nodes, and initialize if caller has given dimensions
         self.ncells = num_rows * num_cols   #TBX
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )
+        super(RasterModelGrid, self).__init__()
 
     def initialize( self, num_rows, num_cols, dx ):
         """
@@ -68,12 +64,11 @@ class RasterModelGrid(ModelGrid):
         Examples and doctests:
 
             >>> import landlab as ll
-            >>> rmg = RasterModelGrid()
             >>> numrows = 20          # number of rows in the grid
             >>> numcols = 30          # number of columns in the grid
             >>> dx = 10.0             # grid cell spacing
-            >>> rmg.initialize(numrows, numcols, dx)
-            >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
+            >>> rmg = RasterModelGrid(numrows, numcols, dx)
+            >>> rmg.num_nodes, rmg.num_cells, rmg.num_links, rmg.num_active_links
             (600, 504, 1150, 1054)
             >>> rmg = RasterModelGrid(4, 5)
             >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
