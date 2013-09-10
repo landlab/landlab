@@ -88,15 +88,14 @@ class ModelGrid(ModelDataFields):
     DEBUG_VERBOSE = False
     DEBUG_TRACK_METHODS = False
 
-    #-------------------------------------------------------------------
     def __init__(self):
         for centering in ['node', 'cell', 'link', 'face', ]:
+            array_length = self._array_length(centering)
             try:
-                self.add_group(centering, self._array_length(centering))
+                self.new_field_location(centering, array_length)
             except AttributeError:
                 pass
-    
-    #-------------------------------------------------------------------
+
     def initialize( self ):
     
         pass
@@ -737,34 +736,6 @@ class ModelGrid(ModelDataFields):
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
-        
-    def calculate_link_lengths(self, pts, link_from, link_to):
-        """
-        Calculates and returns length of links between nodes.
-        
-        Inputs: pts - Nx2 numpy array containing (x,y) values
-                link_from - 1D numpy array containing index numbers of nodes at 
-                            starting point ("from") of links
-                link_to - 1D numpy array containing index numbers of nodes at 
-                          ending point ("to") of links
-                          
-        Returns: 1D numpy array containing horizontal length of each link
-        
-        Example:
-            
-            >>> pts = numpy.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
-            >>> lfrom = numpy.array([0,1,2])
-            >>> lto = numpy.array([1,2,0])
-            >>> mg = ModelGrid()
-            >>> ll = mg.calculate_link_lengths(pts, lfrom, lto)
-            >>> ll
-            array([ 3.,  4.,  5.])
-        """
-        dx = pts[link_to,0]-pts[link_from,0]
-        dy = pts[link_to,1]-pts[link_from,1]
-        link_length = numpy.sqrt( dx*dx + dy*dy )
-        return link_length
-        
         
     def calculate_numbers_of_node_neighbors(self):
         """

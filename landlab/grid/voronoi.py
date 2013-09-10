@@ -36,6 +36,32 @@ def simple_poly_area(x, y):
                     x[-1] * y[0] - x[0] * y[-1])
 
 
+def calculate_link_lengths(pts, link_from, link_to):
+    """
+    Calculates and returns length of links between nodes.
+    
+    Inputs: pts - Nx2 numpy array containing (x,y) values
+            link_from - 1D numpy array containing index numbers of nodes at 
+                        starting point ("from") of links
+            link_to - 1D numpy array containing index numbers of nodes at 
+                      ending point ("to") of links
+                      
+    Returns: 1D numpy array containing horizontal length of each link
+    
+    Example:
+        
+        >>> pts = numpy.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
+        >>> lfrom = numpy.array([0,1,2])
+        >>> lto = numpy.array([1,2,0])
+        >>> calculate_link_lengths(pts, lfrom, lto)
+        array([ 3.,  4.,  5.])
+    """
+    dx = pts[link_to, 0] - pts[link_from, 0]
+    dy = pts[link_to, 1] - pts[link_from, 1]
+    link_length = numpy.sqrt(dx * dx + dy * dy)
+    return link_length
+    
+    
 class VoronoiDelaunayGrid(ModelGrid):
     """
     This inherited class implements an unstructured grid in which cells are
@@ -107,8 +133,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.num_links = len(self.link_fromnode)
                     
         # LINKS: Calculate link lengths
-        self.link_length = self.calculate_link_lengths(pts, self.link_fromnode, 
-                                                       self.link_tonode)
+        self.link_length = calculate_link_lengths(pts, self.link_fromnode,
+                                                  self.link_tonode)
                                                        
         # LINKS: inlink and outlink matrices
         self.setup_inlink_and_outlink_matrices()
