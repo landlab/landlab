@@ -534,9 +534,7 @@ class RasterModelGrid(ModelGrid):
             
             DEJH update: Gets confused for the lowest node if w/i grid
             (i.e., closed)- will return a higher neighbour, when it should
-            return itself. ->  Now returns itself, but a flagging mechanism
-            may be preferable (or point to -1). (i.e., unthinking application will result in a
-            doubling of discharge at that node.
+            return a null index ->  Now returns -1.
         '''
         #We have poor functionality if these are closed boundary nodes! 
         neighbor_nodes = self.get_neighbor_list(node_id)
@@ -598,16 +596,9 @@ class RasterModelGrid(ModelGrid):
         #be used to actually route flow. In flow_accumulation, there is an explicit check that flow
         #is not routed to yourself.
         steepest_node = all_neighbor_nodes[index_max]
-        #...now if a node is the lowest thing, this method returns that node, not a neighbor:
+        #...now if a node is the lowest thing, this method returns -1, not a neighbor:
         if u[steepest_node] > u[node_id]:
-            steepest_node=node_id
-            #When accumulating flow, it is ESSENTIAL to check if a node routes to itself!!
-            #An alternative, creating a list of the internally draining cells
-            #try:
-            #    self.internal_draining_nodes.append(node_id)
-            #except:
-            #    self.internal_draining_nodes = [node_id]
-            #self.node_status[node_id] = INTERNAL_DRAINING_NODE #==5? ...this doesn't exist yet.
+            steepest_node=-1
         
         return steepest_node
         
