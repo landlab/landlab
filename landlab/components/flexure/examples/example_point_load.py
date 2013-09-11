@@ -1,30 +1,31 @@
 #! /usr/bin/env python
 
-import pylab
+from landlab.components.flexure import FlexureComponent
+from landlab import RasterModelGrid
 
-from landlab.components.flexure import Flexure
+
+def add_load_to_middle_of_grid(grid, load):
+    shape = grid.shape
+
+    load_array = grid.field_values(
+        'node', 'lithosphere__overlying_pressure').view()
+    load_array.shape = shape
+    load_array[shape[0] / 2, shape[1] / 2] = load
 
 
 def main():
+    (n_rows, n_cols) = (100, 100)
+    (dy, dx) = (10e3, 10e3)
 
-    shape = (100, 100)
-    spacing = (10e3, 10e3)
+    grid = RasterModelGrid(n_rows, n_cols, dx)
 
-    flex = Flexure(shape, spacing, (0., 0.))
+    flex = FlexureComponent(grid, method='flexure')
 
-    load = flex['lithosphere__overlying_pressure']
-    load[shape[0]/2, shape[1]/2] = 1e9
-
-    dz = flex['lithosphere__elevation']
+    add_load_to_middle_of_grid(grid, 1e9)
 
     flex.update()
 
-    dz.shape = shape
-
-    pylab.imshow(dz)
-    pylab.colorbar()
-    #pylab.plot(dz[shape[0]/2,:])
-    pylab.show()
+    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=True) 
 
 
 if __name__ == '__main__':

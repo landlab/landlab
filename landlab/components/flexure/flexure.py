@@ -6,6 +6,14 @@ from landlab import RasterModelGrid, Component
 from landlab.components.flexure.funcs import subside_point_loads
 
 
+_VALID_METHODS = set(['airy', 'flexure'])
+
+
+def assert_method_is_valid(method):
+    if method not in _VALID_METHODS:
+        raise ValueError('%s: Invalid method name' % method)
+
+
 class FlexureComponent(Component):
     """
     Landlab component that implements a 1 and 2D lithospheric flexure
@@ -32,25 +40,25 @@ class FlexureComponent(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_nodes['lithosphere__elevation'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
     True
 
-    >>> np.all(grid.at_nodes['lithosphere__elevation'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
     True
-    >>> np.all(grid.at_nodes['lithosphere__overlying_pressure'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__overlying_pressure'] == 0.)
     True
     >>> flex.update()
-    >>> np.all(grid.at_nodes['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
     True
 
-    >>> load = grid.at_nodes['lithosphere__overlying_pressure']
+    >>> load = grid.at_node['lithosphere__overlying_pressure']
     >>> load[4] = 1e9
-    >>> dz = grid.at_nodes['lithosphere__elevation_increment']
+    >>> dz = grid.at_node['lithosphere__elevation_increment']
     >>> np.all(dz == 0.)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_nodes['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
     False
     """
     _name = 'Flexure'
@@ -75,28 +83,23 @@ class FlexureComponent(Component):
     def __init__(self, grid, **kwds):
         self._eet = kwds.pop('eet', 65000.)
         self._youngs = kwds.pop('youngs', 7e10)
-        self._airy = kwds.pop('airy', True)
+        self._method = kwds.pop('method', 'airy')
+
+        assert_method_is_valid(self._method)
 
         super(FlexureComponent, self).__init__(grid, **kwds)
 
-        node_count = grid.get_count_of_all_nodes()
+        for name in self._input_var_names:
+            if not name in self.grid.at_node:
+                self.grid.add_zeros('node', name, units=self._var_units[name])
 
-        self.grid.new_field_location('nodes', node_count)
+        for name in self._output_var_names:
+            if not name in self.grid.at_node:
+                self.grid.add_zeros('node', name, units=self._var_units[name])
 
-        for name in self._input_var_names - set(self.grid):
-            self.grid.add_zeros('nodes', name, units=self._var_units[name])
-            #self.grid.add_field(name, np.zeros(node_count, dtype=np.float),
-            #                    units=self._var_units[name])
+        self._last_load = self.grid.field_values('node', 'lithosphere__overlying_pressure').copy()
 
-        for name in self._output_var_names - set(self.grid):
-            self.grid.add_zeros('nodes', name, units=self._var_units[name])
-            #self.grid.add_field(name, np.zeros(node_count, dtype=np.float),
-            #                    units=self._var_units[name])
-
-        self._last_load = self.grid.field_values('nodes', 'lithosphere__overlying_pressure').copy()
-        #self._last_load = self.grid['lithosphere__overlying_pressure'].copy()
-
-        self._nodal_values = self.grid['nodes']
+        self._nodal_values = self.grid['node']
 
     def update(self, n_procs=1):
         elevation = self._nodal_values['lithosphere__elevation']
@@ -111,7 +114,7 @@ class FlexureComponent(Component):
 
         deflection.fill(0.)
 
-        if self._airy:
+        if self._method == 'airy':
             deflection[:] = new_load / (3300. * 9.81)
         else:
             self.subside_loads(new_load, self.coords, deflection=deflection,

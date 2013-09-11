@@ -1,22 +1,32 @@
 #! /usr/bin/env python
 
-import pylab
 import numpy as np
 
-from landlab.components.flexure import Flexure
+from landlab.components.flexure import FlexureComponent
+from landlab import RasterModelGrid
 
-#_SHAPE = (200, 200)
-#_SPACING = (5e3, 5e3)
-#_N_LOADS = 128
+
+def get_random_load_locations(shape, n_loads):
+    return np.random.random_integers(0, shape[0] * shape[1] - 1, n_loads)
+
+
+def get_random_load_magnitudes(n_loads):
+    return np.random.normal(1e9, 1e12, n_loads)
+
+
+def put_loads_on_grid(grid, load_locations, load_sizes):
+    load = grid.at_node['lithosphere__overlying_pressure'].view()
+    for (loc, size) in zip(load_locations, load_sizes):
+        load.flat[loc] = size
 
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n-loads', type=int, default=1,
+    parser.add_argument('--n-loads', type=int, default=16,
                         help='Number of loads to apply')
-    parser.add_argument('--shape', type=int, default=128,
+    parser.add_argument('--shape', type=int, default=200,
                         help='Number rows and columns')
     parser.add_argument('--spacing', type=int, default=5e3,
                         help='Spading between rows and columns (m)')
@@ -30,22 +40,19 @@ def main():
     shape = (args.shape, args.shape)
     spacing = (args.spacing, args.spacing)
 
-    load_locs = np.random.random_integers(0, shape[0] * shape[1] - 1,
-                                          args.n_loads)
-    load_sizes = np.random.normal(1e9, 1e7, args.n_loads)
+    load_locs = get_random_load_locations(shape, args.n_loads)
+    load_sizes = get_random_load_magnitudes(args.n_loads)
 
-    flex = Flexure(shape, spacing, (0., 0.))
-    load = flex['lithosphere__overlying_pressure']
+    grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
-    for (loc, size) in zip(load_locs, load_sizes):
-        load.flat[loc] = size
+    flex = FlexureComponent(grid, method='flexure')
+
+    put_loads_on_grid(grid, load_locs, load_sizes)
 
     flex.update(n_procs=args.n_procs)
 
-    if args.plot:
-        pylab.imshow(flex['lithosphere__elevation'])
-        pylab.colorbar()
-        pylab.show()
+    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False,
+                cmap='spectral') 
 
 
 if __name__ == '__main__':

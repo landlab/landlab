@@ -76,8 +76,8 @@ class TestFlexureFields(unittest.TestCase):
         self.flex = FlexureComponent(grid)
 
     def test_field_getters(self):
-        for name in self.flex.grid['nodes']:
-            field = self.flex.grid['nodes'][name]
+        for name in self.flex.grid['node']:
+            field = self.flex.grid['node'][name]
             self.assertIsInstance(field, np.ndarray)
             self.assertEqual(field.shape,
                              (self.flex.grid.get_count_of_rows() *
@@ -87,8 +87,8 @@ class TestFlexureFields(unittest.TestCase):
             self.flex.grid['not_a_var_name']
 
     def test_field_initialized_to_zero(self):
-        for name in self.flex.grid['nodes']:
-            field = self.flex.grid['nodes'][name]
+        for name in self.flex.grid['node']:
+            field = self.flex.grid['node'][name]
             self.assertTrue(np.all(field == 0.))
 
 
