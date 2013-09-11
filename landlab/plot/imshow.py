@@ -2,10 +2,12 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 def imshow_grid(grid, values, var_name=None, var_units=None,
-                grid_units=(None, None), symmetric_cbar=False):
+                grid_units=(None, None), symmetric_cbar=False,
+                cmap='jet'):
     data = values.view()
     data.shape = grid.shape
 
@@ -19,7 +21,8 @@ def imshow_grid(grid, values, var_name=None, var_units=None,
     else:
         limits = (None, None)
 
-    plt.pcolormesh(y, x, data, vmin=limits[0], vmax=limits[1])
+    plt.pcolormesh(y, x, data, vmin=limits[0], vmax=limits[1], cmap=cmap)
+    #plt.pcolormesh(y, x, data, vmin=limits[0], vmax=limits[1])
     plt.colorbar()
 
     plt.xlabel('X (%s)' % grid_units[1])
@@ -32,5 +35,5 @@ def imshow_grid(grid, values, var_name=None, var_units=None,
 
 
 def imshow_field(field, name, **kwds):
-    imshow_grid(field, field[name], var_name=name, var_units=field.units[name],
-                **kwds)
+    imshow_grid(field, field.field_values('node', name), var_name=name,
+                var_units=field.field_units('node', name), **kwds)
