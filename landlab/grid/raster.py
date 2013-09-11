@@ -25,7 +25,13 @@ has_boundary_neighbor = numpy.vectorize(node_has_boundary_neighbor,
                                         excluded=['mg'])
 
 
-class RasterModelGrid(ModelGrid):
+class RasterModelGridPlotter(object):
+    def imshow(self, group, var_name, **kwds):
+        from landlab.plot import imshow_field
+        imshow_field(self, var_name, **kwds)
+
+
+class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     """
     This inherited class implements a regular, raster 2D grid with uniform
     cell dimensions.
