@@ -62,11 +62,16 @@ class RouteFlowD8(object):
         have a flow direction?  Still not sure about this.
         
         Method inputs: the model grid and elevation vector 
-        Method returns: the flow direction vector
+        Method returns: the flow direction vector, and as of DEJH modifications
+        Sept 2013, the maximum (most steeply downhill) slope leaving each node.
         """
         
-        for i in range(0, self.num_nodes):
-            if mg.is_interior(i):
-                self.flowdirs[i] = mg.find_node_in_direction_of_max_slope(z, i)
+        #for i in range(0, self.num_nodes):
+        #    if mg.is_interior(i):
+        #        self.flowdirs[i] = mg.find_node_in_direction_of_max_slope(z, i)
         
-        return self.flowdirs        
+        #Alt. method, DEJH:
+        self.gradients_on_active_links = mg.calculate_gradients_at_active_links(z)
+        max_slopes, self.flowdirs = mg.calculate_steepest_descent_on_nodes(z, self.gradients_on_active_links, dstr_node_ids=self.flowdirs)
+        
+        return self.flowdirs, max_slopes

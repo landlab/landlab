@@ -535,7 +535,7 @@ class RasterModelGrid(ModelGrid):
             DEJH update: Gets confused for the lowest node if w/i grid
             (i.e., closed)- will return a higher neighbour, when it should
             return itself. ->  Now returns itself, but a flagging mechanism
-            may be preferable. (i.e., unthinking application will result in a
+            may be preferable (or point to -1). (i.e., unthinking application will result in a
             doubling of discharge at that node.
         '''
         #We have poor functionality if these are closed boundary nodes! 
@@ -769,6 +769,9 @@ class RasterModelGrid(ModelGrid):
         This is nearly identical to the method of the same name in ModelGrid,
         except that it uses self._dx for link length to improve efficiency.
         
+        Note that a negative gradient corresponds to a lower node in the direction
+        of the link.
+        
         Example:
         
             >>> rmg = RasterModelGrid(4, 5, 1.0)
@@ -804,7 +807,7 @@ class RasterModelGrid(ModelGrid):
         assert (len(gradient)==self.num_active_links), \
                 "len(gradient)!=num_active_links"
      
-        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self.dx
+        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self._dx
         
         return gradient
 
@@ -905,27 +908,37 @@ class RasterModelGrid(ModelGrid):
 #        
 #        return net_unit_flux
 
-    def calculate_max_gradients_at_nodes(self, elevs_in, link_gradients, max_gradient=False):
+    def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients, max_slope=False, dstr_node_ids=False):
         """
-        Created DEJH Sept 2013. Needs proper documentation. Based on approach of calc_flux_divergence..., below.
-        Now working. Needs expanding to return which node is the steepest descent, not just the magnitude of the slope.
+        Created DEJH Sept 2013. Based on approach of calc_flux_divergence..., below.
+        Takes the elevations across a raster and the active link_gradients between those nodes, and returns the
+        magnitude of the most downward slope from each node, and the direction of that cell. In the case where a node
+        is a local minimum, method returns the lowest upward slope *as a negative slope*, and returns the downslope 
+        node id as -1. i.e., downhill slopes are returned as positive values.
         
-        Downhill slopes are again positive.
+        At the moment, handling when equal gradients are present is poor. Method will currently preferentially route 
+        flow according the priority scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in these cases.
         """
         
         if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_max_gradients_at_nodes'
+            print 'RasterModelGrid.calculate_steepest_descent_on_nodes'
             
         assert (len(link_gradients)==self.num_active_links), \
                "incorrect length of active_link_gradients array"
 
-        # If needed, create max_gradient array
-        if max_gradient is False:
-            max_gradient = numpy.zeros(self.num_nodes)
+        # If needed, create max_gradient array and the ID array
+        if max_slope is False:
+            max_slope = numpy.zeros(self.num_nodes)
         else:
-            max_gradient[:] = 0.
+            max_slope[:] = 0.
+        
+        if dstr_node_ids is False:
+            dstr_node_ids = -numpy.ones(self.num_nodes, dtype=int)
+        else:
+            dstr_node_ids[:] = -1
 
-        assert(len(max_gradient) == self.num_nodes)
+        assert(len(max_slope) == self.num_nodes)
+        assert(len(dstr_node_ids) == self.num_nodes)
 
         gradients = numpy.zeros(len(link_gradients)+1)
         gradients[:-1] = link_gradients
@@ -935,17 +948,45 @@ class RasterModelGrid(ModelGrid):
 
         #calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(self.shape, out_of_bounds=-1)).T
+        #Set the diagonals pointing to inactive nodes as inactive
+        diagonal_nodes[numpy.where(self.node_status[diagonal_nodes] == 4)] = -1
         #Repeat the -1 indexing trick from above:
         elevs = numpy.zeros(len(elevs_in)+1)
         elevs[-1] = 9999999999999. #...as we want the gradients to inhibit flow
         elevs[:-1] = elevs_in
         
-        diagonal_slopes = ((elevs[diagonal_nodes])-numpy.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
-        gradients_all_nodes = numpy.vstack((node_links, diagonal_nodes))
-        max_gradient = -numpy.amin(gradients_all_nodes, axis=0)
+        slopes_diagonal_nodes = ((elevs[diagonal_nodes])-numpy.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
+        #Debug:
+        #print 'Shape of node_links: ', node_links.shape
+        #print 'Shape of diagonal array: ', slopes_diagonal_nodes.shape
+        gradients_all_nodes = numpy.vstack((node_links, slopes_diagonal_nodes))
+        #The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
+        max_slope_indices = numpy.argmin(gradients_all_nodes, axis=0)
+        max_slope = -gradients_all_nodes[max_slope_indices, xrange(gradients_all_nodes.shape[1])]
+        #...per fancy indexing
+        #print gradients_all_nodes
+        #print max_slope_indices
+        #print max_slope.reshape((5,5))
+        #Assemble a node index array which corresponds to this gradients array from which to draw the dstr IDs:
+        neighbors_ENWS = (self.get_neighbor_list()).T
+        #print neighbors_ENWS.shape
+        #print diagonal_nodes.shape
+        dstr_id_source_array = numpy.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
+        #print dstr_id_source_array.shape
+        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, xrange(dstr_id_source_array.shape[1])]
+        #print numpy.array([range(24),])
+        #print dstr_id_source_array[:,:-1]
+        #print most_negative_gradient_node_ids.reshape((5,5))
+        #But we only want to return an id if the "dstr" node is actually downstream! So ->
+        downslope_nodes = numpy.where(max_slope > 0)
+        #print downslope_nodes
+        dstr_node_ids[downslope_nodes] = most_negative_gradient_node_ids[downslope_nodes]
+        #Local topo lows will retain the -1 index in dstr_node_ids
+        #print 'dstr node ids: '
+        #print dstr_node_ids.reshape((5,5))
         
-        return max_gradient #should be: max_gradient, downslope_node_ID_if_max_grad_>0
- 
+        return max_slope, dstr_node_ids 
+        
 
     def calculate_flux_divergence_at_nodes(self, active_link_flux, 
                                            net_unit_flux=False):

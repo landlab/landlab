@@ -20,14 +20,15 @@ class AccumFlow(object):
         self.initialize(grid, data)
 
     def initialize(self, grid, data):
-        self.flow_accum_by_area = grid.create_node_dvector() #prefilled with zeros, size of WHOLE grid
+        self.flow_accum_by_area = np.zeros(grid._array_length('node')+1) #prefilled with zeros, size of WHOLE grid+1, to allow -1 ids
         #Test if this module is to produce the flowacc data. It should be!
         try:
             data.flowacc
         except:
-            data.flowacc = self.flow_accum_by_area
+            data.flowacc = self.flow_accum_by_area[:-1]
         else:
             print "Another module has created the flow accumulation grid. Undesirable conflicts may occur!"
+            assert(len(data.flowacc) == len(self.flow_accum_by_area[:-1]))
 
     def calc_flowacc(self, grid, data):
         active_cell_ids = grid.get_active_cell_node_ids()
@@ -59,7 +60,6 @@ class AccumFlow(object):
         cpp_code_fragment = """
 printf ('Test');
 """
-        #Note the -1 in the loop. Don't want to move flow out of the lowest cell. (Issues with BCells resurface here. Active BCells need to receive, but don't have areas, so aren't in the flowaccum_by_area array)
         #Shouldn't need to return_val, as we're handling mutable objects not ints
 
 #        flow_accum_by_area = self.flow_accum_by_area
@@ -68,13 +68,12 @@ printf ('Test');
 
 #---
         ##inefficient Python code to mimic the above weave:
-        for i in range(len(sorted_flowdirs)):
+        for i in xrange(len(sorted_flowdirs)):
             iter_height_order = height_order_active_cells[i]
             iter_sorted_fldirs = sorted_flowdirs[i]
-            if iter_sorted_fldirs != active_cell_ids[iter_height_order]: #...don't route flow to yourself
-                self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]                     
+            self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]                     
                                                             
-        return self.flow_accum_by_area
+        return self.flow_accum_by_area[:-1]
 
         #int downhill_node;
         #int active_node;
