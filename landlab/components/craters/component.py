@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab import Component
+from landlab import RasterModelGrid, Component
 import landlab.components.craters as craters
 
 
@@ -23,7 +23,6 @@ class CratersComponent(Component):
     }
 
     def __init__(self, grid, **kwds):
-
         self._impactor_mean_size = kwds.pop('mean_size', .75)
         self._impactor_size_std_dev = kwds.pop('std_dev', .1)
         seed = kwds.pop('seed', None)
@@ -32,9 +31,10 @@ class CratersComponent(Component):
 
         self._vectors = craters.data(self.grid)
 
-        self._grid.add_field('planet_surface__elevation', self._vectors.elev,
-                             units='m')
-        self._grid.add_field('planet_surface__elevation_increment', 
+        self._grid.add_field('node', 'planet_surface__elevation',
+                             self._vectors.elev, units='m')
+
+        self._grid.add_field('node', 'planet_surface__elevation_increment', 
                              np.zeros(self._grid.shape, dtype=np.float),
                              units='m')
 
@@ -58,7 +58,7 @@ class CratersComponent(Component):
         cr.set_crater_volume()
         cr._xcoord, cr._ycoord = (impact_loc[1], impact_loc[0])
 
-        z0 = self._grid['planet_surface__elevation'].copy()
+        z0 = self._grid.at_node['planet_surface__elevation'].copy()
 
         vertices_array = self.grid.get_nodes_around_point(impact_loc[1],
                                                           impact_loc[0])
@@ -80,8 +80,8 @@ class CratersComponent(Component):
         cr.set_crater_mean_slope_v2(self.grid, self._vectors)
         cr.set_elev_change_across_grid(self.grid, self._vectors)
 
-        self._grid['planet_surface__elevation_increment'][:].flat = (
-            self._grid['planet_surface__elevation'].flat - z0)
+        self._grid.at_node['planet_surface__elevation_increment'][:].flat = (
+            self._grid.at_node['planet_surface__elevation'].flat - z0)
 
     def next_impactor(self):
         cr = craters.impactor()

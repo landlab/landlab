@@ -10,7 +10,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--impact-count', type=int, default=128,
                         help='Number of impacts')
-    parser.add_argument('--grid-size', type=int, default=128,
+    parser.add_argument('--grid-size', type=int, default=200,
                         help='Number of grid rows and columns')
     parser.add_argument('--grid-spacing', type=float, default=.025,
                         help='Spacing between grid rows and columns')
@@ -39,8 +39,8 @@ def main():
     for _ in xrange(impact_count):
         craters_comp.update()
 
-    craters_comp.imshow('planet_surface__elevation', grid_units=('km', 'km'),
-                        symmetric_cbar=True)
+    grid.imshow('node', 'planet_surface__elevation', grid_units=('km', 'km'),
+                symmetric_cbar=True)
 
 
 if __name__ == "__main__":
