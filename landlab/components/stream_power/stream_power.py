@@ -16,7 +16,7 @@ class StreamPower(object):
     def initialize(self, grid, data, tstep):
         self.m = 0.5
         self.n = 1.
-        self.K = 1.e-5 * tstep
+        self.K = 1.e-3 * tstep
         self.unit_stream_power = grid.create_node_dvector()
         #Flags for self-building of derived data:
         self.made_max_gradients = 0
@@ -27,15 +27,15 @@ class StreamPower(object):
             data.node_max_gradients
         except:
             try:
-                data.node_max_gradients = grid.calculate_max_gradients_at_nodes(data.elev, data.link_gradients)
+                data.node_max_gradients, dummy = grid.calculate_steepest_descent_on_nodes(data.elev, data.link_gradients)
                 self.made_max_gradients = 1
             except:
                 data.link_gradients = grid.calculate_gradients_at_active_links(data.elev)
-                grid.calculate_max_gradients_at_nodes(data.elev, data.link_gradients)
+                data.node_max_gradients, dummy = grid.calculate_steepest_descent_on_nodes(data.elev, data.link_gradients)
                 self.made_max_gradients = 1
                 self.made_link_gradients = 1
         try:
-            data.flowacc
+            data.flowacc.shape
         except:
             print 'Flow accumulation data is not available! Run will crash out.'
         
@@ -46,7 +46,7 @@ class StreamPower(object):
         if self.made_link_gradients:
             data.link_gradients = grid.calculate_gradients_at_active_links(data.elev)
         if self.made_max_gradients:
-            data.node_max_gradients = grid.calculate_max_gradients_at_nodes(data.elev, data.link_gradients)
+            data.node_max_gradients, dummy = grid.calculate_steepest_descent_on_nodes(data.elev, data.link_gradients)
         
         #Operate the main function:
         active_nodes = grid.get_active_cell_node_ids()
@@ -55,3 +55,5 @@ class StreamPower(object):
         self.unit_stream_power[active_nodes] = unit_stream_power_active_nodes
         
         data.elev -= (self.K * self.unit_stream_power)
+        
+        return data.elev
