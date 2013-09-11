@@ -8,8 +8,10 @@ class Component(object):
     def __init__(self, grid, map_vars={}):
         self._grid = grid
 
-        for (dest, src) in map_vars.items():
-            grid[dest] = grid[src]
+        for (location, vars) in map_vars.items():
+            for (dest, src) in vars.items():
+                grid.add_field(location, dest,
+                               grid.field_values(location, src))
 
     @property
     def input_var_names(self):
