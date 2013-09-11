@@ -11,6 +11,8 @@ from landlab.components.stream_power import stream_power
 from landlab.plot.imshow import imshow_grid
 from pylab import show
 from copy import copy
+reload(flow_routing_D8)
+reload(flow_accumulation)
 reload(stream_power)
 reload(raster)
 

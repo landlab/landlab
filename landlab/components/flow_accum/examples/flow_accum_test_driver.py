@@ -4,6 +4,7 @@ import landlab.grid.raster as raster
 from landlab.components.flow_routing import flow_routing_D8
 from landlab.components.flow_accum import flow_accumulation
 from landlab.plot.imshow import imshow_grid
+reload(flow_routing_D8)
 reload(flow_accumulation)
 reload(raster)
 
