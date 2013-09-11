@@ -170,7 +170,10 @@ class ModelGrid(ModelDataFields):
         All other keywords are the same as for the numpy zeros function.
         """
         centering = kwds.pop('centering', 'node')
-        return ModelDataFields.zeros(self, centering)
+        try:
+            return ModelDataFields.zeros(self, centering)
+        except KeyError:
+            raise TypeError(centering)
 
     def empty(self, **kwds):
         """
@@ -182,7 +185,10 @@ class ModelGrid(ModelDataFields):
         All other keywords are the same as for the numpy zeros function.
         """
         centering = kwds.pop('centering', 'node')
-        return ModelDataFields.empty(self, centering)
+        try:
+            return ModelDataFields.empty(self, centering)
+        except KeyError:
+            raise TypeError(centering)
 
     def ones(self, **kwds):
         """
@@ -194,7 +200,10 @@ class ModelGrid(ModelDataFields):
         All other keywords are the same as for the numpy zeros function.
         """
         centering = kwds.pop('centering', 'node')
-        return ModelDataFields.ones(self, centering)
+        try:
+            return ModelDataFields.ones(self, centering)
+        except KeyError:
+            raise TypeError(centering)
 
     def set_fixed_value_boundaries(self, node_ids):
         """
