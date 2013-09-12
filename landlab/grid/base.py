@@ -89,6 +89,8 @@ class ModelGrid(ModelDataFields):
     DEBUG_TRACK_METHODS = False
 
     def __init__(self):
+        super(ModelGrid, self).__init__()
+
         for centering in ['node', 'cell', 'link', 'face', ]:
             array_length = self._array_length(centering)
             try:
