@@ -42,26 +42,33 @@ import inspect
 from landlab.field import ScalarDataFields
 
 
-class ModelDataFields(dict):
-    def __init__(self):
-        super(ModelDataFields, self).__init__()
+class ModelDataFields(object):
+    def __init__(self, **kwds):
+        self._groups = dict()
+        super(ModelDataFields, self).__init__(**kwds)
 
     @property
     def groups(self):
-        return set(self.keys())
+        return set(self._groups.keys())
+
+    def has_group(self, group):
+        return group in self._groups
 
     def new_field_location(self, group, size):
-        if group not in self:
-            self[group] = ScalarDataFields(size)
-            setattr(self, 'at_' + group, self[group])
+        if self.has_group(group):
+            raise ValueError('ModelDataFields already contains %s' % group)
         else:
-            raise ValueError('ModelDataField already contains %s' % group)
+            self._groups[group] = ScalarDataFields(size)
+            setattr(self, 'at_' + group, self[group])
 
     def field_values(self, group, field):
         return self[group][field]
 
     def field_units(self, group, field):
         return self[group].units[field]
+
+    def __getitem__(self, group):
+        return self._groups[group]
 
 
 def get_method_from_class(clazz, method_name):

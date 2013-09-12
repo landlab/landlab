@@ -7,6 +7,7 @@ from landlab.field.grouped import (is_regular_method_name,
                                    prepend_arg_list_with_dict_value,
                                    regular_method_names)
 
+
 class TestRegularMethodName(unittest.TestCase):
     def test_special_name(self):
         self.assertFalse(is_regular_method_name('__init__'))
