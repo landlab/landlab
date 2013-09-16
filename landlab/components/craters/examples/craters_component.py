@@ -1,12 +1,23 @@
 #! /usr/bin/env python
 
-from landlab import RasterModelGrid
+from landlab.grid import RasterModelGrid
 from landlab.components.craters.component import CratersComponent
 
 
 def main():
     import argparse
-
+    #nmg comments
+    #The argparse library provide an easy way to enter parameter values on 
+    #the command line when running code.  
+    #Default values are provided, but they can also be
+    #provided at run time. 
+    #
+    #For Example, to specify the number of impacts when running:
+    #python craters_component.py --impact-count 200
+    #
+    #to specify the number of impacts and grid size:
+    #python craters_component.py --impact-count 200 --grid-size 500
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('--impact-count', type=int, default=128,
                         help='Number of impacts')
@@ -21,7 +32,6 @@ def main():
     seed_parser.add_argument('--without-seed', action='store_true',
                              default=False,
                              help='Seed for random number generator')
-
 
     args = parser.parse_args()
 
