@@ -53,7 +53,7 @@ def main():
     mg = create_and_initialize_grid(mpd)
     
     # Create state variable (elevation)
-    mg.add_zeros('node', 'landscape_surface__elevation')
+    z = mg.create_node_array('landscape_surface__elevation')
     
     # Create and initialize a diffusion component
     dc = DiffusionComponent(mg)
@@ -62,18 +62,17 @@ def main():
     # RUN
     
     # Run the diffusion component until it's time for the next output
-    z = mg.at_node['landscape_surface__elevation']
     dc.run_until(run_duration, z)
     
     # FINALIZE
     
     # Display results to screen
     from landlab import imshow_grid
-    #mg.imshow('node', 'landscape_surface__elevation')
-    display_model(mg, z)
+    mg.imshow('node', 'landscape_surface__elevation')
+    #display_model(mg, z)
     
     from landlab.io.netcdf import write_netcdf
-    write_netcdf('frog.nc', mg)
+    write_netcdf('diffusion_example.nc', mg)
     
  
 if __name__ == "__main__":

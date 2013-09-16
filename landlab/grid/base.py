@@ -108,6 +108,34 @@ class ModelGrid(ModelDataFields):
         """
         return self.node_status
 
+    def create_node_array_zeros( self, name=None ):
+        """
+        Returns a 1D numpy array the same length as the number of nodes. If
+        user gives optional argument 'name', we add this data to the grid with
+        the specified name and return a reference to it; otherwise, we just
+        create and return a 1D numpy array.
+        """
+        if name is None:
+            return numpy.zeros( self.num_nodes )
+        else: 
+            self.add_zeros('node', name)
+            return self.at_node[name]
+
+        
+    def create_active_link_array_zeros( self, name=None ):
+        """
+        Returns a 1D numpy array the same length as the number of nodes. If
+        user gives optional argument 'name', we add this data to the grid with
+        the specified name and return a reference to it; otherwise, we just
+        create and return a 1D numpy array.
+        """
+        if name is None:
+            return numpy.zeros( self.num_active_links )
+        else: 
+            self.add_zeros('active_link', name)
+            return self.at_node[name]
+
+        
     def create_cell_dvector( self ):
         """
         Returns a vector of floating point numbers the same length as 

@@ -4,7 +4,7 @@
 2D numerical model of diffusion, implemented using ModelGrid.
 Provides a simple tutorial example of ModelGrid functionality.
 
-Last updated GT June 2013
+Last updated GT September 2013
 
 """
 
@@ -32,20 +32,19 @@ def main():
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
     
     # Create and initialize a raster model grid
-    mg = landlab.RasterModelGrid()
-    mg.initialize(numrows, numcols, dx)
+    mg = landlab.RasterModelGrid(numrows, numcols, dx)
     
     # Set the boundary conditions
     mg.set_inactive_boundaries(False, False, True, True)
 
     # Set up scalar values
-    z = mg.create_node_dvector()            # node elevations
-    dzdt = mg.create_node_dvector()  # node rate of elevation change
+    z = mg.create_node_array_zeros()            # node elevations
+    dzdt = mg.create_node_array_zeros()  # node rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()
 
-    # Display a message
+    # Display a message, and record the current clock time
     print( 'Running diffusion_with_model_grid.py' )
     print( 'Time-step size has been set to ' + str( dt ) + ' years.' )
     start_time = time.time()

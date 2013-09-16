@@ -43,14 +43,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         20
     """
 
-    def __init__(self, num_rows, num_cols, dx=1.0):
+    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
         """
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
         
+        ..todo: 
+            the option for NOT giving rows, cols, and dx no longer works, 
+            because the *field* init requires num_active_cells, etc., to be
+            defined. Either we force users to give arguments on instantiation,
+            or set it up such that one can create a zero-node grid.
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self.ncells = num_rows * num_cols   #TBX
+        #self.ncells = num_rows * num_cols   #TBX
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )

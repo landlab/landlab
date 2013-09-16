@@ -126,7 +126,7 @@ Boundary nodes are flagged as either {\em open (active)} or {\em closed (inactiv
 
 The following is a simple tutorial in which we use ModelGrid to build an explicit, staggered-grid model of diffusion. The mathematics of diffusion describe quite a few different phenomena, among them heat conduction in solids, chemical diffusion of dissolved material, transport of momentum in a viscous shear flow, and transport of soil on hillslopes. To make this exercise concrete, we will use the latter as our working example, though in fact the solution could apply to any of these systems.
 
-To work through this example, you can type in and run the code below, or find a copy at \url{http://csdms.colorado.edu/wiki/Model:LandLab}. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn. Output from the the diffusion model is shown in Figure~\ref{basicdiffmod}.
+To work through this example, you can type in and run the code below, or find a copy at \url{http://csdms.colorado.edu/trac/landlab/} or \url{http://csdms.colorado.edu/wiki/Model:LandLab}. The complete source code for the diffusion model is listed below. Line numbers are included to make it easier to refer to particular lines of code (of course, these numbers are not part of the source code). After the listing, we will take a closer look at each piece of the code in turn. Output from the the diffusion model is shown in Figure~\ref{basicdiffmod}.
 
 %%%%%%%%%%% FIGURE %%%%%%%%%%%
  \begin{figure}[h!]
@@ -150,7 +150,7 @@ from landlab import model_grid
 import pylab
 \end{lstlisting}
 
-We start by importing {\tt model\_grid} from the {\tt landlab} package (note that the {\tt landlab} package must first be installed; see instructions XX[TO BE ADDED]). We'll also import {\tt pylab} so we can plot the results.
+We start by importing {\tt model\_grid} from the {\tt landlab} package (note that the {\tt landlab} package must first be installed; see instructions at \url{http://csdms.colorado.edu/trac/landlab/}). We'll also import {\tt pylab} so we can plot the results.
 
 
 \subsection{Setting the User-Defined Parameters}
@@ -171,20 +171,20 @@ Next, we calculate the values of parameters that are derived from the user-defin
 
 \subsection{Creating and Configuring the Grid}
 
-\lstinputlisting[firstnumber=34,firstline=34,lastline=39]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=34,firstline=34,lastline=38]{diffusion_with_model_grid.py}
 
-Our model grid is created with a call to \code{model\_grid.RasterModelGrid()}, which returns a raster model grid object. We then set up this grid with a call to its \code{initialize} method, passing it the desired grid dimensions and spacing.
+Our model grid is created with a call to \code{model\_grid.RasterModelGrid()}, which returns a raster model grid object with the given dimensions and node spacing. %We then set up this grid with a call to its \code{initialize} method, passing it the desired grid dimensions and spacing.
 
-For our boundary conditions, we would like to keep the nodes along the bottom and right edges of the grid fixed at zero elevation. We also want to have the top and left boundaries represent ridge-lines with a fixed horizontal position and no flow of sediment in or out. To accomplish this, we call the \code{set\_inactive\_boundaries} method on line 39. The method takes four boolean arguments, which indicate whether there should be closed boundary condition on the top, right, bottom, and left sides of the grid. Here we have set the flag to \code{True} for the top and left sides. This means that the links connecting the interior nodes to the perimeter nodes along these two sides will be flagged as inactive, just as illustrated (with a smaller grid) in Figure~\ref{raster4x5openclosed}. As we'll see in a moment, we will simply not bother to calculate any mass flux across these closed boundaries.
+For our boundary conditions, we would like to keep the nodes along the bottom and right edges of the grid fixed at zero elevation. We also want to have the top and left boundaries represent ridge-lines with a fixed horizontal position and no flow of sediment in or out. To accomplish this, we call the \code{set\_inactive\_boundaries} method on line 38. The method takes four boolean arguments, which indicate whether there should be closed boundary condition on the top, right, bottom, and left sides of the grid. Here we have set the flag to \code{True} for the top and left sides. This means that the links connecting the interior nodes to the perimeter nodes along these two sides will be flagged as inactive, just as illustrated (with a smaller grid) in Figure~\ref{raster4x5openclosed}. As we'll see in a moment, we will simply not bother to calculate any mass flux across these closed boundaries.
 
 
 \subsection{Creating Data}
 
-\lstinputlisting[firstnumber=41,firstline=41,lastline=50]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=40,firstline=40,lastline=50]{diffusion_with_model_grid.py}
 
-Our state variable, $z(x,y,t)$, represents the land surface elevation. One of the unique aspects of ModelGrid is that grid-based variables like $z$ are represented as 1D rather than 2D numpy arrays. Why do it this way, if we have a regular grid that naturally lends itself to 2D arrays? The answer is that we might want to have an irregular, unstructured grid, which is much easier to handle with 1D arrays of values. By using 1D arrays for all types of ModelGrid, we allow the user to switch seamlessly between structured and unstructured grids.
+Our state variable, $z(x,y,t)$, represents the land surface elevation. One of the unique aspects of ModelGrid is that grid-based variables like $z$ are represented as 1D rather than 2D Numpy arrays. Why do it this way, if we have a regular grid that naturally lends itself to 2D arrays? The answer is that we might want to have an irregular, unstructured grid, which is much easier to handle with 1D arrays of values. By using 1D arrays for all types of ModelGrid, we allow the user to switch seamlessly between structured and unstructured grids.
 
-We create our data structure for $z$ values with a call to the \code{create\_node\_dvector} method. The method simply returns a 1D numpy array filled with zeros. The length of the array is equal to the number of nodes in the grid ($20\times 30=600$), which makes sense because we want to have an elevation value associated with every node in the grid.
+We create our data structure for $z$ values with  \code{create\_node\_array\_zeros}, a ModelGrid method that creates and returns a 1D Numpy array filled with zeros (behind the scenes, it also ``attaches'' the array to the grid; we'll see later why this is useful). The length of the array is equal to the number of nodes in the grid ($20\times 30=600$), which makes sense because we want to have an elevation value associated with every node in the grid.
 On the next line, we create a second array, \code{dzdt}, to store the time rate of change of elevation. 
 %We only need to calculate $dz/dt$ at the active cells. There are $18\times 28 = 504$ cells, and all of them are active. We create our list of $dz/dt$ values at cells with a call to \code{create\_active\_cell\_dvector}, which creates a numpy array with 504 entries.
 
@@ -226,7 +226,7 @@ If the boundary nodes around the grid perimeter do not have associated cells, wh
 \newpage
 \subsection{Updating elevations}
 
-\lstinputlisting[firstnumber=65,firstline=65,lastline=70]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=64,firstline=64,lastline=68]{diffusion_with_model_grid.py}
 
 When we calculated flux divergence, we got back an array of numbers, \code{dqsds}, that represents the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. Once we've calculated rates of change, we update all node elevations by simply multiplying \code{dzdt} by our time step size. We do not want to change the elevations of the boundary nodes, however, and so we perform the update only on the interior cells. Because we are using numpy arrays, we can isolate the interior cells simply by putting our array of node IDs for interior cells inside square brackets. 
 
@@ -239,14 +239,14 @@ When we calculated flux divergence, we got back an array of numbers, \code{dqsds
 
 \subsection{Plotting the Result}
 
-\lstinputlisting[firstnumber=74,firstline=74,lastline=92]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=73,firstline=73,lastline=93]{diffusion_with_model_grid.py}
 
 The last section of the \code{main} function plots the result of our calculation. We do this using pylab's \code{imshow} and \code{contour} functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our \code{z} values through a call to RasterModelGrid's \code{node\_vector\_to\_raster} method.
 
 %\newpage
 \subsection{Running the \code{main()} function}
 
-\lstinputlisting[firstnumber=95,firstline=95,lastline=96]{diffusion_with_model_grid.py}
+\lstinputlisting[firstnumber=96,firstline=96,lastline=97]{diffusion_with_model_grid.py}
 
 The last two lines of code are standard Python syntax. They will execute the \code{main} function when the code is run, but not when the code is simply imported as a module.
 
