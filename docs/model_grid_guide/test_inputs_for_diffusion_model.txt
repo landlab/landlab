@@ -1,0 +1,34 @@
+# test_inputs_for_diffusion_model.txt
+#
+# Grid parameters:
+GRID_TYPE
+raster
+NUM_ROWS
+20
+NUM_COLS
+32
+GRID_SPACING
+2.0
+LEFT_BOUNDARY:
+closed
+RIGHT_BOUNDARY:
+closed
+TOP_BOUNDARY:
+open
+BOTTOM_BOUNDARY:
+open
+# Run-control parameters:
+RUN_DURATION
+500000.0
+OPINTRVL
+40000.0
+OPT_SCREEN_OUTPUT
+True
+OPT_FILE_OUTPUT
+False
+# Diffusion component parameters:
+DIFMOD_KD
+0.01
+DIFMOD_UPLIFT_RATE
+0.001
+
