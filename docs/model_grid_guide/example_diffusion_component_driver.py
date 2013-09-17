@@ -53,7 +53,7 @@ def main():
     mg = create_and_initialize_grid(mpd)
     
     # Create state variable (elevation)
-    z = mg.create_node_array('landscape_surface__elevation')
+    z = mg.create_node_array_zeros('landscape_surface__elevation')
     
     # Create and initialize a diffusion component
     dc = DiffusionComponent(mg)
