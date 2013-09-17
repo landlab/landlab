@@ -8,7 +8,9 @@ TEMP_FILES = ${TEX_FILES:.tex=.log} \
 					   ${TEX_FILES:.tex=.aux}
 
 # Use these commands
-PDFLATEX=pdflatex
+ifndef PDFLATEX
+	PDFLATEX=pdflatex
+endif
 ECHO=/usr/bin/printf
 
 # Use these compile flags
