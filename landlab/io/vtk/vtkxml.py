@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import xml.dom.minidom
 from landlab.io.vtk.encoders import encode
-from landlab.io.vtk.vtktypes import SYS_TO_VTK_ENDIAN, NP_TO_VTK_TYPE
+from landlab.io.vtk.vtktypes import SYS_TO_VTK_ENDIAN, NUMPY_TO_VTK_TYPE
 
 
 class VtkExtent(object):
