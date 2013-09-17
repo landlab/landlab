@@ -11,8 +11,8 @@ def imshow_grid(grid, values, var_name=None, var_units=None,
     data = values.view()
     data.shape = grid.shape
 
-    y = np.linspace(0, grid.get_grid_ydimension(), data.shape[0])
-    x = np.linspace(0, grid.get_grid_xdimension(), data.shape[1])
+    y = np.arange(data.shape[0] + 1) - grid.dx * .5
+    x = np.arange(data.shape[1] + 1) - grid.dx * .5
 
     if symmetric_cbar:
         (var_min, var_max) = (data.min(), data.max())
@@ -21,8 +21,11 @@ def imshow_grid(grid, values, var_name=None, var_units=None,
     else:
         limits = (None, None)
 
-    plt.pcolormesh(y, x, data, vmin=limits[0], vmax=limits[1], cmap=cmap)
-    #plt.pcolormesh(y, x, data, vmin=limits[0], vmax=limits[1])
+    plt.pcolormesh(x, y, data, vmin=limits[0], vmax=limits[1], cmap=cmap)
+
+    plt.gca().set_aspect(1.)
+    plt.autoscale(tight=True)
+
     plt.colorbar()
 
     plt.xlabel('X (%s)' % grid_units[1])
