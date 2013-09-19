@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.ma as ma
 
 """
 Preliminary work for a submarine delta foreset sed router. Not yet functioning!
@@ -22,8 +23,8 @@ class Littoral(object):
         Qs_to_each_neighbor = dry_land_Qs_array[wet_neighbor_nonzero]/wet_neighbor_count_nonzero
         wet_cell_neighbors = np.where(cell_neighbor_heights<0,cell_neighbors,-1)[wet_neighbor_nonzero]
         self.Qs_in_source_cell_extended = np.zeros(len(dry_land_Qs_array)+1)
-        Qs_in_source_cell_extended[wet_cell_neighbors] += Qs_to_each_neighbor #broadcasting should sort this out automatically
-        self.Qs_in_source_cell = Qs_in_source_cell_extended[:-1]
+        self.Qs_in_source_cell_extended[wet_cell_neighbors] += Qs_to_each_neighbor #broadcasting should sort this out automatically
+        self.Qs_in_source_cell = self.Qs_in_source_cell_extended[:-1]
         
         return self.Qs_in_source_cell
         #This returned array is filled with zeros, except where sed has been discharged directly into the sea cells, where it
@@ -31,11 +32,43 @@ class Littoral(object):
 
 class ForesetAggrade(object):
     def __init__(self, grid, source_cells_Qs, elev):
-        self.repose_angle = np.tan(32.*np.pi/180)
+        self.tan_repose_angle = np.tan(32.*np.pi/180)
         #source_cells_Qs is a np array of -1s except where a source cell, when it contains the Qs in
         
-    def aggrade_front(self, grid, source_cells_Qs, elev):
+    def aggrade_front(self, grid, tstep, source_cells_Qs, elev, SL): #ensure Qs and tstep units match!
         
-        self.Qs_sort_order = np.argsort(source_cells_Qs)
-        self.Qs_sort_order = self.Qs_sort_order[:np.count_nonzero(Qs_sort_order>0)]
-        
+        self.total_sed_supplied_in_tstep = source_cells_Qs*tstep
+        self.Qs_sort_order = np.argsort(source_cells_Qs)[::-1] #descending order
+        self.Qs_sort_order = self.Qs_sort_order[:np.count_nonzero(self.Qs_sort_order>0)]
+        for i in self.Qs_sort_order:
+            subaerial_nodes = elev>SL
+            subsurface_elev_array = ma.array(elev, subaerial_nodes)
+            xy_tuple = (grid.node_x[i], grid.node_y[i])
+            #cone_elev_from_current_source = subsurface_elev_array[i]-grid.get_distances_of_nodes_to_point(xy_tuple)*self.tan_repose_angle
+            max_cone_elev_to_surface = -grid.get_distances_of_nodes_to_point(xy_tuple)*self.tan_repose_angle
+            subsurface_elev_array[max_cone_elev_to_surface<subsurface_elev_array] = ma.masked
+            #the subsurface_elev_array is now masked to the cells into which sed can be added to form the cone
+            depth_of_accom_space = max_cone_elev_to_surface - subsurface_elev_array
+            accom_depth_order = ma.argsort(depth_of_accom_space)[::-1]
+            for j in range(ma.count_nonzero(depth_of_accom_space)):
+                #this try loop will break when the final 
+                try:
+                    height_to_raise = depth_of_accom_space[accom_depth_order[j]]-depth_of_accom_space[accom_depth_order[j+1]]
+                except:
+                    break
+                else:
+                    area_raised = np.sum(grid.cellarea[accom_depth_order[:j]])
+                    if height_to_raise*area_raised < self.total_sed_supplied_in_tstep[i]:
+                        self.total_sed_supplied_in_tstep[i] -= height_to_raise*area_raised
+                        subsurface_elev_array[accom_depth_order[:j]] += height_to_raise
+                    else:
+                        height_to_raise = self.total_sed_supplied_in_tstep[i]/area_raised
+                        subsurface_elev_array[accom_depth_order[:j]] += height_to_raise
+                        break
+            if self.total_sed_supplied_in_tstep[i] > 0:
+                if np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]] > self.total_sed_supplied_in_tstep[i]:
+                    subsurface_elev_array += self.total_sed_supplied_in_tstep[i]/np.sum(grid.cellarea[accom_depth_order])
+                else:
+                    subsurface_elev_array += depth_of_accom_space[accom_depth_order[-1]]
+                    self.total_sed_supplied_in_tstep[i] -= np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]]
+                    #Then need to do further raising of next cells out... but at least it's smooth in the masked grid already.

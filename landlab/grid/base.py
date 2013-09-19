@@ -1028,7 +1028,19 @@ class ModelGrid(ModelDataFields):
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
         self.reset_list_of_active_links()
-                
+
+    def get_distances_of_nodes_to_point(self, tuple_xy):
+        """
+        Returns an array of distances for each node to a provided point.
+        Point is provided as a tuple (x,y).
+        """
+        assert isinstance(tuple_xy, tuple)
+        assert len(tuple_xy) == 2
+        
+        x_displacement = (self.get_node_x_coords()-tuple_xy[0])
+        y_displacement = (self.get_node_y_coords()-tuple_xy[1])
+        dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
+        return dist_array
 
 if __name__ == '__main__':
     import doctest
