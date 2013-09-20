@@ -33,7 +33,7 @@ class Littoral(object):
 class ForesetAggrade(object):
     def __init__(self, grid, source_cells_Qs, elev):
         self.tan_repose_angle = np.tan(32.*np.pi/180)
-        #source_cells_Qs is a np array of -1s except where a source cell, when it contains the Qs in
+        #source_cells_Qs is a np array of 0s except where a (submarine) source cell, when it contains the Qs delivered to that cell from land.
         
     def aggrade_front(self, grid, tstep, source_cells_Qs, elev, SL): #ensure Qs and tstep units match!
         
@@ -41,69 +41,41 @@ class ForesetAggrade(object):
         self.Qs_sort_order = np.argsort(source_cells_Qs)[::-1] #descending order
         self.Qs_sort_order = self.Qs_sort_order[:np.count_nonzero(self.Qs_sort_order>0)]
         for i in self.Qs_sort_order:
-            subaerial_nodes = elev>SL
+            subaerial_nodes = elev>=SL
             subsurface_elev_array = ma.array(elev, subaerial_nodes)
             xy_tuple = (grid.node_x[i], grid.node_y[i])
             distance_map = grid.get_distances_of_nodes_to_point(xy_tuple)
-            #cone_elev_from_current_source = subsurface_elev_array[i]-grid.get_distances_of_nodes_to_point(xy_tuple)*self.tan_repose_angle
-            max_cone_elev_to_surface = -distance_map*self.tan_repose_angle
-            subsurface_elev_array[max_cone_elev_to_surface<subsurface_elev_array] = ma.masked
-            #the subsurface_elev_array is now masked to the cells into which sed can be added to form the cone
-            depth_of_accom_space = max_cone_elev_to_surface - subsurface_elev_array
-            accom_depth_order = ma.argsort(depth_of_accom_space)[::-1]
-            for j in range(ma.count_nonzero(depth_of_accom_space)):
-                #this try loop will break when the final 
+            loop_number = 0
+            closest_node_list = ma.argsort(ma.masked_array(distance_map, mask=subsurface_elev_array.mask))
+            smooth_cone_elev_from_apex = subsurface_elev_array[i]-distance_map*self.tan_repose_angle
+            while 1:
+                filled_all_cells_flag = 0
+                accom_space_at_controlling_node = SL - subsurface_elev_array[closest_node_list[loop_number]]
+                new_max_cone_surface_elev = smooth_cone_elev_from_apex + accom_space_at_controlling_node
+                subsurface_elev_array.mask = (elev>=SL or new_max_cone_surface_elev<elev)
+                depth_of_accom_space = new_max_cone_surface_elev - subsurface_elev_array
+                accom_depth_order = ma.argsort(depth_of_accom_space)[::-1]
+                #Vectorised method to calc fill volumes:
+                area_to_fill = ma.cumsum(grid.cellarea[accom_depth_order])
+                differential_depths = ma.empty_like(depth_of_accom_space)
+                differential_depths[:-1] = depth_of_accom_space[accom_depth_order[:-1]] - depth_of_accom_space[accom_depth_order[1:]]
+                differential_depths[-1] = depth_of_accom_space[accom_depth_order[-1]]
+                incremental_volumes = ma.cumsum(differential_depths*area_to_fill)
+                match_position_of_Qs_in = ma.searchsorted(incremental_volumes, self.total_sed_supplied_in_tstep[i])
                 try:
-                    height_to_raise = depth_of_accom_space[accom_depth_order[j]]-depth_of_accom_space[accom_depth_order[j+1]]
+                    depths_to_add = depth_of_accom_space-depth_of_accom_space[match_position_of_Qs_in]
                 except:
+                    depths_to_add = depth_of_accom_space-depth_of_accom_space[match_position_of_Qs_in-1]
+                    filled_all_cells_flag = 1
+                depths_to_add = depths_to_add[ma.where(depths_to_add>=0)]
+                if not filled_all_cells_flag:
+                    depths_to_add += (self.total_sed_supplied_in_tstep[i] - incremental_volumes[match_position_of_Qs_in-1])/area_to_fill[match_position_of_Qs_in-1]
+                    subsurface_elev_array[accom_depth_order[len(depths_to_add)]] = depths_to_add
+                    self.total_sed_supplied_in_tstep[i] = 0
                     break
                 else:
-                    area_raised = np.sum(grid.cellarea[accom_depth_order[:j]])
-                    if height_to_raise*area_raised < self.total_sed_supplied_in_tstep[i]:
-                        self.total_sed_supplied_in_tstep[i] -= height_to_raise*area_raised
-                        subsurface_elev_array[accom_depth_order[:j]] += height_to_raise
-                    else:
-                        height_to_raise = self.total_sed_supplied_in_tstep[i]/area_raised
-                        subsurface_elev_array[accom_depth_order[:j]] += height_to_raise
-                        break
-            if self.total_sed_supplied_in_tstep[i] > 0:
-                if np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]] > self.total_sed_supplied_in_tstep[i]:
-                    subsurface_elev_array += self.total_sed_supplied_in_tstep[i]/np.sum(grid.cellarea[accom_depth_order])
-                else:
-                    subsurface_elev_array += depth_of_accom_space[accom_depth_order[-1]]
-                    self.total_sed_supplied_in_tstep[i] -= np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]]
-                    #Then need to do further raising of next cells out... but at least it's smooth in the masked grid already.
-                    loop_number = 1 #1 is right; don't want to select the apex node itself!
-                    closest_node_list = ma.argsort(ma.masked_array(distance_map, mask=subsurface_elev_array.mask))
-                    while 1:
-                        accom_space_controlling_node = SL - subsurface_elev_array[closest_node_list[loop_number]]
-                        new_max_cone_surface_elev = max_cone_elev_to_surface + accom_space_controlling_node
-                        subsurface_elev_array.mask = (elev>=SL or new_max_cone_surface_elev<elev)
-                        #Now more or less same process as above:
-                        depth_of_accom_space = new_max_cone_surface_elev - subsurface_elev_array
-                        accom_depth_order = ma.argsort(depth_of_accom_space)[::-1]
-                        for k in range(ma.count_nonzero(depth_of_accom_space)):
-                            try:
-                                height_to_raise = depth_of_accom_space[accom_depth_order[k]]-depth_of_accom_space[accom_depth_order[k+1]]
-                            except:
-                                break
-                            else:
-                                area_raised = np.sum(grid.cellarea[accom_depth_order[:k]])
-                                if height_to_raise*area_raised < self.total_sed_supplied_in_tstep[i]:
-                                    self.total_sed_supplied_in_tstep[i] -= height_to_raise*area_raised
-                                    subsurface_elev_array[accom_depth_order[:k]] += height_to_raise
-                                else:
-                                    height_to_raise = self.total_sed_supplied_in_tstep[i]/area_raised
-                                    subsurface_elev_array[accom_depth_order[:k]] += height_to_raise
-                                    break
-                        if self.total_sed_supplied_in_tstep[i] > 0:
-                            if np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]] > self.total_sed_supplied_in_tstep[i]:
-                                subsurface_elev_array += self.total_sed_supplied_in_tstep[i]/np.sum(grid.cellarea[accom_depth_order])
-                                break
-                            else:
-                                subsurface_elev_array += depth_of_accom_space[accom_depth_order[-1]]
-                                self.total_sed_supplied_in_tstep[i] -= np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]]
-                                loop_number += 1
-                        else:
-                            break
-                        #We can almost certainly combine the first loop into this 2nd while loop
+                    subsurface_elev_array[accom_depth_order] = depths_to_add
+                    self.total_sed_supplied_in_tstep[i] -= incremental_volumes[-1]
+                    loop_number += 1
+        
+        return elev
