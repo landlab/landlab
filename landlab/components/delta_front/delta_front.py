@@ -44,8 +44,9 @@ class ForesetAggrade(object):
             subaerial_nodes = elev>SL
             subsurface_elev_array = ma.array(elev, subaerial_nodes)
             xy_tuple = (grid.node_x[i], grid.node_y[i])
+            distance_map = grid.get_distances_of_nodes_to_point(xy_tuple)
             #cone_elev_from_current_source = subsurface_elev_array[i]-grid.get_distances_of_nodes_to_point(xy_tuple)*self.tan_repose_angle
-            max_cone_elev_to_surface = -grid.get_distances_of_nodes_to_point(xy_tuple)*self.tan_repose_angle
+            max_cone_elev_to_surface = -distance_map*self.tan_repose_angle
             subsurface_elev_array[max_cone_elev_to_surface<subsurface_elev_array] = ma.masked
             #the subsurface_elev_array is now masked to the cells into which sed can be added to form the cone
             depth_of_accom_space = max_cone_elev_to_surface - subsurface_elev_array
@@ -72,3 +73,37 @@ class ForesetAggrade(object):
                     subsurface_elev_array += depth_of_accom_space[accom_depth_order[-1]]
                     self.total_sed_supplied_in_tstep[i] -= np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]]
                     #Then need to do further raising of next cells out... but at least it's smooth in the masked grid already.
+                    loop_number = 1 #1 is right; don't want to select the apex node itself!
+                    closest_node_list = ma.argsort(ma.masked_array(distance_map, mask=subsurface_elev_array.mask))
+                    while 1:
+                        accom_space_controlling_node = SL - subsurface_elev_array[closest_node_list[loop_number]]
+                        new_max_cone_surface_elev = max_cone_elev_to_surface + accom_space_controlling_node
+                        subsurface_elev_array.mask = (elev>=SL or new_max_cone_surface_elev<elev)
+                        #Now more or less same process as above:
+                        depth_of_accom_space = new_max_cone_surface_elev - subsurface_elev_array
+                        accom_depth_order = ma.argsort(depth_of_accom_space)[::-1]
+                        for k in range(ma.count_nonzero(depth_of_accom_space)):
+                            try:
+                                height_to_raise = depth_of_accom_space[accom_depth_order[k]]-depth_of_accom_space[accom_depth_order[k+1]]
+                            except:
+                                break
+                            else:
+                                area_raised = np.sum(grid.cellarea[accom_depth_order[:k]])
+                                if height_to_raise*area_raised < self.total_sed_supplied_in_tstep[i]:
+                                    self.total_sed_supplied_in_tstep[i] -= height_to_raise*area_raised
+                                    subsurface_elev_array[accom_depth_order[:k]] += height_to_raise
+                                else:
+                                    height_to_raise = self.total_sed_supplied_in_tstep[i]/area_raised
+                                    subsurface_elev_array[accom_depth_order[:k]] += height_to_raise
+                                    break
+                        if self.total_sed_supplied_in_tstep[i] > 0:
+                            if np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]] > self.total_sed_supplied_in_tstep[i]:
+                                subsurface_elev_array += self.total_sed_supplied_in_tstep[i]/np.sum(grid.cellarea[accom_depth_order])
+                                break
+                            else:
+                                subsurface_elev_array += depth_of_accom_space[accom_depth_order[-1]]
+                                self.total_sed_supplied_in_tstep[i] -= np.sum(grid.cellarea[accom_depth_order])*depth_of_accom_space[accom_depth_order[-1]]
+                                loop_number += 1
+                        else:
+                            break
+                        #We can almost certainly combine the first loop into this 2nd while loop
