@@ -3,6 +3,7 @@
 from random import random
 import math
 import numpy
+import numpy.ma as ma
 from collections import deque
 import sys
 import time
@@ -13,7 +14,7 @@ from landlab import RasterModelGrid #this is the tMesh equivalent module
 from pylab import plot, draw, show, contour, imshow, colorbar
 from copy import copy
 
-sys.setrecursionlimit(1500)
+#sys.setrecursionlimit(1500)
 
 class data(object):
     '''
@@ -47,7 +48,7 @@ class impactor(object):
         self._minimum_crater = min_radius #km. This is the smallest modelled crater radius. 10m diameter is the strict cutoff for known cr distns
         self.ivanov_a = [-3.0876, -3.557528, 0.781027, 1.021521, -0.156012, -0.444058, 0.019977, 0.08685, -0.005874, -0.006809, 0.000825, 0.0000554] #The coefficients for Ivanov's crater distn function
         self._impactor_angle_to_surface = -999.
-        self._angle_to_horizontal = -999.
+        self._angle_to_vertical = -999.
         self._minimum_ejecta_thickness = 0.000001
         #NB - If this min thickness is changed, the optimization point in excavate_a_crater_optimized() will also need to be changed
         self._beta_factor = 0.5 #this is the arbitrary term that controls how "stretched out" the ejecta field is. <+0.5 prevents "outside the ejecta field" regions forming
@@ -189,7 +190,7 @@ class impactor(object):
         '''
         This method sets the angle of impact, assuming the only effect is rotation of the planet under the impactor bombardment (i.e., if the target looks like a circle to the oncoming impactor, there's more limb area there to hit). As long as target is rotating relative to the sun, other (directional) effects should cancel. Angle is given to horizontal. Also sets a random azimuth.
         '''
-        self._angle_to_horizontal =  numpy.arccos(random()) #gives sin distn with most values drawn nearer to 0
+        self._angle_to_vertical =  numpy.arccos(random()) #gives sin distn with most values drawn nearer to 0
         self._azimuth_of_travel = random() * 2. * numpy.pi #equal chance of any azimuth
         #Shoemaker 1983 gives a speculative equn for the suppression of D by increasing impact angle (his equ 3), but effect is minor, and it's probably not worth the trouble.
         #Shoemaker 1962 (in book) apparently states low angle impacts are very rare. Need to read this.
@@ -262,7 +263,7 @@ class impactor(object):
                      [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
         for x,y in slope_pts:
             if x < grid.get_grid_xdimension() and y < grid.get_grid_ydimension():
-                radial_points.append(self.snap_coords_to_grid(grid, x, y))
+                radial_points.append(grid.snap_coords_to_grid(x, y))
         for a in radial_points:
             if grid.is_interior(a):
                 slope, dir = grid.calculate_max_gradient_across_node(data.elev, a)
@@ -295,7 +296,7 @@ class impactor(object):
         print 'The mean slope is: ', self._surface_slope
     
     
-    def set_crater_mean_slope_v2(self, grid, data):
+    def set_crater_mean_slope_v1(self, grid, data):
         '''
         This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. This version of the method works by taking four transects across the crater area every 45 degrees around its rim, calculating the slope along each, then setting the slope as the greatest, positive downwards and in the appropriate D8 direction. This function also sets the mean surface dip direction.
         '''
@@ -311,25 +312,25 @@ class impactor(object):
         slope_pts1 = [[self._xcoord,self._ycoord+self._radius],
                      [self._xcoord+half_crater_radius,self._ycoord+half_crater_radius],
                      [self._xcoord+self._radius,self._ycoord],
-                     [self._xcoord+half_crater_radius,self._ycoord-half_crater_radius]]
+                     [self._xcoord+half_crater_radius,self._ycoord-half_crater_radius]] #(4,2)
         slope_pts2 = [[self._xcoord,self._ycoord-self._radius],
                      [self._xcoord-half_crater_radius,self._ycoord-half_crater_radius],
                      [self._xcoord-self._radius,self._ycoord],
-                     [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
+                     [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]] #(4,2)
         counter=0
         grid_xdimension = grid.get_grid_xdimension()
         grid_ydimension = grid.get_grid_ydimension()
         #this loop tests if the points round the rim are within the grid, then makes a list of nodes closest to that point. If not, it adds the central point to the list.
         for x,y in slope_pts1:
             if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
-                radial_points1[counter] = self.snap_coords_to_grid(grid, x, y)
+                radial_points1[counter] = grid.snap_coords_to_grid(x, y)
             else:
                 radial_points1[counter] = self.closest_node_index
             counter += 1
         counter=0
         for x,y in slope_pts2:
             if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
-                radial_points2[counter] = self.snap_coords_to_grid(grid, x, y)
+                radial_points2[counter] = grid.snap_coords_to_grid(x, y)
             else:
                 radial_points2[counter] = self.closest_node_index
             counter += 1
@@ -362,19 +363,45 @@ class impactor(object):
         self._surface_slope = numpy.fabs(hi_mag_slope)
         print 'The slope under the crater cavity footprint is: ', self._surface_slope
 
-        
-    def snap_coords_to_grid(self, grid, xcoord, ycoord):
+    def set_crater_mean_slope_v2(self, grid, data):
         '''
-        This method takes existing coordinates, inside the grid, and returns the ID of the closest grid node.
+        This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. This version of the method works by taking four transects across the crater area every 45 degrees around its rim, calculating the slope along each, then setting the slope as the greatest, positive downwards and in the appropriate D8 direction. This function also sets the mean surface dip direction.
+        In here, we start to assume a convex and structured grid, such that if pts N and W on the rim are in the grid, so is the point NW.
+        This version is vectorized, and so hopefully faster.
+        DEJH, Sept 2013.
         '''
-            #There should probably be an exception here: return None?
-        vertices_array = grid.get_nodes_around_point(self._xcoord, self._ycoord)
-        distances_to_vertices = numpy.empty(len(vertices_array),dtype=float)
-        counter = 0
-        for x in vertices_array:
-            distances_to_vertices[counter] = numpy.sqrt((xcoord-grid.node_x[x])**2. + (ycoord-grid.node_y[x])**2.)
-            counter += 1
-        return vertices_array[numpy.argmin(distances_to_vertices)]
+        #It would be trivial to add more divisions, i.e., D16, D32, D64, etc. Code is setup for this; just add to the slope_pts lists, and adjust the set length of the arrays with divisions
+        divisions = 4 #len(radial_points1), i.e., half the no. of points == the number of lines across the wheel
+        half_crater_radius = 0.707 * self._radius
+        #Work round clockwise from 12 o'clock
+        slope_pts1 = numpy.array([[self._xcoord,self._ycoord+self._radius],
+                     [self._xcoord+half_crater_radius,self._ycoord+half_crater_radius],
+                     [self._xcoord+self._radius,self._ycoord],
+                     [self._xcoord+half_crater_radius,self._ycoord-half_crater_radius]]) #(4,2)
+        slope_pts2 = numpy.array([[self._xcoord,self._ycoord-self._radius],
+                     [self._xcoord-half_crater_radius,self._ycoord-half_crater_radius],
+                     [self._xcoord-self._radius,self._ycoord],
+                     [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]) #(4,2)
+        inbounds_test1 = grid.is_point_on_grid(slope_pts1[:,0], slope_pts1[:,1])
+        inbounds_test2 = grid.is_point_on_grid(slope_pts2[:,0], slope_pts2[:,1])
+        distance_array = (inbounds_test1 + inbounds_test2)*self._radius
+        radial_points1 = numpy.where(inbounds_test1, (slope_pts1[:,0],slope_pts1[:,1]), [[self._xcoord], [self._ycoord]])
+        radial_points2 = numpy.where(inbounds_test2, (slope_pts2[:,0],slope_pts2[:,1]), [[self._xcoord], [self._ycoord]])
+        radial_points1 = grid.snap_coords_to_grid(radial_points1[0,:], radial_points1[1,:])
+        radial_points2 = grid.snap_coords_to_grid(radial_points2[0,:], radial_points2[1,:])
+        slope_array = numpy.where(distance_array, (data.elev[radial_points1]-data.elev[radial_points2])/distance_array, numpy.nan)
+        slope_array = numpy.arctan(slope_array)
+        #if slope  is negative, it means the surface slopes broadly EAST
+        hi_mag_slope_index = numpy.nanargmax(numpy.fabs(slope_array))
+        hi_mag_slope = slope_array[hi_mag_slope_index]
+        if hi_mag_slope > 0.: #i.e., dips WEST (or dead S)
+            self._surface_dip_direction = (hi_mag_slope_index/divisions + 1.)*numpy.pi
+        elif not hi_mag_slope: #i.e., FLAT, dip dir is arbitrary
+            self._surface_dip_direction = 0.
+        else: #dips EAST
+            self._surface_dip_direction = numpy.pi*hi_mag_slope_index/divisions    
+        self._surface_slope = numpy.fabs(hi_mag_slope)
+        print 'The slope under the crater cavity footprint is: ', self._surface_slope
 
 
     def set_elev_change_at_pts(self, grid, data):
@@ -383,7 +410,7 @@ class impactor(object):
         '''
         
         #Load in the data, for speed:
-        _angle_to_horizontal=self._angle_to_horizontal
+        _angle_to_vertical=self._angle_to_vertical
         _surface_slope=self._surface_slope
         _surface_dip_direction = self._surface_dip_direction
         _azimuth_of_travel = self._azimuth_of_travel
@@ -411,10 +438,10 @@ class impactor(object):
         
         #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
         while 1:
-            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_horizontal ~pi/2, then the surface dip direction needs to be the dominant term.
-            denominator = cos(_angle_to_horizontal) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
+            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_vertical ~pi/2, then the surface dip direction needs to be the dominant term.
+            denominator = cos(_angle_to_vertical) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
             #SOURCE OF THE DIVBYZERO!!!
-            #print 'Terms in denominator: ', cos(_angle_to_horizontal),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
+            #print 'Terms in denominator: ', cos(_angle_to_vertical),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
             tan_angle_from_imp_az = sin(_surface_slope)*sin(_surface_dip_direction - _azimuth_of_travel) / denominator
             if denominator > 0.:
                 _ejecta_azimuth = (_azimuth_of_travel + arctan(tan_angle_from_imp_az) + twopi)%(twopi)
@@ -422,8 +449,8 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel - arctan(tan_angle_from_imp_az) + pi)%(twopi)
             print 'Angle from impact azimuth: ', _ejecta_azimuth - _azimuth_of_travel
             beta_eff_options = [numpy.nan] * 2
-            beta_eff_options[0] = _angle_to_horizontal*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
-            beta_eff_options[1] = (pi - _angle_to_horizontal*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
+            beta_eff_options[0] = _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
+            beta_eff_options[1] = (pi - _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
             beta_eff = min(beta_eff_options)
             #Need to think thru if this reversal is still required:
             #if beta_eff_options[0] > beta_eff_options[1]:
@@ -435,7 +462,7 @@ class impactor(object):
                 print 'Refreshing the impactor angle'
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
-                _angle_to_horizontal = self._angle_to_horizontal
+                _angle_to_vertical = self._angle_to_vertical
         _impactor_angle_to_surface_normal = 0.5*pi - beta_eff
         print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
         #print 'Beta effective: ', beta_eff
@@ -554,7 +581,7 @@ class impactor(object):
         '''
 
         #Load in the data, for speed:
-        _angle_to_horizontal=self._angle_to_horizontal
+        _angle_to_vertical=self._angle_to_vertical
         _surface_slope=self._surface_slope
         _surface_dip_direction = self._surface_dip_direction
         _azimuth_of_travel = self._azimuth_of_travel
@@ -574,9 +601,9 @@ class impactor(object):
         
         #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
         while 1:
-            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_horizontal ~pi/2, then the surface dip direction needs to be the dominant term.
-            denominator = cos(_angle_to_horizontal) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
-            #print 'Terms in denominator: ', cos(_angle_to_horizontal),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
+            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_vertical ~pi/2, then the surface dip direction needs to be the dominant term.
+            denominator = cos(_angle_to_vertical) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
+            #print 'Terms in denominator: ', cos(_angle_to_vertical),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
             tan_angle_from_imp_az = sin(_surface_slope)*sin(_surface_dip_direction - _azimuth_of_travel) / denominator
             if denominator > 0.:
                 _ejecta_azimuth = (_azimuth_of_travel + arctan(tan_angle_from_imp_az) + twopi)%(twopi)
@@ -584,8 +611,8 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel - arctan(tan_angle_from_imp_az) + pi)%(twopi)
             print 'Angle from impact azimuth: ', _ejecta_azimuth - _azimuth_of_travel
             beta_eff_options = [numpy.nan] * 2
-            beta_eff_options[0] = _angle_to_horizontal*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
-            beta_eff_options[1] = (pi - _angle_to_horizontal*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
+            beta_eff_options[0] = _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
+            beta_eff_options[1] = (pi - _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
             beta_eff = min(beta_eff_options)
             #Need to think thru if this reversal is still required:
             #if beta_eff_options[0] > beta_eff_options[1]:
@@ -597,7 +624,7 @@ class impactor(object):
                 print 'Refreshing the impactor angle'
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
-                _angle_to_horizontal = self._angle_to_horizontal
+                _angle_to_vertical = self._angle_to_vertical
         _impactor_angle_to_surface_normal = 0.5*pi - beta_eff
         tan_beta = tan(_impactor_angle_to_surface_normal*self._beta_factor)
         tan_beta_sqd = tan_beta*tan_beta
@@ -667,6 +694,127 @@ class impactor(object):
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = _impactor_angle_to_surface_normal
 
+    def set_elev_change_only_beneath_print(self, grid, data):
+        '''
+        This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
+        This routine differs from other set_elev_change...() as it adjusts elevations only on nodes which fall w/i a certain footprint, rather than crawling out from the central impact point to a threshold depth or solving the whole grid. 
+        This version of the code does NOT correct for slope dip direction - because Furbish showed momentum almost always wins, and these impactors have a lot of momentum!
+        '''
+        
+        #Load in the data, for speed:
+        _angle_to_vertical=self._angle_to_vertical
+        _surface_slope=self._surface_slope
+        _surface_dip_direction = self._surface_dip_direction
+        _azimuth_of_travel = self._azimuth_of_travel
+        pi = numpy.pi
+        twopi = 2.*pi
+        tan = numpy.tan
+        cos = numpy.cos
+        sin = numpy.sin
+        sqrt = numpy.sqrt
+        arctan = numpy.arctan
+        arccos = numpy.arccos
+        where = numpy.where
+        _radius = self._radius
+        elev = data.elev
+        
+        #Derive the exponent for the crater shape, shared betw simple & complex:
+        crater_bowl_exp = self.get_crater_shape_exp()
+        
+        #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
+        while 1:
+            #This (somewhat modified from before) ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along.
+            #epsilon is the angle between horizontal and the impactor angle to horizontal, along the line of travel.
+            rake_in_surface_plane = _surface_dip_direction - _azimuth_of_travel
+            epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
+            if numpy.fabs(rake_in_surface_plane) <= 0.5*pi:
+                beta_eff = 0.5*pi - _angle_to_vertical - epsilon
+            else:
+                beta_eff = 1.5*pi - _angle_to_vertical - epsilon)
+            _ejecta_azimuth = _azimuth_of_travel
+            print 'Beta effective: ', beta_eff
+            #beta_eff here assumes the correction to replace angle_to_horizontal with angle_to_vertical elsewhere was correct, and IS an angle to horizontal
+            if beta_eff >= 0.:
+                break
+            else:
+                print 'Refreshing the impactor angle'
+                self.set_impactor_angles()
+                _azimuth_of_travel = self._azimuth_of_travel
+                _angle_to_vertical = self._angle_to_vertical
+
+        #making changes here, hopefully to purge bad labelling of impact angles
+        tan_beta = tan(beta_eff*self._beta_factor)
+        tan_beta_sqd = tan_beta*tan_beta
+        print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
+        #print 'Beta effective: ', beta_eff
+        #rim_height = self._cavity_volume/(3.667*pi*_radius**2.)
+
+###Got this far
+
+        #Derive the new ejecta shape params:
+        tan_repose = tan(32.*pi/180.)
+        _b = 3.667*_radius*_radius*tan_repose
+        _c = self._cavity_volume - 3.667*_radius*_radius*_radius*tan_repose - 0.5*_radius*_radius*tan_repose
+        radius_calc = (-_b + sqrt(_b*_b - 2.*tan_repose*_c))/tan_repose
+        thickness_at_rim = (_radius - radius_calc)*tan_repose
+        #...where thickness(r) = thickness_at_rim*(r/R_true)**-2.75
+        
+        #Here the code diverges from the crawling version:
+        _vec_x_to_center = grid.get_node_x_coords() - self._xcoord
+        _vec_y_to_center = grid.get_node_y_coords() - self._ycoord
+        _vec_r_to_center = sqrt(_vec_x_to_center*_vec_x_to_center + _vec_y_to_center*_vec_y_to_center)
+        try:
+            _vec_angle_to_yaxis = arctan(_vec_y_to_center/_vec_x_to_center)
+        except: #These cases have the impact right on a gridline.
+            _vec_theta = numpy.empty(len(_vec_x_to_center))
+            nonzero_nodes = numpy.nonzero(_vec_x_to_center)
+            _vec_angle_to_yaxis = arctan(_vec_y_to_center[nonzero_nodes]/_vec_x_to_center[nonzero_nodes])
+            _vec_theta[nonzero_nodes] = where(_vec_x_to_center[nonzero_nodes]<0,1.5*pi-_vec_angle_to_yaxis,0.5*pi-_vec_angle_to_yaxis)
+            zero_nodes = where(_vec_x_to_center==0.)[0]
+            _vec_theta[zero_nodes] = where(_vec_y_to_center[zero_nodes]<0,pi,0.)
+        else: #the normal case
+            _vec_theta = where(_vec_x_to_center<0,1.5*pi-_vec_angle_to_yaxis,0.5*pi-_vec_angle_to_yaxis)
+
+        #We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
+        #So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
+        _vec_new_z = where(_vec_r_to_center<=_radius, self.closest_node_elev - self._depth * (1. - (_vec_r_to_center/_radius)**crater_bowl_exp) + thickness_at_rim, self.closest_node_elev + thickness_at_rim + (_vec_r_to_center-_radius)*tan_repose)
+    #!!Need to come back to loading data into elev_changes, which keeps track of the mass balance - tho it's less important here.
+        nodes_below_surface = where(_vec_new_z<elev)[0]
+        nodes_above_surface = where(_vec_new_z>=elev)[0]
+        #Check if we need to adjust for a central peak
+        if self._crater_type:
+            central_peak_pts = where(_vec_r_to_center<=self._complex_peak_radius)
+            _vec_new_z[central_peak_pts] = _vec_new_z[central_peak_pts] + self._complex_peak_str_uplift * (1. - _vec_r_to_center[central_peak_pts]/self._complex_peak_radius)
+        #Set the ground elev for below ground nodes
+        elev[nodes_below_surface] = _vec_new_z[nodes_below_surface]
+        #From here on, our new arrays will only be as long as nodes_above_surface
+        _vec_flat_thickness_above_surface = thickness_at_rim*(_vec_r_to_center[nodes_above_surface]/_radius)**-2.75
+        _vec_theta_eff = _ejecta_azimuth - _vec_theta[nodes_above_surface] #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
+        _vec_sin_theta_sqd = sin(_vec_theta_eff) ** 2.
+        _vec_cos_theta = cos(_vec_theta_eff)
+        #REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
+        nodes_inside_ejecta = where(_vec_sin_theta_sqd*tan_beta_sqd <= 1.) #these are indices to an array of length nodes_above_surface only
+        _vec_thickness = numpy.zeros(nodes_above_surface.size) #i.e., it's zero outside the ejecta
+        _vec_mu_theta_by_mu0 = tan_beta * _vec_cos_theta[nodes_inside_ejecta] + sqrt(1. - _vec_sin_theta_sqd[nodes_inside_ejecta] * tan_beta_sqd)
+        _vec_f_theta = (tan_beta_sqd*(_vec_cos_theta[nodes_inside_ejecta]**2.-_vec_sin_theta_sqd[nodes_inside_ejecta]) + 2.*tan_beta*_vec_cos_theta[nodes_inside_ejecta]*sqrt(1.-tan_beta_sqd*_vec_sin_theta_sqd[nodes_inside_ejecta]) + 1.) / twopi
+        #So, distn_at_angle = distn_vertical_impact*f_theta/mu_theta_by_mu0. Draw the thickness at the active node:
+        #NB-the 2pi is to correct for mismatch in the dimensions of mu and f
+        thickness_at_nodes_under_ejecta = _vec_f_theta/_vec_mu_theta_by_mu0 * twopi * _vec_flat_thickness_above_surface[nodes_inside_ejecta]
+        #Set the thicknesses <0 to 0:
+        thickness_at_nodes_under_ejecta = where(thickness_at_nodes_under_ejecta>=0.,thickness_at_nodes_under_ejecta, 0.)
+        #make the ejecta thickness map for all nodes above surface:
+        _vec_thickness[nodes_inside_ejecta] = thickness_at_nodes_under_ejecta
+        #Now, are we inside or outside the rim?
+        elev[nodes_above_surface] = where(_vec_new_z[nodes_above_surface]<=elev[nodes_above_surface]+_vec_thickness,_vec_new_z[nodes_above_surface], elev[nodes_above_surface]+_vec_thickness)
+
+        
+        #Save any data to the higher level:
+        self.mass_balance_in_impact = 0. #this isn't true, but now effectively a flag that we've used this method
+        self.ejecta_azimuth = _ejecta_azimuth
+        self.impactor_angle_to_surface_normal = _impactor_angle_to_surface_normal
+
+
+
 
     def excavate_a_crater(self, grid, data):
         '''
@@ -731,14 +879,14 @@ class impactor(object):
         if numpy.any(forced_pos):
             self.set_coords(grid, data)
         else:
-            self._xcoord = forced_pos[0]*(mg.get_grid_xdimension()-mg.dx)
-            self._ycoord = forced_pos[1]*(mg.get_grid_ydimension()-mg.dx)
+            self._xcoord = forced_pos[0]*(grid.get_grid_xdimension()-grid.dx)
+            self._ycoord = forced_pos[1]*(grid.get_grid_ydimension()-grid.dx)
             print self._xcoord, self._ycoord
         if numpy.isnan(forced_angle):
             self.set_impactor_angles()
             #print 'Angle was NaN!'
         else:
-            self._angle_to_horizontal = forced_angle/numpy.pi*180.
+            self._angle_to_vertical = forced_angle/numpy.pi*180.
             self._azimuth_of_travel = 0.5*numpy.pi
         self.set_crater_mean_slope_v2(grid, data)
         if numpy.isnan(self._surface_slope):
@@ -850,7 +998,7 @@ def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
     cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
     cr.closest_node_elev = vectors.elev[cr.closest_node_index]
 
-    cr._angle_to_horizontal = numpy.pi*0.5*2./3.
+    cr._angle_to_vertical = numpy.pi*0.5*2./3.
     cr._azimuth_of_travel = numpy.pi*1.5
     cr.set_crater_mean_slope_v2(mg, vectors)
     print 'Azimuth of travel: ', cr._azimuth_of_travel

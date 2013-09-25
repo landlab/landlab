@@ -438,16 +438,64 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return(self._dx)
 
+    def is_point_on_grid(self, xcoord, ycoord):
+        """
+        This method takes x,y coordinates and tests whether they lie within the
+        grid. The limits of the grid are taken to be links connecting the 
+        boundary nodes. We perform a special test to detect looped boundaries.
+        
+        Coordinates can be ints or arrays of ints. If arrays, will return an
+        array of the same length of truth values.
+        """
+        x_condition = 0.<xcoord<self.get_grid_xdimension()
+        y_condition = 0.<ycoord<self.get_grid_ydimension()
+        if np.all(self.node_status(sgrid.left_edge_node_ids(self.shape))==3) or np.all(self.node_status(sgrid.right_edge_node_ids(self.shape))==3):    
+            try:
+                x_condition[:] = 1
+            except:
+                x_condition = 1
+        if np.all(self.node_status(sgrid.top_edge_node_ids(self.shape))==3) or np.all(self.node_status(sgrid.bottom_edge_node_ids(self.shape))==3):
+            try:
+                y_condition[:] = 1
+            except:
+                y_condition = 1
+        return x_condition and y_condition
+
     def get_nodes_around_point(self, xcoord, ycoord):
         """
         This method takes an x,y coordinate within the grid, then returns the 
         IDs of the four nodes of the area (enclosure?) around that point as a 
-        4 item list. Because the geometry of this grid is so simple, it works 
-        purely by counting the number of squares left and below the point. 
-        Method added 4/29/13 by DEJH.
+        4 item array, in order [SOUTHWEST,SOUTHEAST,NORTHWEST,NORTHEAST], i.e.,
+        ID order. Because the geometry of this grid is so simple, it works 
+        purely by counting the number of squares left and below the point.
+        If xcoord and ycoord are arrays, returns a (4,len_array) array. 
+        Method added 4/29/13 by DEJH, modified 9/24/13.
         """
+        
+        assert (len(xcoord) == len(ycoord)) or (type(xcoord) == int and type(ycoord) == int)
         ID = int(ycoord//self._dx * self.ncols + xcoord//self._dx)
         return numpy.array([ID, ID+self.ncols, ID+self.ncols+1, ID+1])
+        
+    def snap_coords_to_grid(self, xcoord, ycoord):
+        '''
+        This method takes existing coordinates, inside the grid, and returns
+        the ID of the closest grid node. That node can be active or inactive.
+        DEJH, 9/24/13.
+        '''
+        #This testing suppressed for speed. While suppressed, coordinates provided MUST be within the grid or silent instability will occur.
+        #if type(xcoord) == int:
+        #    if not self.is_point_on_grid(xcoord, ycoord):
+        #        raise LookupError('Coordinates specified are outside the grid area')
+        #else: #it's an array
+        #    if not numpy.all(self.is_point_on_grid(xcoord, ycoord)):
+        #        raise LookupError('One or more pairs of coordinates specified are outside the grid area')
+        vertices_array = self.get_nodes_around_point(xcoord, ycoord)
+        distances_to_vertices = numpy.empty((4,len(xcoord)))
+        xdir_displacement = numpy.tile(xcoord,(4,1)) - self.node_x[vertices_array]
+        ydir_displacement = numpy.tile(ycoord,(4,1)) - self.node_y[vertices_array]
+        distances_to_vertices = numpy.sqrt(xdir_displacement*xdir_displacement + ydir_displacement*ydir_displacement)
+        return vertices_array[numpy.argmin(distances_to_vertices, axis=0), xrange(vertices_array.shape[1])]
+        #...per fancy indexing
     
     def get_minimum_active_link_length(self):
         """
