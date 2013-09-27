@@ -1029,9 +1029,12 @@ class ModelGrid(ModelDataFields):
         
         self.reset_list_of_active_links()
 
-    def get_distances_of_nodes_to_point(self, tuple_xy):
+    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0):
         """
         Returns an array of distances for each node to a provided point.
+        If "get_az" is set to 1, returns both the distance array and an array
+        of azimuths from up/north. If it is not set, returns just the distance
+        array.
         Point is provided as a tuple (x,y).
         """
         assert isinstance(tuple_xy, tuple)
@@ -1040,7 +1043,21 @@ class ModelGrid(ModelDataFields):
         x_displacement = (self.get_node_x_coords()-tuple_xy[0])
         y_displacement = (self.get_node_y_coords()-tuple_xy[1])
         dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
-        return dist_array
+        if get_az:
+            try:
+                angle_to_xaxis = numpy.arctan(y_displacement/x_displacement)
+            except: #These cases have the impact right on a gridline.
+                azimuth_array = numpy.empty(len(x_displacement))
+                nonzero_nodes = numpy.nonzero(x_displacement)
+                angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
+                azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
+                zero_nodes = numpy.where(x_displacement==0.)[0]
+                azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
+            else: #the normal case
+                azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+            return dist_array, azimuth_array
+        else:
+            return dist_array
 
 if __name__ == '__main__':
     import doctest
