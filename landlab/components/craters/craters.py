@@ -250,127 +250,18 @@ class impactor(object):
         self._cavity_volume = 0.51 * numpy.pi * self._depth * self._radius**3. / (0.51*self._radius + 2.*self._depth)
 
 
-    def set_crater_mean_slope(self, grid, data):
-        '''
-        This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. For computational efficiency reasons, the average slope is a mean of local slopes at 8 points 45 degrees apart around the crater rim, plus the center point. This function also  sets the mean surface dip direction.
-            NOW DEPRECIATED, USE V2!
-        '''
-        #This might not be the best way to do this... There are issues with the magnitude of the slope being high if the individual points slope steeply even if they point in different directions.
-        half_crater_radius = 0.707 * self._radius
-        radial_points = []
-        #elevation_array = []
-        slope_array = []
-        dip_direction_array = []
-        #Work round clockwise from 12 o'clock
-        slope_pts = [[self._xcoord,self._ycoord+self._radius],
-                     [self._xcoord+half_crater_radius,self._ycoord+half_crater_radius],
-                     [self._xcoord+self._radius,self._ycoord],
-                     [self._xcoord+half_crater_radius,self._ycoord-half_crater_radius],
-                     [self._xcoord,self._ycoord-self._radius],
-                     [self._xcoord-half_crater_radius,self._ycoord-half_crater_radius],
-                     [self._xcoord-self._radius,self._ycoord],
-                     [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]]
-        for x,y in slope_pts:
-            if x < grid.get_grid_xdimension() and y < grid.get_grid_ydimension():
-                radial_points.append(grid.snap_coords_to_grid(x, y))
-        for a in radial_points:
-            if grid.is_interior(a):
-                slope, dir = grid.calculate_max_gradient_across_node(data.elev, a)
-            #Make sure we stay on the grid!!:
-                if not numpy.isnan(slope): #Probably not necessary now; retain for belt and braces
-                    slope_array.append(slope)
-                    dip_direction_array.append(dir)
-                else:
-                    print 'Slope is not defined at one of the nodes round the crater rim.'
-            else:
-                print 'One of the nodes round the crater rim is a boundary cell; no slope calculated here.'
-        # Add in the central node:
-        slope0, dir0 = grid.calculate_max_gradient_across_node(data.elev, self.closest_node_index)
-        if not numpy.isnan(slope0):
-            slope_array.append(slope0)
-            dip_direction_array.append(dir0)
-        self._surface_slope = numpy.mean(slope_array)
-        dip_direction_x = []
-        dip_direction_y = []
-        for a in dip_direction_array:
-            dip_direction_x.append(numpy.sin(a))
-            dip_direction_y.append(numpy.cos(a))
-        dip_direction_x_mean = numpy.mean(dip_direction_x)
-        dip_direction_y_mean = numpy.mean(dip_direction_y)
-        angle_to_yaxis = numpy.arctan(dip_direction_y_mean/dip_direction_x_mean)
-        if dip_direction_x < 0.:
-            self._surface_dip_direction = 1.5 * numpy.pi - angle_to_yaxis
-        else:
-            self._surface_dip_direction = 0.5 * numpy.pi - angle_to_yaxis
-        print 'The mean slope is: ', self._surface_slope
-    
-    
-    def set_crater_mean_slope_v1(self, grid, data):
-        '''
-        This method takes a crater of known radius, and which has already been "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a spatially averaged value for the local slope of the preexisting topo beneath the cavity footprint. This version of the method works by taking four transects across the crater area every 45 degrees around its rim, calculating the slope along each, then setting the slope as the greatest, positive downwards and in the appropriate D8 direction. This function also sets the mean surface dip direction.
-        '''
-        #It would be trivial to add more divisions, i.e., D16, D32, D64, etc. Code is setup for this; just add to the slope_pts lists, and adjust the set length of the arrays with divisions
-        divisions = 4 #len(radial_points1), i.e., half the no. of points == the number of lines across the wheel
-        half_crater_radius = 0.707 * self._radius
-        radial_points1 = numpy.empty(divisions, dtype=int)
-        radial_points2 = numpy.empty(divisions, dtype=int)
-        #elevation_array = []
-        slope_array = []
-        #dip_direction_array = []
-        #Work round clockwise from 12 o'clock
-        slope_pts1 = [[self._xcoord,self._ycoord+self._radius],
-                     [self._xcoord+half_crater_radius,self._ycoord+half_crater_radius],
-                     [self._xcoord+self._radius,self._ycoord],
-                     [self._xcoord+half_crater_radius,self._ycoord-half_crater_radius]] #(4,2)
-        slope_pts2 = [[self._xcoord,self._ycoord-self._radius],
-                     [self._xcoord-half_crater_radius,self._ycoord-half_crater_radius],
-                     [self._xcoord-self._radius,self._ycoord],
-                     [self._xcoord-half_crater_radius,self._ycoord+half_crater_radius]] #(4,2)
-        counter=0
-        grid_xdimension = grid.get_grid_xdimension()
-        grid_ydimension = grid.get_grid_ydimension()
-        #this loop tests if the points round the rim are within the grid, then makes a list of nodes closest to that point. If not, it adds the central point to the list.
-        for x,y in slope_pts1:
-            if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
-                radial_points1[counter] = grid.snap_coords_to_grid(x, y)
-            else:
-                radial_points1[counter] = self.closest_node_index
-            counter += 1
-        counter=0
-        for x,y in slope_pts2:
-            if 0. < x < grid_xdimension and 0. < y < grid_ydimension:
-                radial_points2[counter] = grid.snap_coords_to_grid(x, y)
-            else:
-                radial_points2[counter] = self.closest_node_index
-            counter += 1
-        for a in range(divisions):
-            du = data.elev[radial_points1[a]] - data.elev[radial_points2[a]]
-            #If du is negative, it means the surface slopes broadly EAST
-            if radial_points1[a] is radial_points2[a]:
-                dx = 0.
-            elif radial_points1[a] is self.closest_node_index or radial_points2[a] is self.closest_node_index:
-                dx = self._radius
-            else:
-                dx = 2.*self._radius
-            if dx:
-                slope_array.append(numpy.arctan(du/dx))
-            else:
-                slope_array.append(numpy.nan)
-        slope_array = numpy.array(slope_array)
-        #add test to see if crashing is due to problems in slope extraction:
-        if numpy.isnan(slope_array).all():
-            print 'All slopes beneath area did not evaluate! ABORT ABORT ABORT!!!'
-        hi_mag_slope_index = numpy.argmax(numpy.fabs(slope_array))
-        hi_mag_slope = slope_array[hi_mag_slope_index]
-        #print hi_mag_slope
-        if hi_mag_slope > 0.: #i.e., dips WEST (or dead S)
-            self._surface_dip_direction = (hi_mag_slope_index/divisions + 1.)*numpy.pi
-        elif not hi_mag_slope: #i.e., FLAT, dip dir is arbitrary
-            self._surface_dip_direction = 0.
-        else: #dips EAST
-            self._surface_dip_direction = numpy.pi*hi_mag_slope_index/divisions    
-        self._surface_slope = numpy.fabs(hi_mag_slope)
-        print 'The slope under the crater cavity footprint is: ', self._surface_slope
+    def create_lambda_fn_for_ejecta_thickness(self):
+        """
+        This method takes the complicated equation that relates "flat" ejecta thickness (symmetrical, with impact angle=0) to radius and cavity volume which is set in __init__(), and solves it for a given pair of impact specific parameters, V_cavity & crater radius.
+        Both the cavity volume and crater radius need to have been set before this method is called.
+        Method returns a lambda function for the radially symmetrical ejecta thickness distribution as a function of distance from crater center, r. i.e., call unique_expression_for_local_thickness(r) to calculate a thickness.
+        Added DEJH Sept 2013.
+        """
+        local_solution_for_rim_thickness = self.solution_for_rim_thickness[0].subs(self.V, self._cavity_volume)
+        unique_expression_for_local_thickness = self.expression_for_local_thickness.subs({self.r0:self._radius, self.T:local_solution_for_rim_thickness})
+        unique_expression_for_local_thickness = lambdify(self.r, unique_expression_for_local_thickness)
+        return unique_expression_for_local_thickness 
+        
 
     def set_crater_mean_slope_v2(self, grid, data):
         '''
@@ -417,305 +308,15 @@ class impactor(object):
         print 'The slope under the crater cavity footprint is: ', self._surface_slope
 
 
-    def set_elev_change_at_pts(self, grid, data):
-        '''
-        This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
-        '''
-        
-        #Load in the data, for speed:
-        _angle_to_vertical=self._angle_to_vertical
-        _surface_slope=self._surface_slope
-        _surface_dip_direction = self._surface_dip_direction
-        _azimuth_of_travel = self._azimuth_of_travel
-        pi = numpy.pi
-        twopi = 2.*pi
-        tan = numpy.tan
-        cos = numpy.cos
-        sin = numpy.sin
-        sqrt = numpy.sqrt
-        arctan = numpy.arctan
-        _radius = self._radius
-        elev = data.elev
-        
-        #Build a list of nodes to work on. Starts just with the node closest to the center.
-        crater_node_list = deque([self.closest_node_index])
-        elev_changes = deque()
-        #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        flag_already_in_the_list = numpy.zeros(grid.get_count_of_all_nodes())
-        
-        #Derive the exponent for the crater shape, shared betw simple & complex:
-        crater_bowl_exp = self.get_crater_shape_exp()
-        print 'Crater shape exponent: ', crater_bowl_exp
-        
-        #print 'Radius is: ', _radius
-        
-        #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
-        while 1:
-            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_vertical ~pi/2, then the surface dip direction needs to be the dominant term.
-            denominator = cos(_angle_to_vertical) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
-            #SOURCE OF THE DIVBYZERO!!!
-            #print 'Terms in denominator: ', cos(_angle_to_vertical),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
-            tan_angle_from_imp_az = sin(_surface_slope)*sin(_surface_dip_direction - _azimuth_of_travel) / denominator
-            if denominator > 0.:
-                _ejecta_azimuth = (_azimuth_of_travel + arctan(tan_angle_from_imp_az) + twopi)%(twopi)
-            else:
-                _ejecta_azimuth = (_azimuth_of_travel - arctan(tan_angle_from_imp_az) + pi)%(twopi)
-            print 'Angle from impact azimuth: ', _ejecta_azimuth - _azimuth_of_travel
-            beta_eff_options = [numpy.nan] * 2
-            beta_eff_options[0] = _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
-            beta_eff_options[1] = (pi - _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
-            beta_eff = min(beta_eff_options)
-            #Need to think thru if this reversal is still required:
-            #if beta_eff_options[0] > beta_eff_options[1]:
-            #_azimuth_of_travel = (_azimuth_of_travel + pi)%(2.*pi)
-            print 'Beta effective: ', beta_eff
-            if beta_eff >= 0.:
-                break
-            else:
-                print 'Refreshing the impactor angle'
-                self.set_impactor_angles()
-                _azimuth_of_travel = self._azimuth_of_travel
-                _angle_to_vertical = self._angle_to_vertical
-        _impactor_angle_to_surface_normal = 0.5*pi - beta_eff
-        print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
-        #print 'Beta effective: ', beta_eff
-        #rim_height = self._cavity_volume/(3.667*pi*_radius**2.)
-
-        #Derive the new ejecta shape params:
-        tan_repose = tan(32.*pi/180.)
-        _b = 3.667*_radius*_radius*tan_repose
-        _c = self._cavity_volume - 3.667*_radius*_radius*_radius*tan_repose - 0.5*_radius*_radius*tan_repose
-        radius_calc = (-_b + sqrt(_b*_b - 2.*tan_repose*_c))/tan_repose
-        thickness_at_rim = (_radius - radius_calc)*tan_repose
-        #...where thickness(r) = thickness_at_rim*(r/R_true)**-2.75
-
-        #This code crawls out iteratively over the grid under the crater footprint, away from the centerpoint. This could be made much faster in Python if it wasn't a loop. Maybe an alternative would be to define the radius corresponding to the minimum loop, then trim out a box 2*R by 2*R to operate on, and perform all actions on arrays for speed.
-        while 1:
-            try:
-                active_node = crater_node_list.popleft() #i.e., array is not empty
-            except:
-                break
-            else:
-                active_node_x_to_center = grid.node_x[active_node] - self._xcoord
-                active_node_y_to_center = grid.node_y[active_node] - self._ycoord
-                active_node_r_to_center = sqrt(active_node_x_to_center*active_node_x_to_center + active_node_y_to_center*active_node_y_to_center)
-                #Special case for if the impact location is right on a gridline:
-                if not active_node_x_to_center:
-                    if active_node_y_to_center < 0.:
-                        active_node_theta = pi
-                    else:
-                        active_node_theta = 0.
-                else:
-                    active_node_angle_to_yaxis = arctan(active_node_y_to_center/active_node_x_to_center)
-                    if active_node_x_to_center < 0.:
-                        active_node_theta = 1.5 * pi - active_node_angle_to_yaxis
-                    else:
-                        active_node_theta = 0.5 * pi - active_node_angle_to_yaxis
-
-                #In this version, our sweep out from the center will need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
-                #So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
-                if active_node_r_to_center <= _radius:
-                    new_z = self.closest_node_elev - self._depth * (1. - (active_node_r_to_center/_radius)**crater_bowl_exp) + thickness_at_rim
-                else:
-                    new_z = self.closest_node_elev + thickness_at_rim + (active_node_r_to_center-_radius)*tan_repose
-                
-                #print new_z
-
-                if new_z<elev[active_node]: #Below the original surface
-                    #print 'Under surface'
-                    elev_changes.append(new_z-elev[active_node])
-                    if self._crater_type: #Complex crater, adjust for the peak
-                        if active_node_r_to_center <= self._complex_peak_radius: #on the peak
-                            new_z  = new_z + self._complex_peak_str_uplift * (1. - active_node_r_to_center/self._complex_peak_radius)
-                    #Set the ground elev:
-                    elev[active_node] = new_z
-                    #Add the neighboring nodes which haven't already been adjusted to the for-processing array:
-                    neighbors_active_node = grid.get_neighbor_list(active_node)
-                    for x in neighbors_active_node:
-                        if not flag_already_in_the_list[x]:
-                            if x!=-1: #Not an edge
-                                crater_node_list.append(x)
-                                flag_already_in_the_list[x] = 1
-
-                else:
-                    #Calc the ejecta thickness for a perp. impact. Note it's fine if r<R_true
-                    local_flat_thickness = thickness_at_rim*(active_node_r_to_center/_radius)**-2.75
-                    #print 'Local flat thickness: ', local_flat_thickness
-
-                    # Modulating functions are f(impactor az, dip dir, impactor angle, dip), the ejecta mass term, and mu(impactor az, dip dir, impactor angle, dip), the distance travelled term. Momentum is the dominant term over geometric effects in mu, by ~an OoM - o just model as a momentum effect.
-                    #Thickness = thickness_flat * f_theta / mu
-                    #beta_eff (==pi/2 - angle from normal) is already known.
-                    theta_eff = _ejecta_azimuth - active_node_theta #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
-                    tan_beta = tan(_impactor_angle_to_surface_normal*self._beta_factor)
-                    sin_theta_sqd = sin(theta_eff) ** 2.
-                    cos_theta = cos(theta_eff)
-                    #REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
-                    if tan_beta and sin_theta_sqd*tan_beta*tan_beta > 1.:
-                        thickness_at_active_node = 0.
-                        #print 'Outside ejecta cone'
-                    else:
-                        mu_theta_by_mu0 = tan_beta * cos_theta + sqrt(1. - sin_theta_sqd * tan_beta*tan_beta)
-                        f_theta = (tan_beta*tan_beta*(cos_theta*cos_theta-sin_theta_sqd) + 2.*tan_beta*cos_theta*sqrt(1.-tan_beta*tan_beta*sin_theta_sqd) + 1.) / twopi
-                        #print f_theta/mu_theta_by_mu0
-                        #So, distn_at_angle = distn_vertical_impact*f_theta/mu_theta_by_mu0. Draw the thickness at the active node:
-                        #NB-the 2pi is to correct for mismatch in the dimensions of mu and f
-                        thickness_at_active_node = f_theta/mu_theta_by_mu0 * twopi * local_flat_thickness
-                        if thickness_at_active_node < 0.:
-                            thickness_at_active_node = 0.
-                    #Now, are we inside or outside the rim?
-                    if new_z <= (elev[active_node] + thickness_at_active_node): #inside the rim
-                        #print 'Inside the rim, on the ejecta'
-                        elev_changes.append(new_z-elev[active_node])
-                        elev[active_node] = new_z
-                    else: #outside the rim
-                        #print 'Outside the rim'
-                        elev_changes.append(thickness_at_active_node)
-                        elev[active_node] = elev[active_node] + thickness_at_active_node
-                    #Add the neighbors to the list, but only if the thickness of the current ejecta layer was nontrivial. Smallest crater is 5m diam, so 1m deep - so its max ejecta thickness at the rim is 10cm! We should probably resolve down to, say, 2.5cm, which is <4 crater radii from the rim of our smallest crater.
-                    if thickness_at_active_node > self._minimum_ejecta_thickness:
-                        neighbors_active_node = grid.get_neighbor_list(active_node)
-                        for x in neighbors_active_node:
-                            if not flag_already_in_the_list[x]:
-                                if x!=-1:
-                                    crater_node_list.append(x)
-                                    flag_already_in_the_list[x] = 1
-        #print 'f/mu is ', f_theta/mu_theta_by_mu0
-        print 'Thickness at rim: ', thickness_at_rim
-        
-        #Save any data to the higher level:
-        self.mass_balance_in_impact = numpy.mean(elev_changes)
-        self.ejecta_azimuth = _ejecta_azimuth
-        self.impactor_angle_to_surface_normal = _impactor_angle_to_surface_normal
-
-    def set_elev_change_across_grid(self, grid, data):
-        '''
-        This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
-        This routine differs from set_elev_change_at_pts() as it adjusts elevations at all nodes in the grid, rather than crawling out from the central impact point to a threshold depth. This has the potential to be faster for some craters, as we can operate on the whole grid in C without looping.
-        '''
-
-        #Load in the data, for speed:
-        _angle_to_vertical=self._angle_to_vertical
-        _surface_slope=self._surface_slope
-        _surface_dip_direction = self._surface_dip_direction
-        _azimuth_of_travel = self._azimuth_of_travel
-        pi = numpy.pi
-        twopi = 2.*pi
-        tan = numpy.tan
-        cos = numpy.cos
-        sin = numpy.sin
-        sqrt = numpy.sqrt
-        arctan = numpy.arctan
-        where = numpy.where
-        _radius = self._radius
-        elev = data.elev
-        
-        #Derive the exponent for the crater shape, shared betw simple & complex:
-        crater_bowl_exp = self.get_crater_shape_exp()
-        
-        #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
-        while 1:
-            #This ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along. This is important since if, e.g., _angle_to_vertical ~pi/2, then the surface dip direction needs to be the dominant term.
-            denominator = cos(_angle_to_vertical) + sin(_surface_slope)*cos(_surface_dip_direction - _azimuth_of_travel)
-            #print 'Terms in denominator: ', cos(_angle_to_vertical),  sin(_surface_slope), cos(_surface_dip_direction - _azimuth_of_travel)
-            tan_angle_from_imp_az = sin(_surface_slope)*sin(_surface_dip_direction - _azimuth_of_travel) / denominator
-            if denominator > 0.:
-                _ejecta_azimuth = (_azimuth_of_travel + arctan(tan_angle_from_imp_az) + twopi)%(twopi)
-            else:
-                _ejecta_azimuth = (_azimuth_of_travel - arctan(tan_angle_from_imp_az) + pi)%(twopi)
-            print 'Angle from impact azimuth: ', _ejecta_azimuth - _azimuth_of_travel
-            beta_eff_options = [numpy.nan] * 2
-            beta_eff_options[0] = _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel) - _surface_slope * cos(_ejecta_azimuth - _surface_dip_direction)
-            beta_eff_options[1] = (pi - _angle_to_vertical*cos(_ejecta_azimuth - _azimuth_of_travel)) + _surface_slope * cos(_azimuth_of_travel - _surface_dip_direction)
-            beta_eff = min(beta_eff_options)
-            #Need to think thru if this reversal is still required:
-            #if beta_eff_options[0] > beta_eff_options[1]:
-            #_azimuth_of_travel = (_azimuth_of_travel + pi)%(2.*pi)
-            print 'Beta effective: ', beta_eff
-            if beta_eff >= 0.:
-                break
-            else:
-                print 'Refreshing the impactor angle'
-                self.set_impactor_angles()
-                _azimuth_of_travel = self._azimuth_of_travel
-                _angle_to_vertical = self._angle_to_vertical
-        _impactor_angle_to_surface_normal = 0.5*pi - beta_eff
-        tan_beta = tan(_impactor_angle_to_surface_normal*self._beta_factor)
-        tan_beta_sqd = tan_beta*tan_beta
-        print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
-        #print 'Beta effective: ', beta_eff
-        #rim_height = self._cavity_volume/(3.667*pi*_radius**2.)
-
-        #Derive the new ejecta shape params:
-        tan_repose = tan(32.*pi/180.)
-        _b = 3.667*_radius*_radius*tan_repose
-        _c = self._cavity_volume - 3.667*_radius*_radius*_radius*tan_repose - 0.5*_radius*_radius*tan_repose
-        radius_calc = (-_b + sqrt(_b*_b - 2.*tan_repose*_c))/tan_repose
-        thickness_at_rim = (_radius - radius_calc)*tan_repose
-        #...where thickness(r) = thickness_at_rim*(r/R_true)**-2.75
-        
-        #Here the code diverges from the crawling version:
-        _vec_x_to_center = grid.get_node_x_coords() - self._xcoord
-        _vec_y_to_center = grid.get_node_y_coords() - self._ycoord
-        _vec_r_to_center = sqrt(_vec_x_to_center*_vec_x_to_center + _vec_y_to_center*_vec_y_to_center)
-        try:
-            _vec_angle_to_xaxis = arctan(_vec_y_to_center/_vec_x_to_center)
-        except: #These cases have the impact right on a gridline.
-            _vec_theta = numpy.empty(len(_vec_x_to_center))
-            nonzero_nodes = numpy.nonzero(_vec_x_to_center)
-            _vec_angle_to_xaxis = arctan(_vec_y_to_center[nonzero_nodes]/_vec_x_to_center[nonzero_nodes])
-            _vec_theta[nonzero_nodes] = where(_vec_x_to_center[nonzero_nodes]<0,1.5*pi-_vec_angle_to_xaxis,0.5*pi-_vec_angle_to_xaxis)
-            zero_nodes = where(_vec_x_to_center==0.)[0]
-            _vec_theta[zero_nodes] = where(_vec_y_to_center[zero_nodes]<0,pi,0.)
-        else: #the normal case
-            _vec_theta = where(_vec_x_to_center<0,1.5*pi-_vec_angle_to_xaxis,0.5*pi-_vec_angle_to_xaxis)
-
-        #We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
-        #So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
-        _vec_new_z = where(_vec_r_to_center<=_radius, self.closest_node_elev - self._depth * (1. - (_vec_r_to_center/_radius)**crater_bowl_exp) + thickness_at_rim, self.closest_node_elev + thickness_at_rim + (_vec_r_to_center-_radius)*tan_repose)
-    #!!Need to come back to loading data into elev_changes, which keeps track of the mass balance - tho it's less important here.
-        nodes_below_surface = where(_vec_new_z<elev)[0]
-        nodes_above_surface = where(_vec_new_z>=elev)[0]
-        #Check if we need to adjust for a central peak
-        if self._crater_type:
-            central_peak_pts = where(_vec_r_to_center<=self._complex_peak_radius)
-            _vec_new_z[central_peak_pts] = _vec_new_z[central_peak_pts] + self._complex_peak_str_uplift * (1. - _vec_r_to_center[central_peak_pts]/self._complex_peak_radius)
-        #Set the ground elev for below ground nodes
-        elev[nodes_below_surface] = _vec_new_z[nodes_below_surface]
-        #From here on, our new arrays will only be as long as nodes_above_surface
-        _vec_flat_thickness_above_surface = thickness_at_rim*(_vec_r_to_center[nodes_above_surface]/_radius)**-2.75
-        _vec_theta_eff = _ejecta_azimuth - _vec_theta[nodes_above_surface] #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
-        _vec_sin_theta_sqd = sin(_vec_theta_eff) ** 2.
-        _vec_cos_theta = cos(_vec_theta_eff)
-        #REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
-        nodes_inside_ejecta = where(_vec_sin_theta_sqd*tan_beta_sqd <= 1.) #these are indices to an array of length nodes_above_surface only
-        _vec_thickness = numpy.zeros(nodes_above_surface.size) #i.e., it's zero outside the ejecta
-        _vec_mu_theta_by_mu0 = tan_beta * _vec_cos_theta[nodes_inside_ejecta] + sqrt(1. - _vec_sin_theta_sqd[nodes_inside_ejecta] * tan_beta_sqd)
-        _vec_f_theta = (tan_beta_sqd*(_vec_cos_theta[nodes_inside_ejecta]**2.-_vec_sin_theta_sqd[nodes_inside_ejecta]) + 2.*tan_beta*_vec_cos_theta[nodes_inside_ejecta]*sqrt(1.-tan_beta_sqd*_vec_sin_theta_sqd[nodes_inside_ejecta]) + 1.) / twopi
-        #So, distn_at_angle = distn_vertical_impact*f_theta/mu_theta_by_mu0. Draw the thickness at the active node:
-        #NB-the 2pi is to correct for mismatch in the dimensions of mu and f
-        thickness_at_nodes_under_ejecta = _vec_f_theta/_vec_mu_theta_by_mu0 * twopi * _vec_flat_thickness_above_surface[nodes_inside_ejecta]
-        #Set the thicknesses <0 to 0:
-        thickness_at_nodes_under_ejecta = where(thickness_at_nodes_under_ejecta>=0.,thickness_at_nodes_under_ejecta, 0.)
-        #make the ejecta thickness map for all nodes above surface:
-        _vec_thickness[nodes_inside_ejecta] = thickness_at_nodes_under_ejecta
-        #Now, are we inside or outside the rim?
-        elev[nodes_above_surface] = where(_vec_new_z[nodes_above_surface]<=elev[nodes_above_surface]+_vec_thickness,_vec_new_z[nodes_above_surface], elev[nodes_above_surface]+_vec_thickness)
-
-        
-        #Save any data to the higher level:
-        self.mass_balance_in_impact = 0. #this isn't true, but now effectively a flag that we've used this method
-        self.ejecta_azimuth = _ejecta_azimuth
-        self.impactor_angle_to_surface_normal = _impactor_angle_to_surface_normal
-
     def set_elev_change_only_beneath_footprint(self, grid, data):
         '''
         This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
         This routine differs from other set_elev_change...() as it adjusts elevations only on nodes which fall w/i a certain footprint, rather than crawling out from the central impact point to a threshold depth or solving the whole grid. 
         This version of the code does NOT correct for slope dip direction - because Furbish showed momentum almost always wins, and these impactors have a lot of momentum!
         NB - this function ASSUMES that the "beta factor" in the model is <=0.5, i.e., nonlinearities can't develop in the ejecta field, and the impact point is always within the (circular) ejecta footprint.
-        '''
-        
-        #Load in the data, for speed:
+        Created DEJH Sept 2013.
+        '''     
+        #Load in the data, for speed and conciseness:
         _angle_to_vertical=self._angle_to_vertical
         _surface_slope=self._surface_slope
         _surface_dip_direction = self._surface_dip_direction
@@ -731,66 +332,64 @@ class impactor(object):
         where = numpy.where
         _radius = self._radius
         elev = data.elev
+        tan_repose = self.tan_repose
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
         
-        #Derive the effective angle for impact, relative to the surface, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
+        #Derive the effective angle for impact, relative to the surface normal, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
         while 1:
-            #This (somewhat modified from before) ugly function applies a correction to the azimuth of travel which will be the actual angle the ejecta is propelled along.
-            #epsilon is the angle between horizontal and the impactor angle to horizontal, along the line of travel.
+            #epsilon is the angle between the surface normal and the impactor angle to vertical, projected along the line of travel.
             rake_in_surface_plane = _surface_dip_direction - _azimuth_of_travel
             print '_surface_dip_direction: ', _surface_dip_direction
             print '_azimuth_of_travel: ', _azimuth_of_travel
             print '_angle_to_vertical: ', _angle_to_vertical
             epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
-            if numpy.fabs(rake_in_surface_plane) <= 0.5*pi:
-                beta_eff = 0.5*pi - _angle_to_vertical - epsilon
+            #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
+            if numpy.fabs(rake_in_surface_plane) < 0.5*pi:
+                beta_eff = _angle_to_vertical + epsilon
+            elif numpy.fabs(rake_in_surface_plane) > 0.5*pi:
+                beta_eff = _angle_to_vertical + epsilon - pi
             else:
-                beta_eff = 1.5*pi - _angle_to_vertical - epsilon
-            _ejecta_azimuth = _azimuth_of_travel
+                beta_eff = _angle_to_vertical
+                #hopefully this will prevent the bug where surface slope = 0.
             print 'Beta effective: ', beta_eff
-            #beta_eff here assumes the correction to replace angle_to_horizontal with angle_to_vertical elsewhere was correct, and IS an angle to horizontal
-            if beta_eff >= 0.:
+            #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
+            if 0. <= beta_eff <= 90.:
+                _ejecta_azimuth = _azimuth_of_travel
+                break
+            elif 0. <= beta_eff:
+                #reverse the azimuth, make beta positive again
+                beta_eff = -beta_eff
+                _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Refreshing the impactor angle'
+                print 'Impact geometry was not possible! Refreshing the impactor angle...'
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
 
-        #making changes here, hopefully to purge bad labelling of impact angles
+        #apply correction to beta to suppress nonlinear BC problem and make ejecta patterns "look like" they actually do:
         tan_beta = tan(beta_eff*self._beta_factor)
         tan_beta_sqd = tan_beta*tan_beta
-        print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
-        #print 'Beta effective: ', beta_eff
-        #rim_height = self._cavity_volume/(3.667*pi*_radius**2.)
+        #print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
 
-        #New material to constrain the area of solution:
-        #Derive the new ejecta shape params:
-        tan_repose = self.tan_repose
-        _b = 3.667*_radius*_radius*tan_repose
-        _c = self._cavity_volume - 3.667*_radius*_radius*_radius*tan_repose - 0.5*_radius*_radius*tan_repose
-        radius_calc = (-_b + sqrt(_b*_b - 2.*tan_repose*_c))/tan_repose
-        #radius_calc is the calculated radius of the crater at the preexisting ground level. Above this, walls are treated as angle of repose. Below, crater is a power law bowl.
-        thickness_at_rim = (_radius - radius_calc)*tan_repose
-        #...where thickness(r) = thickness_at_rim*(r/R_true)**-2.75
+        unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness()
+        thickness_at_rim = unique_expression_for_local_thickness(_radius)
         
         #The center is transposed by rmax*tan(beta) in the direction of impact:
         #Might be an issue here - we use the rmax, so doesn't the *position* of the max thickness then also depend on rmax??
         #Should it actually just be r? -> no, use the MEAN: see Furbish para 27? For now, just use the max radius - this will be conservative, at least.
-        #solve the ejecta radial thickness equ w. the min thickness to get the max radius
+        #solve the ejecta radial thickness equ w. the min thickness to get the max radius:
         max_radius_ejecta_on_flat = _radius * (thickness_at_rim/self._minimum_ejecta_thickness)**0.3636
         print 'thickness_at_rim: ', thickness_at_rim
         print 'max_radius_ejecta: ', max_radius_ejecta_on_flat
         footprint_center_x = self._xcoord+sin(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
         footprint_center_y = self._ycoord+cos(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
         distances_to_footprint_center = grid.get_distances_of_nodes_to_point((footprint_center_x,footprint_center_y))
-        #footprint_nodes = numpy.where(distances_to_footprint_center<=max_radius_ejecta_on_flat)
         
         #There's currently issues doing this "properly" - and would also extend anyway as by moving the ejecta field, it's also possible to chop off part of the actual crater.
         #Resolve by also doing a full distance map for the actual impact site, and making a union of the two distance thresholds as the footprint:
-        
         distances_to_crater_center, azimuths_to_crater_center = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az=1)
         footprint_nodes = numpy.logical_or(distances_to_footprint_center<=max_radius_ejecta_on_flat, distances_to_crater_center<=max_radius_ejecta_on_flat)
         
@@ -799,79 +398,16 @@ class impactor(object):
         #make a local copy of the elevations under the footprint, so we can do a mass balance at the end:
         old_elevs_under_footprint = numpy.copy(elevs_under_footprint)
         
-        #Moved to above, for whole grid:
-        #_vec_x_to_center = grid.node_x[footprint_nodes] - self._xcoord
-        #_vec_y_to_center = grid.node_y[footprint_nodes] - self._ycoord
-        #_vec_r_to_center = sqrt(_vec_x_to_center*_vec_x_to_center + _vec_y_to_center*_vec_y_to_center)
         _vec_r_to_center = distances_to_crater_center[footprint_nodes]
         _vec_theta = azimuths_to_crater_center[footprint_nodes]
-        print distances_to_crater_center.shape, _vec_r_to_center.shape
+        #print distances_to_crater_center.shape, _vec_r_to_center.shape
 
-#####This material commented out as duplicated below!!!
         ##We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
         ##So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
-        ##_vec_new_z = where(_vec_r_to_center<=_radius, self.closest_node_elev - self._depth * (1. - (_vec_r_to_center/_radius)**crater_bowl_exp) + thickness_at_rim, self.closest_node_elev + thickness_at_rim + (_vec_r_to_center-_radius)*tan_repose) #suspect this is very inefficient
-        ##Probably faster is:
-        #_vec_new_z = numpy.empty_like(_vec_r_to_center)
-        #_nodes_within_crater = _vec_r_to_center<=_radius
-        #_nodes_outside_crater = numpy.logical_not(_nodes_within_crater)
-        ##print numpy.count_nonzero(_nodes_outside_crater)
-        #_vec_new_z[:] = self.closest_node_elev + thickness_at_rim
-        #_vec_new_z[_nodes_within_crater] -= self._depth * (1. - (_vec_r_to_center[_nodes_within_crater]/_radius)**crater_bowl_exp)
-        #_vec_new_z[_nodes_outside_crater] += (_vec_r_to_center[_nodes_outside_crater]-_radius)*tan_repose
-        #_nodes_below_surface = _vec_new_z<elev[footprint_nodes]
-        #_nodes_above_surface = numpy.logical_not(_nodes_below_surface)
-        ##Check if we need to adjust for a central peak
-        #if self._crater_type:
-        #    central_peak_pts = _vec_r_to_center<=self._complex_peak_radius
-        #    _vec_new_z[central_peak_pts] = _vec_new_z[central_peak_pts] + self._complex_peak_str_uplift * (1. - _vec_r_to_center[central_peak_pts]/self._complex_peak_radius)
-        ##Set the ground elev for below ground nodes
-        #elevs_under_footprint[_nodes_below_surface] = _vec_new_z[_nodes_below_surface]
-        ##From here on, our new arrays will only be as long as nodes_above_surface
-        #_vec_flat_thickness_above_surface = thickness_at_rim*(_vec_r_to_center[_nodes_above_surface]/_radius)**-2.75
-        #_vec_theta_eff = _ejecta_azimuth - _vec_theta[_nodes_above_surface] #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
-        #_vec_sin_theta_sqd = sin(_vec_theta_eff) ** 2.
-        #_vec_cos_theta = cos(_vec_theta_eff)
-        #
-        ##This material is not necessary as part of this footprint-based method, as we already forbid beta_factor>0.5
-        ###REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
-        ##nodes_inside_ejecta = where(_vec_sin_theta_sqd*tan_beta_sqd <= 1.) #these are indices to an array of length nodes_above_surface only
-        ##_vec_thickness = numpy.zeros(nodes_above_surface.size) #i.e., it's zero outside the ejecta
-        #_vec_mu_theta_by_mu0 = tan_beta * _vec_cos_theta + sqrt(1. - _vec_sin_theta_sqd * tan_beta_sqd)
-        #_vec_f_theta = (tan_beta_sqd*(_vec_cos_theta**2.-_vec_sin_theta_sqd) + 2.*tan_beta*_vec_cos_theta*sqrt(1.-tan_beta_sqd*_vec_sin_theta_sqd) + 1.) / twopi
-        ##So, distn_at_angle = distn_vertical_impact*f_theta/mu_theta_by_mu0. Draw the thickness at the active node:
-        ##NB-the 2pi is to correct for mismatch in the dimensions of mu and f
-        #_vec_thickness = _vec_f_theta/_vec_mu_theta_by_mu0 * twopi * _vec_flat_thickness_above_surface
-        ##Set the thicknesses <0 to 0:
-        #_vec_thickness = where(_vec_thickness>=0.,_vec_thickness, 0.)
-        ##Now, are we inside or outside the rim?
-        #elevs_under_footprint[_nodes_above_surface] = where(_vec_new_z[_nodes_above_surface]<=(elevs_under_footprint[_nodes_above_surface]+_vec_thickness),_vec_new_z[_nodes_above_surface], elevs_under_footprint[_nodes_above_surface]+_vec_thickness)
-        #_nodes_inner_rim = _vec_new_z[_nodes_above_surface]<=(elevs_under_footprint[_nodes_above_surface]+_vec_thickness)
-        #_nodes_on_ejecta = numpy.logical_not(_nodes_inner_rim)
-        #(elevs_under_footprint[_nodes_above_surface])[_nodes_inner_rim] = (_vec_new_z[_nodes_above_surface])[_nodes_inner_rim]
-        #(elevs_under_footprint[_nodes_above_surface])[_nodes_on_ejecta] = (elevs_under_footprint[_nodes_above_surface])[_nodes_on_ejecta]+_vec_thickness[_nodes_on_ejecta]
-        #                
-        ##Save any data to the higher level:      
-        #data.elev[footprint_nodes] = elevs_under_footprint #the refs get broken somewhere...
-        #self.mass_balance_in_impact = numpy.sum(elevs_under_footprint-old_elevs_under_footprint)/-numpy.sum(elevs_under_footprint[elevs_under_footprint<old_elevs_under_footprint]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
-        #self.ejecta_azimuth = _ejecta_azimuth
-        #self.impactor_angle_to_surface_normal = 0.5*pi - beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
-        ##data.elev[footprint_nodes] = 1.
-        #
-        ##return data.elev
-        #
-        ##It doesn't like either 0 slope or 0 slope dir!
-        
-        
-        #...redo some of the scaling calcs...
-        local_solution_for_rim_thickness = self.solution_for_rim_thickness[0].subs(self.V, self._cavity_volume)
-        unique_expression_for_local_thickness = self.expression_for_local_thickness.subs({self.r0:self._radius, self.T:local_solution_for_rim_thickness})
-        unique_expression_for_local_thickness = lambdify(self.r, unique_expression_for_local_thickness)
-        #Then straight copy of above from ln 814
+        #(_vec_new_z is the depth that would be excavated inside the cavity, including projected depths ouside the cavity.
         _vec_new_z = numpy.empty_like(_vec_r_to_center)
         _nodes_within_crater = _vec_r_to_center<=_radius
         _nodes_outside_crater = numpy.logical_not(_nodes_within_crater)
-        #print numpy.count_nonzero(_nodes_outside_crater)
         _vec_new_z[:] = self.closest_node_elev + thickness_at_rim
         _vec_new_z[_nodes_within_crater] -= self._depth * (1. - (_vec_r_to_center[_nodes_within_crater]/_radius)**crater_bowl_exp)
         _vec_new_z[_nodes_outside_crater] += (_vec_r_to_center[_nodes_outside_crater]-_radius)*tan_repose
@@ -884,7 +420,6 @@ class impactor(object):
         #Set the ground elev for below ground nodes
         elevs_under_footprint[_nodes_below_surface] = _vec_new_z[_nodes_below_surface]
         #From here on, our new arrays will only be as long as nodes_above_surface
-        #---->note absence here of old way of calculating the flat thickness...
         _vec_flat_thickness_above_surface = unique_expression_for_local_thickness(_vec_r_to_center[_nodes_above_surface])
         _vec_theta_eff = _ejecta_azimuth - _vec_theta[_nodes_above_surface] #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
         _vec_sin_theta_sqd = sin(_vec_theta_eff) ** 2.
@@ -903,111 +438,19 @@ class impactor(object):
         _vec_thickness = where(_vec_thickness>=0.,_vec_thickness, 0.)
         #Now, are we inside or outside the rim?
         elevs_under_footprint[_nodes_above_surface] = where(_vec_new_z[_nodes_above_surface]<=(elevs_under_footprint[_nodes_above_surface]+_vec_thickness),_vec_new_z[_nodes_above_surface], elevs_under_footprint[_nodes_above_surface]+_vec_thickness)
-        _nodes_inner_rim = _vec_new_z[_nodes_above_surface]<=(elevs_under_footprint[_nodes_above_surface]+_vec_thickness)
-        _nodes_on_ejecta = numpy.logical_not(_nodes_inner_rim)
-        (elevs_under_footprint[_nodes_above_surface])[_nodes_inner_rim] = (_vec_new_z[_nodes_above_surface])[_nodes_inner_rim]
-        (elevs_under_footprint[_nodes_above_surface])[_nodes_on_ejecta] = (elevs_under_footprint[_nodes_above_surface])[_nodes_on_ejecta]+_vec_thickness[_nodes_on_ejecta]
- 
+
         #Save any data to the higher level:      
         data.elev[footprint_nodes] = elevs_under_footprint #the refs get broken somewhere...
         self.mass_balance_in_impact = numpy.sum(elevs_under_footprint-old_elevs_under_footprint)/-numpy.sum(elevs_under_footprint[elevs_under_footprint<old_elevs_under_footprint]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = 0.5*pi - beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
-        #data.elev[footprint_nodes] = 1.
+        #Uncomment this line to see which nodes are under the footprint:
+        #data.elev[footprint_nodes] = 10.
         
         return data.elev
-        
-        
-        
+                
 
-    def excavate_a_crater(self, grid, data):
-        '''
-        This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
-        Unless devtesting, this method has been superceded by excavate_a_crater_optimized().
-        '''
-        self.set_cr_radius_from_shoemaker(data)
-        #self._radius = forced_size
-        print 'Radius: ', self._radius
-        self.set_depth_from_size()
-        self.set_crater_volume()
-        self.set_coords(grid, data)
-        self.set_impactor_angles()
-        self.set_crater_mean_slope_v2(grid, data)
-        if numpy.isnan(self._surface_slope):
-            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
-        else:
-            self.set_elev_change_at_pts(grid, data)
-            print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-            print 'Mean mass balance/px: ', self.mass_balance_in_impact
-        print '*****'
-        #Record the data:
-        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
-
-    def excavate_a_crater_whole_grid(self, grid, data):
-        '''
-            This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
-            Unless devtesting, this method has been superceded by excavate_a_crater_optimized().
-            '''
-        self.set_cr_radius_from_shoemaker(data)
-        #self._radius = forced_size
-        print 'Radius: ', self._radius
-        self.set_depth_from_size()
-        self.set_crater_volume()
-        self.set_coords(grid, data)
-        self.set_impactor_angles()
-        self.set_crater_mean_slope_v2(grid, data)
-        if numpy.isnan(self._surface_slope):
-            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
-        else:
-            self.set_elev_change_across_grid(grid, data)
-            print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-            print 'Mean mass balance/px: ', self.mass_balance_in_impact
-        print '*****'
-        #Record the data:
-        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
-
-    def excavate_a_crater_optimized(self, grid, data, forced_radius=numpy.nan, forced_angle=numpy.nan, forced_pos=numpy.nan):
-        '''
-            This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
-            This method is optimized to not sweep the whole grid if the crater is small.
-            A fixed crater size can be specified with the input variable "forced_radius" (in km), and a fixed impact angle with "forced_angle" (in degrees from vertical - impact azimuth will always be assumed as travel eastwards). Position can be specified with forced_pos, which takes an array-like object with two entries, which are the x and y coordinate in relative position on the grid (e.g., [0.5, 0.5]).
-            '''
-        if numpy.isnan(forced_radius):
-            self.set_cr_radius_from_shoemaker(data)
-        else:
-            self._radius = forced_radius
-        #self._radius = forced_size
-        print 'Radius: ', self._radius
-        self.set_depth_from_size()
-        self.set_crater_volume()
-        if numpy.any(forced_pos):
-            self.set_coords(grid, data)
-        else:
-            self._xcoord = forced_pos[0]*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = forced_pos[1]*(grid.get_grid_ydimension()-grid.dx)
-            print self._xcoord, self._ycoord
-        if numpy.isnan(forced_angle):
-            self.set_impactor_angles()
-            #print 'Angle was NaN!'
-        else:
-            self._angle_to_vertical = forced_angle/numpy.pi*180.
-            self._azimuth_of_travel = 0.5*numpy.pi
-        self.set_crater_mean_slope_v2(grid, data)
-        if numpy.isnan(self._surface_slope):
-            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
-        else:
-            #NB - this is an empirical optimization. If the minimum crater thickness in set_elev_change_at_pts() changes, so will the optimized value! 0.000001 min thickness == 0.024 km radius here. Normalize by R=0.0025 here => 9.6
-            if self._radius/grid.dx < 9.6:
-                self.set_elev_change_at_pts(grid, data)
-            else:
-                self.set_elev_change_across_grid(grid, data)
-            print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-            print 'Mean mass balance/px: ', self.mass_balance_in_impact
-        print '*****'
-        #Record the data:
-        data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
-
-    def excavate_a_crater_footprint(self, grid, data, **kwds):
+    def excavate_a_crater(self, grid, data, **kwds):
         '''
             This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
             This method is optimized to only calculate the elevation changes for an impact within its ejecta footprint.
@@ -1040,6 +483,7 @@ class impactor(object):
             print 'Randomly generating impactor angle...'
             self.set_impactor_angles()
         else:
+            #assert 0. <= self._angle_to_vertical <= 90.
             self._azimuth_of_travel = 0.5*numpy.pi
         
         self.set_crater_mean_slope_v2(grid, data)
@@ -1055,34 +499,40 @@ class impactor(object):
         data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
 
 
-#The functions in this segment give control over the execution of this module. Adjusty the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
+#The functions in this segment give control over the execution of this module. Adjust the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
 
-def dig_some_craters_on_fresh_surface():
+def dig_some_craters(use_existing_grid=0, grid_dimension_in=500, dx_in=0.00025, n_craters=1, surface_slope=0., **kwds):
     '''
-    Ad hoc driver code to make this file run as a standalone:
+    Ad hoc driver code to make this file run as a standalone.
+    If a surface_slope is specified, it should be in degrees, and the resulting surface will dip west.
+    If force_crater_properties is specified, it should be keywords for excavate_a_crater(), comprising as many as desired of: forced_radius=value, forced_angle=value, forced_pos=(rel_x,rel_y).
     '''
     #User-defined params:
-    nr = 500
-    nc = 500
-    dx = 0.00035
+    nr = grid_dimension_in
+    nc = grid_dimension_in
+    dx = dx_in
     #dt = 1.
-    nt = 100
+    nt = n_craters
 
     #Setup
-    mg = RasterModelGrid(nr, nc, dx)
-    mg.initialize(nr, nc, dx)
-    vectors = data(mg)
-    vectors.elev[:] = 1.
-    vectors.elev += numpy.random.uniform(0.,0.0001,vectors.elev.shape)
-    #for i in range(500):
-    #    vectors.elev = numpy.tile(numpy.array(range(500))/100000., 500)
+    if not use_existing_grid:
+        mg = RasterModelGrid(nr, nc, dx)
+        mg.initialize(nr, nc, dx)
+        vectors = data(mg)
+        if not surface_slope:
+            vectors.elev[:] = 1.
+        else:
+            vertical_rise_in_one_node_step = dx*numpy.tan(surface_slope*numpy.pi/180.)
+            for i in range(nr):
+                vectors.elev = numpy.tile(numpy.array(range(nr))*vertical_rise_in_one_node_step, nr)
+        #add some noise:    
+        vectors.elev += numpy.random.uniform(0.,0.00001,vectors.elev.shape)
     cr = impactor()
 
     #Update until
     for i in xrange(0,nt):
         print 'Crater number ', i
-        cr.excavate_a_crater_footprint(mg, vectors)
-        #cr.excavate_a_crater_footprint(mg, vectors, forced_radius=0.02, forced_angle=90, forced_pos=(0.5,0.5))
+        cr.excavate_a_crater(mg, vectors, **kwds)
 
     #Finalize
     elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
@@ -1094,85 +544,7 @@ def dig_some_craters_on_fresh_surface():
     vectors.viewing_raster = elev_raster
     return cr, mg, vectors
 
-def dig_some_craters(grid, data, nt_in=10000, min_radius=0.005):
-    '''
-    Takes an existing DTM and peppers it with craters.
-    '''
-    #dt = 1.
-
-    #Setup
-    cr = impactor(min_radius)
-
-    #Update until
-    for i in xrange(0,nt_in):
-        print 'Crater number ', i
-        cr.excavate_a_crater_optimized(grid, data)
-    
-    #Finalize
-    elev_raster = grid.node_vector_to_raster(data.elev, flip_vertically=True)
-    #contour(elev_raster)
-    
-    profile = plot(elev_raster[300,:])
-    xsec = plot(elev_raster[:,100])
-    #imshow(elev_raster)
-    #colorbar()
-    #show()
-    data.viewing_raster = elev_raster
-    return grid, data, profile, xsec
-    
-
-def dig_one_crater(nr, nc, dx, rel_x, rel_y, radius):
-    '''
-    This is an ad-hoc script to dig one crater.
-    '''
-    #User-defined params:
-    #nr = 1200
-    #nc = 1200
-    #dx = 0.0025
-    #dt = 1.
-    #nt = 1
-
-    #Setup
-    mg = RasterModelGrid()
-    mg.initialize(nr, nc, dx)
-    vectors = data(mg)
-    vectors.elev[:] = 0.
-    cr = impactor()
-
-    cr._radius = radius
-    print 'Radius: ', cr._radius
-    cr.set_depth_from_size()
-    print 'Depth: ', cr._depth
-    cr.set_crater_volume()
-    cr._xcoord = rel_x*mg.get_grid_xdimension()
-    cr._ycoord = rel_y*mg.get_grid_ydimension()
-    vertices_array = mg.get_nodes_around_point(cr._xcoord, cr._ycoord)
-    distances_to_vertices = []
-    for x in vertices_array:
-        distances_to_vertices.append(numpy.sqrt((cr._xcoord-mg.node_x[x])**2. + (cr._ycoord-mg.node_y[x])**2.))
-    cr.closest_node_index = vertices_array[numpy.argmin(distances_to_vertices)]
-    cr.closest_node_elev = vectors.elev[cr.closest_node_index]
-
-    cr._angle_to_vertical = numpy.pi*0.5*2./3.
-    cr._azimuth_of_travel = numpy.pi*1.5
-    cr.set_crater_mean_slope_v2(mg, vectors)
-    print 'Azimuth of travel: ', cr._azimuth_of_travel
-    print 'Angle of ground: ', cr._surface_slope
-    print 'Dip direction of ground: ', cr._surface_dip_direction
-    cr.set_elev_change_across_grid(mg, vectors)
-    print 'Impact angle to ground normal: ', cr.impactor_angle_to_surface_normal
-
-    #Finalize
-    elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
-    #contour(elev_raster)
-    #imshow(elev_raster)
-    #colorbar()
-    #show()
-    vectors.viewing_raster = elev_raster
-    return cr, mg, vectors
-
-
-def one_crater_then_degrade():
+def dig_one_crater_then_degrade():
     #start_time = time.time()
     #cr, mg, vectors = dig_some_craters_on_fresh_surface()
     #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
