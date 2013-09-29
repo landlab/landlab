@@ -447,8 +447,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Coordinates can be ints or arrays of ints. If arrays, will return an
         array of the same length of truth values.
         """
-        x_condition = numpy.logical_and(numpy.less(0.,xcoord), numpy.less(xcoord,self.get_grid_xdimension()))
-        y_condition = numpy.logical_and(numpy.less(0.,ycoord), numpy.less(ycoord,self.get_grid_ydimension()))
+        x_condition = numpy.logical_and(numpy.less(0.,xcoord), numpy.less(xcoord,(self.get_grid_xdimension()-self._dx)))
+        y_condition = numpy.logical_and(numpy.less(0.,ycoord), numpy.less(ycoord,(self.get_grid_ydimension()-self._dx)))
         if numpy.all(self.node_status[sgrid.left_edge_node_ids(self.shape)]==3) or numpy.all(self.node_status[sgrid.right_edge_node_ids(self.shape)]==3):
             try:
                 x_condition[:] = 1
