@@ -1029,19 +1029,26 @@ class ModelGrid(ModelDataFields):
         
         self.reset_list_of_active_links()
 
-    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0):
+    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, just_one_node=-1):
         """
         Returns an array of distances for each node to a provided point.
         If "get_az" is set to 1, returns both the distance array and an array
         of azimuths from up/north. If it is not set, returns just the distance
         array.
+        If "just_one_node" is set as an ID, method returns just the distance
+        (and optionally azimuth) for that node.
         Point is provided as a tuple (x,y).
         """
         assert isinstance(tuple_xy, tuple)
         assert len(tuple_xy) == 2
         
-        x_displacement = (self.get_node_x_coords()-tuple_xy[0])
-        y_displacement = (self.get_node_y_coords()-tuple_xy[1])
+        if just_one_node==-1:
+            x_displacement = (self.get_node_x_coords()-tuple_xy[0])
+            y_displacement = (self.get_node_y_coords()-tuple_xy[1])
+        else:
+            x_displacement = numpy.array([(self.node_x[just_one_node]-tuple_xy[0])])
+            y_displacement = numpy.array([(self.node_y[just_one_node]-tuple_xy[1])])
+
         dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
         if get_az:
             try:
