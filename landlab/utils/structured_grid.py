@@ -674,7 +674,7 @@ def outlink_count_per_node(shape):
     link_count[-1, :-1] = 1
     link_count[:-1, -1] = 1
     link_count[-1, -1] = 0
-    return link_count.flat
+    return np.ravel(link_count)
 
 
 def inlink_count_per_node(shape):
@@ -683,7 +683,7 @@ def inlink_count_per_node(shape):
     link_count[0, 1:] = 1
     link_count[1:, 0] = 1
     link_count[0, 0] = 0
-    return link_count.flat
+    return np.ravel(link_count)
 
 
 def active_outlink_count_per_node(shape):
@@ -697,7 +697,7 @@ def active_outlink_count_per_node(shape):
     link_count[0, 0] = 0
     link_count[-1, 0] = 0
 
-    return link_count.flat
+    return np.ravel(link_count)
 
 
 def active_inlink_count_per_node(shape):
@@ -711,7 +711,7 @@ def active_inlink_count_per_node(shape):
     link_count[0, -1] = 0
     link_count[-1, -1] = 0
 
-    return link_count.flat
+    return np.ravel(link_count)
 
 
 def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
