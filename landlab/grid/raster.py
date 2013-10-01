@@ -299,6 +299,47 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def shape(self):
         return (self.nrows, self.ncols)
 
+    def node_links(self, *args):
+        """node_links([node_ids])
+
+        Returns the ids of links attached to grid nodes with *node_ids*. If
+        *node_ids* is not given, return links for all of the nodes in the
+        grid. Link ids are listed in clockwise order starting with the south
+        link.
+        """
+        if len(args) > 1:
+            raise ValueError('only zero or one arguments accepted')
+
+        try:
+            node_ids = args[0]
+        except IndexError:
+            return numpy.vstack((self.node_inlink_matrix,
+                                 self.node_outlink_matrix))
+        else:
+            return numpy.vstack((self.node_inlink_matrix[:, node_ids],
+                                 self.node_outlink_matrix[:, node_ids]))
+
+    def active_node_links(self, *args):
+        """active_node_links([node_ids])
+
+        Returns the ids of links attached to active grid nodes with
+        *node_ids*. If *node_ids* is not given, return links for all of the
+        nodes in the grid. Link ids are listed in clockwise order starting
+        with the south link.
+        """
+        if len(args) > 1:
+            raise ValueError('only zero or one arguments accepted')
+
+        try:
+            node_ids = args[0]
+        except IndexError:
+            return numpy.vstack((self.node_active_inlink_matrix,
+                                 self.node_active_outlink_matrix))
+        else:
+            return numpy.vstack(
+                (self.node_active_inlink_matrix.take(node_ids, axis=1),
+                 self.node_active_outlink_matrix.take(node_ids, axis=1)))
+
     def setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks
@@ -350,27 +391,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
         """
-        # Create active in-link and out-link matrices.
-        self.node_active_inlink_matrix = - numpy.ones((2, self.num_nodes),
-                                                       dtype=numpy.int)
-        self.node_active_outlink_matrix = - numpy.ones((2, self.num_nodes),
-                                                        dtype=numpy.int)
-        # Set up the inlink arrays
-        tonodes = self.activelink_tonode
-        self.node_numactiveinlink = numpy.bincount(tonodes,
-                                                   minlength=self.num_nodes)
+        (self.node_active_inlink_matrix,
+         self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
+             self.shape, tonodes=self.link_tonode)
 
-        counts = count_repeated_values(self.activelink_tonode)
-        for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self.node_active_inlink_matrix[count][tonodes] = active_link_ids
-
-        # Set up the outlink arrays
-        fromnodes = self.activelink_fromnode
-        self.node_numactiveoutlink = numpy.bincount(fromnodes,
-                                                    minlength=self.num_nodes)
-        counts = count_repeated_values(self.activelink_fromnode)
-        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+        (self.node_active_outlink_matrix,
+         self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
+             self.shape, fromnodes=self.link_fromnode)
 
     def cell_faces(self, cell_id):
         """

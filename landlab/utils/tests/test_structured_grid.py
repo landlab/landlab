@@ -85,6 +85,70 @@ class TestGetNodeLinks(unittest.TestCase):
                            np.array([2, 3, 4, 5,
                                      1, 3, 5]))
 
+    def test_west_links(self):
+        links = sgrid.west_links((3, 4))
+        assert_array_equal(links,
+                           np.array([[-1,  8,  9, 10],
+                                     [-1, 11, 12, 13],
+                                     [-1, 14, 15, 16]]))
+
+        links = sgrid.west_links((1, 4))
+        assert_array_equal(links, np.array([[-1, 0, 1, 2]]))
+
+        links = sgrid.west_links((4, 1))
+        assert_array_equal(links, np.array([[-1], [-1], [-1], [-1]]))
+
+    def test_east_links(self):
+        links = sgrid.east_links((3, 4))
+        assert_array_equal(links,
+                           np.array([[ 8,  9, 10, -1],
+                                     [11, 12, 13, -1],
+                                     [14, 15, 16, -1]]))
+
+        links = sgrid.east_links((1, 4))
+        assert_array_equal(links, np.array([[0, 1, 2, -1]]))
+
+        links = sgrid.east_links((4, 1))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+
+    def test_north_links(self):
+        links = sgrid.north_links((3, 4))
+        assert_array_equal(links, np.array([[ 0,  1,  2,  3],
+                                            [ 4,  5,  6,  7],
+                                            [-1, -1, -1, -1]]))
+
+        links = sgrid.north_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.north_links((4, 1))
+        assert_array_equal(links, np.array([[0, 1, 2, -1]]).T)
+
+    def test_south_links(self):
+        links = sgrid.south_links((3, 4))
+        assert_array_equal(links,
+                           np.array([[-1, -1, -1, -1],
+                                     [ 0,  1,  2,  3],
+                                     [ 4,  5,  6,  7]]))
+
+        links = sgrid.south_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.south_links((4, 1))
+        assert_array_equal(links, np.array([[-1, 0, 1, 2]]).T)
+
+    def test_inlinks(self):
+        links = sgrid.inlinks((3, 4))
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7],
+                      [-1,  8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16]]),
+            links)
+
+    def test_outlinks(self):
+        links = sgrid.outlinks((3, 4))
+        assert_array_equal(
+            np.array([[ 0,  1,  2,  3,  4,  5,  6,  7, -1, -1, -1, -1],
+                      [ 8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16, -1]]),
+            links)
 
 class TestNodeActiveCell(unittest.TestCase):
     def test_one_active_cell(self):
@@ -219,6 +283,132 @@ class TestActiveLinks(unittest.TestCase):
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                      19, 20, 21, 22, 23, 24, 25, 26]))
         self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
+
+    def test_horizontal_active_link_ids(self):
+        links = sgrid.horizontal_active_link_ids((3, 4))
+        assert_array_equal(links, np.array([[4, 5, 6]]))
+
+        links = sgrid.horizontal_active_link_ids((1, 4))
+        expected = np.array([], ndmin=2, dtype=np.int64)
+        expected.shape = (0, 3)
+        assert_array_equal(expected, links)
+
+        links = sgrid.horizontal_active_link_ids((4, 1))
+        expected.shape = (2, 0)
+        assert_array_equal(expected, links)
+
+    def test_vertical_active_link_ids(self):
+        links = sgrid.vertical_active_link_ids((3, 4))
+        assert_array_equal(links, np.array([[0, 1], [2, 3]]))
+
+        links = sgrid.vertical_active_link_ids((1, 4))
+        expected = np.array([], ndmin=2, dtype=np.int64)
+        expected.shape = (0, 2)
+        assert_array_equal(expected, links)
+
+        links = sgrid.vertical_active_link_ids((4, 1))
+        expected.shape = (3, 0)
+        assert_array_equal(expected, links)
+
+    def test_west_links(self):
+        links = sgrid.active_west_links((3, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+                                            [-1,  4,  5,  6],
+                                            [-1, -1, -1, -1]]))
+
+        links = sgrid.active_west_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.active_west_links((4, 1))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+
+    def test_east_links(self):
+        links = sgrid.active_east_links((3, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+                                            [ 4,  5,  6, -1],
+                                            [-1, -1, -1, -1]]))
+
+        links = sgrid.active_east_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.active_east_links((4, 1))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+
+        links = sgrid.horizontal_active_link_ids((4, 5))
+        assert_array_equal(np.array([[9, 10, 11, 12],
+                                     [13, 14, 15, 16]]),
+                           links)
+
+        links = sgrid.active_east_links((4, 5))
+        assert_array_equal(np.array([[-1, -1, -1, -1, -1],
+                                     [ 9, 10, 11, 12, -1],
+                                     [13, 14, 15, 16, -1],
+                                     [-1, -1, -1, -1, -1]]),
+                           links)
+
+    def test_north_links(self):
+        links = sgrid.active_north_links((3, 4))
+        assert_array_equal(links, np.array([[-1,  0,  1, -1],
+                                            [-1,  2,  3, -1],
+                                            [-1, -1, -1, -1]]))
+
+        links = sgrid.active_north_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.active_north_links((4, 1))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+
+    def test_south_links(self):
+        links = sgrid.active_south_links((3, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+                                            [-1,  0,  1, -1],
+                                            [-1,  2,  3, -1]]))
+
+        links = sgrid.active_south_links((1, 4))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+
+        links = sgrid.active_south_links((4, 1))
+        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+
+    def test_inlinks(self):
+        links = sgrid.active_inlinks((3, 4))
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
+                      [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1]]),
+            links)
+
+    def test_outlinks(self):
+        links = sgrid.active_outlinks((3, 4))
+        assert_array_equal(
+            np.array([[-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]]),
+            links)
+
+    def test_outlinks_4x5(self):
+        links = sgrid.active_outlinks((4, 5))
+
+        assert_array_equal(np.array([[-1,  0,  1,  2, -1,
+                                      -1,  3,  4,  5, -1,
+                                      -1,  6,  7,  8, -1,
+                                      -1, -1, -1, -1, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      9, 10, 11, 12, -1,
+                                      13, 14, 15, 16, -1,
+                                      -1, -1, -1, -1, -1]]),
+                           links)
+
+    def test_inlinks_4x5(self):
+        links = sgrid.active_inlinks((4, 5))
+
+        assert_array_equal(np.array([[-1, -1, -1, -1, -1,
+                                      -1,  0,  1,  2, -1,
+                                      -1,  3,  4,  5, -1,
+                                      -1,  6, 7,  8, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1,  9, 10, 11, 12,
+                                      -1, 13, 14, 15, 16,
+                                      -1, -1, -1, -1, -1]]),
+                           links)
 
 
 class TestLinkFaces(unittest.TestCase):

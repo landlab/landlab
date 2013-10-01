@@ -215,34 +215,45 @@ class TestRasterModelGrid(unittest.TestCase):
                                      0, 0, 0, 0, 0]))
 
     def test_active_inlink_matrix(self):
-        self.assertTupleEqual(self.grid.node_active_inlink_matrix.shape,
-                              (2, 20))
-
-        assert_array_equal(self.grid.node_active_inlink_matrix[0],
-                           np.array([-1, -1, -1, -1, -1,
-                                     -1,  0,  1,  2, 12,
-                                     -1,  3,  4,  5, 16,
-                                     -1,  6,  7,  8, -1]))
-        assert_array_equal(self.grid.node_active_inlink_matrix[1],
-                           np.array([-1, -1, -1, -1, -1,
-                                     -1,  9, 10, 11, -1,
-                                     -1, 13, 14, 15, -1,
-                                     -1, -1, -1, -1, -1]))
+        assert_array_equal(np.array([[-1, -1, -1, -1, -1,
+                                      -1,  0,  1,  2, -1,
+                                      -1,  3,  4,  5, -1,
+                                      -1,  6, 7,  8, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1,  9, 10, 11, 12,
+                                      -1, 13, 14, 15, 16,
+                                      -1, -1, -1, -1, -1]]),
+                           self.grid.node_active_inlink_matrix)
 
     def test_active_outlink_matrix(self):
-        self.assertTupleEqual(self.grid.node_active_outlink_matrix.shape,
-                              (2, 20))
+        assert_array_equal(np.array([[-1,  0,  1,  2, -1,
+                                      -1,  3,  4,  5, -1,
+                                      -1,  6,  7,  8, -1,
+                                      -1, -1, -1, -1, -1],
+                                     [-1, -1, -1, -1, -1,
+                                       9, 10, 11, 12, -1,
+                                      13, 14, 15, 16, -1,
+                                      -1, -1, -1, -1, -1]]),
+                           self.grid.node_active_outlink_matrix)
 
-        assert_array_equal(self.grid.node_active_outlink_matrix[0],
-                           np.array([-1,  0,  1,  2, -1,
-                                      9,  3,  4,  5, -1,
-                                     13,  6,  7,  8, -1,
-                                     -1, -1, -1, -1, -1]))
-        assert_array_equal(self.grid.node_active_outlink_matrix[1],
-                           np.array([-1, -1, -1, -1, -1,
-                                     -1, 10, 11, 12, -1,
-                                     -1, 14, 15, 16, -1,
-                                     -1, -1, -1, -1, -1]))
+    def test_active_node_links(self):
+        assert_array_equal(np.array([[0,  9, 3, 10],
+                                     [1, 10, 4, 11]]).T,
+                                    self.grid.active_node_links([6, 7]))
+        assert_array_equal(np.array([[0, 9, 3, 10]]).T,
+                                    self.grid.active_node_links([6]))
+        assert_array_equal(np.array([[-1, -1, 0, -1]]).T,
+                                    self.grid.active_node_links([1]))
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1,
+                       -1,  3,  4,  5, -1, -1,  6,  7,  8, -1],
+                      [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12,
+                       -1, 13, 14, 15, 16, -1, -1, -1, -1, -1],
+                      [-1,  0,  1,  2, -1, -1,  3,  4,  5, -1,
+                       -1,  6,  7,  8, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1,
+                       13, 14, 15, 16, -1, -1, -1, -1, -1, -1]]),
+            self.grid.active_node_links())
 
     def test_link_fromnode(self):
         assert_array_equal(self.grid.link_fromnode,
@@ -273,32 +284,45 @@ class TestRasterModelGrid(unittest.TestCase):
                                      1, 1, 1, 1, 0]))
 
     def test_node_inlink_matrix(self):
-        self.assertTupleEqual(self.grid.node_inlink_matrix.shape,
-                              (2, 20))
-        assert_array_equal(self.grid.node_inlink_matrix[0],
-                           np.array([-1, 15, 16, 17, 18,
-                                      0,  1,  2,  3,  4,
-                                      5,  6,  7,  8,  9,
-                                     10, 11, 12, 13, 14]))
-        assert_array_equal(self.grid.node_inlink_matrix[1],
-                           np.array([-1, -1, -1, -1, -1,
-                                     -1, 19, 20, 21, 22,
-                                     -1, 23, 24, 25, 26,
-                                     -1, 27, 28, 29, 30]))
+        assert_array_equal(self.grid.node_inlink_matrix,
+                           np.array([[-1, -1, -1, -1, -1,
+                                       0,  1,  2,  3,  4,
+                                       5,  6,  7,  8,  9,
+                                      10, 11, 12, 13, 14],
+                                     [-1, 15, 16, 17, 18,
+                                      -1, 19, 20, 21, 22,
+                                      -1, 23, 24, 25, 26,
+                                      -1, 27, 28, 29, 30]]))
 
     def test_node_outlink_matrix(self):
-        self.assertTupleEqual(self.grid.node_outlink_matrix.shape,
-                              (2, 20))
-        assert_array_equal(self.grid.node_outlink_matrix[0],
-                           np.array([ 0,  1,  2,  3,  4,
-                                     5,  6,  7,  8,  9,
-                                     10, 11, 12, 13, 14,
-                                     27, 28, 29, 30, -1]))
-        assert_array_equal(self.grid.node_outlink_matrix[1],
-                           np.array([15, 16, 17, 18, -1,
-                                     19, 20, 21, 22, -1,
-                                     23, 24, 25, 26, -1,
-                                     -1, -1, -1, -1, -1]))
+        assert_array_equal(self.grid.node_outlink_matrix,
+                           np.array([[ 0,  1,  2,  3,  4,
+                                       5,  6,  7,  8,  9,
+                                      10, 11, 12, 13, 14,
+                                      -1, -1, -1, -1, -1],
+                                     [15, 16, 17, 18, -1,
+                                      19, 20, 21, 22, -1,
+                                      23, 24, 25, 26, -1,
+                                      27, 28, 29, 30, -1]]))
+
+    def test_node_links(self):
+        assert_array_equal(np.array([[1, 19, 6, 20],
+                                     [2, 20, 7, 21]]).T,
+                           self.grid.node_links([6, 7]))
+        assert_array_equal(np.array([[1, 19, 6, 20]]).T,
+                           self.grid.node_links([6]))
+        assert_array_equal(np.array([[-1, 15, 1, 16]]).T,
+                           self.grid.node_links([1]))
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,
+                        5,  6,  7,  8,  9, 10, 11, 12, 13, 14],
+                      [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22,
+                       -1, 23, 24, 25, 26, -1, 27, 28, 29, 30],
+                      [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+                       10, 11, 12, 13, 14, -1, -1, -1, -1, -1],
+                      [15, 16, 17, 18, -1, 19, 20, 21, 22, -1,
+                       23, 24, 25, 26, -1, 27, 28, 29, 30, -1]]),
+            self.grid.node_links())
 
     def test_link_face(self):
         BAD = BAD_INDEX_VALUE
