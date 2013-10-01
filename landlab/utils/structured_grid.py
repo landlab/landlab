@@ -485,45 +485,6 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     return active_links
 
 
-def setup_inlink_matrix_slow(shape, tonodes=None, return_count=True):
-    """
-    >>> (link_ids, link_counts) = setup_inlink_matrix((3, 4))
-    >>> link_counts  # doctest: +NORMALIZE_WHITESPACE
-    array([0, 1, 1, 1,
-           1, 2, 2, 2,
-           1, 2, 2, 2])
-    >>> link_ids[0]  # doctest: +NORMALIZE_WHITESPACE
-    array([-1,  8,  9, 10,
-            0,  1,  2,  3,
-            4,  5,  6,  7])
-    >>> link_ids[1]  # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1,
-           -1, 11, 12, 13,
-           -1, 14, 15, 16])
-    """
-    num_nodes = node_count(shape)
-
-    #node_inlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
-    node_inlink_matrix = np.empty((2, num_nodes), dtype=np.int)
-    node_inlink_matrix.fill(BAD_INDEX_VALUE)
-
-    if tonodes is None:
-        tonodes = node_tolink_index(shape)
-
-    node_numinlink = np.bincount(tonodes, minlength=num_nodes)
-    counts = count_repeated_values(tonodes)
-    for (count, (tonodes, link_ids)) in enumerate(counts):
-        node_inlink_matrix[count][tonodes] = link_ids
-
-    node_inlink_matrix.sort(axis=0)
-    node_inlink_matrix[node_inlink_matrix == BAD_INDEX_VALUE] = -1
-    
-    if return_count:
-        return (node_inlink_matrix, node_numinlink)
-    else:
-        return node_inlink_matrix
-
-
 def inlinks(shape, tonodes=None, return_count=True):
     links = np.vstack((south_links(shape), west_links(shape)))
     links.shape = (2, node_count(shape))
@@ -751,45 +712,6 @@ def active_inlink_count_per_node(shape):
     link_count[-1, -1] = 0
 
     return link_count.flat
-
-
-def setup_outlink_matrix_slow(shape, fromnodes=None, return_count=True):
-    """
-    >>> (link_ids, link_counts) = setup_outlink_matrix((3, 4)) 
-    >>> link_counts # doctest: +NORMALIZE_WHITESPACE
-    array([2, 2, 2, 1,
-           2, 2, 2, 1,
-           1, 1, 1, 0])
-    >>> link_ids[0] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,  3,
-            4,  5,  6,  7,
-           14, 15, 16, -1])
-    >>> link_ids[1] # doctest: +NORMALIZE_WHITESPACE
-    array([ 8,  9, 10, -1,
-           11, 12, 13, -1,
-           -1, -1, -1, -1])
-    """
-    num_nodes = node_count(shape)
-
-    #node_outlink_matrix = - np.ones((2, num_nodes), dtype=np.int)
-    node_outlink_matrix = np.empty((2, num_nodes), dtype=np.int)
-    node_outlink_matrix.fill(BAD_INDEX_VALUE)
-
-    if fromnodes is None:
-        fromnodes = node_fromlink_index(shape)
-
-    node_numoutlink = np.bincount(fromnodes, minlength=num_nodes)
-    counts = count_repeated_values(fromnodes)
-    for (count, (fromnodes, link_ids)) in enumerate(counts):
-        node_outlink_matrix[count][fromnodes] = link_ids
-
-    node_outlink_matrix.sort(axis=0)
-    node_outlink_matrix[node_outlink_matrix == BAD_INDEX_VALUE] = -1
-    
-    if return_count:
-        return (node_outlink_matrix, node_numoutlink)
-    else:
-        return node_outlink_matrix
 
 
 def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
