@@ -1,4 +1,4 @@
-from landlab.components.rainfall_driver import PrecipitationDistribution
+from landlab.components.rainfalldriver.rainfall_driver import PrecipitationDistribution
 #reload( RainfallDriver )
 
 
