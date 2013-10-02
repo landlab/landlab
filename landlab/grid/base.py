@@ -1046,18 +1046,26 @@ class ModelGrid(ModelDataFields):
             x_displacement = (self.get_node_x_coords()-tuple_xy[0])
             y_displacement = (self.get_node_y_coords()-tuple_xy[1])
         else:
-            x_displacement = numpy.array([(self.node_x[just_one_node]-tuple_xy[0])])
-            y_displacement = numpy.array([(self.node_y[just_one_node]-tuple_xy[1])])
+            x_displacement = self.node_x[just_one_node]-tuple_xy[0]
+            y_displacement = self.node_y[just_one_node]-tuple_xy[1]
 
         dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
+        
         if get_az:
             try:
                 angle_to_xaxis = numpy.arctan(y_displacement/x_displacement)
             except: #These cases have the impact right on a gridline.
-                azimuth_array = numpy.empty(len(x_displacement))
-                nonzero_nodes = numpy.nonzero(x_displacement)
-                angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
-                azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
+                try:
+                    azimuth_array = numpy.empty(len(x_displacement))
+                except: #this is the single node case, impact directly N or S of the node of interest
+                    if y_displacement<0:
+                        azimuth_array = numpy.pi
+                    else:
+                        azimuth_array = 0.
+                else: #general case with whole array, with the impact right one one of the gridlines
+                    nonzero_nodes = numpy.nonzero(x_displacement)
+                    angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
+                    azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
                 zero_nodes = numpy.where(x_displacement==0.)[0]
                 azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
             else: #the normal case

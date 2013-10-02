@@ -67,7 +67,7 @@ class impactor(object):
         self.r0 = Symbol('r0') #Crater rim radius
         self.T = Symbol('T') #Crater rim ejecta thickness
         self.r = Symbol('r') #actual dist from crater center of a given pt
-        self.solution_for_rim_thickness = solve(3.6657*self.T*numpy.pi*self.r0**2 + 0.33333*numpy.pi*self.T*(self.r0**2+(self.r0-self.T/self.tan_repose)**2+self.r0*(self.r0-self.T/self.tan_repose)) - self.V, self.T)
+        self.solution_for_rim_thickness = solve(8./3.*self.T*numpy.pi*self.r0**2 + 0.33333*numpy.pi*self.T*(self.r0**2+(self.r0-self.T/self.tan_repose)**2+self.r0*(self.r0-self.T/self.tan_repose)) - self.V, self.T)
         #...gives a list of 3 sympy expressions, f(V,r), for T
         self.expression_for_local_thickness = self.T*(self.r/self.r0)**-2.75
     
@@ -328,9 +328,9 @@ class impactor(object):
         cos = numpy.cos
         sin = numpy.sin
         sqrt = numpy.sqrt
-        arctan = numpy.arctan
+        #arctan = numpy.arctan
         arccos = numpy.arccos
-        where = numpy.where
+        #where = numpy.where
         _radius = self._radius
         tan_repose = self.tan_repose
         self.mass_balance_in_impact = 0.
@@ -338,7 +338,7 @@ class impactor(object):
 
         #Build a list of nodes to work on. Starts just with the node closest to the center.
         crater_node_list = deque([self.closest_node_index])
-        elev_changes = deque()
+        #elev_changes = deque()
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
         flag_already_in_the_list = numpy.zeros(grid.get_count_of_all_nodes())
         
@@ -394,26 +394,29 @@ class impactor(object):
             except:
                 break
             else:
+                pre_elev = data.elev[active_node]
                 _r_to_center, _theta = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az=1, just_one_node=active_node)
                 
                 ##We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
                 ##So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
                 #(_vec_new_z is the depth that would be excavated inside the cavity, including projected depths ouside the cavity.
-                _new_z = self.closest_node_elev + thickness_at_rim
+                _new_z = self.closest_node_elev+thickness_at_rim-self._depth
                 if _r_to_center<=_radius:
-                    _new_z -= self._depth * (1. - (_r_to_center/_radius)**crater_bowl_exp)
+                    _new_z += self._depth * (_r_to_center/_radius)**crater_bowl_exp
                 else:
-                    _new_z += (_r_to_center-_radius)*tan_repose
+                    _new_z += self._depth + (_r_to_center-_radius)*tan_repose
                 #_nodes_below_surface = _vec_new_z<elev[footprint_nodes]
                 #_nodes_above_surface = numpy.logical_not(_nodes_below_surface)
                 #Check if we need to adjust for a central peak
                 #Set the ground elev for below ground nodes
-                if _new_z<data.elev[active_node]:
+                if _new_z<pre_elev:
                     if self._crater_type:
                         if _r_to_center<=self._complex_peak_radius:
                             _new_z = _new_z + self._complex_peak_str_uplift * (1. - _r_to_center/self._complex_peak_radius)
                     elev = _new_z
-                    crater_vol_below_ground += _new_z
+                    depth_excavated = (pre_elev-_new_z)
+                    crater_vol_below_ground += depth_excavated
+                    self.mass_balance_in_impact -= depth_excavated
                     neighbors_active_node = grid.get_neighbor_list(active_node)
                     for x in neighbors_active_node:
                         if not flag_already_in_the_list[x]:
@@ -440,13 +443,13 @@ class impactor(object):
                     if _thickness<0.:
                         _thickness = 0.
                     #Now, are we inside or outside the rim?
-                    potential_ejecta_thickness = data.elev[active_node] + _thickness
+                    potential_ejecta_thickness = pre_elev + _thickness
                     if _new_z<=potential_ejecta_thickness:
                         elev = _new_z
+                        self.mass_balance_in_impact += elev - pre_elev
                     else:
                         elev = potential_ejecta_thickness
-                        
-                    self.mass_balance_in_impact += elev
+                        self.mass_balance_in_impact += _thickness
                 
                     if _thickness > self._minimum_ejecta_thickness:
                         neighbors_active_node = grid.get_neighbor_list(active_node)
@@ -488,7 +491,7 @@ class impactor(object):
         cos = numpy.cos
         sin = numpy.sin
         sqrt = numpy.sqrt
-        arctan = numpy.arctan
+        #arctan = numpy.arctan
         arccos = numpy.arccos
         where = numpy.where
         _radius = self._radius
@@ -569,9 +572,9 @@ class impactor(object):
         _vec_new_z = numpy.empty_like(_vec_r_to_center)
         _nodes_within_crater = _vec_r_to_center<=_radius
         _nodes_outside_crater = numpy.logical_not(_nodes_within_crater)
-        _vec_new_z[:] = self.closest_node_elev + thickness_at_rim
-        _vec_new_z[_nodes_within_crater] -= self._depth * (1. - (_vec_r_to_center[_nodes_within_crater]/_radius)**crater_bowl_exp)
-        _vec_new_z[_nodes_outside_crater] += (_vec_r_to_center[_nodes_outside_crater]-_radius)*tan_repose
+        _vec_new_z[:] = self.closest_node_elev + thickness_at_rim - self._depth
+        _vec_new_z[_nodes_within_crater] += self._depth * (_vec_r_to_center[_nodes_within_crater]/_radius)**crater_bowl_exp
+        _vec_new_z[_nodes_outside_crater] += self._depth + (_vec_r_to_center[_nodes_outside_crater]-_radius)*tan_repose
         _nodes_below_surface = _vec_new_z<elev[footprint_nodes]
         _nodes_above_surface = numpy.logical_not(_nodes_below_surface)
         #Check if we need to adjust for a central peak
@@ -602,9 +605,15 @@ class impactor(object):
 
         #Save any data to the higher level:      
         data.elev[footprint_nodes] = elevs_under_footprint #the refs get broken somewhere...
-        self.mass_balance_in_impact = numpy.sum(elevs_under_footprint-old_elevs_under_footprint)/-numpy.sum(elevs_under_footprint[elevs_under_footprint<old_elevs_under_footprint]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
+        elev_diff = elevs_under_footprint-old_elevs_under_footprint
+        self.mass_balance_in_impact = numpy.sum(elev_diff)/-numpy.sum(elev_diff[elev_diff<0.]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
+        print 'Vol of crater cavity: ', self._cavity_volume
+        print 'Vol below ground: ', -numpy.sum(elev_diff[elev_diff<0.])
+        print 'Vol above ground: ', numpy.sum(elev_diff[elev_diff>0.])
+        print 'Total mass balance: ', numpy.sum(elev_diff)
+        
         #Uncomment this line to see which nodes are under the footprint:
         #data.elev[footprint_nodes] = 10.
         
@@ -651,7 +660,7 @@ class impactor(object):
         if numpy.isnan(self._surface_slope):
             print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
         else:
-            self.set_elev_change_crawler(grid, data)
+            self.set_elev_change_only_beneath_footprint(grid, data)
             #self.set_elev_change_crawler(grid, data)
         print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
         print 'Mass balance in impact: ', self.mass_balance_in_impact
