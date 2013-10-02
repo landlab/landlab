@@ -1,2 +1,2 @@
 
-from landlab.components.rainfalldriver.rainfall_driver import data
+import landlab.components.rainfalldriver.rainfall_driver# import data
