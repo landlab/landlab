@@ -1,0 +1,8 @@
+shape_parameter
+7.0
+
+scale_parameter
+0.0
+
+mean_fire_recurrence
+14.69
