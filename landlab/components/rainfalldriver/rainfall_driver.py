@@ -18,7 +18,6 @@ import numpy as np
 import random
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 
-
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'preciptest.in')
 
