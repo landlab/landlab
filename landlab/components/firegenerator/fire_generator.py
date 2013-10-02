@@ -91,7 +91,6 @@ class FireGenerator:
         self.shape_parameter = MPD.read_float('shape_parameter')
         self.scale_parameter = MPD.read_float('scale_parameter')
         self.mean_fire_recurrence = MPD.read_float('mean_fire_recurrence')
-        #self.run_time = MPD.read_float('run_time')
 
 
     def get_scale_parameter(self):
@@ -165,3 +164,14 @@ class FireGenerator:
 
 
 
+
+FG = FireGenerator()
+FG.initialize()
+FG.get_scale_parameter()
+FG.generate_fire_time_series()
+FG.fires.sort()
+yaxis = range(100)
+plt.plot(FG.fires, yaxis)
+plt.figure(2)
+plt.hist(FG.fires)
+plt.show()
