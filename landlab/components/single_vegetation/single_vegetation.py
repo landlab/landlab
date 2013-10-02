@@ -12,7 +12,7 @@ from numpy import *
 from math import *
 from landlab.components.uniformprecip.rainfall_driver import PrecipitationDistribution
 from soil_moisture import SoilMoisture
-from model_parameter_dictionary import ModelParameterDictionary
+from landlab.model_parameter_dictionary import ModelParameterDictionary
 from matplotlib.pyplot import *
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
