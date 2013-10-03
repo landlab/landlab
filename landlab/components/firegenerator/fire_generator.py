@@ -148,7 +148,6 @@ class FireGenerator:
             self.interfire_periods.append(fire)
             self.fires.append(fire)
             time_series_fire = fire + self.fire_events[t]
-            print t
             self.fire_events.append(time_series_fire)
             t += self.delta_t
 
