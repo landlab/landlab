@@ -353,21 +353,26 @@ class impactor(object):
             print '_surface_dip_direction: ', _surface_dip_direction
             print '_azimuth_of_travel: ', _azimuth_of_travel
             print '_angle_to_vertical: ', _angle_to_vertical
-            epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
-            #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
-            if numpy.fabs(rake_in_surface_plane) < 0.5*pi:
-                beta_eff = _angle_to_vertical + epsilon
-            elif numpy.fabs(rake_in_surface_plane) > 0.5*pi:
-                beta_eff = _angle_to_vertical + epsilon - pi
-            else:
+            absolute_rake = numpy.fabs(rake_in_surface_plane)
+            if not _surface_slope:
+                epsilon = 0.
                 beta_eff = _angle_to_vertical
-                #hopefully this will prevent the bug where surface slope = 0.
+            else:
+                if absolute_rake in (0.5*pi, 1.5*pi):
+                    epsilon = 0.
+                else:
+                    epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
+                #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
+                if absolute_rake <= 0.5*pi or absolute_rake >= 1.5*pi:
+                    beta_eff = _angle_to_vertical + epsilon
+                else:
+                    beta_eff = _angle_to_vertical + epsilon - pi
             print 'Beta effective: ', beta_eff
             #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
             if 0. <= beta_eff <= 90.:
                 _ejecta_azimuth = _azimuth_of_travel
                 break
-            elif 0. <= beta_eff:
+            elif beta_eff < 0.:
                 #reverse the azimuth, make beta positive again
                 beta_eff = -beta_eff
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
@@ -515,7 +520,8 @@ class impactor(object):
             else:
                 if absolute_rake in (0.5*pi, 1.5*pi):
                     epsilon = 0.
-                epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
+                else:
+                    epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
                 #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
                 if absolute_rake <= 0.5*pi or absolute_rake >= 1.5*pi:
                     beta_eff = _angle_to_vertical + epsilon
@@ -675,8 +681,9 @@ class impactor(object):
 
 
 #The functions in this segment give control over the execution of this module. Adjust the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
+#These should really be in a separate driver file.
 
-def dig_some_craters(use_existing_grid=0, grid_dimension_in=500, dx_in=0.00025, n_craters=1, surface_slope=0., **kwds):
+def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, n_craters=1, surface_slope=0., **kwds):
     '''
     Ad hoc driver code to make this file run as a standalone.
     If a surface_slope is specified, it should be in degrees, and the resulting surface will dip west.
