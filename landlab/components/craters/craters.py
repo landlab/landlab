@@ -15,7 +15,7 @@ from landlab import RasterModelGrid #this is the tMesh equivalent module
 
 #these ones only so we can run this module ad-hoc:
 from pylab import plot, draw, show, contour, imshow, colorbar
-from copy import copy
+from copy import deepcopy as copy
 
 #sys.setrecursionlimit(1500)
 
@@ -508,21 +508,25 @@ class impactor(object):
             print '_surface_dip_direction: ', _surface_dip_direction
             print '_azimuth_of_travel: ', _azimuth_of_travel
             print '_angle_to_vertical: ', _angle_to_vertical
-            epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
-            #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
-            if numpy.fabs(rake_in_surface_plane) < 0.5*pi:
-                beta_eff = _angle_to_vertical + epsilon
-            elif numpy.fabs(rake_in_surface_plane) > 0.5*pi:
-                beta_eff = _angle_to_vertical + epsilon - pi
-            else:
+            absolute_rake = numpy.fabs(rake_in_surface_plane)
+            if not _surface_slope:
+                epsilon = 0.
                 beta_eff = _angle_to_vertical
-                #hopefully this will prevent the bug where surface slope = 0.
+            else:
+                if absolute_rake in (0.5*pi, 1.5*pi):
+                    epsilon = 0.
+                epsilon = arccos(cos(rake_in_surface_plane)*cos(_surface_slope)*sqrt(1.+(tan(rake_in_surface_plane)/cos(_surface_slope))**2.))
+                #Make the necessary adjustment to the angle to vertical to reflect dipping surface:
+                if absolute_rake <= 0.5*pi or absolute_rake >= 1.5*pi:
+                    beta_eff = _angle_to_vertical + epsilon
+                else:
+                    beta_eff = _angle_to_vertical + epsilon - pi
             print 'Beta effective: ', beta_eff
             #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
             if 0. <= beta_eff <= 90.:
                 _ejecta_azimuth = _azimuth_of_travel
                 break
-            elif 0. <= beta_eff:
+            elif 0. > beta_eff:
                 #reverse the azimuth, make beta positive again
                 beta_eff = -beta_eff
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
@@ -676,6 +680,7 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=500, dx_in=0.00025, 
     '''
     Ad hoc driver code to make this file run as a standalone.
     If a surface_slope is specified, it should be in degrees, and the resulting surface will dip west.
+    If use_existing_grid is set, it should (for now) be a tuple containing (grid, data).
     If force_crater_properties is specified, it should be keywords for excavate_a_crater(), comprising as many as desired of: forced_radius=value, forced_angle=value, forced_pos=(rel_x,rel_y).
     '''
     #User-defined params:
@@ -698,6 +703,13 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=500, dx_in=0.00025, 
                 vectors.elev = numpy.tile(numpy.array(range(nr))*vertical_rise_in_one_node_step, nr)
         #add some noise:    
         vectors.elev += numpy.random.uniform(0.,0.00001,vectors.elev.shape)
+    else:
+        try:
+            mg = use_existing_grid[0]
+            vectors = use_existing_grid[1]
+        except:
+            print 'Could not set variables for existing grid!'
+        
     cr = impactor()
 
     #Update until
@@ -712,33 +724,20 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=500, dx_in=0.00025, 
     imshow(elev_raster)
     colorbar()
     show()
-    vectors.viewing_raster = elev_raster
+    vectors.viewing_raster = copy(elev_raster)
     return cr, mg, vectors
 
-def dig_one_crater_then_degrade():
-    #start_time = time.time()
-    #cr, mg, vectors = dig_some_craters_on_fresh_surface()
-    #cr, mg, vectors = dig_one_crater(120, 120, 0.025, 1., 0.5, 1.)
-    #mg_10k, vectors_10k = dig_some_craters(mg, vectors)
-
-    #This code builds a dictionary that contains time slices for each 10k craters hitting a surface:
-    #How many times round?
-    loops = 50 #500,000 craters
+def dig_one_crater_then_degrade(loops=1, step=500):
     #Build the dictionary:
     crater_time_sequ = {}
-    profile_list = []
-    xsec_list = []
     #Initialize the starting condition:
-    cr, mg, vectors = dig_one_crater(1200, 1200, 0.0025, 0.5, 0.5, .75)
+    cr, mg, vectors = dig_some_craters(grid_dimension_in=1000, dx_in=0.002, n_craters=1, forced_radius = 0.5, forced_angle=0., forced_pos=(0.5,0.5))
     #Save the starting conds:
     crater_time_sequ[0] = copy(vectors)
     #Run the loops
     for i in xrange(0,loops):
-        mg, vectors, profile, xsec = dig_some_craters(mg, vectors)
-        crater_time_sequ[i] = copy(vectors)
-        profile_list.append(profile)
-        xsec_list.append(xsec)
-    show(profile_list)
+        cr, mg, vectors = dig_some_craters(use_existing_grid=(mg,vectors), n_craters=step)
+        crater_time_sequ[i+1] = copy(vectors)
     #end_time = time.time()
     #print('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
