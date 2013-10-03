@@ -28,7 +28,6 @@
 
 
 import os
-from matplotlib import pyplot as plt
 from random import weibullvariate
 from scipy import special
 from landlab.model_parameter_dictionary import ModelParameterDictionary
@@ -64,7 +63,11 @@ class FireGenerator:
         Average fire recurrence for a given area, elevation, vegetation type, etc.
         '''
         
-        #self.run_time = 0.0
+        self.total_run_time = 0.0
+        self.delta_t = 0.0
+        '''Initial run time values
+        to be read in.
+        '''
         
         self.time_to_next_fire = 0.0
         '''
@@ -91,6 +94,8 @@ class FireGenerator:
         self.shape_parameter = MPD.read_float('shape_parameter')
         self.scale_parameter = MPD.read_float('scale_parameter')
         self.mean_fire_recurrence = MPD.read_float('mean_fire_recurrence')
+        self.total_run_time = MPD.read_float('total_run_time')
+        self.delta_t = MPD.read_float('delta_t')
 
 
     def get_scale_parameter(self):
@@ -109,10 +114,8 @@ class FireGenerator:
             shape_in_gamma_func = float(1+(1/self.shape_parameter))
             gamma_func = special.gamma(shape_in_gamma_func)
             self.scale_parameter = (self.mean_fire_recurrence/gamma_func)
-            print 'Scale Parameter: ', self.scale_parameter
             return self.scale_parameter
         else:
-            print 'Scale Parameter: ', self.scale_parameter
             return self.scale_parameter
             
     def generate_fire_recurrence(self):
@@ -140,13 +143,13 @@ class FireGenerator:
         t = 0
         self.interfire_periods=[]
         self.fires = []
-        while t!= 100:
+        while t!= self.total_run_time:
             fire = self.generate_fire_recurrence()
             self.interfire_periods.append(fire)
             self.fires.append(fire)
             time_series_fire = fire + self.fire_events[t]
             self.fire_events.append(time_series_fire)
-            t += 1
+            t += self.delta_t
 
         
     def update(self):
@@ -164,14 +167,3 @@ class FireGenerator:
 
 
 
-
-FG = FireGenerator()
-FG.initialize()
-FG.get_scale_parameter()
-FG.generate_fire_time_series()
-FG.fires.sort()
-yaxis = range(100)
-plt.plot(FG.fires, yaxis)
-plt.figure(2)
-plt.hist(FG.fires)
-plt.show()
