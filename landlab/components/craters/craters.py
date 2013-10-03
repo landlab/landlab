@@ -526,7 +526,7 @@ class impactor(object):
             if 0. <= beta_eff <= 90.:
                 _ejecta_azimuth = _azimuth_of_travel
                 break
-            elif 0. > beta_eff:
+            elif beta_eff < 0.:
                 #reverse the azimuth, make beta positive again
                 beta_eff = -beta_eff
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
