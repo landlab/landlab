@@ -8,7 +8,7 @@ mean_fire_recurrence
 14.69
 
 total_run_time
-10000.0
+10000
 
 delta_t
-1.0
+1

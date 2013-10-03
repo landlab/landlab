@@ -63,8 +63,8 @@ class FireGenerator:
         Average fire recurrence for a given area, elevation, vegetation type, etc.
         '''
         
-        self.total_run_time = 0.0
-        self.delta_t = 0.0
+        self.total_run_time = 0
+        self.delta_t = 0
         '''Initial run time values
         to be read in.
         '''
@@ -94,8 +94,8 @@ class FireGenerator:
         self.shape_parameter = MPD.read_float('shape_parameter')
         self.scale_parameter = MPD.read_float('scale_parameter')
         self.mean_fire_recurrence = MPD.read_float('mean_fire_recurrence')
-        self.total_run_time = MPD.read_float('total_run_time')
-        self.delta_t = MPD.read_float('delta_t')
+        self.total_run_time = MPD.read_int('total_run_time')
+        self.delta_t = MPD.read_int('delta_t')
 
 
     def get_scale_parameter(self):
@@ -140,16 +140,16 @@ class FireGenerator:
         of fires can change across different runs. 
         '''
         self.fire_events =[0]
-        t = 0
         self.interfire_periods=[]
         self.fires = []
-        while t!= self.total_run_time:
+        i = 0
+        while i!= self.total_run_time:
             fire = self.generate_fire_recurrence()
             self.interfire_periods.append(fire)
             self.fires.append(fire)
-            time_series_fire = fire + self.fire_events[t]
+            time_series_fire = fire + self.fire_events[i]
             self.fire_events.append(time_series_fire)
-            t += self.delta_t
+            i += self.delta_t
 
         
     def update(self):
