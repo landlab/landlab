@@ -142,14 +142,15 @@ class FireGenerator:
         self.fire_events =[0]
         self.interfire_periods=[]
         self.fires = []
-        ihelper = 0
-        while ihelper!= self.total_run_time:
+        t = 0
+        while t!= self.total_run_time:
             fire = self.generate_fire_recurrence()
             self.interfire_periods.append(fire)
             self.fires.append(fire)
-            time_series_fire = fire + self.fire_events[ihelper]
+            time_series_fire = fire + self.fire_events[t]
+            print t
             self.fire_events.append(time_series_fire)
-            ihelper += self.delta_t
+            t += self.delta_t
 
         
     def update(self):
