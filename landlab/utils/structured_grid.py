@@ -497,14 +497,16 @@ def outlinks(shape, tonodes=None, return_count=True):
     return links
 
 
-def active_inlinks(shape, tonodes=None, return_count=True):
-    links = np.vstack((active_south_links(shape), active_west_links(shape)))
+def active_inlinks(shape, node_status=None, return_count=True):
+    links = np.vstack((active_south_links(shape, node_status),
+                       active_west_links(shape, node_status)))
     links.shape = (2, node_count(shape))
     return links
 
 
-def active_outlinks(shape, tonodes=None, return_count=True):
-    links = np.vstack((active_north_links(shape), active_east_links(shape)))
+def active_outlinks(shape, node_status=None, return_count=True):
+    links = np.vstack((active_north_links(shape, node_status),
+                       active_east_links(shape, node_status)))
     links.shape = (2, node_count(shape))
     return links
 
@@ -524,25 +526,95 @@ def horizontal_link_ids(shape):
     return link_ids
 
 
-def vertical_active_link_count(shape):
-    return (shape[0] - 1) * (shape[1] - 2)
+def vertical_active_link_count(shape, node_status=None):
+    if node_status is not None:
+        is_inactive = (node_status == 0)
+        is_inactive.shape = shape
+
+        inactive_outlinks = is_inactive[:-1, 1:-1]
+        inactive_inlinks = is_inactive[1:, 1:-1]
+        inactive_links = inactive_outlinks | inactive_inlinks
+
+        return (shape[0] - 1) * (shape[1] - 2) - np.sum(inactive_links.flat)
+    else:
+        return (shape[0] - 1) * (shape[1] - 2)
 
 
-def horizontal_active_link_count(shape):
-    return (shape[0] - 2) * (shape[1] - 1)
+def horizontal_active_link_count(shape, node_status=None):
+    if node_status is not None:
+        is_inactive = (node_status == 0)
+        is_inactive.shape = shape
+
+        inactive_outlinks = is_inactive[1:-1, :-1]
+        inactive_inlinks = is_inactive[1:-1, 1:]
+        inactive_links = inactive_outlinks | inactive_inlinks
+
+        return (shape[0] - 2) * (shape[1] - 1) - np.sum(inactive_links.flat)
+    else:
+        return (shape[0] - 2) * (shape[1] - 1)
 
 
-def vertical_active_link_ids(shape):
-    link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
+def vertical_inactive_link_mask(shape, node_status):
+    is_inactive = (node_status == 0)
+    is_inactive.shape = shape
+
+    inactive_outlinks = is_inactive[:-1, 1:-1]
+    inactive_inlinks = is_inactive[1:, 1:-1]
+    return inactive_outlinks | inactive_inlinks
+
+
+def horizontal_inactive_link_mask(shape, node_status):
+    is_inactive = (node_status == 0)
+    is_inactive.shape = shape
+
+    inactive_outlinks = is_inactive[1:-1, :-1]
+    inactive_inlinks = is_inactive[1:-1, 1:]
+    return inactive_outlinks | inactive_inlinks
+
+
+#def vertical_active_link_ids(shape):
+#    link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
+#    link_ids.shape = (shape[0] - 1, shape[1] - 2)
+#    return link_ids
+
+
+def vertical_active_link_ids(shape, node_status=None):
+    if node_status is None:
+        link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
+        #link_ids.shape = (shape[0] - 1, shape[1] - 2)
+        #return link_ids
+    else:
+        inactive_links = vertical_inactive_link_mask(shape, node_status)
+        inactive_links.shape = (inactive_links.size, )
+        active_link_count = inactive_links.size - np.sum(inactive_links)
+
+        link_ids = np.empty(inactive_links.size)
+        link_ids[inactive_links] = - 1
+        link_ids[~ inactive_links] = np.arange(active_link_count, dtype=int)
+
     link_ids.shape = (shape[0] - 1, shape[1] - 2)
     return link_ids
 
 
-def horizontal_active_link_ids(shape):
-    link_id_offset = vertical_active_link_count(shape)
-    link_ids = np.arange(link_id_offset,
-                          link_id_offset + horizontal_active_link_count(shape),
-                          dtype=np.int)
+def horizontal_active_link_ids(shape, node_status=None):
+    if node_status is None:
+        link_id_offset = vertical_active_link_count(shape)
+        link_ids = np.arange(
+            link_id_offset,
+            link_id_offset + horizontal_active_link_count(shape),
+            dtype=np.int)
+    else:
+        link_id_offset = vertical_active_link_count(shape,
+                                                    node_status=node_status)
+        inactive_links = horizontal_inactive_link_mask(shape, node_status)
+        inactive_links.shape = (inactive_links.size, )
+        active_link_count = inactive_links.size - np.sum(inactive_links)
+
+        link_ids = np.empty(inactive_links.size)
+        link_ids[inactive_links] = - 1
+        link_ids[~ inactive_links] = np.arange(
+            link_id_offset, link_id_offset + active_link_count,
+            dtype=np.int)
     link_ids.shape = (shape[0] - 2, shape[1] - 1)
     return link_ids
 
@@ -594,7 +666,7 @@ def east_links(shape):
     return np.hstack((link_ids, - np.ones((shape[0], 1), dtype=int)))
 
 
-def active_north_links(shape):
+def active_north_links(shape, node_status=None):
     """
     >>> active_north_links((3, 4))
     array([[-1,  0,  1, -1],
@@ -603,7 +675,7 @@ def active_north_links(shape):
     """
     active_north_links = np.empty(shape, dtype=int)
     try:
-        links = vertical_active_link_ids(shape)
+        links = vertical_active_link_ids(shape, node_status=node_status)
     except ValueError:
         pass
     links.shape = (shape[0] - 1, shape[1] - 2)
@@ -614,7 +686,7 @@ def active_north_links(shape):
     return active_north_links
 
 
-def active_south_links(shape):
+def active_south_links(shape, node_status=None):
     """
     >>> active_south_links((3, 4))
     array([[-1, -1, -1, -1],
@@ -622,7 +694,7 @@ def active_south_links(shape):
            [-1,  2,  3, -1]])
     """
     active_south_links = np.empty(shape, dtype=int)
-    links = vertical_active_link_ids(shape)
+    links = vertical_active_link_ids(shape, node_status=node_status)
     links.shape = (shape[0] - 1, shape[1] - 2)
     active_south_links[1:, 1:-1] = links
     active_south_links[:, (0, -1)] = -1
@@ -631,7 +703,7 @@ def active_south_links(shape):
     return active_south_links
 
 
-def active_west_links(shape):
+def active_west_links(shape, node_status=None):
     """
     >>> active_west_links((3, 4))
     array([[-1, -1, -1, -1],
@@ -640,7 +712,8 @@ def active_west_links(shape):
     """
     active_west_links = np.empty(shape, dtype=int)
     try:
-        active_west_links[1:-1, 1:] = horizontal_active_link_ids(shape)
+        active_west_links[1:-1, 1:] = horizontal_active_link_ids(
+            shape, node_status=node_status)
     except ValueError:
         pass
     active_west_links[(0, -1), :] = -1
@@ -649,7 +722,7 @@ def active_west_links(shape):
     return active_west_links
 
 
-def active_east_links(shape):
+def active_east_links(shape, node_status=None):
     """
     >>> active_east_links((3, 4))
     array([[-1, -1, -1, -1],
@@ -659,7 +732,8 @@ def active_east_links(shape):
     active_east_links = np.empty(shape, dtype=int)
     active_east_links.fill(-999)
     try:
-        active_east_links[1:-1, :-1] = horizontal_active_link_ids(shape)
+        active_east_links[1:-1, :-1] = horizontal_active_link_ids(
+            shape, node_status=node_status)
     except ValueError:
         pass
     active_east_links[(0, -1), :] = -1
@@ -730,16 +804,16 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
         return links
 
 
-def setup_active_outlink_matrix(shape, fromnodes=None, return_count=True):
-    links = active_outlinks(shape)
+def setup_active_outlink_matrix(shape, node_status=None, return_count=True):
+    links = active_outlinks(shape, node_status=node_status)
     if return_count:
         return (links, active_outlink_count_per_node(shape))
     else:
         return links
 
 
-def setup_active_inlink_matrix(shape, tonodes=None, return_count=True):
-    links = active_inlinks(shape)
+def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
+    links = active_inlinks(shape, node_status=node_status)
     if return_count:
         return (links, active_inlink_count_per_node(shape))
     else:

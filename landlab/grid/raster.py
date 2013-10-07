@@ -295,10 +295,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def dx(self):
         return self._dx
 
-    @property
-    def shape(self):
-        return (self.nrows, self.ncols)
-
     def node_links(self, *args):
         """node_links([node_ids])
 
@@ -377,12 +373,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         (self.node_inlink_matrix,
-         self.node_numinlink) = sgrid.setup_inlink_matrix(
-             self.shape, tonodes=self.link_tonode)
+         self.node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
 
         (self.node_outlink_matrix,
-         self.node_numoutlink) = sgrid.setup_outlink_matrix(
-             self.shape, fromnodes=self.link_fromnode)
+         self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
         
     def setup_active_inlink_and_outlink_matrices(self):
         """
@@ -390,14 +384,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         active outlinks for each node. These data structures are equivalent to
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
-        """
+        """ 
+
+        node_status = self.node_status != INACTIVE_BOUNDARY
+
         (self.node_active_inlink_matrix,
          self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
-             self.shape, tonodes=self.link_tonode)
+             self.shape, node_status=node_status)
 
         (self.node_active_outlink_matrix,
          self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
-             self.shape, fromnodes=self.link_fromnode)
+             self.shape, node_status=node_status)
 
     def cell_faces(self, cell_id):
         """

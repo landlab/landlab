@@ -284,6 +284,74 @@ class TestActiveLinks(unittest.TestCase):
                                      19, 20, 21, 22, 23, 24, 25, 26]))
         self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
 
+    def test_vertical_active_link_count(self):
+        link_count = sgrid.vertical_active_link_count((3, 4))
+        self.assertEqual(4, link_count)
+
+        link_count = sgrid.vertical_active_link_count((3, 2))
+        self.assertEqual(0, link_count)
+
+        node_status = np.ones((4, 5), dtype=np.int)
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(9, link_count)
+
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        node_status[0, 1] = 0
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(8, link_count)
+
+        node_status[2, 1] = 0
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(6, link_count)
+
+        node_status[2, 2] = 0
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(4, link_count)
+
+        node_status[1, 1] = 0
+        link_count = sgrid.vertical_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(4, link_count)
+
+    def test_horizontal_active_link_count(self):
+        link_count = sgrid.horizontal_active_link_count((3, 4))
+        self.assertEqual(3, link_count)
+
+        link_count = sgrid.horizontal_active_link_count((2, 3))
+        self.assertEqual(0, link_count)
+
+        node_status = np.ones((4, 5), dtype=np.int)
+        link_count = sgrid.horizontal_active_link_count(
+            (4, 5), node_status=node_status)
+        self.assertEqual(8, link_count)
+
+        link_count = sgrid.horizontal_active_link_count(
+            (4, 5), node_status=node_status)
+        node_status[0, 1] = 0
+        link_count = sgrid.horizontal_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(8, link_count)
+
+        node_status[2, 1] = 0
+        link_count = sgrid.horizontal_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(6, link_count)
+
+        node_status[2, 2] = 0
+        link_count = sgrid.horizontal_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(5, link_count)
+
+        node_status[1, 1] = 0
+        link_count = sgrid.horizontal_active_link_count((4, 5),
+                                                      node_status=node_status)
+        self.assertEqual(3, link_count)
+
     def test_horizontal_active_link_ids(self):
         links = sgrid.horizontal_active_link_ids((3, 4))
         assert_array_equal(links, np.array([[4, 5, 6]]))
@@ -297,6 +365,31 @@ class TestActiveLinks(unittest.TestCase):
         expected.shape = (2, 0)
         assert_array_equal(expected, links)
 
+        node_status = np.ones((4, 5), dtype=int)
+        links = sgrid.horizontal_active_link_ids((4, 5),
+                                                 node_status=node_status)
+        assert_array_equal(links, np.array([[ 9, 10, 11, 12],
+                                            [13, 14, 15, 16]]))
+
+        node_status = np.ones((4, 5), dtype=int)
+        node_status[1, 1] = 0
+        links = sgrid.horizontal_active_link_ids((4, 5),
+                                                 node_status=node_status)
+        assert_array_equal(links, np.array([[-1, -1,  7,  8],
+                                            [ 9, 10, 11, 12]]))
+
+        node_status[2, 1] = 0
+        links = sgrid.horizontal_active_link_ids((4, 5),
+                                                 node_status=node_status)
+        assert_array_equal(links, np.array([[-1, -1, 6, 7],
+                                            [-1, -1, 8, 9]]))
+
+        node_status[0, 0] = 0
+        links = sgrid.horizontal_active_link_ids((4, 5),
+                                                 node_status=node_status)
+        assert_array_equal(links, np.array([[-1, -1, 6, 7],
+                                            [-1, -1, 8, 9]]))
+
     def test_vertical_active_link_ids(self):
         links = sgrid.vertical_active_link_ids((3, 4))
         assert_array_equal(links, np.array([[0, 1], [2, 3]]))
@@ -309,6 +402,26 @@ class TestActiveLinks(unittest.TestCase):
         links = sgrid.vertical_active_link_ids((4, 1))
         expected.shape = (3, 0)
         assert_array_equal(expected, links)
+
+        node_status = np.ones((4, 5), dtype=int)
+        links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
+        assert_array_equal(links, np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]))
+
+        node_status = np.ones((4, 5), dtype=int)
+        node_status[1, 1] = 0
+        links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
+        assert_array_equal(links,
+                           np.array([[-1, 0, 1], [-1, 2, 3], [4, 5, 6]]))
+
+        node_status[2, 1] = 0
+        links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
+        assert_array_equal(links,
+                           np.array([[-1, 0, 1], [-1, 2, 3], [-1, 4, 5]]))
+
+        node_status[0, 0] = 0
+        links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
+        assert_array_equal(links,
+                           np.array([[-1, 0, 1], [-1, 2, 3], [-1, 4, 5]]))
 
     def test_west_links(self):
         links = sgrid.active_west_links((3, 4))
@@ -590,6 +703,34 @@ class TestNeighborArray(unittest.TestCase):
                                      [-2, -2, -2, -2], [ 5,  7,  3,  1], [-2, -2, -2, -2],
                                      [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
 
+
+class TestInlinkMatrix(unittest.TestCase):
+    def test_no_inactive(self):
+        inlinks = sgrid.setup_active_inlink_matrix((4, 5), return_count=False)
+        assert_array_equal(inlinks,
+                           np.array([[-1, -1, -1, -1, -1,
+                                      -1,  0,  1,  2, -1,
+                                      -1,  3,  4,  5, -1,
+                                      -1,  6,  7,  8, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1,  9, 10, 11, 12,
+                                      -1, 13, 14, 15, 16,
+                                      -1, -1, -1, -1, -1]]))
+
+    def test_inactive(self):
+        status = np.ones((4, 5))
+        status[1, 1] = 0
+        inlinks = sgrid.setup_active_inlink_matrix((4, 5), return_count=False,
+                                                   node_status=status)
+        assert_array_equal(inlinks,
+                           np.array([[-1, -1, -1, -1, -1,
+                                      -1, -1,  0,  1, -1,
+                                      -1, -1,  2,  3, -1,
+                                      -1,  4,  5,  6, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1, -1, -1,  7,  8,
+                                      -1,  9, 10, 11, 12,
+                                      -1, -1, -1, -1, -1]]))
 
 if __name__ == '__main__':
     unittest.main()

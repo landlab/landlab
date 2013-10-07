@@ -7,7 +7,8 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid, BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY
+from landlab import RasterModelGrid
+from landlab import BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY, INACTIVE_BOUNDARY
 
 
 _SPACING = 1.
@@ -375,11 +376,21 @@ class TestZerosArray(unittest.TestCase):
     def test_at_links(self):
         mg = RasterModelGrid(4, 5)
         v = mg.zeros(centering='link')
-        assert_array_equal(v, np.zeros(17, dtype=np.float))
+        assert_array_equal(v, np.zeros(31, dtype=np.float))
 
     def test_at_faces(self):
         mg = RasterModelGrid(4, 5)
         v = mg.zeros(centering='face')
+        assert_array_equal(v, np.zeros(17, dtype=np.float))
+
+    def test_at_active_cells(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(centering='active_cell')
+        assert_array_equal(v, np.zeros(6, dtype=np.float))
+
+    def test_at_active_links(self):
+        mg = RasterModelGrid(4, 5)
+        v = mg.zeros(centering='active_link')
         assert_array_equal(v, np.zeros(17, dtype=np.float))
 
 
@@ -401,11 +412,16 @@ class TestRasterModelGridZeroArrays(unittest.TestCase):
     def test_at_links(self):
         mg = RasterModelGrid(4, 5)
         assert_array_equal(mg.zeros(centering='link'),
-                           np.zeros((17, ), dtype=np.float))
+                           np.zeros((31, ), dtype=np.float))
 
     def test_at_faces(self):
         mg = RasterModelGrid(4, 5)
         assert_array_equal(mg.zeros(centering='face'),
+                           np.zeros((17, ), dtype=np.float))
+
+    def test_at_active_links(self):
+        mg = RasterModelGrid(4, 5)
+        assert_array_equal(mg.zeros(centering='active_link'),
                            np.zeros((17, ), dtype=np.float))
 
     def test_bad_centering(self):
@@ -584,6 +600,55 @@ class TestRasterModelGridCellAreas(unittest.TestCase):
     def test_all_cells_with_spacing(self):
         mg = RasterModelGrid(4, 4, 10.)
         assert_array_equal(mg.get_cell_areas(), 100. * np.ones(4.))
+
+
+class TestRasterModelGridInactiveNodes(unittest.TestCase):
+    def test_inactive_boundaries(self):
+        mg = RasterModelGrid(3, 4, 1.)
+        assert_array_equal(np.array([ 1,  2,  5,  6, 11, 12, 13]),
+                           mg.active_links)
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
+                      [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1]]),
+            mg.node_active_inlink_matrix)
+
+        mg.set_inactive_boundaries(True, True, True, True)
+        assert_array_equal(np.array([12]), mg.active_links)
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1]]),
+            mg.node_active_inlink_matrix)
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1]]),
+            mg.node_active_outlink_matrix)
+        assert_array_equal(
+            np.array([[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1]]),
+            mg.active_node_links())
+
+    def test_inactive_interiors(self):
+        mg = RasterModelGrid(4, 5, 1.)
+        mg.set_inactive_nodes([6, 12])
+        assert_array_equal(np.array([[-1, -1, -1, -1, -1,
+                                      -1, -1,  0,  1, -1,
+                                      -1, -1, -1,  2, -1,
+                                      -1,  3, -1,  4, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1, -1, -1,  5,  6,
+                                      -1,  7, -1, -1,  8,
+                                      -1, -1, -1, -1, -1],
+                                     [-1, -1,  0,  1, -1,
+                                      -1, -1, -1,  2, -1,
+                                      -1,  3, -1,  4, -1,
+                                      -1, -1, -1, -1, -1],
+                                     [-1, -1, -1, -1, -1,
+                                      -1, -1,  5,  6, -1,
+                                       7, -1, -1,  8, -1,
+                                      -1, -1, -1, -1, -1]]),
+            mg.active_node_links())
 
 
 if __name__ == '__main__':

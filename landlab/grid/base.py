@@ -19,9 +19,13 @@ BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 # of that element in the grid.
 _ARRAY_LENGTH_ATTRIBUTES = {
     'node': 'num_nodes',
-    'cell': 'num_active_cells',
-    'link': 'num_active_links',
+    'cell': 'num_cells',
+    'link': 'num_links',
     'face': 'num_faces',
+#    'active_node': '',
+    'active_cell': 'num_active_cells',
+    'active_link': 'num_active_links',
+#    'active_face': '',
 }
 
 # Define the boundary-type codes
@@ -90,8 +94,7 @@ class ModelGrid(ModelDataFields):
 
     def __init__(self):
         super(ModelGrid, self).__init__()
-
-        for centering in ['node', 'cell', 'link', 'face', ]:
+        for centering in _ARRAY_LENGTH_ATTRIBUTES:
             array_length = self._array_length(centering)
             try:
                 self.new_field_location(centering, array_length)
@@ -861,10 +864,11 @@ class ModelGrid(ModelDataFields):
         of active links (only).
         """
         # Create active in-link and out-link matrices.
-        self.node_active_inlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes),
-                                                       dtype=numpy.int)
-        self.node_active_outlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes),
-                                                        dtype=numpy.int)
+        self.node_active_inlink_matrix = - numpy.ones(
+            (self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+        self.node_active_outlink_matrix = - numpy.ones(
+            (self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
         self.node_numactiveinlink = numpy.bincount(tonodes,
@@ -881,7 +885,6 @@ class ModelGrid(ModelDataFields):
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
-
     
     def display_grid(self, draw_voronoi=False):
         """
@@ -1027,6 +1030,10 @@ class ModelGrid(ModelDataFields):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
+        self.reset_list_of_active_links()
+
+    def set_inactive_nodes(self, nodes):
+        self.node_status[nodes] = INACTIVE_BOUNDARY
         self.reset_list_of_active_links()
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, just_one_node=-1):
