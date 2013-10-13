@@ -65,12 +65,10 @@ def cell_count(shape):
     """
     assert(len(shape) == 2)
 
-    try:
-        assert(np.min(shape) > 2)
-    except AssertionError:
-        return 0
-    else:
+    if np.min(shape) > 2):
         return (shape[0] - 2) * (shape[1] - 2)
+    else:
+        return 0
 
 
 def active_cell_count(shape):
@@ -154,7 +152,24 @@ def face_count(shape):
     >>> face_count((3, 4))
     7
     """
-    return (shape[0] - 1) * (shape[1] - 2) + (shape[0] - 2) * (shape[1] - 1)
+    assert(len(shape) == 2)
+    if np.min(shape) > 2:
+        return ((shape[0] - 1) * (shape[1] - 2) +
+                (shape[0] - 2) * (shape[1] - 1))
+    else:
+        return 0
+
+
+def active_face_count(shape):
+    """
+    Total number of active faces in a structured grid with dimensions,
+    *shape*. Each cell has four faces, and shared faces only count once.
+    An active face is one that has a corresponing active link.
+
+    >>> active_face_count((3, 4))
+    7
+    """
+    return face_count(shape)
 
 
 def top_index_iter(shape):
@@ -485,6 +500,10 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     (active_links, ) = np.where(active_links)
 
     return active_links
+
+
+def active_faces(shape):
+    return np.arange(active_face_count(shape))
 
 
 def inlinks(shape, tonodes=None, return_count=True):
