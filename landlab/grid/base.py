@@ -704,7 +704,7 @@ class ModelGrid(ModelDataFields):
         """
         return numpy.amin(self.link_length[self.active_links])
 
-    def assign_upslope_vals_to_active_links( self, u, v=0 ):
+    def assign_upslope_vals_to_active_links( self, u, v=[0] ):
         """
         Assigns to each active link the value of u at whichever of its
         neighbors has a higher value of v. If v is omitted, uses u for
