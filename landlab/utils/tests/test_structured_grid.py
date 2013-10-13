@@ -54,17 +54,17 @@ class TestGetNodeCoords(unittest.TestCase):
 
 class TestGetCellNode(unittest.TestCase):
     def test_2d_shape_2_by_3(self):
-        cell_nodes = sgrid.cell_node_index((2, 3))
+        cell_nodes = sgrid.node_index_at_cells((2, 3))
 
         assert_array_equal(cell_nodes, np.array([]))
 
     def test_2d_shape_3_by_3(self):
-        cell_nodes = sgrid.cell_node_index((3, 3))
+        cell_nodes = sgrid.node_index_at_cells((3, 3))
 
         assert_array_equal(cell_nodes, np.array([4]))
 
     def test_shape_4_by_5(self):
-        cell_nodes = sgrid.cell_node_index((4, 5))
+        cell_nodes = sgrid.node_index_at_cells((4, 5))
 
         assert_array_equal(cell_nodes, np.array([ 6,  7,  8,
                                                  11, 12, 13]))
@@ -72,14 +72,14 @@ class TestGetCellNode(unittest.TestCase):
 
 class TestGetNodeLinks(unittest.TestCase):
     def test_2d_3_by_2_from_links(self):
-        (from_indices, _) = sgrid.node_link_index((3, 2))
+        (from_indices, _) = sgrid.node_index_at_link_ends((3, 2))
 
         assert_array_equal(from_indices,
                            np.array([0, 1, 2, 3,
                                      0, 2, 4]))
 
     def test_2d_3_by_2_to_links(self):
-        (_, to_indices) = sgrid.node_link_index((3, 2))
+        (_, to_indices) = sgrid.node_index_at_link_ends((3, 2))
 
         assert_array_equal(to_indices,
                            np.array([2, 3, 4, 5,
@@ -152,7 +152,7 @@ class TestGetNodeLinks(unittest.TestCase):
 
 class TestNodeActiveCell(unittest.TestCase):
     def test_one_active_cell(self):
-        active_cells = sgrid.node_active_cell((3, 3))
+        active_cells = sgrid.active_cell_index_at_nodes((3, 3))
 
         assert_array_equal(
             active_cells,
@@ -162,7 +162,7 @@ class TestNodeActiveCell(unittest.TestCase):
         )
 
     def test_no_active_cells(self):
-        active_cells = sgrid.node_active_cell((3, 2))
+        active_cells = sgrid.active_cell_index_at_nodes((3, 2))
 
         assert_array_equal(
             active_cells,
@@ -174,12 +174,12 @@ class TestNodeActiveCell(unittest.TestCase):
                                      
 class TestActiveCells(unittest.TestCase):
     def test_one_active_cell(self):
-        active_cells = sgrid.active_cells((3, 3))
+        active_cells = sgrid.active_cell_index((3, 3))
 
         assert_array_equal(active_cells, np.array([0]))
 
     def test_no_active_cells(self):
-        active_cells = sgrid.active_cells((3, 2))
+        active_cells = sgrid.active_cell_index((3, 2))
 
         assert_array_equal(active_cells,
             np.array([]))
@@ -276,7 +276,7 @@ class TestActiveLinks(unittest.TestCase):
                                      21, 22, 23, 24, 25, 26]))
 
     def test_with_link_nodes(self):
-        link_nodes = sgrid.node_link_index((4, 5))
+        link_nodes = sgrid.node_index_at_link_ends((4, 5))
         active_links = sgrid.active_links((4, 5), link_nodes=link_nodes)
 
         assert_array_equal(active_links,
@@ -526,7 +526,7 @@ class TestActiveLinks(unittest.TestCase):
 
 class TestLinkFaces(unittest.TestCase):
     def test_4_by_5(self):
-        link_faces = sgrid.link_faces((4, 5))
+        link_faces = sgrid.face_index_at_links((4, 5))
 
         BAD = sgrid.BAD_INDEX_VALUE
 
@@ -541,7 +541,7 @@ class TestLinkFaces(unittest.TestCase):
     def test_with_active_links(self):
         active_links = sgrid.active_links((4, 5))
         active_links = active_links[:-1]
-        link_faces = sgrid.link_faces((4, 5), actives=active_links)
+        link_faces = sgrid.face_index_at_links((4, 5), actives=active_links)
 
         BAD = sgrid.BAD_INDEX_VALUE
 

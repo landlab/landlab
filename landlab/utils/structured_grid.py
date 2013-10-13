@@ -329,7 +329,7 @@ def node_coords(shape, *args):
     return (node_x, node_y)
 
 
-def active_cells(shape):
+def active_cell_index(shape):
     """
     Ordered indices of the active cells of a structured grid.
     """
@@ -339,22 +339,22 @@ def active_cells(shape):
 def active_cell_node(shape):
     """
     Indices of the nodes belonging to each cell. Since all cells are active,
-    this is the same as cell_node_index.
+    this is the same as node_index_at_cells.
 
-    >>> active_cell_node((4,3))
+    >>> node_index_at_cells((4,3))
     array([4, 7])
     """
-    return cell_node_index(shape)
+    return node_index_at_cells(shape)
 
 
-def node_active_cell(shape, boundary_node_index=BAD_INDEX_VALUE):
+def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     """
     Indices of the cells associated with the nodes of the structured grid.
     For nodes that don't have a cell (that is, boundary nodes) set indices
     to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
-    >>> node_active_cell((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
+    >>> active_cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
     array([-1, -1, -1, -1,
            -1,  0,  1, -1,
            -1, -1, -1, -1])
@@ -369,11 +369,11 @@ def node_active_cell(shape, boundary_node_index=BAD_INDEX_VALUE):
     return node_ids
 
 
-def cell_node_index(shape):
+def node_index_at_cells(shape):
     """
     Indices of the nodes belonging to each cell.
 
-    >>> cell_node_index((4, 3))
+    >>> node_index_at_cells((4, 3))
     array([4, 7])
     """
     node_ids = np.arange(node_count(shape))
@@ -385,11 +385,12 @@ def cell_node_index(shape):
     return cell_node
 
 
-def node_link_index(shape):
+def node_index_at_link_ends(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
 
-    return (from_node_links(node_ids), to_node_links(node_ids))
+    return (node_index_at_link_head(node_ids),
+            node_index_at_link_tail(node_ids))
 
 
 def node_tolink_index(shape):
@@ -406,19 +407,20 @@ def node_fromlink_index(shape):
     return from_node_links(node_ids)
 
 
-def to_node_links(node_ids):
+def node_index_at_link_tail(node_ids):
     vertical_links = node_ids[1:, :]
     horizontal_links = node_ids[:, 1:]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def from_node_links(node_ids):
+def node_index_at_link_head(node_ids):
     vertical_links = node_ids[:-1, :]
     horizontal_links = node_ids[:, :-1]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def link_faces(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
+def face_index_at_links(shape, actives=None,
+                        inactive_link_index=BAD_INDEX_VALUE):
     """
     Returns an array that maps link ids to face ids. For inactive links,
     which do not have associated faces, set their ids to
@@ -427,7 +429,7 @@ def link_faces(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     that only the perimeter nodes are inactive.
 
 
-    >>> faces = link_faces((3, 4), inactive_link_index=-1)
+    >>> faces = face_index_at_links((3, 4), inactive_link_index=-1)
     >>> faces # doctest: +NORMALIZE_WHITESPACE
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
@@ -468,7 +470,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
         node_status_array = node_status(shape)
 
     if link_nodes is None:
-        (link_from_node, link_to_node) = node_link_index(shape)
+        (link_from_node, link_to_node) = node_index_at_link_ends(shape)
     else:
         (link_from_node, link_to_node) = link_nodes
 
