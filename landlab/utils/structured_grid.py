@@ -65,7 +65,7 @@ def cell_count(shape):
     """
     assert(len(shape) == 2)
 
-    if np.min(shape) > 2):
+    if np.min(shape) > 2:
         return (shape[0] - 2) * (shape[1] - 2)
     else:
         return 0
