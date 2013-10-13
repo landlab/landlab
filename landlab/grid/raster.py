@@ -55,7 +55,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             or set it up such that one can create a zero-node grid.
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        #self.ncells = num_rows * num_cols   #TBX
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )
@@ -137,34 +136,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Basic info about raster size and shape
         self.nrows = num_rows
         self.ncols = num_cols
-        self.ncells = num_rows * num_cols # soon to be deprecated, June 2013
+
         self._dx = dx
-        self.cellarea = dx*dx
-        self.num_nodes = num_rows * num_cols
-        self.num_cells = (num_rows-2) * (num_cols-2)
+        self.cellarea = dx * dx
+
+        self.num_nodes = sgrid.node_count((num_rows, num_cols))
+        self.num_active_nodes = self.num_nodes
+
+        self.num_cells = sgrid.cell_count((num_rows, num_cols))
         self.num_active_cells = self.num_cells
-        self.num_links = num_cols*(num_rows-1)+num_rows*(num_cols-1)
-        self.num_active_links = self.num_links-(2*(num_cols-1)+2*(num_rows-1))
+
+        self.num_links = sgrid.link_count((num_rows, num_cols))
+        self.num_active_links = sgrid.active_link_count((num_rows, num_cols))
         
+        self.num_faces = sgrid.face_count((num_rows, num_cols))
+
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
         assert(numpy.min((num_rows, num_cols)) >= 3)
 
-        # Record number of boundary and interior cells and the number
-        # of interior faces. Ultimately, this info could be overridden
-        # if using an irregular geometry of "interior" cells within the
-        # rectangular domain. Note that we don't include any faces
-        # between boundary cells.
-        # NG Do we still have boundary cells?  I thought that cells were only
-        # defined on interior nodes.
-        self.n_boundary_cells = 2 * ( num_rows - 2 ) + 2 * ( num_cols - 2 ) + 4
-        self.n_interior_cells = self.ncells - self.n_boundary_cells
-        self.num_faces = ( num_rows - 1 ) * ( num_cols - 2 ) + \
-                      ( num_rows - 2 ) * ( num_cols - 1 )
-        self.nfaces = self.num_faces # TBX; for backward compatibility
-        if self.DEBUG_VERBOSE:
-            print self.num_faces
-        
         # Assign and store node (x,y,z) coordinates.
         #
         # The relation between node (x,y) coordinates and position is
@@ -220,9 +210,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell, 
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = sgrid.cell_node_index((num_rows, num_cols))
-        self.node_activecell = sgrid.node_active_cell((num_rows, num_cols))
-        self.active_cells = sgrid.active_cells((num_rows, num_cols))
+        self.cell_node = sgrid.node_index_at_cells(self.shape)
+        self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
+        self.active_cells = sgrid.active_cell_index(self.shape)
         self.activecell_node = self.cell_node.copy()
 
         # Link lists:
@@ -252,10 +242,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #
         #   create the fromnode and tonode lists
         (self.link_fromnode,
-         self.link_tonode) = sgrid.node_link_index((num_rows, num_cols))
+         self.link_tonode) = sgrid.node_index_at_link_ends(self.shape)
 
         #   set up in-link and out-link matrices and numbers
-        self.setup_inlink_and_outlink_matrices()
+        self._setup_inlink_and_outlink_matrices()
         
         #   set up the list of active links
         self.reset_list_of_active_links()
@@ -270,8 +260,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.link_faces((num_rows, num_cols),
-                                          actives=self.active_links)
+        self.link_face = sgrid.face_index_at_links(self.shape,
+                                                   actives=self.active_links)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
@@ -336,7 +326,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 (self.node_active_inlink_matrix.take(node_ids, axis=1),
                  self.node_active_outlink_matrix.take(node_ids, axis=1)))
 
-    def setup_inlink_and_outlink_matrices(self):
+    def _setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks
         for each node. An inlink of a node is simply a link that has the node as
@@ -378,7 +368,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (self.node_outlink_matrix,
          self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
         
-    def setup_active_inlink_and_outlink_matrices(self):
+    def _setup_active_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of active inlinks and 
         active outlinks for each node. These data structures are equivalent to
@@ -829,18 +819,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 bc.tracks_cell[id] = nbr
                 nbr += self.ncols
         if top:
-            nbr = self.ncells - (self.ncols+2)
+            ncells = self.nrows * self.ncols
+            nbr = ncells - (self.ncols + 2)
             for id in xrange( upper_right+1, upper_left ):   # Top
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - 1
             bc.boundary_code[upper_right] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[upper_right] = self.ncells-2
+            bc.tracks_cell[upper_right] = ncells - 2
             bc.boundary_code[upper_left] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[upper_left] = self.ncells+1-self.ncols
+            bc.tracks_cell[upper_left] = ncells + 1 - self.ncols
         if left:
+            n_boundary_cells = (2 * (self.num_rows - 2) +
+                                2 * (self.num_cols - 2) + 4)
             nbr = (self.nrows-2)*self.ncols + 1
-            for id in xrange( upper_left+1, self.n_boundary_cells ):   # Left
+            for id in xrange( upper_left+1, n_boundary_cells ):   # Left
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - self.ncols
