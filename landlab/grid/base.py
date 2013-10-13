@@ -22,7 +22,7 @@ _ARRAY_LENGTH_ATTRIBUTES = {
     'cell': 'num_cells',
     'link': 'num_links',
     'face': 'num_faces',
-#    'active_node': '',
+    'active_node': 'num_active_nodes',
     'active_cell': 'num_active_cells',
     'active_link': 'num_active_links',
 #    'active_face': '',
@@ -104,7 +104,31 @@ class ModelGrid(ModelDataFields):
     def initialize( self ):
     
         pass
-        
+
+    @property
+    def node_index_at_cells(self):
+        return self.cell_node
+
+    @property
+    def active_cell_index_at_nodes(self):
+        return self.node_activecell
+
+    @property
+    def active_cell_index(self):
+        return self.active_cells
+
+    @property
+    def node_index_at_link_head(self):
+        return self.link_fromnode
+
+    @property
+    def node_index_at_link_tail(self):
+        return self.link_tonode
+
+    @property
+    def face_index_at_links(self):
+        return self.link_face
+
     def get_node_status(self):
         """
         Returns an array of node boundary-status codes.
@@ -725,7 +749,7 @@ class ModelGrid(ModelDataFields):
         self.activelink_tonode = self.link_tonode[self.active_links]
         
         # Set up active inlink and outlink matrices
-        self.setup_active_inlink_and_outlink_matrices()
+        self._setup_active_inlink_and_outlink_matrices()
 
     def deactivate_nodata_nodes(self, node_data, nodata_value):
         """
@@ -798,7 +822,7 @@ class ModelGrid(ModelDataFields):
         return num_nbrs
 
 
-    def setup_inlink_and_outlink_matrices(self):
+    def _setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks
         for each node. An inlink of a node is simply a link that has the node as
@@ -856,7 +880,7 @@ class ModelGrid(ModelDataFields):
             self.node_outlink_matrix[count][fromnodes] = link_ids
                 
         
-    def setup_active_inlink_and_outlink_matrices(self):
+    def _setup_active_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of active inlinks and 
         active outlinks for each node. These data structures are equivalent to

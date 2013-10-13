@@ -137,7 +137,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                                                   self.link_tonode)
                                                        
         # LINKS: inlink and outlink matrices
-        self.setup_inlink_and_outlink_matrices()
+        self._setup_inlink_and_outlink_matrices()
         
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
