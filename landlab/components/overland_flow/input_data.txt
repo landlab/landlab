@@ -4,3 +4,9 @@ RAINFALL_RATE: in mm/hr
 10
 RAIN_DURATION: in hours
 1
+mean_storm: storm length, hours
+0.5
+mean_intensity: storm intensity, mm/hr
+10
+mean_interstorm: interstorm duration, hours
+100

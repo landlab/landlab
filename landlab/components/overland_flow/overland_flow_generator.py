@@ -79,13 +79,17 @@ class OverlandFlow(object):
         interior_cells = grid.get_active_cell_node_ids() 
         elapsed_time = 0
         
+        print "delt ", delt
+        
         while elapsed_time < delt:
             
             # Calculate time-step size for this iteration (Bates et al., eq 14)
             dtmax = self.alpha*grid.dx/np.sqrt(self.g*np.amax(self.h))
+            print "dtmax", dtmax
         
             # Take the smaller of delt or calculated time-step
             dt = min(dtmax, delt)
+            print "dt", dt
         
             #NG  need a loop in here that will cover the total time delt if 
             #dtmax < delt
@@ -118,12 +122,12 @@ class OverlandFlow(object):
             # Second time-step limiter (experimental): make sure you don't allow
             # water-depth to go negative
             if np.amin(self.dhdt) < 0.:
-                shallowing_locations = np.where(dhdt<0.)
+                shallowing_locations = np.where(self.dhdt<0.)
                 time_to_drain = -self.h[shallowing_locations]/self.dhdt[shallowing_locations]
-                dtmax2 = alpha*np.amin(time_to_drain)
-                dt = np.min([dtmax, dtmax2])
+                dtmax2 = self.alpha*np.amin(time_to_drain)
+                dt = np.min([dtmax, dtmax2, delt])
             else:
-                dt = dtmax
+                dt = np.min([dtmax,delt])
         
             # Calculate rate of change of water depth
             self.dhdt = rainrate-dqds
@@ -139,18 +143,19 @@ class OverlandFlow(object):
             # h is at nodes
             self.h_link = grid.assign_upslope_vals_to_active_links(self.h)
             #below is shear stress at the link
-            #self.tau = self.rho*self.g*water_surface_slope*self.h_link
+            self.tau = self.rho*self.g*water_surface_slope*self.h_link
                                  
             # Update current time and return it
             self.current_time += dt
-            
+            print "elapsed_time ", elapsed_time
             elapsed_time += dt
-            #taumax=np.amax(self.tau)
-            #print "tau max ", taumax
-            #watermax=np.amax(self.h)
-            #print "water max ",watermax
+            print "elapsed_time ", elapsed_time
+            taumax=np.amax(self.tau)
+            print "tau max ", taumax
+            watermax=np.amax(self.h)
+            print "water max ",watermax
             
-            return self.tau
+        return self.tau
         
             #return z, g, qs, dqsds, dzdt
         

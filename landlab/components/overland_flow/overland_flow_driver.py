@@ -7,6 +7,7 @@ This tests the overland flow and shear stress generator.
 
 import landlab
 from landlab.components.overland_flow.overland_flow_generator import OverlandFlow
+from landlab.components.uniformprecip.rainfall_driver import PrecipitationDistribution
 #import pylab as pl
 from pylab import plot, draw, show, contour, imshow, colorbar
 import numpy as np
@@ -43,12 +44,23 @@ def main():
     elev_raster = rg.node_vector_to_raster(elevations,True)
     
     of=OverlandFlow('input_data.txt',rg,0)
+    rainfall = PrecipitationDistribution()
+    rainfall.initialize('input_data.txt')
+    rainfall.update
     
-    tau = of.run_one_step(rg,elevations,1800)
+    #for now this is in hours, so put into seconds
+    storm_duration = rainfall.storm_duration*3600
+    #in mm/hour, so convert to m/second
+    storm_intensity = rainfall.intensity/1000/3600
+    print "storm duration, seconds ", storm_duration
+    print "storm duration, hours ", rainfall.storm_duration
+    print "storm intensity ", storm_intensity
     
-    imshow(elev_raster)
-    colorbar()
-    show()
+    tau = of.run_one_step(rg,elevations,storm_duration,storm_intensity)
+    
+    #imshow(elev_raster)
+    #colorbar()
+    #show()
     #
     ## Create a shaded image
     #pylab.close()  # clear any pre-existing plot
