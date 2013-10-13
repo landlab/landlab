@@ -502,7 +502,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     return active_links
 
 
-def active_faces(shape):
+def active_face_index(shape):
     return np.arange(active_face_count(shape))
 
 

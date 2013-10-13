@@ -524,7 +524,7 @@ class TestActiveLinks(unittest.TestCase):
                            links)
 
 
-class TestLinkFaces(unittest.TestCase):
+class TestFaces(unittest.TestCase):
     def test_face_count(self):
         self.assertEqual(17, sgrid.face_count((4, 5)))
         self.assertEqual(4, sgrid.face_count((3, 3)))
@@ -539,6 +539,17 @@ class TestLinkFaces(unittest.TestCase):
         self.assertEqual(0, sgrid.active_face_count((100, 2)))
         self.assertEqual(0, sgrid.active_face_count((100, 1)))
 
+    def test_active_faces(self):
+        active_faces = sgrid.active_face_index((4, 5))
+        assert_array_equal(np.array([ 0,  1,  2,
+                                      3,  4,  5,
+                                      6,  7,  8,
+                                      9, 10, 11, 12,
+                                     13, 14, 15, 16]),
+                           active_faces)
+
+
+class TestLinkFaces(unittest.TestCase):
     def test_4_by_5(self):
         link_faces = sgrid.face_index_at_links((4, 5))
 
