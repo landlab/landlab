@@ -1,0 +1,6 @@
+MANNINGS_N: n value in manning's velocity equation, generally 0.01 to 0.1
+0.04
+RAINFALL_RATE: in mm/hr
+10
+RAIN_DURATION: in hours
+1
