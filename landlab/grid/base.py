@@ -25,7 +25,7 @@ _ARRAY_LENGTH_ATTRIBUTES = {
     'active_node': 'num_active_nodes',
     'active_cell': 'num_active_cells',
     'active_link': 'num_active_links',
-#    'active_face': '',
+    'active_face': 'num_active_faces',
 }
 
 # Define the boundary-type codes

@@ -140,16 +140,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._dx = dx
         self.cellarea = dx * dx
 
-        self.num_nodes = sgrid.node_count((num_rows, num_cols))
+        self.num_nodes = sgrid.node_count(self.shape)
         self.num_active_nodes = self.num_nodes
 
-        self.num_cells = sgrid.cell_count((num_rows, num_cols))
+        self.num_cells = sgrid.cell_count(self.shape)
         self.num_active_cells = self.num_cells
 
-        self.num_links = sgrid.link_count((num_rows, num_cols))
-        self.num_active_links = sgrid.active_link_count((num_rows, num_cols))
+        self.num_links = sgrid.link_count(self.shape)
+        self.num_active_links = sgrid.active_link_count(self.shape)
         
-        self.num_faces = sgrid.face_count((num_rows, num_cols))
+        self.num_faces = sgrid.face_count(self.shape)
+        self.num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
@@ -214,6 +215,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
         self.activecell_node = self.cell_node.copy()
+        self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
