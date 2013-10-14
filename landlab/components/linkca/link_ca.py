@@ -91,14 +91,12 @@ class LinkCellularAutomaton():
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
                'model_grid must be a Landlab RasterModelGrid'
         self.grid = model_grid
+        self.node_active_links = self.grid.active_node_links()
+
+        self.set_node_state_grid(initial_node_states)
         
-        # Assign the node states
-        assert (type(initial_node_states) is numpy.ndarray), \
-               'initial_node_states must be a Numpy array'
-        assert (len(initial_node_states)==self.grid.num_nodes), \
-               'length of initial_node_states must equal number of nodes in grid'
-        self.node_state = initial_node_states
-                 
+        self.current_time = 0.0
+        
         # Figure out how many states there are, and make sure the input data
         # are self consistent.
         self.num_node_states = len(node_state_dict)
@@ -130,6 +128,22 @@ class LinkCellularAutomaton():
         self.push_transitions_to_event_queue()
 
 
+    def set_node_state_grid(self, node_states):
+        """
+        Sets the grid of node-state codes to node_states. Also checks
+        to make sure node_states is in the proper format, which is to
+        say, it's a Numpy array of the same length as the number of nodes in 
+        the grid.
+        
+        Creates: self.node_state (1D Numpy array)
+        """
+        assert (type(node_states) is numpy.ndarray), \
+               'initial_node_states must be a Numpy array'
+        assert (len(node_states)==self.grid.num_nodes), \
+               'length of initial_node_states must equal number of nodes in grid'
+        self.node_state = node_states
+        
+                 
     def create_link_state_dictionary_and_pair_list(self):
         """
         Creates a dictionary that can be used as a lookup table to find out 
@@ -163,15 +177,13 @@ class LinkCellularAutomaton():
         dictionary that associates pairs of node states (represented as a 
         2-element tuple) to link states.
         """
-        self.link_state = numpy.zeros(self.grid.num_nodes, dtype=int)
+        self.link_state = numpy.zeros(self.grid.num_active_links, dtype=int)
     
-        k = 0
         for i in range(self.grid.num_active_links):
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]])
             #print 'node pair:', node_pair, 'dict:', link_state_dict[node_pair]
-            self.link_state[k] = self.link_state_dict[node_pair]
-            k += 1
+            self.link_state[i] = self.link_state_dict[node_pair]
         
         if _DEBUG:
             print 
@@ -300,158 +312,169 @@ class LinkCellularAutomaton():
                 print '    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to
             
             
-def update_node_states(fromnode, tonode, node_state, pair, new_link_state):
-    """
-    Updates the states of the two nodes in the given link.
-    """
+    def update_node_states(fromnode, tonode, new_link_state):
+        """
+        Updates the states of the two nodes in the given link.
+        """
     
-    # Remember the previous state of each node so we can detect whether the 
-    # state has changed
-    old_fromnode_state = node_state[fromnode]
-    old_tonode_state = node_state[tonode]
+        # Remember the previous state of each node so we can detect whether the 
+        # state has changed
+        old_fromnode_state = self.node_state[fromnode]
+        old_tonode_state = self.node_state[tonode]
     
-    # Change to the new states
-    node_state[fromnode] = pair[new_link_state][0]
-    node_state[tonode] = pair[new_link_state][1]
+        # Change to the new states
+        self.node_state[fromnode] = self.cell_pair[new_link_state][0]
+        self.node_state[tonode] = self.cell_pair[new_link_state][1]
     
-    if _DEBUG:
-        print 'update_node_states() for',fromnode,'and',tonode
-        print '  fromnode was',old_fromnode_state,'and is now',node_state[fromnode]
-        print '  tonode was',old_tonode_state,'and is now',node_state[tonode]
-    
-    return node_state[fromnode]!=old_fromnode_state, \
-           node_state[tonode]!=old_tonode_state
-           
-           
-def update_link_state(link, link_state, new_link_state, n_xn, eq, next_update,
-                      xn_to, xn_rate, current_time):
-    """
-    Implements a link transition by updating the current state of the link and
-    (if appropriate) choosing the next transition event and pushing it on to the
-    event queue.
-    
-    Inputs:
-        link - ID of the link to update
-        link_state - array of state codes for all links (MODIFIES)
-        new_link_state - code for the new state
-        n_xs - array of number of potential transitions from each state
-        eq - event queue (MODIFIES)
-        next_update - time of next update (transition) at each link (MODIFIES)
-        xn_to - array of transitions "to" from each state
-        xn_rate - array of transition rate for each transition
-    """
-    if _DEBUG:
-        print
-        print 'update_link_state:',xn_to
-    link_state[link] = new_link_state
-    if n_xn[new_link_state] > 0:
-        event = get_next_event(link, new_link_state, n_xn, xn_to, xn_rate, 
-                               current_time)
-        heappush(eq, event)
-        next_update[link] = event.time
-    else:
-        next_update[link] = _NEVER
-            
-    if _DEBUG:
-        print
-        print '  at link',link
-        print '  state changed to',link_state[link]
-        print '  update time now',next_update[link]
-        
-            
-def do_transition(event, model_grid, node_state, next_update, pair, link_state,
-                  n_xn, eq, xn_rate, node_active_links, ls_dict, xn_to, 
-                  current_time):
-    """
-    Implements a state transition. First checks that the transition is still
-    valid by comparing the link's next_update time with the corresponding update
-    time in the event object.
-    
-    If the transition is valid, we:
-        1) Update the states of the two nodes attached to the link
-        2) Update the link's state, choose its next transition, and push it on
-           the event queue.
-        3) Update the states of the other links attached to the two nodes, 
-           choose their next transitions, and push them on the event queue.
-           
-    Inputs:
-        event - Event() object containing the transition data.
-        model_grid - ModelGrid() object
-        node_state - array of states for each node
-        next_update - time of next update for each link
-        pair - list of node-state pairs corresponding to each link state
-        link_state - array of states for each link
-        n_xs - array with number of transitions out of each link state
-        eq - event queue
-        xn_rate - array with rate of each transition
-        node_active_links - list of arrays containing IDs of links connected to
-            each node
-        ls_dict - dictionary of link-state codes corresponding to each 
-            node-state pair
-        
-    """
-    
-    if _DEBUG:
-        print
-        print 'do_transition() for link',event.link
-        
-    # We'll process the event if its update time matches the one we have 
-    # recorded for the link in question. If not, it means that the link has
-    # changed state since the event was pushed onto the event queue, and in that
-    # case we'll ignore it.
-    if event.time == next_update[event.link]:
-        
         if _DEBUG:
-            print '  event time =',event.time
+            print 'update_node_states() for',fromnode,'and',tonode
+            print '  fromnode was',old_fromnode_state,'and is now',node_state[fromnode]
+            print '  tonode was',old_tonode_state,'and is now',node_state[tonode]
+    
+        return node_state[fromnode]!=old_fromnode_state, \
+               node_state[tonode]!=old_tonode_state
+           
+           
+    def update_link_state(link, new_link_state, current_time):
+        """
+        Implements a link transition by updating the current state of the link
+        and (if appropriate) choosing the next transition event and pushing it 
+        on to the event queue.
+    
+        Inputs:
+            link - ID of the link to update
+            new_link_state - code for the new state
+            current_time - current time in simulation
+        """
+        if _DEBUG:
+            print
+            print 'update_link_state()'
+        self.link_state[link] = new_link_state
+        if self.n_xn[new_link_state] > 0:
+            event = get_next_event(link, new_link_state, current_time)
+            heappush(self.event_queue, event)
+            self.next_update[link] = event.time
+        else:
+            self.next_update[link] = _NEVER
+            
+        if _DEBUG:
+            print
+            print '  at link',link
+            print '  state changed to',self.link_state[link]
+            print '  update time now',self.next_update[link]
         
-        fromnode = model_grid.activelink_fromnode[event.link]
-        tonode = model_grid.activelink_tonode[event.link]
-        from_changed, to_changed = update_node_states(fromnode, tonode, 
-                                                      node_state,
-                                                      pair, event.xn_to)
-        update_link_state(event.link, link_state, event.xn_to, n_xn, eq, next_update,
-                          xn_to, xn_rate[link_state[event.link]], event.time)
-
-        # Next, when the state of one of the link's nodes changes, we have to
-        # update the states of the OTHER links attached to it. This could happen
-        # to one or both nodes.
-        if from_changed:
             
-            if _DEBUG:
-                print '    fromnode has changed state, so updating its links'
+    def do_transition(event, current_time):
+        """
+        Implements a state transition. First checks that the transition is still
+        valid by comparing the link's next_update time with the corresponding update
+        time in the event object.
+        
+        If the transition is valid, we:
+            1) Update the states of the two nodes attached to the link
+            2) Update the link's state, choose its next transition, and push it on
+            the event queue.
+            3) Update the states of the other links attached to the two nodes, 
+            choose their next transitions, and push them on the event queue.
             
-            for link in node_active_links[:,fromnode]:
-                
-                if link!=-1 and link!=event.link:
-                    
-                    fromnode = model_grid.activelink_fromnode[link]
-                    tonode = model_grid.activelink_tonode[link]
-                    current_pair = (node_state[fromnode], node_state[tonode])
-                    new_link_state = ls_dict[current_pair]
-                    update_link_state(link, link_state, new_link_state, n_xn, eq, 
-                                      next_update, xn_to, xn_rate, event.time)
-
-        if to_changed:
-            
-            if _DEBUG:
-                print '    tonode has changed state, so updating its links'
-            
-            for link in node_active_links[:,tonode]:
-                
-                if link!=-1 and link!=event.link:
-                    
-                    fromnode = model_grid.activelink_fromnode[link]
-                    tonode = model_grid.activelink_tonode[link]
-                    current_pair = (node_state[fromnode], node_state[tonode])
-                    new_link_state = ls_dict[current_pair]
-                    update_link_state(link, link_state, new_link_state, n_xn, eq, 
-                                      next_update, xn_to, xn_rate, event.time)
-
-    elif _DEBUG:
-        print '  event time is',event.time,'but update time is',next_update[event.link],'so event will be ignored'
+        Inputs:
+            event - Event() object containing the transition data.
+            model_grid - ModelGrid() object
+            node_state - array of states for each node
+            next_update - time of next update for each link
+            pair - list of node-state pairs corresponding to each link state
+            link_state - array of states for each link
+            n_xs - array with number of transitions out of each link state
+            eq - event queue
+            xn_rate - array with rate of each transition
+            node_active_links - list of arrays containing IDs of links connected to
+                each node
+            ls_dict - dictionary of link-state codes corresponding to each 
+                node-state pair
+        
+        """
     
+        if _DEBUG:
+            print
+            print 'do_transition() for link',event.link
+            
+        # We'll process the event if its update time matches the one we have 
+        # recorded for the link in question. If not, it means that the link has
+        # changed state since the event was pushed onto the event queue, and in that
+        # case we'll ignore it.
+        if event.time == self.next_update[event.link]:
+        
+            if _DEBUG:
+                print '  event time =',event.time
+            
+            fromnode = self.grid.activelink_fromnode[event.link]
+            tonode = self.grid.activelink_tonode[event.link]
+            from_changed, to_changed = self.update_node_states(fromnode, tonode, 
+                                                          event.xn_to)
+            self.update_link_state(event.link, event.xn_to, event.time)
+
+            # Next, when the state of one of the link's nodes changes, we have to
+            # update the states of the OTHER links attached to it. This could happen
+            # to one or both nodes.
+            if from_changed:
+                
+                if _DEBUG:
+                    print '    fromnode has changed state, so updating its links'
+            
+                for link in self.node_active_links[:,fromnode]:
+                    
+                    if link!=-1 and link!=event.link:
+                    
+                        fromnode = self.grid.activelink_fromnode[link]
+                        tonode = self.grid.activelink_tonode[link]
+                        current_pair = (self.node_state[fromnode], 
+                                        self.node_state[tonode])
+                        new_link_state = self.ls_dict[current_pair]
+                        self.update_link_state(link, new_link_state, event.time)
+
+            if to_changed:
+            
+                if _DEBUG:
+                    print '    tonode has changed state, so updating its links'
+            
+                for link in self.node_active_links[:,tonode]:
+                
+                    if link!=-1 and link!=event.link:
+                    
+                        fromnode = self.grid.activelink_fromnode[link]
+                        tonode = self.grid.activelink_tonode[link]
+                        current_pair = (self.node_state[fromnode], 
+                                        self.node_state[tonode])
+                        new_link_state = self.ls_dict[current_pair]
+                        self.update_link_state(link, new_link_state, event.time)
+
+        elif _DEBUG:
+            print '  event time is',event.time,'but update time is', \
+                  self.next_update[event.link],'so event will be ignored'
+                  
+                  
+    def run(self, run_duration, node_state_grid=None):
+        
+        if node_state_grid is not None:
+            self.set_node_state_grid(node_state_grid)
     
-def main():
+        # Continue until we've run out of either time or events
+        while self.current_time < run_duration and self.event_queue:
+        
+            print 'Current Time = ', self.current_time
+        
+            # Pick the next transition event from the event queue
+            ev = heappop(self.event_queue)
+        
+            #print 'Event:',ev.time,ev.link,ev.xn_to
+        
+            do_transition(ev, self.current_time)
+        
+            # Update current time
+            self.current_time = ev.time
+
+        
+def example_test2():
     
     # INITIALIZE
 
@@ -461,107 +484,41 @@ def main():
     frac_spacing = 32
     plot_interval = 0.25
     next_plot = plot_interval
-    run_duration = 5.0
+    run_duration = 2.0
         
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
     mg.set_inactive_boundaries(True, True, True, True)
-    node_active_links = mg.active_node_links()
     
-    # Create other data structures
-    # ..todo:
-    #   model grid should distinguish between making array of all links
-    #       vs active links.
-    #   should allow data type argument.
-    next_update = mg.create_active_link_array_zeros()
-    node_type = mg.create_node_array_zeros()
-    if _TEST:
-        # for testing, make one node be type 1
-        node_type[mg.ncols+1] = 1
-    else:
-        node_type = make_frac_grid(frac_spacing, model_grid=mg)
-    #node_type[mg.ncols*2-2] = 1
-    #print 'node type:',node_type
-    
-    # Create priority queue for events
-    eq = []
-    
-    # Assign link types from node types
-    num_node_states = len(_NODE_STATE)
-    ls_dict, pair = create_link_state_dictionary_and_pair_list(num_node_states)
-    #print 'ls dict:',ls_dict
-    print 'from and to:',mg.activelink_fromnode, mg.activelink_tonode
-    link_state = assign_link_states_from_node_types(mg.activelink_fromnode,
-                                                    mg.activelink_tonode,
-                                                    node_type, ls_dict)
-    print 'ls:',link_state
-    num_link_states = len(ls_dict)
-    print 'there are',num_link_states,'link states'
-    
-    # Create a list of transitions
+    # Transition data here represent a body of fractured rock, with rock 
+    # represented by nodes with state 0, and saprolite (weathered rock)
+    # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
+    # can undergo a transition to 1-1, representing chemical weathering of the
+    # rock.
+    ns_dict = { 0 : 'rock', 1 : 'saprolite' }
     xn_list = setup_transition_list()
-    
-    # Create transition data for links
-    num_xn, xn_to, xn_rate = setup_transition_data(num_link_states, xn_list)
-    print 'num_xn:', num_xn
-    
-    # Put the various transitions on the event queue
-    push_transitions_to_event_queue(eq, link_state, num_xn, xn_to, xn_rate, next_update)
-    
-    print 'node type:', node_type
-    print 'link state', link_state
-    print 'next update', next_update
-    print 'eq:'
-    #while eq:
-    #    e = heappop(eq)
-    #    print e.time, e.link, e.xn_to
 
-    #return   
-            
-    current_time = 0.0
+    # The initial grid represents a chunk of fractured rock, with fractures
+    # represented by saprolite one cell wide.
+    node_state_grid = make_frac_grid(frac_spacing, model_grid=mg)
+    
+    # Create the CA model
+    ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
 
     # Plot initial state
     plt.figure()
-    imshow_grid(mg, node_type)
+    imshow_grid(mg, ca.node_state)
     
-    # if test, keep track of # of sap cells
-    tm = [0.0]
-    nsap = [1]
-        
-        
+
     # RUN
+    ca.run(run_duration)
     
-    # Continue until we've run out of either time or events
-    while current_time < run_duration and eq:
-        
-        print 'Current Time = ', current_time
-        
-        # Pick the next transition event from the event queue
-        ev = heappop(eq)
-        
-        #print 'Event:',ev.time,ev.link,ev.xn_to
-        
-        do_transition(ev, mg, node_type, next_update, pair, link_state,
-                      num_xn, eq, xn_rate, node_active_links, ls_dict, xn_to,
-                      current_time)
-        
-        # Update current time
-        current_time = ev.time
-        
-        # Monitor the number of total sap cells for testing
-        tm.append(current_time)
-        nsap.append(numpy.sum(node_type))
-        
-        # Plot
-        if current_time >= next_plot:
-            plt.figure()
-            imshow_grid(mg, node_type)
-            next_plot += plot_interval
-        
-    if _TEST:
-        plt.figure()
-        plt.plot(tm, nsap, 'o-')
-        plt.show()
+    
+    # FINALIZE
+    
+    # Plot
+    plt.figure()
+    imshow_grid(mg, ca.node_state)
         
         
         
@@ -584,13 +541,15 @@ def setup_transition_list():
         
     return xn_list
     
+    
+example_test2()
 
-xn_list = setup_transition_list()
-model_grid = RasterModelGrid(3, 5, 1.0)
-ns_dict = { 0 : 'rock', 1 : 'saprolite' }
-node_state = model_grid.create_node_array_zeros()
-node_state[6] = 1
-myca = LinkCellularAutomaton(model_grid, ns_dict, xn_list, node_state)
+#xn_list = setup_transition_list()
+#model_grid = RasterModelGrid(3, 5, 1.0)
+#ns_dict = { 0 : 'rock', 1 : 'saprolite' }
+#node_state = model_grid.create_node_array_zeros()
+#node_state[6] = 1
+#myca = LinkCellularAutomaton(model_grid, ns_dict, xn_list, node_state)
 
     
 if __name__ == "__main__":
