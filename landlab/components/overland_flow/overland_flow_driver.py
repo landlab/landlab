@@ -7,7 +7,7 @@ This tests the overland flow and shear stress generator.
 
 import landlab
 from landlab.components.overland_flow.overland_flow_generator import OverlandFlow
-from landlab.components.uniformprecip.rainfall_driver import PrecipitationDistribution
+from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 #import pylab as pl
 from pylab import plot, draw, show, contour, imshow, colorbar
 import numpy as np
