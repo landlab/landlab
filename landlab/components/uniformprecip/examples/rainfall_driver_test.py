@@ -1,5 +1,4 @@
 from landlab.components.uniformprecip.rainfall_driver import PrecipitationDistribution
-#reload( RainfallDriver )
 
 
 def main():
@@ -36,6 +35,11 @@ def main():
     print "Interstorm Duration is: ", TrialRun.interstorm_duration, 'hours.'
     print "Storm Depth is: ", TrialRun.storm_depth, 'mm.'
     print "Intensity is: ", TrialRun.intensity, 'mm.'
+    
+    print '\n'
+    print 'Now we are going to generate a time series:'
+    TrialRun.get_storm_time_series(1000)
+    print TrialRun.storm_time_series
 
 
 if __name__ == '__main__':
