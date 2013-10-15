@@ -1,9 +1,9 @@
 MEAN_STORM: mean storm duration, [ T ] units may vary, depend on intensity units
-1.0
+15.0
 MEAN_INTENSITY: mean storm intensity, [L/T] units may vary
-20.0
+1.0
 MEAN_INTERSTORM: mean storm intensity, [ T ] units may vary, see mean_storm
-2.0
+285.0
 
 RUN_TIME: total model run time [ T ]
 1000

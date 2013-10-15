@@ -43,7 +43,7 @@ class PrecipitationDistribution:
         self.intensity = 0.0
         
         '''TIME VARIABLES'''
-        self.storm_time_series =[0]
+        self.storm_time_series =[]
 
 
     def initialize(self, input_file=None):
@@ -198,29 +198,38 @@ class PrecipitationDistribution:
         This method creates a time series of storms based on storm_duration, and
         interstorm_duration. From these values it will calculate a complete
         time series.
+        
+        The storm_time_series returned by this method is made up of sublists, each comprising of three
+        sub-parts (e.g. [[x,y,z], [a,b,c]]) where x and a are the beginning times of a precipitation 
+        event, y and b are the ending times of the precipitation event and z and c represent the
+        average intensity (mm/hr) of the storm lasting from x to y and a to be, respectively. 
         '''
         
         
         ''' This statement creates the first storm/interstorm pair and event.'''
         storm = self.get_precipitation_event_duration()
-        #interstorm = self.get_interstorm_event_duration()
-        #corrected_interstorm = storm + interstorm
         self.get_storm_depth()
         intensity = self.get_storm_intensity()
-        self.storm_time_series.append([storm, intensity])
-        #self.storm_time_series.append(corrected_interstorm)
-        #self.storm_time_series.append(intensity)
-        #interstorm_list = []
-        #interstorm_list.append(corrected_interstorm)
-        i = 4
-        while sum(self.storm_time_series) <= run_time:
-            storm = self.get_precipitation_event_duration()
-            new_storm = storm + self.get_interstorm_event_duration()
-            #self.storm_time_series.append(new_storm)
-            #interstorm = self.get_interstorm_event_duration()
-            #corrected_interstorm = interstorm + new_storm
-            #self.storm_time_series.append(corrected_interstorm)
-            self.storm_time_series.append([new_storm, intensity])
-            i+=3
+        self.storm_time_series.append([0, storm, intensity])
+
+        '''
+        There is a helper and an iterator. Open to suggestions on how to make this 
+        sleeker. helper keeps track of storm events so that we can properly adjust the time for the 
+        storm_time_series list. 
+        
+        Storm iterator makes sure that the run goes through to the specified time, either read in as 'run_time' by
+        the ModelParameterDictionary or specified the fire time this method is called.
+        
+        '''
+        storm_helper = storm
+        storm_iterator = storm
+        while storm_iterator <= run_time:
+            next_storm_start  = storm_helper + round(self.get_interstorm_event_duration(),2)
+            next_storm_end = next_storm_start + round(self.get_precipitation_event_duration(),2)
+            intensity = round(self.get_storm_intensity(),2)
+            self.get_storm_depth()
+            self.storm_time_series.append([next_storm_start, next_storm_end, intensity])
+            storm_iterator += storm_helper
+            storm_helper = next_storm_end
         return self.storm_time_series
             
