@@ -10,7 +10,7 @@
 import os
 from numpy import *
 from math import *
-from landlab.components.uniformprecip.rainfall_driver import PrecipitationDistribution
+from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from soil_moisture import SoilMoisture
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 from matplotlib.pyplot import *
