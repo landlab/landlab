@@ -182,13 +182,13 @@ class LinkCellularAutomaton():
         for i in range(self.grid.num_active_links):
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]])
-            #print 'node pair:', node_pair, 'dict:', link_state_dict[node_pair]
+            #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
         
         if _DEBUG:
             print 
             print 'assign_link_states_from_node_types(): the link state array is:'
-            print link_state
+            print self.link_state
 
 
     def setup_transition_data(self, xn_list):
@@ -294,11 +294,12 @@ class LinkCellularAutomaton():
     def push_transitions_to_event_queue(self):
     
         if _DEBUG:
-            print 'push_transitions_to_event_queue():'
-        for i in range(self.num_link_states):
+            print 'push_transitions_to_event_queue():',self.num_link_states,self.n_xn
+        for i in range(self.grid.num_active_links):
         
+            #print i, self.link_state[i]
             if self.n_xn[self.link_state[i]] > 0:
-                #print 'link',i,'has state',link_state[i],'and',n_xn[link_state[i]],'potential transitions'
+                #print 'link',i,'has state',self.link_state[i],'and',self.n_xn[self.link_state[i]],'potential transitions'
                 event = self.get_next_event(i, self.link_state[i], 0.0)
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
@@ -312,7 +313,7 @@ class LinkCellularAutomaton():
                 print '    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to
             
             
-    def update_node_states(fromnode, tonode, new_link_state):
+    def update_node_states(self, fromnode, tonode, new_link_state):
         """
         Updates the states of the two nodes in the given link.
         """
@@ -328,14 +329,14 @@ class LinkCellularAutomaton():
     
         if _DEBUG:
             print 'update_node_states() for',fromnode,'and',tonode
-            print '  fromnode was',old_fromnode_state,'and is now',node_state[fromnode]
-            print '  tonode was',old_tonode_state,'and is now',node_state[tonode]
+            print '  fromnode was',old_fromnode_state,'and is now',self.node_state[fromnode]
+            print '  tonode was',old_tonode_state,'and is now',self.node_state[tonode]
     
-        return node_state[fromnode]!=old_fromnode_state, \
-               node_state[tonode]!=old_tonode_state
+        return self.node_state[fromnode]!=old_fromnode_state, \
+               self.node_state[tonode]!=old_tonode_state
            
            
-    def update_link_state(link, new_link_state, current_time):
+    def update_link_state(self, link, new_link_state, current_time):
         """
         Implements a link transition by updating the current state of the link
         and (if appropriate) choosing the next transition event and pushing it 
@@ -351,7 +352,7 @@ class LinkCellularAutomaton():
             print 'update_link_state()'
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
-            event = get_next_event(link, new_link_state, current_time)
+            event = self.get_next_event(link, new_link_state, current_time)
             heappush(self.event_queue, event)
             self.next_update[link] = event.time
         else:
@@ -364,7 +365,7 @@ class LinkCellularAutomaton():
             print '  update time now',self.next_update[link]
         
             
-    def do_transition(event, current_time):
+    def do_transition(self, event, current_time):
         """
         Implements a state transition. First checks that the transition is still
         valid by comparing the link's next_update time with the corresponding update
@@ -429,7 +430,7 @@ class LinkCellularAutomaton():
                         tonode = self.grid.activelink_tonode[link]
                         current_pair = (self.node_state[fromnode], 
                                         self.node_state[tonode])
-                        new_link_state = self.ls_dict[current_pair]
+                        new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
 
             if to_changed:
@@ -445,7 +446,7 @@ class LinkCellularAutomaton():
                         tonode = self.grid.activelink_tonode[link]
                         current_pair = (self.node_state[fromnode], 
                                         self.node_state[tonode])
-                        new_link_state = self.ls_dict[current_pair]
+                        new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
 
         elif _DEBUG:
@@ -461,14 +462,14 @@ class LinkCellularAutomaton():
         # Continue until we've run out of either time or events
         while self.current_time < run_duration and self.event_queue:
         
-            print 'Current Time = ', self.current_time
+            #print 'Current Time = ', self.current_time
         
             # Pick the next transition event from the event queue
             ev = heappop(self.event_queue)
         
             #print 'Event:',ev.time,ev.link,ev.xn_to
         
-            do_transition(ev, self.current_time)
+            self.do_transition(ev, self.current_time)
         
             # Update current time
             self.current_time = ev.time
@@ -479,9 +480,9 @@ def example_test2():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 400
-    nc = 400
-    frac_spacing = 32
+    nr = 100
+    nc = 100
+    frac_spacing = 10
     plot_interval = 0.25
     next_plot = plot_interval
     run_duration = 2.0
@@ -504,7 +505,7 @@ def example_test2():
     
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
-
+    
     # Plot initial state
     plt.figure()
     imshow_grid(mg, ca.node_state)
