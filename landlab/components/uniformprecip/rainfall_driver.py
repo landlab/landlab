@@ -32,6 +32,7 @@ class PrecipitationDistribution:
         self.mean_intensity = 0.0
         self.mean_interstorm = 0.0
         self.mean_storm_depth = 0.0
+        
 
         '''Storm_duration, interstorm_duration, storm_depth and intensity
         are not read in, rather, they are generated through initialize() and
@@ -40,6 +41,10 @@ class PrecipitationDistribution:
         self.interstorm_duration = 0.0
         self.storm_depth = 0.0
         self.intensity = 0.0
+        
+        '''TIME VARIABLES'''
+        self.storm_time_series =[0]
+
 
     def initialize(self, input_file=None):
         MPD = ModelParameterDictionary()
@@ -60,20 +65,22 @@ class PrecipitationDistribution:
         '''
         if input_file is None:
             input_file = _DEFAULT_INPUT_FILE
-            ###input_file = raw_input('Enter the input file location: ')
         MPD.read_from_file(input_file)
         
         
         
-        self.mean_storm = MPD.read_float( 'mean_storm')
-        self.mean_intensity = MPD.read_float( 'mean_intensity')
-        self.mean_interstorm = MPD.read_float( 'mean_interstorm' )
+        self.mean_storm = MPD.read_float( 'MEAN_STORM' )
+        self.mean_intensity = MPD.read_float( 'MEAN_INTENSITY' )
+        self.mean_interstorm = MPD.read_float( 'MEAN_INTERSTORM' )
         self.mean_storm_depth = self.mean_intensity * self.mean_storm
 
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
+        
+        self.run_time = MPD.read_int('RUN_TIME')
+        self.delta_t = MPD.read_int('DELTA_T')
 
 
     def update(self):
@@ -184,3 +191,36 @@ class PrecipitationDistribution:
                             '''
         self.intensity = self.storm_depth / self.storm_duration
         return self.intensity
+
+
+    def get_storm_time_series(self, run_time):
+        '''
+        This method creates a time series of storms based on storm_duration, and
+        interstorm_duration. From these values it will calculate a complete
+        time series.
+        '''
+        
+        
+        ''' This statement creates the first storm/interstorm pair and event.'''
+        storm = self.get_precipitation_event_duration()
+        #interstorm = self.get_interstorm_event_duration()
+        #corrected_interstorm = storm + interstorm
+        self.get_storm_depth()
+        intensity = self.get_storm_intensity()
+        self.storm_time_series.append([storm, intensity])
+        #self.storm_time_series.append(corrected_interstorm)
+        #self.storm_time_series.append(intensity)
+        #interstorm_list = []
+        #interstorm_list.append(corrected_interstorm)
+        i = 4
+        while sum(self.storm_time_series) <= run_time:
+            storm = self.get_precipitation_event_duration()
+            new_storm = storm + self.get_interstorm_event_duration()
+            #self.storm_time_series.append(new_storm)
+            #interstorm = self.get_interstorm_event_duration()
+            #corrected_interstorm = interstorm + new_storm
+            #self.storm_time_series.append(corrected_interstorm)
+            self.storm_time_series.append([new_storm, intensity])
+            i+=3
+        return self.storm_time_series
+            
