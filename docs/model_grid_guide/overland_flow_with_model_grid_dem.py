@@ -4,7 +4,7 @@
 2D numerical model of shallow-water flow over topography read from a DEM, using
 the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
-Last updated GT July 2013
+Last updated GT Oct 2013
 
 """
 
@@ -64,9 +64,8 @@ def main():
     mg.set_fixed_value_boundaries(outlet_node)
 
     # Set up state variables
-    h = mg.create_node_dvector() + h_init     # water depth (m)
-    q = mg.create_active_link_dvector()       # unit discharge (m2/s)
-    dhdt = mg.create_active_cell_dvector()    # rate of water-depth change
+    h = mg.create_node_array_zeros() + h_init     # water depth (m)
+    q = mg.create_active_link_array_zeros()       # unit discharge (m2/s)
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()

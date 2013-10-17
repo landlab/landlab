@@ -47,10 +47,10 @@ def main():
     mg.set_inactive_boundaries(True, False, True, False)
     
     # Set up scalar values
-    z = mg.create_node_dvector()   # land elevation
-    h = mg.create_node_dvector() + h_init     # water depth (m)
-    q = mg.create_active_link_dvector()  # unit discharge (m2/s)
-    dhdt = mg.create_node_dvector()  # rate of water-depth change
+    z = mg.create_node_array_zeros()   # land elevation
+    h = mg.create_node_array_zeros() + h_init     # water depth (m)
+    q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
+    dhdt = mg.create_node_array_zeros()  # rate of water-depth change
     
     # Left side has deep water
     leftside = mg.left_edge_node_ids()

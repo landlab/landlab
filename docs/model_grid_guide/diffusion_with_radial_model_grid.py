@@ -40,8 +40,8 @@ def main():
     mg.initialize(num_shells, dr)
     
     # Set up scalar values
-    z = mg.create_node_dvector()            # node elevations
-    dzdt = mg.create_node_dvector()  # node rate of elevation change
+    z = mg.create_node_array_zeros()            # node elevations
+    dzdt = mg.create_node_array_zeros()  # node rate of elevation change
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()

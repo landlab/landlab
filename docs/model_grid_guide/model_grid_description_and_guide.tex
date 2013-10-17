@@ -186,7 +186,6 @@ Our state variable, $z(x,y,t)$, represents the land surface elevation. One of th
 
 We create our data structure for $z$ values with  \code{create\_node\_array\_zeros}, a ModelGrid method that creates and returns a 1D Numpy array filled with zeros (behind the scenes, it also ``attaches'' the array to the grid; we'll see later why this is useful). The length of the array is equal to the number of nodes in the grid ($20\times 30=600$), which makes sense because we want to have an elevation value associated with every node in the grid.
 On the next line, we create a second array, \code{dzdt}, to store the time rate of change of elevation. 
-%We only need to calculate $dz/dt$ at the active cells. There are $18\times 28 = 504$ cells, and all of them are active. We create our list of $dz/dt$ values at cells with a call to \code{create\_active\_cell\_dvector}, which creates a numpy array with 504 entries.
 
 When we update elevation values, we will want to operate only on the active cells. To help with this, we call the \code{get\_active\_cell\_node\_ids} method. This method returns a 1D numpy array of integers that represent the node ID numbers associated with all of the active cells (of which there are $18\times 28 = 504$). Finally, we display a message to tell the user that we're about to run and with what time step size.
 
@@ -369,7 +368,7 @@ The complete code listing is below. Output is shown in Figure~\ref{olflowdem}.
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\lstinputlisting[firstnumber=1,firstline=1,lastline=193]{overland_flow_with_model_grid_dem.py}
+\lstinputlisting[firstnumber=1,firstline=1,lastline=195]{overland_flow_with_model_grid_dem.py}
 
 \subsection{Loading modules}
 
@@ -417,11 +416,11 @@ For this model, it would be nice to track discharge through time at the watershe
 
 Most of the main loop is identical to what we saw in Example 2, and here we will only list the parts that are new or different. One difference is that we now have a source term that represents rainfall and runoff. The code listed above sets the rainfall rate to zero when the elapsed time is greater than the rainfall duration. It also adds \code{rainfall\_rate} as a source term when computing $dh/dt$.
 
-\lstinputlisting[firstnumber=138,firstline=138,lastline=138]{overland_flow_with_model_grid_dem.py}
+\lstinputlisting[firstnumber=135,firstline=135,lastline=137]{overland_flow_with_model_grid_dem.py}
 
-After updating water depth values for the interior cells, on line 137, we also need to update the water depth at the outlet boundary so that it matches the depth at the adjacent cell.
+After updating water depth values for the interior cells, we also need to update the water depth at the outlet boundary so that it matches the depth at the adjacent cell.
 
-\lstinputlisting[firstnumber=143,firstline=143,lastline=145]{overland_flow_with_model_grid_dem.py}
+\lstinputlisting[firstnumber=142,firstline=142,lastline=144]{overland_flow_with_model_grid_dem.py}
 
 The last few lines in the main loop keep track of discharge at the outlet by appending the current time and discharge to their respective lists.
 
