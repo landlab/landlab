@@ -1,14 +1,14 @@
-shape_parameter
+SHAPE_PARAMETER
 7.0
 
-scale_parameter
+SCALE_PARAMETER
 0.0
 
-mean_fire_recurrence
+MEAN_FIRE_RECURRENCE
 14.69
 
-total_run_time
+TOTAL_RUN_TIME
 10000
 
-delta_t
+DELTA_T
 1
