@@ -79,7 +79,7 @@ class PrecipitationDistribution:
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
         
-        self.run_time = MPD.read_int('RUN_TIME')
+        self.run_time = MPD.read_float('RUN_TIME')
         self.delta_t = MPD.read_int('DELTA_T')
 
 
@@ -193,7 +193,7 @@ class PrecipitationDistribution:
         return self.intensity
 
 
-    def get_storm_time_series(self, run_time):
+    def get_storm_time_series(self):
         '''
         This method creates a time series of storms based on storm_duration, and
         interstorm_duration. From these values it will calculate a complete
@@ -223,13 +223,13 @@ class PrecipitationDistribution:
         '''
         storm_helper = storm
         storm_iterator = storm
-        while storm_iterator <= run_time:
+        while storm_iterator <= self.run_time:
             next_storm_start  = storm_helper + round(self.get_interstorm_event_duration(),2)
             next_storm_end = next_storm_start + round(self.get_precipitation_event_duration(),2)
             intensity = round(self.get_storm_intensity(),2)
             self.get_storm_depth()
             self.storm_time_series.append([next_storm_start, next_storm_end, intensity])
-            storm_iterator += storm_helper
+            storm_iterator = storm_helper
             storm_helper = next_storm_end
         return self.storm_time_series
             

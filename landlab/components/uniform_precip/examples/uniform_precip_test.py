@@ -38,7 +38,7 @@ def main():
     
     print '\n'
     print 'Now we are going to generate a time series:'
-    TrialRun.get_storm_time_series(1000)
+    TrialRun.get_storm_time_series()
     print TrialRun.storm_time_series
 
 
