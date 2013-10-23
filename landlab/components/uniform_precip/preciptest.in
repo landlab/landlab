@@ -1,7 +1,17 @@
 MEAN_STORM: mean storm duration, [ T ] units may vary, depend on intensity units
+<<<<<<< .mine
+0.612083
+
+MEAN_INTENSITY: mean storm intensity, [L/T] units may vary
+1.0
+
+MEAN_INTERSTORM: mean storm intensity, [ T ] units may vary, see mean_storm
+10.7854167
+=======
 
 0.612
 
+>>>>>>> .r433
 
 MEAN_INTENSITY: mean storm intensity, [L/T] units may vary
 
@@ -13,10 +23,14 @@ MEAN_INTERSTORM: mean storm intensity, [ T ] units may vary, see mean_storm
 11.90
 
 RUN_TIME: total model run time [ T ]
+<<<<<<< .mine
+36524.2
+=======
 
 36524.2
 
 
 DELTA_T: time step for time series [ T ]
+>>>>>>> .r433
 
 1

@@ -231,5 +231,6 @@ class PrecipitationDistribution:
             self.storm_time_series.append([next_storm_start, next_storm_end, intensity])
             storm_iterator = storm_helper
             storm_helper = next_storm_end
+            storm_iterator = storm_helper
         return self.storm_time_series
             
