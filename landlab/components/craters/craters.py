@@ -1,4 +1,5 @@
 #! /usr/env/python
+# -*- coding: utf-8 -*-
 
 from random import random
 import math
@@ -10,6 +11,7 @@ import scipy.optimize as opt
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
+from memory_profiler import profile
 
 from landlab import RasterModelGrid #this is the tMesh equivalent module
 
@@ -53,7 +55,7 @@ class impactor(object):
         self.ivanov_a = [-3.0876, -3.557528, 0.781027, 1.021521, -0.156012, -0.444058, 0.019977, 0.08685, -0.005874, -0.006809, 0.000825, 0.0000554] #The coefficients for Ivanov's crater distn function
         self._impactor_angle_to_surface = -999.
         self._angle_to_vertical = -999.
-        self._minimum_ejecta_thickness = 0.000001
+        self._minimum_ejecta_thickness = 0.00000001
         #NB - If this min thickness is changed, the optimization point in excavate_a_crater_optimized() will also need to be changed
         self._beta_factor = 0.5 #this is the arbitrary term that controls how "stretched out" the ejecta field is. <+0.5 prevents "outside the ejecta field" regions forming
         
@@ -475,8 +477,7 @@ class impactor(object):
                     
         return data.elev
 
-        
-
+    
     def set_elev_change_only_beneath_footprint(self, grid, data):
         '''
         This is a method to take an existing impact properties and a known nearest node to the impact site, and alter the topography to model the impact. It assumes crater radius and depth are known, models cavity shape as a power law where n is a function of R/D, and models ejecta thickness as an exponential decay,sensitive to both ballistic range from tilting and momentum transfer in impact (after Furbish). We DO NOT yet model transition to peak ring craters, or enhanced diffusion by ejecta in the strength regime. Peak ring craters are rejected from the distribution. This version of this method is designed to remove the sheer walls around the edges of craters, and replace them with a true dipping rim.
@@ -617,19 +618,23 @@ class impactor(object):
         data.elev[footprint_nodes] = elevs_under_footprint #the refs get broken somewhere...
         elev_diff = elevs_under_footprint-old_elevs_under_footprint
         self.mass_balance_in_impact = numpy.sum(elev_diff)/-numpy.sum(elev_diff[elev_diff<0.]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
+        #whole_grid = numpy.zeros_like(data.elev)
+        #whole_grid[footprint_nodes]=elev_diff
+        #whole_grid = grid.node_vector_to_raster(whole_grid, flip_vertically=True)
+        #imshow(whole_grid), colorbar()
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
         print 'Vol of crater cavity: ', self._cavity_volume
-        print 'Vol below ground: ', -numpy.sum(elev_diff[elev_diff<0.])
-        print 'Vol above ground: ', numpy.sum(elev_diff[elev_diff>0.])
-        print 'Total mass balance: ', numpy.sum(elev_diff)
+        #print 'Vol below ground: ', -numpy.sum(elev_diff[elev_diff<0.])
+        #print 'Vol above ground: ', numpy.sum(elev_diff[elev_diff>0.])
+        #print 'Total mass balance: ', numpy.sum(elev_diff)
         
         #Uncomment this line to see which nodes are under the footprint:
         #data.elev[footprint_nodes] = 10.
         
         return data.elev
                 
-
+    
     def excavate_a_crater(self, grid, data, **kwds):
         '''
             This method executes the most of the other methods of this crater class, and makes the geomorphic changes to a mesh associated with a single bolide impact with randomized properties. It receives parameters of the model grid, and the vector data storage class. It is the primary interface method of this class.
@@ -665,6 +670,10 @@ class impactor(object):
         else:
             #assert 0. <= self._angle_to_vertical <= 90.
             self._azimuth_of_travel = 0.5*numpy.pi
+        try:
+            self._minimum_crater = kwds['minimum_radius']
+        except:
+            pass
         
         self.set_crater_mean_slope_v2(grid, data)
         if numpy.isnan(self._surface_slope):
@@ -683,6 +692,7 @@ class impactor(object):
 #The functions in this segment give control over the execution of this module. Adjust the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
 #These should really be in a separate driver file.
 
+@profile
 def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, n_craters=1, surface_slope=0., **kwds):
     '''
     Ad hoc driver code to make this file run as a standalone.
@@ -716,35 +726,39 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, 
             vectors = use_existing_grid[1]
         except:
             print 'Could not set variables for existing grid!'
-        
-    cr = impactor()
+    
+    if not 'cr' in locals():
+        cr = impactor()
 
     #Update until
     for i in xrange(0,nt):
         print 'Crater number ', i
         cr.excavate_a_crater(mg, vectors, **kwds)
-
+        
     #Finalize
     elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
     #contour(elev_raster)
 
-    imshow(elev_raster)
-    colorbar()
-    show()
+    #imshow(elev_raster)
+    #colorbar()
+    #show()
     vectors.viewing_raster = copy(elev_raster)
     return cr, mg, vectors
 
+@profile
 def dig_one_crater_then_degrade(loops=1, step=500):
     #Build the dictionary:
     crater_time_sequ = {}
     #Initialize the starting condition:
     cr, mg, vectors = dig_some_craters(grid_dimension_in=1000, dx_in=0.002, n_craters=1, forced_radius = 0.5, forced_angle=0., forced_pos=(0.5,0.5))
     #Save the starting conds:
-    crater_time_sequ[0] = copy(vectors)
+    crater_time_sequ[0] = copy(vectors.impact_sequence)
+    numpy.savetxt('saved_elevs0', vectors.viewing_raster)
     #Run the loops
     for i in xrange(0,loops):
         cr, mg, vectors = dig_some_craters(use_existing_grid=(mg,vectors), n_craters=step)
-        crater_time_sequ[i+1] = copy(vectors)
+        crater_time_sequ[i+1] = copy(vectors.impact_sequence)
+        numpy.savetxt('saved_elevs'+str(i+1), vectors.viewing_raster)
     #end_time = time.time()
     #print('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
@@ -804,9 +818,14 @@ def plot_hypsometry(plotting_rasters):
             plot_a_hypsometry_curve(plotting_rasters.viewing_raster)
         except:
             print 'Input type not recognised!'
-        
-            
 
 
-#if __name__=='__main__':
-#    main()
+def mass_balance_tests():
+    """
+    This script applies tests to try to pin down the cause of the weird mass balance issues existing in this module.
+    """
+
+    
+
+if __name__=='__main__':
+    dig_one_crater_then_degrade(loops=4, step=20)
