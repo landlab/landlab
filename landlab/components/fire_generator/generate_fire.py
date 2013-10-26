@@ -94,7 +94,7 @@ class FireGenerator:
         self.shape_parameter = MPD.read_float('SHAPE_PARAMETER')
         self.scale_parameter = MPD.read_float('SCALE_PARAMETER')
         self.mean_fire_recurrence = MPD.read_float('MEAN_FIRE_RECURRENCE')
-        self.total_run_time = MPD.read_int('TOTAL_RUN_TIME')
+        self.total_run_time = MPD.read_float('RUN_TIME')
         self.delta_t = MPD.read_int('DELTA_T')
 
 
