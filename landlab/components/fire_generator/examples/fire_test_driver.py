@@ -1,4 +1,4 @@
-from landlab.components.firegenerator.fire_generator import FireGenerator
+from landlab.components.fire_generator.generate_fire import FireGenerator
 from matplotlib import pyplot as plt
 
 print 'Initializing the FireGenerator() class from fire_generator.py'
