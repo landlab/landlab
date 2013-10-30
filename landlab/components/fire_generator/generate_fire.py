@@ -139,17 +139,20 @@ class FireGenerator:
         Created for situations where total run time is definite, and number
         of fires can change across different runs. 
         '''
-        self.fire_events =[0]
-        self.interfire_periods=[]
-        self.fires = []
+        self.fire_events =[]
+        #first_event = 0.0
+        event = self.generate_fire_recurrence()
+        end_event = event + 365.0
+        self.fire_events.append([event, end_event])
         t = 0
-        while t!= self.total_run_time:
+        i = 0
+        while t <= self.total_run_time:
             fire = self.generate_fire_recurrence()
-            self.interfire_periods.append(fire)
-            self.fires.append(fire)
-            time_series_fire = fire + self.fire_events[t]
-            self.fire_events.append(time_series_fire)
-            t += self.delta_t
+            start_fire = self.fire_events[i][0] + (fire)
+            end_fire = start_fire + (365.0)       
+            self.fire_events.append([start_fire, end_fire])
+            t += end_fire
+            i+=1
 
         
     def update(self):
