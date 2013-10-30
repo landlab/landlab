@@ -1,5 +1,14 @@
 ## Evaluating rainfall and fire time series for overlap 
 ##
+## Runs the fire and rainfall generators for 100 years based
+## on input values selected by the user. Right now, this model
+## is designed to run a simulation for central Colorado, based on
+## threshold information calculated by Cannon et al., 2008 for the
+## Coal Seam Fire and fire recurrence from Moody and Martin, 2001 
+## for the Buffalo Creek Fire.
+##
+## Current design not necessarily applicable to other study areas.
+##
 ## Written by Jordan Marie Adams
 ## Last updated: October 29, 2013
 
