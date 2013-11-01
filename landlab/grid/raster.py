@@ -597,9 +597,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             print 'Returning NaN angle and direction...'
             max_slope = numpy.nan
             index_max = 8
-            
-        #angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
-        angles = [270.0, 180., 0., 90., 225., 315., 135., 45., numpy.nan] # Suggested by Sai Nudurupati 30Oct2013
+        
+        # North = Zero Radians  = Clockwise Positive
+        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient 
         
         #ng commented out old code
         #return min_slope, angles[index_min]
