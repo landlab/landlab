@@ -549,9 +549,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         '''
         #We have poor functionality if these are edge cells! Needs an exception
         neighbor_cells = self.get_neighbor_list(cell_id)
-        neighbor_cells.sort()
-        #print 'Node is internal: ', self.is_interior(cell_id)
-        #print 'Neighbor cells: ', neighbor_cells
+        neighbor_cells.sort()        
         diagonal_cells = []
         if neighbor_cells[0]!=-1:
             diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
@@ -562,6 +560,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         for a in neighbor_cells:
             #ng I think this is actually slope as defined by a geomorphologist,
             #that is -dz/dx and not the gradient (dz/dx)
+            #print '\n', cell_id
+            #print '\n', a
             single_slope = (u[cell_id] - u[a])/self._dx
             #print 'cell id: ', cell_id
             #print 'neighbor id: ', a
@@ -598,7 +598,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             max_slope = numpy.nan
             index_max = 8
             
-        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
+        #angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient
+        angles = [270.0, 180., 0., 90., 225., 315., 135., 45., numpy.nan] # Suggested by Sai Nudurupati 30Oct2013
         
         #ng commented out old code
         #return min_slope, angles[index_min]
