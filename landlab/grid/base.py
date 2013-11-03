@@ -110,6 +110,16 @@ class ModelGrid(ModelDataFields):
         return self.cell_node
 
     @property
+    def active_nodes(self):
+        (active_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
+        return active_node_ids
+
+    @property
+    def node_index_at_active_cells(self):
+        (active_cell_ids, ) = numpy.where(self.node_status == INTERIOR_NODE)
+        return active_cell_ids
+
+    @property
     def active_cell_index_at_nodes(self):
         return self.node_activecell
 
