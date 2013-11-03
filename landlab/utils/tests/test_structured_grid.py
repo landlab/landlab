@@ -765,6 +765,24 @@ class TestInlinkMatrix(unittest.TestCase, NumpyArrayMixIn):
                                       -1,  9, 10, 11, 12,
                                       -1, -1, -1, -1, -1]]))
 
+    def test_out_link_ids_at_nodes(self):
+        links_ids = sgrid.outlink_index_at_node((4, 5))
+        self.assertArrayEqual(
+            np.array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+                       10, 11, 12, 13, 14, -1, -1, -1, -1, -1],
+                      [15, 16, 17, 18, -1, 19, 20, 21, 22, -1,
+                       23, 24, 25, 26, -1, 27, 28, 29, 30, -1]]),
+            links_ids)
+
+    def test_in_link_ids_at_nodes(self):
+        links_ids = sgrid.inlink_index_at_node((4, 5))
+        self.assertArrayEqual(
+            np.array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,
+                        5,  6,  7,  8,  9, 10, 11, 12, 13, 14],
+                      [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22,
+                       -1, 23, 24, 25, 26, -1, 27, 28, 29, 30]]),
+            links_ids)
+
 
 if __name__ == '__main__':
     unittest.main()
