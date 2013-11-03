@@ -2,159 +2,167 @@
 
 import unittest
 import numpy as np
-from numpy.testing import assert_array_equal
 
 import landlab.utils.structured_grid as sgrid
 from landlab.utils.structured_grid import BAD_INDEX_VALUE
 
 
-class TestGetNodeCoords(unittest.TestCase):
+class NumpyArrayMixIn(object):
+    def assertArrayEqual(self, actual, expected):
+        from numpy.testing import assert_array_equal
+        try:
+            assert_array_equal(actual, expected)
+        except AssertionError as error:
+            self.fail(error)
+
+
+class TestGetNodeCoords(unittest.TestCase, NumpyArrayMixIn):
     def test_node_x_2d(self):
         (x, _) = sgrid.node_coords((3,2))
 
-        assert_array_equal(x, np.array([0., 1.,
+        self.assertArrayEqual(x, np.array([0., 1.,
                                         0., 1.,
                                         0., 1.,]))
 
     def test_node_x_2d_with_spacing(self):
         (x, _) = sgrid.node_coords((3,2), (2., 10.))
 
-        assert_array_equal(x, np.array([0., 10.,
+        self.assertArrayEqual(x, np.array([0., 10.,
                                         0., 10.,
                                         0., 10.,]))
 
     def test_node_x_2d_with_origin(self):
         (x, _) = sgrid.node_coords((3,2), (2., 10.), (-1., 1.))
 
-        assert_array_equal(x, np.array([1., 11.,
+        self.assertArrayEqual(x, np.array([1., 11.,
                                         1., 11.,
                                         1., 11.,]))
 
     def test_node_y_2d(self):
         (_, y) = sgrid.node_coords((3,2))
 
-        assert_array_equal(y, np.array([0., 0.,
+        self.assertArrayEqual(y, np.array([0., 0.,
                                         1., 1.,
                                         2., 2.,]))
 
     def test_node_y_2d_with_spacing(self):
         (_, y) = sgrid.node_coords((3,2), (2., 10.))
 
-        assert_array_equal(y, np.array([0., 0.,
+        self.assertArrayEqual(y, np.array([0., 0.,
                                         2., 2.,
                                         4., 4.,]))
 
     def test_node_y_2d_with_origin(self):
         (_, y) = sgrid.node_coords((3,2), (2., 10.), (-1., 1.))
 
-        assert_array_equal(y, np.array([-1., -1.,
+        self.assertArrayEqual(y, np.array([-1., -1.,
                                          1.,  1.,
                                          3.,  3.,]))
 
 
-class TestGetCellNode(unittest.TestCase):
+class TestGetCellNode(unittest.TestCase, NumpyArrayMixIn):
     def test_2d_shape_2_by_3(self):
         cell_nodes = sgrid.node_index_at_cells((2, 3))
 
-        assert_array_equal(cell_nodes, np.array([]))
+        self.assertArrayEqual(cell_nodes, np.array([]))
 
     def test_2d_shape_3_by_3(self):
         cell_nodes = sgrid.node_index_at_cells((3, 3))
 
-        assert_array_equal(cell_nodes, np.array([4]))
+        self.assertArrayEqual(cell_nodes, np.array([4]))
 
     def test_shape_4_by_5(self):
         cell_nodes = sgrid.node_index_at_cells((4, 5))
 
-        assert_array_equal(cell_nodes, np.array([ 6,  7,  8,
+        self.assertArrayEqual(cell_nodes, np.array([ 6,  7,  8,
                                                  11, 12, 13]))
 
 
-class TestGetNodeLinks(unittest.TestCase):
+class TestGetNodeLinks(unittest.TestCase, NumpyArrayMixIn):
     def test_2d_3_by_2_from_links(self):
         (from_indices, _) = sgrid.node_index_at_link_ends((3, 2))
 
-        assert_array_equal(from_indices,
+        self.assertArrayEqual(from_indices,
                            np.array([0, 1, 2, 3,
                                      0, 2, 4]))
 
     def test_2d_3_by_2_to_links(self):
         (_, to_indices) = sgrid.node_index_at_link_ends((3, 2))
 
-        assert_array_equal(to_indices,
+        self.assertArrayEqual(to_indices,
                            np.array([2, 3, 4, 5,
                                      1, 3, 5]))
 
     def test_west_links(self):
         links = sgrid.west_links((3, 4))
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[-1,  8,  9, 10],
                                      [-1, 11, 12, 13],
                                      [-1, 14, 15, 16]]))
 
         links = sgrid.west_links((1, 4))
-        assert_array_equal(links, np.array([[-1, 0, 1, 2]]))
+        self.assertArrayEqual(links, np.array([[-1, 0, 1, 2]]))
 
         links = sgrid.west_links((4, 1))
-        assert_array_equal(links, np.array([[-1], [-1], [-1], [-1]]))
+        self.assertArrayEqual(links, np.array([[-1], [-1], [-1], [-1]]))
 
     def test_east_links(self):
         links = sgrid.east_links((3, 4))
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[ 8,  9, 10, -1],
                                      [11, 12, 13, -1],
                                      [14, 15, 16, -1]]))
 
         links = sgrid.east_links((1, 4))
-        assert_array_equal(links, np.array([[0, 1, 2, -1]]))
+        self.assertArrayEqual(links, np.array([[0, 1, 2, -1]]))
 
         links = sgrid.east_links((4, 1))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]).T)
 
     def test_north_links(self):
         links = sgrid.north_links((3, 4))
-        assert_array_equal(links, np.array([[ 0,  1,  2,  3],
+        self.assertArrayEqual(links, np.array([[ 0,  1,  2,  3],
                                             [ 4,  5,  6,  7],
                                             [-1, -1, -1, -1]]))
 
         links = sgrid.north_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.north_links((4, 1))
-        assert_array_equal(links, np.array([[0, 1, 2, -1]]).T)
+        self.assertArrayEqual(links, np.array([[0, 1, 2, -1]]).T)
 
     def test_south_links(self):
         links = sgrid.south_links((3, 4))
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[-1, -1, -1, -1],
                                      [ 0,  1,  2,  3],
                                      [ 4,  5,  6,  7]]))
 
         links = sgrid.south_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.south_links((4, 1))
-        assert_array_equal(links, np.array([[-1, 0, 1, 2]]).T)
+        self.assertArrayEqual(links, np.array([[-1, 0, 1, 2]]).T)
 
     def test_inlinks(self):
         links = sgrid.inlinks((3, 4))
-        assert_array_equal(
+        self.assertArrayEqual(
             np.array([[-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7],
                       [-1,  8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16]]),
             links)
 
     def test_outlinks(self):
         links = sgrid.outlinks((3, 4))
-        assert_array_equal(
+        self.assertArrayEqual(
             np.array([[ 0,  1,  2,  3,  4,  5,  6,  7, -1, -1, -1, -1],
                       [ 8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16, -1]]),
             links)
 
-class TestNodeActiveCell(unittest.TestCase):
+class TestNodeActiveCell(unittest.TestCase, NumpyArrayMixIn):
     def test_one_active_cell(self):
         active_cells = sgrid.active_cell_index_at_nodes((3, 3))
 
-        assert_array_equal(
+        self.assertArrayEqual(
             active_cells,
             np.array([BAD_INDEX_VALUE, BAD_INDEX_VALUE, BAD_INDEX_VALUE,
                       BAD_INDEX_VALUE,               0, BAD_INDEX_VALUE,
@@ -164,7 +172,7 @@ class TestNodeActiveCell(unittest.TestCase):
     def test_no_active_cells(self):
         active_cells = sgrid.active_cell_index_at_nodes((3, 2))
 
-        assert_array_equal(
+        self.assertArrayEqual(
             active_cells,
             np.array([BAD_INDEX_VALUE, BAD_INDEX_VALUE,
                       BAD_INDEX_VALUE, BAD_INDEX_VALUE,
@@ -172,20 +180,20 @@ class TestNodeActiveCell(unittest.TestCase):
         )
                                      
                                      
-class TestActiveCells(unittest.TestCase):
+class TestActiveCells(unittest.TestCase, NumpyArrayMixIn):
     def test_one_active_cell(self):
         active_cells = sgrid.active_cell_index((3, 3))
 
-        assert_array_equal(active_cells, np.array([0]))
+        self.assertArrayEqual(active_cells, np.array([0]))
 
     def test_no_active_cells(self):
         active_cells = sgrid.active_cell_index((3, 2))
 
-        assert_array_equal(active_cells,
+        self.assertArrayEqual(active_cells,
             np.array([]))
 
 
-class TestCellCount(unittest.TestCase):
+class TestCellCount(unittest.TestCase, NumpyArrayMixIn):
     def test_one_cell(self):
         n_cells = sgrid.cell_count((3, 3))
         self.assertEqual(n_cells, 1)
@@ -195,7 +203,7 @@ class TestCellCount(unittest.TestCase):
         self.assertEqual(n_cells, 0)
 
 
-class TestInteriorCellCount(unittest.TestCase):
+class TestInteriorCellCount(unittest.TestCase, NumpyArrayMixIn):
     def test_one_cell(self):
         n_cells = sgrid.interior_cell_count((3, 3))
         self.assertEqual(n_cells, 1)
@@ -205,7 +213,7 @@ class TestInteriorCellCount(unittest.TestCase):
         self.assertEqual(n_cells, 0)
 
 
-class TestActiveCellCount(unittest.TestCase):
+class TestActiveCellCount(unittest.TestCase, NumpyArrayMixIn):
     def test_one_cell(self):
         n_cells = sgrid.active_cell_count((3, 3))
         self.assertEqual(n_cells, 1)
@@ -215,21 +223,21 @@ class TestActiveCellCount(unittest.TestCase):
         self.assertEqual(n_cells, 0)
 
 
-class TestInteriorNodes(unittest.TestCase):
+class TestInteriorNodes(unittest.TestCase, NumpyArrayMixIn):
     def test_4_by_5(self):
         interiors = sgrid.interior_nodes((4, 5))
-        assert_array_equal(interiors, np.array([6, 7, 8, 11, 12, 13]))
+        self.assertArrayEqual(interiors, np.array([6, 7, 8, 11, 12, 13]))
 
     def test_no_interiors(self):
         interiors = sgrid.interior_nodes((2, 3))
-        assert_array_equal(interiors, np.array([]))
+        self.assertArrayEqual(interiors, np.array([]))
 
 
-class TestNodeStatus(unittest.TestCase):
+class TestNodeStatus(unittest.TestCase, NumpyArrayMixIn):
     def test_4_by_5(self):
         status = sgrid.node_status((4, 5))
         self.assertEqual(status.dtype, np.int8)
-        assert_array_equal(status,
+        self.assertArrayEqual(status,
                            np.array([1, 1, 1, 1, 1,
                                      1, 0, 0, 0, 1,
                                      1, 0, 0, 0, 1,
@@ -238,12 +246,12 @@ class TestNodeStatus(unittest.TestCase):
     def test_no_interiors(self):
         status = sgrid.node_status((2, 3))
         self.assertEqual(status.dtype, np.int8)
-        assert_array_equal(status,
+        self.assertArrayEqual(status,
                            np.array([1, 1, 1,
                                      1, 1, 1,]))
 
 
-class TestActiveLinks(unittest.TestCase):
+class TestActiveLinks(unittest.TestCase, NumpyArrayMixIn):
     """
     *--27-->*--28-->*--29-->*--30-->*
     ^       ^       ^       ^       ^
@@ -261,7 +269,7 @@ class TestActiveLinks(unittest.TestCase):
     """
     def test_4_by_5(self):
         active_links = sgrid.active_links((4, 5))
-        assert_array_equal(active_links,
+        self.assertArrayEqual(active_links,
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                      19, 20, 21, 22, 23, 24, 25, 26]))
         self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
@@ -271,7 +279,7 @@ class TestActiveLinks(unittest.TestCase):
         status[6] = sgrid.INACTIVE_BOUNDARY
         active_links = sgrid.active_links((4, 5), node_status_array=status)
 
-        assert_array_equal(active_links,
+        self.assertArrayEqual(active_links,
                            np.array([2, 3, 7, 8, 11, 12, 13,
                                      21, 22, 23, 24, 25, 26]))
 
@@ -279,7 +287,7 @@ class TestActiveLinks(unittest.TestCase):
         link_nodes = sgrid.node_index_at_link_ends((4, 5))
         active_links = sgrid.active_links((4, 5), link_nodes=link_nodes)
 
-        assert_array_equal(active_links,
+        self.assertArrayEqual(active_links,
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                      19, 20, 21, 22, 23, 24, 25, 26]))
         self.assertEqual(len(active_links), sgrid.active_link_count((4, 5)))
@@ -354,106 +362,106 @@ class TestActiveLinks(unittest.TestCase):
 
     def test_horizontal_active_link_ids(self):
         links = sgrid.horizontal_active_link_ids((3, 4))
-        assert_array_equal(links, np.array([[4, 5, 6]]))
+        self.assertArrayEqual(links, np.array([[4, 5, 6]]))
 
         links = sgrid.horizontal_active_link_ids((1, 4))
         expected = np.array([], ndmin=2, dtype=np.int64)
         expected.shape = (0, 3)
-        assert_array_equal(expected, links)
+        self.assertArrayEqual(expected, links)
 
         links = sgrid.horizontal_active_link_ids((4, 1))
         expected.shape = (2, 0)
-        assert_array_equal(expected, links)
+        self.assertArrayEqual(expected, links)
 
         node_status = np.ones((4, 5), dtype=int)
         links = sgrid.horizontal_active_link_ids((4, 5),
                                                  node_status=node_status)
-        assert_array_equal(links, np.array([[ 9, 10, 11, 12],
+        self.assertArrayEqual(links, np.array([[ 9, 10, 11, 12],
                                             [13, 14, 15, 16]]))
 
         node_status = np.ones((4, 5), dtype=int)
         node_status[1, 1] = 0
         links = sgrid.horizontal_active_link_ids((4, 5),
                                                  node_status=node_status)
-        assert_array_equal(links, np.array([[-1, -1,  7,  8],
+        self.assertArrayEqual(links, np.array([[-1, -1,  7,  8],
                                             [ 9, 10, 11, 12]]))
 
         node_status[2, 1] = 0
         links = sgrid.horizontal_active_link_ids((4, 5),
                                                  node_status=node_status)
-        assert_array_equal(links, np.array([[-1, -1, 6, 7],
+        self.assertArrayEqual(links, np.array([[-1, -1, 6, 7],
                                             [-1, -1, 8, 9]]))
 
         node_status[0, 0] = 0
         links = sgrid.horizontal_active_link_ids((4, 5),
                                                  node_status=node_status)
-        assert_array_equal(links, np.array([[-1, -1, 6, 7],
+        self.assertArrayEqual(links, np.array([[-1, -1, 6, 7],
                                             [-1, -1, 8, 9]]))
 
     def test_vertical_active_link_ids(self):
         links = sgrid.vertical_active_link_ids((3, 4))
-        assert_array_equal(links, np.array([[0, 1], [2, 3]]))
+        self.assertArrayEqual(links, np.array([[0, 1], [2, 3]]))
 
         links = sgrid.vertical_active_link_ids((1, 4))
         expected = np.array([], ndmin=2, dtype=np.int64)
         expected.shape = (0, 2)
-        assert_array_equal(expected, links)
+        self.assertArrayEqual(expected, links)
 
         links = sgrid.vertical_active_link_ids((4, 1))
         expected.shape = (3, 0)
-        assert_array_equal(expected, links)
+        self.assertArrayEqual(expected, links)
 
         node_status = np.ones((4, 5), dtype=int)
         links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
-        assert_array_equal(links, np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]))
+        self.assertArrayEqual(links, np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]))
 
         node_status = np.ones((4, 5), dtype=int)
         node_status[1, 1] = 0
         links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[-1, 0, 1], [-1, 2, 3], [4, 5, 6]]))
 
         node_status[2, 1] = 0
         links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[-1, 0, 1], [-1, 2, 3], [-1, 4, 5]]))
 
         node_status[0, 0] = 0
         links = sgrid.vertical_active_link_ids((4, 5), node_status=node_status)
-        assert_array_equal(links,
+        self.assertArrayEqual(links,
                            np.array([[-1, 0, 1], [-1, 2, 3], [-1, 4, 5]]))
 
     def test_west_links(self):
         links = sgrid.active_west_links((3, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1],
                                             [-1,  4,  5,  6],
                                             [-1, -1, -1, -1]]))
 
         links = sgrid.active_west_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.active_west_links((4, 1))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]).T)
 
     def test_east_links(self):
         links = sgrid.active_east_links((3, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1],
                                             [ 4,  5,  6, -1],
                                             [-1, -1, -1, -1]]))
 
         links = sgrid.active_east_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.active_east_links((4, 1))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]).T)
 
         links = sgrid.horizontal_active_link_ids((4, 5))
-        assert_array_equal(np.array([[9, 10, 11, 12],
+        self.assertArrayEqual(np.array([[9, 10, 11, 12],
                                      [13, 14, 15, 16]]),
                            links)
 
         links = sgrid.active_east_links((4, 5))
-        assert_array_equal(np.array([[-1, -1, -1, -1, -1],
+        self.assertArrayEqual(np.array([[-1, -1, -1, -1, -1],
                                      [ 9, 10, 11, 12, -1],
                                      [13, 14, 15, 16, -1],
                                      [-1, -1, -1, -1, -1]]),
@@ -461,38 +469,38 @@ class TestActiveLinks(unittest.TestCase):
 
     def test_north_links(self):
         links = sgrid.active_north_links((3, 4))
-        assert_array_equal(links, np.array([[-1,  0,  1, -1],
+        self.assertArrayEqual(links, np.array([[-1,  0,  1, -1],
                                             [-1,  2,  3, -1],
                                             [-1, -1, -1, -1]]))
 
         links = sgrid.active_north_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.active_north_links((4, 1))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]).T)
 
     def test_south_links(self):
         links = sgrid.active_south_links((3, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1],
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1],
                                             [-1,  0,  1, -1],
                                             [-1,  2,  3, -1]]))
 
         links = sgrid.active_south_links((1, 4))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]))
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]))
 
         links = sgrid.active_south_links((4, 1))
-        assert_array_equal(links, np.array([[-1, -1, -1, -1]]).T)
+        self.assertArrayEqual(links, np.array([[-1, -1, -1, -1]]).T)
 
     def test_inlinks(self):
         links = sgrid.active_inlinks((3, 4))
-        assert_array_equal(
+        self.assertArrayEqual(
             np.array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                       [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1]]),
             links)
 
     def test_outlinks(self):
         links = sgrid.active_outlinks((3, 4))
-        assert_array_equal(
+        self.assertArrayEqual(
             np.array([[-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
                       [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]]),
             links)
@@ -500,7 +508,7 @@ class TestActiveLinks(unittest.TestCase):
     def test_outlinks_4x5(self):
         links = sgrid.active_outlinks((4, 5))
 
-        assert_array_equal(np.array([[-1,  0,  1,  2, -1,
+        self.assertArrayEqual(np.array([[-1,  0,  1,  2, -1,
                                       -1,  3,  4,  5, -1,
                                       -1,  6,  7,  8, -1,
                                       -1, -1, -1, -1, -1],
@@ -513,7 +521,7 @@ class TestActiveLinks(unittest.TestCase):
     def test_inlinks_4x5(self):
         links = sgrid.active_inlinks((4, 5))
 
-        assert_array_equal(np.array([[-1, -1, -1, -1, -1,
+        self.assertArrayEqual(np.array([[-1, -1, -1, -1, -1,
                                       -1,  0,  1,  2, -1,
                                       -1,  3,  4,  5, -1,
                                       -1,  6, 7,  8, -1],
@@ -524,7 +532,7 @@ class TestActiveLinks(unittest.TestCase):
                            links)
 
 
-class TestFaces(unittest.TestCase):
+class TestFaces(unittest.TestCase, NumpyArrayMixIn):
     def test_face_count(self):
         self.assertEqual(17, sgrid.face_count((4, 5)))
         self.assertEqual(4, sgrid.face_count((3, 3)))
@@ -541,7 +549,7 @@ class TestFaces(unittest.TestCase):
 
     def test_active_faces(self):
         active_faces = sgrid.active_face_index((4, 5))
-        assert_array_equal(np.array([ 0,  1,  2,
+        self.assertArrayEqual(np.array([ 0,  1,  2,
                                       3,  4,  5,
                                       6,  7,  8,
                                       9, 10, 11, 12,
@@ -549,13 +557,13 @@ class TestFaces(unittest.TestCase):
                            active_faces)
 
 
-class TestLinkFaces(unittest.TestCase):
+class TestLinkFaces(unittest.TestCase, NumpyArrayMixIn):
     def test_4_by_5(self):
         link_faces = sgrid.face_index_at_links((4, 5))
 
         BAD = sgrid.BAD_INDEX_VALUE
 
-        assert_array_equal(link_faces, np.array([BAD, 0, 1, 2, BAD,
+        self.assertArrayEqual(link_faces, np.array([BAD, 0, 1, 2, BAD,
                                                  BAD, 3, 4, 5, BAD,
                                                  BAD, 6, 7, 8, BAD,
                                                  BAD, BAD, BAD, BAD,
@@ -570,7 +578,7 @@ class TestLinkFaces(unittest.TestCase):
 
         BAD = sgrid.BAD_INDEX_VALUE
 
-        assert_array_equal(link_faces, np.array([BAD, 0, 1, 2, BAD,
+        self.assertArrayEqual(link_faces, np.array([BAD, 0, 1, 2, BAD,
                                                  BAD, 3, 4, 5, BAD,
                                                  BAD, 6, 7, 8, BAD,
                                                  BAD, BAD, BAD, BAD,
@@ -579,13 +587,13 @@ class TestLinkFaces(unittest.TestCase):
                                                  BAD, BAD, BAD, BAD]))
 
 
-class TestReshapeArray(unittest.TestCase):
+class TestReshapeArray(unittest.TestCase, NumpyArrayMixIn):
     def test_default(self):
         x = np.arange(12.)
         y = sgrid.reshape_array((3, 4), x)
 
         self.assertEqual(y.shape, (3, 4))
-        assert_array_equal(x, y.flat)
+        self.assertArrayEqual(x, y.flat)
         self.assertTrue(y.flags['C_CONTIGUOUS'])
         self.assertIs(y.base, x)
 
@@ -594,12 +602,12 @@ class TestReshapeArray(unittest.TestCase):
         y = sgrid.reshape_array((3, 4), x, copy=True)
 
         self.assertEqual(y.shape, (3, 4))
-        assert_array_equal(x, y.flat)
+        self.assertArrayEqual(x, y.flat)
         self.assertTrue(y.flags['C_CONTIGUOUS'])
         self.assertIsNone(y.base)
 
         y[0][0] = 0.
-        assert_array_equal(x, np.array([ 0.,  1.,  2., 3.,
+        self.assertArrayEqual(x, np.array([ 0.,  1.,  2., 3.,
                                          4.,  5.,  6., 7.,
                                          8.,  9., 10., 11.]))
 
@@ -608,14 +616,14 @@ class TestReshapeArray(unittest.TestCase):
         y = sgrid.reshape_array((3, 4), x, flip_vertically=True)
 
         self.assertEqual(y.shape, (3, 4))
-        assert_array_equal(y, np.array([[ 8.,  9., 10., 11.],
+        self.assertArrayEqual(y, np.array([[ 8.,  9., 10., 11.],
                                         [ 4.,  5.,  6., 7.],
                                         [ 0.,  1.,  2., 3.]]))
         self.assertFalse(y.flags['C_CONTIGUOUS'])
         self.assertIsNotNone(y.base)
 
         y[0][0] = 0.
-        assert_array_equal(x, np.array([ 0.,  1.,  2., 3.,
+        self.assertArrayEqual(x, np.array([ 0.,  1.,  2., 3.,
                                          4.,  5.,  6., 7.,
                                          0.,  9., 10., 11.]))
 
@@ -624,17 +632,17 @@ class TestReshapeArray(unittest.TestCase):
         y = sgrid.reshape_array((3, 4), x, flip_vertically=True, copy=True)
 
         self.assertEqual(y.shape, (3, 4))
-        assert_array_equal(y, np.array([[ 8.,  9., 10., 11.],
+        self.assertArrayEqual(y, np.array([[ 8.,  9., 10., 11.],
                                         [ 4.,  5.,  6., 7.],
                                         [ 0.,  1.,  2., 3.]]))
         self.assertTrue(y.flags['C_CONTIGUOUS'])
         self.assertIsNot(y.base, x)
 
 
-class TestDiagonalArray(unittest.TestCase):
+class TestDiagonalArray(unittest.TestCase, NumpyArrayMixIn):
     def test_default(self):
         diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1)
-        assert_array_equal(diags,
+        self.assertArrayEqual(diags,
                            np.array([[ 4, -1, -1, -1],
                                      [ 5,  3, -1, -1],
                                      [-1,  4, -1, -1],
@@ -648,7 +656,7 @@ class TestDiagonalArray(unittest.TestCase):
     def test_non_contiguous(self):
         diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1,
                                           contiguous=False)
-        assert_array_equal(diags,
+        self.assertArrayEqual(diags,
                            np.array([[ 4, -1, -1, -1],
                                      [ 5,  3, -1, -1],
                                      [-1,  4, -1, -1],
@@ -662,24 +670,24 @@ class TestDiagonalArray(unittest.TestCase):
     def test_boundary_node_mask_no_actives(self):
         diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1,
                                           boundary_node_mask=-2)
-        assert_array_equal(diags, - 2 * np.ones((6, 4)))
+        self.assertArrayEqual(diags, - 2 * np.ones((6, 4)))
 
     def test_boundary_node_mask(self):
         diags = sgrid.diagonal_node_array((3, 3), out_of_bounds=-1,
                                           boundary_node_mask=-2)
-        assert_array_equal(diags, 
+        self.assertArrayEqual(diags, 
                            np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
                                      [-2, -2, -2, -2], [ 8,  6,  0,  2], [-2, -2, -2, -2],
                                      [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
 
 
-class TestNeighborArray(unittest.TestCase):
+class TestNeighborArray(unittest.TestCase, NumpyArrayMixIn):
     def test_default(self):
         neighbors = sgrid.neighbor_node_array((2, 3))
 
         BAD = sgrid.BAD_INDEX_VALUE
 
-        assert_array_equal(
+        self.assertArrayEqual(
             neighbors,
             np.array([[  1,   3, BAD, BAD],
                       [  2,   4,   0, BAD],
@@ -693,7 +701,7 @@ class TestNeighborArray(unittest.TestCase):
 
     def test_set_out_of_bounds(self):
         neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1)
-        assert_array_equal(neighbors,
+        self.assertArrayEqual(neighbors,
                            np.array([[ 1,  3, -1, -1],
                                      [ 2,  4,  0, -1],
                                      [-1,  5,  1, -1],
@@ -704,7 +712,7 @@ class TestNeighborArray(unittest.TestCase):
     def test_as_view(self):
         neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
                                               contiguous=False)
-        assert_array_equal(neighbors,
+        self.assertArrayEqual(neighbors,
                            np.array([[ 1,  3, -1, -1],
                                      [ 2,  4,  0, -1],
                                      [-1,  5,  1, -1],
@@ -718,21 +726,21 @@ class TestNeighborArray(unittest.TestCase):
     def test_boundary_node_mask_no_actives(self):
         neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
                                           boundary_node_mask=-2)
-        assert_array_equal(neighbors, - 2 * np.ones((6, 4)))
+        self.assertArrayEqual(neighbors, - 2 * np.ones((6, 4)))
 
     def test_boundary_node_mask(self):
         neighbors = sgrid.neighbor_node_array((3, 3), out_of_bounds=-1,
                                               boundary_node_mask=-2)
-        assert_array_equal(neighbors, 
+        self.assertArrayEqual(neighbors, 
                            np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
                                      [-2, -2, -2, -2], [ 5,  7,  3,  1], [-2, -2, -2, -2],
                                      [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
 
 
-class TestInlinkMatrix(unittest.TestCase):
+class TestInlinkMatrix(unittest.TestCase, NumpyArrayMixIn):
     def test_no_inactive(self):
         inlinks = sgrid.setup_active_inlink_matrix((4, 5), return_count=False)
-        assert_array_equal(inlinks,
+        self.assertArrayEqual(inlinks,
                            np.array([[-1, -1, -1, -1, -1,
                                       -1,  0,  1,  2, -1,
                                       -1,  3,  4,  5, -1,
@@ -747,7 +755,7 @@ class TestInlinkMatrix(unittest.TestCase):
         status[1, 1] = 0
         inlinks = sgrid.setup_active_inlink_matrix((4, 5), return_count=False,
                                                    node_status=status)
-        assert_array_equal(inlinks,
+        self.assertArrayEqual(inlinks,
                            np.array([[-1, -1, -1, -1, -1,
                                       -1, -1,  0,  1, -1,
                                       -1, -1,  2,  3, -1,
@@ -756,6 +764,7 @@ class TestInlinkMatrix(unittest.TestCase):
                                       -1, -1, -1,  7,  8,
                                       -1,  9, 10, 11, 12,
                                       -1, -1, -1, -1, -1]]))
+
 
 if __name__ == '__main__':
     unittest.main()
