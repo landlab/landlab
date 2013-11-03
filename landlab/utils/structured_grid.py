@@ -408,18 +408,12 @@ def node_index_at_link_ends(shape):
             node_index_at_link_tail(node_ids))
 
 
-def node_tolink_index(shape):
-    node_ids = np.arange(np.prod(shape))
-    node_ids.shape = shape
-
-    return to_node_links(node_ids)
+def inlink_index_at_node(shape):
+    return inlinks(shape, return_count=False)
 
 
-def node_fromlink_index(shape):
-    node_ids = np.arange(np.prod(shape))
-    node_ids.shape = shape
-
-    return from_node_links(node_ids)
+def outlink_index_at_node(shape):
+    return outlinks(shape, return_count=False)
 
 
 def node_index_at_link_tail(node_ids):
