@@ -18,7 +18,7 @@ run_time:
 
 #These values are for running the process-
 n: # roughness coefficient (Manning's n)
-0.06
+0.055
 g: # gravitational acceleration (m/s2)
 9.81
 alpha: # time-step factor (ND; from Bates et al., 2010)
@@ -28,4 +28,4 @@ tau_crit: # critical shear stress, pascals
 mpm: # sed trans coefficient
 0.00001
 erode_start_time: #time at which to start allowing sed to move, after spinup
-300
+0
