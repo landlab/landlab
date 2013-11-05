@@ -556,7 +556,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if neighbor_cells[3]!=-1:
             diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
         slopes = []
-        diagonal_dx = numpy.sqrt(2.)
+        diagonal_dx = numpy.sqrt(2.) * self._dx  # Corrected (multiplied self._dx) SN 05Nov13
         for a in neighbor_cells:
             #ng I think this is actually slope as defined by a geomorphologist,
             #that is -dz/dx and not the gradient (dz/dx)
@@ -574,7 +574,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 print 'NaNs present in the grid!'
         for a in diagonal_cells:
-            single_slope = (u[cell_id] - u[a])/diagonal_dx
+            single_slope = (u[cell_id] - u[a])/(diagonal_dx)
             #print single_slope
             if not numpy.isnan(single_slope):
                 slopes.append(single_slope)
