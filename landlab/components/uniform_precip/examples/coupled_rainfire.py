@@ -157,7 +157,6 @@ def create_thresh_plot(fire_arr,storm_arr, exceed_arr, max_intense=1000):
         start = exceed_arr[z][0]
         end = exceed_arr[z][1] - exceed_arr[z][0]
         plt.broken_barh([(start, end)], (0,exceed_arr[z][2]), label='Threshold Exceeded', color='red')
-    plt.legend()
     plt.show()
         
 create_thresh_plot(fires, storm, thresh, max_intense)
