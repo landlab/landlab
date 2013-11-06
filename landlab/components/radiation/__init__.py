@@ -1,2 +1,2 @@
 
-import landlab.components.radiation
+import landlab.components.radiation.radiation
