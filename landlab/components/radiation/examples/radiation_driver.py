@@ -9,7 +9,8 @@
 
 # Import Required Classes
 
-from landlab.components.radiation import *
+import os
+from landlab.components.radiation.radiation import *
 from landlab.io import read_esri_ascii
 
 # Input DEM
