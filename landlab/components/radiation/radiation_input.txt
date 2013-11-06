@@ -1,0 +1,29 @@
+CLOUDINESS:
+0.5
+
+SWTRANSMISSION:
+1.0
+
+LATITUDE:
+34
+
+ALBEDO:
+0.8
+
+AIRTEMPERATURE:   in degrees Celsius
+25
+
+SURFTEMPERATURE: in degrees Celsius
+23
+
+DT:   time step in seconds
+5
+
+ROWS:
+10
+
+COLUMNS:
+10
+
+GRIDSPACING:
+1.0
