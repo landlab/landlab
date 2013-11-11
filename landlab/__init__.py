@@ -18,6 +18,12 @@ The Landlab
 
 :License: MIT
 """
+
+import os
+if 'DISPLAY' not in os.environ:
+    import matplotlib
+    matplotlib.use('Agg')
+
 from landlab.model_parameter_dictionary import ModelParameterDictionary
 from landlab.framework.collections import Palette, Arena, NoProvidersError
 from landlab.framework.decorators import Implements, ImplementsOrRaise
