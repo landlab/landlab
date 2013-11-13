@@ -215,7 +215,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
         self.activecell_node = self.cell_node.copy()
-        self.active_faces = sgrid.active_face_index(self.shape)
+        #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
@@ -573,6 +573,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 slopes.append(single_slope)
             else:
                 print 'NaNs present in the grid!'
+                
         for a in diagonal_cells:
             single_slope = (u[cell_id] - u[a])/(diagonal_dx)
             #print single_slope
@@ -600,6 +601,75 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         # North = Zero Radians  = Clockwise Positive
         angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient 
+        
+        #ng commented out old code
+        #return min_slope, angles[index_min]
+        return max_slope, angles[index_max]
+        
+    def calculate_max_gradient_across_node_d4(self, u, cell_id):
+        '''
+            This method calculates the gradients in u across all 4 faces of the 
+            cell with ID cell_id. It then returns 
+            the steepest (most negative) of these values, followed by its dip 
+            direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes 
+            downward from the cell are reported as positive.
+            
+            Note that this is exactly the same as calculate_max_gradient_across_node
+            except that this is d4, and the other is d8.
+            
+            This code is actually calculating slopes, not gradients.  
+            The max gradient is the most negative, but the max slope is the most
+            positive.  So, this was updated to return the max value, not the 
+            min.
+            
+        '''
+        #We have poor functionality if these are edge cells! Needs an exception
+        neighbor_cells = self.get_neighbor_list(cell_id)
+        neighbor_cells.sort()
+        #print 'Node is internal: ', self.is_interior(cell_id)
+        #print 'Neighbor cells: ', neighbor_cells
+
+        slopes = []
+
+        for a in neighbor_cells:
+            #ng I think this is actually slope as defined by a geomorphologist,
+            #that is -dz/dx and not the gradient (dz/dx)
+            if self.node_status[a] != INACTIVE_BOUNDARY:
+                single_slope = (u[cell_id] - u[a])/self._dx
+            else:
+                single_slope = -9999
+            #single_slope = (u[cell_id] - u[a])/self._dx
+            #print 'cell id: ', cell_id
+            #print 'neighbor id: ', a
+            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
+            #print 'cell elev: ', u[cell_id]
+            #print 'neighbor elev: ', u[a]
+            #print single_slope
+            #if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+            #    slopes.append(single_slope)
+            #else:
+            #    print 'NaNs present in the grid!'
+            slopes.append(single_slope)
+                
+        #print 'Slopes list: ', slopes
+        #ng thinks that the maximum slope should be found here, not the 
+        #minimum slope, old code commented out.  New code below it.
+        #if slopes:
+        #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+        #else:
+        #    print u
+        #    print 'Returning NaN angle and direction...'
+        #    min_slope = numpy.nan
+        #    index_min = 8
+        if slopes:
+            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
+        else:
+            print u
+            print 'Returning NaN angle and direction...'
+            max_slope = numpy.nan
+            index_max = 4
+            
+        angles = [180., 270., 90., 0., numpy.nan] #This is inefficient
         
         #ng commented out old code
         #return min_slope, angles[index_min]
@@ -683,6 +753,75 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #be used to actually route flow. In flow_accumulation, there is an explicit check that flow
         #is not routed to yourself.
         steepest_node = all_neighbor_nodes[index_max]
+        #...now if a node is the lowest thing, this method returns -1, not a neighbor:
+        if u[steepest_node] > u[node_id]:
+            steepest_node=-1
+        
+        return steepest_node
+    
+    def find_node_in_direction_of_max_slope_d4(self, u, node_id):
+        '''
+        
+        This method is exactly the same as find_node_in_direction_of_max_slope
+        except that this method only considers nodes that are connected by links,
+        or in otherwords, in the 0, 90, 180 and 270 directions.
+        
+            This method calculates the slopes (-dz/dx) in u across all 4 faces of 
+            the cell with ID node_id. 
+            It then returns the node ID in the direction of the steepest 
+            (most positive) of these values,  i.e., this is a 
+            D8 algorithm. Slopes downward from the cell are reported as positive.
+            Based on code from DH, modified by NG, 6/2013
+            
+            This doesn't deal with the fixed gradient boundary condition.  
+            NG is still confused about that one.
+            
+            NMG Update.  This is super clumsy. 
+            
+            DEJH update: Gets confused for the lowest node if w/i grid
+            (i.e., closed)- will return a higher neighbour, when it should
+            return a null index ->  Now returns -1.
+        '''
+        #We have poor functionality if these are closed boundary nodes! 
+        neighbor_nodes = self.get_neighbor_list(node_id)
+        neighbor_nodes.sort()
+        #print 'Node is internal: ', self.is_interior(cell_id)
+        #print 'Neighbor cells: ', neighbor_cells
+        slopes = []
+        for a in neighbor_nodes:
+            if self.node_status[a] != INACTIVE_BOUNDARY:
+                single_slope = (u[node_id] - u[a])/self.dx
+            else:
+                single_slope = -9999
+            #print 'cell id: ', cell_id
+            #print 'neighbor id: ', a
+            #print 'status: ', self.node_status[a]
+            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
+            #print 'cell elev: ', u[cell_id]
+            #print 'neighbor elev: ', u[a]
+            #print single_slope
+            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+                slopes.append(single_slope)
+            else:
+                print 'NaNs present in the grid!'
+
+        #print 'Slopes list: ', slopes
+        if slopes:
+            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
+        else:
+            print u
+            print 'Returning NaN angle and direction...'
+            max_slope = numpy.nan
+            index_max = 4
+        
+        #all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
+        #print 'all_neighbor_cells ', all_neighbor_cells
+        
+        #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
+        #This remains extremely ad-hoc. An internal node points to itself, but this should never
+        #be used to actually route flow. In flow_accumulation, there is an explicit check that flow
+        #is not routed to yourself.
+        steepest_node = neighbor_nodes[index_max]
         #...now if a node is the lowest thing, this method returns -1, not a neighbor:
         if u[steepest_node] > u[node_id]:
             steepest_node=-1
@@ -1068,6 +1207,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         return max_slope, dstr_node_ids 
         
+
 
     def calculate_flux_divergence_at_nodes(self, active_link_flux, 
                                            net_unit_flux=False):
