@@ -1,8 +1,9 @@
 ########## soil_moisture.py ###############
 ##
 ##  This component calculates and updates soil moisture after each storm.
-##  Multiple storms can be considered which is fed as an input.
-##  This code implements Laio's(2001) solution for soil moisture calculation.
+##  Soil moisture is represented as a single bucket. Rainfall depth fills the bucket
+##  and the soil moisture decays as a result of leakage and ET following the analytical solution of
+##  Laio et al., (2001) 
 ##  Input file is named soilmoisture_input.txt and is temporarily placed under landlab.components.
 ##  All input values can be altered using set_*** functions
 ##  All output arrays can be retrieved using get_*** functions
@@ -11,10 +12,7 @@
 ##  Storm duration, depth and interstorm duration are obtained from RainfallDriver.py
 ##  Storm depth is obtained in mm and storm duration and interstorm duration are obtained in hours
 ##
-##  After every storm, Laio's solution for soil moisture drying is implemented. 
-##
-##
-## Written by Erkan Istanbulluoglu & Sai Nudurupati, 2013.
+##  Sai Nudurupati and E.I. 08/07/2013.
 ###########################################
 
 import os
@@ -27,7 +25,7 @@ from matplotlib.pyplot import *
 
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
-                                  'soilmoisture_input.txt')
+                                  'soilmoisture_input.in')
 
 class SoilMoisture():
 
@@ -44,9 +42,6 @@ class SoilMoisture():
         self._PET = 0.0
         """ fbare - scaling coefficient for bare soil Potential Evapotranspiration """
         self._fbare = 0.0
-
-        """ soil_type - Soil type to be selected """
-        self._soil_type = 1
         """ Ib - Bare soil infiltration capacity [mm/h] """
         self._soil_Ib = 0.0
         """ Iv - Vegetated surface infiltration capacity [mm/h] """
@@ -65,109 +60,89 @@ class SoilMoisture():
         self._soil_hgw = 0.0
         """ beta - Deep percolation rate constant """
         self._soil_beta = 0.0
+     
         
-        """ P - Precipitation """
-        P = 0.0
-        """ ETA - Evapotranspiration """
+        """ initialize """
+        P = 0
+        Tb = 0
+        Tr = 0
         ETA = 0.0
+        Water_Stress = 0.0
+        
         """ sini - soil moisture with storm at the end of time intervals """
         sini = 0.0
         """ s - final soil moisture """
         s = 0.0
         """ Dd - Drainage from rootzone """
         Dd = 0.0
-        """ Tb - Time between storms """
-        Tb = 0.0
-        """ Tr - Storm duration """
-        Tr = 0.0
         """ Runoff - runoff after storm """
         Runoff = 0.0
-
+        
         """ Iterations - Number of iterations/storms """
         self._iterate_storm = 0
         """ so - Soil moisture of the ground before storm """
         so = 0.0
 
-        """ Initialize output variables """
-        self._Pa = 0.0
-        self._Pin = 0.0
-        self._P = 0.0
+        """ Initialize output variables  """
+        
+        self._Peff = 0.0
         self._ETA = 0.0
-        self._Sini = 0.0
         self._S = 0.0
         self._D = 0.0
-        self._Tb = 0.0
-        self._Tr = 0.0
         self._Ro = 0.0
-        self._tfc = 0.0
-        self._tsc = 0.0
-        self._twp = 0.0
-
+        self._time = 0.0
+        self._WS = 0.0    # water stress
+       
     def initialize( self ):
 
         MPD = ModelParameterDictionary()
         MPD.read_from_file(_DEFAULT_INPUT_FILE)
 
-        self._iterate_storm = MPD.read_int( 'strms' )
-        print '\nNumber of storms: ', self._iterate_storm
-        self._vegcover = MPD.read_float( 'VegCover' )
-        print '\n Veg cover: ', self._vegcover
-        self._interception_cap = MPD.read_float( 'InterceptionCap' )
-        print '\n Interception cap', self._interception_cap
+        self._iterate_storm = MPD.read_int( 'N_STORMS' )
+        self._vegcover = MPD.read_float( 'VEG_COV' )
+        self._interception_cap = MPD.read_float( 'INTERCEPT_CAP' )
         self._zr = MPD.read_float( 'ZR' )
-        print '\n Root depth', self._zr
-        self._runon = MPD.read_float( 'Runon' )
-        print '\n Initial runoff:', self._runon
+        self._runon = MPD.read_float( 'RUNON' )
         self._PET = MPD.read_float( 'PET' )
-        print '\n Fixed PET: ', self._PET
-        self._fbare = MPD.read_float( 'F_Bare' )
-        print '\n F_bare: ', self._fbare
+        self._fbare = MPD.read_float( 'F_BARE' )
         self._so = MPD.read_float( 'so' )        
         self._si = self._so
-        print '\n Initial soil moisture: ', self._so
+        self._soil_Ib = MPD.read_float( 'I_B' )
+        self._soil_Iv = MPD.read_float( 'I_V' )
+        self._soil_Ew = MPD.read_float( 'EW' )
+        self._soil_pc = MPD.read_float( 'PC' )
+        self._soil_fc = MPD.read_float( 'FC' )
+        self._soil_sc = MPD.read_float( 'SC' )
+        self._soil_wp = MPD.read_float( 'WP' )
+        self._soil_hgw = MPD.read_float( 'HGW' )
+        self._soil_beta = MPD.read_float( 'BETA' )
 
         
-        self._soil_type = MPD.read_float( 'SoilType' )
-        self._soil_Ib = MPD.read_float( 'Ib' )
-        print '\n Ib: ', self._soil_Ib
-        self._soil_Iv = MPD.read_float( 'Iv' )
-        print '\n Iv: ', self._soil_Iv
-        self._soil_Ew = MPD.read_float( 'Ew' )
-        print '\n Ew: ', self._soil_Ew
-        self._soil_pc = MPD.read_float( 'pc' )
-        print '\n pc: ', self._soil_pc
-        self._soil_fc = MPD.read_float( 'fc' )
-        print '\n fc: ', self._soil_fc
-        self._soil_sc = MPD.read_float( 'sc' )
-        print '\n sc: ', self._soil_sc
-        self._soil_wp = MPD.read_float( 'wp' )
-        print '\n wp: ', self._soil_wp
-        self._soil_hgw = MPD.read_float( 'hgw' )
-        print '\n hgw: ', self._soil_hgw
-        self._soil_beta = MPD.read_float( 'Beta' )
-        print '\n Beta: ', self._soil_beta
+        
 
-    def update( self, P, Pin, Tb, Tr ):
+    def update( self, P, Tb, Tr, Fveg ):
 
-        V = self._vegcover
-        fb = self._fbare
-        ZR = self._zr
+        V = self._vegcover   # total veg cover used for interception
         fbare = self._fbare
+        ZR = self._zr
         PET = self._PET
         pc = self._soil_pc
         fc = self._soil_fc
         sc = self._soil_sc
         wp = self._soil_wp
         hgw = self._soil_hgw
-        beta = self._soil_beta  
+        beta = self._soil_beta
+
+        
         Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V
         Int_cap = min(V*self._interception_cap, P)
         Peff = max(P-Int_cap, 0.0)
         mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))
-        Ep = max((PET*V+fbare*PET*(1-V)) - Int_cap, 0.0)
+        Ep = max((PET*Fveg+fbare*PET*(1-V)) - Int_cap, 0.0)
         nu = ((Ep/24.0)/1000.0)/(pc*ZR)
         nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR)
         sini = self._so + (Peff/(pc*ZR*1000.0))+self._runon
+        
 
         if sini>1:
            runoff = (sini-1)*pc*ZR*1000
@@ -244,154 +219,73 @@ class SoilMoisture():
             Dd = 0
             ETA = (1000*ZR*pc*(sini-s))
 
-        self._Pa = P
-        self._Pin = Pin
-        self._P = Peff
+        Water_Stress = min(max(pow(((sc - ((s+sini)/2)) / (sc - wp)),4),0.0),1.0) 
+    
+        """ varaibles for get/set functions """
+        self._Peff = Peff
         self._ETA = ETA
-        self._Sini = sini
         self._S = s
         self._D = Dd
-        self._Tb = Tb
-        self._Tr = Tr
         self._Ro = runoff
-        self._tfc = tfc
-        self._tsc = tsc
-        self._twp = twp
-
+        self._time = self._time + (Tb + Tr)/(24*365.4)
+        self._WS = Water_Stress
         self._so = s   
 
-    """ Return Effective Precipitation Array mm """
+        """ Return Effective precipittion mm """
     def get_Peff( self ):
-        return self._P
-
-    """ Return Total Moisture from Storm mm """
-    def get_Sini( self ):
-        return self._Sini
-
-    """ Return Evapotranspiration Array mm """
+        return self._Peff
+      
+    def get_time( self ):
+        return self._time
+ 
+        """ Return Interstorm ET mm """
     def get_ET( self ):
         return self._ETA
 
-    """ Return Soil Moisture Array """
+        """ Return Soil Moisture  """
     def get_S( self ):
         return self._S
 
-    """ Return Drainage from Root Zone Array mm """
+        """ Return Drainage from Root Zone mm """
     def get_D( self ):
         return self._D
 
-    """ Return Runoff Array mm """
+        """ Return Runoff mm """
     def get_Ro( self ):
         return self._Ro
+    
+        """ Return Water Stress """
+    def get_WaterStress( self ):
+        return self._WS
 
-    """ Return Laio's tfc hrs"""
-    def get_tfc( self ):
-        return self._tfc
-
-    """ Return Laio's tsc hrs"""
-    def get_tsc( self ):
-        return self._tsc
-
-    """ Return Laio's twp hrs"""
-    def get_twp( self ):
-        return self._twp
-
-    """ Set Number of Storms """
+        """ Set Number of Storms """
     def set_strms( self, strms ):
         self._iterate_storm = strms
 
-    """ Set Vegetation Cover """
-    def set_VegCover( self, VegCover ):
-        self._vegcover = VegCover
 
-    """ Set Maximum Interception Capacity mm/per V=1 """
-    def set_InterceptionCap( self, InterceptionCap ):
-        self._interception_cap = InterceptionCap
-
-    """ Set Root Depth m"""
-    def set_ZR( self, ZR ):
-        self._zr = ZR
-
-    """ Set Runon from Upstream """
-    def set_Runon( self, Runon ):
-        self._runon = Runon
-
-    """ Set Potential Evapotranspiration Value """
-    def set_PET( self, PET ):
-        self._PET = PET
-
-    """ Set Fraction to define Bare Surface """
-    def set_F_Bare( self, F_Bare ):
-        self._fbare = F_Bare
-
-    """ Set Initial Soil Moisture """
-    def set_so( self, so ):
-        self._so = so
-        self._si = so
-
-    """ Set Soil Properties """
-    """ Bare Soil Infiltration Capacity [mm/h] """
-    def set_Ib( self, Ib ):
-        self._soil_Ib = Ib
-
-    """ Vegetated Surface Infiltration Capacity [mm/h] """
-    def set_Iv( self, Iv ):
-        self._soil_Iv
-
-    """ Residual Evaporation after Wilting [mm/day] """
-    def set_Ew( self, Ew ):
-        self._soil_Ew = Ew
-
-    """ Set porosity of soil """
-    def set_pc( self, pc ):
-        self._soil_pc = pc
-
-    """ Set field capacity point of soil """
-    def set_fc( self, fc ):
-        self._soil_fc = fc
-
-    """ Set stomotal closure point of soil """
-    def set_sc( self, sc ):
-        self._soil_sc = sc
-
-    """ Set wilting point of soil """
-    def set_wp( self, wp ):
-        self._soil_wp = wp
-
-    """ Set hygroscopic point of soil """
-    def set_hgw( self, hgw ):
-        self._soil_hgw = hgw
-
-    """ Set Beta - Deep Percolation Rate Constant """
-    def set_Beta( self, Beta ):
-        self._soil_beta = Beta
-        
-        
-
-    def plott( self, P_, S_, ETA_, D_, Ro_ ):
+    def plott( self, P_, S_, ETA_, D_, Ro_, Time_ ):
 
         figure(1)
-        self._px = xrange( 0, self._iterate_storm )
-        plot( self._px, P_ )
-        ylabel( 'Effective Precipitation Depth in mm' )
-        title( 'Precipitation Record' )
-        xlabel( 'Storms' )
+        plot( Time_, P_ )
+        ylabel( 'Storm Depth [mm]' )
+        title( 'Storm generation' )
+        xlabel( 'Time:Year' )
 
         figure(2)
-        plot( self._px, S_ )
-        ylabel( 'Soil Moisture - fraction' )
+        plot( Time_, S_ )
+        ylabel( 'Degree of saturation: theta/porosity' )
         title( 'Soil Moisture Dynamics' )
-        xlabel( 'Storms' )
+        xlabel( 'Time:Year' )
 
         figure(3)
-        plot( self._px, ETA_, '+', label = 'Evapotranspiration' )
+        plot( Time_, ETA_, '--+', label = 'Interstorm-ET' )
         hold(True)
-        plot( self._px, D_, '-', label = 'Drainage from Root Zone' )
+        plot( Time_, D_, '-', label = 'Root-zone Drainge' )
         hold(True)
-        plot( self._px, Ro_, '*', label = 'Runoff' )
+        plot( Time_, Ro_, '*', label = 'Runoff' )
         hold(False)
-        xlabel( 'Storms' )
-        ylabel( 'Depth in mm' )
+        xlabel( 'Time:Year' )
+        ylabel( 'Depth [mm]' )
         legend()
         title( 'Leakage/Losses' )
                 
