@@ -305,9 +305,8 @@ def interior_nodes(shape):
 def node_coords(shape, *args):
     """
     Get x, y coordinates for nodes in a structured grid with dimensions,
-    *shape*. Use the optional argument *spacing* to give to give the spacing
-    in each dimension, and *origin* the start of the coordinates in each
-    dimension.
+    *shape*. Use the optional argument *spacing* to give the spacing in each
+    dimension, and *origin* the start of the coordinates in each dimension.
 
     >>> (cols, rows) = node_coords((3, 2))
     >>> rows
@@ -331,10 +330,8 @@ def node_coords(shape, *args):
 
     node_count = np.prod(shape)
 
-    row_y = np.arange(origin[0], shape[0] * spacing[0] + origin[0],
-                      spacing[0])
-    col_x = np.arange(origin[1], shape[1] * spacing[1] + origin[0],
-                      spacing[1])
+    row_y = np.arange(shape[0]) * spacing[0] + origin[0] 
+    col_x = np.arange(shape[1]) * spacing[1] + origin[1]
 
     (node_x, node_y) = np.meshgrid(col_x, row_y)
 

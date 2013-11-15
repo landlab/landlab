@@ -59,6 +59,14 @@ class TestGetNodeCoords(unittest.TestCase, NumpyArrayMixIn):
                                          1.,  1.,
                                          3.,  3.,]))
 
+    def test_round_off_error(self):
+        (x, y) = sgrid.node_coords((135, 127),
+                                   (5.4563957090392, 5.4563957090392),
+                                   (0., 0.))
+
+        self.assertTupleEqual(x.shape, (135 * 127, ))
+        self.assertTupleEqual(y.shape, (135 * 127, ))
+
 
 class TestGetCellNode(unittest.TestCase, NumpyArrayMixIn):
     def test_2d_shape_2_by_3(self):
