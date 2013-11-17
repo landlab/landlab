@@ -357,6 +357,50 @@ class TestRasterModelGrid(unittest.TestCase):
                       [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
 
 
+class TestAxisMethods(unittest.TestCase):
+    def test_default_name(self):
+        rmg = RasterModelGrid(4, 5)
+        self.assertTupleEqual(rmg.axis_name, ('y', 'x'))
+
+    def test_name_keyword(self):
+        rmg = RasterModelGrid(4, 5, axis_name=['longitude', 'latitude'])
+        self.assertTupleEqual(rmg.axis_name, ('longitude', 'latitude'))
+
+    def test_name_setter(self):
+        rmg = RasterModelGrid(4, 5, axis_name=['longitude', 'latitude'])
+        self.assertTupleEqual(rmg.axis_name, ('longitude', 'latitude'))
+        rmg.axis_name = ('y', 'x')
+        self.assertTupleEqual(rmg.axis_name, ('y', 'x'))
+
+    def test_name_setter_bad_value(self):
+        rmg = RasterModelGrid(4, 5)
+        with self.assertRaises(ValueError):
+            rmg.axis_name = ('z', )
+        with self.assertRaises(ValueError):
+            rmg.axis_name = ('z', 'y', 'x')
+
+    def test_default_units(self):
+        rmg = RasterModelGrid(4, 5)
+        self.assertTupleEqual(rmg.axis_units, ('-', '-'))
+
+    def test_name_keyword(self):
+        rmg = RasterModelGrid(4, 5, axis_units=['m', 'km'])
+        self.assertTupleEqual(rmg.axis_units, ('m', 'km'))
+
+    def test_name_setter(self):
+        rmg = RasterModelGrid(4, 5, axis_units=['m', 'km'])
+        self.assertTupleEqual(rmg.axis_units, ('m', 'km'))
+        rmg.axis_units = ('mm', 'cm')
+        self.assertTupleEqual(rmg.axis_units, ('mm', 'cm'))
+
+    def test_name_setter_bad_value(self):
+        rmg = RasterModelGrid(4, 5)
+        with self.assertRaises(ValueError):
+            rmg.axis_units = ('m', )
+        with self.assertRaises(ValueError):
+            rmg.axis_units = ('m', 'cm', 'mm')
+
+
 class TestZerosArray(unittest.TestCase):
     def test_default(self):
         mg = RasterModelGrid(4, 5)

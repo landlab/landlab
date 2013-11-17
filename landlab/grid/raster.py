@@ -43,7 +43,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         20
     """
 
-    def __init__(self, num_rows=0, num_cols=0, dx=1.0):
+    def __init__(self, num_rows=0, num_cols=0, dx=1.0, **kwds):
         """
         Optionally takes numbers of rows and columns and cell size as
         inputs. If this are given, calls initialize() to set up the grid.
@@ -58,7 +58,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
             self.initialize( num_rows, num_cols, dx )
-        super(RasterModelGrid, self).__init__()
+        super(RasterModelGrid, self).__init__(**kwds)
 
     def initialize( self, num_rows, num_cols, dx ):
         """

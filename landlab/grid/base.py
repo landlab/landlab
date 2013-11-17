@@ -75,6 +75,15 @@ def _sort_points_into_quadrants(x, y, nodes):
     return (west_nodes, east_nodes, north_nodes, south_nodes)
 
 
+def default_axis_names(n_dims):
+    _DEFAULT_NAMES = ('z', 'y', 'x')
+    return _DEFAULT_NAMES[- n_dims:]
+
+
+def default_axis_units(n_dims):
+    return ('-', ) * n_dims
+
+
 class ModelGrid(ModelDataFields):
     """
     Base class for creating and manipulating 2D structured or
@@ -92,7 +101,7 @@ class ModelGrid(ModelDataFields):
     DEBUG_VERBOSE = False
     DEBUG_TRACK_METHODS = False
 
-    def __init__(self):
+    def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
         for centering in _ARRAY_LENGTH_ATTRIBUTES:
             array_length = self._array_length(centering)
@@ -101,9 +110,15 @@ class ModelGrid(ModelDataFields):
             except AttributeError:
                 pass
 
+        self.axis_name = kwds.get('axis_name', default_axis_names(self.ndim))
+        self.axis_units = kwds.get('axis_units', default_axis_units(self.ndim))
+
     def initialize( self ):
-    
         pass
+
+    @property
+    def ndim(self):
+        return 2
 
     @property
     def node_index_at_cells(self):
@@ -577,29 +592,25 @@ class ModelGrid(ModelDataFields):
         else:
             return self.node_x
 
-    def axis_units(self, axis=0):
-        """
-        .. todo:
-            GT: coordinate units should be model/component dependent.
-        """
-        assert(axis in (0, 1))
+    @property
+    def axis_units(self):
+        return self._axis_units
 
-        if axis == 0:
-            return 'degrees_north'
-        else:
-            return 'degrees_east'
+    @axis_units.setter
+    def axis_units(self, new_units):
+        if len(new_units) != self.ndim:
+            raise ValueError('length of units does not match grid dimension')
+        self._axis_units = tuple(new_units)
 
-    def axis_name(self, axis=0):
-        """
-        .. todo:
-            GT: coordinate units should be model/component dependent.
-        """
-        assert(axis in (0, 1))
+    @property
+    def axis_name(self):
+        return self._axis_name
 
-        if axis == 0:
-            return 'latitude'
-        else:
-            return 'longitude'
+    @axis_name.setter
+    def axis_name(self, new_names):
+        if len(new_names) != self.ndim:
+            raise ValueError('length of names does not match grid dimension')
+        self._axis_name = tuple(new_names)
 
     def get_cell_areas(self, *args):
         """get_cell_areas([ids])
