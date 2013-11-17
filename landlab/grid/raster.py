@@ -527,7 +527,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def min_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
-        Overrides ModelGrid.get_minimum_active_link_length().
+        Overrides ModelGrid.min_active_link_length().
         """
         return self._dx
 

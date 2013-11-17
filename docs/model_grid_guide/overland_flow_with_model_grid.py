@@ -80,9 +80,9 @@ def main():
         # Calculate the effective flow depth at active links. Bates et al. 2010
         # recommend using the difference between the highest water-surface
         # and the highest bed elevation between each pair of cells.
-        zmax = mg.active_link_max(z)
+        zmax = mg.max_of_link_end_node_values(z)
         w = h+z   # water-surface height
-        wmax = mg.active_link_max(w)
+        wmax = mg.max_of_link_end_node_values(w)
         hflow = wmax - zmax
         
         # Calculate water-surface slopes

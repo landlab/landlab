@@ -43,7 +43,7 @@ class DiffusionComponent():
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is 
         #   adaptive/changing
-        dx = self.grid.get_minimum_active_link_length()  # smallest active link length
+        dx = self.grid.min_active_link_length()  # smallest active link length
         self.dt = _ALPHA*dx*dx/self.kd  # CFL condition
         
         # Get a list of interior cells

@@ -133,9 +133,9 @@ class OverlandFlow(object):
             # Calculate the effective flow depth at active links. Bates et al. 2010
             # recommend using the difference between the highest water-surface
             # and the highest bed elevation between each pair of cells.
-            zmax = grid.active_link_max(z) #array of length of active links
+            zmax = grid.max_of_link_end_node_values(z) #array of length of active links
             w = self.h+z   # water-surface height, array of length num nodes
-            wmax = grid.active_link_max(w) #array of length of active links
+            wmax = grid.max_of_link_end_node_values(w) #array of length of active links
             hflow = wmax - zmax #array of length of activelinks
         
             # Calculate water-surface slopes: across links, but water heights are 

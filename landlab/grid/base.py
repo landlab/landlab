@@ -766,7 +766,7 @@ class ModelGrid(ModelDataFields):
         # Recreate the list of active links
         self.reset_list_of_active_links()
         
-    def max_of_link_end_nodes(self, node_data):
+    def max_of_link_end_node_values(self, node_data):
         """
         For each active link, finds and returns the maximum value of node_data
         at either of the two ends. Use this, for example, if you want to find
@@ -782,7 +782,7 @@ class ModelGrid(ModelDataFields):
             >>> import landlab as ll
             >>> mg = ll.RasterModelGrid(3, 4, 1.0)
             >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
-            >>> mg.active_link_max(h)
+            >>> mg.max_of_link_end_node_values(h)
             array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
