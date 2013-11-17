@@ -66,12 +66,12 @@ class Radiation():
         
     def update( self, RMG ):
         
-        self._Si = RMG.create_cell_dvector()  # Cosine of Solar Angle of Incidence
-        self._BETA = RMG.create_cell_dvector() # Aspect (Clockwise from North)
-        self._Rs = RMG.create_cell_dvector()   # Incoming Shortwave Radiation            
-        self._slope_ = RMG.create_cell_dvector() # Slope - Rise/Run
-        self._slope = RMG.create_cell_dvector()  # Slope - in Radians
-        self._angles = RMG.create_cell_dvector() # Angles - Clockwise from North      
+        self._Si = RMG.zeros(centering='cell') # Cosine of Solar Angle of Incidence
+        self._BETA = RMG.zeros(centering='cell') # Aspect (Clockwise from North)
+        self._Rs = RMG.zeros(centering='cell') # Incoming Shortwave Radiation            
+        self._slope_ = RMG.zeros(centering='cell') # Slope - Rise/Run
+        self._slope = RMG.zeros(centering='cell') # Slope - in Radians
+        self._angles = RMG.zeros(centering='cell') # Angles - Clockwise from North      
                        
         self._t = 12                                     # Assuming noon
         self._julian = round( self._current_time - round( self._current_time)  \

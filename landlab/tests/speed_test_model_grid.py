@@ -11,9 +11,9 @@ def main():
 
     nt = 1000
 
-    s = mg.create_node_dvector()
-    g = mg.create_active_link_dvector()
-    divg = mg.create_node_dvector()
+    s = mg.zeros(centering='node')
+    g = mg.zeros(centering='active_link')
+    divg = mg.zeros(centering='node')
 
     start_time = time.time()
 

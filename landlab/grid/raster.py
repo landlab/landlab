@@ -1101,7 +1101,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 #        improve speed slightly by creating an array outside the loop. For 
 #        example, do this once, before the loop:
 #            
-#            >>> divflux = rmg.create_active_cell_dvector() # outside loop
+#            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
 #            
 #        Then do this inside the loop:
 #            
@@ -1246,7 +1246,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         improve speed by creating an array outside the loop. For example, do
         this once, before the loop:
             
-            >>> df = rmg.create_node_dvector() # outside loop
+            >>> df = rmg.zeros(centering='node') # outside loop
             >>> rmg.num_nodes
             20
             
@@ -1364,7 +1364,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Example:
             
         >>> rmg = RasterModelGrid(4, 5, 1.0)
-        >>> u = rmg.create_node_dvector()
+        >>> u = rmg.zeros(centering='node')
         >>> u = u + range(0, len(u))
         >>> u
         array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
@@ -1398,7 +1398,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Example:
             
             >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = rmg.create_cell_dvector()
+            >>> u = rmg.zeros(centering='cell')
             >>> u = u + range(0, len(u))
             >>> u
             array([ 0.,  1.,  2.,  3.,  4.,  5.])

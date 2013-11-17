@@ -70,10 +70,10 @@ def main():
     # Setup
     mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
-    u = mg.create_cell_dvector()
+    u = mg.zeros(centering='cell')
     interior_cells = mg.get_interior_cells()
-    dudt = mg.create_cell_dvector()
-    #K = mg.create_face_dvector()
+    dudt = mg.zeros(centering='cell')
+    #K = mg.zeros(centering='cell')
     fx = mg.get_face_x_coords()
     fy = mg.get_face_y_coords()
     #k = k0 * (fy / max(fy))

@@ -36,7 +36,7 @@ class DiffusionModel():
         self.run_duration = inputs.get('RUN_DURATION', ptype=float)
         
         # Create state variables
-        self.z = self.grid.create_node_dvector()
+        self.z = self.grid.zeros(centering='node')
         
     def update(self):
         

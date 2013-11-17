@@ -188,54 +188,6 @@ class ModelGrid(ModelDataFields):
             return self.at_node[name]
 
         
-    def create_cell_dvector( self ):
-        """
-        Returns a vector of floating point numbers the same length as 
-        the number of cells.
-        """
-    
-        return numpy.zeros( self.num_cells )
-
-    def create_active_cell_dvector( self ):
-        """
-        Returns a vector of floating point numbers the same length as 
-        the number of active cells.
-        """
-    
-        return numpy.zeros( self.num_active_cells )
-
-    def create_node_dvector( self ):
-        """
-        Returns a vector of floating point numbers the same length as 
-        the number of nodes.
-        """
-    
-        return numpy.zeros( self.num_nodes )
-        
-    def create_link_dvector(self):
-        """
-        Returns a 1D numpy array of floating point numbers the same length as 
-        the number of links.
-        """
-        
-        return numpy.zeros(self.num_links)
-
-    def create_active_link_dvector(self):
-        """
-        Returns a 1D numpy array of floating point numbers the same length as 
-        the number of active links.
-        """
-        
-        return numpy.zeros(self.num_active_links)
-
-    def create_face_dvector( self ):
-        """
-        Returns a vector of floating point numbers the same length as 
-        the number of interior faces.
-        """
-    
-        return numpy.zeros( self.num_faces )
-
     def _array_length(self, centering):
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[centering])
@@ -399,7 +351,7 @@ class ModelGrid(ModelDataFields):
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-            >>> divflux = rmg.create_active_cell_dvector() # outside loop
+            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
             
         Then do this inside the loop:
             

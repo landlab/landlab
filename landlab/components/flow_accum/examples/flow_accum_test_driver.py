@@ -14,7 +14,7 @@ class data(object):
         '''
     #Data goes here!!!
     def __init__(self, grid):
-        self.elev = grid.create_node_dvector() #some data
+        self.elev = grid.zeros(centering='node') #some data
 
 #Make grid, set the elevs
 mg = raster.RasterModelGrid(5,5,1.)

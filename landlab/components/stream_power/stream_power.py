@@ -17,7 +17,7 @@ class StreamPower(object):
         self.m = 0.5
         self.n = 1.
         self.K = 1.e-3 * tstep
-        self.unit_stream_power = grid.create_node_dvector()
+        self.unit_stream_power = grid.zeros(centering='node')
         #Flags for self-building of derived data:
         self.made_max_gradients = 0
         self.made_link_gradients = 0

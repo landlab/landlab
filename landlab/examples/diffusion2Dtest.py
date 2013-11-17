@@ -32,9 +32,9 @@ def main():
     # Setup
     mg = RasterModelGrid()
     mg.initialize(nr, nc, dx)
-    u = mg.create_cell_dvector()
+    u = mg.zeros(centering='cell')
     interior_cells = mg.get_interior_cells()
-    dudt = mg.create_cell_dvector()
+    dudt = mg.zeros(centering='cell')
 
     # Boundaries
     mg.set_noflux_boundaries(False, True, False, True)

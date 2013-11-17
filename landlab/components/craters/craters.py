@@ -27,9 +27,9 @@ class data(object):
     '''
     #Data goes here!!!
     def __init__(self, grid):
-        self.elev = grid.create_node_dvector() #some data
-        self.flag_already_in_the_list = grid.create_node_dvector()
-        self.craters_over_max_radius_not_plotted = grid.create_node_dvector()
+        self.elev = grid.zeros(centering='node') #some data
+        self.flag_already_in_the_list = grid.zeros(centering='node')
+        self.craters_over_max_radius_not_plotted = grid.zeros(centering='node')
         self.impact_sequence = []
 
 class impactor(object):

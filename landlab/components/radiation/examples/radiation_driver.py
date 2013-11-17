@@ -25,7 +25,7 @@ RD.initialize()
 (RMG,data) = read_esri_ascii(_DEFAULT_INPUT_FILE_2)
 
 # Transfer Elevation Data
-RD._Z = RMG.create_node_dvector()
+RD._Z = RMG.zeros(centering='node')
 RD._Z = data  
 
 # Temporary Adjustment of 'No Data' values

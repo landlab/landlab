@@ -50,10 +50,10 @@ def main():
     # Setup
     mg = RasterModelGrid()  # Create the grid
     mg.initialize(nr, nc, dx)  # Initialize it
-    u = mg.create_cell_dvector()  # Dependent variable (temperature)
+    u = mg.zeros(centering='cell') # Dependent variable (temperature)
     interior_cells = mg.get_interior_cells()  # ID's of interior cells
-    dudt = mg.create_cell_dvector()  # Rate of change of temperature
-    s = mg.create_cell_dvector()  # Source term (e.g., radioactive decay)
+    dudt = mg.zeros(centering='cell') # Rate of change of temperature
+    s = mg.zeros(centering='cell') # Source term (e.g., radioactive decay)
     s[interior_cells] = s0  # Set source at interior cells
     opt_plot = True  # Option for plotting output
 

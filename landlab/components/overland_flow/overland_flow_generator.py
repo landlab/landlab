@@ -55,13 +55,13 @@ class OverlandFlow(object):
         self.ten_thirds = 10./3.   # pre-calculate 10/3 for speed
         
         # Set up state variables
-        self.h = grid.create_node_dvector() + self.h_init     # water depth (m)
+        self.h = grid.zeros(centering='node') + self.h_init     # water depth (m)
         #NG why is water depth at each node and not at cells, which are only active
-        #self.h_link = grid.create_active_link_dvector() #water depth at links (m)
+        #self.h_link = grid.zeros(centering='active_link') #water depth at links (m)
         #this is needed for shear stress calculation
-        self.q = grid.create_active_link_dvector()       # unit discharge (m2/s)
-        self.dhdt = grid.create_active_cell_dvector()    # rate of water-depth change
-        #self.tau = grid.create_active_link_dvector()     # shear stress rho*g*h*S
+        self.q = grid.zeros(centering='active_link') # unit discharge (m2/s)
+        self.dhdt = grid.zeros(centering='active_cell') # rate of water-depth change
+        #self.tau = grid.zeros(centering='active_link') # shear stress rho*g*h*S
         #NG why is dhdt at active cells, but h at nodes?
         #Maybe because you need a boundary condition of water depth at the 
         #boundary locations?  But water depths only change at active cells?
@@ -94,8 +94,8 @@ class OverlandFlow(object):
         
         
         #NG Everything below is for plotting purposes
-        tau_plotter1=grid.create_node_dvector()        
-        h_plotter1=grid.create_node_dvector()
+        tau_plotter1 = grid.zeros(centering='node')
+        h_plotter1 = grid.zeros(centering='node')
         
         plothelper=0
         #threetimes=[5,10,1000000000]
