@@ -99,11 +99,11 @@ def _add_spatial_variables(root, grid, **kwds):
         coords.shape = var.shape
         var[:] = coords
 
-        var.units = grid.axis_units(axis=axis)
+        var.units = grid.axis_units[axis]
         try:
             var.long_name = long_name[name]
         except KeyError:
-            var.long_name = grid.axis_name(axis)
+            var.long_name = grid.axis_name[axis]
 
 
 def _add_variables_at_points(root, fields):
