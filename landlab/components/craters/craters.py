@@ -710,7 +710,6 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, 
     #Setup
     if not use_existing_grid:
         mg = RasterModelGrid(nr, nc, dx)
-        mg.initialize(nr, nc, dx)
         vectors = data(mg)
         if not surface_slope:
             vectors.elev[:] = 1.

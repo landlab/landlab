@@ -28,8 +28,7 @@ iterations = 10
 tstep = 1.
 
 #Make grid, set the elevs
-mg = raster.RasterModelGrid(50,50,1.)
-mg.initialize(50,50,1.)
+mg = raster.RasterModelGrid(50, 50, 1.)
 mg.set_inactive_boundaries(True, True, True, True)
 vectors = data(mg)
 

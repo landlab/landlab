@@ -72,7 +72,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     def __init__(self):
         pass
         
-    def initialize(self, x, y):
+    def _initialize(self, x, y):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -141,7 +141,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
         # LINKS: ID of corresponding face, if any
         self.link_face = numpy.zeros(self.num_links, dtype=int)+BAD_INDEX_VALUE  # make the list

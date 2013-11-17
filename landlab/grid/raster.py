@@ -57,10 +57,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Set number of nodes, and initialize if caller has given dimensions
         self.num_nodes = num_rows * num_cols
         if self.num_nodes > 0:
-            self.initialize( num_rows, num_cols, dx )
+            self._initialize(num_rows, num_cols, dx)
         super(RasterModelGrid, self).__init__(**kwds)
 
-    def initialize( self, num_rows, num_cols, dx ):
+    def _initialize(self, num_rows, num_cols, dx):
         """
         Sets up a num_rows by num_cols grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
@@ -130,7 +130,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         
         if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.initialize('+str(num_rows)+', ' \
+            print 'RasterModelGrid._initialize('+str(num_rows)+', ' \
                    +str(num_cols)+', '+str(dx)+')'
         
         # Basic info about raster size and shape
@@ -250,7 +250,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._setup_inlink_and_outlink_matrices()
         
         #   set up the list of active links
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
         #   set up link faces
         #
@@ -905,7 +905,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
@@ -1661,9 +1661,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         num_cols_for_unit_test = 5
         
         print 'Initializing ...'
-        self.initialize( num_rows_for_unit_test, 
-                         num_cols_for_unit_test,
-                         1.0 )
+        self._initialize(num_rows_for_unit_test, num_cols_for_unit_test, 1.0)
         print 'done.'
         print
         

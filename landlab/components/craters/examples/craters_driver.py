@@ -25,8 +25,7 @@ class data(object):
 #        '''
 #    
 #    #Setup the grid & impactor object
-#    mg = RasterModelGrid()
-#    mg.initialize(nr, nc, dx)
+#    mg = RasterModelGrid(nr, nc, dx)
 #    vectors = data(mg)
 #    vectors.elev[:] = 0.
 #    cr = craters.impactor()
@@ -45,8 +44,7 @@ class data(object):
 #show()
 
 ##This code snippet to produce a landscape w. 500000 impacts, but where the first half of the impacts are 10x bigger on average.
-#mg = RasterModelGrid()
-#mg.initialize(1200, 1200, 0.0025)
+#mg = RasterModelGrid(1200, 1200, 0.0025)
 #vectors = data(mg)
 #vectors.elev[:] = 0.
 #
@@ -54,9 +52,8 @@ class data(object):
 #
 ##This code snippet produces a smaller (800x800) grid where we let the basic crater routine run for a long time (1M impacts). The aim is to see if we get a steady state landscape.
 
-#mg2 = RasterModelGrid()
+#mg2 = RasterModelGrid(600, 600, 0.0025)
 #dict_of_vectors2_5m_min = {}
-#mg2.initialize(600, 600, 0.0025)
 #vectors2 = data(mg2)
 #vectors2.elev[:] = 0.
 
@@ -66,8 +63,7 @@ class data(object):
 #    dict_of_vectors2_5m_min[i] = copy(vectors2)
 
 #This code snippet to produce a landscape w. 200000 impacts, but where the first quarter of the impacts are 3x bigger on average. The output interval is only 5k impacts this time.
-mg3 = RasterModelGrid()
-mg3.initialize(1200, 1200, 0.0025)
+mg3 = RasterModelGrid(1200, 1200, 0.0025)
 vectors = data(mg3)
 vectors.elev[:] = 0.
 

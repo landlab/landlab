@@ -113,7 +113,7 @@ class ModelGrid(ModelDataFields):
         self.axis_name = kwds.get('axis_name', default_axis_names(self.ndim))
         self.axis_units = kwds.get('axis_units', default_axis_units(self.ndim))
 
-    def initialize( self ):
+    def _initialize( self ):
         pass
 
     @property
@@ -244,7 +244,7 @@ class ModelGrid(ModelDataFields):
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
     def calculate_gradients_at_active_links(self, s, gradient=None):
         """
@@ -661,7 +661,7 @@ class ModelGrid(ModelDataFields):
                     fv[i] = u[self.activelink_tonode[i]]
         return fv
         
-    def reset_list_of_active_links(self):
+    def _reset_list_of_active_links(self):
         """
         Creates or resets a list of active links. We do this by sweeping
         through the given lists of from and to nodes, and checking the status
@@ -670,7 +670,7 @@ class ModelGrid(ModelDataFields):
         the other is an active boundary.
         """
         if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.reset_list_of_active_links'
+            print 'ModelGrid._reset_list_of_active_links'
             
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
@@ -716,7 +716,7 @@ class ModelGrid(ModelDataFields):
         self.activecell_node = node_ids[numpy.where(self.node_status == INTERIOR_NODE)]
         
         # Recreate the list of active links
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
         
     def max_of_link_end_node_values(self, node_data):
         """
@@ -896,7 +896,7 @@ class ModelGrid(ModelDataFields):
         else:
             return self.node_status[ids] == boundary_flag
     
-    def assign_boundary_nodes_to_grid_sides(self):
+    def _assign_boundary_nodes_to_grid_sides(self):
         """
         For each boundary node, determines whether it belongs to the left, 
         right, top or bottom of the grid, based on its distance from the grid's
@@ -908,7 +908,7 @@ class ModelGrid(ModelDataFields):
 
             >>> import landlab as ll
             >>> m = ll.HexModelGrid(5, 3, 1.0)
-            >>> [l,r,t,b] = m.assign_boundary_nodes_to_grid_sides()
+            >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
             >>> l
             array([ 7, 12,  3], dtype=int32)
             >>> r
@@ -969,7 +969,7 @@ class ModelGrid(ModelDataFields):
             print 'ModelGrid.set_inactive_boundaries'
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
-                self.assign_boundary_nodes_to_grid_sides()
+                self._assign_boundary_nodes_to_grid_sides()
             
         if bottom_is_inactive:
             self.node_status[bottom_edge] = INACTIVE_BOUNDARY
@@ -991,11 +991,11 @@ class ModelGrid(ModelDataFields):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
     def set_inactive_nodes(self, nodes):
         self.node_status[nodes] = INACTIVE_BOUNDARY
-        self.reset_list_of_active_links()
+        self._reset_list_of_active_links()
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, just_one_node=-1):
         """

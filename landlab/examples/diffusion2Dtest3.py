@@ -48,8 +48,7 @@ def main():
     s0 = 0.001  # source
 
     # Setup
-    mg = RasterModelGrid()  # Create the grid
-    mg.initialize(nr, nc, dx)  # Initialize it
+    mg = RasterModelGrid(nr, nc, dx)  # Create the grid
     u = mg.zeros(centering='cell') # Dependent variable (temperature)
     interior_cells = mg.get_interior_cells()  # ID's of interior cells
     dudt = mg.zeros(centering='cell') # Rate of change of temperature

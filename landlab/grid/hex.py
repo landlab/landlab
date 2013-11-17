@@ -28,11 +28,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         
         # Set number of nodes, and initialize if caller has given dimensions
         #self.num_nodes = num_rows * num_cols
-        if num_rows*base_num_cols > 0:
-            self.initialize( num_rows, base_num_cols, dx )
+        if num_rows * base_num_cols > 0:
+            self._initialize(num_rows, base_num_cols, dx)
 
-
-    def initialize( self, num_rows, base_num_cols, dx ):
+    def _initialize( self, num_rows, base_num_cols, dx ):
         """
         Sets up a num_rows by num_cols grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
@@ -44,11 +43,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         patches, corners, and junctions.
         """
         if self.DEBUG_TRACK_METHODS:
-            print 'HexModelGrid.initialize('+str(num_rows)+', ' \
+            print 'HexModelGrid._initialize('+str(num_rows)+', ' \
                    +str(base_num_cols)+', '+str(dx)+')'
         
         [pts, self.num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
-        super(HexModelGrid, self).initialize(pts[:,0], pts[:,1])
+        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
         
 
     def make_hex_points(self, num_rows, base_num_cols, dxh):

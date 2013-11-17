@@ -21,8 +21,7 @@ class drive_perron(object):
         '''
         Builds a nr*nc grid open at the top and bottom edges for testing
         '''
-        self.mg = RasterModelGrid()
-        self.mg.initialize(self.nr, self.nc, self.dx)
+        self.mg = RasterModelGrid(self.nr, self.nc, self.dx)
         self.mg.set_noflux_boundaries(False, True, False, True)  # Boundary conditions
         self.vectors = data()
         self.vectors.elev = [0.] * self.mg.ncells

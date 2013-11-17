@@ -68,8 +68,7 @@ def main():
     #k0 = 0.01   # flux coefficient
 
     # Setup
-    mg = RasterModelGrid()
-    mg.initialize(nr, nc, dx)
+    mg = RasterModelGrid(nr, nc, dx)
     u = mg.zeros(centering='cell')
     interior_cells = mg.get_interior_cells()
     dudt = mg.zeros(centering='cell')

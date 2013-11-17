@@ -30,8 +30,7 @@ def main():
     nt = 40000    # number of iterations
 
     # Setup
-    mg = RasterModelGrid()
-    mg.initialize(nr, nc, dx)
+    mg = RasterModelGrid(nr, nc, dx)
     u = mg.zeros(centering='cell')
     interior_cells = mg.get_interior_cells()
     dudt = mg.zeros(centering='cell')

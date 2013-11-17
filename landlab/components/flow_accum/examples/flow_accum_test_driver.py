@@ -17,8 +17,7 @@ class data(object):
         self.elev = grid.zeros(centering='node') #some data
 
 #Make grid, set the elevs
-mg = raster.RasterModelGrid(5,5,1.)
-mg.initialize(5,5,1.)
+mg = raster.RasterModelGrid(5, 5, 1.)
 mg.set_inactive_boundaries(True, True, False, True)
 vectors = data(mg)
 

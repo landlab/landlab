@@ -31,17 +31,16 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         # Set number of nodes, and initialize if caller has given dimensions
         #self.num_nodes = num_rows * num_cols
         if num_shells > 0:
-            self.initialize(num_shells, dr, origin_x, origin_y)
+            self._initialize(num_shells, dr, origin_x, origin_y)
 
-
-    def initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
+    def _initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """
         """
         #if self.DEBUG_TRACK_METHODS:
-        print 'RadialModelGrid.initialize('+str(num_shells)+', '+str(dr)+')'
+        print 'RadialModelGrid._initialize('+str(num_shells)+', '+str(dr)+')'
         
         [pts, npts] = self.make_radial_points(num_shells, dr)
-        super(RadialModelGrid, self).initialize(pts[:,0], pts[:,1])
+        super(RadialModelGrid, self)._initialize(pts[:,0], pts[:,1])
         
         
     def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
