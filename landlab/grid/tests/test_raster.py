@@ -114,7 +114,7 @@ class TestRasterModelGrid(unittest.TestCase):
                       0., 1., 2., 3., 4.]
 
         for (cell_id, expected) in zip(xrange(12), expected_x):
-            cell_x = self.grid.get_node_x(cell_id)
+            cell_x = self.grid.node_x[cell_id]
             self.assertEqual(cell_x, expected)
 
             cell_x = self.grid.node_x[cell_id]
@@ -127,14 +127,14 @@ class TestRasterModelGrid(unittest.TestCase):
                       3., 3., 3., 3., 3.]
 
         for (cell_id, expected) in zip(xrange(12), expected_y):
-            cell_y = self.grid.get_node_y(cell_id)
+            cell_y = self.grid.node_y[cell_id]
             self.assertEqual(cell_y, expected)
 
             cell_y = self.grid.node_y[cell_id]
             self.assertEqual(cell_y, expected)
 
     def test_node_x_coordinates(self):
-        x_coords = self.grid.get_node_x_coords()
+        x_coords = self.grid.node_x
 
         self.assertEqual(list(x_coords), [0., 1., 2., 3., 4.,
                                           0., 1., 2., 3., 4.,
@@ -142,7 +142,7 @@ class TestRasterModelGrid(unittest.TestCase):
                                           0., 1., 2., 3., 4.])
 
     def test_cell_y_coordinates(self):
-        y_coords = self.grid.get_node_y_coords()
+        y_coords = self.grid.node_y
 
         self.assertEqual(list(y_coords), [0., 0., 0., 0., 0.,
                                           1., 1., 1., 1., 1.,

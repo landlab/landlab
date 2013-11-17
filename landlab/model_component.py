@@ -39,7 +39,7 @@ class Component(object):
 
     @property
     def coords(self):
-        return (self.grid.get_cell_x_coords(), self.grid.get_cell_y_coords())
+        return (self.grid.node_x, self.grid.node_y)
 
     def imshow(self, name, **kwds):
         self._grid.imshow(name, **kwds)

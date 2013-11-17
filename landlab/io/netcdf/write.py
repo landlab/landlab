@@ -95,15 +95,15 @@ def _add_spatial_variables(root, grid, **kwds):
         except KeyError:
             var = root.createVariable(name, 'f8', spatial_variable_shape)
 
-        coords = grid.get_node_coords(axis=axis).view()
+        coords = grid.node_axis_coordinates(axis=axis).view()
         coords.shape = var.shape
         var[:] = coords
 
-        var.units = grid.get_coordinate_units(axis=axis)
+        var.units = grid.axis_units(axis=axis)
         try:
             var.long_name = long_name[name]
         except KeyError:
-            var.long_name = grid.get_coordinate_name(axis)
+            var.long_name = grid.axis_name(axis)
 
 
 def _add_variables_at_points(root, fields):

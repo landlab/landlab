@@ -556,20 +556,6 @@ class ModelGrid(ModelDataFields):
         
         return net_unit_flux
         
-    def get_node_x( self, id ):
-        """
-        Returns the x coordinate of node "id".
-        """
-        return self._node_x[id]
-        
-    def get_node_y( self, id ):
-        """
-        Returns the y coordinate of node "id".
-        """
-        return self._node_y[id]
-
-    #Decorator alternatives to above node getters added DEJH late Jul '13.
-    #Should allow either .get_property(ID) or .property[ID]
     @property
     def node_x(self):
         return self._node_x
@@ -578,37 +564,7 @@ class ModelGrid(ModelDataFields):
     def node_y(self):
         return self._node_y
         
-    def get_cell_x_coords( self ):
-        """
-        Returns vector of node x coordinates (same as get_node_x_coords).
-        
-        .. todo: 
-            Could be useful to return a Numpy array of x-coords of the cell's
-            corners.
-        """
-        warnings.warn('Use get_node_x_coords instead', DeprecationWarning)
-        return self._node_x
-
-    def get_cell_y_coords( self ):
-        """
-        Returns vector of node y coordinates (same as get_node_y_coords).
-        """
-        warnings.warn('Use get_node_y_coords instead', DeprecationWarning)
-        return self._node_y
-
-    def get_node_x_coords( self ):
-        """
-        Returns vector of node x coordinates.
-        """
-        return self._node_x           
-
-    def get_node_y_coords( self ):
-        """
-        Returns vector of node y coordinates.
-        """
-        return self._node_y           
-
-    def get_node_coords(self, axis=0):
+    def node_axis_coordinates(self, axis=0):
         """
         Return node coordinates from a given *axis* (defaulting to 0). Axis
         numbering is the same as that for numpy arrays. That is, the zeroth
@@ -617,11 +573,11 @@ class ModelGrid(ModelDataFields):
         assert(axis in (0, 1))
 
         if axis == 0:
-            return self.get_node_y_coords()
+            return self.node_y
         else:
-            return self.get_node_x_coords()
+            return self.node_x
 
-    def get_coordinate_units(self, axis=0):
+    def axis_units(self, axis=0):
         """
         .. todo:
             GT: coordinate units should be model/component dependent.
@@ -633,7 +589,7 @@ class ModelGrid(ModelDataFields):
         else:
             return 'degrees_east'
 
-    def get_coordinate_name(self, axis=0):
+    def axis_name(self, axis=0):
         """
         .. todo:
             GT: coordinate units should be model/component dependent.
