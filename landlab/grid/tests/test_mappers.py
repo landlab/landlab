@@ -14,7 +14,7 @@ class TestLinkEndsToLink(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_max(self):
         rmg = RasterModelGrid(4, 5)
         rmg.add_empty('node', 'values')
-        node_vales = rmg.at_node['values']
+        node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.num_nodes)
 
         maps.map_link_end_node_max_value_to_link(rmg, 'values')
@@ -32,10 +32,10 @@ class TestLinkEndsToLink(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_min(self):
         rmg = RasterModelGrid(4, 5)
         rmg.add_empty('node', 'values')
-        node_vales = rmg.at_node['values']
+        node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.num_nodes)
 
-        maps.map_link_end_node_max_value_to_link(rmg, 'values')
+        maps.map_link_end_node_min_value_to_link(rmg, 'values')
 
         self.assertArrayEqual(
             rmg.at_link['values'],
