@@ -42,7 +42,7 @@ def main():
 #    
 #    # Modify the grid DEM to set all nodata nodes to inactive boundaries
 #    nodata_val=0
-#    rg.deactivate_nodata_nodes(z, nodata_val) # set nodata nodes to inactive bounds
+#    rg.set_nodata_nodes_to_inactive(z, nodata_val) # set nodata nodes to inactive bounds
 #
 #    # Set the open boundary (outlet) cell. We want to remember the ID of the 
 #    # outlet node and the ID of the interior node adjacent to it. We'll make

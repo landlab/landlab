@@ -34,7 +34,7 @@ class WatershedBoundaryConditions(object):
         """
         
         #set no data nodes to inactive boundaries
-        mg.deactivate_nodata_nodes(node_data, nodata_value)
+        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
         
         #find the id of the outlet node
         outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
@@ -51,7 +51,7 @@ class WatershedBoundaryConditions(object):
         """
         
         #set no data nodes to inactive boundaries
-        mg.deactivate_nodata_nodes(node_data, nodata_value)
+        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
         
         #set the boundary condition (fixed value) at the outlet_node        
         mg.set_fixed_value_boundaries(outlet_node)
@@ -74,7 +74,7 @@ class WatershedBoundaryConditions(object):
         #set no data nodes to inactive boundaries
         #this may be redundant, but must do in case there are no data
         #values that are not on the outer boundary
-        mg.deactivate_nodata_nodes(node_data, nodata_value)
+        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
         
         #This method works well if the watershed topography is already 
         #established.  If it's not, then this is an ineffiient method, but 

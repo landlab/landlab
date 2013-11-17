@@ -689,7 +689,7 @@ class ModelGrid(ModelDataFields):
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
 
-    def deactivate_nodata_nodes(self, node_data, nodata_value):
+    def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """
         Sets self.node_status to INACTIVE_BOUNDARY for all nodes whose value of
         node_data is equal to the nodata_value.
@@ -701,7 +701,7 @@ class ModelGrid(ModelDataFields):
             >>> mg.node_status
             array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
             >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.deactivate_nodata_nodes(h, -9999)
+            >>> mg.set_nodata_nodes_to_inactive(h, -9999)
             >>> mg.node_status
             array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """

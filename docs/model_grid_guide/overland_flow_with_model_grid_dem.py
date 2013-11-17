@@ -53,7 +53,7 @@ def main():
           ' columns, and cell size '+str(mg.dx))
     
     # Modify the grid DEM to set all nodata nodes to inactive boundaries
-    mg.deactivate_nodata_nodes(z, 0) # set nodata nodes to inactive bounds
+    mg.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bounds
     
     # Set the open boundary (outlet) cell. We want to remember the ID of the 
     # outlet node and the ID of the interior node adjacent to it. We'll make
