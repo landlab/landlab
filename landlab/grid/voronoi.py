@@ -133,7 +133,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.num_links = len(self.link_fromnode)
                     
         # LINKS: Calculate link lengths
-        self.link_length = calculate_link_lengths(pts, self.link_fromnode,
+        self._link_length = calculate_link_lengths(pts, self.link_fromnode,
                                                   self.link_tonode)
                                                        
         # LINKS: inlink and outlink matrices
