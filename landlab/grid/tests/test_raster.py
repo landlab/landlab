@@ -7,6 +7,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+from landlab.testing import NumpyArrayTestingMixIn
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY, INACTIVE_BOUNDARY
 
@@ -623,27 +624,27 @@ class TestRasterModelGridNodesAroundPoint(unittest.TestCase):
             np.array([0, 3, 4, 1]))
 
 
-class TestRasterModelGridCellAreas(unittest.TestCase):
+class TestRasterModelGridCellAreas(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_unit_grid_all_cells(self):
         mg = RasterModelGrid(4, 4)
-        assert_array_equal(mg.get_cell_areas(), np.ones(4.))
+        self.assertArrayEqual(mg.cell_areas, np.ones(4.))
 
     def test_unit_grid_one_cell(self):
         mg = RasterModelGrid(4, 4)
-        self.assertEqual(mg.get_cell_areas(0), 1.)
+        self.assertEqual(mg.cell_areas[0], 1.)
 
     def test_unit_grid_last_cell(self):
         mg = RasterModelGrid(4, 4)
-        self.assertEqual(mg.get_cell_areas(-1), 1.)
+        self.assertEqual(mg.cell_areas[-1], 1.)
 
     def test_out_of_range(self):
         mg = RasterModelGrid(4, 4)
         with self.assertRaises(IndexError):
-            mg.get_cell_areas(5)
+            mg.cell_areas[5]
 
     def test_all_cells_with_spacing(self):
         mg = RasterModelGrid(4, 4, 10.)
-        assert_array_equal(mg.get_cell_areas(), 100. * np.ones(4.))
+        self.assertArrayEqual(mg.cell_areas, 100 * np.ones(4.))
 
 
 class TestRasterModelGridInactiveNodes(unittest.TestCase):

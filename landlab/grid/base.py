@@ -578,7 +578,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_y(self):
         return self._node_y
-        
+
     def node_axis_coordinates(self, axis=0):
         """
         Return node coordinates from a given *axis* (defaulting to 0). Axis
@@ -612,24 +612,6 @@ class ModelGrid(ModelDataFields):
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
 
-    def get_cell_areas(self, *args):
-        """get_cell_areas([ids])
-
-        This function returns the area of an interior cell, or an array of
-        all interior cell areas if *ids* is not given. *ids* can be either
-        a scalar index, or an array of cell indices.
-
-        .. note::
-            It is up to a specific grid class, which has inherited from
-            ModelGrid, to construct its own cell_areas array.
-        """
-        assert(len(args) <= 1)
-
-        if len(args) == 0:
-            return self.cell_areas
-        else:
-            return self.cell_areas[args[0]]
-    
     @property
     def cell_areas(self):
         """
