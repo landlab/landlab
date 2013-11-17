@@ -524,11 +524,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return vertices_array[numpy.argmin(distances_to_vertices)]
         #...per fancy indexing
     
-    def get_minimum_active_link_length(self):
+    def min_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
         Overrides ModelGrid.get_minimum_active_link_length().
         """
+        return self._dx
+
+    def max_active_link_length(self):
         return self._dx
 
     def calculate_max_gradient_across_node(self, u, cell_id):

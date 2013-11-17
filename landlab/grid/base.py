@@ -656,12 +656,39 @@ class ModelGrid(ModelDataFields):
                 active_link = alink
                 break
         return active_link
-        
-    def get_minimum_active_link_length(self):
+
+    @property
+    def active_link_length(self):
+        return self.link_length[self.active_links]
+
+    @property
+    def link_length(self):
+        try:
+            return self._link_length
+        except AttributeError:
+            return self.calculate_link_length()
+
+    def min_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
         """
         return numpy.amin(self.link_length[self.active_links])
+
+    def max_active_link_length(self):
+        """
+        Returns the horizontal length of the longest active link in the grid.
+        """
+        return numpy.amax(self.link_length[self.active_links])
+
+    def calculate_link_length(self):
+        if not hasattr(self, '_link_length'):
+            self._link_length = self.empty(centering='link')
+        dx = (self.node_x[self.node_index_at_link_head] -
+              self.node_x[self.node_index_at_link_tail])
+        dy = (self.node_y[self.node_index_at_link_head] -
+              self.node_y[self.node_index_at_link_tail])
+        numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
+        return self.link_length
 
     def assign_upslope_vals_to_active_links( self, u, v=[0] ):
         """
@@ -739,8 +766,7 @@ class ModelGrid(ModelDataFields):
         # Recreate the list of active links
         self.reset_list_of_active_links()
         
-    def active_link_max(self, node_data):
-        
+    def max_of_link_end_nodes(self, node_data):
         """
         For each active link, finds and returns the maximum value of node_data
         at either of the two ends. Use this, for example, if you want to find

@@ -358,6 +358,26 @@ class TestRasterModelGrid(unittest.TestCase):
                       [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
 
 
+class TestLinkLength(unittest.TestCase, NumpyArrayTestingMixIn):
+    def test_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5)
+        lengths = rmg.calculate_link_length()
+        self.assertArrayEqual(lengths, np.ones(31))
+
+    def test_non_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5, 12.)
+        lengths = rmg.calculate_link_length()
+        self.assertArrayEqual(lengths, 12 * np.ones(31))
+
+    def test_link_length(self):
+        rmg = RasterModelGrid(4, 5, 12.)
+        self.assertArrayEqual(rmg.link_length, 12 * np.ones(31))
+
+    def test_active_link_length(self):
+        rmg = RasterModelGrid(4, 5, 12.)
+        self.assertArrayEqual(rmg.active_link_length, 12 * np.ones(17))
+
+
 class TestAxisMethods(unittest.TestCase):
     def test_default_name(self):
         rmg = RasterModelGrid(4, 5)
