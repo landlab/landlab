@@ -12,6 +12,8 @@ import warnings
 
 from landlab.utils import count_repeated_values
 from landlab.field import ModelDataFields
+from landlab.utils import grid as gfuncs
+
 
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 
@@ -246,22 +248,15 @@ class ModelGrid(ModelDataFields):
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
 
-    def calculate_gradients_at_active_links(self, s, gradient=None):
+    def calculate_gradients_at_active_links(self, node_values, out=None):
         """
-        Calculates the gradient in quantity s at each active link in the grid.
+        Calculates the gradient in quantity *node_values* at each active link
+        in the grid.
         """
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_gradients_at_active_links'
-        
-        if gradient==None:
-            gradient = numpy.zeros(self.num_active_links)
-            
-        assert (len(gradient)==self.num_active_links), \
-                "len(gradient)!=num_active_links"
-                
-        gradient = (s[self.activelink_tonode]-s[self.activelink_fromnode])/self.link_length[self.active_links]
-        
-        return gradient
+        return gfuncs.calculate_gradients_at_active_links(self, node_values,
+                                                          out=out)
         
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
         """

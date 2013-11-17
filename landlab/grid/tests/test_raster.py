@@ -716,5 +716,37 @@ class TestRasterModelGridInactiveNodes(unittest.TestCase):
             mg.active_node_links())
 
 
+class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
+    def test_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20)
+        grads = rmg.calculate_gradients_at_active_links(values)
+        self.assertArrayEqual(
+            grads,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1]))
+        
+    def test_non_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5, 2.)
+        values = np.arange(20)
+        grads = rmg.calculate_gradients_at_active_links(values)
+        self.assertArrayEqual(
+            grads,
+            .5 * np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
+                           1, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_out_array(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20)
+        grads = np.empty(17)
+        rtn_grads = rmg.calculate_gradients_at_active_links(values,
+                                                            out=grads)
+        self.assertArrayEqual(
+            grads,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1]))
+        self.assertIs(rtn_grads, grads)
+        
+
 if __name__ == '__main__':
     unittest.main()
