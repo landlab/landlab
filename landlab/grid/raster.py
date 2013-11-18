@@ -2,6 +2,7 @@
 
 import numpy
 
+from landlab.testing.decorators import track
 from landlab.grid.base import ModelGrid
 import landlab.utils.structured_grid as sgrid
 from landlab.utils import grid as gfuncs
@@ -987,6 +988,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell
     
+    @track
     def calculate_gradients_at_active_links(self, node_values, out=None):
         """
         Calculates the gradient in quantity s at each active link in the grid.

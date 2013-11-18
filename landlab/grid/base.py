@@ -10,6 +10,7 @@ Last modified August 2013
 import numpy
 import warnings
 
+from landlab.testing.decorators import track
 from landlab.utils import count_repeated_values
 from landlab.field import ModelDataFields
 from landlab.utils import grid as gfuncs
@@ -248,23 +249,20 @@ class ModelGrid(ModelDataFields):
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
 
+    @track
     def calculate_gradients_at_active_links(self, node_values, out=None):
         """
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
         """
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_gradients_at_active_links'
         return gfuncs.calculate_gradients_at_active_links(self, node_values,
                                                           out=out)
         
+    @track
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
         """
         Calculates the gradient in quantity s at each active link in the grid.
         """
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_gradients_at_active_links_slow'
-        
         if gradient==None:
             gradient = numpy.zeros(self.num_active_links)
             
