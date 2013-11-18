@@ -156,6 +156,38 @@ class ModelGrid(ModelDataFields):
     @property
     def face_index_at_links(self):
         return self.link_face
+        
+    @property
+    def number_of_nodes(self):
+        return self.num_nodes
+    
+    @property
+    def number_of_cells(self):
+        return self.num_cells
+    
+    @property
+    def number_of_links(self):
+        return self.num_links
+    
+    @property
+    def number_of_faces(self):
+        return self.num_faces
+    
+    @property
+    def number_of_active_nodes(self):
+        return self.num_active_nodes
+
+    @property
+    def number_of_active_cells(self):
+        return self.num_active_cells
+
+    @property
+    def number_of_active_links(self):
+        return self.num_active_links
+
+    @property
+    def number_of_active_faces(self):
+        return self.num_active_faces
 
     def get_node_status(self):
         """
@@ -1034,6 +1066,32 @@ class ModelGrid(ModelDataFields):
             return dist_array, azimuth_array
         else:
             return dist_array
+            
+    def build_all_node_distances_azimuths_maps(self):
+        """
+        This function creates and stores in the grid field an nnodes*nnodes array
+        that maps the distances of all nodes in the grid to all nodes in the grid.
+        This is useful if your module needs to make repeated lookups of distances
+        between the same nodes, but does potentially use up a lot of memory so
+        should be used with caution.
+        The map is symmetrical, so it does not matter whether rows are "from" or
+        "to".
+        """
+        
+        self.all_node_distances_map = numpy.empty(self.number_of_nodes, self.number_of_nodes)
+        self.all_node_azimuths_map = numpy.empty(self.number_of_nodes, self.number_of_nodes)
+        
+        node_coords = numpy.empty(self.number_of_nodes, 2)
+        node_coords[:,1] = self.node_x
+        node_coords[:,2] = self.node_y
+        
+        for i in xrange(self.number_of_nodes):
+            self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point(node_coords[i,:], get_az=1)
+        
+        assert numpy.all(self.all_node_distances_map >= 0.)
+        
+        return self.all_node_distances_map, self.all_node_azimuths_map
+        
 
 if __name__ == '__main__':
     import doctest
