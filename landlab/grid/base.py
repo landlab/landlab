@@ -10,7 +10,7 @@ Last modified August 2013
 import numpy
 import warnings
 
-from landlab.testing.decorators import track
+from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.field import ModelDataFields
 from landlab.utils import grid as gfuncs
@@ -280,7 +280,7 @@ class ModelGrid(ModelDataFields):
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
 
-    @track
+    @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
         """
         Calculates the gradient in quantity *node_values* at each active link
@@ -288,7 +288,7 @@ class ModelGrid(ModelDataFields):
         """
         return gfuncs.calculate_diff_at_links(self, node_values, out=out)
         
-    @track
+    @track_this_method
     def calculate_diff_at_active_links(self, node_values, out=None):
         """
         Calculates the differenct in quantity *node_values* at each active link
@@ -297,7 +297,7 @@ class ModelGrid(ModelDataFields):
         return gfuncs.calculate_diff_at_active_links(self, node_values,
                                                      out=out)
         
-    @track
+    @track_this_method
     def calculate_gradients_at_links(self, node_values, out=None):
         """
         Calculates the gradient in quantity *node_values* at each active link
@@ -305,7 +305,7 @@ class ModelGrid(ModelDataFields):
         """
         return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
         
-    @track
+    @track_this_method
     def calculate_gradients_at_active_links(self, node_values, out=None):
         """
         Calculates the gradient in quantity *node_values* at each active link
@@ -314,7 +314,7 @@ class ModelGrid(ModelDataFields):
         return gfuncs.calculate_gradients_at_active_links(self, node_values,
                                                           out=out)
         
-    @track
+    @track_this_method
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
         """
         Calculates the gradient in quantity s at each active link in the grid.

@@ -1,5 +1,5 @@
 
-def track(func):
+def track_this_method(func):
     def _wrapped(self, *args, **kwds):
         if self.DEBUG_TRACK_METHODS:
             print 'Entering: %s.%s' % (self.__class__.__name__, func.__name__)
