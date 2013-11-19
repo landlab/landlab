@@ -171,7 +171,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_faces(self):
-        return self.num_faces
+        return self._num_faces
     
     @property
     def number_of_active_nodes(self):

@@ -151,7 +151,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_links = sgrid.link_count(self.shape)
         self.num_active_links = sgrid.active_link_count(self.shape)
         
-        self.num_faces = sgrid.face_count(self.shape)
+        self._num_faces = sgrid.face_count(self.shape)
         self.num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
