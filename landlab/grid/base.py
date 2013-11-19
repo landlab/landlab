@@ -167,7 +167,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_links(self):
-        return self.num_links
+        return self._num_links
     
     @property
     def number_of_faces(self):
@@ -778,7 +778,7 @@ class ModelGrid(ModelDataFields):
         neighbors for both the endpoint nodes.
         """
         num_nbrs = numpy.zeros(self.number_of_nodes, dtype=int)
-        for link in range(self.num_links):
+        for link in range(self.number_of_links):
             num_nbrs[self.link_fromnode[link]] += 1
             num_nbrs[self.link_tonode[link]] += 1
         return num_nbrs
@@ -888,7 +888,7 @@ class ModelGrid(ModelDataFields):
                  self._node_y[self.boundary_nodes], 'ro')
                  
         # Draw links
-        for i in range(self.num_links):
+        for i in range(self.number_of_links):
             plt.plot([self._node_x[self.link_fromnode[i]],
                      self._node_x[self.link_tonode[i]]],
                      [self._node_y[self.link_fromnode[i]],

@@ -130,7 +130,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # "from" and "to" nodes.
         [self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
                 = self.create_links_and_faces_from_voronoi_diagram(vor)
-        self.num_links = len(self.link_fromnode)
+        self._num_links = len(self.link_fromnode)
                     
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.link_fromnode,
@@ -144,7 +144,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._reset_list_of_active_links()
 
         # LINKS: ID of corresponding face, if any
-        self.link_face = numpy.zeros(self.num_links, dtype=int)+BAD_INDEX_VALUE  # make the list
+        self.link_face = (numpy.zeros(self.number_of_links, dtype=int) +
+                          BAD_INDEX_VALUE)  # make the list
         face_id = 0
         for link in self.active_links:
             self.link_face[link] = face_id
