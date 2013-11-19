@@ -1097,13 +1097,17 @@ class ModelGrid(ModelDataFields):
             
     def build_all_node_distances_azimuths_maps(self):
         """
-        This function creates and stores in the grid field an nnodes*nnodes array
-        that maps the distances of all nodes in the grid to all nodes in the grid.
+        This function creates and stores in the grid field two nnodes*nnodes 
+        arrays that map the distances and azimuths of all nodes in the grid to 
+        all nodes in the grid.
         This is useful if your module needs to make repeated lookups of distances
         between the same nodes, but does potentially use up a lot of memory so
         should be used with caution.
         The map is symmetrical, so it does not matter whether rows are "from" or
         "to".
+        The arrays are called:
+            self.all_node_distances_map
+            self.all_node_azimuths_map
         """
         
         self.all_node_distances_map = numpy.empty(self.number_of_nodes,

@@ -6,8 +6,6 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 1st stab at componentizing this routine, following GT, by DEJH, Oct 2013.
 
-UNDER DEV, NOT FUNCTIONAL
-
 """
 
 from landlab import ModelParameterDictionary

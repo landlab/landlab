@@ -3,6 +3,7 @@ from collections import deque
 import itertools
 import scipy.sparse as sparse
 import landlab.components.craters as craters #Note this brings in the data class
+import landlab.utils.structured_grid as sgrid
 
 import time
 
@@ -37,35 +38,7 @@ class perron_nl_diff_faster(object):
         
         ncols = grid.get_count_of_cols()
         nrows = grid.get_count_of_rows()
-        nnodes = grid.get_count_of_all_nodes()
-        #Superceded by next text block (faster)
-#        self._interior_cells = list(grid.get_interior_cells())
-#        _core_cells = self._interior_cells[:] #we'll thin this down into the other lists
-#        _interior_corners = []
-#        _interior_edges = []
-#        _interior_corners.append(_core_cells.pop())
-#        _interior_edges.extend(_core_cells[(4-ncols):])
-#        _core_cells[(4-ncols):] = []
-#        _interior_corners.append(_core_cells.pop())
-#        
-#        _interior_corners.append(_core_cells.pop(0))
-#        _interior_edges.extend(_core_cells[:(ncols-4)])
-#        _core_cells[:(ncols-4)] = []
-#        _interior_corners.append(_core_cells.pop(0))
-#        
-#        _interior_edges.append(_core_cells.pop(0))
-#        i=1
-#        while 1:
-#            try:
-#                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
-#            except:
-#                break
-#            try:
-#                _interior_edges.append(_core_cells.pop(i*(ncols-4)))
-#            except:
-#                break
-#            else:
-#                i = i+1
+        nnodes = grid.number_of_nodes
     
         self._interior_corners = numpy.array(ncols+1,2*ncols-2,nnodes-2*ncols+1,nnodes-ncols-2)
         _left_list = range(2*ncols+1,nnodes-2*ncols,ncols)
@@ -74,7 +47,7 @@ class perron_nl_diff_faster(object):
         self._interior_edges = numpy.array(itertools.chain(range((ncols+2),(2*ncols-2)),_left_right,range(nnodes-2*ncols+2,nnodes-ncols-2)))
         self._core_cells = numpy.zeros(grid.get_count_of_interior_nodes()-2*ncols-4-2*(nrows-4),dtype=int)
         for i in range(nrows-4):
-            _core_cells[i*(ncols-4):(i+1)*(ncols-4)] = range((2+i)*ncols+2,(3+i)*ncols-2) #fill IDs into core cell matrix
+            self._core_cells[i*(ncols-4):(i+1)*(ncols-4)] = range((2+i)*ncols+2,(3+i)*ncols-2) #fill IDs into core cell matrix
         
         #self._core_cells = numpy.array(_core_cells)
         #self._interior_edges = numpy.array(_interior_edges) #order is [ncols-4 of TOP]+[ncols-4 of BOTTOM]+[(nrows-4)*(LEFT,RIGHT) pairs]
@@ -83,7 +56,48 @@ class perron_nl_diff_faster(object):
         #print _interior_edges
         #print _core_cells
         #setup is giving the correct interior cell lists here
+        
+        self.interior_grid_width = ncols-2
+        self.core_cell_width = ncols-4
+        
+        self.core_grid_IDs = (numpy.arange(len(self._core_cells))//self.core_cell_width+1)*self.interior_grid_width + (numpy.arange(len(self._core_cells))%self.core_cell_width) + 1
+        #This replaces n in the loop below
+        
+        #build an ID map to let us easily map the variables of the core cells onto the operating matrix:
+        operating_matrix_core_cell_ID_map = numpy.empty(9,len(self.core_grid_IDs))
+        for i in xrange(self.core_grid_IDs):
+            operating_matrix_core_cell_ID_map[:,i] = numpy.array([(i-ncols+1),(i-ncols+2),(i-ncols+3),(i-1),i,(i+1),(i+ncols-3),(i+ncols-2),(i+ncols-1)])
+        self.operating_matrix_core_cell_ID_map = operating_matrix_core_cell_ID_map
+        
+        #Build masks for the edges and corners to be applied to the operating matrix map:
+        self.topleft_mask = [1,2,4,5]
+        self.topright_mask = [0,1,3,4]
+        self.bottomleft_mask = [4,5,7,8]
+        self.bottomright_mask = [3,4,6,7]
+        self.left_mask = [1,2,4,5,7,8]
+        self.top_mask = [0,1,2,3,4,5]
+        self.right_mask = [0,1,3,4,6,7]
+        self.bottom_mask = [3,4,5,6,7,8]
+        
+        #Now perform search to see if we need to bother with any Bnodes that aren't type 1 (time saving):
+        bottom_nodes = grid.bottom_edge_node_ids()
+        top_nodes = grid.top_edge_node_ids()
+        left_nodes = grid.left_edge_node_ids()
+        right_nodes = grid.right_edge_node_ids()
+        self.track_cell_flag = 0
+        self.fixed_grad_flag = 0
+	self.track_nodes = grid.node_status == 3
+	self.fixed_grad = grid.node_status == 2
+        if numpy.any(self.track_nodes): #track cell
+            self.track_cell_flag = 1
+	    #now want to turn track_nodes into a list of nodes *which have* these neighbors, not the nodes themselves
+	    bottom_nodes[grid.node_status[bottom_nodes]==3]
 
+
+           
+        if numpy.any(self.fixed_grad): #fixed gradient
+            self.fixed_grad_flag = 1
+	#otherwise, all the boundaries are fixed value
 
     def set_variables(self, grid, data):
         '''
@@ -106,7 +120,7 @@ class perron_nl_diff_faster(object):
         self._mat_RHS = _mat_RHS
 
 
-    def set_variables_for_core_cells(self, grid, data, _operating_matrix, _mat_RHS):
+    def set_variables_for_core_cells(self, grid, data):
     
         elev = data.elev
         ncols = grid.get_count_of_cols()
@@ -118,68 +132,109 @@ class perron_nl_diff_faster(object):
         _kappa = self._kappa
         _b = self._b
         _S_crit = self._S_crit
-        count = 0
-        interior_grid_width = ncols-2
-        core_cell_width = ncols-4
-        for i in self._core_cells:
-            n = (count//core_cell_width+1)*interior_grid_width + (count%core_cell_width) + 1 #This is the ID within the interior grid
-            #n_test = self._interior_cells.index(i)
-            #assert n == n_test
-            cell_neighbors = grid.get_neighbor_list(i)
-            cell_diagonals = grid.get_diagonal_list(i)
-            _z_x = (data.elev[cell_neighbors[0]]-data.elev[cell_neighbors[2]])*0.5*_one_over_delta_x
-            _z_y = (data.elev[cell_neighbors[1]]-data.elev[cell_neighbors[3]])*0.5*_one_over_delta_y
-            _z_xx = (data.elev[cell_neighbors[0]]-2.*data.elev[i]+data.elev[cell_neighbors[2]])*_one_over_delta_x_sqd
-            _z_yy = (data.elev[cell_neighbors[1]]-2.*data.elev[i]+data.elev[cell_neighbors[3]])*_one_over_delta_y_sqd
-            _z_xy = (data.elev[cell_diagonals[0]] - data.elev[cell_diagonals[1]] - data.elev[cell_diagonals[3]] + data.elev[cell_diagonals[2]])*0.25*_one_over_delta_x*_one_over_delta_y
-            _d = 1./(1.-_b*(_z_x*_z_x+_z_y*_z_y))
-            
-            #assert type(_z_x) is numpy.float64
-            #assert type(_z_y) is numpy.float64
-            #assert type(_z_xx) is numpy.float64
-            #assert type(_z_yy) is numpy.float64
-            #assert type(_z_xy) is numpy.float64
-            
-            _abd_sqd = _kappa*_b*_d*_d
-            _F_ij = -2.*_kappa*_d*(_one_over_delta_x_sqd+_one_over_delta_y_sqd) - 4.*_abd_sqd*(_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_y*_one_over_delta_y_sqd)
-            _F_ijminus1 = _kappa*_d*_one_over_delta_x_sqd - _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x - 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x-_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
-            _F_ijplus1 = _kappa*_d*_one_over_delta_x_sqd + _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x + 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x+_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
-            _F_iminus1j = _kappa*_d*_one_over_delta_y_sqd - _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y - 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y-_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
-            _F_iplus1j = _kappa*_d*_one_over_delta_y_sqd + _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y + 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y+_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
-            _F_iplus1jplus1 = _abd_sqd*_z_x*_z_y*_one_over_delta_x*_one_over_delta_y
-            _F_iminus1jminus1 = _F_iplus1jplus1
-            _F_iplus1jminus1 = -_F_iplus1jplus1
-            _F_iminus1jplus1 = _F_iplus1jminus1
-            
-            #assert type(_F_ij) is numpy.float64
-            #assert type(_F_ijminus1) is numpy.float64
-            #assert type(_F_ijplus1) is numpy.float64
-            #assert type(_F_iminus1j) is numpy.float64
-            #assert type(_F_iplus1j) is numpy.float64
-            #assert type(_F_iplus1jplus1) is numpy.float64
-
-            #RHS of equ 6 (see para [20])
-            _func_on_z = self._rock_density/self._sed_density*self._uplift + _kappa*((_z_xx+_z_yy)/(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit) + 2.*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)/(_S_crit*_S_crit*(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit)**2.))
-                        
-            #assert type(_func_on_z) is numpy.float64
-
-            _mat_RHS[n] = _mat_RHS[n] + data.elev[i] + _delta_t*(_func_on_z - (_F_ij*data.elev[i]+_F_ijminus1*data.elev[cell_neighbors[2]]+_F_ijplus1*data.elev[cell_neighbors[0]]+_F_iminus1j*data.elev[cell_neighbors[3]]+_F_iplus1j*data.elev[cell_neighbors[1]]+_F_iminus1jminus1*data.elev[cell_diagonals[2]]+_F_iplus1jplus1*data.elev[cell_diagonals[0]]+_F_iplus1jminus1*data.elev[cell_diagonals[1]]+_F_iminus1jplus1*data.elev[cell_diagonals[3]]))
-            
-            #build the operating matrix. No logic operations needed as these are all core cells
-            _operating_matrix[n,(n-1):(n+2)] += [-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1]
-            #_operating_matrix[n,n] = _operating_matrix[n,n]+1.-_delta_t*_F_ij
-            #_operating_matrix[n,n-1] = _operating_matrix[n,n-1]-_delta_t*_F_ijminus1
-            #_operating_matrix[n,n+1] = _operating_matrix[n,n+1]-_delta_t*_F_ijplus1
-            _operating_matrix[n,(n-ncols+1):(n-ncols+4)] -= [_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1]*_delta_t
-            #_operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-_delta_t*_F_iminus1j
-            #_operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-_delta_t*_F_iminus1jminus1
-            #_operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-_delta_t*_F_iminus1jplus1
-            _operating_matrix[n,(n+ncols-3):(n+ncols)] -= [_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1]*_delta_t
-            #_operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-_delta_t*_F_iplus1j
-            #_operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-_delta_t*_F_iplus1jplus1
-            #_operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-_delta_t*_F_iplus1jminus1
+        #count = 0
+        _core_cells = self._core_cells
+        _operating_matrix = self._operating_matrix
+        _mat_RHS = self._mat_RHS
+        interior_grid_width = self.interior_grid_width
+        core_cell_width = self.core_cell_width
+        core_grid_IDs = self.core_grid_IDs
+        operating_matrix_core_cell_ID_map = self.operating_matrix_core_cell_ID_map
         
-            count = count + 1
+        #replacing loop:
+        cell_neighbors = grid.get_neighbor_list()
+        cell_diagonals = grid.get_diagonal_list()
+        cell_neighbors_core = cell_neighbors[_core_cells,:]
+        cell_diagonals_core = cell_diagonals[_core_cells,:]
+        _z_x = (data.elev[cell_neighbors[:,0]]-data.elev[cell_neighbors[:,2]])*0.5*_one_over_delta_x
+        _z_y = (data.elev[cell_neighbors[:,1]]-data.elev[cell_neighbors[:,3]])*0.5*_one_over_delta_y
+        _z_xx = (data.elev[cell_neighbors[:,0]]-2.*data.elev+data.elev[cell_neighbors[:,2]])*_one_over_delta_x_sqd
+        _z_yy = (data.elev[cell_neighbors[:,1]]-2.*data.elev+data.elev[cell_neighbors[:,3]])*_one_over_delta_y_sqd
+        _z_xy = (data.elev[cell_diagonals[:,0]] - data.elev[cell_diagonals[:,1]] - data.elev[cell_diagonals[:,3]] + data.elev[cell_diagonals[:,2]])*0.25*_one_over_delta_x*_one_over_delta_y
+        _d = 1./(1.-_b*(_z_x*_z_x+_z_y*_z_y))
+        
+        _abd_sqd = _kappa*_b*_d*_d
+        _F_ij = -2.*_kappa*_d*(_one_over_delta_x_sqd+_one_over_delta_y_sqd) - 4.*_abd_sqd*(_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_y*_one_over_delta_y_sqd)
+        _F_ijminus1 = _kappa*_d*_one_over_delta_x_sqd - _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x - 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x-_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
+        _F_ijplus1 = _kappa*_d*_one_over_delta_x_sqd + _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x + 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x+_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
+        _F_iminus1j = _kappa*_d*_one_over_delta_y_sqd - _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y - 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y-_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
+        _F_iplus1j = _kappa*_d*_one_over_delta_y_sqd + _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y + 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y+_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
+        _F_iplus1jplus1 = _abd_sqd*_z_x*_z_y*_one_over_delta_x*_one_over_delta_y
+        _F_iminus1jminus1 = _F_iplus1jplus1
+        _F_iplus1jminus1 = -_F_iplus1jplus1
+        _F_iminus1jplus1 = _F_iplus1jminus1
+        
+        #RHS of equ 6 (see para [20])
+        _func_on_z = self._rock_density/self._sed_density*self._uplift + _kappa*((_z_xx+_z_yy)/(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit) + 2.*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)/(_S_crit*_S_crit*(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit)**2.))
+
+        _mat_RHS[_core_cells] = _mat_RHS[_core_cells] + data.elev + _delta_t*(_func_on_z - (_F_ij*data.elev+_F_ijminus1*data.elev[cell_neighbors_core[:,2]]+_F_ijplus1*data.elev[cell_neighbors_core[:,0]]+_F_iminus1j*data.elev[cell_neighbors_core[:,3]]+_F_iplus1j*data.elev[cell_neighbors_core[:,1]]+_F_iminus1jminus1*data.elev[cell_diagonals_core[:,2]]+_F_iplus1jplus1*data.elev[cell_diagonals_core[:,0]]+_F_iplus1jminus1*data.elev[cell_diagonals_core[:,1]]+_F_iminus1jplus1*data.elev[cell_diagonals_core[:,3]]))
+        low_row = numpy.vstack((_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1))*_delta_t
+        mid_row = numpy.vstack((-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1))
+        top_row = numpy.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1))*_delta_t
+        _operating_matrix[operating_matrix_core_cell_ID_map] = numpy.vstack((low_row,mid_row,top_row))
+        
+
+        
+#        #Now replaced by vectorized version above.
+#        for i in self._core_cells:
+#            n = (count//core_cell_width+1)*interior_grid_width + (count%core_cell_width) + 1 #This is the ID within the interior grid
+#            #n_test = self._interior_cells.index(i)
+#            #assert n == n_test
+#            cell_neighbors = grid.get_neighbor_list(i)
+#            cell_diagonals = grid.get_diagonal_list(i)
+#            _z_x = (data.elev[cell_neighbors[0]]-data.elev[cell_neighbors[2]])*0.5*_one_over_delta_x
+#            _z_y = (data.elev[cell_neighbors[1]]-data.elev[cell_neighbors[3]])*0.5*_one_over_delta_y
+#            _z_xx = (data.elev[cell_neighbors[0]]-2.*data.elev[i]+data.elev[cell_neighbors[2]])*_one_over_delta_x_sqd
+#            _z_yy = (data.elev[cell_neighbors[1]]-2.*data.elev[i]+data.elev[cell_neighbors[3]])*_one_over_delta_y_sqd
+#            _z_xy = (data.elev[cell_diagonals[0]] - data.elev[cell_diagonals[1]] - data.elev[cell_diagonals[3]] + data.elev[cell_diagonals[2]])*0.25*_one_over_delta_x*_one_over_delta_y
+#            _d = 1./(1.-_b*(_z_x*_z_x+_z_y*_z_y))
+#            
+#            #assert type(_z_x) is numpy.float64
+#            #assert type(_z_y) is numpy.float64
+#            #assert type(_z_xx) is numpy.float64
+#            #assert type(_z_yy) is numpy.float64
+#            #assert type(_z_xy) is numpy.float64
+#            
+#            _abd_sqd = _kappa*_b*_d*_d
+#            _F_ij = -2.*_kappa*_d*(_one_over_delta_x_sqd+_one_over_delta_y_sqd) - 4.*_abd_sqd*(_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_y*_one_over_delta_y_sqd)
+#            _F_ijminus1 = _kappa*_d*_one_over_delta_x_sqd - _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x - 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x-_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
+#            _F_ijplus1 = _kappa*_d*_one_over_delta_x_sqd + _abd_sqd*_z_x*(_z_xx+_z_yy)*_one_over_delta_x + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_x*_one_over_delta_x + 2.*_abd_sqd*(_z_x*_z_xx*_one_over_delta_x+_z_x*_z_x*_one_over_delta_x_sqd+_z_y*_z_xy*_one_over_delta_x)
+#            _F_iminus1j = _kappa*_d*_one_over_delta_y_sqd - _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y - 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y - 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y-_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
+#            _F_iplus1j = _kappa*_d*_one_over_delta_y_sqd + _abd_sqd*_z_y*(_z_xx+_z_yy)*_one_over_delta_y + 4.*_abd_sqd*_b*_d*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)*_z_y*_one_over_delta_y + 2.*_abd_sqd*(_z_y*_z_yy*_one_over_delta_y+_z_y*_z_y*_one_over_delta_y_sqd+_z_x*_z_xy*_one_over_delta_y)
+#            _F_iplus1jplus1 = _abd_sqd*_z_x*_z_y*_one_over_delta_x*_one_over_delta_y
+#            _F_iminus1jminus1 = _F_iplus1jplus1
+#            _F_iplus1jminus1 = -_F_iplus1jplus1
+#            _F_iminus1jplus1 = _F_iplus1jminus1
+#            
+#            #assert type(_F_ij) is numpy.float64
+#            #assert type(_F_ijminus1) is numpy.float64
+#            #assert type(_F_ijplus1) is numpy.float64
+#            #assert type(_F_iminus1j) is numpy.float64
+#            #assert type(_F_iplus1j) is numpy.float64
+#            #assert type(_F_iplus1jplus1) is numpy.float64
+#
+#            #RHS of equ 6 (see para [20])
+#            _func_on_z = self._rock_density/self._sed_density*self._uplift + _kappa*((_z_xx+_z_yy)/(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit) + 2.*(_z_x*_z_x*_z_xx+_z_y*_z_y*_z_yy+2.*_z_x*_z_y*_z_xy)/(_S_crit*_S_crit*(1.-(_z_x*_z_x+_z_y*_z_y)/_S_crit*_S_crit)**2.))
+#                        
+#            #assert type(_func_on_z) is numpy.float64
+#
+#            _mat_RHS[n] = _mat_RHS[n] + data.elev[i] + _delta_t*(_func_on_z - (_F_ij*data.elev[i]+_F_ijminus1*data.elev[cell_neighbors[2]]+_F_ijplus1*data.elev[cell_neighbors[0]]+_F_iminus1j*data.elev[cell_neighbors[3]]+_F_iplus1j*data.elev[cell_neighbors[1]]+_F_iminus1jminus1*data.elev[cell_diagonals[2]]+_F_iplus1jplus1*data.elev[cell_diagonals[0]]+_F_iplus1jminus1*data.elev[cell_diagonals[1]]+_F_iminus1jplus1*data.elev[cell_diagonals[3]]))
+#            
+#            #build the operating matrix. No logic operations needed as these are all core cells
+#            _operating_matrix[n,(n-1):(n+2)] += [-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1]
+#            #_operating_matrix[n,n] = _operating_matrix[n,n]+1.-_delta_t*_F_ij
+#            #_operating_matrix[n,n-1] = _operating_matrix[n,n-1]-_delta_t*_F_ijminus1
+#            #_operating_matrix[n,n+1] = _operating_matrix[n,n+1]-_delta_t*_F_ijplus1
+#            _operating_matrix[n,(n-ncols+1):(n-ncols+4)] -= [_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1]*_delta_t
+#            #_operating_matrix[n,n-ncols+2] = _operating_matrix[n,n-ncols+2]-_delta_t*_F_iminus1j
+#            #_operating_matrix[n,n-ncols+1] = _operating_matrix[n,n-ncols+1]-_delta_t*_F_iminus1jminus1
+#            #_operating_matrix[n,n-ncols+3] = _operating_matrix[n,n-ncols+3]-_delta_t*_F_iminus1jplus1
+#            _operating_matrix[n,(n+ncols-3):(n+ncols)] -= [_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1]*_delta_t
+#            #_operating_matrix[n,n+ncols-2] = _operating_matrix[n,n+ncols-2]-_delta_t*_F_iplus1j
+#            #_operating_matrix[n,n+ncols-1] = _operating_matrix[n,n+ncols-1]-_delta_t*_F_iplus1jplus1
+#            #_operating_matrix[n,n+ncols-3] = _operating_matrix[n,n+ncols-3]-_delta_t*_F_iplus1jminus1
+#        
+#            count = count + 1
 
 
     def set_variables_for_interior_corners(self, grid, data, _operating_matrix, _mat_RHS):
