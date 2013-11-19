@@ -177,9 +177,10 @@ class LinkCellularAutomaton():
         dictionary that associates pairs of node states (represented as a 
         2-element tuple) to link states.
         """
-        self.link_state = numpy.zeros(self.grid.num_active_links, dtype=int)
+        self.link_state = numpy.zeros(self.grid.number_of_active_links,
+                                      dtype=int)
     
-        for i in range(self.grid.num_active_links):
+        for i in range(self.grid.number_of_active_links):
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]])
             #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
@@ -295,7 +296,7 @@ class LinkCellularAutomaton():
     
         if _DEBUG:
             print 'push_transitions_to_event_queue():',self.num_link_states,self.n_xn
-        for i in range(self.grid.num_active_links):
+        for i in range(self.grid.number_of_active_links):
         
             #print i, self.link_state[i]
             if self.n_xn[self.link_state[i]] > 0:

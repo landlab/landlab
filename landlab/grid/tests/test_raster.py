@@ -186,7 +186,7 @@ class TestRasterModelGrid(unittest.TestCase):
 
     def test_active_links(self):
         self.assertTrue(isinstance(self.grid.active_links, np.ndarray))
-        self.assertEqual(self.grid.num_active_links, 17)
+        self.assertEqual(self.grid.number_of_active_links, 17)
 
         assert_array_equal(self.grid.active_links,
                            np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,

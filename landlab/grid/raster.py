@@ -80,10 +80,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             >>> numcols = 30          # number of columns in the grid
             >>> dx = 10.0             # grid cell spacing
             >>> rmg = RasterModelGrid(numrows, numcols, dx)
-            >>> rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links, rmg.num_active_links
+            >>> rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links, rmg.number_of_active_links
             (600, 504, 1150, 1054)
             >>> rmg = RasterModelGrid(4, 5)
-            >>> rmg.number_of_nodes,rmg.number_of_cells,rmg.number_of_links,rmg.num_active_links
+            >>> rmg.number_of_nodes,rmg.number_of_cells,rmg.number_of_links,rmg.number_of_active_links
             (20, 6, 31, 17)
             >>> rmg.node_status
             array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
@@ -143,16 +143,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.cellarea = dx * dx
 
         self._num_nodes = sgrid.node_count(self.shape)
-        self.num_active_nodes = self.number_of_nodes
+        self._num_active_nodes = self.number_of_nodes
 
         self._num_cells = sgrid.cell_count(self.shape)
-        self.num_active_cells = self.number_of_cells
+        self._num_active_cells = self.number_of_cells
 
         self._num_links = sgrid.link_count(self.shape)
-        self.num_active_links = sgrid.active_link_count(self.shape)
+        self._num_active_links = sgrid.active_link_count(self.shape)
         
         self._num_faces = sgrid.face_count(self.shape)
-        self.num_active_faces = sgrid.active_face_count(self.shape)
+        self._num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
@@ -277,7 +277,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.diagonal_list_created = False
 
     def _setup_cell_areas_array(self):
-        self.active_cell_areas = numpy.empty(self.num_active_cells)
+        self.active_cell_areas = numpy.empty(self.number_of_active_cells)
         self.active_cell_areas.fill(self._dx ** 2)
         return self.active_cell_areas
 
@@ -863,12 +863,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
         
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-        >>> rmg.num_active_links
+        >>> rmg.number_of_active_links
         17
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
-        >>> rmg.num_active_links
+        >>> rmg.number_of_active_links
         12
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
@@ -1019,7 +1019,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         For greater speed, sending a pre-created numpy array as an argument
         avoids having to create a new one with each call:
             
-            >>> grad = numpy.zeros(rmg.num_active_links)
+            >>> grad = numpy.zeros(rmg.number_of_active_links)
             >>> u = u*10
             >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
             >>> grad
@@ -1048,7 +1048,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_steepest_descent_on_nodes'
             
-        assert (len(link_gradients)==self.num_active_links), \
+        assert (len(link_gradients)==self.number_of_active_links), \
                "incorrect length of active_link_gradients array"
 
         # If needed, create max_gradient array and the ID array
@@ -1162,7 +1162,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_flux_divergence_at_nodes'
             
-        assert (len(active_link_flux)==self.num_active_links), \
+        assert (len(active_link_flux)==self.number_of_active_links), \
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array

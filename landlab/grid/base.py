@@ -175,19 +175,19 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_active_nodes(self):
-        return self.num_active_nodes
+        return self._num_active_nodes
 
     @property
     def number_of_active_cells(self):
-        return self.num_active_cells
+        return self._num_active_cells
 
     @property
     def number_of_active_links(self):
-        return self.num_active_links
+        return self._num_active_links
 
     @property
     def number_of_active_faces(self):
-        return self.num_active_faces
+        return self._num_active_faces
 
     def get_node_status(self):
         """
@@ -217,7 +217,7 @@ class ModelGrid(ModelDataFields):
         create and return a 1D numpy array.
         """
         if name is None:
-            return numpy.zeros( self.num_active_links )
+            return numpy.zeros(self.number_of_active_links)
         else: 
             self.add_zeros('active_link', name)
             return self.at_node[name]
@@ -296,10 +296,10 @@ class ModelGrid(ModelDataFields):
         Calculates the gradient in quantity s at each active link in the grid.
         """
         if gradient==None:
-            gradient = numpy.zeros(self.num_active_links)
+            gradient = numpy.zeros(self.number_of_active_links)
             
-        assert (len(gradient)==self.num_active_links), \
-                "len(gradient)!=num_active_links"
+        assert (len(gradient) == self.number_of_active_links), \
+                "len(gradient)!=number_of_active_links"
                 
         active_link_id = 0
         for link_id in self.active_links:
@@ -389,16 +389,16 @@ class ModelGrid(ModelDataFields):
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
-        assert (len(active_link_flux)==self.num_active_links), \
+        assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
         if net_unit_flux is None:
-            net_unit_flux = numpy.zeros(self.num_active_cells)
+            net_unit_flux = numpy.zeros(self.number_of_active_cells)
         else:
             net_unit_flux[:] = 0.
             
-        assert (len(net_unit_flux))==self.num_active_cells
+        assert (len(net_unit_flux)) == self.number_of_active_cells
         
         node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
                 
@@ -418,16 +418,16 @@ class ModelGrid(ModelDataFields):
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
-        assert (len(active_link_flux)==self.num_active_links), \
+        assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
         if net_unit_flux==False:
-            net_unit_flux = numpy.zeros(self.num_active_cells)
+            net_unit_flux = numpy.zeros(self.number_of_active_cells)
         else:
             net_unit_flux[:] = 0.
             
-        assert (len(net_unit_flux))==self.num_active_cells
+        assert (len(net_unit_flux))==self.number_of_active_cells
         
         # For each active link, add up the flux out of the "from" cell and 
         # into the "to" cell.
@@ -471,7 +471,7 @@ class ModelGrid(ModelDataFields):
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_nodes'
             
-        assert (len(active_link_flux)==self.num_active_links), \
+        assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
@@ -517,7 +517,7 @@ class ModelGrid(ModelDataFields):
         meant to do.
         """
         
-        assert (len(active_link_flux)==self.num_active_links), \
+        assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
@@ -625,11 +625,13 @@ class ModelGrid(ModelDataFields):
             2
         """
         active_link = None
-        for alink in range(0, self.num_active_links):
-            if (self.activelink_fromnode[alink]==node1 \
-                and self.activelink_tonode[alink]==node2) \
-               or (self.activelink_tonode[alink]==node1
-                and self.activelink_fromnode[alink]==node2):
+        for alink in xrange(0, self.number_of_active_links):
+            link_connects_nodes = (
+                (self.activelink_fromnode[alink] == node1 and
+                 self.activelink_tonode[alink] == node2) or
+                (self.activelink_tonode[alink] == node1 and
+                 self.activelink_fromnode[alink] == node2))
+            if link_connects_nodes:
                 active_link = alink
                 break
         return active_link
@@ -673,13 +675,13 @@ class ModelGrid(ModelDataFields):
         neighbors has a higher value of v. If v is omitted, uses u for
         both.
         """
-        fv = numpy.zeros( self.num_active_links )
+        fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
-            for i in xrange( 0, self.num_active_links ):
-                fv[i] = max( u[self.activelink_fromnode[i]], 
-                             u[self.activelink_tonode[i]] )
+            for i in xrange(0, self.number_of_active_links):
+                fv[i] = max(u[self.activelink_fromnode[i]], 
+                            u[self.activelink_tonode[i]] )
         else:
-            for i in xrange( 0, self.num_active_links ):
+            for i in xrange(0, self.number_of_active_links):
                 if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
                     fv[i] = u[self.activelink_fromnode[i]]
                 else:
@@ -707,7 +709,7 @@ class ModelGrid(ModelDataFields):
 
         (self.active_links, ) = numpy.where(active_links)
 
-        self.num_active_links = len(self.active_links)
+        self._num_active_links = len(self.active_links)
         self.activelink_fromnode = self.link_fromnode[self.active_links]
         self.activelink_tonode = self.link_tonode[self.active_links]
         
@@ -982,12 +984,12 @@ class ModelGrid(ModelDataFields):
         
         >>> import landlab as ll
         >>> rmg = ll.HexModelGrid(5, 3, 1.0) # rows, columns, spacing
-        >>> rmg.num_active_links
+        >>> rmg.number_of_active_links
         30
         >>> rmg.node_status
         array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
-        >>> rmg.num_active_links
+        >>> rmg.number_of_active_links
         21
         >>> rmg.node_status
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
