@@ -3,8 +3,8 @@
 import types
 
 from landlab import model_parameter_dictionary as mpd
-from landlab.grid.raster import from_dict as raster_from_dict
-from landlab.grid.hex import from_dict as hex_from_dict
+from .raster import from_dict as raster_from_dict
+from .hex import from_dict as hex_from_dict
 
 
 class Error(Exception):

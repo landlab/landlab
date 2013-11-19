@@ -2,7 +2,7 @@
 
 import numpy
 
-from landlab.grid.base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
+from .base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
 
 
 def simple_poly_area(x, y):

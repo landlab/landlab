@@ -13,7 +13,7 @@ import warnings
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.field import ModelDataFields
-from landlab.utils import grid as gfuncs
+from . import grid_funcs as gfuncs
 
 
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max

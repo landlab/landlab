@@ -3,14 +3,14 @@
 import numpy
 
 from landlab.testing.decorators import track_this_method
-from landlab.grid.base import ModelGrid
-import landlab.utils.structured_grid as sgrid
-from landlab.utils import grid as gfuncs
+from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
-from landlab.grid.base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
-                               FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                               INACTIVE_BOUNDARY, BAD_INDEX_VALUE,
-                              )
+
+from .base import ModelGrid
+from . import grid_funcs as gfuncs
+from .base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
+                   FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                   INACTIVE_BOUNDARY, BAD_INDEX_VALUE, )
 
 
 def node_has_boundary_neighbor(mg, id):

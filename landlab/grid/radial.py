@@ -2,7 +2,7 @@
 
 import numpy
 
-from landlab.grid.voronoi import VoronoiDelaunayGrid
+from .voronoi import VoronoiDelaunayGrid
 
 
 class RadialModelGrid(VoronoiDelaunayGrid):
