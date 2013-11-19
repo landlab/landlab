@@ -14,7 +14,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     Examples:
         
         >>> hmg = HexModelGrid(3, 2, 1.0)
-        >>> hmg.num_nodes
+        >>> hmg.number_of_nodes
         7
     """
     
@@ -27,7 +27,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         #print 'HexModelGrid.init'
         
         # Set number of nodes, and initialize if caller has given dimensions
-        #self.num_nodes = num_rows * num_cols
+        #self._num_nodes = num_rows * num_cols
         if num_rows * base_num_cols > 0:
             self._initialize(num_rows, base_num_cols, dx)
 
@@ -46,7 +46,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             print 'HexModelGrid._initialize('+str(num_rows)+', ' \
                    +str(base_num_cols)+', '+str(dx)+')'
         
-        [pts, self.num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
+        [pts, self._num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
         super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
         
 

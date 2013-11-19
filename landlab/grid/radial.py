@@ -16,7 +16,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
    # Examples:
    #     
    #     >>> hmg = HexModelGrid(3, 2, 1.0)
-   #     >>> hmg.num_nodes
+   #     >>> hmg.number_of_nodes
    #     7
     """
     
@@ -29,7 +29,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         #print 'RadialModelGrid.init'
         
         # Set number of nodes, and initialize if caller has given dimensions
-        #self.num_nodes = num_rows * num_cols
+        #self._num_nodes = num_rows * num_cols
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
 

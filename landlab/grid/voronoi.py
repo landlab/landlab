@@ -103,7 +103,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
         #
-        self.num_nodes = len(x)
+        self._num_nodes = len(x)
         #print x, y
         self._node_x = x
         self._node_y = y

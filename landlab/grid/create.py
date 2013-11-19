@@ -47,7 +47,7 @@ def create_and_initialize_grid(input_source):
     ... \"\"\")
     >>> from landlab import create_and_initialize_grid
     >>> mg = create_and_initialize_grid(test_file)
-    >>> mg.num_nodes
+    >>> mg.number_of_nodes
     20
         
     """    

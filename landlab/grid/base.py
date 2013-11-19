@@ -21,14 +21,14 @@ BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
 _ARRAY_LENGTH_ATTRIBUTES = {
-    'node': 'num_nodes',
-    'cell': 'num_cells',
-    'link': 'num_links',
-    'face': 'num_faces',
-    'active_node': 'num_active_nodes',
-    'active_cell': 'num_active_cells',
-    'active_link': 'num_active_links',
-    'active_face': 'num_active_faces',
+    'node': 'number_of_nodes',
+    'cell': 'number_of_cells',
+    'link': 'number_of_links',
+    'face': 'number_of_faces',
+    'active_node': 'number_of_active_nodes',
+    'active_cell': 'number_of_active_cells',
+    'active_link': 'number_of_active_links',
+    'active_face': 'number_of_active_faces',
 }
 
 # Define the boundary-type codes
@@ -159,7 +159,7 @@ class ModelGrid(ModelDataFields):
         
     @property
     def number_of_nodes(self):
-        return self.num_nodes
+        return self._num_nodes
     
     @property
     def number_of_cells(self):
@@ -203,7 +203,7 @@ class ModelGrid(ModelDataFields):
         create and return a 1D numpy array.
         """
         if name is None:
-            return numpy.zeros( self.num_nodes )
+            return numpy.zeros(self.number_of_nodes)
         else: 
             self.add_zeros('node', name)
             return self.at_node[name]
@@ -476,11 +476,11 @@ class ModelGrid(ModelDataFields):
             
         # If needed, create net_unit_flux array
         if net_unit_flux==False:
-            net_unit_flux = numpy.zeros(self.num_nodes)
+            net_unit_flux = numpy.zeros(self.number_of_nodes)
         else:
             net_unit_flux[:] = 0.
             
-        assert (len(net_unit_flux))==self.num_nodes
+        assert (len(net_unit_flux)) == self.number_of_nodes
         
         # Create a flux array one item longer than the number of active links.
         # Populate it with flux times face width (so, total flux rather than
@@ -522,11 +522,11 @@ class ModelGrid(ModelDataFields):
             
         # If needed, create net_unit_flux array
         if net_unit_flux==False:
-            net_unit_flux = numpy.zeros(self.num_nodes)
+            net_unit_flux = numpy.zeros(self.number_of_nodes)
         else:
             net_unit_flux[:] = 0.
             
-        assert (len(net_unit_flux))==self.num_nodes
+        assert (len(net_unit_flux)) == self.number_of_nodes
         
         # For each active link, add up the flux out of the "from" cell and 
         # into the "to" cell.
@@ -737,7 +737,7 @@ class ModelGrid(ModelDataFields):
         self.node_status[nodata_locations] = INACTIVE_BOUNDARY
         
         # Recreate the list of active cell IDs
-        node_ids = numpy.array(range(0,self.num_nodes))
+        node_ids = numpy.array(range(0, self.number_of_nodes))
         self.activecell_node = node_ids[numpy.where(self.node_status == INTERIOR_NODE)]
         
         # Recreate the list of active links
@@ -770,14 +770,14 @@ class ModelGrid(ModelDataFields):
         Calculates the number of neighboring nodes for each node, and returns
         the result as a 1D numpy array. Used to find the maximum number of
         neighbors, so that inlink and outlink matrices can be dimensioned
-        accordingly. Assumes that self.num_nodes, self.link_fromnode, and
+        accordingly. Assumes that self.number_of_nodes, self.link_fromnode, and
         self.link_tonode have already been set up.
         
         Algorithm works by simply looping through all links; for each, the 
         endpoints are neighbors of one another, so we increment the number of
         neighbors for both the endpoint nodes.
         """
-        num_nbrs = numpy.zeros(self.num_nodes, dtype=int)
+        num_nbrs = numpy.zeros(self.number_of_nodes, dtype=int)
         for link in range(self.num_links):
             num_nbrs[self.link_fromnode[link]] += 1
             num_nbrs[self.link_tonode[link]] += 1
@@ -821,13 +821,15 @@ class ModelGrid(ModelDataFields):
         self.max_num_nbrs = numpy.amax(num_nbrs)
 
         # Create active in-link and out-link matrices.
-        self.node_inlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
-        self.node_outlink_matrix = - numpy.ones((self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+        self.node_inlink_matrix = - numpy.ones(
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
+        self.node_outlink_matrix = - numpy.ones(
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
         tonodes = self.link_tonode
         self.node_numinlink = numpy.bincount(tonodes,
-                                                 minlength=self.num_nodes)
+                                             minlength=self.number_of_nodes)
 
         counts = count_repeated_values(self.link_tonode)
         for (count, (tonodes, link_ids)) in enumerate(counts):
@@ -836,7 +838,7 @@ class ModelGrid(ModelDataFields):
         # Set up the outlink arrays
         fromnodes = self.link_fromnode
         self.node_numoutlink = numpy.bincount(fromnodes,
-                                              minlength=self.num_nodes)
+                                              minlength=self.number_of_nodes)
         counts = count_repeated_values(self.link_fromnode)
         for (count, (fromnodes, link_ids)) in enumerate(counts):
             self.node_outlink_matrix[count][fromnodes] = link_ids
@@ -851,14 +853,14 @@ class ModelGrid(ModelDataFields):
         """
         # Create active in-link and out-link matrices.
         self.node_active_inlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
         self.node_active_outlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.num_nodes), dtype=numpy.int)
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
-        self.node_numactiveinlink = numpy.bincount(tonodes,
-                                                   minlength=self.num_nodes)
+        self.node_numactiveinlink = numpy.bincount(
+            tonodes, minlength=self.number_of_nodes)
 
         counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
@@ -866,8 +868,8 @@ class ModelGrid(ModelDataFields):
 
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
-        self.node_numactiveoutlink = numpy.bincount(fromnodes,
-                                                    minlength=self.num_nodes)
+        self.node_numactiveoutlink = numpy.bincount(
+            fromnodes, minlength=self.number_of_nodes)
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
@@ -902,7 +904,7 @@ class ModelGrid(ModelDataFields):
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi!=None:
             from scipy.spatial import Voronoi, voronoi_plot_2d
-            pts = numpy.zeros((self.num_nodes, 2))
+            pts = numpy.zeros((self.number_of_nodes, 2))
             pts[:,0] = self._node_x
             pts[:,1] = self._node_y
             vor = Voronoi(pts)
@@ -926,7 +928,7 @@ class ModelGrid(ModelDataFields):
         For each boundary node, determines whether it belongs to the left, 
         right, top or bottom of the grid, based on its distance from the grid's
         centerpoint (mean (x,y) position). Returns lists of nodes on each of 
-        the four grid sides. Assumes self.node_status, self.num_nodes, 
+        the four grid sides. Assumes self.node_status, self.number_of_nodes, 
         self.boundary_nodes, self._node_x, and self._node_y have been initialized.
         
         Example:
@@ -1078,8 +1080,10 @@ class ModelGrid(ModelDataFields):
         "to".
         """
         
-        self.all_node_distances_map = numpy.empty(self.number_of_nodes, self.number_of_nodes)
-        self.all_node_azimuths_map = numpy.empty(self.number_of_nodes, self.number_of_nodes)
+        self.all_node_distances_map = numpy.empty(self.number_of_nodes,
+                                                  self.number_of_nodes)
+        self.all_node_azimuths_map = numpy.empty(self.number_of_nodes,
+                                                 self.number_of_nodes)
         
         node_coords = numpy.empty(self.number_of_nodes, 2)
         node_coords[:,1] = self.node_x

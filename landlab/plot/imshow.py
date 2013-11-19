@@ -12,7 +12,7 @@ def assert_array_size_matches(array, size, msg=None):
 
 
 def imshow_node_grid(grid, values, **kwds):
-    assert_array_size_matches(values, grid.num_nodes,
+    assert_array_size_matches(values, grid.number_of_nodes,
             'number of values does not match number of nodes')
 
     data = values.view()
@@ -26,7 +26,7 @@ def imshow_active_node_grid(grid, values, **kwds):
     assert_array_size_matches(values, active_nodes.size,
             'number of values does not match number of active nodes')
     
-    data = np.zeros(grid.num_nodes)
+    data = np.zeros(grid.number_of_nodes)
     data[active_nodes] = values.flat
     data.shape = grid.shape
 
@@ -48,7 +48,7 @@ def imshow_active_cell_grid(grid, values, **kwds):
     assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')
 
-    data = np.zeros(grid.num_nodes)
+    data = np.zeros(grid.number_of_nodes)
     data[active_cells] = values
     data.shape = grid.shape
 

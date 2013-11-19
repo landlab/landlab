@@ -13,7 +13,7 @@ class TestImshowGrid(unittest.TestCase):
 
         pp = PdfPages('test.pdf')
 
-        values = np.arange(rmg.num_nodes)
+        values = np.arange(rmg.number_of_nodes)
         landlab.plot.imshow_grid(rmg, values, values_at='node', limits=(0, 20))
         pp.savefig()
 

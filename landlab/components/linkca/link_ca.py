@@ -139,7 +139,7 @@ class LinkCellularAutomaton():
         """
         assert (type(node_states) is numpy.ndarray), \
                'initial_node_states must be a Numpy array'
-        assert (len(node_states)==self.grid.num_nodes), \
+        assert (len(node_states)==self.grid.number_of_nodes), \
                'length of initial_node_states must equal number of nodes in grid'
         self.node_state = node_states
         

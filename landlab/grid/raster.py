@@ -41,7 +41,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     Examples:
         
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-        >>> rmg.num_nodes
+        >>> rmg.number_of_nodes
         20
     """
 
@@ -57,8 +57,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             or set it up such that one can create a zero-node grid.
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self.num_nodes = num_rows * num_cols
-        if self.num_nodes > 0:
+        self._num_nodes = num_rows * num_cols
+        if self.number_of_nodes > 0:
             self._initialize(num_rows, num_cols, dx)
         super(RasterModelGrid, self).__init__(**kwds)
 
@@ -80,10 +80,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             >>> numcols = 30          # number of columns in the grid
             >>> dx = 10.0             # grid cell spacing
             >>> rmg = RasterModelGrid(numrows, numcols, dx)
-            >>> rmg.num_nodes, rmg.num_cells, rmg.num_links, rmg.num_active_links
+            >>> rmg.number_of_nodes, rmg.num_cells, rmg.num_links, rmg.num_active_links
             (600, 504, 1150, 1054)
             >>> rmg = RasterModelGrid(4, 5)
-            >>> rmg.num_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
+            >>> rmg.number_of_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
             (20, 6, 31, 17)
             >>> rmg.node_status
             array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
@@ -142,8 +142,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._dx = dx
         self.cellarea = dx * dx
 
-        self.num_nodes = sgrid.node_count(self.shape)
-        self.num_active_nodes = self.num_nodes
+        self._num_nodes = sgrid.node_count(self.shape)
+        self.num_active_nodes = self.number_of_nodes
 
         self.num_cells = sgrid.cell_count(self.shape)
         self.num_active_cells = self.num_cells
@@ -433,7 +433,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         Returns total number of nodes, including boundaries.
         """
-        return(self.num_nodes)
+        return self.number_of_nodes
     
     def get_count_of_cols(self):
         """
@@ -883,9 +883,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             print 'ModelGrid.set_inactive_boundaries'
             
         bottom_edge = range(0,self.ncols-1)
-        right_edge = range(self.ncols-1,self.num_nodes-1,self.ncols)
-        top_edge = range((self.nrows-1)*self.ncols+1,self.num_nodes)
-        left_edge = range(self.ncols,self.num_nodes,self.ncols)
+        right_edge = range(self.ncols - 1, self.number_of_nodes - 1,
+                           self.ncols)
+        top_edge = range((self.nrows - 1) * self.ncols + 1,
+                         self.number_of_nodes)
+        left_edge = range(self.ncols, self.number_of_nodes, self.ncols)
             
         if bottom_is_inactive:
             self.node_status[bottom_edge] = INACTIVE_BOUNDARY
@@ -1051,17 +1053,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # If needed, create max_gradient array and the ID array
         if max_slope is False:
-            max_slope = numpy.zeros(self.num_nodes)
+            max_slope = numpy.zeros(self.number_of_nodes)
         else:
             max_slope[:] = 0.
         
         if dstr_node_ids is False:
-            dstr_node_ids = -numpy.ones(self.num_nodes, dtype=int)
+            dstr_node_ids = - numpy.ones(self.number_of_nodes, dtype=int)
         else:
             dstr_node_ids[:] = -1
 
-        assert(len(max_slope) == self.num_nodes)
-        assert(len(dstr_node_ids) == self.num_nodes)
+        assert(len(max_slope) == self.number_of_nodes)
+        assert(len(dstr_node_ids) == self.number_of_nodes)
 
         gradients = numpy.zeros(len(link_gradients)+1)
         gradients[:-1] = link_gradients
@@ -1147,7 +1149,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         this once, before the loop:
             
             >>> df = rmg.zeros(centering='node') # outside loop
-            >>> rmg.num_nodes
+            >>> rmg.number_of_nodes
             20
             
         Then do this inside the loop:
@@ -1165,11 +1167,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             
         # If needed, create net_unit_flux array
         if net_unit_flux is False:
-            net_unit_flux = numpy.zeros(self.num_nodes)
+            net_unit_flux = numpy.zeros(self.number_of_nodes)
         else:
             net_unit_flux[:] = 0.
             
-        assert(len(net_unit_flux) == self.num_nodes)
+        assert(len(net_unit_flux) == self.number_of_nodes)
         
         flux = numpy.zeros(len(active_link_flux)+1)
         flux[:len(active_link_flux)] = active_link_flux * self._dx
@@ -1565,34 +1567,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         print 'done.'
         print
         
-        #print 'Testing node lists:'
-        #print 'ID   X    Y    Z    Status  Active_cell  #in in1 in2 #out out1 out2'
-        #for node in range( 0, self.num_nodes ):
-        #    print(str(node)+'    '+str(self._node_x[node])+'  '
-        #          +str(self._node_y[node])+'  '
-        #          +str(self._node_z[node])+'  '
-        #          +str(self.node_status[node])+'  '
-        #          +str(self.node_activecell[node])+'  '
-        #          +str(self.node_numinlink[node])+'  '
-        #          +str(self.node_inlink_matrix[0][node])+'  '
-        #          +str(self.node_inlink_matrix[1][node])+'  '
-        #          +str(self.node_numoutlink[node])+'  '
-        #          +str(self.node_outlink_matrix[0][node])+'  '
-        #          +str(self.node_outlink_matrix[1][node])+'  '
-        #          +str(self.node_numactiveinlink[node])+'  '
-        #          +str(self.node_active_inlink_matrix[0][node])+'  '
-        #          +str(self.node_active_inlink_matrix[1][node])+'  '
-        #          +str(self.node_numactiveoutlink[node])+'  '
-        #          +str(self.node_active_outlink_matrix[0][node])+'  '
-        #          +str(self.node_active_outlink_matrix[1][node]))
-        #print
-        #
-        
         print 'Testing fluxes and in/out links:'
         flux2 = numpy.zeros(len(flux)+1)
         flux2[:len(flux)] = flux
         print flux2
-        for n in range(0, self.num_nodes):
+        for n in range(0, self.number_of_nodes):
             mysum = -(flux2[self.node_active_inlink_matrix[0][n]] + \
                       flux2[self.node_active_inlink_matrix[1][n]]) + \
                      (flux2[self.node_active_outlink_matrix[0][n]] + \

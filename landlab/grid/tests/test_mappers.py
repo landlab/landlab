@@ -15,7 +15,7 @@ class TestLinkEndsToLink(unittest.TestCase, NumpyArrayTestingMixIn):
         rmg = RasterModelGrid(4, 5)
         rmg.add_empty('node', 'values')
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_link_end_node_max_value_to_link(rmg, 'values')
 
@@ -33,7 +33,7 @@ class TestLinkEndsToLink(unittest.TestCase, NumpyArrayTestingMixIn):
         rmg = RasterModelGrid(4, 5)
         rmg.add_empty('node', 'values')
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_link_end_node_min_value_to_link(rmg, 'values')
 
@@ -54,7 +54,7 @@ class TestNodeToLinkMappers(unittest.TestCase):
         rmg.add_empty('node', 'values')
 
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_values_from_link_tail_node_to_link(rmg, 'values')
 
@@ -73,7 +73,7 @@ class TestNodeToLinkMappers(unittest.TestCase):
         rmg.add_empty('node', 'values')
 
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_values_from_link_head_node_to_link(rmg, 'values')
 
@@ -92,7 +92,7 @@ class TestNodeToLinkMappers(unittest.TestCase):
         rmg.add_empty('node', 'values')
 
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_values_from_link_end_nodes_to_link(rmg, 'values')
 
@@ -111,7 +111,7 @@ class TestNodeToLinkMappers(unittest.TestCase):
         rmg.add_empty('node', 'values')
 
         node_values = rmg.at_node['values']
-        node_values[:] = np.arange(rmg.num_nodes)
+        node_values[:] = np.arange(rmg.number_of_nodes)
 
         maps.map_values_from_cell_node_to_cell(rmg, 'values')
 
