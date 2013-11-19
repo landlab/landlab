@@ -109,7 +109,7 @@ class Radiation():
                         cos(self._alpha) * cos(self._phisun - 0)
                                                        # flat surface reference 
              
-        for i in range(0, RMG.num_active_cells-1):
+        for i in xrange(0, RMG.number_of_active_cells - 1):
 
             self._slope_[i], self._angles[i] =                                 \
                 RMG.calculate_max_gradient_across_node( self._Z,               \

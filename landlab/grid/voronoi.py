@@ -110,7 +110,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         [self.node_status, self.interior_nodes, self.boundary_nodes] = \
                 self.find_perimeter_nodes(pts)
         self._num_cells = len(self.interior_nodes)
-        self.num_activecells = self.number_of_cells
+        self._num_active_cells = self.number_of_cells
         [self.node_cell, self.cell_node] = self.setup_node_cell_connectivity(
             self.node_status, self.number_of_cells)
         self.node_activecell = self.node_cell
@@ -120,7 +120,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # each active cell.
         from scipy.spatial import Voronoi
         vor = Voronoi(pts)
-        self.active_cell_areas = numpy.zeros(self.num_activecells)
+        self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
         for node in self.activecell_node:
             xv = vor.vertices[vor.regions[vor.point_region[node]],0]
             yv = vor.vertices[vor.regions[vor.point_region[node]],1]
