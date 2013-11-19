@@ -716,7 +716,7 @@ class TestRasterModelGridInactiveNodes(unittest.TestCase):
             mg.active_node_links())
 
 
-class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
+class TestActiveLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_unit_spacing(self):
         rmg = RasterModelGrid(4, 5)
         values = np.arange(20)
@@ -725,6 +725,8 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
             grads,
             np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
                       1, 1, 1, 1, 1, 1, 1, 1]))
+        diffs = rmg.calculate_diff_at_active_links(values)
+        self.assertArrayEqual(grads, diffs)
         
     def test_non_unit_spacing(self):
         rmg = RasterModelGrid(4, 5, 2.)
@@ -734,6 +736,8 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
             grads,
             .5 * np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
                            1, 1, 1, 1, 1, 1, 1, 1]))
+        diffs = rmg.calculate_diff_at_active_links(values)
+        self.assertArrayEqual(grads, .5 * diffs)
 
     def test_out_array(self):
         rmg = RasterModelGrid(4, 5)
@@ -746,6 +750,67 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
             np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
                       1, 1, 1, 1, 1, 1, 1, 1]))
         self.assertIs(rtn_grads, grads)
+        
+    def test_diff_out_array(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20)
+        diff = np.empty(17)
+        rtn_diff = rmg.calculate_diff_at_active_links(values, out=diff)
+        self.assertArrayEqual(
+            diff,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1]))
+        self.assertIs(rtn_diff, diff)
+
+
+class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
+    def test_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20, dtype=float)
+        grads = rmg.calculate_gradients_at_links(values)
+        self.assertArrayEqual(
+            grads,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                     dtype=float))
+        diffs = rmg.calculate_diff_at_links(values)
+        self.assertArrayEqual(grads, diffs)
+        
+    def test_non_unit_spacing(self):
+        rmg = RasterModelGrid(4, 5, 2.)
+        values = np.arange(20, dtype=float)
+        grads = rmg.calculate_gradients_at_links(values)
+        self.assertArrayEqual(
+            grads,
+            .5 * np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                          dtype=float))
+        diffs = rmg.calculate_diff_at_links(values)
+        self.assertArrayEqual(grads, .5 * diffs)
+
+    def test_out_array(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20, dtype=float)
+        grads = np.empty(31.)
+        rtn_grads = rmg.calculate_gradients_at_links(values, out=grads)
+        self.assertArrayEqual(
+            grads,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                     dtype=float))
+        self.assertIs(rtn_grads, grads)
+
+    def test_diff_out_array(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20, dtype=float)
+        diff = np.empty(31.)
+        rtn_diff = rmg.calculate_diff_at_links(values, out=diff)
+        self.assertArrayEqual(
+            diff,
+            np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                     dtype=float))
+        self.assertIs(rtn_diff, diff)
         
 
 if __name__ == '__main__':

@@ -990,6 +990,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell
     
+    def calculate_gradients_at_links(self, node_values, out=None):
+        diffs = gfuncs.calculate_diff_at_links(self, node_values, out=out)
+        return numpy.divide(diffs, self._dx, out=diffs)
+
     @track
     def calculate_gradients_at_active_links(self, node_values, out=None):
         """
@@ -1026,9 +1030,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
                    -10.,  10.,  10.,  10., -10.,  10.])
         """
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_gradients_at_active_links'
-
         diffs = gfuncs.calculate_diff_at_active_links(self, node_values,
                                                       out=out)
         return numpy.divide(diffs, self._dx, out=diffs)

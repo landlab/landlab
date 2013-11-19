@@ -106,10 +106,10 @@ class ModelGrid(ModelDataFields):
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
-        for centering in _ARRAY_LENGTH_ATTRIBUTES:
-            array_length = self._array_length(centering)
+        for element_name in _ARRAY_LENGTH_ATTRIBUTES:
+            array_length = self.number_of_elements(element_name)
             try:
-                self.new_field_location(centering, array_length)
+                self.new_field_location(element_name, array_length)
             except AttributeError:
                 pass
 
@@ -222,12 +222,11 @@ class ModelGrid(ModelDataFields):
             self.add_zeros('active_link', name)
             return self.at_node[name]
 
-        
-    def _array_length(self, centering):
+    def number_of_elements(self, element_name):
         try:
-            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[centering])
+            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
         except KeyError:
-            raise TypeError('centering value not understood')
+            raise TypeError('element name not understood')
 
     def zeros(self, **kwds):
         """
@@ -281,6 +280,31 @@ class ModelGrid(ModelDataFields):
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
 
+    @track
+    def calculate_diff_at_links(self, node_values, out=None):
+        """
+        Calculates the gradient in quantity *node_values* at each active link
+        in the grid.
+        """
+        return gfuncs.calculate_diff_at_links(self, node_values, out=out)
+        
+    @track
+    def calculate_diff_at_active_links(self, node_values, out=None):
+        """
+        Calculates the differenct in quantity *node_values* at each active link
+        in the grid.
+        """
+        return gfuncs.calculate_diff_at_active_links(self, node_values,
+                                                     out=out)
+        
+    @track
+    def calculate_gradients_at_links(self, node_values, out=None):
+        """
+        Calculates the gradient in quantity *node_values* at each active link
+        in the grid.
+        """
+        return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
+        
     @track
     def calculate_gradients_at_active_links(self, node_values, out=None):
         """
