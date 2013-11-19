@@ -80,10 +80,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             >>> numcols = 30          # number of columns in the grid
             >>> dx = 10.0             # grid cell spacing
             >>> rmg = RasterModelGrid(numrows, numcols, dx)
-            >>> rmg.number_of_nodes, rmg.num_cells, rmg.num_links, rmg.num_active_links
+            >>> rmg.number_of_nodes, rmg.number_of_cells, rmg.num_links, rmg.num_active_links
             (600, 504, 1150, 1054)
             >>> rmg = RasterModelGrid(4, 5)
-            >>> rmg.number_of_nodes,rmg.num_cells,rmg.num_links,rmg.num_active_links
+            >>> rmg.number_of_nodes,rmg.number_of_cells,rmg.num_links,rmg.num_active_links
             (20, 6, 31, 17)
             >>> rmg.node_status
             array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
@@ -145,8 +145,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_nodes = sgrid.node_count(self.shape)
         self.num_active_nodes = self.number_of_nodes
 
-        self.num_cells = sgrid.cell_count(self.shape)
-        self.num_active_cells = self.num_cells
+        self._num_cells = sgrid.cell_count(self.shape)
+        self.num_active_cells = self.number_of_cells
 
         self.num_links = sgrid.link_count(self.shape)
         self.num_active_links = sgrid.active_link_count(self.shape)

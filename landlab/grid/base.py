@@ -163,7 +163,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_cells(self):
-        return self.num_cells
+        return self._num_cells
     
     @property
     def number_of_links(self):

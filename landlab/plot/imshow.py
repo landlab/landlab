@@ -34,7 +34,7 @@ def imshow_active_node_grid(grid, values, **kwds):
 
 
 def imshow_cell_grid(grid, values, **kwds):
-    assert_array_size_matches(values, grid.num_cells,
+    assert_array_size_matches(values, grid.number_of_cells,
             'number of values does not match number of cells')
 
     data = values.view()

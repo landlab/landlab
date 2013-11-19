@@ -18,13 +18,13 @@ class TestImshowGrid(unittest.TestCase):
         pp.savefig()
 
         plt.clf()
-        values = np.arange(rmg.num_cells)
+        values = np.arange(rmg.number_of_cells)
         landlab.plot.imshow_grid(rmg, values, values_at='cell',
                                  symmetric_cbar=True)
         pp.savefig()
 
         plt.clf()
-        values = np.arange(rmg.num_cells)
+        values = np.arange(rmg.number_of_cells)
         landlab.plot.imshow_grid(rmg, values, values_at='active_cell')
         pp.savefig()
 
