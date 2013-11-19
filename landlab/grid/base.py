@@ -239,7 +239,7 @@ class ModelGrid(ModelDataFields):
         """
         centering = kwds.pop('centering', 'node')
         try:
-            return numpy.empty(self.number_of_elements(centering), **kwds)
+            return numpy.zeros(self.number_of_elements(centering), **kwds)
         except KeyError:
             raise TypeError(centering)
 
@@ -269,7 +269,7 @@ class ModelGrid(ModelDataFields):
         """
         centering = kwds.pop('centering', 'node')
         try:
-            return numpy.empty(self.number_of_elements(centering), **kwds)
+            return numpy.ones(self.number_of_elements(centering), **kwds)
         except KeyError:
             raise TypeError(centering)
 
