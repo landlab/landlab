@@ -437,6 +437,6 @@ class perron_nl_diffuse(object):
         
         grid['node']['planet_surface__elevation'][grid.active_nodes] = _interior_elevs
         if self.bottom_flag==1 and self.top_flag==1 and self.left_flag==1 and self.right_flag==1:
-            continue #...as the value is unchanged
+            pass #...as the value is unchanged
         else:
             "This component can't handle these BC types yet. But you should know that by now!"
