@@ -13,7 +13,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     user to decide what to do with these boundary values.
     
     Example:
-        
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = [0., 1., 2., 3., 0.,
         ...      1., 2., 3., 2., 3.,
