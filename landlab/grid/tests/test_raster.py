@@ -15,7 +15,7 @@ from landlab import BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY, INACTIVE_BOUNDARY
 _SPACING = 1.
 (_NUM_ROWS, _NUM_COLS) = (4, 5)
 
-class TestRasterModelGrid(unittest.TestCase):
+class TestRasterModelGrid(unittest.TestCase, NumpyArrayTestingMixIn):
     def setUp(self):
         """
         These tests use a grid that 4x5 nodes::
@@ -108,47 +108,47 @@ class TestRasterModelGrid(unittest.TestCase):
 
         self.assertEqual(list(neighbors), [-1, -1, -1, -1])
 
-    def test_cell_x(self):
-        expected_x = [0., 1., 2., 3., 4.,
-                      0., 1., 2., 3., 4.,
-                      0., 1., 2., 3., 4.,
-                      0., 1., 2., 3., 4.]
+    def test_node_x(self):
+        self.assertArrayEqual(self.grid.node_x,
+                              np.array([0., 1., 2., 3., 4.,
+                                        0., 1., 2., 3., 4.,
+                                        0., 1., 2., 3., 4.,
+                                        0., 1., 2., 3., 4.]))
 
-        for (cell_id, expected) in zip(xrange(12), expected_x):
-            cell_x = self.grid.node_x[cell_id]
-            self.assertEqual(cell_x, expected)
+    def test_node_y(self):
+        self.assertArrayEqual(self.grid.node_y,
+                              np.array([0., 0., 0., 0., 0.,
+                                        1., 1., 1., 1., 1.,
+                                        2., 2., 2., 2., 2.,
+                                        3., 3., 3., 3., 3.]))
 
-            cell_x = self.grid.node_x[cell_id]
-            self.assertEqual(cell_x, expected)
+    def test_node_x_is_immutable(self):
+        with self.assertRaises(ValueError):
+            self.grid.node_x[0] = 0
 
-    def test_cell_y(self):
-        expected_y = [0., 0., 0., 0., 0.,
-                      1., 1., 1., 1., 1.,
-                      2., 2., 2., 2., 2.,
-                      3., 3., 3., 3., 3.]
+    def test_node_y_is_immutable(self):
+        with self.assertRaises(ValueError):
+            self.grid.node_y[0] = 0
 
-        for (cell_id, expected) in zip(xrange(12), expected_y):
-            cell_y = self.grid.node_y[cell_id]
-            self.assertEqual(cell_y, expected)
+    def test_node_axis_coordinates(self):
+        self.assertArrayEqual(self.grid.node_axis_coordinates(axis=0),
+                              self.grid.node_y)
+        self.assertArrayEqual(self.grid.node_axis_coordinates(axis=1),
+                              self.grid.node_x)
+        self.assertArrayEqual(self.grid.node_axis_coordinates(axis=-1),
+                              self.grid.node_x)
+        self.assertArrayEqual(self.grid.node_axis_coordinates(axis=-2),
+                              self.grid.node_y)
 
-            cell_y = self.grid.node_y[cell_id]
-            self.assertEqual(cell_y, expected)
+        with self.assertRaises(ValueError):
+            self.grid.node_axis_coordinates(axis=0)[0] = 1.
+        with self.assertRaises(ValueError):
+            self.grid.node_axis_coordinates(axis=1)[0] = 1.
 
-    def test_node_x_coordinates(self):
-        x_coords = self.grid.node_x
-
-        self.assertEqual(list(x_coords), [0., 1., 2., 3., 4.,
-                                          0., 1., 2., 3., 4.,
-                                          0., 1., 2., 3., 4.,
-                                          0., 1., 2., 3., 4.])
-
-    def test_cell_y_coordinates(self):
-        y_coords = self.grid.node_y
-
-        self.assertEqual(list(y_coords), [0., 0., 0., 0., 0.,
-                                          1., 1., 1., 1., 1.,
-                                          2., 2., 2., 2., 2.,
-                                          3., 3., 3., 3., 3.])
+        with self.assertRaises(ValueError):
+            self.grid.node_axis_coordinates(axis=2)
+        with self.assertRaises(ValueError):
+            self.grid.node_axis_coordinates(axis=-3)
 
     def test_diagonal_list(self):
         diagonals = self.grid.get_diagonal_list(6)

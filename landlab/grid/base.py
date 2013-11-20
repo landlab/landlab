@@ -12,6 +12,7 @@ import warnings
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
+from landlab.utils.decorators import make_return_array_immutable
 from landlab.field import ModelDataFields
 from . import grid_funcs as gfuncs
 
@@ -189,11 +190,61 @@ class ModelGrid(ModelDataFields):
     def number_of_active_faces(self):
         return self._num_active_faces
 
+    def number_of_elements(self, element_name):
+        try:
+            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
+        except KeyError:
+            raise TypeError('element name not understood')
+
+    @make_return_array_immutable
     def get_node_status(self):
         """
         Returns an array of node boundary-status codes.
         """
         return self.node_status
+
+    @property
+    @make_return_array_immutable
+    def node_x(self):
+        return self._node_x
+    
+    @property
+    @make_return_array_immutable
+    def node_y(self):
+        return self._node_y
+
+    @make_return_array_immutable
+    def node_axis_coordinates(self, axis=0):
+        """
+        Return node coordinates from a given *axis* (defaulting to 0). Axis
+        numbering is the same as that for numpy arrays. That is, the zeroth
+        axis is along the rows, and the first along the columns.
+        """
+        AXES = ('node_y', 'node_x')
+        try:
+            return getattr(self, AXES[axis])
+        except IndexError:
+            raise ValueError("'axis' entry is out of bounds")
+
+    @property
+    def axis_units(self):
+        return self._axis_units
+
+    @axis_units.setter
+    def axis_units(self, new_units):
+        if len(new_units) != self.ndim:
+            raise ValueError('length of units does not match grid dimension')
+        self._axis_units = tuple(new_units)
+
+    @property
+    def axis_name(self):
+        return self._axis_name
+
+    @axis_name.setter
+    def axis_name(self, new_names):
+        if len(new_names) != self.ndim:
+            raise ValueError('length of names does not match grid dimension')
+        self._axis_name = tuple(new_names)
 
     def create_node_array_zeros( self, name=None ):
         """
@@ -207,7 +258,6 @@ class ModelGrid(ModelDataFields):
         else: 
             self.add_zeros('node', name)
             return self.at_node[name]
-
         
     def create_active_link_array_zeros( self, name=None ):
         """
@@ -221,12 +271,6 @@ class ModelGrid(ModelDataFields):
         else: 
             self.add_zeros('active_link', name)
             return self.at_node[name]
-
-    def number_of_elements(self, element_name):
-        try:
-            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
-        except KeyError:
-            raise TypeError('element name not understood')
 
     def zeros(self, **kwds):
         """
@@ -533,47 +577,7 @@ class ModelGrid(ModelDataFields):
         return net_unit_flux
         
     @property
-    def node_x(self):
-        return self._node_x
-    
-    @property
-    def node_y(self):
-        return self._node_y
-
-    def node_axis_coordinates(self, axis=0):
-        """
-        Return node coordinates from a given *axis* (defaulting to 0). Axis
-        numbering is the same as that for numpy arrays. That is, the zeroth
-        axis is along the rows, and the first along the columns.
-        """
-        assert(axis in (0, 1))
-
-        if axis == 0:
-            return self.node_y
-        else:
-            return self.node_x
-
-    @property
-    def axis_units(self):
-        return self._axis_units
-
-    @axis_units.setter
-    def axis_units(self, new_units):
-        if len(new_units) != self.ndim:
-            raise ValueError('length of units does not match grid dimension')
-        self._axis_units = tuple(new_units)
-
-    @property
-    def axis_name(self):
-        return self._axis_name
-
-    @axis_name.setter
-    def axis_name(self, new_names):
-        if len(new_names) != self.ndim:
-            raise ValueError('length of names does not match grid dimension')
-        self._axis_name = tuple(new_names)
-
-    @property
+    @make_return_array_immutable
     def cell_areas(self):
         """
         Returns an array of grid-cell areas.
