@@ -57,30 +57,28 @@ class OverlandFlow(object):
         # Set up state variables
         self.h = grid.zeros(centering='node') + self.h_init     # water depth (m)
         #NG why is water depth at each node and not at cells, which are only active
-        #self.h_link = grid.zeros(centering='active_link') #water depth at links (m)
-        #this is needed for shear stress calculation
         self.q = grid.zeros(centering='active_link') # unit discharge (m2/s)
         self.dhdt = grid.zeros(centering='active_cell') # rate of water-depth change
-        #self.tau = grid.zeros(centering='active_link') # shear stress rho*g*h*S
         #NG why is dhdt at active cells, but h at nodes?
         #Maybe because you need a boundary condition of water depth at the 
         #boundary locations?  But water depths only change at active cells?
         
     def run_one_step(self, grid, z, outlet_node, node_next_to_outlet, delt=None, rainrate=None, rainduration=None):
-        # In this case a delt is likely longer than a storm, in order to realize
-        # the entire hydrograph.
-        # The units should be in seconds
+        # run_one_step routes flow across the landscape over the time period delt.
+        # This should work even if the rainduration is shorter or longer than delt. 
+        # The units of delt and rainduration should be in seconds.
+        # Note that the outlet_node and node_next_to_outlet do not need to be 
+        # the actual outlet_node, just the location of interest for plotting.
+        
         if delt==None:
             delt = self.rain_duration
         if rainrate==None:
             rainrate = self.rainfall_rate
         if rainduration==None:
             rainduration = delt
+            
+        #interior_nodes are the nodes on which you will be calculating flow 
         interior_nodes = grid.get_active_cell_node_ids()
-        #print "interior nodes ", interior_nodes 
-        #pylab.figure(5)
-        #pylab.plot(np.array(interior_nodes),np.array(z[interior_nodes]))
-        #pylab.ylabel('elevation of interior nodes')
         
         elapsed_time = 0
         
@@ -94,30 +92,47 @@ class OverlandFlow(object):
         
         
         #NG Everything below is for plotting purposes
-        tau_plotter1 = grid.zeros(centering='node')
-        h_plotter1 = grid.zeros(centering='node')
+        #tau_plotter1 = grid.zeros(centering='node')
+        #above is for plotting shear stress at each nod
+        #h_plotter1 = grid.zeros(centering='node')
+        #above is for plotting flow depth at each node
+        #
+        #plothelper=0
+        #threetimes=[239,799,1056,1000000000]
+        #above is if you want to plot values at the first three times in the array
         
-        plothelper=0
-        #threetimes=[5,10,1000000000]
-        threetimes=[239,799,1056,1000000000]
+        study_point = outlet_node #redundant, but leave for now
+        h_study = [] #flow depth at study node
+        h_study.append(0.) #initialize array
+        q_study = [] #discharge at study link
+        q_study.append(0.) #initialize array
+        #NG for shear stress, if calculating
+        tau_study = [] #shear stress at study node
+        tau_study.append(0.) #initialize array
         
-        study_point = grid.grid_coords_to_node_id(33,22)
-        loc_study_point_interior = np.where(interior_nodes == study_point)
-        h_study = []
-        h_dwn = []
-        tau_study = []
-        q_study = []
-        slope_study = []
-        t = []
-        h_dwn.append(0.)
-        h_study.append(0.)
-        q_study.append(0.)
-        t.append(0.)
-        tau_study.append(0.)
-        slope_study.append(0.)
+        t = [] #time array for plotting
+        t.append(0.) #initialize array
+        
+        #JORDAN, if you want to track values at another point, just edit below
+        #to the correct coords.  Takes row then column.
+        #study_point2 = grid.grid_coords_to_node_id(234,125)
+        #h_study2 = [] #flow depth at study node 2
+        #h_study2.append(0.) #initialize array 
+        #q_study2 = [] #discharge at study link 2
+        #q_study2.append(0.) #initialize array
+        #tau_study2 = [] #shear stress at study node 2
+        #tau_study2.append(0.) #initialize array    
+        
+        #NG for plotting purposes
+        #slope_study = [] #water surface slope at study node
+        #slope_study.append(0.) #initialize array
+        
+        #discharge is calculated at links, so you need the study link for finding
+        #the discharge
         study_link = grid.get_active_link_connecting_node_pair(outlet_node, 
                                                           node_next_to_outlet)
-        helper=0
+        print "study link ",study_link
+        #helper=0
         #NG Done with plotting stuff.
         
         while elapsed_time < delt:
@@ -136,7 +151,7 @@ class OverlandFlow(object):
             zmax = grid.max_of_link_end_node_values(z) #array of length of active links
             w = self.h+z   # water-surface height, array of length num nodes
             wmax = grid.max_of_link_end_node_values(w) #array of length of active links
-            hflow = wmax - zmax #array of length of activelinks
+            hflow = wmax - zmax #array of length of active links
         
             # Calculate water-surface slopes: across links, but water heights are 
             #defined at nodes.
@@ -145,17 +160,23 @@ class OverlandFlow(object):
             # Calculate the unit discharges (Bates et al., eq 11)
             self.q = (self.q-self.g*hflow*dt*water_surface_slope)/ \
                 (1.+self.g*hflow*dt*self.m_n_sq*abs(self.q)/(hflow**self.ten_thirds))
+            
+            #print "q study link", self.q[study_link]
+                
+            #NOTES:    
             # q is calculated at links
             # water_surface_slope is at links
             # hflow is at links, but w is at nodes
 
             # Calculate water-flux divergence at nodes
             dqds = grid.calculate_flux_divergence_at_nodes(self.q)
-            #dqds_max = np.amax(dqds)
-            #print "max of dqds ", dqds_max
             
             # Calculate rate of change of water depth
             self.dhdt = rainrate-dqds
+            
+            #DEBUGGING
+            #dqds_max = np.amax(dqds)
+            #print "max of dqds ", dqds_max
             #dhdt_max = np.amax(self.dhdt)
             #print "max of dhdt ", dhdt_max
             
@@ -169,80 +190,97 @@ class OverlandFlow(object):
                 dt = np.min([dtmax, dtmax2, delt])
             #else:
             #   dt = np.min([dtmax,delt])
-            #NG commented this out, because this was already calculated
-        
+            #NG commented out else, because this was already calculated
 
-            #watermax=np.amax(self.h)
-            #print "water max before ",watermax
-            #print "dt ", dt
         
             # Update the water-depth field
             self.h[interior_nodes] = self.h[interior_nodes] + self.dhdt[interior_nodes]*dt
             self.h[outlet_node] = self.h[node_next_to_outlet]
-
+            
             # Let's calculate shear stress at the nodes.  
             # First get water height at the nodes.
-            # Then calculate the maximum gradient in water surface elevations.
-            # Then you can calculate shear stress!        
-            # h is at nodes
+            # Then calculate the maximum gradient in water surface elevations (S).
+            # Then you can calculate shear stress! (rho g h S)       
+            # h (water depth) is at nodes
+            
             w = self.h+z   # water-surface height, array of length num nodes
-            #print "length of w ", w.size
             
-            #nbr_node = grid.find_node_in_direction_of_max_slope_d4(w, study_point)
-            #study_link = grid.get_active_link_connecting_node_pair(study_point, 
-            #                                              nbr_node)
-                                                          
-            #print "study node ",study_point," nbr node ", nbr_node, "other study point ", interior_nodes[loc_study_point_interior]
-            #print "study link type ", type(study_link)
+            #Below is a different way for finding the study discharge.
+            #Rather than always plotting at a prescribed link, below will  
+            #find the node next to the study point
+            #that is connected by the steepest water surface slope.
+            #This link is being used to calculate shear stress, so seems like 
+            #a better discharge to use for plotting.
+            #Note that this link was already set above, and so if this is 
+            #commented out, code will still work.  The link above is likely
+            #not the same as this link.
             
-            #Below if is for limitingshear stress calculations to only times when
-            #q surpasses a threshold
-            if self.q[study_link]*grid.dx> 0.2:
-                print "calculating shear stress, q study link ",self.q[study_link]*grid.dx
-                for i in range(len(interior_nodes)): 
-                    w_slope[i],garbage=grid.calculate_max_gradient_across_node_d4(w,interior_nodes[i])
-                    tau[i]=self.rho*self.g*w_slope[i]*self.h[interior_nodes[i]]
-                    #if interior_nodes[i] == study_point:
-                    #    tau_study.append(tau[i])
-                    #    slope_study.append(w_slope[i])
-                        #print "found it"
+            nbr_node = grid.find_node_in_direction_of_max_slope_d4(w, study_point)
+            study_link = grid.get_active_link_connecting_node_pair(study_point, 
+                                                          nbr_node)                         
+            #print "study node ",study_point," nbr node ", nbr_node, "study_link ", study_link
+            
+            #JORDAN - uncomment below for shear stress calculations everywhere.
+            #Below if is for limiting shear stress calculations to only times when
+            #q surpasses a threshold (in this case q should be in m^3/sec)
+            #Note that this threshold is hardwired below (on right of >)
+            #This should be changed eventually.
+            
+            #if self.q[study_link]*grid.dx> 0.2:
+            #    print "calculating shear stress, q study link ",self.q[study_link]*grid.dx
+            #    for i in range(len(interior_nodes)): 
+            #        w_slope[i],garbage=grid.calculate_max_gradient_across_node_d4(w,interior_nodes[i])
+            #        tau[i]=self.rho*self.g*w_slope[i]*self.h[interior_nodes[i]]
+            #        #if interior_nodes[i] == study_point:
+            #        #    tau_study.append(tau[i])
+            #        #    slope_study.append(w_slope[i])
+            #            #print "found it"
                     
             #tau[np.where(tau<0)] = 0
                     
-            #print "study slope ",w_slope[loc_study_point_interior]," study tau ",tau[loc_study_point_interior]
-            #tau_study.append(tau[loc_study_point_interior])
-            #slope_study.append(w_slope[loc_study_point_interior])        
+            #print "study slope ",w_slope[study_point]," study tau ",tau[study_point]
+            #tau_study.append(tau[study_point])
+            #slope_study.append(w_slope[study_point]) 
             
-            #OLD STUFF BELOW
-            #self.h_link = grid.assign_upslope_vals_to_active_links(self.h)
-            #below is shear stress at the link
-            #self.tau = self.rho*self.g*water_surface_slope*self.h_link
+           #JORDAN, second attempt at calculating shear stress, but now I will 
+           #calculate just at the study point, rather than at all points.
+           
+            w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point)
+            tau_temp=self.rho*self.g*w_slp_studypoint*self.h[study_point]
+            tau_study.append(tau_temp)
                                  
             # Update current time and return it
+            #NG not sure what current_time is used for
             self.current_time += dt
-            #print "elapsed_time ", elapsed_time
             elapsed_time += dt
             print "elapsed_time ", elapsed_time
+            
+            if elapsed_time > rainduration:
+                rainrate=0
+                
+            #NG used below for debugging    
             #taumax=np.max(tau)
             #taumin=np.min(tau)
             #print "tau max ", np.max(tau), " tau min ", np.min(tau)
             #print "water depth max ", np.max(self.h[interior_nodes]), " water depth min ", np.min(self.h[interior_nodes])
             #print "water surface slope ", np.max(w_slope), " water surface slope min ", np.min(w_slope)
             #print "water surface height ", np.max(w), " water surface height min ", np.min(w)
-            if elapsed_time > rainduration:
-                rainrate=0
                 
             # Remember discharge and time
+            #Jordan, if you decide to track discharge and water depth at more 
+            #than one point, you need to add some variable setting here.
             t.append(elapsed_time)
             h_study.append(self.h[study_point])
             #h_dwn.append(self.h[nbr_node])
             
             #q is at links
             q_study.append(self.q[study_link])
-            #print "q_study at ", helper, " is ", q_study[helper]
+            #print "q_study is ", self.q[study_link]
             #print "tau at ", helper, "is ", tau_study[helper]
-            helper +=1
+            #helper +=1
             
+            #Below NG was using to plot data at three different times during
+            #hydrograph
             #if elapsed_time > threetimes[plothelper]:
             #    for i in range(len(interior_nodes)): 
             #        tau_plotter1[interior_nodes[i]]=tau[i]
@@ -287,7 +325,15 @@ class OverlandFlow(object):
         pylab.xlabel('Time (s)')
         pylab.ylabel('Q (m3/s)')
         pylab.title('study point discharge')
-        #
+        
+        # Plot shear stress vs. time
+        pylab.figure(4)
+        pylab.plot(np.array(t), np.array(tau_study))
+        pylab.xlabel('Time (s)')
+        pylab.ylabel('shear stress (rho g h S)')
+        pylab.title('study point shear stress')
+        
+        #Below for saving data to a text file
         #np.savetxt('q3322.data',q_study,fmt='%15.10f',delimiter='\n')
         
         #pylab.figure(4)
