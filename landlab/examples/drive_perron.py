@@ -1,6 +1,6 @@
 import numpy
 from landlab import RasterModelGrid
-from landlab.components.perron_nl_diff import perron_nl_diff_faster as perron_nl_diff
+from landlab.components.perron_nl_diff import perron_nl_diffuse as perron_nl_diff
 from landlab.components.craters import data
 import pylab
 
