@@ -475,9 +475,9 @@ class ModelGrid(ModelDataFields):
         net_unit_flux = net_unit_flux / self.active_cell_areas
         
         return net_unit_flux
-        
-    def calculate_flux_divergence_at_nodes(self, active_link_flux, 
-                                           net_unit_flux=False):
+
+    @track_this_method
+    def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
         """
         Same as calculate_flux_divergence_at_active_cells, but works with and
         returns a list of net unit fluxes that corresponds to all nodes, rather
@@ -490,48 +490,8 @@ class ModelGrid(ModelDataFields):
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
         """
-        
-        #print 'cfdn here'
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_nodes'
-            
-        assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux==False:
-            net_unit_flux = numpy.zeros(self.number_of_nodes)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert (len(net_unit_flux)) == self.number_of_nodes
-        
-        # Create a flux array one item longer than the number of active links.
-        # Populate it with flux times face width (so, total flux rather than
-        # unit flux). Here, face_width is an array with one entry for each
-        # active link, so we are multiplying the unit flux at each link by the
-        # width of its corresponding face.
-        flux = numpy.zeros(len(active_link_flux)+1)
-        flux[:len(active_link_flux)] = active_link_flux * self.face_width
-        
-        # Next, we need to add up the incoming and outgoing fluxes.
-        #
-        # Notes: 
-        #    1) because "net flux" is defined as positive outward, we add the
-        #       outflux and subtract the influx
-        #    2) the loop is over the number of rows in the inlink/outlink
-        #       matrices. This dimension is equal to the maximum number of links
-        #       attached to a node, so should be of order 6 or 7 and won't
-        #       generally increase with the number of nodes in the grid.
-        # 
-        for i in range(numpy.size(self.node_active_inlink_matrix,0)):
-            net_unit_flux += flux[self.node_active_outlink_matrix[i][:]]
-            net_unit_flux -= flux[self.node_active_inlink_matrix[i][:]]
-            
-        # Now divide by cell areas ... where there are active cells.
-        net_unit_flux[self.activecell_node] /= self.active_cell_areas
-                
-        return net_unit_flux
+        return gfunc.calculate_flux_divergence_at_nodes(self, active_link_flux,
+                                                        out=out)
         
     def calculate_flux_divergence_at_nodes_slow(self, active_link_flux, 
                                            net_unit_flux=False):

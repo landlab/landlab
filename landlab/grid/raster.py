@@ -11,6 +11,7 @@ from . import grid_funcs as gfuncs
 from .base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                    INACTIVE_BOUNDARY, BAD_INDEX_VALUE, )
+from . import raster_funcs as rfuncs
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -1114,9 +1115,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return max_slope, dstr_node_ids 
         
 
-
-    def calculate_flux_divergence_at_nodes(self, active_link_flux, 
-                                           net_unit_flux=False):
+    @track_this_method
+    def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
         """
         Same as calculate_flux_divergence_at_active_cells, but works with and
         returns a list of net unit fluxes that corresponds to all nodes, rather
@@ -1159,7 +1159,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             
         In this case, the function will not have to create the df array.
         """
-        
+        return rfuncs.calculate_flux_divergence_at_nodes(
+            self, active_link_flux, out=out)
+
         if self.DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_flux_divergence_at_nodes'
             
