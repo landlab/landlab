@@ -74,7 +74,7 @@ def main():
     # Plot the points, colored by elevation
     import numpy
     maxelev = numpy.amax(z)
-    for i in range(mg.num_nodes):
+    for i in range(mg.number_of_nodes):
         mycolor = str(z[i]/maxelev)
         pylab.plot(mg.node_x[i], mg.node_y[i], 'o', color=mycolor, ms=10)
     
