@@ -21,6 +21,10 @@ class ScalarDataFields(dict):
     def size(self):
         return self._size
 
+    @property
+    def number_of_values(self):
+        return self._size
+
     def empty(self, **kwds):
         """
         Return a new array of the data field size, without initializing
