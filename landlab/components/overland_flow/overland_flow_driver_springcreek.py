@@ -36,8 +36,10 @@ def main():
     (rg, z) = read_esri_ascii(DATA_FILE)
     nodata_val=-9999
     
-    print('DEM has '+str(rg.nrows)+' rows, '+str(rg.ncols)+ \
-          ' columns, and cell size '+str(rg.dx))
+    print('DEM has ' +
+          str(rg.number_of_node_rows) + ' rows, ' +
+          str(rg.number_of_node_columns) + ' columns, and cell size ' +
+          str(rg.dx))
     
     #Below for finding outlet, but not working. boo.
     #wbc=WatershedBoundaryConditions()
@@ -60,7 +62,7 @@ def main():
     # Plot topography
     #pylab.figure(22)
     #pylab.subplot(121)
-    #im = pylab.imshow(elev_raster, cmap=pylab.cm.RdBu, extent=[0, rg.ncols*rg.dx, 0, rg.nrows*rg.dx])
+    #im = pylab.imshow(elev_raster, cmap=pylab.cm.RdBu, extent=[0, rg.number_of_node_columns*rg.dx, 0, rg.number_of_node_rows*rg.dx])
     #cb = pylab.colorbar(im)
     #cb.set_label('Elevation (m)', fontsize=12)
     #pylab.title('Topography')

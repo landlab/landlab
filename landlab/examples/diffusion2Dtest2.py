@@ -43,8 +43,8 @@ def set_flux_coefficients(mg, dx):
     decay_scale = 0.5
     xf = xf - dx/2.0
     yf = yf - dx/2.0
-    x0 = 0.5*(mg.ncols-2)*dx
-    y0 = (mg.ncols-2)*dx
+    x0 = 0.5 * (mg.number_of_node_columns - 2) * dx
+    y0 = (mg.number_of_node_columns - 2) * dx
     dist = sqrt((xf-x0)**2.0 + (yf-y0)**2.0)
     K = Kmax * exp(-dist / decay_scale)
 

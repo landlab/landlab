@@ -137,8 +137,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                    +str(num_cols)+', '+str(dx)+')'
         
         # Basic info about raster size and shape
-        self.nrows = num_rows
-        self.ncols = num_cols
+        self._nrows = num_rows
+        self._ncols = num_cols
 
         self._dx = dx
         self.cellarea = dx * dx
@@ -284,7 +284,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def shape(self):
-        return (self.nrows, self.ncols)
+        return (self.number_of_node_rows, self.number_of_node_columns)
 
     @property
     def dx(self):
@@ -416,13 +416,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         '''
         Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
         '''
-        return (self.ncols * self._dx)
+        return (self.number_of_node_columns * self._dx)
     
     def get_grid_ydimension(self):
         '''
         Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
         '''
-        return (self.nrows * self._dx)
+        return (self.number_of_node_rows * self._dx)
 
     @property
     def number_of_interior_nodes(self):
@@ -436,21 +436,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         Returns total number of nodes, including boundaries.
         """
-        return self.number_of_nodes
+        return self._num_nodes
 
     @property
     def number_of_node_columns(self):
         """
         Returns the number of columns, including boundaries.  
         """
-        return self.ncols
+        return self._ncols
         
     @property
     def number_of_node_rows(self):
         """
         Returns the number of rows, including boundaries.  
         """
-        return self.nrows
+        return self._nrows
 
     def get_grid_spacing(self):
         """
@@ -496,12 +496,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             assert (len(xcoord) == len(ycoord))
         except:
             assert type(xcoord) == float and type(ycoord) == float
-        ID = ycoord//self._dx * self.ncols + xcoord//self._dx
+        ID = ycoord//self._dx * self.number_of_node_columns + xcoord//self._dx
         try:
             ID = int(ID)
         except:
             ID = ID.astype(int)
-        return numpy.array([ID, ID+self.ncols, ID+self.ncols+1, ID+1])
+        return numpy.array([ID, ID + self.number_of_node_columns,
+                            ID + self.number_of_node_columns + 1, ID + 1])
         
     def snap_coords_to_grid(self, xcoord, ycoord):
         '''
@@ -885,12 +886,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
-        bottom_edge = range(0,self.ncols-1)
-        right_edge = range(self.ncols - 1, self.number_of_nodes - 1,
-                           self.ncols)
-        top_edge = range((self.nrows - 1) * self.ncols + 1,
-                         self.number_of_nodes)
-        left_edge = range(self.ncols, self.number_of_nodes, self.ncols)
+        bottom_edge = range(0, self.number_of_node_columns - 1)
+        right_edge = range(self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns + 1, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, self.number_of_nodes,
+                          self.number_of_node_columns)
             
         if bottom_is_inactive:
             self.node_status[bottom_edge] = INACTIVE_BOUNDARY
@@ -952,27 +955,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # cells to mirror.
         #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=numpy.int )
         lower_left = 0
-        lower_right = self.ncols-1
-        upper_right = self.ncols+self.nrows-2
-        upper_left = 2*self.ncols+self.nrows-3
+        lower_right = self.number_of_node_columns - 1
+        upper_right = (self.number_of_node_columns +
+                       self.number_of_node_rows - 2)
+        upper_left = (2 * self.number_of_node_columns +
+                      self.number_of_node_rows - 3)
 
         if bottom:
-            for id in xrange( 1, self.ncols-1 ):   # Bottom
+            for id in xrange(1, self.number_of_node_columns - 1):   # Bottom
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
-                bc.tracks_cell[id] = id+self.ncols
+                bc.tracks_cell[id] = id + self.number_of_node_columns
             bc.boundary_code[lower_left] = bc.TRACKS_CELL_BOUNDARY
             bc.tracks_cell[lower_left] = 1
             bc.boundary_code[lower_right] = bc.TRACKS_CELL_BOUNDARY
             bc.tracks_cell[lower_right] = lower_right-1
         if right:
-            nbr = 2*self.ncols-2
+            nbr = 2 * self.number_of_node_columns - 2
             for id in xrange( lower_right+1, upper_right ):   # Right
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
-                nbr += self.ncols
+                nbr += self.number_of_node_columns
         if top:
-            ncells = self.nrows * self.ncols
-            nbr = ncells - (self.ncols + 2)
+            ncells = self.number_of_node_rows * self.number_of_node_columns
+            nbr = ncells - (self.number_of_node_columns + 2)
             for id in xrange( upper_right+1, upper_left ):   # Top
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
@@ -980,15 +985,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bc.boundary_code[upper_right] = bc.TRACKS_CELL_BOUNDARY
             bc.tracks_cell[upper_right] = ncells - 2
             bc.boundary_code[upper_left] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[upper_left] = ncells + 1 - self.ncols
+            bc.tracks_cell[upper_left] = ncells + 1 - self.number_of_node_columns
         if left:
             n_boundary_cells = (2 * (self.num_rows - 2) +
                                 2 * (self.num_cols - 2) + 4)
-            nbr = (self.nrows-2)*self.ncols + 1
+            nbr = (self.number_of_node_rows - 2) * self.number_of_node_columns + 1
             for id in xrange( upper_left+1, n_boundary_cells ):   # Left
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
-                nbr = nbr - self.ncols
+                nbr = nbr - self.number_of_node_columns
         
         if self.DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell

@@ -83,8 +83,8 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None):
     # Make an initial grid of all zeros. If user specified a model grid,
     # use that. Otherwise, use the given dimensions.
     if model_grid is not None:
-        numrows = model_grid.nrows
-        numcols = model_grid.ncols
+        numrows = model_grid.number_of_node_rows
+        numcols = model_grid.number_of_node_columns
     m = zeros((numrows,numcols))
     
     # Add fractures to grid

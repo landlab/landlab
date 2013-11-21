@@ -49,8 +49,8 @@ def main():
     # Create and initialize a raster model grid by reading a DEM
     print('Reading data from "'+str(DATA_FILE)+'"')
     (mg, z) = read_esri_ascii(DATA_FILE)
-    print('DEM has '+str(mg.nrows)+' rows, '+str(mg.ncols)+ \
-          ' columns, and cell size '+str(mg.dx))
+    print('DEM has ' + str(mg.number_of_node_rows) + ' rows, ' +
+          str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx))
     
     # Modify the grid DEM to set all nodata nodes to inactive boundaries
     mg.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bounds
@@ -172,14 +172,18 @@ def main():
     # Plot topography
     pylab.figure(2)
     pylab.subplot(121)
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0, mg.ncols*mg.dx, 0, mg.nrows*mg.dx])
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu,
+                      extent=[0, mg.number_of_node_columns * mg.dx,
+                              0, mg.number_of_node_rows * mg.dx])
     cb = pylab.colorbar(im)
     cb.set_label('Elevation (m)', fontsize=12)
     pylab.title('Topography')
     
     # Plot water depth
     pylab.subplot(122)
-    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=[0, mg.ncols*mg.dx, 0, mg.nrows*mg.dx])
+    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu,
+                       extent=[0, mg.number_of_node_columns * mg.dx,
+                               0, mg.number_of_node_rows * mg.dx])
     pylab.clim(0, 0.25)
     cb = pylab.colorbar(im2)
     cb.set_label('Water depth (m)', fontsize=12)

@@ -183,7 +183,7 @@ class impactor(object):
         self._ycoord = random() * (grid.get_grid_ydimension() - grid.dx)
         #print (self._xcoord, self._ycoord)
         #print grid.dx
-        #print grid.ncols
+        #print grid.number_of_node_columns
         #Snap impact to grid:
         self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
         self.closest_node_elev = data.elev[self.closest_node_index]
