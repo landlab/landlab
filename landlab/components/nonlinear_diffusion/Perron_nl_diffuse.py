@@ -21,7 +21,7 @@ class PerronNLDiffuse(object):
     def __init__(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
         #self._delta_t = inputs.read_float('dt')      # timestep. Probably should be calculated for stability, but read for now
-        self._uplift = inputs.read_float('uplift')
+        self._uplift = 0. #inputs.read_float('uplift')
         self._rock_density = inputs.read_float('rock_density')
         self._sed_density = inputs.read_float('sed_density')
         self._kappa = inputs.read_float('kappa') # ==_a
@@ -165,14 +165,14 @@ class PerronNLDiffuse(object):
         '''
         n_interior_nodes = grid.number_of_interior_nodes
         #_operating_matrix = sparse.lil_matrix((n_interior_nodes, n_interior_nodes), dtype=float)
-        _operating_matrix = numpy.empty((n_interior_nodes, n_interior_nodes), dtype=float)
+        _operating_matrix = numpy.zeros((n_interior_nodes, n_interior_nodes), dtype=float)
         #_interior_elevs = [-1] * n_interior_nodes
 
         #Initialize the local builder lists
         _mat_RHS = numpy.zeros(n_interior_nodes)
     
         try:
-            elev = grid.at_node['planet_surface__elevation']
+            elev = grid['node']['planet_surface__elevation']
         except:
             print 'elevations not found in grid!'
         try:
@@ -245,7 +245,8 @@ class PerronNLDiffuse(object):
         low_row = numpy.vstack((_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1))*_delta_t
         mid_row = numpy.vstack((-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1))
         top_row = numpy.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1))*_delta_t
-        nine_node_map = numpy.vstack((low_row,mid_row,top_row)) #Note shape is (9,nnodes); it's realID indexed
+        nine_node_map = numpy.vstack((top_row,mid_row,low_row)) #Note shape is (9,nnodes); it's realID indexed ->I'VE INVERTED THIS
+        print nine_node_map
         _operating_matrix[(numpy.arange(9,dtype=int).reshape((9,1)),operating_matrix_core_int_IDs.astype(int))] = nine_node_map[:,_core_nodes]
         
         #Now the interior corners
@@ -455,6 +456,7 @@ class PerronNLDiffuse(object):
         self.set_variables(grid)
         #print 'set the variables successfully'
         #Solve interior of grid:
+        print self._mat_RHS
         _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
         #print 'solved the matrix'
         #print _interior_elevs.shape

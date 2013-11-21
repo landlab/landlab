@@ -1,16 +1,16 @@
 #These values are for building the grid-
 nrows:
-50
+5
 ncols:
-50
+6
 dx:
 1.
 dt:
-0.2
+0.02
 uplift: #per time, not per timestep
 1.
 run_time:
-50
+0.02
 init_elev:
 0.
 
@@ -20,6 +20,6 @@ rock_density:
 sed_density:
 2.7
 kappa:
-5.e-5
+5.e-6
 S_crit:
 0.56

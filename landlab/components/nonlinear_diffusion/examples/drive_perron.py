@@ -41,13 +41,12 @@ while elapsed_time < time_to_run:
         diffusion_component.gear_timestep(dt)
     else:
         diffusion_component.gear_timestep(time_to_run-elapsed_time)
-    mg.at_node['planet_surface__elevation'] += uplift*dt
+    mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt
     mg = diffusion_component.diffuse(elapsed_time)
     elapsed_time += dt
 
 #Finalize and plot
-elev = mg.at_node['planet_surface__elevation']
-# Get a 2D array version of the water depths and elevations
+elev = mg['node']['planet_surface__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 # Clear previous plots
@@ -56,8 +55,8 @@ pylab.close()
 
 # Plot topography
 pylab.figure(1)
-pylab.subplot(131)
 im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
+#print elev_r
 pylab.colorbar(im)
 pylab.title('Topography')
 
