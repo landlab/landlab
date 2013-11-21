@@ -1,1 +1,1 @@
-from nonlinear_diffusion import Perron_nl_diffuse
+from Perron_nl_diffuse import PerronNLDiffuse
