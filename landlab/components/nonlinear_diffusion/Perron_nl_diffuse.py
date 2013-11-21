@@ -36,13 +36,13 @@ class PerronNLDiffuse(object):
         
         self.grid = grid
         
-        ncols = grid.get_count_of_cols()
+        ncols = grid.number_of_node_columns
         self.ncols = ncols
-        nrows = grid.get_count_of_rows()
+        nrows = grid.number_of_node_rows
         self.nrows = nrows
         nnodes = grid.number_of_nodes
         self.nnodes = nnodes
-        ninteriornodes = grid.get_count_of_interior_nodes()
+        ninteriornodes = grid.number_of_interior_nodes
         ncorenodes = ninteriornodes-2*(ncols+nrows-6)
         self.ninteriornodes = ninteriornodes
         self.interior_grid_width = ncols-2
@@ -163,7 +163,7 @@ class PerronNLDiffuse(object):
         Now vectorized, shouold run faster.
         At the moment, this method can only handle fixed value BCs.
         '''
-        n_interior_nodes = grid.get_count_of_interior_nodes()
+        n_interior_nodes = grid.number_of_interior_nodes
         #_operating_matrix = sparse.lil_matrix((n_interior_nodes, n_interior_nodes), dtype=float)
         _operating_matrix = numpy.empty((n_interior_nodes, n_interior_nodes), dtype=float)
         #_interior_elevs = [-1] * n_interior_nodes
@@ -301,7 +301,7 @@ class PerronNLDiffuse(object):
 
 #relict unvectorized code which should be superceded by the above:
 #    def set_variables_for_interior_corners(self, grid, data, _operating_matrix, _mat_RHS):
-#        ncols = grid.get_count_of_cols()
+#        ncols = grid.number_of_node_columns
 #        count = 0
 #        corner_ids = [-1,-(ncols-2),0,ncols-3] #topright,topleft,bottomleft,bottomright. This is in the ID reference frame of the INTERIOR GRID
 #        for i in self._interior_corners:

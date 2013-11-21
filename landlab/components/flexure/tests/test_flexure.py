@@ -58,8 +58,8 @@ class TestFlexureGrid(unittest.TestCase):
         self.flex = FlexureComponent(grid)
 
     def test_grid_shape(self):
-        self.assertEqual(self.flex.grid.get_count_of_rows(), _SHAPE[0])
-        self.assertEqual(self.flex.grid.get_count_of_cols(), _SHAPE[1])
+        self.assertEqual(self.flex.grid.number_of_node_rows, _SHAPE[0])
+        self.assertEqual(self.flex.grid.number_of_node_columns, _SHAPE[1])
 
     def test_grid_xdimension(self):
         self.assertEqual(self.flex.grid.get_grid_xdimension(),
@@ -80,8 +80,8 @@ class TestFlexureFields(unittest.TestCase):
             field = self.flex.grid['node'][name]
             self.assertIsInstance(field, np.ndarray)
             self.assertEqual(field.shape,
-                             (self.flex.grid.get_count_of_rows() *
-                              self.flex.grid.get_count_of_cols(), ))
+                             (self.flex.grid.number_of_node_rows *
+                              self.flex.grid.number_of_node_columns, ))
 
         with self.assertRaises(KeyError):
             self.flex.grid['not_a_var_name']

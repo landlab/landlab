@@ -33,9 +33,9 @@ class FlexureComponent(Component):
     'Pa'
     'm'
 
-    >>> flex.grid.get_count_of_rows()
+    >>> flex.grid.number_of_node_rows
     5
-    >>> flex.grid.get_count_of_cols()
+    >>> flex.grid.number_of_node_columns
     4
     >>> flex.grid is grid
     True

@@ -423,33 +423,35 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
         '''
         return (self.nrows * self._dx)
-        
-    def get_count_of_interior_nodes(self):
+
+    @property
+    def number_of_interior_nodes(self):
         """
         Returns the number of interior nodes on the grid.
         """
         return sgrid.interior_node_count(self.shape)
-        
-    def get_count_of_all_nodes(self):
+
+    @property
+    def number_of_nodes(self):
         """
         Returns total number of nodes, including boundaries.
         """
         return self.number_of_nodes
-    
-    def get_count_of_cols(self):
+
+    @property
+    def number_of_node_columns(self):
         """
         Returns the number of columns, including boundaries.  
-        NG, June 2013
         """
-        return(self.ncols)
+        return self.ncols
         
-    def get_count_of_rows(self):
+    @property
+    def number_of_node_rows(self):
         """
         Returns the number of rows, including boundaries.  
-        NG, June 2013
         """
-        return(self.nrows)
-    
+        return self.nrows
+
     def get_grid_spacing(self):
         """
         Returns the spacing between grid nodes.

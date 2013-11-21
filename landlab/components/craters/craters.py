@@ -342,7 +342,7 @@ class impactor(object):
         crater_node_list = deque([self.closest_node_index])
         #elev_changes = deque()
         #Build an array of flags into the nodelist of the grid to note whether that node has been placed in the list this loop:
-        flag_already_in_the_list = numpy.zeros(grid.get_count_of_all_nodes())
+        flag_already_in_the_list = numpy.zeros(grid.number_of_nodes)
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
