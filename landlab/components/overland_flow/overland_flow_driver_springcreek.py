@@ -85,7 +85,8 @@ def main():
 
 
 #    #tau = of.run_one_step(rg,z,outlet_node,node_next_to_outlet,storm_duration,storm_intensity)
-    of.run_one_step(rg,z,outlet_node,node_next_to_outlet,60*15,1.39e-05, 60*15)
+    #of.run_one_step(rg,z,outlet_node,node_next_to_outlet,60*15,1.39e-05, 60*15)
+    ##^^^^^ REWRITE WITH SEVERAL NODES TO SPEED UP FOR AGU
 
 #    print('Total run time = '+str(time.time()-start_time)+' seconds.')
     
