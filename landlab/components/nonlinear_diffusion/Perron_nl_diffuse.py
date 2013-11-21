@@ -26,7 +26,7 @@ class PerronNLDiffuse(object):
         self._sed_density = inputs.read_float('sed_density')
         self._kappa = inputs.read_float('kappa') # ==_a
         self._S_crit = inputs.read_float('S_crit')
-        self._delta_x = grid.get_grid_spacing()
+        self._delta_x = grid.node_spacing
         self._delta_y = self._delta_x
         self._one_over_delta_x = 1./self._delta_x
         self._one_over_delta_y = 1./self._delta_y

@@ -452,12 +452,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return self._nrows
 
-    def get_grid_spacing(self):
+    @property
+    def node_spacing(self):
         """
         Returns the spacing between grid nodes.
-        DEJH July 2013
         """
-        return(self._dx)
+        return self._dx
 
     def is_point_on_grid(self, xcoord, ycoord):
         """
