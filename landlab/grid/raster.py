@@ -540,6 +540,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def max_active_link_length(self):
         return self._dx
 
+    def calculate_gradients_across_cell_faces(self, node_values, cell_ids):
+        return rfuncs.calculate_gradients_across_cell_faces(
+            self, node_values, cell_ids)
+
+    def calculate_max_gradient_across_cell_faces(self, node_values, cell_ids,
+                                            return_link_id=True):
+        return rfuncs.calculate_max_gradient_across_cell_faces(
+            self, node_values, cell_ids, return_link_id=return_link_id)
+
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
             This method calculates the gradients in u across all 4 faces of the 
@@ -556,64 +565,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         GT: Might be possible to speed this up using inlink_matrix and 
         outlink_matrix.
         '''
-        #We have poor functionality if these are edge cells! Needs an exception
-        neighbor_cells = self.get_neighbor_list(cell_id)
-        neighbor_cells.sort()        
-        diagonal_cells = []
-        if neighbor_cells[0]!=-1:
-            diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
-        if neighbor_cells[3]!=-1:
-            diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
-        slopes = []
-        diagonal_dx = numpy.sqrt(2.) * self._dx  # Corrected (multiplied self._dx) SN 05Nov13
-        for a in neighbor_cells:
-            #ng I think this is actually slope as defined by a geomorphologist,
-            #that is -dz/dx and not the gradient (dz/dx)
-            #print '\n', cell_id
-            #print '\n', a
-            single_slope = (u[cell_id] - u[a])/self._dx
-            #print 'cell id: ', cell_id
-            #print 'neighbor id: ', a
-            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-            #print 'cell elev: ', u[cell_id]
-            #print 'neighbor elev: ', u[a]
-            #print single_slope
-            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
-                slopes.append(single_slope)
-            else:
-                print 'NaNs present in the grid!'
-                
-        for a in diagonal_cells:
-            single_slope = (u[cell_id] - u[a])/(diagonal_dx)
-            #print single_slope
-            if not numpy.isnan(single_slope):
-                slopes.append(single_slope)
-            else:
-                print 'NaNs present in the grid!'
-        #print 'Slopes list: ', slopes
-        #ng thinks that the maximum slope should be found here, not the 
-        #minimum slope, old code commented out.  New code below it.
-        #if slopes:
-        #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
-        #else:
-        #    print u
-        #    print 'Returning NaN angle and direction...'
-        #    min_slope = numpy.nan
-        #    index_min = 8
-        if slopes:
-            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
-        else:
-            print u
-            print 'Returning NaN angle and direction...'
-            max_slope = numpy.nan
-            index_max = 8
-        
-        # North = Zero Radians  = Clockwise Positive
-        angles = [180., 270., 90., 0., 225., 135., 315., 45., numpy.nan] #This is inefficient 
-        
-        #ng commented out old code
-        #return min_slope, angles[index_min]
-        return max_slope, angles[index_max]
+        return rfuncs.calculate_max_gradient_across_node(self, u, cell_id)
         
     def calculate_max_gradient_across_node_d4(self, u, cell_id):
         '''
@@ -632,57 +584,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             min.
             
         '''
-        #We have poor functionality if these are edge cells! Needs an exception
-        neighbor_cells = self.get_neighbor_list(cell_id)
-        neighbor_cells.sort()
-        #print 'Node is internal: ', self.is_interior(cell_id)
-        #print 'Neighbor cells: ', neighbor_cells
-
-        slopes = []
-
-        for a in neighbor_cells:
-            #ng I think this is actually slope as defined by a geomorphologist,
-            #that is -dz/dx and not the gradient (dz/dx)
-            if self.node_status[a] != INACTIVE_BOUNDARY:
-                single_slope = (u[cell_id] - u[a])/self._dx
-            else:
-                single_slope = -9999
-            #single_slope = (u[cell_id] - u[a])/self._dx
-            #print 'cell id: ', cell_id
-            #print 'neighbor id: ', a
-            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-            #print 'cell elev: ', u[cell_id]
-            #print 'neighbor elev: ', u[a]
-            #print single_slope
-            #if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
-            #    slopes.append(single_slope)
-            #else:
-            #    print 'NaNs present in the grid!'
-            slopes.append(single_slope)
-                
-        #print 'Slopes list: ', slopes
-        #ng thinks that the maximum slope should be found here, not the 
-        #minimum slope, old code commented out.  New code below it.
-        #if slopes:
-        #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
-        #else:
-        #    print u
-        #    print 'Returning NaN angle and direction...'
-        #    min_slope = numpy.nan
-        #    index_min = 8
-        if slopes:
-            max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
-        else:
-            print u
-            print 'Returning NaN angle and direction...'
-            max_slope = numpy.nan
-            index_max = 4
-            
-        angles = [180., 270., 90., 0., numpy.nan] #This is inefficient
-        
-        #ng commented out old code
-        #return min_slope, angles[index_min]
-        return max_slope, angles[index_max]
+        return rfuncs.calculate_max_gradient_across_node_d4(self, u, cell_id)
         
     def find_node_in_direction_of_max_slope(self, u, node_id):
         '''
@@ -1168,30 +1070,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return rfuncs.calculate_flux_divergence_at_nodes(
             self, active_link_flux, out=out)
-
-        if self.DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergence_at_nodes'
-            
-        assert (len(active_link_flux)==self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux is False:
-            net_unit_flux = numpy.zeros(self.number_of_nodes)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert(len(net_unit_flux) == self.number_of_nodes)
-        
-        flux = numpy.zeros(len(active_link_flux)+1)
-        flux[:len(active_link_flux)] = active_link_flux * self._dx
-        
-        net_unit_flux = ((flux[self.node_active_outlink_matrix[0][:]] + \
-                          flux[self.node_active_outlink_matrix[1][:]]) - \
-                         (flux[self.node_active_inlink_matrix[0][:]] + \
-                          flux[self.node_active_inlink_matrix[1][:]])) / self.cellarea
-
-        return net_unit_flux
         
     def calculate_flux_divergence( self, q, id ):
         """

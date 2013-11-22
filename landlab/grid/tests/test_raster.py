@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from landlab.testing import NumpyArrayTestingMixIn
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE, FIXED_GRADIENT_BOUNDARY, INACTIVE_BOUNDARY
-
+from landlab.grid import raster_funcs as rfuncs
 
 _SPACING = 1.
 (_NUM_ROWS, _NUM_COLS) = (4, 5)
@@ -813,6 +813,65 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
         self.assertIs(rtn_diff, diff)
         
         
+class TestMaxGradients(unittest.TestCase, NumpyArrayTestingMixIn):
+    def test_scalar_arg(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20, dtype=float)
+        grad = rfuncs.calculate_max_gradient_across_cell_faces(rmg, values, 0)
+        self.assertEqual(grad, 5.)
+
+    def test_iterable(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.arange(20, dtype=float)
+        grad = rfuncs.calculate_max_gradient_across_cell_faces(rmg, values, [0, 4])
+        self.assertArrayEqual(grad, [5., 5.])
+
+    def test_scalar_arg_with_links(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.array([0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,])
+        (grad, link) = rfuncs.calculate_max_gradient_across_cell_faces(
+            rmg, values, (0, 4), return_link_id=True)
+        self.assertArrayEqual(grad, [1, 2])
+        self.assertArrayEqual(link, [9, 14])
+
+
+class TestGradientsAcrossFaces(unittest.TestCase, NumpyArrayTestingMixIn):
+    def test_no_arg(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.array([0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,])
+        grads = rfuncs.calculate_gradients_across_cell_faces(rmg, values)
+        self.assertArrayEqual(
+            grads,
+            np.array([[-2, 0, 1, 0], [-3, 0, 2, 0], [-4, 0, 3, 0],
+                      [-2, 0, 1, 0], [-3, 0, 2, 0], [-4, 0, 3, 0]]))
+
+    def test_scalar_arg(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.array([0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,])
+        grads = rfuncs.calculate_gradients_across_cell_faces(rmg, values, 0)
+        self.assertArrayEqual(grads, np.array([[-2, 0, 1, 0]]))
+
+    def test_iterable_arg(self):
+        rmg = RasterModelGrid(4, 5)
+        values = np.array([0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,
+                           0, 1, 3, 6, 10,])
+        grads = rfuncs.calculate_gradients_across_cell_faces(
+            rmg, values, np.array([0, 4]))
+        self.assertArrayEqual(
+            grads, np.array([[-2, 0, 1, 0], [-3, 0, 2, 0]]))
+
+
 class TestFluxDivergence(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_flux_from_south_to_north(self):
         rmg = RasterModelGrid(4, 5)
