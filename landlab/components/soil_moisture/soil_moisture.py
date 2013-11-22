@@ -93,10 +93,15 @@ class SoilMoisture():
         self._time = 0.0
         self._WS = 0.0    # water stress
        
-    def initialize( self ):
-
+    def initialize( self, input_file=None ):
         MPD = ModelParameterDictionary()
-        MPD.read_from_file(_DEFAULT_INPUT_FILE)
+
+        
+        if input_file is None:
+            input_file = _DEFAULT_INPUT_FILE
+        MPD.read_from_file(input_file)
+
+        
 
         self._iterate_storm = MPD.read_int( 'N_STORMS' )
         self._vegcover = MPD.read_float( 'VEG_COV' )
