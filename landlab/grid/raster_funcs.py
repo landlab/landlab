@@ -216,13 +216,10 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     """
     node_id = self.node_index_at_cells[cell_id]
     neighbor_nodes = self.get_neighbor_list(node_id)
-    print neighbor_nodes
 
     grads = (u[node_id] - u[neighbor_nodes]) / self.node_spacing
     ind = np.argmax(grads)
     _ANGLES = (90., 0., 270., 180.)
-    print '*', grads
-    print '*', grads[ind], _ANGLES[ind]
     return grads[ind], _ANGLES[ind]
 
     #We have poor functionality if these are edge cells! Needs an exception
@@ -232,13 +229,11 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     #print 'Neighbor cells: ', neighbor_cells
 
     slopes = []
-    print neighbor_cells
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
         if self.node_status[a] != INACTIVE_BOUNDARY:
             single_slope = (u[cell_id] - u[a])/self._dx
-            print u[cell_id], u[a], single_slope
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
