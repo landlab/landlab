@@ -261,7 +261,7 @@ class OverlandFlow(object):
         plt.plot(t, q_outlet, 'r-', label = 'NE Tributary')
         plt.plot(t, q_2, 'm-', label = 'E Tributary')
         plt.plot(t, q_3, 'c-', label = 'Upper Main Channel')
-        plt.legend(loc=2)
+        plt.legend(loc=1)
         plt.ylabel('Discharge, m^3/s')
         plt.xlabel('Time, s')
         
@@ -271,7 +271,7 @@ class OverlandFlow(object):
         plt.plot(t, t_3, 'c--', label = 'Upper Main Channel')
         plt.ylabel('Shear Stress, Pa')
         plt.xlabel('Time, s')
-        plt.legend(loc=2)
+        plt.legend(loc=1)
         
         plt.figure('Water Depth at Three Study Nodes')
         plt.plot(t, h_1, 'r--', label = 'NE Tributary')
@@ -279,10 +279,10 @@ class OverlandFlow(object):
         plt.plot(t, h_3, 'c--', label = 'Upper Main Channel')
         plt.ylabel('Water Depth, m')
         plt.xlabel('Time, s')
-        plt.legend(loc=2)
+        plt.legend(loc=1)
         
         
-        pylab.figure(1)
+        pylab.figure('Depth Map')
         hr = grid.node_vector_to_raster(h)
         im2 = pylab.imshow(hr, cmap=pylab.cm.PuBu,
                        extent=[0, grid.number_of_node_columns * grid.dx,
