@@ -87,7 +87,13 @@ def main():
     ##    of.run_one_step(rg,z,study_node,60*15,100./1000./3600., 60*15)
 
     ## Trial 1, 5 year storm ##
-    of.run_one_step(rg,z,study_node,5000,(7.88*(10**-6)), 2232)
+    of.run_one_step(rg,z,study_node,7500,(7.88*(10**-6)), 2232)
+    ## Trial 1, 10 year storm ##
+    #of.run_one_step(rg,z,study_node,9000,(7.167*(10**-6)), 2916)
+    ## Trial 1, 50 year storm ##
+    #of.run_one_step(rg,z,study_node,17500,(7.88*(10**-6)), 17500)
+
+
 
     plt.show()
 
