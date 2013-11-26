@@ -284,7 +284,7 @@ class OverlandFlow(object):
         
         pylab.figure(1)
         hr = grid.node_vector_to_raster(h)
-        im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu,
+        im2 = pylab.imshow(hr, cmap=pylab.cm.PuBu,
                        extent=[0, grid.number_of_node_columns * grid.dx,
                                0, grid.number_of_node_rows * grid.dx])
         pylab.clim(0, 0.25)
