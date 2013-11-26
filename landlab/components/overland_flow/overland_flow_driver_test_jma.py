@@ -6,8 +6,6 @@ This tests the overland flow and shear stress generator.
 """
 
 import landlab
-#NG still trying to get the waterhsed boundary conditions working
-#from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
 from landlab.components.overland_flow.overland_flow_generator_jma import OverlandFlow
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.io import read_esri_ascii
@@ -86,7 +84,11 @@ def main():
     of=OverlandFlow(IT_FILE,rg,0)
 
     ## (-,-,-,-,how long we route overland flow, intensity in m/s, duration of storm) ##
-    of.run_one_step(rg,z,study_node,60*15,100./1000./3600., 60*15)
+    ##    of.run_one_step(rg,z,study_node,60*15,100./1000./3600., 60*15)
+
+    ## Trial 1, 5 year storm ##
+    of.run_one_step(rg,z,study_node,5000,(7.88*(10**-6)), 2232)
+
     plt.show()
 
 
