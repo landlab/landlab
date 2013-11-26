@@ -78,7 +78,7 @@ class OverlandFlow(object):
             rainduration = delt
             
         #interior_nodes are the nodes on which you will be calculating flow 
-        interior_nodes = grid.get_active_cell_node_ids()
+        #interior_nodes = grid.get_active_cell_node_ids()
         
         elapsed_time = 0
         
