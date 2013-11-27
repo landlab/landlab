@@ -31,20 +31,20 @@ class Radiation():
 
     def __init__( self ):
 
-        self._latitude = 0.0
-        self._t = 0.0
-        self._dt = 0.0
-        self._beta = 0.0
-        self._slope = 0.0
-        self._julian = 0.0
-        self._current_dt = 0.0
-        self._current_time = 0.0
-        self._phi = 0.0
-        self._delta = 0.0
-        self._tau = 0.0
-        self._alpha = 0.0
-        self._phisun = 0.0
-        self._flat = 0.0
+        self._latitude = 0.0       # Latitude in deg
+        self._t = 0.0              # Local Time
+        self._dt = 0.0             # Local Time Step 
+        self._beta = 0.0           # Aspect
+        self._slope = 0.0          # Slope
+        self._julian = 0.0         # Julian Day
+        self._current_dt = 0.0     # Time Step
+        self._current_time = 0.0   # Time
+        self._phi = 0.0       # Latitude in Radians
+        self._delta = 0.0     # Declination Angle of Sun
+        self._tau = 0.0       # Hour Angle
+        self._alpha = 0.0     # Solar Altitude
+        self._phisun = 0.0    # Sun's Azhimuth
+        self._flat = 0.0      # Flat Surface Reference Cos(Solar Incidence)
         #self._sig = 5.6e-8   # Stefan Boltzmann's Constant
         self._n = 2.0         # Clear Sky Turbidity Factor 
         self._m = 0.0         # Optical Air Mass
@@ -66,16 +66,18 @@ class Radiation():
         
     def update( self, RMG ):
         
-        self._Si = RMG.zeros(centering='cell') # Cosine of Solar Angle of Incidence
-        self._BETA = RMG.zeros(centering='cell') # Aspect (Clockwise from North)
-        self._Rs = RMG.zeros(centering='cell') # Incoming Shortwave Radiation            
-        self._slope_ = RMG.zeros(centering='cell') # Slope - Rise/Run
-        self._slope = RMG.zeros(centering='cell') # Slope - in Radians
-        self._angles = RMG.zeros(centering='cell') # Angles - Clockwise from North      
+        self._Si = RMG.empty(centering = 'cell')  # Cos(Solar Angle of Incidence)
+        self._BETA = RMG.empty(centering = 'cell') # Aspect (Clckwise from N)
+        self._Rs = RMG.empty(centering = 'cell')   # Incoming Shortwave Radn            
+        self._slope_ = RMG.empty(centering = 'cell') # Slope - Rise/Run
+        self._slope = RMG.empty(centering = 'cell')  # Slope - in Radians
+        self._angles = RMG.empty(centering = 'cell') # Angles - Clckwise from N      
                        
         self._t = 12                                     # Assuming noon
-        self._julian = round( self._current_time - round( self._current_time)  \
+        self._julian = floor( (self._current_time - floor( self._current_time))\
                                                         * 365 ) # Julian day
+
+        print 'Julian Day = ', self._julian
                 
         self._phi = pi/180.0 * self._latitude             # Latitude in Radians
         
@@ -109,11 +111,11 @@ class Radiation():
                         cos(self._alpha) * cos(self._phisun - 0)
                                                        # flat surface reference 
              
-        for i in xrange(0, RMG.number_of_active_cells - 1):
+        for i in range(0, RMG.number_of_cells):
 
             self._slope_[i], self._angles[i] =                                 \
                 RMG.calculate_max_gradient_across_node( self._Z,               \
-                  RMG.node_index_at_cells[i])
+                  RMG.cell_node[i])
 
             self._slope[i] = atan(self._slope_[i])   
             self._BETA[i] = self._angles[i]*pi/180  
@@ -132,19 +134,28 @@ class Radiation():
         
         figure(1)        
         imshow_grid(RMG,self._Z, values_at = 'node')
+        savefig('figure1')
 
         figure(2)
         self._slope_[self._slope_ >= 1] = 1
         imshow_active_cells(RMG, self._slope_, 'Slope', None, ('m','m'))
+        savefig('figure2')
 
         figure(3)
         imshow_active_cells(RMG,self._Si,                                    \
-                   'Cosine of Solar Angle of Incidence', None, ('m','m')) 
+                   'Cosine of Solar Angle of Incidence', None, ('m','m'))
+        savefig('figure3') 
         
         figure(4)
         imshow_active_cells(RMG,self._BETA,                                    \
             'Aspect (clockwise from North)', 'radians', ('m','m'))
-            
+        savefig('figure4')
+                
         figure(5)
         imshow_active_cells(RMG,self._Rs,                                    \
-                   'Incoming Shortwave Radiation', 'W/m^2', ('m','m'))          
+                   'Incoming Shortwave Radiation', 'W/m^2', ('m','m'))     
+        savefig('figure5')
+    
+    def set_current_time( self, current_time ):
+        
+        self._current_time = current_time
