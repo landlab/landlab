@@ -22,7 +22,15 @@ mg.set_inactive_boundaries(False, False, False, False)
 #create the fields in the grid
 mg.create_node_array_zeros('planet_surface__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'planet_surface__elevation'] = z
+mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
+
+#pylab.figure(1)
+#pylab.close()
+#elev = mg['node']['planet_surface__elevation']
+#elev_r = mg.node_vector_to_raster(elev)
+#pylab.figure(1)
+#im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
+#pylab.show()
 
 # Display a message
 print( 'Running ...' )
@@ -42,6 +50,15 @@ while elapsed_time < time_to_run:
     else:
         diffusion_component.gear_timestep(time_to_run-elapsed_time)
     mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt
+    
+    #pylab.figure(1)
+    #pylab.close()
+    #elev = mg['node']['planet_surface__elevation']
+    #elev_r = mg.node_vector_to_raster(elev)
+    #pylab.figure(1)
+    #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
+    #pylab.show()
+    
     mg = diffusion_component.diffuse(elapsed_time)
     elapsed_time += dt
 
@@ -56,7 +73,7 @@ pylab.close()
 # Plot topography
 pylab.figure(1)
 im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-#print elev_r
+print elev_r
 pylab.colorbar(im)
 pylab.title('Topography')
 

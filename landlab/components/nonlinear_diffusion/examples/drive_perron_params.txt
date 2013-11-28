@@ -1,8 +1,8 @@
 #These values are for building the grid-
 nrows:
-5
+10
 ncols:
-6
+10
 dx:
 1.
 dt:
