@@ -1,76 +1,80 @@
-import landlab.components.craters as craters
+from landlab.components.craters.dig_craters import impactor
+from landlab import ModelParameterDictionary
+
 from landlab import RasterModelGrid
-import numpy
-from pylab import show, imshow, colorbar, plot
-from copy import copy
+import numpy as np
+import time
+import pylab
 
-craters=reload(craters)
+#get the needed properties to build the grid:
+input_file = './craters_params.txt'
+inputs = ModelParameterDictionary(input_file)
+nrows = inputs.read_int('nrows')
+ncols = inputs.read_int('ncols')
+dx = inputs.read_float('dx')
+leftmost_elev = inputs.read_float('leftmost_elevation')
+initial_slope = inputs.read_float('initial_slope')
+nt = inputs.read_int('number_of_craters_per_loop')
+loops = inputs.read_int('number_of_loops')
 
-#craters_data = craters.one_crater_then_degrade()
+mg = RasterModelGrid(nrows, ncols, dx)
+mg.set_inactive_boundaries(False, False, False, False)
 
-class data(object):
-    '''
-        This is where all the whole-grid data lives, as arrays over the various elements of the grid.
-        '''
-    #Data goes here!!!
-    def __init__(self, grid):
-        self.elev = grid.zeros(centering='node') #some data
-        self.flag_already_in_the_list = grid.zeros(centering='node')
-        self.craters_over_max_radius_not_plotted = grid.grid.zeros(centering='node')
-        self.impact_sequence = []
+#create the fields in the grid
+mg.create_node_array_zeros('planet_surface__elevation')
+z = mg.create_node_array_zeros() + leftmost_elev
+z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
+mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/10000.
 
-#def dig_one_crater_driver(nr, nc, dx, rel_x, rel_y, radius=numpy.nan, angle=numpy.nan):
-#    '''
-#        This is an ad-hoc script to dig one crater.
-#        '''
-#    
-#    #Setup the grid & impactor object
-#    mg = RasterModelGrid(nr, nc, dx)
-#    vectors = data(mg)
-#    vectors.elev[:] = 0.
-#    cr = craters.impactor()
-#
-#    #Dig the crater
-#    cr.excavate_a_crater_optimized(mg, vectors, forced_radius=radius, forced_angle=angle, forced_pos=[rel_x, rel_y])
-#
-#    #Finalize
-#    elev_raster = mg.node_vector_to_raster(vectors.elev, flip_vertically=True)
-#    return elev_raster
+# Display a message
+print( 'Running ...' )
+start_time = time.time()
 
+#instantiate the component:
+craters_component = impactor(mg, input_file)
 
-#elev_raster = dig_one_crater_driver(120, 120, 0.025, 0.5, 0.5, 0.75, 90.)
-#imshow(elev_raster)
-#colorbar()
-#show()
+#perform the loops:
+x = np.empty(nt)
+y = np.empty(nt)
+r = np.empty(nt)
+slope = np.empty(nt)
+angle = np.empty(nt)
+az = np.empty(nt)
+mass_balance = np.empty(nt)
+for i in xrange(loops):
+    for j in xrange(nt):
+        mg = craters_component.excavate_a_crater(mg)
+        x[j] = craters_component.impact_property_dict['x']
+        y[j] = craters_component.impact_property_dict['y']
+        r[j] = craters_component.impact_property_dict['r']
+        slope[j] = craters_component.impact_property_dict['surface_slope']
+        angle[j] = craters_component.impact_property_dict['normal_angle']
+        az[j] = craters_component.impact_property_dict['impact_az']
+        mass_balance[j] = craters_component.impact_property_dict['mass_balance']
+        print 'Completed loop ', j
+    mystring = 'craterssave'+str(i*nt)
+    np.save(mystring,mg['node']['planet_surface__elevation'])
+    #Save the properties
+    np.save(('x_'+str(i*nt)),x)
+    np.save(('y_'+str(i*nt)),y)
+    np.save(('r_'+str(i*nt)),r)
+    np.save(('slope_'+str(i*nt)),slope)
+    np.save(('angle_'+str(i*nt)),angle)
+    np.save(('az_'+str(i*nt)),az)
+    np.save(('mass_balance_'+str(i*nt)),mass_balance)
 
-##This code snippet to produce a landscape w. 500000 impacts, but where the first half of the impacts are 10x bigger on average.
-#mg = RasterModelGrid(1200, 1200, 0.0025)
-#vectors = data(mg)
-#vectors.elev[:] = 0.
-#
-#dict_of_vectors_50m_min, dict_of_vectors_5m_min = craters.ten_times_reduction(mg, vectors)
-#
-##This code snippet produces a smaller (800x800) grid where we let the basic crater routine run for a long time (1M impacts). The aim is to see if we get a steady state landscape.
+#Finalize and plot
+elev = mg['node']['planet_surface__elevation']
+elev_r = mg.node_vector_to_raster(elev)
+# Clear previous plots
+pylab.figure(1)
+pylab.close()
+pylab.figure(1)
+im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
+pylab.colorbar(im)
+pylab.title('Topography')
 
-#mg2 = RasterModelGrid(600, 600, 0.0025)
-#dict_of_vectors2_5m_min = {}
-#vectors2 = data(mg2)
-#vectors2.elev[:] = 0.
+print('Done.')
+print('Total run time = '+str(time.time()-start_time)+' seconds.')
 
-#for i in xrange(20, 50):
-#    print 'LOOP NUMBER ', i
-#    mg2, vectors2, profile, xsec = craters.dig_some_craters(mg2, vectors2, nt_in=10000)
-#    dict_of_vectors2_5m_min[i] = copy(vectors2)
-
-#This code snippet to produce a landscape w. 200000 impacts, but where the first quarter of the impacts are 3x bigger on average. The output interval is only 5k impacts this time.
-mg3 = RasterModelGrid(1200, 1200, 0.0025)
-vectors = data(mg3)
-vectors.elev[:] = 0.
-
-dict1_1200_50k_15m_min, dict1_1200_150k_5m_min = craters.step_reduce_size(mg3, vectors, loops=[10,30], interval=5000, min_radius_in=[0.015,0.005])
-
-vectors.elev[:] = 0.
-
-dict2_1200_150k_10m_min, dict2_1200_150k_5m_min = craters.step_reduce_size(mg3, vectors, loops=[30,30], interval=5000, min_radius_in=[0.01,0.005])
-
-
+pylab.show()

@@ -1,2 +1,1 @@
-
-from landlab.components.craters.craters import data
+from landlab.components.craters.dig_craters import impactor
