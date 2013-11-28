@@ -492,10 +492,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If xcoord and ycoord are arrays, returns a (4,len_array) array. 
         Method added 4/29/13 by DEJH, modified 9/24/13.
         """   
-        try:
-            assert (len(xcoord) == len(ycoord))
-        except:
-            assert type(xcoord) == float and type(ycoord) == float
+        #try:
+        #    assert (len(xcoord) == len(ycoord))
+        #except:
+        #    assert type(xcoord) == float and type(ycoord) == float
         ID = ycoord//self._dx * self.number_of_node_columns + xcoord//self._dx
         try:
             ID = int(ID)

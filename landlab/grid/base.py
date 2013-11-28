@@ -1014,48 +1014,59 @@ class ModelGrid(ModelDataFields):
         self.node_status[nodes] = INACTIVE_BOUNDARY
         self._reset_list_of_active_links()
 
-    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, just_one_node=-1):
+    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, node_subset=numpy.nan):
         """
         Returns an array of distances for each node to a provided point.
-        If "get_az" is set to 1, returns both the distance array and an array
-        of azimuths from up/north. If it is not set, returns just the distance
-        array.
-        If "just_one_node" is set as an ID, method returns just the distance
-        (and optionally azimuth) for that node.
+        If "get_az" is set to 'angles', returns both the distance array and an
+        array of azimuths from up/north. If it is set to 'displacements', it
+        returns the azimuths as a 2xnnodes array of x and y displacements.
+        If it is not set, returns just the distance array.
+        If "node_subset" is set as an ID, or list/array/etc of IDs method
+        returns just the distance (and optionally azimuth) for that node.
         Point is provided as a tuple (x,y).
         """
         assert isinstance(tuple_xy, tuple)
         assert len(tuple_xy) == 2
         
-        if just_one_node==-1:
-            x_displacement = (self.get_node_x_coords()-tuple_xy[0])
-            y_displacement = (self.get_node_y_coords()-tuple_xy[1])
-        else:
-            x_displacement = self.node_x[just_one_node]-tuple_xy[0]
-            y_displacement = self.node_y[just_one_node]-tuple_xy[1]
+        try:
+            if numpy.isnan(node_subset):
+                x_displacement = (self.node_x-tuple_xy[0])
+                y_displacement = (self.node_y-tuple_xy[1])
+            else:
+                x_displacement = self.node_x[node_subset]-tuple_xy[0]
+                y_displacement = self.node_y[node_subset]-tuple_xy[1]
+        except:
+            x_displacement = self.node_x[node_subset]-tuple_xy[0]
+            y_displacement = self.node_y[node_subset]-tuple_xy[1]
 
         dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
         
         if get_az:
-            try:
-                angle_to_xaxis = numpy.arctan(y_displacement/x_displacement)
-            except: #These cases have the impact right on a gridline.
+            if get_az == 'displacements':
+                azimuths_as_displacements = numpy.vstack(x_displacement,y_displacement)
+                return dist_array, azimuths_as_displacements
+            elif get_az == 'angles':
                 try:
-                    azimuth_array = numpy.empty(len(x_displacement))
-                except: #this is the single node case, impact directly N or S of the node of interest
-                    if y_displacement<0:
-                        azimuth_array = numpy.pi
-                    else:
-                        azimuth_array = 0.
-                else: #general case with whole array, with the impact right one one of the gridlines
-                    nonzero_nodes = numpy.nonzero(x_displacement)
-                    angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
-                    azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
-                zero_nodes = numpy.where(x_displacement==0.)[0]
-                azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
-            else: #the normal case
-                azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
-            return dist_array, azimuth_array
+                    angle_to_xaxis = numpy.arctan(y_displacement/x_displacement)
+                except: #These cases have the impact right on a gridline.
+                    try:
+                        azimuth_array = numpy.empty(len(x_displacement))
+                    except: #this is the single node case, impact directly N or S of the node of interest
+                        if y_displacement<0:
+                            azimuth_array = numpy.pi
+                        else:
+                            azimuth_array = 0.
+                    else: #general case with whole array, with the impact right one one of the gridlines
+                        nonzero_nodes = numpy.nonzero(x_displacement)
+                        angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
+                        azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
+                    zero_nodes = numpy.where(x_displacement==0.)[0]
+                    azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
+                else: #the normal case
+                    azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+                return dist_array, azimuth_array
+            else:
+                print "Option set for get_az not recognised. Should be 'displacements' or 'angles'."
         else:
             return dist_array
             
@@ -1074,17 +1085,17 @@ class ModelGrid(ModelDataFields):
             self.all_node_azimuths_map
         """
         
-        self.all_node_distances_map = numpy.empty(self.number_of_nodes,
-                                                  self.number_of_nodes)
-        self.all_node_azimuths_map = numpy.empty(self.number_of_nodes,
-                                                 self.number_of_nodes)
+        self.all_node_distances_map = numpy.empty((self.number_of_nodes,
+                                                  self.number_of_nodes))
+        self.all_node_azimuths_map = numpy.empty((self.number_of_nodes,
+                                                 self.number_of_nodes))
         
-        node_coords = numpy.empty(self.number_of_nodes, 2)
-        node_coords[:,1] = self.node_x
-        node_coords[:,2] = self.node_y
+        node_coords = numpy.empty((self.number_of_nodes, 2))
+        node_coords[:,0] = self.node_x
+        node_coords[:,1] = self.node_y
         
         for i in xrange(self.number_of_nodes):
-            self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point(node_coords[i,:], get_az=1)
+            self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point((node_coords[i,0],node_coords[i,1]), get_az='angles')
         
         assert numpy.all(self.all_node_distances_map >= 0.)
         
