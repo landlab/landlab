@@ -426,12 +426,12 @@ class TestZerosArray(unittest.TestCase):
     def test_default(self):
         mg = RasterModelGrid(4, 5)
         v = mg.zeros()
-        assert_array_equal(v, np.zeros(20., dtype=np.float))
+        assert_array_equal(v, np.zeros(20, dtype=np.float))
 
     def test_int_array(self):
         mg = RasterModelGrid(4, 5)
         v = mg.zeros(dtype=np.int)
-        assert_array_equal(v, np.zeros(20., dtype=np.int))
+        assert_array_equal(v, np.zeros(20, dtype=np.int))
 
     def test_at_cells(self):
         mg = RasterModelGrid(4, 5)
@@ -647,7 +647,7 @@ class TestRasterModelGridNodesAroundPoint(unittest.TestCase):
 class TestRasterModelGridCellAreas(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_unit_grid_all_cells(self):
         mg = RasterModelGrid(4, 4)
-        self.assertArrayEqual(mg.cell_areas, np.ones(4.))
+        self.assertArrayEqual(mg.cell_areas, np.ones(4))
 
     def test_unit_grid_one_cell(self):
         mg = RasterModelGrid(4, 4)
@@ -664,7 +664,7 @@ class TestRasterModelGridCellAreas(unittest.TestCase, NumpyArrayTestingMixIn):
 
     def test_all_cells_with_spacing(self):
         mg = RasterModelGrid(4, 4, 10.)
-        self.assertArrayEqual(mg.cell_areas, 100 * np.ones(4.))
+        self.assertArrayEqual(mg.cell_areas, 100 * np.ones(4))
 
 
 class TestRasterModelGridInactiveNodes(unittest.TestCase):
@@ -791,7 +791,7 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_out_array(self):
         rmg = RasterModelGrid(4, 5)
         values = np.arange(20, dtype=float)
-        grads = np.empty(31.)
+        grads = np.empty(31)
         rtn_grads = rmg.calculate_gradients_at_links(values, out=grads)
         self.assertArrayEqual(
             grads,
@@ -803,7 +803,7 @@ class TestLinkGradients(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_diff_out_array(self):
         rmg = RasterModelGrid(4, 5)
         values = np.arange(20, dtype=float)
-        diff = np.empty(31.)
+        diff = np.empty(31)
         rtn_diff = rmg.calculate_diff_at_links(values, out=diff)
         self.assertArrayEqual(
             diff,
@@ -828,15 +828,20 @@ class TestMaxGradients(unittest.TestCase, NumpyArrayTestingMixIn):
 
     def test_scalar_arg_with_links(self):
         rmg = RasterModelGrid(4, 5)
-        values = np.array([0, 1, 3, 6, 10,
-                           0, 1, 3, 6, 10,
-                           0, 1, 3, 6, 10,
-                           0, 1, 3, 6, 10,])
-        (grad, link) = rfuncs.calculate_max_gradient_across_cell_faces(
-            rmg, values, (0, 4), return_link_id=True)
-        self.assertArrayEqual(grad, [1, 2])
-        self.assertArrayEqual(link, [9, 14])
+        values = np.array([0, 1,  3, 6, 10,
+                           0, 1,  3, 6, 10,
+                           0, 1,  3, 5, 10,
+                           0, 1, -3, 6, 10,])
+        (grad, face) = rfuncs.calculate_max_gradient_across_cell_faces(
+            rmg, values, (0, 4), return_face=True)
+        self.assertArrayEqual(grad, [1, 6])
+        self.assertArrayEqual(face, [1, 2])
 
+        link_ids = rfuncs.active_link_id_of_cell_neighbor(rmg, face, [0, 4])
+        self.assertArrayEqual(link_ids, [9, 7])
+
+        node_ids = rfuncs.node_id_of_cell_neighbor(rmg, face, [0, 4])
+        self.assertArrayEqual(node_ids, [5, 17])
 
 class TestGradientsAcrossFaces(unittest.TestCase, NumpyArrayTestingMixIn):
     def test_no_arg(self):
@@ -845,7 +850,7 @@ class TestGradientsAcrossFaces(unittest.TestCase, NumpyArrayTestingMixIn):
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,])
-        grads = rfuncs.calculate_gradients_across_cell_faces(rmg, values)
+        grads = rfuncs.calculate_gradient_across_cell_faces(rmg, values)
         self.assertArrayEqual(
             grads,
             np.array([[-2, 0, 1, 0], [-3, 0, 2, 0], [-4, 0, 3, 0],
@@ -857,7 +862,7 @@ class TestGradientsAcrossFaces(unittest.TestCase, NumpyArrayTestingMixIn):
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,])
-        grads = rfuncs.calculate_gradients_across_cell_faces(rmg, values, 0)
+        grads = rfuncs.calculate_gradient_across_cell_faces(rmg, values, 0)
         self.assertArrayEqual(grads, np.array([[-2, 0, 1, 0]]))
 
     def test_iterable_arg(self):
@@ -866,7 +871,7 @@ class TestGradientsAcrossFaces(unittest.TestCase, NumpyArrayTestingMixIn):
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,
                            0, 1, 3, 6, 10,])
-        grads = rfuncs.calculate_gradients_across_cell_faces(
+        grads = rfuncs.calculate_gradient_across_cell_faces(
             rmg, values, np.array([0, 4]))
         self.assertArrayEqual(
             grads, np.array([[-2, 0, 1, 0], [-3, 0, 2, 0]]))
