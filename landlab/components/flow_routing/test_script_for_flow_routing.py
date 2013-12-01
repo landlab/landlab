@@ -48,7 +48,7 @@ def main():
     #instantiate flow routing variable
     flow = flow_routing_D8.RouteFlowD8(ncells)
     #calculate flow directions
-    flow_directions = flow.calc_flowdirs(rg, elevations) 
+    flow_directions, max_slope = flow.calc_flowdirs(rg, elevations) 
     fd_raster = rg.node_vector_to_raster(flow_directions,True)   
     #printing flow directions for debugging purposes
     #print 'flow direction vector'

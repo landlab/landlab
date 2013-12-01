@@ -481,9 +481,9 @@ def example_test2():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 100
-    nc = 100
-    frac_spacing = 10
+    nr = 200
+    nc = 200
+    frac_spacing = 20
     plot_interval = 0.25
     next_plot = plot_interval
     run_duration = 2.0

@@ -224,7 +224,8 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0):
     return drainage_area, discharge
     
 
-def flow_accumulation(receiver_nodes, baselevel_nodes):
+def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
+                      runoff_rate=1.0):
     """
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
@@ -243,7 +244,8 @@ def flow_accumulation(receiver_nodes, baselevel_nodes):
     
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
     
-    a, q = find_drainage_area_and_discharge(s, receiver_nodes)
+    a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
+                                            runoff_rate)
     
     return a, q, s
     
