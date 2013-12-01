@@ -3,7 +3,7 @@ import numpy as np
 from .base import INACTIVE_BOUNDARY
 
 
-def make_optional_arg_into_array(number_of_elements, *args):
+def _make_optional_arg_into_array(number_of_elements, *args):
     assert(len(args) < 2)
     if len(args) == 0:
         ids = np.arange(number_of_elements)
@@ -17,41 +17,249 @@ def make_optional_arg_into_array(number_of_elements, *args):
     return ids
 
 
-def calculate_gradients_across_cell_faces(grid, node_values, *args):
+def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
+    """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
     """
-    calculate_gradients_across_cell_faces(grid, node_values, [cell_ids])
-    """
-    cell_ids = make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_index_at_cells[cell_ids]
 
     values_at_neighbors = node_values[grid.get_neighbor_list(node_ids)]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
-    grads = (values_at_nodes - values_at_neighbors) / grid.node_spacing
-    return grads
+
+    out = np.subtract(values_at_nodes, values_at_neighbors, **kwds)
+    out *= 1. / grid.node_spacing
+
+    return out
+
+
+def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
+    """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
+    """
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    node_ids = grid.node_index_at_cells[cell_ids]
+
+    values_at_diagonals = node_values[grid.get_diagonal_list(node_ids)]
+    values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
+
+    out = np.subtract(values_at_nodes, values_at_diagonals, **kwds)
+    np.divide(out, np.sqrt(2.) * grid.node_spacing, out=out)
+
+    return out
+
+
+def calculate_max_gradient_across_adjacent_cells(grid, node_values, *args, **kwds):
+    """calculate_max_gradient_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
+    """
+    method = kwds.pop('method', 'd4')
+
+    if method.lower() == 'd4':
+        return calculate_max_gradient_across_cell_faces(
+            grid, node_values, *args, **kwds)
+    elif method.lower() == 'd8':
+        neighbor_grads = calculate_max_gradient_across_cell_faces(
+            grid, node_values, *args, **kwds)
+        diagonal_grads = calculate_max_gradient_across_cell_corners(
+            grid, node_values, *args, **kwds)
+
+        return_face = kwds.pop('return_face', False)
+
+        if not return_face:
+            return np.choose(neighbor_grads > diagonal_grads,
+                             (diagonal_grads, neighbor_grads), **kwds)
+        else:
+            max_grads = np.choose(neighbor_grads[0] > diagonal_grads[0],
+                                  (diagonal_grads[0], neighbor_grads[0]),
+                                  **kwds)
+            inds = np.choose(neighbor_grads[0] > diagonal_grads[0],
+                                  (diagonal_grads[1] + 4, neighbor_grads[1]),
+                                  **kwds)
+            return (max_grads, inds)
+
+
+def calculate_max_gradient_across_cell_corners(grid, node_values, *args,
+                                               **kwds):
+    """calculate_max_gradient_across_cell_corners(grid, node_values [, cell_ids], return_face=False, out=None)
+    """
+    return_face = kwds.pop('return_face', False)
+
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+
+    grads = calculate_gradient_across_cell_corners(grid, node_values, cell_ids)
+
+    if return_face:
+        ind = np.argmax(grads, axis=1)
+        if 'out' not in kwds:
+            out = np.empty(len(cell_ids), dtype=grads.dtype)
+        out[:] = grads[xrange(len(cell_ids)), ind]
+        return (out, 3 - ind)
+    else:
+        return grads.max(axis=1, **kwds)
+
+
+def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
+    """calculate_max_gradient_across_cell_faces(grid, node_values, [cell_ids], return_face=False, out=None)
+
+    This method calculates the gradients in *node_values* across all four
+    faces of the cell or cells with ID *cell_ids*. Slopes downward from the
+    cell are reported as positive. If *cell_ids* is not given, calculate
+    gradients for all cells.
+
+    Use the *return_face* keyword to return a tuple, with the first element
+    being the gradients and the second the *cell-level* id of the face with
+    the max gradient. This is the id of face as measured within the cell and
+    so ranges from 0 to 3 for a cell with four sides.
+
+    >>> from landlab import RasterModelGrid
+    >>> rmg = RasterModelGrid(3, 3)
+    >>> values_at_nodes = np.arange(9.)
+    >>> calculate_max_gradient_across_cell_faces(rmg, values_at_nodes)
+    array([ 3.])
+    >>> (_, ind) = calculate_max_gradient_across_cell_faces(rmg, values_at_nodes, return_face=True)
+    >>> ind
+    array([0])
+    """
+    return_face = kwds.pop('return_face', False)
+
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+
+    grads = calculate_gradient_across_cell_faces(grid, node_values, cell_ids)
+
+    if return_face:
+        ind = np.argmax(grads, axis=1)
+        if 'out' not in kwds:
+            out = np.empty(len(cell_ids), dtype=grads.dtype)
+        out[:] = grads[xrange(len(cell_ids)), ind]
+        return (out, 3 - ind)
+    else:
+        return grads.max(axis=1, **kwds)
+
+
+def active_link_id_of_cell_neighbor(grid, inds, *args):
+    """ active_link_id_of_cell_neighbor(grid, link_ids [, cell_ids])
+
+    Return an array of the active link ids for neighbors of *cell_id* cells.
+    *link_ids* is an index into the links of a cell as measured
+    clockwise starting from the south.
+
+    If *cell_ids* is not given, return neighbors for all cells in the grid.
+    """
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    node_ids = grid.node_index_at_cells[cell_ids]
+    links = grid.active_node_links(node_ids).T
+
+    if not isinstance(inds, np.ndarray):
+        inds = np.array(inds)
+
+    return links[xrange(len(cell_ids)), inds]
+
+
+def node_id_of_cell_neighbor(grid, inds, *args):
+    """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
+
+    Return an array of the node ids for neighbors of *cell_id* cells.
+    *neighbor_ids* is an index into the neighbors of a cell as measured
+    clockwise starting from the south.
+
+    If *cell_ids* is not given, return neighbors for all cells in the grid.
+    """
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    node_ids = grid.node_index_at_cells[cell_ids]
+    neighbors = grid.get_neighbor_list(node_ids)
+
+    if not isinstance(inds, np.ndarray):
+        inds = np.array(inds)
+
+    return neighbors[xrange(len(cell_ids)), 3 - inds]
+
+
+def node_id_of_cell_corner(grid, inds, *args):
+    """ node_id_of_cell_corner(grid, corner_ids [, cell_ids])
+
+    Return an array of the node ids for diagonal neighbors of *cell_id* cells.
+    *corner_ids* is an index into the corners of a cell as measured
+    clockwise starting from the southeast.
+
+    If *cell_ids* is not given, return neighbors for all cells in the grid.
+    """
+    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    node_ids = grid.node_index_at_cells[cell_ids]
+    diagonals = grid.get_diagonal_list(node_ids)
+
+    if not isinstance(inds, np.ndarray):
+        inds = np.array(inds)
+
+    return diagonals[xrange(len(cell_ids)), 3 - inds]
+
+
+def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
+    """
+    Same as calculate_flux_divergence_at_active_cells, but works with and
+    returns a list of net unit fluxes that corresponds to all nodes, rather
+    than just active cells.
+    
+    Note that we DO compute net unit fluxes at boundary nodes (even though
+    these don't have active cells associated with them, and often don't have 
+    cells of any kind, because they are on the perimeter). It's up to the 
+    user to decide what to do with these boundary values.
+    
+    Example:
+
+    >>> from landlab import RasterModelGrid
+    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> u = [0., 1., 2., 3., 0.,
+    ...      1., 2., 3., 2., 3.,
+    ...      0., 1., 2., 1., 2.,
+    ...      0., 0., 2., 2., 0.]
+    >>> u = np.array(u)
+    >>> grad = rmg.calculate_gradients_at_active_links(u)
+    >>> grad
+    array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+            1.,  1., -1.,  1.])
+    >>> flux = -grad    # downhill flux proportional to gradient
+    >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
+    >>> df
+    array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
+           -4.,  1.,  0., -1.,  0.,  1.,  0.])
+        
+    If calculate_gradients_at_nodes is called inside a loop, you can
+    improve speed by creating an array outside the loop. For example, do
+    this once, before the loop:
+        
+    >>> df = rmg.zeros(centering='node') # outside loop
+    >>> rmg.number_of_nodes
+    20
+        
+    Then do this inside the loop:
+        
+    >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
+        
+    In this case, the function will not have to create the df array.
+    """
+    assert (len(active_link_flux) == grid.number_of_active_links), \
+           "incorrect length of active_link_flux array"
+        
+    # If needed, create net_unit_flux array
+    if out is None:
+        out = grid.empty(centering='node')
+    out.fill(0.)
+    net_unit_flux = out
+        
+    assert(len(net_unit_flux) == grid.number_of_nodes)
+    
+    flux = np.zeros(len(active_link_flux) + 1)
+    flux[:len(active_link_flux)] = active_link_flux * grid._dx
+    
+    net_unit_flux[:] = (
+        (flux[grid.node_active_outlink_matrix[0][:]] +
+         flux[grid.node_active_outlink_matrix[1][:]]) -
+        (flux[grid.node_active_inlink_matrix[0][:]] +
+         flux[grid.node_active_inlink_matrix[1][:]])) / grid.cellarea
+
+    return net_unit_flux
 
 
 # TODO: Functions below here still need to be refactored for speed and to
 # conform to the interface standards.
-
-def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
-    """
-    calculate_max_gradient_across_cell_faces(grid, node_values, [cell_ids],
-                                             return_link_id=False)
-    """
-    return_link_id = kwds.get('return_link_id', False)
-    cell_ids = make_optional_arg_into_array(grid.number_of_cells, *args)
-
-    grads = calculate_gradients_across_cell_faces(grid, node_values, cell_ids)
-
-    if return_link_id:
-        ind = np.argmax(grads, axis=1)
-        node_ids = grid.node_index_at_cells[cell_ids]
-        links = grid.active_node_links(node_ids).T
-        return (grads[xrange(len(cell_ids)), ind],
-                links[xrange(len(cell_ids)), 3 - ind])
-    else:
-        return grads.max(axis=1)
-
 
 def calculate_max_gradient_across_node(grid, u, cell_id):
     """
@@ -272,69 +480,3 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     #ng commented out old code
     #return min_slope, angles[index_min]
     return max_slope, angles[index_max]
-
-
-def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
-    """
-    Same as calculate_flux_divergence_at_active_cells, but works with and
-    returns a list of net unit fluxes that corresponds to all nodes, rather
-    than just active cells.
-    
-    Note that we DO compute net unit fluxes at boundary nodes (even though
-    these don't have active cells associated with them, and often don't have 
-    cells of any kind, because they are on the perimeter). It's up to the 
-    user to decide what to do with these boundary values.
-    
-    Example:
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5, 1.0)
-        >>> u = [0., 1., 2., 3., 0.,
-        ...      1., 2., 3., 2., 3.,
-        ...      0., 1., 2., 1., 2.,
-        ...      0., 0., 2., 2., 0.]
-        >>> u = np.array(u)
-        >>> grad = rmg.calculate_gradients_at_active_links(u)
-        >>> grad
-        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
-        >>> flux = -grad    # downhill flux proportional to gradient
-        >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
-        >>> df
-        array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
-               -4.,  1.,  0., -1.,  0.,  1.,  0.])
-        
-    If calculate_gradients_at_nodes is called inside a loop, you can
-    improve speed by creating an array outside the loop. For example, do
-    this once, before the loop:
-        
-        >>> df = rmg.zeros(centering='node') # outside loop
-        >>> rmg.number_of_nodes
-        20
-        
-    Then do this inside the loop:
-        
-        >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
-        
-    In this case, the function will not have to create the df array.
-    """
-    assert (len(active_link_flux) == grid.number_of_active_links), \
-           "incorrect length of active_link_flux array"
-        
-    # If needed, create net_unit_flux array
-    if out is None:
-        out = grid.empty(centering='node')
-    out.fill(0.)
-    net_unit_flux = out
-        
-    assert(len(net_unit_flux) == grid.number_of_nodes)
-    
-    flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid._dx
-    
-    net_unit_flux[:] = (
-        (flux[grid.node_active_outlink_matrix[0][:]] +
-         flux[grid.node_active_outlink_matrix[1][:]]) -
-        (flux[grid.node_active_inlink_matrix[0][:]] +
-         flux[grid.node_active_inlink_matrix[1][:]])) / grid.cellarea
-
-    return net_unit_flux

@@ -24,6 +24,15 @@ def node_has_boundary_neighbor(mg, id):
     return False
 
 
+def make_arg_into_array(arg):
+    ids = arg
+    if not isinstance(ids, list) or not isinstance(ids, numpy.ndarray):
+        try:
+            ids = list(ids)
+        except TypeError:
+            ids = [ids]
+    return ids
+
 has_boundary_neighbor = numpy.vectorize(node_has_boundary_neighbor,
                                         excluded=['mg'])
 
@@ -294,6 +303,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def dx(self):
         return self._dx
 
+    @property
+    def node_spacing(self):
+        return self._dx
+
     def node_links(self, *args):
         """node_links([node_ids])
 
@@ -441,11 +454,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([[ 0,  9,  3, 10],
                [ 5, 15,  8, 16]])
         """
-        node_id = self.cell_node[cell_id]
-        inlinks = self.node_inlink_matrix[:, node_id].T
-        outlinks = self.node_outlink_matrix[:, node_id].T
-        return numpy.concatenate(
-            (self.link_face[inlinks], self.link_face[outlinks]), axis=1)
+        cell_ids = make_arg_into_array(cell_id)
+        node_ids = self.cell_node[cell_ids]
+        inlinks = self.node_inlink_matrix[:, node_ids].T
+        outlinks = self.node_outlink_matrix[:, node_ids].T
+        return numpy.squeeze(numpy.concatenate(
+            (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
 
     def get_grid_xdimension(self):
         '''
@@ -575,14 +589,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def max_active_link_length(self):
         return self._dx
 
-    def calculate_gradients_across_cell_faces(self, node_values, cell_ids):
-        return rfuncs.calculate_gradients_across_cell_faces(
-            self, node_values, cell_ids)
+    def calculate_gradient_across_cell_faces(self, *args, **kwds):
+        return rfuncs.calculate_gradient_across_cell_faces(
+            self, *args, **kwds)
 
-    def calculate_max_gradient_across_cell_faces(self, node_values, cell_ids,
-                                            return_link_id=True):
-        return rfuncs.calculate_max_gradient_across_cell_faces(
-            self, node_values, cell_ids, return_link_id=return_link_id)
+    def calculate_gradient_across_cell_corners(self, *args, **kwds):
+        return rfuncs.calculate_gradient_across_cell_corners(
+            self, *args, **kwds)
             
             
     def _setup_diagonal_links(self):
@@ -628,6 +641,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                numpy.concatenate((self.activelink_tonode,
                                   self._diag_activelink_tonode))
         
+
+    def calculate_max_gradient_across_cell_faces(self, *args, **kwds):
+        """rmg.calculate_max_gradient_across_cell_faces(node_values, [cell_ids], return_face=False)
+
+        Return the maximum gradients across cell faces.
+
+        Refer to :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_cell_faces`
+        for full documentation.
+
+        .. seealso::
+
+            :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_cell_faces` : equivalent function
+        """
+        return rfuncs.calculate_max_gradient_across_cell_faces(self, *args,
+                                                               **kwds)
+
+    def calculate_max_gradient_across_cell_corners(self, *args, **kwds):
+        return rfuncs.calculate_max_gradient_across_cell_corners(self, *args,
+                                                                 **kwds)
 
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
