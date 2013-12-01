@@ -38,10 +38,10 @@ class TestModelDataFields(unittest.TestCase):
         fields.new_field_location('cell', 2)
 
         value_array = fields.ones('node')
-        assert_array_equal(np.ones(12.), value_array)
+        assert_array_equal(np.ones(12), value_array)
 
         value_array = fields.ones('cell')
-        assert_array_equal(np.ones(2.), value_array)
+        assert_array_equal(np.ones(2), value_array)
 
     def test_add_ones(self):
         fields = ModelDataFields()
@@ -49,12 +49,12 @@ class TestModelDataFields(unittest.TestCase):
         fields.new_field_location('cell', 2)
 
         fields.add_ones('node', 'z')
-        assert_array_equal(np.ones(12.), fields['node']['z'])
-        assert_array_equal(np.ones(12.), fields.field_values('node', 'z'))
+        assert_array_equal(np.ones(12), fields['node']['z'])
+        assert_array_equal(np.ones(12), fields.field_values('node', 'z'))
 
         fields.add_ones('cell', 'z')
-        assert_array_equal(np.ones(2.), fields['cell']['z'])
-        assert_array_equal(np.ones(2.), fields.field_values('cell', 'z'))
+        assert_array_equal(np.ones(2), fields['cell']['z'])
+        assert_array_equal(np.ones(2), fields.field_values('cell', 'z'))
 
     def test_getitem(self):
         fields = ModelDataFields()
@@ -73,7 +73,7 @@ class TestModelDataFields(unittest.TestCase):
             fields.at_cell
 
         fields.add_ones('node', 'z')
-        assert_array_equal(np.ones(12.), fields.at_node['z'])
+        assert_array_equal(np.ones(12), fields.at_node['z'])
 
     def test_has_group(self):
         fields = ModelDataFields()
