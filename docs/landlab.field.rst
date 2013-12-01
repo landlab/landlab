@@ -9,18 +9,18 @@ field Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`base` Module
-------------------
-
-.. automodule:: landlab.field.base
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`grouped` Module
 ---------------------
 
 .. automodule:: landlab.field.grouped
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`scalar_data_fields` Module
+--------------------------------
+
+.. automodule:: landlab.field.scalar_data_fields
     :members:
     :undoc-members:
     :show-inheritance:

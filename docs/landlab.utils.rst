@@ -17,6 +17,22 @@ utils Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`decorators` Module
+------------------------
+
+.. automodule:: landlab.utils.decorators
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`raster` Module
+--------------------
+
+.. automodule:: landlab.utils.raster
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`structured_grid` Module
 -----------------------------
 

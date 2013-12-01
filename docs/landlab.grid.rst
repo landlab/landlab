@@ -25,10 +25,26 @@ grid Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`grid_funcs` Module
+------------------------
+
+.. automodule:: landlab.grid.grid_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`hex` Module
 -----------------
 
 .. automodule:: landlab.grid.hex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`mappers` Module
+---------------------
+
+.. automodule:: landlab.grid.mappers
     :members:
     :undoc-members:
     :show-inheritance:
@@ -45,6 +61,22 @@ grid Package
 --------------------
 
 .. automodule:: landlab.grid.raster
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`raster_funcs` Module
+--------------------------
+
+.. automodule:: landlab.grid.raster_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`speed_test` Module
+------------------------
+
+.. automodule:: landlab.grid.speed_test
     :members:
     :undoc-members:
     :show-inheritance:

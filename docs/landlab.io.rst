@@ -24,4 +24,5 @@ Subpackages
 
     landlab.io.netcdf
     landlab.io.tests
+    landlab.io.vtk
 

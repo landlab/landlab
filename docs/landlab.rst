@@ -37,6 +37,7 @@ Subpackages
     landlab.grid
     landlab.io
     landlab.plot
+    landlab.testing
     landlab.tests
     landlab.utils
 

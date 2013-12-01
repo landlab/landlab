@@ -9,14 +9,6 @@ tests Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`rainfall_driver_test` Module
-----------------------------------
-
-.. automodule:: landlab.tests.rainfall_driver_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`run_raster_model_grid_builtin_unit_test` Module
 -----------------------------------------------------
 
