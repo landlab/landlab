@@ -57,6 +57,14 @@ class FlowRouter():
         (identical for each cell) or as an array whose length is the number of
         nodes in the grid.
         
+        Returns:
+            - Node array of receivers (nodes that receive flow)
+            - Node array of drainage areas
+            - Node array of discharges
+            - Node array of steepest downhill slopes
+            - Node array containing downstream-to-upstream ordered list of node
+              IDs
+        
         Example:
             >>> mg = RasterModelGrid(5, 4, 1.0)
             >>> elev = numpy.array([0.,  0.,  0., 0., \
@@ -109,7 +117,7 @@ class FlowRouter():
                                          baselevel_nodes)
 
         # Calculate drainage area, discharge, and ...
-        a, q, s = flow_accum_bw.flow_accumulation(receiver, baselevel_nodes,
+        a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area, runoff_rate)
 
         return receiver, a, q, steepest_slope, s

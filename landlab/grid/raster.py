@@ -252,6 +252,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
         
+        # Flag indicating whether we have created diagonal links.
+        self._diagonal_links_created = False
+        
         #   set up the list of active links
         self._reset_list_of_active_links()
 
@@ -276,6 +279,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
         self.diagonal_list_created = False
+        
 
     def _setup_cell_areas_array(self):
         self.active_cell_areas = numpy.empty(self.number_of_active_cells)
@@ -390,6 +394,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (self.node_active_outlink_matrix,
          self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
              self.shape, node_status=node_status)
+             
+             
+    def _reset_list_of_active_diagonal_links(self):
+        
+        assert(self._diagonal_links_created), 'Diagonal links not created'
+        
+        self._diagonal_active_links = []
+        self._diag_activelink_fromnode = []
+        self._diag_activelink_tonode = []
+
+        diag_fromnode_status = self.node_status[self._diag_link_fromnode]
+        diag_tonode_status = self.node_status[self._diag_link_tonode]
+        
+        diag_active_links = (((diag_fromnode_status == INTERIOR_NODE) & ~
+                              (diag_tonode_status == INACTIVE_BOUNDARY)) |
+                             ((diag_tonode_status == INTERIOR_NODE) & ~
+                              (diag_fromnode_status == INACTIVE_BOUNDARY)))
+
+        (self._diag_active_links, ) = numpy.where(diag_active_links)
+
+        self._num_diag_active_links = len(self._diag_active_links)
+        self._diag_activelink_fromnode = self._diag_link_fromnode[self._diag_active_links]
+        self._diag_activelink_tonode = self._diag_link_tonode[self._diag_active_links]
+
+
+    def _reset_list_of_active_links(self):
+        
+        super(RasterModelGrid, self)._reset_list_of_active_links()
+        if self._diagonal_links_created:
+            self._reset_list_of_active_diagonal_links()
+       
 
     def cell_faces(self, cell_id):
         """
@@ -548,6 +583,51 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                             return_link_id=True):
         return rfuncs.calculate_max_gradient_across_cell_faces(
             self, node_values, cell_ids, return_link_id=return_link_id)
+            
+            
+    def _setup_diagonal_links(self):
+        """
+        Creates lists of from and to nodes for diagonal links. A diagonal link
+        is a special type of link that connects the diagonal of two raster cells.
+        One use for diagonal links has to do with raster digital elevation 
+        models: diagonal links allow you to implement "D8" drainage-routing
+        algorithms, in which each node is considered to have 8 rather than 4
+        neighbors, and flow will go toward whichever of these neighbors lies in
+        the steepest downslope direction.
+        """
+        n_diagonal_links = 2*(self._nrows-1)*(self._ncols-1)
+        self._diag_link_fromnode = numpy.zeros(n_diagonal_links, dtype=int)
+        self._diag_link_tonode = numpy.zeros(n_diagonal_links, dtype=int)
+        i = 0
+        for r in range(self._nrows-1):
+            for c in range(self._ncols-1):
+                self._diag_link_fromnode[i] = c+r*self._ncols
+                self._diag_link_tonode[i] = (c+1)+(r+1)*self._ncols
+                i += 1
+                self._diag_link_fromnode[i] = (c+1)+r*self._ncols
+                self._diag_link_tonode[i] = c+(r+1)*self._ncols
+                i += 1
+                
+        self._diagonal_links_created = True
+        
+        self._reset_list_of_active_diagonal_links()
+        
+        
+    def d8_active_links(self):
+        """
+        Returns a set of active links that include diagonal connections between
+        grid cells, for use with link-based water-routing schemes.
+        """
+        
+        if not self._diagonal_links_created:
+            self._setup_diagonal_links()
+            
+        return self._diag_active_links, \
+               numpy.concatenate((self.activelink_fromnode, 
+                                  self._diag_activelink_fromnode)), \
+               numpy.concatenate((self.activelink_tonode,
+                                  self._diag_activelink_tonode))
+        
 
     def calculate_max_gradient_across_node(self, u, cell_id):
         '''
@@ -944,6 +1024,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                       out=out)
         return numpy.divide(diffs, self._dx, out=diffs)
 
+
+    def calculate_gradients_at_d8_active_links(self, node_values, out=None):
+        """
+        
+        """
+        
+        diag_dist = 1.4142*self._dx
+        straight_link_slopes = (node_values[self.activelink_tonode] - 
+                                node_values[self.activelink_fromnode]) / \
+                                self._dx
+        diagonal_link_slopes = (node_values[self._diag_activelink_tonode] - 
+                                node_values[self._diag_activelink_fromnode]) / \
+                                diag_dist
+        return numpy.concatenate((straight_link_slopes, diagonal_link_slopes))
+        
+        
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients, max_slope=False, dstr_node_ids=False):
         """
         Created DEJH Sept 2013. Based on approach of calc_flux_divergence..., below.

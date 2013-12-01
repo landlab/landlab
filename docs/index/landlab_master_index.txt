@@ -1,0 +1,5 @@
+Columns, number of in raster grid	RasterModelGrid.number_of_node_columns (property)
+Nodes, number of in grid	ModelGrid.number_of_nodes (property)
+Nodes, spacing in raster grid	RasterModelGrid.dx (property)
+Rows, number of in raster grid	RasterModelGrid.number_of_node_rows (property)
+Spacing, of nodes in raster grid	RasterModelGrid.dx (property)
