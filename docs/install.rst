@@ -114,3 +114,15 @@ directory. This ensures that any changes you make to sourece files will be
 seen by Python.
 
 
+Test Your Installation
+======================
+
+Once you have installed landlab through any of the above methods, you
+optionally run some tests to see if your installation is working (or rather,
+if it isn't working). From the Python command line, run::
+
+  >>> import landlab
+  >>> landlab.test()
+
+If this results in any errors, please report them to the landlab team.
+
