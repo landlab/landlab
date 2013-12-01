@@ -11,6 +11,11 @@ The Landlab has the following dependencies:
 - Numpy 1.7 or greater
 - Scipy 0.12 or greater
 
+.. note::
+
+  Although not supported, The landlab can be used with Python 3.X by simply
+  running 2to3 on the source.
+
 
 Installing Python and The Landlab Dependencies
 ==============================================
@@ -18,10 +23,11 @@ Installing Python and The Landlab Dependencies
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution, such as `Continuum IO's Anaconda
 <https://store.continuum.io/cshop/anaconda/>`_ or `Enthought's Canopy
-<https://www.enthought.com/products/canopy/>`_.  These collections already
-include compatible (and in some cases accelerated) versions of all of
-landlab's dependencies.  Download and follow the appropriate instructions for
-your operating system/distribution.
+<https://www.enthought.com/products/canopy/>`_ (we prefer to use Canopy but
+any of these should be fine). These collections already include compatible
+(and in some cases accelerated) versions of all of landlab's dependencies.
+Download and follow the appropriate instructions for your operating
+system/distribution.
 
 On Linux systems, you can also install Python and the landlab dependencies
 from your package manager.
@@ -39,6 +45,13 @@ Installing The Landlab
 Install with ``pip``
 --------------------
 
+Use this method if you would like to install the landlab onto your machine
+so you can use it as-is. You will be able to import landlab from the Python
+command line, and write scripts that use landlab modules but will not have
+access to the source. If you would would like to see the code or make tweaks
+to it (large or small) you should get a copy of the source code (see
+below on how to do this).
+
 The most recent stable release of landlab is available at the `Python Package
 Index <https://pypi.python.org/pypi>`_ and can be installed by running::
 
@@ -53,7 +66,6 @@ landlab using pip::
 Installing from a source distribution
 -------------------------------------
 
-
 This is the recommended way to install the landlab from source.
 
 .. note::
@@ -65,12 +77,12 @@ This is the recommended way to install the landlab from source.
 
 1. Checkout a version of landlab using Subversion::
 
-   svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
+  svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
 
 2. From the root directory of the landlab package (this is the directory
    that contains the file, ``setup.py``::
 
-    python setup.py install
+  python setup.py install
 
 This will put the landlab package into a system-wide location so that you can
 import landlab from any python session. It will also install any required
@@ -84,147 +96,21 @@ packages.
   below in the "Development Environment" section for details on how to do this.
 
 
-================
-Developers Guide
-================
+Install a Development Version
+=============================
 
-This section describes one possible workflow when developing The Landlab.
+This method with get a copy of the landlab source code, and install it in
+such a way that you can make changes to the code and the changes will
+immediately be seen by Python.
 
-Using Subversion
-================
+From the base directory of your landlab repository (the folder that contains
+setup.py), run the following::
 
-The standard resource for Subversion "Version Control with Subversion" book.
-It's available online and is completely *free*!
+  pip install -e .
 
-http://svnbook.red-bean.com/
+This sets things up so that Python looks into your source directory for
+landlab modules, rather than copying your source into the Python site-packages
+directory. This ensures that any changes you make to sourece files will be
+seen by Python.
 
-
-Checkout a copy of the source
------------------------------
-
-Use Subversion to checkout the latest version of the source code::
-
-    svn co https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
-
-Alternatively, if you already have a working copy of the repository you may want
-to update it with changes that others have committed to the repository::
-
-    svn update
-
-Review your changes
--------------------
-
-Now that you've made changes to some files, you'll probably want to have a
-look at what you've done. To see what it is you've changed since your last
-commit (or since you last checkout), use the status command::
-
-    svn status
-
-Use the Subversion diff command to see the differences between your copy and the
-copy that you checked out::
-
-    svn diff <changed_file>
-
-where *<changed_file>* is the name of the file you've made changes to. If you
-don't list any file names, this command will print the differences for *all*
-files that have changes.
-
-Commit your changes to the repository
--------------------------------------
-
-Once you have made changes to your copy of the source and are happy with the
-changes, you can commit them back to the repository::
-
-    svn commit
-
-This will commit all changes that you have made under the current directory. If
-you only want to commit changes to a file or two, you can list the file names
-separately on the command line::
-
-    svn commit <one_file> <another_file>
-
-
-The Development Environment
-===========================
-
-Once I have a working copy of The Landlab source code, I use the pip command to
-install a development version of the code. If I'm in the base landlab folder
-(the folder that contains setup.py), I run the following::
-
-    pip install -e .
-
-This sets up python so that it knows where the landlab package is when try to
-import it - regardless of what directory you are in. This allows python commands
-like::
-
-    >>> import landlab
-    >>> from landlab import craters
-
-to work. If you didn't do this you might start getting errors that contain 
-something like::
-
-    ImportError: No module named landlab
-
-To uninstall your development version of landlab::
-
-    pip uninstall TheLandlab
-
-
-Running Unit Tests
-==================
-
-Immediatly after update your working copy of the code (or checking out a new
-version) I will normally run the unit tests for the package to make sure nothing
-is broken. You can do this with setup.py::
-
-    python setup.py test
-
-You should also probably do this before commiting changes to the repository to
-make sure you didn't break things.
-
-
-Coding Style
-============
-
-Because Python is so flexible style-wise, please try to stick to the coding
-style described by PEP8,
-
-http://www.python.org/dev/peps/pep-0008/
-
-An easy way to make sure that you've done this is by running the pep8 command
-on each file that you edit. If you don't have pep8 installed, you will have to
-install it with::
-
-    pip install pep8
-
-Now you can run it on a Python source file. For instance::
-
-    pep8 craters.py
-
-At first, this will probably return lots of problems with you source file. Don't
-worry though, it won't take long to get used to the coding style and be able to
-write compatible code straigt away. If we stick to this it will make it much
-easier to read the code written by any one of us.
-
-
-Build API Documentation
-=======================
-
-You can build documentation for the LandLab API using Sphinx. Once you have set
-up your envrionment to properly import landlab, you can generate the necessary
-sphinx files with::
-
-    python setup.py build_sphinx
-
-This will put a bunch of files in the docs folder. The HTML documentation will
-be under the docs/_build/html/ folder. Pointing your browser to index.html
-under this folder will give you the top-level page for the documentation. This
-entire folder is relocatable, so if you would like your documentation elsewhere
-you can easily move the folder around.
-
-If you have added, removed, or renamed files you may need to regenerate some of
-the sphinx files and rebuild the api docs. If you have Sphinx installed, you can
-do this with (from the directory that contains setup.py)::
-
-    sphinx-apidoc -o docs landlab --force
 

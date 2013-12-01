@@ -14,6 +14,7 @@ Getting Started with The Landlab
 
    about
    install
+   dev_guide
 
 **Happy Landlab-ing!**
 
