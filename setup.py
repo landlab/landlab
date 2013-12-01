@@ -5,6 +5,7 @@ use_setuptools()
 from setuptools import setup
 import multiprocessing
 
+
 setup(name='TheLandlab',
       version='0.1.0',
       author='Eric Hutton',
@@ -12,9 +13,11 @@ setup(name='TheLandlab',
       url='https://csdms.colorado.edu/trac/landlab',
       description='Plugin-based component modeling tool.',
       long_description=open('README.rst').read(),
-      #install_requires=['CmtBasicModelingInterface'],
-      #setup_requires=['nose>=1.3'],
-      setup_requires=['nose>=1.0', 'memory_profiler'],
+      setup_requires=['numpy>=1.7',
+                      'scipy>=0.12',
+                      'matplotlib>=1.3',
+                      'nose>=1.0',
+                      'memory_profiler'],
       packages=['landlab',
                 'landlab.components',
                 'landlab.grid',
@@ -35,5 +38,4 @@ setup(name='TheLandlab',
       },
       package_data={'': ['data/*asc']},
       test_suite='nose.collector',
-      #test_suite='landlab.tests',
      )
