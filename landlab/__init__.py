@@ -21,6 +21,8 @@ The Landlab
 
 from __future__ import absolute_import
 
+__version__ = '0.1.0'
+
 import os
 if 'DISPLAY' not in os.environ:
     import matplotlib
@@ -33,3 +35,6 @@ from .framework.framework import Framework
 from .grid import *
 from .plot import *
 from .model_component import Component
+
+from .testing.nosetester import LandlabTester
+test = LandlabTester().test
