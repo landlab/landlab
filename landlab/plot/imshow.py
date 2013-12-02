@@ -4,6 +4,7 @@ import numpy as np
 try:
     import matplotlib.pyplot as plt
 except ImportError:
+    import warnings
     warnings.warn('matplotlib not found', ImportWarning)
 
 

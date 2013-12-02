@@ -28,6 +28,7 @@ if 'DISPLAY' not in os.environ:
     try:
         import matplotlib
     except ImportError:
+        import warnings
         warnings.warn('matplotlib not found', ImportWarning)
     else:
         matplotlib.use('Agg')
