@@ -6,10 +6,11 @@ Component for detachment-limited fluvial incision using a simple power-law model
 I = K Q^m S^n
 
 I=incision rate (M Y^(-1) )
-K=bedrock erodibility (M^(1-3m) Y^(m-1) )
+K=bedrock erodibility (M^(1-3m) Y^(m-1) ) #read in from input file
 Q= fluvial discharge (M^3 Y^-1 )
 S=slope of landscape (negative of the gradient in topography, dimensionless, 
 and only applies on positive slopes)
+m, n =exponents, read in from input file
 
 NOTE, in units above M=meters.  This component assumes that variables are given
 in units of meters and years, including rainfall!
@@ -18,6 +19,14 @@ NOTE, Only incision happens in this class.  NO DEPOSITION.
 NO TRACKING OF SEDIMENT FLUX.
 
 This assumes that a grid has already been instantiated.
+
+To run this, first instantiate the class member, then run one storm
+    incisor = PowerLawIncision('input_file_name',grid)
+    z = incisior.run_one_storm(grid, z, rainrate=optional, storm_duration=optional)
+    
+Note that the component knows the default rainfall rate (m/yr) and storm duration (yr)
+so these values need not be passed in.  Elevationare eroded and sent back.
+    
  
 """
 
@@ -26,7 +35,7 @@ from landlab import ModelParameterDictionary
 from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class PowerLawIncision(object):
     
@@ -80,6 +89,7 @@ class PowerLawIncision(object):
         flow_router = RouteFlowD8(len(z))
         #initial flow direction
         flowdirs, max_slopes = flow_router.calc_flowdirs(grid,z)
+        #print "elevations in runonestorm ",grid.node_vector_to_raster(z)
         #insantiate variable of type AccumFlow Class
         accumulator = AccumFlow(grid)
         #initial flow accumulation
@@ -93,6 +103,11 @@ class PowerLawIncision(object):
             #Set those to zero, because incision rate should be zero there.
             max_slopes.clip(0)
             I=-K*np.power(rainrate*drain_area,m)*np.power(max_slopes,n)
+            
+            #print "incision rates ",grid.node_vector_to_raster(I)
+            #print "flow dirs ",grid.node_vector_to_raster(flowdirs)
+            #print "max slopes ",grid.node_vector_to_raster(max_slopes)
+            #print "drainage area ", grid.node_vector_to_raster(drain_area)
             
             #Do a time-step check
             #If the downstream node is eroding at a slower rate than the 
