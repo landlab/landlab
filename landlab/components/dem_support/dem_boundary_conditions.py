@@ -41,7 +41,7 @@ class WatershedBoundaryConditions(object):
         #set the boundary condition (fixed value) at the outlet_node
         mg.set_fixed_value_boundaries(outlet_node)
     
-    def set_bc_node_id(self, mg, node_data, nodata_value, node_id):
+    def set_bc_node_id(self, mg, node_data, nodata_value, outlet_node):
         """
         Sets the boundary conditions for a watershed.
         Assumes that outlet is already known.
@@ -201,5 +201,8 @@ class WatershedBoundaryConditions(object):
                     
         #set outlet boundary condition
         mg.set_fixed_value_boundaries(outlet_loc)
+        x,y=mg.get_node_coords(outlet_loc)
+        #print "outlet_loc ", outlet_loc," x ",x," y ",y 
+        return outlet_loc
         
         
