@@ -1,9 +1,3 @@
-================
-Developers Guide
-================
-
-This section describes one possible workflow when developing The Landlab.
-
 Using Subversion
 ================
 

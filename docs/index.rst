@@ -3,14 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Landlab Documentation
-=====================
-
 Get Started with The Landlab
-----------------------------
+============================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    about
    install
@@ -19,25 +16,25 @@ Get Started with The Landlab
 
 
 User's Guide
-------------
+============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    users_guide
 
 
 Developer Documentation
--------------------------
+=======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    dev_guide
 
 
 API Documentation
------------------
+=================
 
 .. toctree::
    :maxdepth: 2
