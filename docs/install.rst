@@ -77,12 +77,12 @@ This is the recommended way to install the landlab from source.
 
 1. Checkout a version of landlab using Subversion::
 
-  svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
+    svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
 
 2. From the root directory of the landlab package (this is the directory
    that contains the file, ``setup.py``::
 
-  python setup.py install
+    python setup.py install
 
 This will put the landlab package into a system-wide location so that you can
 import landlab from any python session. It will also install any required

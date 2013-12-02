@@ -142,3 +142,18 @@ do this with (from the directory that contains setup.py)::
 
     sphinx-apidoc -o docs landlab --force
 
+
+Build a Landlab Model
+=====================
+
+
+
+Build a Landlab Component
+=========================
+
+
+
+Policies and Procedures
+=======================
+
+

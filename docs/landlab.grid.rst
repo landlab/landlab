@@ -73,14 +73,6 @@ grid Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`speed_test` Module
-------------------------
-
-.. automodule:: landlab.grid.speed_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`voronoi` Module
 ---------------------
 

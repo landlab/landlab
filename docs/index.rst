@@ -6,21 +6,38 @@
 Landlab Documentation
 =====================
 
-Getting Started with The Landlab
---------------------------------
+Get Started with The Landlab
+----------------------------
 
 .. toctree::
    :maxdepth: 2
 
    about
    install
+   tutorial
+   faq
+
+
+User's Guide
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   users_guide
+
+
+Developer Documentation
+-------------------------
+
+.. toctree::
+   :maxdepth: 2
+
    dev_guide
 
-**Happy Landlab-ing!**
 
-
-Landlab API Documentation
--------------------------
+API Documentation
+-----------------
 
 .. toctree::
    :maxdepth: 2
@@ -28,8 +45,17 @@ Landlab API Documentation
    landlab
 
 
-Indices and tables
-==================
+Bibliography
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   bibiography
+
+
+Reference
+=========
 
 * :ref:`genindex`
 * :ref:`modindex`

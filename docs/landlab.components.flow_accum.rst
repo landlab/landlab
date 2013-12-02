@@ -17,3 +17,11 @@ flow_accum Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`flow_accumulation2` Module
+--------------------------------
+
+.. automodule:: landlab.components.flow_accum.flow_accumulation2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

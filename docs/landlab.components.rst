@@ -42,6 +42,7 @@ Subpackages
     landlab.components.overland_flow
     landlab.components.radiation
     landlab.components.sed_trp_shallow_flow
+    landlab.components.simple_power_law_incision
     landlab.components.stream_power
     landlab.components.uniform_precip
 
