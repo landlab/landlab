@@ -1,7 +1,10 @@
 #! /usr/bin/env python
 
 import numpy as np
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    warnings.warn('matplotlib not found', ImportWarning)
 
 
 def assert_array_size_matches(array, size, msg=None):

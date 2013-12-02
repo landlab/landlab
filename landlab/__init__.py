@@ -25,8 +25,12 @@ __version__ = '0.1.0'
 
 import os
 if 'DISPLAY' not in os.environ:
-    import matplotlib
-    matplotlib.use('Agg')
+    try:
+        import matplotlib
+    except ImportError:
+        warnings.warn('matplotlib not found', ImportWarning)
+    else:
+        matplotlib.use('Agg')
 
 from .model_parameter_dictionary import ModelParameterDictionary
 from .framework.collections import Palette, Arena, NoProvidersError
