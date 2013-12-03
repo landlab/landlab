@@ -196,6 +196,9 @@ class ModelGrid(ModelDataFields):
         except KeyError:
             raise TypeError('element name not understood')
 
+    def get_interior_nodes(self):
+        return numpy.where(self.node_status == INTERIOR_NODE)[0]
+
     @make_return_array_immutable
     def get_node_status(self):
         """
