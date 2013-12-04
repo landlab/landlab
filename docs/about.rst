@@ -11,3 +11,27 @@ to use a landscape model often build their own unique model from the ground
 up, re-coding the basic building blocks of their landscape model rather than
 taking advantage of codes that have already been written.
 
+
+Acknowledgements
+----------------
+
+Citing Landlab::
+
+  @MISC{Landlab2013,
+    author = "Tucker, G. and Gasparini, N. and Istanbulluoglu, E. and Hobley, D. and Nudurupati, S. and Adams, D. and Hutton, E.",
+    title = "{Landlab} v0.1",
+    year = "2013",
+    url = "http://csdms.colorado.edu/wiki/Model:Landlab",
+    note = "Release 0.1"
+    }
+
+The Landlab Team:
+- Greg Tucker
+- Nicole Gasparini
+- Erkan Istanbulluoglu
+- Daniel Hobley
+- Sai Nudurupati
+- Jordan Adams
+- Eric Hutton
+
+

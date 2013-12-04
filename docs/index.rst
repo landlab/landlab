@@ -7,7 +7,7 @@ Get Started with The Landlab
 ============================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    about
    install
@@ -22,6 +22,7 @@ User's Guide
    :maxdepth: 1
 
    users_guide
+   model_grid
 
 
 Developer Documentation
