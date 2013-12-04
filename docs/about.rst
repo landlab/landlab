@@ -26,6 +26,7 @@ Citing Landlab::
     }
 
 The Landlab Team:
+
 - Greg Tucker
 - Nicole Gasparini
 - Erkan Istanbulluoglu
