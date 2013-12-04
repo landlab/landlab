@@ -26,13 +26,12 @@ Citing Landlab::
     }
 
 The Landlab Team:
-
-- Greg Tucker
-- Nicole Gasparini
-- Erkan Istanbulluoglu
-- Daniel Hobley
-- Sai Nudurupati
-- Jordan Adams
-- Eric Hutton
+  - Greg Tucker (CU)
+  - Nicole Gasparini (Tulane)
+  - Erkan Istanbulluoglu (UW)
+  - Daniel Hobley (CU)
+  - Sai Nudurupati (UW)
+  - Jordan Adams (Tulane)
+  - Eric Hutton (CU)
 
 
