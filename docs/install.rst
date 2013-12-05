@@ -14,7 +14,7 @@ The Landlab has the following dependencies:
 .. note::
 
   Although not supported, landlab can be used with Python 3.X by simply
-  running 2to3 on the source.
+  running `2to3 <http://docs.python.org/2/library/2to3.html>`_ on the source.
 
 
 Install Python
@@ -32,7 +32,7 @@ system/distribution.
 On Linux systems, you can also install Python and the landlab dependencies
 from your package manager.
 
-landlab uses `setuptools <https://pypi.python.org/pypi/setuptools>`_ for
+Landlab uses `setuptools <https://pypi.python.org/pypi/setuptools>`_ for
 packaging and is configured to automatically download and install the most
 up-to-date version of its dependencies from `PyPI
 <https://pypi.python.org/pypi>`_, if a satisfactory version is not already
@@ -42,14 +42,14 @@ installed.
 Install Landlab
 ===============
 
-There are several ways to install Landlab. Which method you wuse will 
+There are several ways to install Landlab. Which method you use will 
 depend on how you want to use landlab.
 
-- If you simply want to use Landlab as-is, and not see or make changes to the
+- If you want to use Landlab as-is, and not see or make changes to the
   code, you should follow the :ref:`Basic Installation <basic-install>`
   instructions.
 
-- If you would like to see the landlab source code and/or make changes or
+- If you would like to see the Landlab source code and/or make changes or
   add to the code, you should follow :ref:`Install as a Developer
   <developer-install>` instructions.
 
@@ -62,26 +62,26 @@ Use this method if you would like to install the landlab onto your machine
 so you can use it as-is. You will be able to import landlab from the Python
 command line, and write scripts that use landlab modules but will not have
 access to the source. If you would would like to see the code or make tweaks
-to it (large or small) you should get a copy of the source code (:ref:`see
-below <source-install>` on how to do this).
+to it (large or small) you should get a copy of the source code (see
+below for a description of :ref:`how to do this <source-install>`).
 
-The most recent stable release of landlab is available at the `Python Package
+The most recent stable release of Landlab is available at the `Python Package
 Index <https://pypi.python.org/pypi>`_ and can be installed by running::
 
     pip install TheLandlab
 
 This will install Landlab as well as any prerequisite packages. To upgrade
-an existing landlab installation::
+an existing Landlab installation::
 
     pip install TheLandlab --upgrade
 
 
 .. _developer-install:
 
-Install a Development Version
------------------------------
+Install as a Developer
+----------------------
 
-Use this method if you want to see and/or mess with the landlab source code.
+Use this method if you want to see and/or mess with the Landlab source code.
 
 .. note::
 
@@ -92,7 +92,7 @@ Use this method if you want to see and/or mess with the landlab source code.
    <http://subversion.apache.org/quick-start>`_
 
 
-1. Checkout a version of landlab using Subversion::
+1. Checkout a version of Landlab using Subversion::
 
     svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
 
@@ -124,7 +124,7 @@ source.
    <http://subversion.apache.org/quick-start>`_
 
 
-1. Checkout a version of landlab using Subversion::
+1. Checkout a version of Landlab using Subversion::
 
     svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
 
@@ -142,13 +142,14 @@ packages.
   If you are developing landlab you will probably not want to do this!
   If you do, you would have to run this command everytime you make a change to
   the code. Instead, you want to install the package in "development mode". See
-  below in the "Development Environment" section for details on how to do this.
+  the :ref:`Install as a Developer <developer-install>` section for details
+  on how to do this.
 
 
 Test Your Installation
 ----------------------
 
-Once you have installed landlab through one of the above methods, you can
+Once you have installed Landlab through one of the above methods, you can
 optionally run some tests to see if your installation is working (or rather,
 if it isn't working). From the Python command line, run::
 
