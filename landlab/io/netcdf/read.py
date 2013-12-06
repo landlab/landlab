@@ -76,7 +76,8 @@ def _read_netcdf_structured_data(root):
     fields = dict()
     for (name, var) in root.variables.items():
         if not name in _COORDINATE_NAMES:
-            fields[name] = var[:]
+            fields[name] = var[:].copy()
+            fields[name].shape = (fields[name].size, )
     return fields
 
 
