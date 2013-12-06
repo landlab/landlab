@@ -54,7 +54,7 @@ class ScalarDataFields(dict):
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
         """
-        self.add_field(name, self.empty(**kwds), units=units)
+        return self.add_field(name, self.empty(**kwds), units=units)
 
     def add_ones(self, name, units=_UNKNOWN_UNITS, **kwds):
         """
@@ -63,7 +63,7 @@ class ScalarDataFields(dict):
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
         """
-        self.add_field(name, self.ones(**kwds), units=units)
+        return self.add_field(name, self.ones(**kwds), units=units)
 
     def add_zeros(self, name, units=_UNKNOWN_UNITS, **kwds):
         """
@@ -72,7 +72,7 @@ class ScalarDataFields(dict):
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
         """
-        self.add_field(name, self.zeros(**kwds), units=units)
+        return self.add_field(name, self.zeros(**kwds), units=units)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False):
         if copy:
@@ -81,6 +81,7 @@ class ScalarDataFields(dict):
         self[name] = value_array
 
         self.set_units(name, units)
+        return self[name]
 
     def set_units(self, name, units):
         self._units[name] = units

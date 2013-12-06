@@ -56,6 +56,21 @@ class TestModelDataFields(unittest.TestCase):
         assert_array_equal(np.ones(2), fields['cell']['z'])
         assert_array_equal(np.ones(2), fields.field_values('cell', 'z'))
 
+    def test_add_ones_return_value(self):
+        fields = ModelDataFields()
+        fields.new_field_location('node', 12)
+        fields.new_field_location('cell', 2)
+
+        rtn_value = fields.add_ones('node', 'z')
+        assert_array_equal(rtn_value, np.ones(12))
+        self.assertIs(rtn_value, fields['node']['z'])
+        self.assertIs(rtn_value, fields.field_values('node', 'z'))
+
+        rtn_value = fields.add_ones('cell', 'z')
+        assert_array_equal(rtn_value, np.ones(2))
+        self.assertIs(rtn_value, fields['cell']['z'])
+        self.assertIs(rtn_value, fields.field_values('cell', 'z'))
+
     def test_getitem(self):
         fields = ModelDataFields()
         fields.new_field_location('node', 12)
