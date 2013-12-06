@@ -53,6 +53,8 @@ class ScalarDataFields(dict):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
+
+        Returns a reference to the newly-created array.
         """
         return self.add_field(name, self.empty(**kwds), units=units)
 
@@ -62,6 +64,8 @@ class ScalarDataFields(dict):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+
+        Returns a reference to the newly-created array.
         """
         return self.add_field(name, self.ones(**kwds), units=units)
 
@@ -71,6 +75,8 @@ class ScalarDataFields(dict):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+
+        Returns a reference to the newly-created array.
         """
         return self.add_field(name, self.zeros(**kwds), units=units)
 
