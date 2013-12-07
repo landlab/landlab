@@ -3,6 +3,16 @@ import numpy as np
 from .base import INACTIVE_BOUNDARY
 
 
+_VALID_ROUTING_METHODS = set(['d8', 'd4'])
+
+
+def assert_valid_routing_method(method):
+    if method not in _VALID_ROUTING_METHODS:
+        raise ValueError(
+            '%s: routing method not understood. should be one of %s' %
+            (method, ', '.join(_VALID_ROUTING_METHODS)))
+
+
 def _make_optional_arg_into_array(number_of_elements, *args):
     assert(len(args) < 2)
     if len(args) == 0:
@@ -47,89 +57,125 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     return out
 
 
-def calculate_max_gradient_across_adjacent_cells(grid, node_values, *args, **kwds):
+def calculate_max_gradient_across_adjacent_cells(grid, node_values, *args,
+                                                 **kwds):
     """calculate_max_gradient_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
+
+    Calculate the slopes of *node_values*, given at every node in the grid,
+    relative to the nodes centered at *cell_ids*. Note that downward slopes
+    are reported as positive. That is, the gradient is positive if a neighbor
+    node's value is less than that of the node as *cell_ids*.
+
+    If *cell_ids* is not provided, calculate the maximum gradient for all
+    cells in the grid.
+
+    The default is to only consider neighbor cells to the north, south, east,
+    and west. To also consider gradients to diagonal nodes, set the *method*
+    keyword to *d8* (the default is *d4*).
+
+    Use the *out* keyword if you have an array that you want to put the result
+    into. If not given, create a new array.
+
+    Use the *return_node* keyword to also the node id of the node in the
+    direction of the maximum gradient.
+
+    >>> import landlab
+    >>> rmg = landlab.RasterModelGrid(3, 3)
+    >>> node_values = rmg.zeros()
+    >>> node_values[1] = -1
+    >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0)
+    array([ 1.])
+
+    Get both the maximum gradient and the node to which the gradient is
+    measured.
+
+    >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0, return_node=True)
+    (array([ 1.]), array([1]))
     """
     method = kwds.pop('method', 'd4')
+    assert_valid_routing_method(method)
 
-    if method.lower() == 'd4':
+    if method == 'd4':
         return calculate_max_gradient_across_cell_faces(
             grid, node_values, *args, **kwds)
-    elif method.lower() == 'd8':
+    elif method == 'd8':
         neighbor_grads = calculate_max_gradient_across_cell_faces(
             grid, node_values, *args, **kwds)
         diagonal_grads = calculate_max_gradient_across_cell_corners(
             grid, node_values, *args, **kwds)
 
-        return_face = kwds.pop('return_face', False)
+        return_node = kwds.pop('return_node', False)
 
-        if not return_face:
-            return np.choose(neighbor_grads > diagonal_grads,
+        if not return_node:
+            return np.choose(neighbor_grads >= diagonal_grads,
                              (diagonal_grads, neighbor_grads), **kwds)
         else:
-            max_grads = np.choose(neighbor_grads[0] > diagonal_grads[0],
+            max_grads = np.choose(neighbor_grads[0] >= diagonal_grads[0],
                                   (diagonal_grads[0], neighbor_grads[0]),
                                   **kwds)
-            inds = np.choose(neighbor_grads[0] > diagonal_grads[0],
-                                  (diagonal_grads[1] + 4, neighbor_grads[1]),
-                                  **kwds)
-            return (max_grads, inds)
+            node_ids = np.choose(neighbor_grads[0] >= diagonal_grads[0],
+                             (diagonal_grads[1], neighbor_grads[1]),
+                             **kwds)
+            return (max_grads, node_ids)
 
 
 def calculate_max_gradient_across_cell_corners(grid, node_values, *args,
                                                **kwds):
-    """calculate_max_gradient_across_cell_corners(grid, node_values [, cell_ids], return_face=False, out=None)
+    """calculate_max_gradient_across_cell_corners(grid, node_values [, cell_ids], return_node=False, out=None)
     """
-    return_face = kwds.pop('return_face', False)
+    return_node = kwds.pop('return_node', False)
 
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
 
     grads = calculate_gradient_across_cell_corners(grid, node_values, cell_ids)
 
-    if return_face:
+    if return_node:
         ind = np.argmax(grads, axis=1)
+        node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[xrange(len(cell_ids)), ind]
-        return (out, 3 - ind)
+        return (out, node_ids)
+        #return (out, 3 - ind)
     else:
         return grads.max(axis=1, **kwds)
 
 
 def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
-    """calculate_max_gradient_across_cell_faces(grid, node_values, [cell_ids], return_face=False, out=None)
+    """calculate_max_gradient_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
 
     This method calculates the gradients in *node_values* across all four
     faces of the cell or cells with ID *cell_ids*. Slopes downward from the
     cell are reported as positive. If *cell_ids* is not given, calculate
     gradients for all cells.
 
-    Use the *return_face* keyword to return a tuple, with the first element
-    being the gradients and the second the *cell-level* id of the face with
-    the max gradient. This is the id of face as measured within the cell and
-    so ranges from 0 to 3 for a cell with four sides.
+    Use the *return_node* keyword to return a tuple, with the first element
+    being the gradients and the second the node id of the node in the direction
+    of the maximum gradient.
 
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
     >>> calculate_max_gradient_across_cell_faces(rmg, values_at_nodes)
     array([ 3.])
-    >>> (_, ind) = calculate_max_gradient_across_cell_faces(rmg, values_at_nodes, return_face=True)
+    >>> (_, ind) = calculate_max_gradient_across_cell_faces(rmg, values_at_nodes, return_node=True)
     >>> ind
-    array([0])
+    array([1])
     """
-    return_face = kwds.pop('return_face', False)
+    return_node = kwds.pop('return_node', False)
 
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
 
     grads = calculate_gradient_across_cell_faces(grid, node_values, cell_ids)
 
-    if return_face:
+    if return_node:
         ind = np.argmax(grads, axis=1)
+        node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[xrange(len(cell_ids)), ind]
-        return (out, 3 - ind)
+        return (out, node_ids)
+        #return (out, 3 - ind)
     else:
         return grads.max(axis=1, **kwds)
 
