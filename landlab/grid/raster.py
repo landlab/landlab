@@ -658,64 +658,94 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                                **kwds)
 
     def calculate_max_gradient_across_cell_corners(self, *args, **kwds):
+        """
+        Return the maximum gradients across diagonal cells.
+
+        Refer to :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_cell_corners`
+        for full documentation.
+
+        .. seealso::
+
+            :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_cell_corners` : equivalent function
+        """
         return rfuncs.calculate_max_gradient_across_cell_corners(self, *args,
                                                                  **kwds)
 
+    def calculate_max_gradient_across_adjacent_cells(self, node_values, *args,
+                                                     **kwds):
+        """
+        Return the maximum gradients across adjacent cells.
+
+        Refer to :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_adjacent_cells`
+        for full documentation.
+
+        .. seealso::
+
+            :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_adjacent_cells` : equivalent function
+        """
+        return rfuncs.calculate_max_gradient_across_adjacent_cells(
+            node_values, *args, **kwds)
+
     def calculate_max_gradient_across_node(self, u, cell_id):
-        '''
-            This method calculates the gradients in u across all 4 faces of the 
-            cell with ID cell_id, and across the four diagonals. It then returns 
-            the steepest (most negative) of these values, followed by its dip 
-            direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes 
-            downward from the cell are reported as positive.
+        """
+        .. deprecated:: 0.1
+            Use :func:`calculate_max_gradient_across_adjacent_cells`
+
+        This method calculates the gradients in u across all 4 faces of the 
+        cell with ID cell_id, and across the four diagonals. It then returns 
+        the steepest (most negative) of these values, followed by its dip 
+        direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes 
+        downward from the cell are reported as positive.
             
-            This code is actually calculating slopes, not gradients.  
-            The max gradient is the most negative, but the max slope is the most
-            positive.  So, this was updated to return the max value, not the 
-            min.
-            
-        GT: Might be possible to speed this up using inlink_matrix and 
-        outlink_matrix.
-        '''
+        This code is actually calculating slopes, not gradients.  
+        The max gradient is the most negative, but the max slope is the most
+        positive.  So, this was updated to return the max value, not the 
+        min.
+
+        """
         return rfuncs.calculate_max_gradient_across_node(self, u, cell_id)
         
     def calculate_max_gradient_across_node_d4(self, u, cell_id):
-        '''
-            This method calculates the gradients in u across all 4 faces of the 
-            cell with ID cell_id. It then returns 
-            the steepest (most negative) of these values, followed by its dip 
-            direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes 
-            downward from the cell are reported as positive.
+        """
+        .. deprecated:: 0.1
+            Use :func:`calculate_max_gradient_across_cell_faces` instead
+
+        This method calculates the gradients in u across all 4 faces of the 
+        cell with ID cell_id. It then returns 
+        the steepest (most negative) of these values, followed by its dip 
+        direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes 
+        downward from the cell are reported as positive.
             
-            Note that this is exactly the same as calculate_max_gradient_across_node
-            except that this is d4, and the other is d8.
+        Note that this is exactly the same as calculate_max_gradient_across_node
+        except that this is d4, and the other is d8.
             
-            This code is actually calculating slopes, not gradients.  
-            The max gradient is the most negative, but the max slope is the most
-            positive.  So, this was updated to return the max value, not the 
-            min.
-            
-        '''
+        This code is actually calculating slopes, not gradients.  
+        The max gradient is the most negative, but the max slope is the most
+        positive.  So, this was updated to return the max value, not the 
+        min.
+        """
         return rfuncs.calculate_max_gradient_across_node_d4(self, u, cell_id)
         
     def find_node_in_direction_of_max_slope(self, u, node_id):
-        '''
-            This method calculates the slopes (-dz/dx) in u across all 4 faces of 
-            the cell with ID node_id, and across the four diagonals. 
-            It then returns the node ID in the direction of the steepest 
-            (most positive) of these values,  i.e., this is a 
-            D8 algorithm. Slopes downward from the cell are reported as positive.
-            Based on code from DH, modified by NG, 6/2013
+        """
+        .. deprecated:: 0.1
+            Use :func:`calculate_max_gradient_across_adjacent_cells` instead
+
+        This method calculates the slopes (-dz/dx) in u across all 4 faces of 
+        the cell with ID node_id, and across the four diagonals. 
+        It then returns the node ID in the direction of the steepest 
+        (most positive) of these values,  i.e., this is a 
+        D8 algorithm. Slopes downward from the cell are reported as positive.
             
-            This doesn't deal with the fixed gradient boundary condition.  
-            NG is still confused about that one.
+        This doesn't deal with the fixed gradient boundary condition.  
+        """
+
+        # NMG Update.  This is super clumsy. 
             
-            NMG Update.  This is super clumsy. 
-            
-            DEJH update: Gets confused for the lowest node if w/i grid
-            (i.e., closed)- will return a higher neighbour, when it should
-            return a null index ->  Now returns -1.
-        '''
+        # DEJH update: Gets confused for the lowest node if w/i grid
+        # (i.e., closed)- will return a higher neighbour, when it should
+        # return a null index ->  Now returns -1.
+
         #We have poor functionality if these are closed boundary nodes! 
         neighbor_nodes = self.get_neighbor_list(node_id)
         neighbor_nodes.sort()
@@ -783,28 +813,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return steepest_node
     
     def find_node_in_direction_of_max_slope_d4(self, u, node_id):
-        '''
+        """
+        .. deprecated:: 0.1
+            Use :func:`calculate_max_gradient_across_adjacent_cells` instead
         
         This method is exactly the same as find_node_in_direction_of_max_slope
         except that this method only considers nodes that are connected by links,
         or in otherwords, in the 0, 90, 180 and 270 directions.
         
-            This method calculates the slopes (-dz/dx) in u across all 4 faces of 
-            the cell with ID node_id. 
-            It then returns the node ID in the direction of the steepest 
-            (most positive) of these values,  i.e., this is a 
-            D8 algorithm. Slopes downward from the cell are reported as positive.
-            Based on code from DH, modified by NG, 6/2013
+        This method calculates the slopes (-dz/dx) in u across all 4 faces of 
+        the cell with ID node_id. 
+        It then returns the node ID in the direction of the steepest 
+        (most positive) of these values,  i.e., this is a 
+        D8 algorithm. Slopes downward from the cell are reported as positive.
             
-            This doesn't deal with the fixed gradient boundary condition.  
-            NG is still confused about that one.
+        This doesn't deal with the fixed gradient boundary condition.  
+        """
+
+        # NMG Update.  This is super clumsy. 
             
-            NMG Update.  This is super clumsy. 
-            
-            DEJH update: Gets confused for the lowest node if w/i grid
-            (i.e., closed)- will return a higher neighbour, when it should
-            return a null index ->  Now returns -1.
-        '''
+        # DEJH update: Gets confused for the lowest node if w/i grid
+        # (i.e., closed)- will return a higher neighbour, when it should
+        # return a null index ->  Now returns -1.
+
         #We have poor functionality if these are closed boundary nodes! 
         neighbor_nodes = self.get_neighbor_list(node_id)
         neighbor_nodes.sort()
