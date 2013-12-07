@@ -122,81 +122,112 @@ class ModelGrid(ModelDataFields):
 
     @property
     def ndim(self):
+        """Number of spatial dimensions of the grid"""
         return 2
 
     @property
     def node_index_at_cells(self):
+        """Node ID associated with grid cells"""
         return self.cell_node
 
     @property
     def active_nodes(self):
+        """Node IDs of all active nodes"""
         (active_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
         return active_node_ids
 
     @property
     def node_index_at_active_cells(self):
+        """Node ID associated with active grid cells"""
         (active_cell_ids, ) = numpy.where(self.node_status == INTERIOR_NODE)
         return active_cell_ids
 
     @property
     def active_cell_index_at_nodes(self):
+        """Active cell ID associated with grid nodes"""
         return self.node_activecell
 
     @property
     def active_cell_index(self):
+        """IDs of active cells"""
         return self.active_cells
 
     @property
     def node_index_at_link_head(self):
+        """Node ID that defines the start of a link"""
         return self.link_fromnode
 
     @property
     def node_index_at_link_tail(self):
+        """Node ID that defines the end of a link"""
         return self.link_tonode
 
     @property
     def face_index_at_links(self):
+        """ID of the face associated with a link between two grid nodes"""
         return self.link_face
         
     @property
     def number_of_nodes(self):
+        """Total number of nodes in the grid"""
         return self._num_nodes
     
     @property
     def number_of_cells(self):
+        """Total number of cells in the grid"""
         return self._num_cells
     
     @property
     def number_of_links(self):
+        """Total number of links in the grid"""
         return self._num_links
     
     @property
     def number_of_faces(self):
+        """Total number of faces in the grid"""
         return self._num_faces
     
     @property
     def number_of_active_nodes(self):
+        """Number of active nodes in the grid"""
         return self._num_active_nodes
 
     @property
     def number_of_active_cells(self):
+        """Number of active cells in the grid"""
         return self._num_active_cells
 
     @property
     def number_of_active_links(self):
+        """Number of active links in the grid"""
         return self._num_active_links
 
     @property
     def number_of_active_faces(self):
+        """Number of active faces in the grid"""
         return self._num_active_faces
 
     def number_of_elements(self, element_name):
+        """Return the number of elements, given by the *element_name* string
+        in a grid. *element_name* must be one of:
+            * node
+            * cell
+            * link
+            * face
+            * active_node
+            * active_cell
+            * active_link
+            * active_face
+        """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
         except KeyError:
             raise TypeError('element name not understood')
 
     def get_interior_nodes(self):
+        """Return node IDs of all of a grids interior nodes. Interior nodes
+        are active nodes that are not on a boundary.
+        """
         return numpy.where(self.node_status == INTERIOR_NODE)[0]
 
     @make_return_array_immutable
@@ -209,11 +240,13 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable
     def node_x(self):
+        """X-coordinates of all nodes."""
         return self._node_x
     
     @property
     @make_return_array_immutable
     def node_y(self):
+        """Y-coordinates of all nodes."""
         return self._node_y
 
     @make_return_array_immutable
@@ -231,20 +264,25 @@ class ModelGrid(ModelDataFields):
 
     @property
     def axis_units(self):
+        """A tuple of the units (as a string) for each of a grid's
+        coordinates."""
         return self._axis_units
 
     @axis_units.setter
     def axis_units(self, new_units):
+        """Set the units for each a grid's coordinates"""
         if len(new_units) != self.ndim:
             raise ValueError('length of units does not match grid dimension')
         self._axis_units = tuple(new_units)
 
     @property
     def axis_name(self):
+        """A tuple of coordinate names for the grid"""
         return self._axis_name
 
     @axis_name.setter
     def axis_name(self, new_names):
+        """Set the names of a grid's coordinates"""
         if len(new_names) != self.ndim:
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)

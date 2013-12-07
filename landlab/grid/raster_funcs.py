@@ -383,77 +383,11 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     return max_slope, angles[index_max]
 
 
-def find_node_in_direction_of_max_slope_d4(self, u, node_id):
-    """
-    This method is exactly the same as find_node_in_direction_of_max_slope
-    except that this method only considers nodes that are connected by links,
-    or in otherwords, in the 0, 90, 180 and 270 directions.
-    
-        This method calculates the slopes (-dz/dx) in u across all 4 faces of 
-        the cell with ID node_id. 
-        It then returns the node ID in the direction of the steepest 
-        (most positive) of these values,  i.e., this is a 
-        D8 algorithm. Slopes downward from the cell are reported as positive.
-        Based on code from DH, modified by NG, 6/2013
-        
-        This doesn't deal with the fixed gradient boundary condition.  
-        NG is still confused about that one.
-        
-        NMG Update.  This is super clumsy. 
-        
-        DEJH update: Gets confused for the lowest node if w/i grid
-        (i.e., closed)- will return a higher neighbour, when it should
-        return a null index ->  Now returns -1.
-    """
-    #We have poor functionality if these are closed boundary nodes! 
-    neighbor_nodes = self.get_neighbor_list(node_id)
-    neighbor_nodes.sort()
-    #print 'Node is internal: ', self.is_interior(cell_id)
-    #print 'Neighbor cells: ', neighbor_cells
-    slopes = []
-    for a in neighbor_nodes:
-        if self.node_status[a] != INACTIVE_BOUNDARY:
-            single_slope = (u[node_id] - u[a])/self.dx
-        else:
-            single_slope = -9999
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'status: ', self.node_status[a]
-        #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
-        if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
-            slopes.append(single_slope)
-        else:
-            print 'NaNs present in the grid!'
-
-    #print 'Slopes list: ', slopes
-    if slopes:
-        max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
-    else:
-        print u
-        print 'Returning NaN angle and direction...'
-        max_slope = numpy.nan
-        index_max = 4
-    
-    #all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
-    #print 'all_neighbor_cells ', all_neighbor_cells
-    
-    #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
-    #This remains extremely ad-hoc. An internal node points to itself, but this should never
-    #be used to actually route flow. In flow_accumulation, there is an explicit check that flow
-    #is not routed to yourself.
-    steepest_node = neighbor_nodes[index_max]
-    #...now if a node is the lowest thing, this method returns -1, not a neighbor:
-    if u[steepest_node] > u[node_id]:
-        steepest_node=-1
-    
-    return steepest_node
-
-
 def calculate_max_gradient_across_node_d4(self, u, cell_id):
     """
+    .. deprecated:: 0.1
+        Use :func:`calculate_max_gradient_across_cell_faces` instead
+
     This method calculates the gradients in u across all 4 faces of the 
     cell with ID cell_id. It then returns 
     the steepest (most negative) of these values, followed by its dip 
