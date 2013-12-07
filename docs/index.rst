@@ -40,6 +40,8 @@ API Documentation
 .. toctree::
    :maxdepth: 2
 
+   landlab.grid.base
+   landlab.grid.raster
    landlab
 
 
