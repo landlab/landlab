@@ -17,6 +17,12 @@ def setup_unit_grid():
     _VALUES_AT_NODES = np.arange(20)
 
 
+def setup_3x3_grid():
+    from landlab import RasterModelGrid
+    global rmg_3x3
+    rmg_3x3 = RasterModelGrid(3, 3)
+
+
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
     grad = rfuncs.calculate_max_gradient_across_cell_faces(_GRID,
@@ -39,18 +45,42 @@ def test_iterable():
 
 
 @with_setup(setup_unit_grid)
-def test_scalar_arg_with_links():
+def test_scalar_arg_with_return_node():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10,])
-    (grad, face) = _GRID.calculate_max_gradient_across_cell_faces(
-        values, (0, 4), return_face=True)
+    (grad, node) = _GRID.calculate_max_gradient_across_cell_faces(
+        values, (0, 4), return_node=True)
     assert_array_equal(grad, [1, 6])
-    assert_array_equal(face, [1, 2])
+    assert_array_equal(node, [5, 17])
 
-    link_ids = rfuncs.active_link_id_of_cell_neighbor(_GRID, face, [0, 4])
-    assert_array_equal(link_ids, [9, 7])
 
-    node_ids = rfuncs.node_id_of_cell_neighbor(_GRID, face, (0, 4))
-    assert_array_equal(node_ids, [5, 17])
+@with_setup(setup_3x3_grid)
+def test_node_in_direction_of_max():
+    for neighbor_id in [1, 3, 5, 7]:
+        values = np.zeros(9)
+        values[neighbor_id] = -1
+        (_, node) = rmg_3x3.calculate_max_gradient_across_cell_faces(
+            values, 0, return_node=True)
+        assert_array_equal(node, neighbor_id)
+
+
+@with_setup(setup_3x3_grid)
+def test_node_in_direction_of_max_with_ties():
+    values = np.zeros(9)
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_faces(
+        values, 0, return_node=True)
+    assert_array_equal(node, 5)
+
+    values = np.zeros(9)
+    values[5] = 1
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_faces(
+        values, 0, return_node=True)
+    assert_array_equal(node, 7)
+
+    values = np.zeros(9)
+    values[[5, 7]] = 1
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_faces(
+        values, 0, return_node=True)
+    assert_array_equal(node, 3)

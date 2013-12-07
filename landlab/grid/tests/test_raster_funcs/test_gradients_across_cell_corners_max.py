@@ -14,6 +14,13 @@ def setup_unit_grid():
     })
 
 
+def setup_3x3_grid():
+    from landlab import RasterModelGrid
+    globals().update({
+        'rmg_3x3': RasterModelGrid(3, 3),
+    })
+
+
 def setup_grid():
     from landlab import RasterModelGrid
     globals().update({
@@ -41,10 +48,37 @@ def test_scalar_arg_with_faces_ids():
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10], dtype=float)
-    (grad, face) = rmg.calculate_max_gradient_across_cell_corners(
-        values, (0, 4), return_face=True)
+    (grad, node) = rmg.calculate_max_gradient_across_cell_corners(
+        values, (0, 4), return_node=True)
     assert_array_equal(grad, np.array([1, 2]) / np.sqrt(2.))
-    assert_array_equal(face, [2, 2])
+    assert_array_equal(node, [10, 16])
 
-    node_ids = rfuncs.node_id_of_cell_corner(rmg, face, [0, 4])
-    assert_array_equal(node_ids, [10, 16])
+
+@with_setup(setup_3x3_grid)
+def test_node_in_direction_of_max():
+    for diagonal_id in [0, 2, 6, 8]:
+        values = np.zeros(9)
+        values[diagonal_id] = -1
+        (_, node) = rmg_3x3.calculate_max_gradient_across_cell_corners(
+            values, 0, return_node=True)
+        assert_array_equal(node, diagonal_id)
+
+
+@with_setup(setup_3x3_grid)
+def test_node_in_direction_of_max_with_ties():
+    values = np.zeros(9)
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_corners(
+        values, 0, return_node=True)
+    assert_array_equal(node, 8)
+
+    values = np.zeros(9)
+    values[8] = 1
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_corners(
+        values, 0, return_node=True)
+    assert_array_equal(node, 6)
+
+    values = np.zeros(9)
+    values[[8, 6]] = 1
+    (_, node) = rmg_3x3.calculate_max_gradient_across_cell_corners(
+        values, 0, return_node=True)
+    assert_array_equal(node, 0)
