@@ -1,4 +1,8 @@
 #! /usr/bin/env python
+"""
+
+
+"""
 
 from landlab.components.flexure import FlexureComponent
 from landlab import RasterModelGrid
@@ -25,7 +29,8 @@ def main():
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=True) 
+    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=True,
+                show=True) 
 
 
 if __name__ == '__main__':

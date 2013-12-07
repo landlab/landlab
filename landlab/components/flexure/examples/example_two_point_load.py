@@ -47,7 +47,8 @@ def main():
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False) 
+    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False,
+                show=True) 
 
 
 if __name__ == '__main__':

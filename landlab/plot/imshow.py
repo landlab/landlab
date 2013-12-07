@@ -95,6 +95,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
 
 
 def imshow_grid(grid, values, **kwds):
+    show = kwds.pop('show', False)
     values_at = kwds.pop('values_at', 'node')
 
     if values_at == 'node':
@@ -107,6 +108,9 @@ def imshow_grid(grid, values, **kwds):
         imshow_active_cell_grid(grid, values, **kwds)
     else:
         raise TypeError('value location %s not understood' % values_at)
+
+    if show:
+        plt.show()
 
 
 def imshow_field(field, name, **kwds):

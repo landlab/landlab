@@ -40,6 +40,7 @@ has_boundary_neighbor = numpy.vectorize(node_has_boundary_neighbor,
 class RasterModelGridPlotter(object):
     def imshow(self, group, var_name, **kwds):
         from landlab.plot import imshow_field
+        kwds['values_at'] = group
         imshow_field(self, var_name, **kwds)
 
 
