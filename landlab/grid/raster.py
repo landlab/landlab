@@ -685,7 +685,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             :func:`~landlab.grid.raster_funcs.calculate_max_gradient_across_adjacent_cells` : equivalent function
         """
         return rfuncs.calculate_max_gradient_across_adjacent_cells(
-            node_values, *args, **kwds)
+            self, node_values, *args, **kwds)
 
     def calculate_max_gradient_across_node(self, u, cell_id):
         """
