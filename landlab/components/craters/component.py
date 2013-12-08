@@ -3,7 +3,7 @@
 import numpy as np
 
 from landlab.grid.raster import RasterModelGrid 
-from landlab.model_component import Component
+from landlab import Component
 import landlab.components.craters as craters
 
 
