@@ -36,11 +36,12 @@ def main():
     dt = 0.1*dr**2 / kd    # time-step size set by CFL condition
     
     # Create and initialize a radial model grid
-    mg = RadialModelGrid()
-    mg.initialize(num_shells, dr)
+    mg = RadialModelGrid(num_shells, dr)
+    #mg.initialize(num_shells, dr)
     
     # Set up scalar values
-    z = mg.create_node_array_zeros()            # node elevations
+    z = mg.add_zeros('node', 'Elevation')
+    #z = mg.create_node_array_zeros('Elevation')            # node elevations
     dzdt = mg.create_node_array_zeros()  # node rate of elevation change
     
     # Get a list of the interior cells

@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Get Started with The Landlab
+Get Started with Landlab
 ============================
 
 .. toctree::

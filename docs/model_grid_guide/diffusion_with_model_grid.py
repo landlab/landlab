@@ -66,10 +66,10 @@ def main():
             
         # Update the elevations
         z[interior_cells] = z[interior_cells] + dzdt[interior_cells] * dt
-           
-   
+
+
     # FINALIZE
-    
+
     # Get a 2D array version of the elevations
     zr = mg.node_vector_to_raster(z, flip_vertically=True)
     
@@ -77,7 +77,7 @@ def main():
     pylab.close()  # clear any pre-existing plot
     im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
     # add contour lines with labels
-    cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0])
+    cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0], hold='on')
     pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
     
     # add a color bar on the side
