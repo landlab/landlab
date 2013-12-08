@@ -2,7 +2,7 @@
 
 import types
 
-from landlab import model_parameter_dictionary as mpd
+from landlab.core import model_parameter_dictionary as mpd
 from .raster import from_dict as raster_from_dict
 from .hex import from_dict as hex_from_dict
 
