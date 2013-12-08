@@ -9,8 +9,8 @@ import tempfile
 import numpy as np
 
 from landlab import ModelParameterDictionary
-from landlab.model_parameter_dictionary import (MissingKeyError,
-                                                ParameterValueError)
+from landlab.core.model_parameter_dictionary import (MissingKeyError,
+                                                     ParameterValueError)
 
 _TEST_PARAM_DICT_FILE = u"""
 # A Comment
