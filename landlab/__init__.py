@@ -33,13 +33,14 @@ if 'DISPLAY' not in os.environ:
     else:
         matplotlib.use('Agg')
 
-from .model_parameter_dictionary import ModelParameterDictionary
+from .core.model_parameter_dictionary import ModelParameterDictionary
+from .core.model_component import Component
 from .framework.collections import Palette, Arena, NoProvidersError
 from .framework.decorators import Implements, ImplementsOrRaise
 from .framework.framework import Framework
 from .grid import *
 from .plot import *
-from .model_component import Component
 
 from .testing.nosetester import LandlabTester
 test = LandlabTester().test
+bench = LandlabTester().bench
