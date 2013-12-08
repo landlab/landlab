@@ -20,7 +20,7 @@ from numpy import *
 from math import *
 import landlab
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
-from landlab.model_parameter_dictionary import ModelParameterDictionary
+from landlab import ModelParameterDictionary
 from matplotlib.pyplot import *
 
 

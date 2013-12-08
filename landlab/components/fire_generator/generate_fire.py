@@ -30,7 +30,7 @@
 import os
 from random import weibullvariate
 from scipy import special
-from landlab.model_parameter_dictionary import ModelParameterDictionary
+from landlab import ModelParameterDictionary
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 

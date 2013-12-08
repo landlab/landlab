@@ -14,7 +14,7 @@ from numpy import *
 from math import *
 import landlab
 from landlab import RasterModelGrid  # add landlab. as prefix if have landlab installed
-from landlab.model_parameter_dictionary import ModelParameterDictionary # add landlab. as prefix
+from landlab import ModelParameterDictionary # add landlab. as prefix
 from matplotlib.pyplot import *
 from random import random
 from mpl_toolkits.mplot3d import Axes3D

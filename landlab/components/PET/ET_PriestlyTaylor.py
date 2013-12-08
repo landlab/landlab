@@ -13,7 +13,7 @@
 
 import os
 from numpy import * 
-from landlab.model_parameter_dictionary import ModelParameterDictionary
+from landlab import ModelParameterDictionary
 from math import *
 from matplotlib.pyplot import *
 
