@@ -1,6 +1,8 @@
-===============
-Install Landlab
-===============
+.. _install:
+
+==================
+Installing Landlab
+==================
 
 Dependencies
 ============

@@ -1,5 +1,5 @@
-About The Landlab
-=================
+About Landlab
+=============
 
 The Landlab project creates an environment in which scientists can build a
 numerical landscape model without having to code all of the individual
