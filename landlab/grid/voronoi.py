@@ -2,7 +2,7 @@
 
 import numpy
 
-from .base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
+from landlab.grid.base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
 
 
 def simple_poly_area(x, y):
@@ -69,8 +69,14 @@ class VoronoiDelaunayGrid(ModelGrid):
     scipy.spatial module to build the triangulation.
     
     """
-    def __init__(self):
-        pass
+    #print 'VoronoiDelaunayGrid.__init__'
+    
+    def __init__(self, x=None, y=None, **kwds):
+        
+        if (x is not None) and (y is not None):
+            self._initialize(x, y)
+        super(VoronoiDelaunayGrid, self).__init__(**kwds)
+        
         
     def _initialize(self, x, y):
         """
@@ -109,13 +115,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._node_y = y
         [self.node_status, self.interior_nodes, self.boundary_nodes] = \
                 self.find_perimeter_nodes(pts)
+        self._num_active_nodes = len(self.interior_nodes)
         self._num_cells = len(self.interior_nodes)
         self._num_active_cells = self.number_of_cells
         [self.node_cell, self.cell_node] = self.setup_node_cell_connectivity(
             self.node_status, self.number_of_cells)
         self.node_activecell = self.node_cell
         self.activecell_node = self.cell_node
-        
+
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
         from scipy.spatial import Voronoi
@@ -131,6 +138,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         [self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
                 = self.create_links_and_faces_from_voronoi_diagram(vor)
         self._num_links = len(self.link_fromnode)
+        self._num_faces = self._num_links # temporary: to be done right!
                     
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.link_fromnode,

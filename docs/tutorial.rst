@@ -63,6 +63,7 @@ This returns a version of ``z`` that has been converted into a 2D Numpy array. T
 The result looks like this:
 
 .. image:: coseismic_scarp.png
+   :align: center
 
 Now we'll apply a diffusion model to calculate the degradation of the fault scarp. Start by defining a diffusion coefficient, ``kd``, and a time-step size:
 
@@ -115,26 +116,89 @@ The following commands show a contoured image of the terrain after 50,000 years 
 Here is the resulting image:
 
 .. image:: degraded_scarp.png
+   :align: center
 
-
-
-Running Landlab Models
-----------------------
-
+For more information about using the ModelGrid module, see *The ModelGrid Guide* (:download:`download pdf <model_grid_guide/model_grid_description_and_guide.pdf>`).
 
 
 Discovering Landlab's Tools and Tricks
 --------------------------------------
 
+Landlab provides several useful capabilities, such as formatted input and output. Here are a few examples.
 
-Build Models with Landlab Components
-------------------------------------
+These days, the netCDF file format has become something of a standard. For example, the open-source visualization packages ParaView and VisIt accept netCDF files. Landlab's ModelGrid package provides tools for reading and/or writing netCDF files. Currently, only raster data are supported, but we hope to add unstructured grid data soon. As an example, try writing the diffusion model's elevation field to a netCDF file:
+
+>>> from landlab.io.netcdf import write_netcdf
+>>> write_netcdf('degraded_scarp.nc', mg)
+
+If we then import the data into ParaView, we get something like this:
+
+.. image:: scarp_in_paraview.png
+   :width: 600 px
+   :align: center
+
+Landlab also provides the ``ModelParameterDictionary`` module for reading data in from a formatted text file, such as the following::
+
+	# Comments are preceded by hash marks
+	MANNINGS_N: parameters have a tag line followed by a value
+	0.03
+	PI: by convention, tags are given in all caps
+	3.14159265
+	# The next parameter is an integer
+	NUMBER_OF_TIME_STEPS
+	1000
+	# We can do strings too
+	NAME_OF_RUN
+	my_experiment
+	# Boolean values can be used for "on/off" switches
+	OPT_NONLINEAR_DIFFUSION
+	True
+	# Values separated by commas are read in as Numpy arrays
+	MEDIAN_GRAIN_SIZES
+	0.016, 0.008, 0.004, 0.002, 0.001
+	
+Code to read this file (which we imagine is called 'my_inputs.txt') might look like the following. Note that when data are read from a file, the result is a Python dictionary. This means that you can access the parameters through their keys, as shown below:
+
+>>> from landlab import ModelParameterDictionary
+>>> params = ModelParameterDictionary(from_file='my_inputs.txt')
+>>> n = params['MANNINGS_N']
+>>> run_name = params['NAME_OF_RUN']
+
+You can use `ModelParameterDictionary` to separate your model code from its parameters, so that you don't need to hard code parameter values.
+
+Landlab also have the ability to read digital elevation models (DEMs) in the ascii format used by ArcGIS. The code below shows how to use this feature by reading a DEM file called ``HalfFork.asc``:
+
+>>> from landlab.io import read_esri_ascii
+>>> import numpy, pylab
+>>> (grid, elevs) = read_esri_ascii('HalfFork.asc')
+>>> elevs[numpy.where(elevs<0.0)] = 1900.0  # Raise elevs of NODATA cells for plotting
+>>> elev_rast = grid.node_vector_to_raster(elevs)
+>>> pylab.imshow(elev_rast)
+>>> pylab.colorbar()
+
+The function ``read_esri_ascii`` creates a ``RasterModelGrid`` of the correct dimensions and cell spacing, and also creates an array of node elevation values. Both are returned (as a two-element Python tuple). The Half Fork DEM is shown below:
+
+.. image:: half_fork_dem.png
+   :align: center
 
 
-Write Landlab Models
---------------------
+Running Landlab Models
+----------------------
+
+(coming soon!)
 
 
-Learn More
-----------
+
+Building Models with Landlab Components
+---------------------------------------
+
+(coming soon!)
+
+
+
+Where to Learn More
+-------------------
+
+(coming soon!)
+
 

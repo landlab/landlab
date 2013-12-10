@@ -141,7 +141,8 @@ class LinkCellularAutomaton():
                'initial_node_states must be a Numpy array'
         assert (len(node_states)==self.grid.number_of_nodes), \
                'length of initial_node_states must equal number of nodes in grid'
-        self.node_state = node_states
+        self.node_state = self.grid.create_node_array_zeros('node_state')
+        self.node_state[:] = node_states
         
                  
     def create_link_state_dictionary_and_pair_list(self):
@@ -478,15 +479,17 @@ class LinkCellularAutomaton():
         
 def example_test2():
     
+    from landlab.io.netcdf import write_netcdf
+    
     # INITIALIZE
 
     # User-defined parameters
     nr = 200
     nc = 200
     frac_spacing = 20
-    plot_interval = 0.25
+    plot_interval = 0.1
     next_plot = plot_interval
-    run_duration = 2.0
+    run_duration = 4.0
         
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
@@ -513,14 +516,25 @@ def example_test2():
     
 
     # RUN
-    ca.run(run_duration)
-    
-    
+    current_time = 0.0
+    time_slice =  0
+    filename = 'weathering_ca'+str(time_slice).zfill(5)+'.nc'
+    write_netcdf(filename, ca.grid)
+    while current_time < run_duration:
+        ca.run(current_time+plot_interval, ca.node_state)
+        current_time += plot_interval
+        print 'time:',current_time
+        print 'ca time:',ca.current_time
+        #plt.figure()
+        #imshow_grid(mg, ca.node_state)
+        #plt.show()
+        time_slice += 1
+        filename = 'weathering_ca'+str(time_slice).zfill(5)+'.nc'
+        write_netcdf(filename, ca.grid)
+        
     # FINALIZE
     
     # Plot
-    plt.figure()
-    imshow_grid(mg, ca.node_state)
         
         
         

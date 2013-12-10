@@ -54,11 +54,11 @@ class DiffusionComponent():
         # it all in the grid. With 'explicit', we require the caller/user to 
         # provide data.
         if _VERSION=='make_all_data':
-            print 'creating internal data'
-            self.z = self.grid.create_node_array_zeros('landscape_surface__elevation')
-            self.g = self.grid.create_active_link_array_zeros('landscape_surface__gradient')  # surface gradients
-            self.qs = self.grid.create_active_link_array_zeros('unit_sediment_flux')  # unit sediment flux
-            self.dqds = self.grid.create_node_array_zeros('sediment_flux_divergence')  # sed flux derivative
+            #print 'creating internal data'
+            self.z = self.grid.add_zeros('node', 'landscape_surface__elevation')
+            self.g = self.grid.add_zeros('active_link', 'landscape_surface__gradient')  # surface gradients
+            self.qs = self.grid.add_zeros('active_link','unit_sediment_flux')  # unit sediment flux
+            self.dqds = self.grid.add_zeros('node', 'sediment_flux_divergence')  # sed flux derivative
         elif _VERSION=='explicit':
             pass
         else:
@@ -127,6 +127,13 @@ class DiffusionComponent():
         
         
     def run_until_internal(self, t):
+        
+        while self.current_time < t:
+            remaining_time = t - self.current_time
+            self.run_one_step_internal(remaining_time)
+                    
+        
+    def run_until(self, t):  # this is just a temporary duplicate
         
         while self.current_time < t:
             remaining_time = t - self.current_time

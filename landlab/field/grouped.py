@@ -44,6 +44,7 @@ from landlab.field import ScalarDataFields
 
 class ModelDataFields(object):
     def __init__(self, **kwds):
+        #print 'ModelDataFields.__init__'
         self._groups = dict()
         super(ModelDataFields, self).__init__(**kwds)
 

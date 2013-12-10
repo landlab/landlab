@@ -20,7 +20,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
    #     7
     """
     
-    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0):
+    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
         """
         Optionally takes number of shells and radial distance between shells. 
         If this are given, calls initialize() to set up the grid.
@@ -32,6 +32,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         #self._num_nodes = num_rows * num_cols
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
+        super(RadialModelGrid, self).__init__(**kwds)
 
     def _initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """

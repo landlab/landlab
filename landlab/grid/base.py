@@ -106,6 +106,7 @@ class ModelGrid(ModelDataFields):
     DEBUG_TRACK_METHODS = False
 
     def __init__(self, **kwds):
+        #print 'ModelGrid.__init__'
         super(ModelGrid, self).__init__()
         for element_name in _ARRAY_LENGTH_ATTRIBUTES:
             array_length = self.number_of_elements(element_name)
@@ -575,7 +576,7 @@ class ModelGrid(ModelDataFields):
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
         """
-        return gfunc.calculate_flux_divergence_at_nodes(self, active_link_flux,
+        return gfuncs.calculate_flux_divergence_at_nodes(self, active_link_flux,
                                                         out=out)
         
     def calculate_flux_divergence_at_nodes_slow(self, active_link_flux, 
@@ -739,6 +740,7 @@ class ModelGrid(ModelDataFields):
         (self.active_links, ) = numpy.where(active_links)
 
         self._num_active_links = len(self.active_links)
+        self._num_active_faces = self._num_active_links
         self.activelink_fromnode = self.link_fromnode[self.active_links]
         self.activelink_tonode = self.link_tonode[self.active_links]
         

@@ -10,6 +10,7 @@ class ScalarDataFields(dict):
     def __init__(self, size):
         self._size = size
 
+        #print 'ScalarDataFields.__init__'
         super(ScalarDataFields, self).__init__()
         self._units = dict()
 

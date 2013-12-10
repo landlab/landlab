@@ -2,6 +2,9 @@
 Model Grid Guide
 ================
 
+(NOTE: currently, this web version of the Model Grid Guide is incomplete and not fully 
+formatted. You can obtain a :download:`PDF version here <model_grid_guide/model_grid_description_and_guide.pdf>`.)
+
 ModelGrid is an open-source software package that creates and manages a regular
 or irregular grid for building 2D numerical simulation models. ModelGrid is
 especially useful for finite-volume (FV) and finite-difference (FD) models, but
