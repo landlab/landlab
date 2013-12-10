@@ -140,9 +140,9 @@ If we then import the data into ParaView, we get something like this:
 Landlab also provides the ``ModelParameterDictionary`` module for reading data in from a formatted text file, such as the following::
 
 	# Comments are preceded by hash marks
-	MANNINGS_N: parameters have a tag line followed by a value
+	MANNINGS_N: each parameter has a tag line, followed by a value on the next line
 	0.03
-	PI: by convention, tags are given in all caps
+	PI: by convention, the tags themselves are given in all caps
 	3.14159265
 	# The next parameter is an integer
 	NUMBER_OF_TIME_STEPS
@@ -164,9 +164,9 @@ Code to read this file (which we imagine is called 'my_inputs.txt') might look l
 >>> n = params['MANNINGS_N']
 >>> run_name = params['NAME_OF_RUN']
 
-You can use `ModelParameterDictionary` to separate your model code from its parameters, so that you don't need to hard code parameter values.
+Using `ModelParameterDictionary` together with formatted input files provides an easy way to separate your model code from its parameters, so that you don't need to hard code parameter values.
 
-Landlab also have the ability to read digital elevation models (DEMs) in the ascii format used by ArcGIS. The code below shows how to use this feature by reading a DEM file called ``HalfFork.asc``:
+Landlab also has the ability to read digital elevation models (DEMs) in the ascii format used by ArcGIS. The code below shows how to use this feature by reading a DEM file called ``HalfFork.asc``:
 
 >>> from landlab.io import read_esri_ascii
 >>> import numpy, pylab
