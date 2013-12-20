@@ -24,7 +24,7 @@ Install
 Installing a release
 --------------------
 
-We don't have any releases of The Landlab yet so this doesn't work righ now.
+We don't have any releases of The Landlab yet so this doesn't work right now.
 However, once we have a stable release, this is how users will install our
 software on their machine::
 
