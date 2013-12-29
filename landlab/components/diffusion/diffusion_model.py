@@ -34,17 +34,79 @@ class DiffusionModel():
         
         # Read parameters
         self.run_duration = inputs.get('RUN_DURATION', ptype=float)
+        self.opt_netcdf_output = inputs.get('OPT_FILE_OUTPUT', ptype='bool')
+        self.opt_display_output = inputs.get('OPT_DISPLAY_OUTPUT', ptype='bool')
         
+        self.setup_output_timing(inputs)
         # Create state variables
-        self.z = self.grid.zeros(centering='node')
+        #self.z = self.grid.zeros(centering='node')
+        
+        
+    def setup_output_timing(self, inputs):
+        
+        # Setup output timing
+        if self.opt_netcdf_output:
+            self.netcdf_output_interval = inputs.get('FILE_OUTPUT_INTERVAL',
+                                                     ptype=float)
+            self.next_file_output = self.netcdf_output_interval
+        else:
+            self.next_file_output = self.run_duration+1.0
+            
+        if self.opt_display_output:
+            self.display_output_interval = inputs.get('DISPLAY_OUTPUT_INTERVAL',
+                                                      ptype=float)
+            self.next_display_output = self.display_output_interval
+        else:
+            self.next_display_output = self.run_duration+1.0
+            
+        self.find_next_stop_time()
+                    
+        # Time
+        self.current_time = 0.0
+        
+        
+    def handle_output(self):
+        
+        if self.current_time >= self.next_display_output:
+            self.do_display_output()
+            self.next_display_output += self.display_output_interval
+            
+        if self.current_time >= self.next_file_output:
+            self.do_file_output()
+            self.next_file_output += self.file_output_interval
+            
+            
+    def find_next_stop_time(self):
+        
+        self.next_stop_time = min(self.run_duration, self.next_file_output,
+                                  self.next_display_output)
+        self.next_display_output, self.next_stop_time
+            
+            
+    def do_display_output(self):
+        
+        print 'This is a placeholder for display output'
+        
+        
+    def do_file_output(self):
+        
+        print 'File output goes here'
+        
         
     def update(self):
         
-        self.diffusion_component.run_one_step(self.z)
+        self.diffusion_component.run_one_step()
+        
         
     def run(self):
         
-        self.diffusion_component.run_until(self.run_duration, self.z)
+        while self.current_time < self.run_duration:
+            self.diffusion_component.run_until(self.next_stop_time)
+            self.current_time = self.next_stop_time
+            print self.current_time
+            self.handle_output()
+            self.find_next_stop_time()
+        
         
     def finalize(self):
         
@@ -55,7 +117,7 @@ def main():
     
     # Instantiate the model
     difmod = DiffusionModel()
-    
+
     # Handle command-line arguments (if any)
     if len(sys.argv)==1:
         input_file_name = None
