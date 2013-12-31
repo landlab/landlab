@@ -11,6 +11,8 @@ Last updated August 2013 GT
 import sys                                    # for command-line arguments
 from landlab import ModelParameterDictionary  # for input file
 from landlab import create_and_initialize_grid
+from landlab import RasterModelGrid
+from landlab.plot.imshow import imshow_node_grid
 import diffusion
 
 class DiffusionModel():
@@ -38,8 +40,6 @@ class DiffusionModel():
         self.opt_display_output = inputs.get('OPT_DISPLAY_OUTPUT', ptype='bool')
         
         self.setup_output_timing(inputs)
-        # Create state variables
-        #self.z = self.grid.zeros(centering='node')
         
         
     def setup_output_timing(self, inputs):
@@ -80,12 +80,17 @@ class DiffusionModel():
         
         self.next_stop_time = min(self.run_duration, self.next_file_output,
                                   self.next_display_output)
-        self.next_display_output, self.next_stop_time
             
             
     def do_display_output(self):
         
-        print 'This is a placeholder for display output'
+        # ok, here one problem is that we don't know what grid type we have
+        if type(self.grid) is RasterModelGrid:
+            print 'This is a raster grid'
+        else:
+            print 'non-raster grid'
+            
+        imshow_node_grid(self.grid, self.diffusion_component.z)
         
         
     def do_file_output(self):
