@@ -16,46 +16,7 @@ import numpy as np
 import pylab
 from matplotlib import pyplot as plt
 
-## PC RUNS
 
-### TAU FILES ##
-node1_t_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Tau\Node_1.txt'
-node2_t_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Tau\Node_2.txt'
-node3_t_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Tau\Node_3.txt'
-#
-### DISCHARGE FILES ##
-node1_q_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Discharge\Node_1.txt'
-node2_q_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Discharge\Node_2.txt'
-node3_q_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Discharge\Node_3.txt'
-#
-### DEPTH FILES ##
-node1_h_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Depth\Node_1.txt'
-node2_h_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Depth\Node_2.txt'
-node3_h_file = 'C:\Users\Jordan\Dropbox\AGU RUNS\BaseCase\Trial1_5year\Depth\Node_3.txt'
-
-
-
-## MAC RUNS
-
-### TAU FILES ##
-#node1_t_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Tau/Node_1.txt'
-#node2_t_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Tau/Node_2.txt'
-#node3_t_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Tau/Node_3.txt'
-#
-#### DISCHARGE FILES ##
-#node1_q_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Discharge/Node_1.txt'
-#node2_q_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Discharge/Node_2.txt'
-#node3_q_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Discharge/Node_3.txt'
-#
-#### DEPTH FILES ##
-#node1_h_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Depth/Node_1.txt'
-#node2_h_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Depth/Node_2.txt'
-#node3_h_file = '/Users/Jordan/Dropbox/AGU RUNS/BaseCase/Trial1_5year/Depth/Node_3.txt'
-
-
-
-def writetofile(namefile, arr):
-    np.savetxt(namefile, arr,fmt ='%15.10f')
 
 class OverlandFlow(object):
     
@@ -154,30 +115,6 @@ class OverlandFlow(object):
         nbr_node = grid.find_node_in_direction_of_max_slope_d4(z, outlet_node)
         study_link = grid.get_active_link_connecting_node_pair(outlet_node, nbr_node)
 
-                                 
-        study_point2 = grid.grid_coords_to_node_id(138, 210)
-        nbr_node2 = grid.find_node_in_direction_of_max_slope_d4(z, study_point2)
-        study_link2 = grid.get_active_link_connecting_node_pair(study_point2, nbr_node2)
-        h_2 = []
-        h_2.append(0.)
-        q_2 = []
-        q_2.append(0.)
-        t_2 = []
-        t_2.append(0.)
-
-
-        study_point3 = grid.grid_coords_to_node_id(140, 150)
-        nbr_node3 = grid.find_node_in_direction_of_max_slope_d4(z, study_point3)
-        study_link3 = grid.get_active_link_connecting_node_pair(study_point3, nbr_node3)
-        h_3 = []
-        h_3.append(0.)
-        q_3 = []
-        q_3.append(0.)
-        t_3 = []
-        t_3.append(0.)
-        
-        print "rainrate ",rainrate
-        
 
         # Main loop
         while elapsed_time < delt:
@@ -233,14 +170,6 @@ class OverlandFlow(object):
             w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,outlet_node)
             tau_temp=self.rho*self.g*w_slp_studypoint*self.h[outlet_node]
             t_1.append(tau_temp)
-                            
-            w_slp_studypoint2,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point2)
-            tau_temp2=self.rho*self.g*w_slp_studypoint2*self.h[study_point2]
-            t_2.append(tau_temp2)
-
-            w_slp_studypoint3,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point3)
-            tau_temp3=self.rho*self.g*w_slp_studypoint3*self.h[study_point3]
-            t_3.append(tau_temp3)
 
             # Update model run time
             elapsed_time += dt
@@ -248,63 +177,53 @@ class OverlandFlow(object):
         
             # Remember discharge and time
             t.append(elapsed_time)
-            q_outlet.append(q[study_link])
-            q_2.append(q[study_link2])
-            q_3.append(q[study_link3])
-            
+            q_outlet.append(q[study_link])            
             h_1.append(h[outlet_node])
-            h_2.append(h[study_point2])
-            h_3.append(h[study_point3])
+
 
         
-        plt.figure('Discharge at Three Study Nodes')
-        plt.plot(t, q_outlet, 'r-', label = 'NE Tributary')
-        plt.plot(t, q_2, 'm-', label = 'E Tributary')
-        plt.plot(t, q_3, 'c-', label = 'Upper Main Channel')
+        plt.figure('Discharge at Study Node')
+        plt.plot(t, q_outlet, 'r-')
         plt.legend(loc=1)
         plt.ylabel('Discharge, m^3/s')
         plt.xlabel('Time, s')
         
-        plt.figure('Shear Stress at Three Study Nodes')
-        plt.plot(t, t_1, 'r--', label = 'NE Tributary')
-        plt.plot(t, t_2, 'm--', label = 'E Tributary')
-        plt.plot(t, t_3, 'c--', label = 'Upper Main Channel')
+        plt.figure('Shear Stress at Study Node')
+        plt.plot(t, t_1, 'r--')
         plt.ylabel('Shear Stress, Pa')
         plt.xlabel('Time, s')
         plt.legend(loc=1)
         
-        plt.figure('Water Depth at Three Study Nodes')
-        plt.plot(t, h_1, 'r--', label = 'NE Tributary')
-        plt.plot(t, h_2, 'm--', label = 'E Tributary')
-        plt.plot(t, h_3, 'c--', label = 'Upper Main Channel')
+        plt.figure('Water Depth at Study Node')
+        plt.plot(t, h_1, 'r--')
         plt.ylabel('Water Depth, m')
         plt.xlabel('Time, s')
         plt.legend(loc=1)
         
         
-        pylab.figure('Depth Map')
-        hr = grid.node_vector_to_raster(h)
-        im2 = pylab.imshow(hr, cmap=pylab.cm.PuBu,
-                       extent=[0, grid.number_of_node_columns * grid.dx,
-                               0, grid.number_of_node_rows * grid.dx])
-        pylab.clim(0, 0.25)
-        cb = pylab.colorbar(im2)
-        cb.set_label('Water depth (m)', fontsize=12)
-        pylab.title('Water depths for a 5 year storm')
+        #pylab.figure('Depth Map')
+        #hr = grid.node_vector_to_raster(h)
+        #im2 = pylab.imshow(hr, cmap=pylab.cm.PuBu,
+        #               extent=[0, grid.number_of_node_columns * grid.dx,
+        #                       0, grid.number_of_node_rows * grid.dx])
+        #pylab.clim(0, 0.25)
+        #cb = pylab.colorbar(im2)
+        #cb.set_label('Water depth (m)', fontsize=12)
+        #pylab.title('Water depths for a 5 year storm')
         
         
-        #plt.figure('Discharge at the NE Tributary')
-        #plt.legend(loc=2)
-        #plt.ylabel('Discharge, m^3/s')
-        #plt.xlabel('Time, s')
-        #plt.plot(t, q_outlet, 'r-', label = 'NE Tributary')
-        #
-        #plt.figure('Discharge at the E Tributary')
-        #plt.plot(t, q_2, 'm-', label = 'E Tributary')
-        #plt.legend(loc=2)
-        #plt.ylabel("$Discharge, m^3/s$")
-        #plt.xlabel('Time, s')
-        #
+     #   plt.figure('Discharge at the NE Tributary')
+     #   plt.legend(loc=2)
+     #   plt.ylabel('Discharge, m^3/s')
+     #   plt.xlabel('Time, s')
+     #   plt.plot(t, q_outlet, 'r-', label = 'NE Tributary')
+     #   
+     #   plt.figure('Discharge at the E Tributary')
+     #   plt.plot(t, q_2, 'm-', label = 'E Tributary')
+     #   plt.legend(loc=2)
+     #   plt.ylabel("$Discharge, m^3/s$")
+     #   plt.xlabel('Time, s')
+     #   
      #   plt.figure('Discharge at the Upper Main Channel')
      #   plt.plot(t, q_3, 'c-', label = 'Upper Main Channel')
      #   plt.legend(loc=2)
@@ -346,22 +265,11 @@ class OverlandFlow(object):
      #   plt.ylabel('Water Depth, m')
      #   plt.xlabel('Time, s')
      #   plt.legend(loc=2)
-        
+     #   
         plt.show()
-        pylab.show()
+        #pylab.show()
         
-        writetofile(node1_t_file, t_1)
-        writetofile(node2_t_file, t_2)
-        writetofile(node3_t_file, t_3)
 
-        writetofile(node1_h_file, h_1)
-        writetofile(node2_h_file, h_2)
-        writetofile(node3_h_file, h_3)
-
-        writetofile(node1_q_file, q_outlet)
-        writetofile(node2_q_file, q_2)
-        writetofile(node3_q_file, q_3)    
-        
         
     #def run_one_step_internal(self, delt):
     #    

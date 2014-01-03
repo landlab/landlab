@@ -92,14 +92,7 @@ class OverlandFlow(object):
         
         
         #NG Everything below is for plotting purposes
-        #tau_plotter1 = grid.zeros(centering='node')
-        #above is for plotting shear stress at each nod
-        #h_plotter1 = grid.zeros(centering='node')
-        #above is for plotting flow depth at each node
-        #
-        #plothelper=0
-        #threetimes=[239,799,1056,1000000000]
-        #above is if you want to plot values at the first three times in the array
+
         
         study_point = outlet_node #redundant, but leave for now
         h_study = [] #flow depth at study node
@@ -113,108 +106,6 @@ class OverlandFlow(object):
         t = [] #time array for plotting
         t.append(0.) #initialize array
         
-        study_point1 = grid.grid_coords_to_node_id(node_1)
-
-        h_1 = []
-        h_1.append(0.)
-        q_1 = []
-        q_1.append(0.)
-        t_1 = []
-        t_1.append(0.)
-        
-        study_point2 = grid.grid_coords_to_node_id(node_2)
- 
-        h_2 = []
-        h_2.append(0.)
-        q_2 = []
-        q_2.append(0.)
-        t_2 = []
-        t_2.append(0.)
-        
-        study_point3 = grid.grid_coords_to_node_id(node_3)
-
-        h_3 = []
-        h_3.append(0.)
-        q_3 = []
-        q_3.append(0.)
-        t_3 = []
-        t_3.append(0.)
-        
-        study_point4 = grid.grid_coords_to_node_id(node_4)
-        
-        h_4 = []
-        h_4.append(0.)
-        q_4 = []
-        q_4.append(0.)
-        t_4 = []
-        t_4.append(0.)
-        
-        study_point5 = grid.grid_coords_to_node_id(node_5)
-        
-        h_5 = []
-        h_5.append(0.)
-        q_5 = []
-        q_5.append(0.)
-        t_5 = []
-        t_5.append(0.)
-        
-        study_point6 = grid.grid_coords_to_node_id(node_6)
-        
-        h_6 = []
-        h_6.append(0.)
-        q_6 = []
-        q_6.append(0.)
-        t_6 = []
-        t_6.append(0.)
-        
-        study_point7 = grid.grid_coords_to_node_id(node_7)
-        
-        h_7 = []
-        h_7.append(0.)
-        q_7 = []
-        q_7.append(0.)
-        t_7 = []
-        t_7.append(0.)
-        
-        study_point8 = grid.grid_coords_to_node_id(node_8)
-        
-        h_8 = []
-        h_8.append(0.)
-        q_8 = []
-        q_8.append(0.)
-        t_8 = []
-        t_8.append(0.)
-        
-        study_point9 = grid.grid_coords_to_node_id(node_9)
-        
-        h_9 = []
-        h_9.append(0.)
-        q_9 = []
-        q_9.append(0.)
-        t_9 = []
-        t_9.append(0.)
-        
-        #JORDAN, if you want to track values at another point, just edit below
-        #to the correct coords.  Takes row then column.
-        #study_point2 = grid.grid_coords_to_node_id(234,125)
-        #h_study2 = [] #flow depth at study node 2
-        #h_study2.append(0.) #initialize array 
-        #q_study2 = [] #discharge at study link 2
-        #q_study2.append(0.) #initialize array
-        #tau_study2 = [] #shear stress at study node 2
-        #tau_study2.append(0.) #initialize array    
-        
-        #NG for plotting purposes
-        #slope_study = [] #water surface slope at study node
-        #slope_study.append(0.) #initialize array
-        
-        #discharge is calculated at links, so you need the study link for finding
-        #the discharge
-        #study_link = grid.get_active_link_connecting_node_pair(outlet_node, 
-        #                                                  node_next_to_outlet)
-        #print "study link ",study_link
-        #helper=0
-        #NG Done with plotting stuff.
         
         while elapsed_time < delt:
             
@@ -299,35 +190,6 @@ class OverlandFlow(object):
             nbr_node = grid.find_node_in_direction_of_max_slope_d4(w, study_point)
             study_link = grid.get_active_link_connecting_node_pair(study_point, nbr_node)
             
-            nbr_node1 = grid.find_node_in_direction_of_max_slope_d4(w, study_point1)
-            study_link1 = grid.get_active_link_connecting_node_pair(study_point1, nbr_node1)   
-                        
-            nbr_node2 = grid.find_node_in_direction_of_max_slope_d4(w, study_point2)
-            study_link2 = grid.get_active_link_connecting_node_pair(study_point2, nbr_node2)      
-            
-            nbr_node3 = grid.find_node_in_direction_of_max_slope_d4(w, study_point3)
-            study_link3 = grid.get_active_link_connecting_node_pair(study_point3, nbr_node3)   
-            
-            nbr_node4 = grid.find_node_in_direction_of_max_slope_d4(w, study_point4)
-            study_link4 = grid.get_active_link_connecting_node_pair(study_point4, nbr_node4)      
-            
-            nbr_node5 = grid.find_node_in_direction_of_max_slope_d4(w, study_point5)
-            study_link5 = grid.get_active_link_connecting_node_pair(study_point5, nbr_node5)   
-            
-            nbr_node6 = grid.find_node_in_direction_of_max_slope_d4(w, study_point6)
-            study_link6 = grid.get_active_link_connecting_node_pair(study_point6, nbr_node6)      
-            
-            nbr_node7 = grid.find_node_in_direction_of_max_slope_d4(w, study_point7)
-            study_link7 = grid.get_active_link_connecting_node_pair(study_point7, nbr_node7)   
-            
-            nbr_node8 = grid.find_node_in_direction_of_max_slope_d4(w, study_point8)
-            study_link8 = grid.get_active_link_connecting_node_pair(study_point8, nbr_node8)      
-            
-            nbr_node9 = grid.find_node_in_direction_of_max_slope_d4(w, study_point9)
-            study_link9 = grid.get_active_link_connecting_node_pair(study_point9, nbr_node9)   
-            
-            
-                                    
                                                                     
             #print "study node ",study_point," nbr node ", nbr_node, "study_link ", study_link
             
@@ -360,41 +222,6 @@ class OverlandFlow(object):
             tau_temp=self.rho*self.g*w_slp_studypoint*self.h[study_point]
             tau_study.append(tau_temp)
 
-            w_slp_studypoint1,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point1)
-            tau_temp1=self.rho*self.g*w_slp_studypoint1*self.h[study_point1]
-            t_1.append(tau_temp1)
-                                                                  
-            w_slp_studypoint2,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point2)
-            tau_temp2=self.rho*self.g*w_slp_studypoint2*self.h[study_point2]
-            t_2.append(tau_temp2)
-
-            w_slp_studypoint3,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point3)
-            tau_temp3=self.rho*self.g*w_slp_studypoint3*self.h[study_point3]
-            t_3.append(tau_temp3)
-                                                                  
-            w_slp_studypoint4,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point4)
-            tau_temp4=self.rho*self.g*w_slp_studypoint4*self.h[study_point4]
-            t_4.append(tau_temp4)
-                                 
-            w_slp_studypoint5,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point5)
-            tau_temp5=self.rho*self.g*w_slp_studypoint5*self.h[study_point5]
-            t_5.append(tau_temp5)
-
-            w_slp_studypoint6,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point6)
-            tau_temp6=self.rho*self.g*w_slp_studypoint6*self.h[study_point6]
-            t_6.append(tau_temp6)
-
-            w_slp_studypoint7,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point7)
-            tau_temp7=self.rho*self.g*w_slp_studypoint7*self.h[study_point7]
-            t_7.append(tau_temp7)
-                                 
-            w_slp_studypoint8,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point8)
-            tau_temp8=self.rho*self.g*w_slp_studypoint8*self.h[study_point8]
-            t_8.append(tau_temp8)
-
-            w_slp_studypoint9,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point9)
-            tau_temp9=self.rho*self.g*w_slp_studypoint9*self.h[study_point9]
-            t_9.append(tau_temp9)
                                                                                                                                                                                                                                                                                                                      
             # Update current time and return it
             #NG not sure what current_time is used for
@@ -418,31 +245,10 @@ class OverlandFlow(object):
             #than one point, you need to add some variable setting here.
             t.append(elapsed_time)
             h_study.append(self.h[study_point])
-            h_1.append(self.h[study_point1])
-            h_2.append(self.h[study_point2])
-            h_3.append(self.h[study_point3])
-            h_4.append(self.h[study_point4])
-            h_5.append(self.h[study_point5])
-            h_6.append(self.h[study_point6])
-            h_7.append(self.h[study_point7])
-            h_8.append(self.h[study_point8])
-            h_9.append(self.h[study_point9])
-            #h_dwn.append(self.h[nbr_node])
             
             #q is at links
             q_study.append(self.q[study_link])
-            q_1.append(self.q[study_link1])
-            q_2.append(self.q[study_link2])
-            q_3.append(self.q[study_link3])
-            q_4.append(self.q[study_link4])
-            q_5.append(self.q[study_link5])
-            q_6.append(self.q[study_link6])
-            q_7.append(self.q[study_link7])
-            q_8.append(self.q[study_link8])
-            q_9.append(self.q[study_link9])
-            
-            
-            
+                        
             #print "q_study is ", self.q[study_link]
             #print "tau at ", helper, "is ", tau_study[helper]
             #helper +=1
