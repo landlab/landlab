@@ -6,15 +6,17 @@ This tests the overland flow and shear stress generator.
 """
 
 import landlab
-#NG still trying to get the waterhsed boundary conditions working
-#from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
 from landlab.components.overland_flow.overland_flow_generator import OverlandFlow
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.io import read_esri_ascii
-import pylab
+from matplotlib import pyplot as plt
 import numpy as np
 import os
 import time
+
+
+
+
 
 def main():
     """
@@ -25,72 +27,68 @@ def main():
     
     start_time = time.time()
     
-    dem_name = 'ExampleDEM/HalfFork.asc'
-    
-
-
+    dem_name = 'HalfFork.asc'
+    input_file = 'input_data.txt'
+    IT_FILE = os.path.join(os.path.dirname(__file__), input_file)
 
     # Create and initialize a raster model grid by reading a DEM
     DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
     print('Reading data from "'+str(DATA_FILE)+'"')
     (rg, z) = read_esri_ascii(DATA_FILE)
     nodata_val=-9999
+    # Modify the grid DEM to set all nodata nodes to inactive boundaries
+    rg.set_nodata_nodes_to_inactive(z, nodata_val) # set nodata nodes to inactive bounds
     
     print('DEM has ' +
           str(rg.number_of_node_rows) + ' rows, ' +
           str(rg.number_of_node_columns) + ' columns, and cell size ' +
           str(rg.dx))
     
-    #Below for finding outlet, but not working. boo.
-    #wbc=WatershedBoundaryConditions()
-    #wbc.set_bc_find_outlet(rg, z, nodata_val)
+
+    # Select point to sample at.
+    
+    study_row = 110
+    study_column = 150
       
-    #Below points are actually the points of interest for plotting the hydrograph
-    #They do not have to be THE outlet of the watershed.
-    outlet_row = 238
-    outlet_column = 216
-    next_to_outlet_row = 239
-    next_to_outlet_column = 216
-          
-    outlet_node = rg.grid_coords_to_node_id(outlet_row, outlet_column)
-    node_next_to_outlet = rg.grid_coords_to_node_id(next_to_outlet_row, 
-                                                    next_to_outlet_column)
+    study_node = rg.grid_coords_to_node_id(study_row, study_column)
+
+
+    ## Set outlet point to set boundary conditions.
+    the_outlet_row = 240
+    the_outlet_column = 215
+    the_outlet_node = rg.grid_coords_to_node_id(the_outlet_row, the_outlet_column)
+
+    rg.set_fixed_value_boundaries(the_outlet_node)
                                                                                                        
     # Get a 2D array version of the elevations for plotting purposes
     elev_raster = rg.node_vector_to_raster(z,True)
     
-    # Plot topography
-    #pylab.figure(22)
-    #pylab.subplot(121)
-    #im = pylab.imshow(elev_raster, cmap=pylab.cm.RdBu, extent=[0, rg.number_of_node_columns*rg.dx, 0, rg.number_of_node_rows*rg.dx])
-    #cb = pylab.colorbar(im)
-    #cb.set_label('Elevation (m)', fontsize=12)
-    #pylab.title('Topography')
-    #
-    #pylab.show()
+    # Everything below plots the topography and sampling points
     
-    of=OverlandFlow('input_data.txt',rg,0)
-    
-    #Below for using rainfall distribution
-#    #rainfall = PrecipitationDistribution()
-#    #rainfall.initialize('input_data.txt')
-#    #rainfall.update
-#    #
-#    ###for now this is in hours, so put into seconds
-#    #storm_duration = rainfall.storm_duration*3600
-#    ###in mm/hour, so convert to m/second
-#    #storm_intensity = rainfall.intensity/1000/3600
-#    #print "storm duration, seconds ", storm_duration
-#    #print "storm duration, hours ", rainfall.storm_duration
-#    #print "storm intensity ", storm_intensity
-#    
+    levels = []
+    x_up = 1990
+    while x_up !=2200:
+        levels.append(x_up)
+        x_up+=1
+    s = plt.contourf(elev_raster, levels, colors='k')#('r','g','b'))
+    plt.set_cmap('bone')
+    cb = plt.colorbar()
+
+    plt.plot([150],[109],'cs', label= 'Study Node')
+    plt.plot([215],[9], 'wo', label= 'Outlet')
+    plt.legend(loc=3)
 
 
-#    #tau = of.run_one_step(rg,z,outlet_node,node_next_to_outlet,storm_duration,storm_intensity)
-    #of.run_one_step(rg,z,outlet_node,node_next_to_outlet,60*15,1.39e-05, 60*15)
-    ##^^^^^ REWRITE WITH SEVERAL NODES TO SPEED UP FOR AGU
+    of=OverlandFlow(IT_FILE,rg,0)
 
-#    print('Total run time = '+str(time.time()-start_time)+' seconds.')
-    
+    ## (-,-,-,-,how long we route overland flow, intensity in m/s, duration of storm) ##
+
+    ## Trial 1, 10 year storm ##
+    of.run_one_step(rg,z,study_node,9000,(7.167*(10**-6)), 2916)
+
+
+    plt.show()
+
+
 if __name__ == "__main__":
     main()

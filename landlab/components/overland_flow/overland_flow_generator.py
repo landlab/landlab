@@ -14,6 +14,9 @@ import landlab
 from landlab import ModelParameterDictionary
 import numpy as np
 import pylab
+from matplotlib import pyplot as plt
+
+
 
 class OverlandFlow(object):
     
@@ -23,7 +26,6 @@ class OverlandFlow(object):
         #create and initial grid if one doesn't already exist
         if self.grid==None:
             self.grid = create_and_initialize_grid(input_stream)
-        self.grid = grid
         self.current_time = current_time
         self.initialize(grid, input_stream)
         
@@ -55,6 +57,7 @@ class OverlandFlow(object):
         self.ten_thirds = 10./3.   # pre-calculate 10/3 for speed
         
         # Set up state variables
+        self.hstart = grid.zeros(centering='node') + self.h_init 
         self.h = grid.zeros(centering='node') + self.h_init     # water depth (m)
         #NG why is water depth at each node and not at cells, which are only active
         self.q = grid.zeros(centering='active_link') # unit discharge (m2/s)
@@ -63,12 +66,18 @@ class OverlandFlow(object):
         #Maybe because you need a boundary condition of water depth at the 
         #boundary locations?  But water depths only change at active cells?
         
-    def run_one_step(self, grid, z, outlet_node, node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8, node_9, delt=None, rainrate=None, rainduration=None):
+    def run_one_step(self, grid, z, outlet_node, delt=None, rainrate=None, rainduration=None):
         # run_one_step routes flow across the landscape over the time period delt.
         # This should work even if the rainduration is shorter or longer than delt. 
         # The units of delt and rainduration should be in seconds.
         # Note that the outlet_node and node_next_to_outlet do not need to be 
         # the actual outlet_node, just the location of interest for plotting.
+        
+        g=self.g
+        alpha = self.alpha
+        m_n_sq = self.m_n_sq
+        ten_thirds = self.ten_thirds
+        rho = self.rho
         
         if delt==None:
             delt = self.rain_duration
@@ -78,258 +87,124 @@ class OverlandFlow(object):
             rainduration = delt
             
         #interior_nodes are the nodes on which you will be calculating flow 
-        #interior_nodes = grid.get_active_cell_node_ids()
+        interior_nodes = grid.get_active_cell_node_ids()
+        
+        self.h = self.hstart
+        h = self.h
+        q = self.q
+        dhdt = self.dhdt
         
         elapsed_time = 0
         
-        #below is for calculating water surface slope at interior nodes
-        #w_slope=np.zeros(interior_nodes.size)
-        #below is for calculating shear stress at interior nodes
-        #tau=np.zeros(interior_nodes.size)
+         # Get a list of the interior cells
+        interior_cells = grid.get_active_cell_node_ids()
+    
+        # To track discharge at the outlet through time, we create initially empty
+        # lists for time and outlet discharge.
         
-        #print "length of w_slope ", w_slope.size   
-        #print "delt ", delt
+        ## outlet_node AKA "study_node" = (input)
+        q_outlet = []
+        t = []
+        t_1 = []
+        h_1 = []
+        q_outlet.append(0.)
+        t.append(0.)
+        t_1.append(0.)
+        h_1.append(0.)
         
-        
-        #NG Everything below is for plotting purposes
+        nbr_node = grid.find_node_in_direction_of_max_slope_d4(z, outlet_node)
+        study_link = grid.get_active_link_connecting_node_pair(outlet_node, nbr_node)
 
-        
-        study_point = outlet_node #redundant, but leave for now
-        h_study = [] #flow depth at study node
-        h_study.append(0.) #initialize array
-        q_study = [] #discharge at study link
-        q_study.append(0.) #initialize array
-        #NG for shear stress, if calculating
-        tau_study = [] #shear stress at study node
-        tau_study.append(0.) #initialize array
-        
-        t = [] #time array for plotting
-        t.append(0.) #initialize array
-        
-        
+
+        # Main loop
         while elapsed_time < delt:
-            
-            # Calculate time-step size for this iteration (Bates et al., eq 14)
-            dtmax = self.alpha*grid.dx/np.sqrt(self.g*np.amax(self.h))
-            #print "dtmax", dtmax
         
-            # Take the smaller of delt or calculated time-step
-            dt = min(dtmax, delt)
-            #print "dt", dt
+        
+            # Calculate time-step size for this iteration (Bates et al., eq 14)
+            dtmax = alpha*grid.dx/np.sqrt(g*np.amax(h))
+            #print "dtmax", dtmax
+            
+            if elapsed_time+dtmax > delt:
+                dtmax = delt - elapsed_time
         
             # Calculate the effective flow depth at active links. Bates et al. 2010
             # recommend using the difference between the highest water-surface
             # and the highest bed elevation between each pair of cells.
-            zmax = grid.max_of_link_end_node_values(z) #array of length of active links
-            w = self.h+z   # water-surface height, array of length num nodes
-            wmax = grid.max_of_link_end_node_values(w) #array of length of active links
-            hflow = wmax - zmax #array of length of active links
+            zmax = grid.max_of_link_end_node_values(z)
+            w = h+z   # water-surface height
+            wmax = grid.max_of_link_end_node_values(w)
+            hflow = wmax - zmax
         
-            # Calculate water-surface slopes: across links, but water heights are 
-            #defined at nodes.
+            # Calculate water-surface slopes
             water_surface_slope = grid.calculate_gradients_at_active_links(w)
        
             # Calculate the unit discharges (Bates et al., eq 11)
-            self.q = (self.q-self.g*hflow*dt*water_surface_slope)/ \
-                (1.+self.g*hflow*dt*self.m_n_sq*abs(self.q)/(hflow**self.ten_thirds))
+            q = (q-g*hflow*dtmax*water_surface_slope)/ \
+                (1.+g*hflow*dtmax*0.06*0.06*abs(q)/(hflow**ten_thirds))
             
-            #print "q study link", self.q[study_link]
-                
-            #NOTES:    
-            # q is calculated at links
-            # water_surface_slope is at links
-            # hflow is at links, but w is at nodes
-
+            #print "q study link", q[outlet_link] 
+        
             # Calculate water-flux divergence at nodes
-            dqds = grid.calculate_flux_divergence_at_nodes(self.q)
-            
+            dqds = grid.calculate_flux_divergence_at_nodes(q)
+        
+            # Update rainfall rate
+            if elapsed_time > rainduration:
+                rainrate = 0.
+        
             # Calculate rate of change of water depth
-            self.dhdt = rainrate-dqds
-            
-            #DEBUGGING
-            #dqds_max = np.amax(dqds)
-            #print "max of dqds ", dqds_max
-            #dhdt_max = np.amax(self.dhdt)
-            #print "max of dhdt ", dhdt_max
-            
+            dhdt = rainrate-dqds
+        
             # Second time-step limiter (experimental): make sure you don't allow
             # water-depth to go negative
-            if np.amin(self.dhdt) < 0.:
-                shallowing_locations = np.where(self.dhdt<0.)
-                time_to_drain = -self.h[shallowing_locations]/self.dhdt[shallowing_locations]
-                dtmax2 = self.alpha*np.amin(time_to_drain)
-                #print "dtmax2", dtmax2
-                dt = np.min([dtmax, dtmax2, delt])
-            #else:
-            #   dt = np.min([dtmax,delt])
-            #NG commented out else, because this was already calculated
-
+            if np.amin(dhdt) < 0.:
+                shallowing_locations = np.where(dhdt<0.)
+                time_to_drain = -h[shallowing_locations]/dhdt[shallowing_locations]
+                dtmax2 = alpha*np.amin(time_to_drain)
+                dt = np.min([dtmax, dtmax2])
+            else:
+                dt = dtmax
         
             # Update the water-depth field
-            #self.h[interior_nodes] = self.h[interior_nodes] + self.dhdt[interior_nodes]*dt
-            #self.h[outlet_node] = self.h[node_next_to_outlet]
-            
-            # Let's calculate shear stress at the nodes.  
-            # First get water height at the nodes.
-            # Then calculate the maximum gradient in water surface elevations (S).
-            # Then you can calculate shear stress! (rho g h S)       
-            # h (water depth) is at nodes
-            
-            w = self.h+z   # water-surface height, array of length num nodes
-            
-            #Below is a different way for finding the study discharge.
-            #Rather than always plotting at a prescribed link, below will  
-            #find the node next to the study point
-            #that is connected by the steepest water surface slope.
-            #This link is being used to calculate shear stress, so seems like 
-            #a better discharge to use for plotting.
-            #Note that this link was already set above, and so if this is 
-            #commented out, code will still work.  The link above is likely
-            #not the same as this link.
-            
-            nbr_node = grid.find_node_in_direction_of_max_slope_d4(w, study_point)
-            study_link = grid.get_active_link_connecting_node_pair(study_point, nbr_node)
-            
-                                                                    
-            #print "study node ",study_point," nbr node ", nbr_node, "study_link ", study_link
-            
-            #JORDAN - uncomment below for shear stress calculations everywhere.
-            #Below if is for limiting shear stress calculations to only times when
-            #q surpasses a threshold (in this case q should be in m^3/sec)
-            #Note that this threshold is hardwired below (on right of >)
-            #This should be changed eventually.
-            
-            #if self.q[study_link]*grid.dx> 0.2:
-            #    print "calculating shear stress, q study link ",self.q[study_link]*grid.dx
-            #    for i in range(len(interior_nodes)): 
-            #        w_slope[i],garbage=grid.calculate_max_gradient_across_node_d4(w,interior_nodes[i])
-            #        tau[i]=self.rho*self.g*w_slope[i]*self.h[interior_nodes[i]]
-            #        #if interior_nodes[i] == study_point:
-            #        #    tau_study.append(tau[i])
-            #        #    slope_study.append(w_slope[i])
-            #            #print "found it"
-                    
-            #tau[np.where(tau<0)] = 0
-                    
-            #print "study slope ",w_slope[study_point]," study tau ",tau[study_point]
-            #tau_study.append(tau[study_point])
-            #slope_study.append(w_slope[study_point]) 
-            
-           #JORDAN, second attempt at calculating shear stress, but now I will 
-           #calculate just at the study point, rather than at all points.
-           
-            w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,study_point)
-            tau_temp=self.rho*self.g*w_slp_studypoint*self.h[study_point]
-            tau_study.append(tau_temp)
+            h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
 
-                                                                                                                                                                                                                                                                                                                     
-            # Update current time and return it
-            #NG not sure what current_time is used for
-            self.current_time += dt
+            w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,outlet_node)
+            tau_temp=self.rho*self.g*w_slp_studypoint*self.h[outlet_node]
+            t_1.append(tau_temp)
+
+            # Update model run time
             elapsed_time += dt
-            print "elapsed_time ", elapsed_time
-            
-            if elapsed_time > rainduration:
-                rainrate=0
-                
-            #NG used below for debugging    
-            #taumax=np.max(tau)
-            #taumin=np.min(tau)
-            #print "tau max ", np.max(tau), " tau min ", np.min(tau)
-            #print "water depth max ", np.max(self.h[interior_nodes]), " water depth min ", np.min(self.h[interior_nodes])
-            #print "water surface slope ", np.max(w_slope), " water surface slope min ", np.min(w_slope)
-            #print "water surface height ", np.max(w), " water surface height min ", np.min(w)
-                
+            print "elapsed time", elapsed_time
+        
             # Remember discharge and time
-            #Jordan, if you decide to track discharge and water depth at more 
-            #than one point, you need to add some variable setting here.
             t.append(elapsed_time)
-            h_study.append(self.h[study_point])
-            
-            #q is at links
-            q_study.append(self.q[study_link])
-                        
-            #print "q_study is ", self.q[study_link]
-            #print "tau at ", helper, "is ", tau_study[helper]
-            #helper +=1
-            
-            #Below NG was using to plot data at three different times during
-            #hydrograph
-            #if elapsed_time > threetimes[plothelper]:
-            #    for i in range(len(interior_nodes)): 
-            #        tau_plotter1[interior_nodes[i]]=tau[i]
-            #        h_plotter1[interior_nodes[i]]=self.h[i]
-            #    plothelper +=1
-            #    tr = grid.node_vector_to_raster(tau_plotter1)
-            #    hr = grid.node_vector_to_raster(h_plotter1)
-            #    pylab.figure(100)
-            #    pylab.subplot(121)
-            #    im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=[0, grid.number_of_node_columns*grid.dx, 0, grid.number_of_node_rows*grid.dx])
-            #    cb = pylab.colorbar(im)
-            #    cb.set_label('flow depth (m)', fontsize=12)
-            #    pylab.title('Flow Depth')
-            #    pylab.subplot(122)
-            #    im = pylab.imshow(tr, cmap=pylab.cm.RdBu, extent=[0, grid.number_of_node_columns*grid.dx, 0, grid.numer_of_node_rows*grid.dx])
-            #    cb = pylab.colorbar(im)
-            #    cb.set_label('shear stress (Pa)', fontsize=12)
-            #    pylab.title('Shear stress')
-            #    pylab.show()
-                
-        #pylab.figure(1)
-        ##pylab.plot(np.array(t), np.array(h_study))
-        #pylab.plot(t,h_study)
-        #pylab.xlabel('Time (s)')
-        #pylab.ylabel('h (m)')
-        #pylab.title('study point water height')
-        #np.savetxt('h3322.data',h_study,fmt='%15.10f',delimiter='\n')
-        #
-        #np.savetxt('time.data',t,fmt='%15.10f',delimiter='\n')
+            q_outlet.append(q[study_link])            
+            h_1.append(h[outlet_node])
+
+
         
-        #pylab.figure(2)
-        #pylab.plot(np.array(t), np.array(tau_study))
-        #pylab.xlabel('Time (s)')
-        #pylab.ylabel('shear stress (kg/m/s2)')
-        #pylab.title('study point shear stress')
-        #np.savetxt('tau3322.data',tau_study,fmt='%15.10f',delimiter='\n')
+        plt.figure('Discharge at Study Node')
+        plt.plot(t, q_outlet, 'r-')
+        plt.legend(loc=1)
+        plt.ylabel('Discharge, m^3/s')
+        plt.xlabel('Time, s')
         
-        # Plot discharge vs. time
-        pylab.figure(3)
-        pylab.plot(np.array(t), np.array(q_study)*grid.dx)
-        #pylab.plot(t, q_study)
-        pylab.xlabel('Time (s)')
-        pylab.ylabel('Q (m3/s)')
-        pylab.title('study point discharge')
+        plt.figure('Shear Stress at Study Node')
+        plt.plot(t, t_1, 'r--')
+        plt.ylabel('Shear Stress, Pa')
+        plt.xlabel('Time, s')
+        plt.legend(loc=1)
         
-        # Plot shear stress vs. time
-        pylab.figure(4)
-        pylab.plot(np.array(t), np.array(tau_study))
-        pylab.xlabel('Time (s)')
-        pylab.ylabel('shear stress (rho g h S)')
-        pylab.title('study point shear stress')
+        plt.figure('Water Depth at Study Node')
+        plt.plot(t, h_1, 'r--')
+        plt.ylabel('Water Depth, m')
+        plt.xlabel('Time, s')
+        plt.legend(loc=1)
+
+     #   
+        plt.show()
+        #pylab.show()
         
-        #Below for saving data to a text file
-        #np.savetxt('q3322.data',q_study,fmt='%15.10f',delimiter='\n')
-        
-        #pylab.figure(4)
-        #pylab.plot(np.array(t), np.array(slope_study))
-        #pylab.xlabel('Time (s)')
-        #pylab.ylabel('Water Slope (.)')
-        #pylab.title('Water Slope at study point')
-        #np.savetxt('slope3322.data',slope_study,fmt='%15.10f',delimiter='\n')
-        
-        #pylab.figure(5)
-        #pylab.plot(np.array(t), np.array(h_dwn))
-        #pylab.xlabel('Time (s)')
-        #pylab.ylabel('h (m)')
-        #pylab.title('down stream water height')
-        #np.savetxt('hdwn3322.data',h_dwn,fmt='%15.10f',delimiter='\n')
-        #
-        # Display the plots
-        pylab.show()
-            
-        
-            #return z, g, qs, dqsds, dzdt
-        
+
         
     #def run_one_step_internal(self, delt):
     #    
