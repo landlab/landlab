@@ -22,14 +22,17 @@ class OverlandFlow(object):
     
     def __init__(self, input_stream, grid=None, current_time=0.):
         
-        self.grid = grid
+        ## ALL CONSTANTS AND VARIABLES SHOULD BE DEFINED HERE. 
+        
         #create and initial grid if one doesn't already exist
+
+        self.grid = grid 
         if self.grid==None:
             self.grid = create_and_initialize_grid(input_stream)
         self.current_time = current_time
         self.initialize(grid, input_stream)
-        
-    def initialize(self, grid, input_stream):
+
+    def initialize(self, grid, input_stream, intensity=None, stormduration=None):
         
         # Create a ModelParameterDictionary for the inputs
         if type(input_stream)==ModelParameterDictionary:
@@ -39,17 +42,24 @@ class OverlandFlow(object):
         
         # Read input/configuration parameters
         self.m_n = inputs.get('MANNINGS_N', ptype=float)
+        
         #NG do a check to make sure Manning's n is an appropriate values
-        self.rainfall_mmhr = inputs.get('RAINFALL_RATE', ptype=float)
-        self.rain_duration = inputs.get('RAIN_DURATION', ptype=float)
+        if intensity == None:
+            self.rainfall_mmhr = inputs.get('RAINFALL_RATE', ptype=float)
+        else:
+            self.rainfall_mmhr = intensity
         
-        #print "Rainfall duration ", self.rain_duration
-        
+        if stormduration == None:
+            self.rain_duration = inputs.get('RAIN_DURATION', ptype=float)
+        else:
+            self.rain_duration = stormduration
+          
         self.h_init = 0.001        # initial thin layer of water (m)
         self.g = 9.8               # gravitational acceleration (m/s2)
         self.alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
         self.m_n_sq = self.m_n*self.m_n # manning's n squared
         self.rho = 1000 # densith of water, kg/m^3
+              
         
         
         # Derived parameters
@@ -57,6 +67,7 @@ class OverlandFlow(object):
         self.ten_thirds = 10./3.   # pre-calculate 10/3 for speed
         
         # Set up state variables
+        
         self.hstart = grid.zeros(centering='node') + self.h_init 
         self.h = grid.zeros(centering='node') + self.h_init     # water depth (m)
         #NG why is water depth at each node and not at cells, which are only active
@@ -66,25 +77,38 @@ class OverlandFlow(object):
         #Maybe because you need a boundary condition of water depth at the 
         #boundary locations?  But water depths only change at active cells?
         
-    def run_one_step(self, grid, z, outlet_node, delt=None, rainrate=None, rainduration=None):
-        # run_one_step routes flow across the landscape over the time period delt.
-        # This should work even if the rainduration is shorter or longer than delt. 
-        # The units of delt and rainduration should be in seconds.
-        # Note that the outlet_node and node_next_to_outlet do not need to be 
-        # the actual outlet_node, just the location of interest for plotting.
+    def generate_overland_flow_at_one_point(self, grid, z, study_node, total_t=None, rainrate=None, rainduration=None):
         
+        '''
+        This method calculates discharge, water depth and shear stress at one
+        point in the grid, defined as "study_node" in the function arguments.
+        The study node is defined in the driver file, where the node ID must also
+        be found using the grid_coords_to_node_id() function. 
+        It is important to note that the study node does NOT have to be the outlet
+        node, which must be defined to correctly account for boundary conditions.
+        As it stands, using the outlet node as the "study_node" may cause significant
+        boundary errors. Working on it!
+        
+        This function runs for the total run time, defined in the arguments as
+        total_t (s). This function will work regardless of if rainduration (s) is shorter
+        or longer than total_t (s)
+        
+        Rainrate is the rainfall intensity in m/s. 
+        Rain duration is the total storm time in seconds.
+        '''
+    
         g=self.g
         alpha = self.alpha
         m_n_sq = self.m_n_sq
         ten_thirds = self.ten_thirds
         rho = self.rho
         
-        if delt==None:
-            delt = self.rain_duration
+        if total_t==None:
+            total_t = self.rain_duration
         if rainrate==None:
             rainrate = self.rainfall_rate
         if rainduration==None:
-            rainduration = delt
+            rainduration = total_t
             
         #interior_nodes are the nodes on which you will be calculating flow 
         interior_nodes = grid.get_active_cell_node_ids()
@@ -112,20 +136,20 @@ class OverlandFlow(object):
         t_1.append(0.)
         h_1.append(0.)
         
-        nbr_node = grid.find_node_in_direction_of_max_slope_d4(z, outlet_node)
-        study_link = grid.get_active_link_connecting_node_pair(outlet_node, nbr_node)
+        nbr_node = grid.find_node_in_direction_of_max_slope_d4(z, study_node)
+        study_link = grid.get_active_link_connecting_node_pair(study_node, nbr_node)
 
 
         # Main loop
-        while elapsed_time < delt:
+        while elapsed_time < total_t:
         
         
             # Calculate time-step size for this iteration (Bates et al., eq 14)
             dtmax = alpha*grid.dx/np.sqrt(g*np.amax(h))
             #print "dtmax", dtmax
             
-            if elapsed_time+dtmax > delt:
-                dtmax = delt - elapsed_time
+            if elapsed_time+dtmax > total_t:
+                dtmax = total_t - elapsed_time
         
             # Calculate the effective flow depth at active links. Bates et al. 2010
             # recommend using the difference between the highest water-surface
@@ -167,8 +191,8 @@ class OverlandFlow(object):
             # Update the water-depth field
             h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
 
-            w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,outlet_node)
-            tau_temp=self.rho*self.g*w_slp_studypoint*self.h[outlet_node]
+            w_slp_studypoint,garbage=grid.calculate_max_gradient_across_node_d4(w,study_node)
+            tau_temp=self.rho*self.g*w_slp_studypoint*self.h[study_node]
             t_1.append(tau_temp)
 
             # Update model run time
@@ -178,7 +202,7 @@ class OverlandFlow(object):
             # Remember discharge and time
             t.append(elapsed_time)
             q_outlet.append(q[study_link])            
-            h_1.append(h[outlet_node])
+            h_1.append(h[study_node])
 
 
         
@@ -205,7 +229,7 @@ class OverlandFlow(object):
         #pylab.show()
         
 
-        
+    #def generate_overland_flow_across_grid()    
     #def run_one_step_internal(self, delt):
     #    
     #    # Take the smaller of delt or built-in time-step size self.dt
