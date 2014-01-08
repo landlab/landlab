@@ -6,7 +6,7 @@ This tests the overland flow and shear stress generator.
 """
 
 import landlab
-from landlab.components.overland_flow.generate_overland_flow import OverlandFlow
+from landlab.components.overland_flow.generate_overland_flow_DEM import OverlandFlow
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.io import read_esri_ascii
 from matplotlib import pyplot as plt
@@ -79,12 +79,13 @@ def main():
     plt.legend(loc=3)
 
 
-    of=OverlandFlow(IT_FILE,rg,0)
+    of=OverlandFlow()#IT_FILE,rg,0)
+    of.initialize(rg)
 
     ## (-,-,-,-,how long we route overland flow, intensity in m/s, duration of storm) ##
 
     ## Trial 1, 10 year storm ##
-    of.generate_overland_flow_at_one_point(rg,z,study_node,9000,(7.167*(10**-6)), 2916)
+    of.calculate_flow_at_one_point(rg,z,study_node,90,(7.167*(10**-6)), 2916)
 
 
     plt.show()
