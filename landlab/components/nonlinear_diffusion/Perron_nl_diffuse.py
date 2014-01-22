@@ -71,9 +71,9 @@ class PerronNLDiffuse(object):
         #build an ID map to let us easily map the variables of the core nodes onto the operating matrix:
         #This array is ninteriornodes long, but the IDs it contains are REAL IDs
         operating_matrix_ID_map = numpy.empty((ninteriornodes,9))
-        interior_IDs_as_real = self.interiorIDtoreal(numpy.arange(ninteriornodes))
+        self.interior_IDs_as_real = self.interiorIDtoreal(numpy.arange(ninteriornodes))
         for j in xrange(ninteriornodes):
-            i = interior_IDs_as_real[j]
+            i = self.interior_IDs_as_real[j]
             #operating_matrix_ID_map[:,j] = numpy.array([(i-ncols+1),(i-ncols+2),(i-ncols+3),(i-1),i,(i+1),(i+ncols-3),(i+ncols-2),(i+ncols-1)])
             operating_matrix_ID_map[j,:] = numpy.array([(i-ncols-1),(i-ncols),(i-ncols+1),(i-1),i,(i+1),(i+ncols-1),(i+ncols),(i+ncols+1)])
         #self.operating_matrix_ID_map = operating_matrix_ID_map
@@ -241,17 +241,18 @@ class PerronNLDiffuse(object):
 
         #Remember, the RHS is getting wiped each loop as part of self.set_variables()
         #_mat_RHS is ninteriornodes long, but were only working on a ncorenodes long subset here
-        _mat_RHS[corenodesbyintIDs] += elev[_core_nodes] + _delta_t*(_func_on_z[_core_nodes] - _equ_RHS_calc_frag[_core_nodes])
+        _mat_RHS[corenodesbyintIDs] += elev[_core_nodes] + _delta_t*(_func_on_z[_core_nodes] - _equ_RHS_calc_frag[_core_nodes]) #PROBLEM LIKELY HERE - COMPARE THE OLD FORM. Simple translation won't work, as need to add the incoming values from the sides all at once, not iteratively as before
         low_row = numpy.vstack((_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1))*-_delta_t
         mid_row = numpy.vstack((-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1))
         top_row = numpy.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1))*-_delta_t
         nine_node_map = numpy.vstack((low_row,mid_row,top_row)).T #Note shape is (nnodes,9); it's realID indexed
         #print nine_node_map
-        _operating_matrix[(operating_matrix_core_int_IDs.astype(int),numpy.arange(9,dtype=int).reshape((1,9)))] += nine_node_map[_core_nodes,:]
+        #_operating_matrix[(operating_matrix_core_int_IDs.astype(int),numpy.arange(9,dtype=int).reshape((1,9)))] += nine_node_map[_core_nodes,:] #is there something weird happening with the redimensionalizing here...?
+        _operating_matrix[(corenodesbyintIDs.reshape((self.ncorenodes,1)),operating_matrix_core_int_IDs.astype(int))] += nine_node_map[_core_nodes,:] #this should now be putting these values in the right cells...
         
         #Now the interior corners
         _mat_RHS[corner_interior_IDs] += elev[_interior_corners] + _delta_t*(_func_on_z[_interior_corners] - _equ_RHS_calc_frag[_interior_corners])
-        _operating_matrix[(operating_matrix_corner_int_IDs.astype(int),numpy.arange(4,dtype=int).reshape((1,4)))] += nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)] #rhs 1st index gives (4,9), 2nd reduces to (4,4)
+        _operating_matrix[(self.corner_interior_IDs.reshape((4,1)),operating_matrix_corner_int_IDs.astype(int))] += nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)] #rhs 1st index gives (4,9), 2nd reduces to (4,4)
         for i in range(4): #loop over each corner, as so few
             if corner_flags[i] == 1:
                 #goes to RHS only (yuk!)
@@ -268,10 +269,10 @@ class PerronNLDiffuse(object):
         _mat_RHS[top_interior_IDs] += elev[_top_list] + _delta_t*(_func_on_z[_top_list] - _equ_RHS_calc_frag[_top_list])
         _mat_RHS[left_interior_IDs] += elev[_left_list] + _delta_t*(_func_on_z[_left_list] - _equ_RHS_calc_frag[_left_list])        
         _mat_RHS[right_interior_IDs] += elev[_right_list] + _delta_t*(_func_on_z[_right_list] - _equ_RHS_calc_frag[_right_list])
-        _operating_matrix[self.operating_matrix_bottom_int_IDs.astype(int),numpy.arange(6).reshape((1,6))] += nine_node_map[_bottom_list,:][:,self.bottom_mask]
-        _operating_matrix[self.operating_matrix_top_int_IDs.astype(int),numpy.arange(6).reshape((1,6))] += nine_node_map[_top_list,:][:,self.top_mask]
-        _operating_matrix[self.operating_matrix_left_int_IDs.astype(int),numpy.arange(6).reshape((1,6))] += nine_node_map[_left_list,:][:,self.left_mask]
-        _operating_matrix[self.operating_matrix_right_int_IDs.astype(int),numpy.arange(6).reshape((1,6))] += nine_node_map[_right_list,:][:,self.right_mask]
+        _operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.operating_matrix_bottom_int_IDs.astype(int)] += nine_node_map[_bottom_list,:][:,self.bottom_mask]
+        _operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.operating_matrix_top_int_IDs.astype(int)] += nine_node_map[_top_list,:][:,self.top_mask]
+        _operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.operating_matrix_left_int_IDs.astype(int)] += nine_node_map[_left_list,:][:,self.left_mask]
+        _operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.operating_matrix_right_int_IDs.astype(int)] += nine_node_map[_right_list,:][:,self.right_mask]
         
         if self.bottom_flag == 1:
             #goes to RHS only
@@ -456,12 +457,13 @@ class PerronNLDiffuse(object):
         #print 'set the variables successfully'
         #Solve interior of grid:
         #print self._mat_RHS
-        _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS.reshape((len(self._mat_RHS),1)))
+        #_interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS.reshape((len(self._mat_RHS),1)))
+        _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
         #print 'solved the matrix'
         #print _interior_elevs.shape
         #this fn solves Ax=B for x
         
-        grid['node']['planet_surface__elevation'][grid.active_nodes] = _interior_elevs
+        grid['node']['planet_surface__elevation'][self.interior_IDs_as_real] = _interior_elevs
         if self.bottom_flag==1 and self.top_flag==1 and self.left_flag==1 and self.right_flag==1:
             pass #...as the value is unchanged
         else:

@@ -24,6 +24,9 @@ mg.create_node_array_zeros('planet_surface__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
 
+#Now add a step to diffuse out:
+mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += 0.05 #half block uplift
+
 #pylab.figure(1)
 #pylab.close()
 #elev = mg['node']['planet_surface__elevation']
@@ -49,8 +52,8 @@ while elapsed_time < time_to_run:
         diffusion_component.gear_timestep(dt)
     else:
         diffusion_component.gear_timestep(time_to_run-elapsed_time)
-    mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt
-    
+    #mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
+    #mg.at_node['planet_surface__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
     #pylab.figure(1)
     #pylab.close()
     #elev = mg['node']['planet_surface__elevation']
