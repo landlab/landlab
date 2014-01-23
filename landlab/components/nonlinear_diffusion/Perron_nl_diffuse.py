@@ -241,7 +241,7 @@ class PerronNLDiffuse(object):
 
         #Remember, the RHS is getting wiped each loop as part of self.set_variables()
         #_mat_RHS is ninteriornodes long, but were only working on a ncorenodes long subset here
-        _mat_RHS[corenodesbyintIDs] += elev[_core_nodes] + _delta_t*(_func_on_z[_core_nodes] - _equ_RHS_calc_frag[_core_nodes]) #PROBLEM LIKELY HERE - COMPARE THE OLD FORM. Simple translation won't work, as need to add the incoming values from the sides all at once, not iteratively as before
+        _mat_RHS[corenodesbyintIDs] += elev[_core_nodes] + _delta_t*(_func_on_z[_core_nodes] - _equ_RHS_calc_frag[_core_nodes])
         low_row = numpy.vstack((_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1))*-_delta_t
         mid_row = numpy.vstack((-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1))
         top_row = numpy.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1))*-_delta_t
@@ -255,8 +255,8 @@ class PerronNLDiffuse(object):
         _operating_matrix[(self.corner_interior_IDs.reshape((4,1)),operating_matrix_corner_int_IDs.astype(int))] += nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)] #rhs 1st index gives (4,9), 2nd reduces to (4,4)
         for i in range(4): #loop over each corner, as so few
             if corner_flags[i] == 1:
-                #goes to RHS only (yuk!)
-                _mat_RHS[corner_interior_IDs[i]] += _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,:]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,:]]])
+                #goes to RHS only (yuk!) -> Was formerly +=, and below too
+                _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,:]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,:]]])
             elif corner_flags[i] ==2:
                 raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
             else:
@@ -276,22 +276,22 @@ class PerronNLDiffuse(object):
         
         if self.bottom_flag == 1:
             #goes to RHS only
-            _mat_RHS[bottom_interior_IDs] += _delta_t*numpy.sum(nine_node_map[_bottom_list,:][:,bottom_antimask]*elev[_bottom_list.reshape((len(_bottom_list),1))+(modulator_mask[bottom_antimask]).reshape(1,3)], axis=1) #note the broadcasting to (nedge,3) in final fancy index   
+            _mat_RHS[bottom_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_bottom_list,:][:,bottom_antimask]*elev[_bottom_list.reshape((len(_bottom_list),1))+(modulator_mask[bottom_antimask]).reshape(1,3)], axis=1) #note the broadcasting to (nedge,3) in final fancy index   
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
         if self.top_flag == 1:
             #goes to RHS only
-            _mat_RHS[top_interior_IDs] += _delta_t*numpy.sum(nine_node_map[_top_list,:][:,top_antimask]*elev[_top_list.reshape((len(_top_list),1))+(modulator_mask[top_antimask]).reshape(1,3)], axis=1)
+            _mat_RHS[top_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_top_list,:][:,top_antimask]*elev[_top_list.reshape((len(_top_list),1))+(modulator_mask[top_antimask]).reshape(1,3)], axis=1)
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
         if self.left_flag == 1:
             #goes to RHS only
-            _mat_RHS[left_interior_IDs] += _delta_t*numpy.sum(nine_node_map[_left_list,:][:,left_antimask]*elev[_left_list.reshape((len(_left_list),1))+(modulator_mask[left_antimask]).reshape(1,3)], axis=1)
+            _mat_RHS[left_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_left_list,:][:,left_antimask]*elev[_left_list.reshape((len(_left_list),1))+(modulator_mask[left_antimask]).reshape(1,3)], axis=1)
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
         if self.right_flag == 1:
             #goes to RHS only
-            _mat_RHS[right_interior_IDs] += _delta_t*numpy.sum(nine_node_map[_right_list,:][:,right_antimask]*elev[_right_list.reshape((len(_right_list),1))+(modulator_mask[right_antimask]).reshape(1,3)], axis=1)
+            _mat_RHS[right_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_right_list,:][:,right_antimask]*elev[_right_list.reshape((len(_right_list),1))+(modulator_mask[right_antimask]).reshape(1,3)], axis=1)
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
