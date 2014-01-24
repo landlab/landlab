@@ -17,15 +17,16 @@ uplift = inputs.read_float('uplift')
 init_elev = inputs.read_float('init_elev')
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(False, False, False, False)
+#mg.set_inactive_boundaries(False, False, False, False)
+mg.set_inactive_boundaries(True,True,True,True)
 
 #create the fields in the grid
 mg.create_node_array_zeros('planet_surface__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
 
-#Now add a step to diffuse out:
-mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += 0.05 #half block uplift
+##Now add a step to diffuse out:
+#mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += 0.05 #half block uplift
 
 #pylab.figure(1)
 #pylab.close()
@@ -52,7 +53,7 @@ while elapsed_time < time_to_run:
         diffusion_component.gear_timestep(dt)
     else:
         diffusion_component.gear_timestep(time_to_run-elapsed_time)
-    #mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
+    mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
     #mg.at_node['planet_surface__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
     #pylab.figure(1)
     #pylab.close()

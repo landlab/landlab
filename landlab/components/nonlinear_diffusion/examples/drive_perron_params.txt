@@ -6,11 +6,11 @@ ncols:
 dx:
 1.
 dt:
-1
-uplift: #per time, not per timestep
 1.
+uplift: #per time, not per timestep
+0.001
 run_time:
-0.
+20.
 init_elev:
 0.
 
