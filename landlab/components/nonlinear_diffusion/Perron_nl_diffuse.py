@@ -317,16 +317,16 @@ class PerronNLDiffuse(object):
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
         elif self.bottom_flag == 4:
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-#            _operating_matrix[bottom_interior_IDs,bottom_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_bottom_list,:][:,bottom_antimask])
-            _operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] -= _delta_t*nine_node_map[_bottom_list,:][:,bottom_antimask]
+            _operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] += _delta_t*nine_node_map[_bottom_list,:][:,bottom_antimask]
+            #_operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] *= 2.
             #...& the corners
             outer_edges = [(1,2),(0,1),(0,0),(0,0)] #looks at antimask
             inner_edges = [(0,1),(0,1),(0,0),(0,0)] #looks at mask
             for i in [0,1]:
                 outer_edge_list = outer_edges[i]
                 inner_edge_list = inner_edges[i]
-#                _operating_matrix[corner_interior_IDs[i]] ####<-WRONG -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]])
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] -= _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -340,16 +340,16 @@ class PerronNLDiffuse(object):
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
         elif self.top_flag == 4:
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-#            _operating_matrix[top_interior_IDs,top_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_top_list,:][:,top_antimask])
-            _operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] -= _delta_t*nine_node_map[_top_list,:][:,top_antimask]
+            _operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] += _delta_t*nine_node_map[_top_list,:][:,top_antimask]
+            #_operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] *= 2.
             #...& the corners
             outer_edges = [(0,0),(0,0),(3,4),(2,3)]
             inner_edges = [(0,0),(0,0),(2,3),(2,3)]
             for i in [2,3]:
                 outer_edge_list = outer_edges[i]
                 inner_edge_list = inner_edges[i]
-#                _operating_matrix[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]])
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] -= _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -363,16 +363,16 @@ class PerronNLDiffuse(object):
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
         elif self.left_flag == 4:
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-#            _operating_matrix[left_interior_IDs,left_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_left_list,:][:,left_antimask])
-            _operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] -= _delta_t*nine_node_map[_left_list,:][:,left_antimask]
+            _operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] += _delta_t*nine_node_map[_left_list,:][:,left_antimask]
+            #_operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] *= 2.
             #...& the corners
             outer_edges = [(3,4),(0,0),(0,1),(0,0)]
             inner_edges = [(0,2),(0,0),(0,2),(0,0)]
             for i in [0,2]:
                 outer_edge_list = outer_edges[i]
                 inner_edge_list = inner_edges[i]
-#                _operating_matrix[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]])
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] -= _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -386,16 +386,16 @@ class PerronNLDiffuse(object):
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
         elif self.right_flag == 4:
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-#            _operating_matrix[right_interior_IDs,right_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_right_list,:][:,right_antimask])
-            _operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] -= _delta_t*nine_node_map[_right_list,:][:,right_antimask]
+            _operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] += _delta_t*nine_node_map[_right_list,:][:,right_antimask]
+            #_operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] *= 2.
             #...& the corners
             outer_edges = [(0,0),(3,4),(0,0),(0,1)]
             inner_edges = [(0,0),(1,3),(0,0),(1,3)]
             for i in [1,3]:
                 outer_edge_list = outer_edges[i]
                 inner_edge_list = inner_edges[i]
-#                _operating_matrix[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]])
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] -= _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -465,11 +465,17 @@ class PerronNLDiffuse(object):
         #print _interior_elevs.shape
         #this fn solves Ax=B for x
         
+        #Handle the BC cells; test common cases first for speed
         grid['node']['planet_surface__elevation'][self.interior_IDs_as_real] = _interior_elevs
         if self.bottom_flag==1 and self.top_flag==1 and self.left_flag==1 and self.right_flag==1:
             pass #...as the value is unchanged
+#        elif self.bottom_flag==4 and self.top_flag==4 and self.left_flag==4 and self.right_flag==4:
+#            
+#        else:
+#            for i in [self.bottom_flag, self.top_flag, self.left_flag, self.right_flag]:
+#                if 
         else:
-            "This component can't handle these BC types yet. But you should know that by now!"
+            print "This component can't handle these BC types yet. But you should know that by now!"
         
         self.grid = grid
         return grid
