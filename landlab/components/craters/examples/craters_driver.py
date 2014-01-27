@@ -7,7 +7,7 @@ import time
 import pylab
 
 #get the needed properties to build the grid:
-input_file = './craters_params.txt'
+input_file = './craters_params_init.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -43,7 +43,7 @@ az = np.empty(nt)
 mass_balance = np.empty(nt)
 for i in xrange(loops):
     for j in xrange(nt):
-        mg = craters_component.excavate_a_crater(mg)
+        mg = craters_component.excavate_a_crater_furbish(mg)
         x[j] = craters_component.impact_property_dict['x']
         y[j] = craters_component.impact_property_dict['y']
         r[j] = craters_component.impact_property_dict['r']
@@ -52,16 +52,16 @@ for i in xrange(loops):
         az[j] = craters_component.impact_property_dict['impact_az']
         mass_balance[j] = craters_component.impact_property_dict['mass_balance']
         print 'Completed loop ', j
-    mystring = 'craterssave'+str(i*nt)
+    mystring = 'initial_topo'  #'craterssave'+str((i+1)*nt)
     np.save(mystring,mg['node']['planet_surface__elevation'])
     #Save the properties
-    np.save(('x_'+str(i*nt)),x)
-    np.save(('y_'+str(i*nt)),y)
-    np.save(('r_'+str(i*nt)),r)
-    np.save(('slope_'+str(i*nt)),slope)
-    np.save(('angle_'+str(i*nt)),angle)
-    np.save(('az_'+str(i*nt)),az)
-    np.save(('mass_balance_'+str(i*nt)),mass_balance)
+    np.save(('x_'+str((i+1)*nt)),x)
+    np.save(('y_'+str((i+1)*nt)),y)
+    np.save(('r_'+str((i+1)*nt)),r)
+    np.save(('slope_'+str((i+1)*nt)),slope)
+    np.save(('angle_'+str((i+1)*nt)),angle)
+    np.save(('az_'+str((i+1)*nt)),az)
+    np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
 
 #Finalize and plot
 elev = mg['node']['planet_surface__elevation']

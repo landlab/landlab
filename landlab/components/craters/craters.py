@@ -11,7 +11,6 @@ import scipy.optimize as opt
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
-from memory_profiler import profile
 
 from landlab import RasterModelGrid #this is the tMesh equivalent module
 

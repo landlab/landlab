@@ -187,7 +187,7 @@ class PerronNLDiffuse(object):
         self._delta_t = timestep_in
         return timestep_in
         
-
+    #@profile #for line_profiler
     def set_variables(self, grid):
         '''
         This function sets the variables needed for update().
@@ -195,9 +195,8 @@ class PerronNLDiffuse(object):
         At the moment, this method can only handle fixed value BCs.
         '''
         n_interior_nodes = grid.number_of_interior_nodes
-        #_operating_matrix = sparse.lil_matrix((n_interior_nodes, n_interior_nodes), dtype=float)
-        _operating_matrix = numpy.zeros((n_interior_nodes, n_interior_nodes), dtype=float)
-        #_interior_elevs = [-1] * n_interior_nodes
+        ###_operating_matrix = sparse.lil_matrix((n_interior_nodes, n_interior_nodes), dtype=float)
+        ####we're going to try this with COO, so initialize later
 
         #Initialize the local builder lists
         _mat_RHS = numpy.zeros(n_interior_nodes)
@@ -277,13 +276,18 @@ class PerronNLDiffuse(object):
         mid_row = numpy.vstack((-_delta_t*_F_ijminus1, 1.-_delta_t*_F_ij, -_delta_t*_F_ijplus1))
         top_row = numpy.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1))*-_delta_t
         nine_node_map = numpy.vstack((low_row,mid_row,top_row)).T #Note shape is (nnodes,9); it's realID indexed
-        #print nine_node_map
         #_operating_matrix[(operating_matrix_core_int_IDs.astype(int),numpy.arange(9,dtype=int).reshape((1,9)))] += nine_node_map[_core_nodes,:] #is there something weird happening with the redimensionalizing here...?
-        _operating_matrix[(corenodesbyintIDs.reshape((self.ncorenodes,1)),operating_matrix_core_int_IDs.astype(int))] += nine_node_map[_core_nodes,:] #this should now be putting these values in the right cells...
+        core_op_mat_row = numpy.repeat(corenodesbyintIDs, 9)
+        core_op_mat_col = operating_matrix_core_int_IDs.astype(int).flatten()
+        core_op_mat_data = nine_node_map[_core_nodes,:].flatten()
+        ###_operating_matrix[(corenodesbyintIDs.reshape((self.ncorenodes,1)),operating_matrix_core_int_IDs.astype(int))] += nine_node_map[_core_nodes,:] #this should now be putting these values in the right cells...
         
         #Now the interior corners; BL,BR,TL,TR
         _mat_RHS[corner_interior_IDs] += elev[_interior_corners] + _delta_t*(_func_on_z[_interior_corners] - _equ_RHS_calc_frag[_interior_corners])
-        _operating_matrix[(self.corner_interior_IDs.reshape((4,1)),operating_matrix_corner_int_IDs.astype(int))] += nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)] #rhs 1st index gives (4,9), 2nd reduces to (4,4)
+        corners_op_mat_row = numpy.repeat(self.corner_interior_IDs,4)
+        corners_op_mat_col = operating_matrix_corner_int_IDs.astype(int).flatten()
+        corners_op_mat_data = nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)].flatten() #1st index gives (4,9), 2nd reduces to (4,4), then flattened
+        ###_operating_matrix[(self.corner_interior_IDs.reshape((4,1)),operating_matrix_corner_int_IDs.astype(int))] += nine_node_map[_interior_corners,:][(numpy.arange(4).reshape((4,1)),self.corners_masks)] #rhs 1st index gives (4,9), 2nd reduces to (4,4)
         for i in range(4): #loop over each corner, as so few
             #Note that this ONLY ADDS THE VALUES FOR THE TRUE GRID CORNERS. The sides get done in the edge tests, below.
             if corner_flags[i] == 1:
@@ -302,10 +306,22 @@ class PerronNLDiffuse(object):
         _mat_RHS[top_interior_IDs] += elev[_top_list] + _delta_t*(_func_on_z[_top_list] - _equ_RHS_calc_frag[_top_list])
         _mat_RHS[left_interior_IDs] += elev[_left_list] + _delta_t*(_func_on_z[_left_list] - _equ_RHS_calc_frag[_left_list])        
         _mat_RHS[right_interior_IDs] += elev[_right_list] + _delta_t*(_func_on_z[_right_list] - _equ_RHS_calc_frag[_right_list])
-        _operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.operating_matrix_bottom_int_IDs.astype(int)] += nine_node_map[_bottom_list,:][:,self.bottom_mask]
-        _operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.operating_matrix_top_int_IDs.astype(int)] += nine_node_map[_top_list,:][:,self.top_mask]
-        _operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.operating_matrix_left_int_IDs.astype(int)] += nine_node_map[_left_list,:][:,self.left_mask]
-        _operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.operating_matrix_right_int_IDs.astype(int)] += nine_node_map[_right_list,:][:,self.right_mask]
+        bottom_op_mat_row = numpy.repeat(bottom_interior_IDs,6)
+        top_op_mat_row = numpy.repeat(top_interior_IDs,6)
+        left_op_mat_row = numpy.repeat(left_interior_IDs,6)
+        right_op_mat_row = numpy.repeat(right_interior_IDs,6)   
+        bottom_op_mat_col = self.operating_matrix_bottom_int_IDs.astype(int).flatten()
+        top_op_mat_col = self.operating_matrix_top_int_IDs.astype(int).flatten()
+        left_op_mat_col = self.operating_matrix_left_int_IDs.astype(int).flatten()
+        right_op_mat_col = self.operating_matrix_right_int_IDs.astype(int).flatten()
+        bottom_op_mat_data = nine_node_map[_bottom_list,:][:,self.bottom_mask].flatten()
+        top_op_mat_data = nine_node_map[_top_list,:][:,self.top_mask].flatten()
+        left_op_mat_data = nine_node_map[_left_list,:][:,self.left_mask].flatten()
+        right_op_mat_data = nine_node_map[_right_list,:][:,self.right_mask].flatten()
+        ###_operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.operating_matrix_bottom_int_IDs.astype(int)] += nine_node_map[_bottom_list,:][:,self.bottom_mask]
+        ###_operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.operating_matrix_top_int_IDs.astype(int)] += nine_node_map[_top_list,:][:,self.top_mask]
+        ###_operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.operating_matrix_left_int_IDs.astype(int)] += nine_node_map[_left_list,:][:,self.left_mask]
+        ###_operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.operating_matrix_right_int_IDs.astype(int)] += nine_node_map[_right_list,:][:,self.right_mask]
         
         if self.bottom_flag == 1:
             #goes to RHS only
@@ -315,18 +331,31 @@ class PerronNLDiffuse(object):
             for i in [0,1]:
                 edge_list = edges[i]
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+            #make dummy array objects for the x,y coords in coo creation of _operating_matrix
+            bottom_op_mat_row_add = numpy.empty(0)
+            bottom_op_mat_col_add = numpy.empty(0)
+            bottom_op_mat_data_add = numpy.empty(0)
         elif self.bottom_flag == 4:
+            bottom_op_mat_row_add = numpy.empty((bottom_interior_IDs.size*3+4))
+            bottom_op_mat_col_add = numpy.empty((bottom_interior_IDs.size*3+4))
+            bottom_op_mat_data_add = numpy.empty((bottom_interior_IDs.size*3+4))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-            _operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] += _delta_t*nine_node_map[_bottom_list,:][:,bottom_antimask]
-            #_operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] *= 2.
+            bottom_op_mat_row_add[:(bottom_interior_IDs.size*3)] = numpy.repeat(bottom_interior_IDs,3)
+            bottom_op_mat_col_add[:(bottom_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]]).flatten()
+            bottom_op_mat_data_add[:(bottom_interior_IDs.size*3)] = _delta_t*(nine_node_map[_bottom_list,:][:,bottom_antimask]).flatten()
+            ###_operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] += _delta_t*nine_node_map[_bottom_list,:][:,bottom_antimask]
             #...& the corners
-            outer_edges = [(1,2),(0,1),(0,0),(0,0)] #looks at antimask
-            inner_edges = [(0,1),(0,1),(0,0),(0,0)] #looks at mask
-            for i in [0,1]:
-                outer_edge_list = outer_edges[i]
-                inner_edge_list = inner_edges[i]
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
-                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
+            ###outer_edges = [(1,2),(0,1),(0,0),(0,0)] #looks at antimask
+            ###inner_edges = [(0,1),(0,1),(0,0),(0,0)] #looks at mask
+            this_corner_coords = numpy.array([0,1])
+            bottom_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            bottom_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            bottom_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[1,2]]].flatten()
+            bottom_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[0,1]]].flatten()
+            ###for i in [0,1]:
+            ###    outer_edge_list = outer_edges[i]
+            ###    inner_edge_list = inner_edges[i]
+            ###    _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -338,18 +367,30 @@ class PerronNLDiffuse(object):
             for i in [2,3]:
                 edge_list = edges[i]
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+            top_op_mat_row_add = numpy.empty(0)
+            top_op_mat_col_add = numpy.empty(0)
+            top_op_mat_data_add = numpy.empty(0)
         elif self.top_flag == 4:
+            top_op_mat_row_add = numpy.empty((top_interior_IDs.size*3+4))
+            top_op_mat_col_add = numpy.empty((top_interior_IDs.size*3+4))
+            top_op_mat_data_add = numpy.empty((top_interior_IDs.size*3+4))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-            _operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] += _delta_t*nine_node_map[_top_list,:][:,top_antimask]
-            #_operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] *= 2.
+            top_op_mat_row_add[:(top_interior_IDs.size*3)] = numpy.repeat(top_interior_IDs,3)
+            top_op_mat_col_add[:(top_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]]).flatten()
+            top_op_mat_data_add[:(top_interior_IDs.size*3)] = _delta_t*(nine_node_map[_top_list,:][:,top_antimask]).flatten()
+            ###_operating_matrix[top_interior_IDs.reshape(top_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]])] += _delta_t*nine_node_map[_top_list,:][:,top_antimask]
             #...& the corners
-            outer_edges = [(0,0),(0,0),(3,4),(2,3)]
-            inner_edges = [(0,0),(0,0),(2,3),(2,3)]
-            for i in [2,3]:
-                outer_edge_list = outer_edges[i]
-                inner_edge_list = inner_edges[i]
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
-                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
+            ###outer_edges = [(0,0),(0,0),(3,4),(2,3)]
+            ###inner_edges = [(0,0),(0,0),(2,3),(2,3)]
+            this_corner_coords = numpy.array([2,3])
+            top_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            top_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            top_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[3,4]]].flatten()
+            top_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[2,3]]].flatten()
+            ###for i in [2,3]:
+            ###    outer_edge_list = outer_edges[i]
+            ###    inner_edge_list = inner_edges[i]
+            ###    _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -361,18 +402,30 @@ class PerronNLDiffuse(object):
             for i in [0,2]:
                 edge_list = edges[i]
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+            left_op_mat_row_add = numpy.empty(0)
+            left_op_mat_col_add = numpy.empty(0)
+            left_op_mat_data_add = numpy.empty(0)
         elif self.left_flag == 4:
+            left_op_mat_row_add = numpy.empty((left_interior_IDs.size*3+4))
+            left_op_mat_col_add = numpy.empty((left_interior_IDs.size*3+4))
+            left_op_mat_data_add = numpy.empty((left_interior_IDs.size*3+4))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-            _operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] += _delta_t*nine_node_map[_left_list,:][:,left_antimask]
-            #_operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] *= 2.
+            left_op_mat_row_add[:(left_interior_IDs.size*3)] = numpy.repeat(left_interior_IDs,3)
+            left_op_mat_col_add[:(left_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]]).flatten()
+            left_op_mat_data_add[:(left_interior_IDs.size*3)] = _delta_t*(nine_node_map[_left_list,:][:,left_antimask]).flatten()
+            ###_operating_matrix[left_interior_IDs.reshape(left_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]])] += _delta_t*nine_node_map[_left_list,:][:,left_antimask]
             #...& the corners
-            outer_edges = [(3,4),(0,0),(0,1),(0,0)]
-            inner_edges = [(0,2),(0,0),(0,2),(0,0)]
-            for i in [0,2]:
-                outer_edge_list = outer_edges[i]
-                inner_edge_list = inner_edges[i]
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
-                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
+            ###outer_edges = [(3,4),(0,0),(0,1),(0,0)]
+            ###inner_edges = [(0,2),(0,0),(0,2),(0,0)]
+            this_corner_coords = numpy.array([0,2])
+            left_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            left_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            left_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[3,4]]].flatten()
+            left_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[0,1]]].flatten()
+            ###for i in [0,2]:
+            ###    outer_edge_list = outer_edges[i]
+            ###    inner_edge_list = inner_edges[i]
+            ###    _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
@@ -384,23 +437,40 @@ class PerronNLDiffuse(object):
             for i in [1,3]:
                 edge_list = edges[i]
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+            right_op_mat_row_add = numpy.empty(0)
+            right_op_mat_col_add = numpy.empty(0)
+            right_op_mat_data_add = numpy.empty(0)
         elif self.right_flag == 4:
+            right_op_mat_row_add = numpy.empty((right_interior_IDs.size*3+4))
+            right_op_mat_col_add = numpy.empty((right_interior_IDs.size*3+4))
+            right_op_mat_data_add = numpy.empty((right_interior_IDs.size*3+4))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
-            _operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] += _delta_t*nine_node_map[_right_list,:][:,right_antimask]
-            #_operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] *= 2.
+            right_op_mat_row_add[:(right_interior_IDs.size*3)] = numpy.repeat(right_interior_IDs,3)
+            right_op_mat_col_add[:(right_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]]).flatten()
+            right_op_mat_data_add[:(right_interior_IDs.size*3)] = _delta_t*(nine_node_map[_right_list,:][:,right_antimask]).flatten()
+            ###_operating_matrix[right_interior_IDs.reshape(right_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]])] += _delta_t*nine_node_map[_right_list,:][:,right_antimask]
             #...& the corners
-            outer_edges = [(0,0),(3,4),(0,0),(0,1)]
-            inner_edges = [(0,0),(1,3),(0,0),(1,3)]
-            for i in [1,3]:
-                outer_edge_list = outer_edges[i]
-                inner_edge_list = inner_edges[i]
-                _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
-                #_operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] *= 2.
+            ###outer_edges = [(0,0),(3,4),(0,0),(0,1)]
+            ###inner_edges = [(0,0),(1,3),(0,0),(1,3)]
+            this_corner_coords = numpy.array([1,3])
+            right_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            right_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            right_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[3,4]]].flatten()
+            right_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[0,1]]].flatten()
+            ###for i in [1,3]:
+            ###    outer_edge_list = outer_edges[i]
+            ###    inner_edge_list = inner_edges[i]
+            ###    _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 
         #self._operating_matrix = _operating_matrix.tocsr()
-        self._operating_matrix = sparse.csc_matrix(_operating_matrix)
+        ###self._operating_matrix = sparse.csr_matrix(_operating_matrix)
+        ###new approach using COO sparse matrix requires we build the matrix only now...
+        self._operating_matrix = sparse.coo_matrix((numpy.concatenate((core_op_mat_data,corners_op_mat_data,bottom_op_mat_data,top_op_mat_data,left_op_mat_data,right_op_mat_data,bottom_op_mat_data_add,top_op_mat_data_add,left_op_mat_data_add,right_op_mat_data_add)),
+            (numpy.concatenate((core_op_mat_row,corners_op_mat_row,bottom_op_mat_row,top_op_mat_row,left_op_mat_row,right_op_mat_row,bottom_op_mat_row_add,top_op_mat_row_add,left_op_mat_row_add,right_op_mat_row_add)),
+            numpy.concatenate((core_op_mat_col,corners_op_mat_col,bottom_op_mat_col,top_op_mat_col,left_op_mat_col,right_op_mat_col,bottom_op_mat_col_add,top_op_mat_col_add,left_op_mat_col_add,right_op_mat_col_add)))),
+            shape=(n_interior_nodes, n_interior_nodes)).tocsr()
         self._mat_RHS = _mat_RHS
 
 
@@ -475,7 +545,7 @@ class PerronNLDiffuse(object):
 #            for i in [self.bottom_flag, self.top_flag, self.left_flag, self.right_flag]:
 #                if 
         else:
-            print "This component can't handle these BC types yet. But you should know that by now!"
+            pass #need to think about how the BCs are handled in here in general.
         
         self.grid = grid
         return grid
