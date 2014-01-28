@@ -336,9 +336,9 @@ class PerronNLDiffuse(object):
             bottom_op_mat_col_add = numpy.empty(0)
             bottom_op_mat_data_add = numpy.empty(0)
         elif self.bottom_flag == 4:
-            bottom_op_mat_row_add = numpy.empty((bottom_interior_IDs.size*3+4))
-            bottom_op_mat_col_add = numpy.empty((bottom_interior_IDs.size*3+4))
-            bottom_op_mat_data_add = numpy.empty((bottom_interior_IDs.size*3+4))
+            bottom_op_mat_row_add = numpy.empty((bottom_interior_IDs.size*3+6)) #was 4
+            bottom_op_mat_col_add = numpy.empty((bottom_interior_IDs.size*3+6))
+            bottom_op_mat_data_add = numpy.empty((bottom_interior_IDs.size*3+6))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
             bottom_op_mat_row_add[:(bottom_interior_IDs.size*3)] = numpy.repeat(bottom_interior_IDs,3)
             bottom_op_mat_col_add[:(bottom_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]]).flatten()
@@ -348,10 +348,14 @@ class PerronNLDiffuse(object):
             ###outer_edges = [(1,2),(0,1),(0,0),(0,0)] #looks at antimask
             ###inner_edges = [(0,1),(0,1),(0,0),(0,0)] #looks at mask
             this_corner_coords = numpy.array([0,1])
-            bottom_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
-            bottom_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
-            bottom_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[1,2]]].flatten()
-            bottom_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[0,1]]].flatten()
+            bottom_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            bottom_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            bottom_op_mat_row_add[-2:] =  corner_interior_IDs[this_corner_coords] #new
+            bottom_op_mat_col_add[-2:] = self.operating_matrix_corner_int_IDs[(this_corner_coords[0],this_corner_coords[0]),(this_corner_coords[1],this_corner_coords[1])].flatten()
+            bottom_op_mat_data_add[-6:-4] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[1,2]]].flatten()
+            bottom_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[0,1]]].flatten()
+            bottom_op_mat_data_add[-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,0]]
+            bottom_op_mat_data_add[-1] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,2]]
             ###for i in [0,1]:
             ###    outer_edge_list = outer_edges[i]
             ###    inner_edge_list = inner_edges[i]
@@ -371,9 +375,9 @@ class PerronNLDiffuse(object):
             top_op_mat_col_add = numpy.empty(0)
             top_op_mat_data_add = numpy.empty(0)
         elif self.top_flag == 4:
-            top_op_mat_row_add = numpy.empty((top_interior_IDs.size*3+4))
-            top_op_mat_col_add = numpy.empty((top_interior_IDs.size*3+4))
-            top_op_mat_data_add = numpy.empty((top_interior_IDs.size*3+4))
+            top_op_mat_row_add = numpy.empty((top_interior_IDs.size*3+6))
+            top_op_mat_col_add = numpy.empty((top_interior_IDs.size*3+6))
+            top_op_mat_data_add = numpy.empty((top_interior_IDs.size*3+6))
             #Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell(i.e., each cell in the op_mat edges points back to itself).
             top_op_mat_row_add[:(top_interior_IDs.size*3)] = numpy.repeat(top_interior_IDs,3)
             top_op_mat_col_add[:(top_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]]).flatten()
@@ -383,10 +387,14 @@ class PerronNLDiffuse(object):
             ###outer_edges = [(0,0),(0,0),(3,4),(2,3)]
             ###inner_edges = [(0,0),(0,0),(2,3),(2,3)]
             this_corner_coords = numpy.array([2,3])
-            top_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
-            top_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
-            top_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[3,4]]].flatten()
-            top_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[2,3]]].flatten()
+            top_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
+            top_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
+            top_op_mat_row_add[-2:] =  corner_interior_IDs[this_corner_coords] #new
+            top_op_mat_col_add[-2:] = self.operating_matrix_corner_int_IDs[(this_corner_coords[0],this_corner_coords[0]),(this_corner_coords[1],this_corner_coords[1])].flatten()
+            top_op_mat_data_add[-6:-4] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[3,4]]].flatten()
+            top_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[2,3]]].flatten()
+            top_op_mat_data_add[-2] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,2]]
+            top_op_mat_data_add[-1] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,4]]
             ###for i in [2,3]:
             ###    outer_edge_list = outer_edges[i]
             ###    inner_edge_list = inner_edges[i]
