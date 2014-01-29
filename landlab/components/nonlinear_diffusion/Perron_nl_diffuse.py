@@ -240,7 +240,27 @@ class PerronNLDiffuse(object):
         _left_list = self._left_list
         right_antimask = self.right_antimask
         _right_list = self._right_list
-                                                                                                            
+        
+        #Need to modify the "effective" values of the edge nodes if any of the edges are inactive:
+        if self.bottom_flag == 4:
+            bottom_nodes = grid.bottom_edge_node_ids()
+            elev[bottom_nodes] = elev[bottom_nodes+grid.shape[1]]
+            #corners are special cases, and assumed linked to the bottom and top edge BCs...
+            elev[bottom_nodes[0]] = elev[bottom_nodes[0]+grid.shape[1]+1]
+            elev[bottom_nodes[-1]] = elev[bottom_nodes[-1]+grid.shape[1]-1]
+        if self.top_flag == 4:
+            top_nodes = grid.top_edge_node_ids()
+            elev[top_nodes] = elev[top_nodes-grid.shape[1]]
+            #corners are special cases, and assumed linked to the bottom and top edge BCs...
+            elev[top_nodes[0]] = elev[top_nodes[0]-grid.shape[1]+1]
+            elev[top_nodes[-1]] = elev[top_nodes[-1]-grid.shape[1]-1]
+        if self.left_flag ==4:
+            left_nodes = grid.left_edge_node_ids()
+            elev[left_nodes[1:-1]] = elev[left_nodes[1:-1]+1]
+        if self.right_flag ==4:
+            right_nodes = grid.right_edge_node_ids()
+            elev[right_nodes[1:-1]] = elev[right_nodes[1:-1]-1]
+
         #replacing loop:
         cell_neighbors = grid.get_neighbor_list() #E,N,W,S
         cell_diagonals = grid.get_diagonal_list() #NE,NW,SW,SE
