@@ -10,7 +10,7 @@ dt:
 uplift: #per time, not per timestep
 0.001
 run_time:
-55
+100
 init_elev:
 0.
 

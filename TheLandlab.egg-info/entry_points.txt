@@ -1,0 +1,7 @@
+[console_scripts]
+landlab_ex_2 = landlab.examples.diffusion2Dtest2:main
+landlab = landlab.cmd:main
+landlab_ex_1 = landlab.examples.diffusion2Dtest:main
+landlab_ex_3 = landlab.examples.diffusion2Dtest3:main
+craters = landlab.components.craters:main
+

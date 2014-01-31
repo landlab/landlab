@@ -365,6 +365,22 @@ class ModelGrid(ModelDataFields):
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
+    
+    def set_fixed_gradient_boundaries(self, node_ids, gradients=numpy.nan):
+        """
+        Assigns FIXED_GRADIENT_BOUNDARY status to specified nodes.
+        If "gradients" is specified, it must be either a float, or an array of 
+        floats the length of node_ids. These values are used to drive the
+        gradients of the boundary nodes. Note that in this case, there can only
+        be one active link joining each boundary node to the interior grid,
+        e.g., a raster, otherwise the gradients are poorly defined.
+        If "gradients" is not specified, the function assumes the gradient is to
+        be determined by the implied gradient between the existing, known
+        elevations of the boundary nodes and their linked, neighboring nodes.
+        """
+        self.node_status[node_ids] = FIXED_GRADIENT_BOUNDARY
+        if numpy.isnan(gradients):
+            self.
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
@@ -1072,21 +1088,19 @@ class ModelGrid(ModelDataFields):
         assert len(tuple_xy) == 2
         
         try:
-            if numpy.isnan(node_subset):
-                x_displacement = (self.node_x-tuple_xy[0])
-                y_displacement = (self.node_y-tuple_xy[1])
-            else:
-                x_displacement = self.node_x[node_subset]-tuple_xy[0]
-                y_displacement = self.node_y[node_subset]-tuple_xy[1]
-        except:
             x_displacement = self.node_x[node_subset]-tuple_xy[0]
             y_displacement = self.node_y[node_subset]-tuple_xy[1]
+        except:
+            x_displacement = (self.node_x-tuple_xy[0])
+            y_displacement = (self.node_y-tuple_xy[1])
 
         dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
         
         if get_az:
             if get_az == 'displacements':
                 azimuths_as_displacements = numpy.vstack(x_displacement,y_displacement)
+                del(x_displacement)
+                del(y_displacement)
                 return dist_array, azimuths_as_displacements
             elif get_az == 'angles':
                 try:
@@ -1105,8 +1119,16 @@ class ModelGrid(ModelDataFields):
                         azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
                     zero_nodes = numpy.where(x_displacement==0.)[0]
                     azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
+                    del(zero_nodes)
+                    del(x_displacement)
+                    del(y_displacement)
+                    del(azimuth_array)
+                    del(angle_to_xaxis)
+                    del(nonzero_nodes)
                 else: #the normal case
                     azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+                    del(x_displacement)
+                    del(angle_to_xaxis)
                 return dist_array, azimuth_array
             else:
                 print "Option set for get_az not recognised. Should be 'displacements' or 'angles'."

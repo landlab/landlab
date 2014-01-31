@@ -15,7 +15,6 @@ class PerronNLDiffuse(object):
     Built DEJH early June 2013.
     Boundary condition handling assumes each edge uses the same BC for each of its nodes.
     At the moment, all BCs must be fixed value (status==1).
-    NEEDS TO BE ABLE TO HANDLE INACTIVE BOUNDARIES, STATUS=4
     '''
     def __init__(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
@@ -355,7 +354,7 @@ class PerronNLDiffuse(object):
             bottom_op_mat_row_add = numpy.empty(0)
             bottom_op_mat_col_add = numpy.empty(0)
             bottom_op_mat_data_add = numpy.empty(0)
-        elif self.bottom_flag == 4:
+        elif self.bottom_flag == 4 or self.bottom_flag == 2: #i.e., fixed zero gradient (4) or more general case...
             bottom_op_mat_row_add = numpy.empty((bottom_interior_IDs.size*3+6)) #was 4
             bottom_op_mat_col_add = numpy.empty((bottom_interior_IDs.size*3+6))
             bottom_op_mat_data_add = numpy.empty((bottom_interior_IDs.size*3+6))
@@ -363,10 +362,7 @@ class PerronNLDiffuse(object):
             bottom_op_mat_row_add[:(bottom_interior_IDs.size*3)] = numpy.repeat(bottom_interior_IDs,3)
             bottom_op_mat_col_add[:(bottom_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]]).flatten()
             bottom_op_mat_data_add[:(bottom_interior_IDs.size*3)] = _delta_t*(nine_node_map[_bottom_list,:][:,bottom_antimask]).flatten()
-            ###_operating_matrix[bottom_interior_IDs.reshape(bottom_interior_IDs.size,1),self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]])] += _delta_t*nine_node_map[_bottom_list,:][:,bottom_antimask]
             #...& the corners
-            ###outer_edges = [(1,2),(0,1),(0,0),(0,0)] #looks at antimask
-            ###inner_edges = [(0,1),(0,1),(0,0),(0,0)] #looks at mask
             this_corner_coords = numpy.array([0,1])
             bottom_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
             bottom_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
@@ -376,10 +372,18 @@ class PerronNLDiffuse(object):
             bottom_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[0,1]]].flatten()
             bottom_op_mat_data_add[-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,0]]
             bottom_op_mat_data_add[-1] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,2]]
-            ###for i in [0,1]:
-            ###    outer_edge_list = outer_edges[i]
-            ###    inner_edge_list = inner_edges[i]
-            ###    _operating_matrix[(corner_interior_IDs[i],self.operating_matrix_corner_int_IDs[i,inner_edge_list])] += _delta_t*nine_node_map[_interior_corners[i],:][corners_antimasks[i,outer_edge_list]]
+            if self.bottom_flag == 2:
+                #get the gradients:
+                grid.gradients_of_fixed_gradient_boundaries(grid.bottom_edge_node_ids()) ###########
+                ######################## MODIFY
+                
+                #use them as constant terms, incorporated into RHS - JUST COPIED FROM ABOVE
+                _mat_RHS[bottom_interior_IDs] -= _delta_t*numpy.sum(nine_node_map[_bottom_list,:][:,bottom_antimask]*elev[_bottom_list.reshape((len(_bottom_list),1))+(modulator_mask[bottom_antimask]).reshape(1,3)], axis=1) #note the broadcasting to (nedge,3) in final fancy index   
+                #...& the corners
+                edges = [(1,2),(0,1),(0,0),(0,0)]
+                for i in [0,1]:
+                    edge_list = edges[i]
+                    _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
         else:
             raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
 

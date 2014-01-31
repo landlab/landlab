@@ -361,6 +361,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         each (a given node could also have zero or one of either). The outlinks
         are stored in a similar matrix.
         
+        The order of inlinks is [SOUTH, WEST].
+        
+        The order of outlinks is [NORTH, EAST].
+        
         We also keep track of the total number of inlinks and outlinks at each
         node in the num_inlinks and num_outlinks arrays.
         
@@ -963,6 +967,102 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         self._reset_list_of_active_links()
 
+    def set_fixed_gradient_boundaries(self, bottom_is_fixed,
+            right_is_fixed, top_is_fixed, left_is_fixed,
+            gradient_of='planet_surface__elevation', *args):
+        """
+        Added DEJH Jan 2014
+        Handles boundary conditions by setting each of the four sides of the 
+        rectangular grid to either 'active (fixed gradient)' or 'active (fixed 
+        value)' status.
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left are fixed gradient (True) or fixed value (False).
+        
+        For an fixed gradient boundary:
+            - the nodes on the specified edges are flagged
+              FIXED_GRADIENT_BOUNDARY (== 2). Other edges are ignored, and
+              presumed to be set elsewhere.
+            - the links between them and the adjacent interior nodes are
+              active, but the links between each other are not.
+            - the gradient is assumed by default to be the surface elevation,
+              and this is assumed to be named "planet_surface__elevation" in the
+              grid. If the gradient is in another surface, or the elevation
+              surface is named differently, you need to set 'gradient_of' equal
+              to the relevant string. self.fixed_gradient_of stores this string
+              for access elsewhere.
+            - a list of the values of the fixed gradients on the active links
+              joined to each node is maintained as self.fixed_gradients.
+              self.fixed_gradient_nodes maintains a list of which nodes these
+              are (e.g., only the bottom nodes if only bottom_is_fixed is set).
+              len(self.fixed_gradients) == len(self.fixed_gradient_nodes)
+            - if *gradient* is provided, either as a float or an as a iterable
+              of length number_of_boundary_nodes, then self.fixed_gradients is
+              set equal to *gradient*. If it is not, then this method will
+              attempt to access the link gradients and/or node elevations which
+              were already in the grid when the method was called (i.e., the
+              initial conditions), and use these to set self.fixed_gradients.
+              Remember, gradient is as a fractional slope, not radians or
+              degrees, and downslope gradients are positive!
+              If gradient is a float, this method will assume you mean downslope
+              flow out of all the edges of the grid. If you want some edges
+              pointing in and some out, you'll need to call the function more
+              than once, or provide an array of values. 
+            - If initial conditions are present in the grid ::and:: *gradient*
+              is set, *gradient* will override the initial conditions provided.
+            - if *gradient* is not provided (or is the wrong length), and
+              initial conditions have not yet been set, the method will raise an
+              exception.
+                      
+        The following example sets all boundaries as fixed gradient in a
+        four-row by five-column grid, but does so three times. The first time,
+        initial conditions are allowed to set the fixed value. The second time,
+        this is overridden by setting *gradient* in the function call as a
+        constant. The third time, values are specified in an array:
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg['node']['planet_surface__elevation'] = 1.
+        >>> rmg['node']['planet_surface__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
+        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
+        >>> rmg.node_status
+        array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2], dtype=int8)
+        >>> rmg.fixed_gradient_of
+        'planet_surface__elevation'
+        >>> rmg.fixed_gradient_nodes
+        array([0,1,2,3,4,5,9,10,14,15,16,17,18,19,20])
+        >>> rmg.fixed_gradients
+        array([0.,-0.2,-0.2,-0.2,0.,-0.2,0.2,-0.2,0.2,0.,0.2,0.2,0.2,0.])
+        >>> rmg.set_fixed_gradient boundaries(True, True, True, True, 0.1) #second case
+        >>> rmg.fixed_gradients
+        array([0.,-0.1,-0.1,-0.1,0.,-0.1,0.1,-0.1,0.1,0.,0.1,0.1,0.1,0.])
+        >>> rmg['node']['planet_surface__elevation']
+        array([0.9, 0.9, 0.9, 0.9, 0.9,
+               0.9, 1.0, 1.0, 1.0, 0.9,
+               0.9, 1.0, 1.0, 1.0, 0.9,
+               0.9, 0.9, 0.9, 0.9, 0.9])
+        >>> my_gradients = array([0.,0.5,0.5,0.,0.5,0.5])
+        >>> rmg.set_fixed_gradient boundaries(False, True, False, True, my_gradients) #third case
+        >>> rmg.fixed_gradients
+        array([0.,-0.1,-0.1,-0.1,0.,0.5,0.5,0.5,0.5,0.,0.1,0.1,0.1,0.])
+        >>> rmg['node']['planet_surface__elevation']
+        array([0.9, 0.9, 0.9, 0.9, 0.9,
+               1.5, 1.0, 1.0, 1.0, 0.5,
+               1.5, 1.0, 1.0, 1.0, 0.5,
+               0.9, 0.9, 0.9, 0.9, 0.9])
+        
+        ...remember these elevation arrays are inverted when displayed like this!
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = RIGHT
+            top right = TOP
+            top left = LEFT
+        """
+    
+    
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
@@ -1267,35 +1367,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return u
 
-    def update_boundaries( self, u, bc = None ):
-        """
-        Updates FIXED_GRADIENT and TRACKS_CELL boundaries in 
-        BoundaryCondition "bc" (by default ModelGrid's default_bc), so
-        that TRACKS_CELL values in u are assigned the value at the 
-        corresponding cell-to-track, and FIXED_GRADIENT cells get a value
-        equal to the cell-to-track's value plus gradient times distance.
-
-        .. note:: Does NOT change fixed-value boundary cells.
-
-        .. todo::
-            use the cell-local distance rather than dx, for use in the base
-            class!
-            probably now obsolete (GT Aug 2013)
-            
-        NG Wondering if this should be boundary nodes, not cells.    
-        """
-    
-        if bc == None:
-            bc = self.default_bc
-
-        inds = (bc.boundary_code == bc.TRACKS_CELL_BOUNDARY)
-        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
-
-        inds = (bc.boundary_code == bc.FIXED_GRADIENT_BOUNDARY)
-        u[self.boundary_cells[inds]] = (u[bc.tracks_cell[id]] +
-                                        bc.gradient[id] * self._dx)
-
-        return u
+#    def update_boundaries( self, u, bc = None ):
+#        """
+#        Updates FIXED_GRADIENT and TRACKS_CELL boundaries in 
+#        BoundaryCondition "bc" (by default ModelGrid's default_bc), so
+#        that TRACKS_CELL values in u are assigned the value at the 
+#        corresponding cell-to-track, and FIXED_GRADIENT cells get a value
+#        equal to the cell-to-track's value plus gradient times distance.
+#
+#        .. note:: Does NOT change fixed-value boundary cells.
+#
+#        .. todo::
+#            use the cell-local distance rather than dx, for use in the base
+#            class!
+#            probably now obsolete (GT Aug 2013)
+#            -->Agree DEJH, Jan 2014, and commented out
+#            
+#        NG Wondering if this should be boundary nodes, not cells.    
+#        """
+#    
+#        if bc == None:
+#            bc = self.default_bc
+#
+#        inds = (bc.boundary_code == bc.TRACKS_CELL_BOUNDARY)
+#        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
+#
+#        inds = (bc.boundary_code == bc.FIXED_GRADIENT_BOUNDARY)
+#        u[self.boundary_cells[inds]] = (u[bc.tracks_cell[id]] +
+#                                        bc.gradient[id] * self._dx)
+#
+#        return u
 
     def node_vector_to_raster(self, u, flip_vertically=False):
         """
@@ -1373,9 +1474,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         bottom]. Set all neighbors of boundary nodes to -1.
         
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.get_neighbor_list([-1, 6])
+        >>> mg.get_neighbor_list([-1, 6, 2])
         array([[-1, -1, -1, -1],
-               [ 7, 11,  5,  1]])
+               [ 7, 11,  5,  1],
+               [-1, 7, -1, -1]])
         >>> mg.get_neighbor_list(7)
         array([ 8, 12,  6,  2])
 
@@ -1394,17 +1496,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def create_neighbor_list( self ):
         """
         Creates a list of IDs of neighbor nodes for each node, as a
-        2D array. Only interior nodes are assigned neighbors; boundary
-        nodes get -1 for each neighbor. The order of the neighbors is [right,
-        top, left, bottom].
+        2D array. Formerly, only interior nodes were assigned neighbors;
+        boundary nodes got -1 for each neighbor. As of 01/30/14, DEJH has
+        modified the method so that neighboring nodes at the other end of active
+        links are returned, but otherwise -1. The order of the neighbors is
+        [right, top, left, bottom].
 
-        .. note:: This is equivalent to the neighbors of all cells,
-            and setting the neighbors of boundary-node cells to -1. In such a
-            case, each node has one cell and each node-cell pair have the
-            same ID. However, this is the old-style grid structure as
-            boundary nodes no longer have associated cells.
+        .. note:: This is equivalent to the neighbors of all cells, getting the
+            links between them, and setting neighbors at the other end of
+            inactive links to -1. 
 
-        .. todo: could use inlink_matrix, outlink_matrix
+        .. todo: remove the loop by creating functions to return inactive links
+            in sgrid.
 
         .. todo: Change to use BAD_INDEX_VALUE instead of -1.
         """
@@ -1412,8 +1515,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         assert(self.neighbor_list_created == False)
 
         self.neighbor_list_created = True 
+        #Former method which assigned -1 to ALL neighbors of boundary nodes:
+        #self.neighbor_nodes = sgrid.neighbor_node_array(
+        #    self.shape, out_of_bounds=-1, boundary_node_mask=-1)
+        
+        #DEJH new method 01/30/14. Returns neighbors of boundary nodes if there
+        #are active links between them:
         self.neighbor_nodes = sgrid.neighbor_node_array(
-            self.shape, out_of_bounds=-1, boundary_node_mask=-1)
+            self.shape, out_of_bounds=-1)
+        #get the boundary nodes
+        boundary_nodes = sgrid.boundary_nodes(self.shape)
+        #get the link and active link arrays for these nodes, in order SWNE
+        links_from_each_BN = self.node_links(boundary_nodes)
+        active_links_from_each_BN = self.active_node_links(boundary_nodes)
+        #make a mask of links which AREN'T active (not v efficient)
+        #...but OK as this method is seldom called
+        mask = numpy.empty_like(links_from_each_BN)
+        for i in xrange(links_from_each_BN.shape[0]):
+            mask[i,:] = numpy.in1d(links_from_each_BN[i,:],
+                active_links_from_each_BN[i,:], invert=True)
+        #make sure to align the element orders, and blank the nodes at the end
+        #of inactive links
+        self.neighbor_nodes[numpy.fliplr(mask)] = -1
                 
     def has_boundary_neighbor(self, ids):
         """
