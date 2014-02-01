@@ -314,7 +314,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns the ids of links attached to grid nodes with *node_ids*. If
         *node_ids* is not given, return links for all of the nodes in the
         grid. Link ids are listed in clockwise order starting with the south
-        link.
+        link. (i.e., [S,W,N,E])
         """
         if len(args) > 1:
             raise ValueError('only zero or one arguments accepted')
@@ -982,19 +982,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             - the nodes on the specified edges are flagged
               FIXED_GRADIENT_BOUNDARY (== 2). Other edges are ignored, and
               presumed to be set elsewhere.
+              
             - the links between them and the adjacent interior nodes are
               active, but the links between each other are not.
+              
             - the gradient is assumed by default to be the surface elevation,
               and this is assumed to be named "planet_surface__elevation" in the
               grid. If the gradient is in another surface, or the elevation
               surface is named differently, you need to set 'gradient_of' equal
               to the relevant string. self.fixed_gradient_of stores this string
               for access elsewhere.
+              
             - a list of the values of the fixed gradients on the active links
               joined to each node is maintained as self.fixed_gradients.
               self.fixed_gradient_nodes maintains a list of which nodes these
               are (e.g., only the bottom nodes if only bottom_is_fixed is set).
-              len(self.fixed_gradients) == len(self.fixed_gradient_nodes)
+              self.fixed_gradient_linked_nodes maintains a list of which 
+              interior nodes the boundary nodes are linked *to*.
+              > len(self.fixed_gradients) == len(self.fixed_gradient_nodes)
+              We also cheat and store self.fixed_gradient_values_to_add, which
+              is intended to make updating the nodes in a module very
+              straightforward:
+              > elev[rmg.fixed_gradient_nodes] = elev[rmg.fixed_gradient_linked_
+                 nodes] + rmg.fixed_gradient_values_to_add
+              
             - if *gradient* is provided, either as a float or an as a iterable
               of length number_of_boundary_nodes, then self.fixed_gradients is
               set equal to *gradient*. If it is not, then this method will
@@ -1007,8 +1018,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
               flow out of all the edges of the grid. If you want some edges
               pointing in and some out, you'll need to call the function more
               than once, or provide an array of values. 
+              
             - If initial conditions are present in the grid ::and:: *gradient*
               is set, *gradient* will override the initial conditions provided.
+              
             - if *gradient* is not provided (or is the wrong length), and
               initial conditions have not yet been set, the method will raise an
               exception.
@@ -1024,7 +1037,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg['node']['planet_surface__elevation'] = 1.
+        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        >>> rmg['node']['planet_surface__elevation'] += 1.
         >>> rmg['node']['planet_surface__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
         >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
         >>> rmg.node_status
@@ -1059,10 +1073,194 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bottom left = BOTTOM
             bottom right = RIGHT
             top right = TOP
-            top left = LEFT
+            top left = LEFT,
+        ...and the gradient on the link (if supplied) corresponds to the link in 
+        the same direction as the rest of that edge.
         """
-    
-    
+        
+        bottom_edge = range(0, self.number_of_node_columns - 1)
+        right_edge = range(self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns + 1, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, self.number_of_nodes,
+                          self.number_of_node_columns)
+
+        fixed_gradient_nodes = numpy.array([])
+        fixed_gradient_linked_nodes = numpy.array([])
+        fixed_gradient_values_to_add = numpy.array([])
+        
+        if bottom_is_fixed:
+            self.node_status[bottom_edge] = FIXED_GRADIENT_BOUNDARY
+            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, bottom_edge))
+            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, bottom_edge+self.number_of_node_columns))
+        if right_is_fixed:
+            self.node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
+            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, right_edge))
+            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, right_edge-1))
+        if top_is_fixed:
+            self.node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
+            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, top_edge))
+            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, top_edge-self.number_of_node_columns))
+        if left_is_fixed:
+            self.node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
+            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, left_edge))
+            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, bottom_edge+1))
+        
+        self._reset_list_of_active_links()
+        
+        if len(args) == 0:
+            #Set the gradients by reference to existing data on grid
+            print 'Fixed gradients will be set according to existing data in the grid...'
+            boundary_links = numpy.array([])
+            if bottom_is_fixed:
+                boundary_links = numpy.concatenate(boundary_links, self.node_links(bottom_edge)[:,2])
+            if right_is_fixed:
+                boundary_links = numpy.concatenate(boundary_links, self.node_links(right_edge)[:,1])
+            if top_is_fixed:
+                boundary_links = numpy.concatenate(boundary_links, self.node_links(top_edge)[:,0])
+            if left_is_fixed:
+                boundary_links = numpy.concatenate(boundary_links, self.node_links(left_edge)[:,3])
+            fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
+            
+            fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
+            
+        elif len(args) == 1:
+            try:
+                fixed_gradient = float(args[0])
+            except:
+                try:
+                    fixed_gradient_array = numpy.array(args[0]) #an iterable of gradients was supplied
+                except TypeError:
+                    raise TypeError('The supplied gradient parameter must be a single number or iterable of length number_of_fixed_gradient_nodes')
+                new_elevations = self.forced_elevations_from_gradients(
+                        fixed_gradient_nodes, fixed_gradient_linked_nodes, fixed_gradient_array, run_stability_test=False)
+                fixed_gradient_values_to_add = new_elevations-self['node'][gradient_of][fixed_gradient_nodes]
+                self['node'][gradient_of][fixed_gradient_nodes] = new_elevations
+            else:
+                #the supplied gradient was a single number
+                fixed_gradient_array = numpy.array([])
+                if bottom_is_fixed:
+                    bottom_fixed_gradients = numpy.ones(bottom_edge.size,dtype=float)*-fixed_gradient
+                    fixed_gradient_array = numpy.concatenate(fixed_gradient_array, bottom_fixed_gradients)
+                    new_elevations = self.forced_elevations_from_gradients(
+                            bottom_edge, self.link_tonode[self.node_links(bottom_edge)[:,2]],
+                            bottom_fixed_gradients, run_stability_test=False)
+                    fixed_gradient_values_to_add = numpy.concatenate(fixed_gradient_values_to_add, new_elevations-self['node'][gradient_of][bottom_edge])
+                    self['node'][gradient_of][bottom_edge] = new_elevations
+                if right_is_fixed:
+                    right_fixed_gradients = numpy.ones(right_edge.size,dtype=float)*fixed_gradient
+                    fixed_gradient_array = numpy.concatenate(fixed_gradient_array, right_fixed_gradients)
+                    new_elevations = self.forced_elevations_from_gradients(
+                            right_edge, self.link_fromnode[self.node_links(right_edge)[:,1]],
+                            right_fixed_gradients, run_stability_test=False)
+                    fixed_gradient_values_to_add = numpy.concatenate(fixed_gradient_values_to_add, new_elevations-self['node'][gradient_of][right_edge])
+                    self['node'][gradient_of][right_edge] = new_elevations
+                if top_is_fixed:
+                    top_fixed_gradients = numpy.ones(top_edge.size,dtype=float)*fixed_gradient
+                    fixed_gradient_array = numpy.concatenate(fixed_gradient_array, top_fixed_gradients)
+                    new_elevations = self.forced_elevations_from_gradients(
+                            top_edge, self.link_fromnode[self.node_links(top_edge)[:,0]], 
+                            top_fixed_gradients, run_stability_test=False)
+                    fixed_gradient_values_to_add = numpy.concatenate(fixed_gradient_values_to_add, new_elevations-self['node'][gradient_of][top_edge])
+                    self['node'][gradient_of][top_edge] = new_elevations
+                if left_is_fixed:
+                    left_fixed_gradients = numpy.ones(left_edge.size,dtype=float)*-fixed_gradient
+                    fixed_gradient_array = numpy.concatenate(fixed_gradient_array, left_fixed_gradients)
+                    new_elevations = self.forced_elevations_from_gradients(
+                            left_edge, self.link_tonode[self.node_links(left_edge)[:,3]],
+                            left_fixed_gradients, run_stability_test=False)          
+                    fixed_gradient_values_to_add = numpy.concatenate(fixed_gradient_values_to_add, new_elevations-self['node'][gradient_of][left_edge])
+                    self['node'][gradient_of][left_edge] = new_elevations      
+        else:
+            raise ValueError('only zero or one arguments accepted')
+        
+        #Now we need to save the various fixed_gradient property arrays to the
+        #grid, but making sure we don't duplicate any entries that might already
+        #be in there from a previous (diff constant gradient?) run of this
+        #method...
+        try:
+            self.fixed_gradients[0]
+        except NameError:
+            #easy case; there's nothing there already
+            self.fixed_gradient_of = gradient_of
+            self.fixed_gradients = fixed_gradient_array
+            self.fixed_gradient_nodes = fixed_gradient_nodes
+            self.fixed_gradient_linked_nodes = fixed_gradient_linked_nodes
+            self.fixed_gradient_values_to_add = fixed_gradient_values_to_add
+        else:
+            #there's something in there, which we need to merge with, and
+            #overwrite some entries of if appropriate.
+            if self.fixed_gradient_of != gradient_of:
+                raise ValueError('At the moment, you have to define all your boundaries on the same set of values!') #need to sort this ASAP...
+                #...We probably want the syntax to be rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT, to which we can pin these properties
+            #The fixed_gradient_nodes should be uniquely defined...
+            unrepeated_entries = numpy.logical_not(numpy.in1d(self.fixed_gradient_nodes, fixed_gradient_nodes))
+            fixed_gradient_array = numpy.concatenate(fixed_gradient_array, self.fixed_gradients[unrepeated_entries])
+            fixed_gradient_nodes = numpy.concatenate(fixed_gradient_nodes, self.fixed_gradient_nodes[unrepeated_entries])
+            fixed_gradient_linked_nodes = numpy.concatenate(fixed_gradient_linked_nodes, self.fixed_gradient_linked_nodes[unrepeated_entries])
+            fixed_gradient_values_to_add = numpy.concatenate(fixed_gradient_values_to_add, self.fixed_gradient_values_to_add[unrepeated_entries])
+            #order the arrays by the ID of the boundary node:
+            ordering = numpy.argsort(fixed_gradient_nodes)
+            self.fixed_gradients = fixed_gradient_array[ordering]
+            self.fixed_gradient_nodes = fixed_gradient_nodes[ordering]
+            self.fixed_gradient_linked_nodes = fixed_gradient_linked_nodes[ordering]
+            self.fixed_gradient_values_to_add = fixed_gradient_values_to_add[ordering]
+            
+            if self.fixed_gradient_of != gradient_of:
+                raise ValueError('At the moment, you have to define all your boundaries on the same set of values!')
+
+
+    def forced_elevations_from_gradients(self, floating_nodes, anchored_nodes,
+            link_gradients, run_stability_test=True):
+        """
+        Returns the value of a new elevation at the "floating" end of a link,
+        where the anchored nodes at the other end of the link and the gradient
+        on the link are specified. Gradients are, as always, positive down.
+        Note that the true "sense" of the link between the nodes is preserved,
+        and is not set by the order of anchor and floating nodes.
+        
+        If any of the node pairs cannot be connected by a single link, an
+        exception is raised.
+        
+        If some nodes appear in both the from and to lists, instability may
+        result! A test is applied to raise an error if this is the case, unless 
+        suppressed by the input flag.
+        
+        >>> rmg = RasterModelGrid(3, 4, 1.0) # rows, columns, spacing
+        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        >>> rmg['node']['planet_surface__elevation'] += 1.
+        >>> rmg['node']['planet_surface__elevation'][3,4,6] = rmg.forced_elevations_from_gradients(array([3,4,6]),array([7,5,10]),array([0.5,0.5,-1.0])
+        >>> rmg['node']['planet_surface__elevation']
+        array([1.0, 1.0, 1.0, 1.0,
+               1.5, 1.0, 0.0, 1.0,
+               1.0, 1.0, 1.0, 1.5])
+        
+        FOR THE FUTURE: This should transfer cleanly across to base.py, once 
+        equivalent function to node_links is available there.
+        """
+        if run_stability_test:
+            if numpy.intersect1d(floating_nodes,anchored_nodes).size != 0:
+                raise ValueError('Some nodes appear in both node lists! Aborting to prevent silent instability...')
+        floating_links = self.node_links(floating_nodes)
+        anchored_links = self.node_links(anchored_nodes)
+        try:
+            all_links = numpy.sort(numpy.concatenate((floating_links, anchored_links), axis=1), axis=1)
+        except ValueError:
+            raise ValueError('The two lists of nodes were not the same length!')
+        shared_links = all_links[numpy.diff(all_links)==0]
+        try:
+            anchored_node_is_tonode = numpy.equal(anchored_nodes, self.link_tonode[shared_links])
+        except ValueError:
+            raise ValueError('One or more of the node pairs were not connected by a link!')
+        floating_node_is_tonode = numpy.logical_not(anchored_node_is_tonode)
+        final_elevs = numpy.empty_like(floating_nodes)
+        final_elevs[anchored_node_is_tonode] = anchored_nodes[anchored_node_is_tonode] + link_gradients[anchored_node_is_tonode]*self.dx
+        final_elevs[floating_node_is_tonode] = anchored_nodes[floating_node_is_tonode] - link_gradients[floating_node_is_tonode]*self.dx
+        
+        return final_elevs
+
                 
     def set_noflux_boundaries( self, bottom, right, top, left,
                                bc = None ):
@@ -1765,7 +1963,7 @@ def from_dict(param_dict):
     """
     Create a RasterModelGrid from the dictionary-like object, *param_dict*.
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
-    if either of these are missing.  If GRID_SPACING is given, use it as the
+    if either of these are missing is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.
     """
     # Read and create basic raster grid

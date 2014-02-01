@@ -365,22 +365,6 @@ class ModelGrid(ModelDataFields):
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         self._reset_list_of_active_links()
-    
-    def set_fixed_gradient_boundaries(self, node_ids, gradients=numpy.nan):
-        """
-        Assigns FIXED_GRADIENT_BOUNDARY status to specified nodes.
-        If "gradients" is specified, it must be either a float, or an array of 
-        floats the length of node_ids. These values are used to drive the
-        gradients of the boundary nodes. Note that in this case, there can only
-        be one active link joining each boundary node to the interior grid,
-        e.g., a raster, otherwise the gradients are poorly defined.
-        If "gradients" is not specified, the function assumes the gradient is to
-        be determined by the implied gradient between the existing, known
-        elevations of the boundary nodes and their linked, neighboring nodes.
-        """
-        self.node_status[node_ids] = FIXED_GRADIENT_BOUNDARY
-        if numpy.isnan(gradients):
-            self.
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
@@ -791,6 +775,7 @@ class ModelGrid(ModelDataFields):
         
         # Recreate the list of active links
         self._reset_list_of_active_links()
+        
         
     def max_of_link_end_node_values(self, node_data):
         """
