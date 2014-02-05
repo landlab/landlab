@@ -30,6 +30,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     """
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
+    In this case, slope UP is positive.
     """
     if out is None:
         out = grid.empty(centering='active_link')
@@ -41,6 +42,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
     """
     Calculates the difference in quantity *node_values* at each link in the
     grid.
+    In this case, slope UP is positive.
     """
     if out is None:
         out = grid.empty(centering='link')
