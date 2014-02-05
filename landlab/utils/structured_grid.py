@@ -265,7 +265,12 @@ def boundary_nodes(shape):
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
     """
     return np.fromiter(boundary_iter(shape), dtype=np.int)
-
+    
+def corners(shape):
+    """
+    An array of the indices of the grid corner nodes.
+    """
+    return np.array([0, shape[1]-1, shape[1]*(shape[0]-1), shape[1]*shape[0]-1])
 
 def bottom_edge_node_ids(shape):
     return np.fromiter(bottom_index_iter(shape), dtype=np.int)
