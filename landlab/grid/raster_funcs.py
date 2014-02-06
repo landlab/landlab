@@ -459,4 +459,40 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     
     #ng commented out old code
     #return min_slope, angles[index_min]
-    return max_slope, angles[index_max]
+    return max_slope, angles[index_max] 
+
+def calculate_slope_aspect_BFP(xs,ys,zs):
+	# written by Katy Barnhart, early February 2014. 
+	
+	# fits a plane to the given N points with given x, y, and z values
+	# using single value decomposition. 
+	
+	# returns the slope and aspect based on the normal vector to the 
+	# best fit plane. 
+	
+	# DOES NOT HAVE ANY ERROR CHECKING. PROBLEMS WILL EXIST IF:
+	# len(x)!= len(y) != len(z)
+	# or if the points fall on a line and not on a plane. 
+	
+	# step 1: subtract the centroid from the points
+	x0=np.mean(xs)
+	y0=np.mean(ys)
+	z0=np.mean(zs)
+	
+	x=xs-x0
+	y=ys-y0
+	z=zs-z0
+	
+	# step 2: create a 3XN matrix of the points for SVD
+	# in python, the unit normal to the best fit plane is
+	# given by the third column of the U matrix.
+	mat=np.vstack((x,y,z))
+	U, s, V = np.linalg.svd(mat)
+	normal=U[:, 2]
+		
+	# step 3: calculate the aspect	
+	asp=90.0-np.degrees(np.arctan2(normal[1],normal[0]))
+	asp=asp%360.0
+	# step 4: calculate the slope	
+	slp=90.0-np.degrees(np.arcsin(normal[2]))
+	return slp, asp
