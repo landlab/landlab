@@ -949,20 +949,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         Note that the four corners are treated as follows:
             bottom left = BOTTOM
-            bottom right = RIGHT
+            bottom right = BOTTOM
             top right = TOP
-            top left = LEFT
+            top left = TOP
+        This scheme is necessary for internal consistency with looped boundaries.
         """
         if self.DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
-        bottom_edge = range(0, self.number_of_node_columns - 1)
-        right_edge = range(self.number_of_node_columns - 1,
+        bottom_edge = range(0, self.number_of_node_columns)
+        right_edge = range(2*self.number_of_node_columns - 1,
                            self.number_of_nodes - 1,
                            self.number_of_node_columns)
         top_edge = range((self.number_of_node_rows - 1) *
-                         self.number_of_node_columns + 1, self.number_of_nodes)
-        left_edge = range(self.number_of_node_columns, self.number_of_nodes,
+                         self.number_of_node_columns, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, 
+                         self.number_of_nodes-self.number_of_node_columns,
                           self.number_of_node_columns)
             
         if bottom_is_inactive:
@@ -986,6 +988,84 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
         self._reset_list_of_active_links()
+        
+        
+    def set_looped_boundaries(self, top_bottom_are_looped,sides_are_looped):
+        """
+        Added DEJH Feb 2014
+        Handles boundary conditions by setting corresponding parallel grid edges
+        as looped "tracks_cell" (==3) status, linked to each other. If top_bottom_are_looped 
+        is True, the top and bottom edges will link to each other. If sides_are_
+        looped is True, the left and right edges will link to each other.
+        
+        Note that because of the symmetries this BC implies, the corner nodes
+        are all paired with the bottom/top edges, not the sides.
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        >>> rmg.set_looped_boundaries(True, True)
+
+        TODO: Assign BC_statuses also to *links*
+        """
+        
+        bottom_edge = numpy.array(range(0, self.number_of_node_columns))
+        right_edge = numpy.array(range(2 * self.number_of_node_columns  - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns))
+        top_edge = numpy.array(range((self.number_of_node_rows - 1) *
+                          self.number_of_node_columns, self.number_of_nodes))
+        left_edge = numpy.array(range(self.number_of_node_columns,
+                          (self.number_of_nodes - self.number_of_node_columns),
+                          self.number_of_node_columns))
+        these_boundary_IDs = numpy.array([])
+        these_linked_nodes = numpy.array([])
+        
+        if top_bottom_are_looped:
+            self.node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
+            self.node_status[top_edge] = TRACKS_CELL_BOUNDARY
+            these_boundary_IDs = numpy.concatenate((these_boundary_IDs,
+                                   bottom_edge, top_edge))
+            these_linked_nodes = numpy.concatenate((
+                                   these_linked_nodes,
+                                   top_edge-self.number_of_node_columns,
+                                   bottom_edge+self.number_of_node_columns))
+
+        if sides_are_looped:
+            self.node_status[right_edge] = TRACKS_CELL_BOUNDARY
+            self.node_status[left_edge] = TRACKS_CELL_BOUNDARY
+            these_boundary_IDs = numpy.concatenate((these_boundary_IDs,
+                                   left_edge, right_edge))
+            these_linked_nodes = numpy.concatenate((
+                                   these_linked_nodes,
+                                   right_edge-1, left_edge+1))
+
+        self._reset_list_of_active_links()
+        
+        try:
+            type(self.looped_node_properties)
+        except:
+            existing_IDs = numpy.array([])
+            existing_links = numpy.array([])
+        else:
+            unrepeated_node_entries = numpy.logical_not(numpy.in1d(self.looped_node_properties['boundary_node_IDs'], these_linked_nodes))
+            existing_IDs = self.looped_node_properties['boundary_node_IDs'][unrepeated_node_entries]
+            existing_links = self.looped_node_properties['linked_node_IDs'][unrepeated_node_entries]
+                        
+        self.looped_node_properties = {}
+        all_the_IDs = numpy.concatenate((these_boundary_IDs, existing_IDs))
+        ID_ordering = numpy.argsort(all_the_IDs)
+        self.looped_node_properties['boundary_node_IDs'] = all_the_IDs[ID_ordering]
+        self.looped_node_properties['linked_node_IDs'] = numpy.concatenate((these_linked_nodes,existing_links))[ID_ordering]
+
+        if numpy.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
+            raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')        
+
 
     def set_fixed_gradient_boundaries(self, bottom_is_fixed,
             right_is_fixed, top_is_fixed, left_is_fixed, gradient_in=numpy.nan,
@@ -1053,13 +1133,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             
             - Note that the four corners are treated as follows:
                 bottom left = BOTTOM
-                bottom right = RIGHT
+                bottom right = BOTTOM
                 top right = TOP
-                top left = LEFT,
+                top left = TOP,
               ...and the gradient on the link (if supplied) corresponds to the 
               link which points in the same direction as the rest of its edge 
-              (i.e., the fixed gradient link of the bottom left corner is the 
-              one which points up).
+              (i.e., the fixed gradient links of the bottom left and right 
+              corners point up). This handling is necessary for internal
+              consistency with looped BCs.
                       
         The following example sets all boundaries as fixed gradient in a
         four-row by five-column grid, but does so three times. The first time,
@@ -1084,16 +1165,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.fixed_gradient_of
         'planet_surface__elevation'
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
-        array([ 0,  1,  2,  3,  4,  9, 14, 16, 17, 18, 19,  5, 10, 15])
+        array([ 0,  1,  2,  3,  4,  9, 14, 15, 16, 17, 18, 19,  5, 10])
         >>> rmg.fixed_gradient_link_properties['boundary_link_IDs']
-        array([ 0,  1,  2,  3, 18, 22, 26, 11, 12, 13, 14, 19, 23, 27])
+        array([ 0,  1,  2,  3,  4, 22, 26, 10, 11, 12, 13, 14, 19, 23])
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([-0. , -0.2, -0.2, -0.2, -0. ,  0.2,  0.2,  0.2,  0.2,  0.2, -0. ,
-               -0.2, -0.2, -0. ])
+        array([-0. , -0.2, -0.2, -0.2, -0. ,  0.2,  0.2, -0. ,  0.2,  0.2,  0.2,
+               -0. , -0.2, -0.2])
         >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, 0.1, gradient_of='planet_surface__elevation') #second case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([ 0. , -0.1, -0.1, -0.1,  0. ,  0.1,  0.1,  0.1,  0.1,  0.1,  0. ,
-               -0.1, -0.1,  0. ])
+        array([-0. , -0.1, -0.1, -0.1, -0. ,  0.1,  0.1, -0. ,  0.1,  0.1,  0.1,
+               -0. , -0.1, -0.1])
         >>> rmg['node']['planet_surface__elevation']
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  0.9,  1. ,  1. ,  1. ,  0.9,  0.9,
                 1. ,  1. ,  1. ,  0.9,  0.9,  0.9,  0.9,  0.9,  0.9])
@@ -1103,17 +1184,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         mimic their edge neighbor. This is almost always what you want to
         happen.
         
-        >>> my_gradients = numpy.array([0.,0.5,0.5,0.5,0.5,0.]) #remember these are in edge, then ID order
+        >>> my_gradients = numpy.array([0.5,0.5,0.5,0.5,]) #remember these are in edge, then ID order, with the corners attached to the other edges
         >>> rmg.set_fixed_gradient_boundaries(False, True, False, True, my_gradients) #third case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([ 0. ,  0.5,  0.5,  0.5,  0.5,  0. ,  0. , -0.1, -0.1, -0.1,  0.1,
-                0.1,  0.1,  0. ])
+        array([ 0.5,  0.5,  0.5,  0.5, -0.6, -0.1, -0.1, -0.1,  0.4,  0.6,  0.1,
+                0.1,  0.1, -0.4])
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
-        array([ 4,  9, 14,  5, 10, 15,  0,  1,  2,  3, 16, 17, 18, 19])
+        array([ 9, 14,  5, 10,  0,  1,  2,  3,  4, 15, 16, 17, 18, 19])
         >>> rmg.fixed_gradient_node_properties['anchor_node_IDs']
-        array([ 8,  8, 13,  6, 11, 11,  6,  6,  7,  8, 11, 12, 13, 13])
+        array([ 8, 13,  6, 11,  6,  6,  7,  8,  8, 11, 11, 12, 13, 13])
         >>> rmg.fixed_gradient_node_properties['values_to_add']
-        array([-0.1, -0.5, -0.5,  0.5,  0.5, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1,
+        array([-0.5, -0.5,  0.5,  0.5, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1,
                -0.1, -0.1, -0.1])
         >>> rmg['node']['planet_surface__elevation']
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  1.5,  1. ,  1. ,  1. ,  0.5,  1.5,
@@ -1134,12 +1215,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         """
         
-        bottom_edge = range(0, self.number_of_node_columns - 1)
+        bottom_edge = range(0, self.number_of_node_columns)
         if type(bottom_edge) != list:
             bottom_edge = numpy.array([bottom_edge])
         else:
             bottom_edge = numpy.array(bottom_edge)
-        right_edge = range(self.number_of_node_columns - 1,
+        right_edge = range(2*self.number_of_node_columns - 1,
                            self.number_of_nodes - 1,
                            self.number_of_node_columns)
         if type(right_edge) != list:
@@ -1147,12 +1228,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             right_edge = numpy.array(right_edge)
         top_edge = range((self.number_of_node_rows - 1) *
-                         self.number_of_node_columns + 1, self.number_of_nodes)
+                         self.number_of_node_columns, self.number_of_nodes)
         if type(top_edge) != list:
             top_edge = numpy.array([top_edge])
         else:
             top_edge = numpy.array(top_edge)
-        left_edge = range(self.number_of_node_columns, self.number_of_nodes,
+        left_edge = range(self.number_of_node_columns, 
+                          self.number_of_nodes - self.number_of_node_columns,
                           self.number_of_node_columns)
         if type(left_edge) != list:
             left_edge = numpy.array([left_edge])
@@ -1169,6 +1251,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, bottom_edge))
             bottom_anchor_nodes = bottom_edge+self.number_of_node_columns
             bottom_anchor_nodes[0] = bottom_edge[1]+self.number_of_node_columns
+            bottom_anchor_nodes[-1] = bottom_edge[-2]+self.number_of_node_columns
             fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, bottom_anchor_nodes))
             bottom_links = self.node_links(bottom_edge)[2,:]
             boundary_links = numpy.concatenate((boundary_links, bottom_links))
@@ -1176,7 +1259,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, right_edge))
             right_anchor_nodes = right_edge-1
-            right_anchor_nodes[0] = right_edge[1]-1
             fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, right_anchor_nodes))
             right_links = self.node_links(right_edge)[1,:]
             boundary_links = numpy.concatenate((boundary_links, right_links))
@@ -1184,6 +1266,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, top_edge))
             top_anchor_nodes = top_edge-self.number_of_node_columns
+            top_anchor_nodes[0] = top_edge[1]-self.number_of_node_columns
             top_anchor_nodes[-1] = top_edge[-2]-self.number_of_node_columns
             fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, top_anchor_nodes))
             top_links = self.node_links(top_edge)[0,:]
@@ -1192,7 +1275,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, left_edge))
             left_anchor_nodes = left_edge+1
-            left_anchor_nodes[-1] = left_edge[-2]+1
             fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, left_anchor_nodes))
             left_links = self.node_links(left_edge)[3,:]
             boundary_links = numpy.concatenate((boundary_links, left_links))
@@ -1226,18 +1308,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     bottom_fixed_gradients = numpy.ones(bottom_edge.size, dtype=float)*-fixed_gradient
                     #force the corner gradient:
                     bottom_fixed_gradients[0] = 0.
+                    bottom_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, bottom_fixed_gradients))
                 if right_is_fixed:
                     right_fixed_gradients = numpy.ones(right_edge.size,dtype=float)*fixed_gradient
-                    right_fixed_gradients[0] = 0.
+                    #right_fixed_gradients[0] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, right_fixed_gradients))
                 if top_is_fixed:
                     top_fixed_gradients = numpy.ones(top_edge.size,dtype=float)*fixed_gradient
+                    top_fixed_gradients[0] = 0.
                     top_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, top_fixed_gradients))
                 if left_is_fixed:
                     left_fixed_gradients = numpy.ones(left_edge.size,dtype=float)*-fixed_gradient
-                    left_fixed_gradients[-1] = 0.
+                    #left_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, left_fixed_gradients))
                 self.force_boundaries_from_gradients(boundary_links, fixed_gradient_array, gradient_of)
                 fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
@@ -1257,7 +1341,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
             self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = fixed_gradient_array
+            #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
+            self.fixed_gradient_link_properties['boundary_link_gradients'] = -self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 
         else:
             #there's something in there, which we need to merge with, and
@@ -1274,13 +1359,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, self.fixed_gradient_node_properties['anchor_node_IDs'][unrepeated_node_entries]))
             fixed_gradient_values_to_add = numpy.concatenate((fixed_gradient_values_to_add, self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
 
+            if numpy.any(self.node_status[fixed_gradient_nodes] == 3):
+                raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
+
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
             self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes
             self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
             self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = fixed_gradient_array
+            #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
+            self.fixed_gradient_link_properties['boundary_link_gradients'] = -self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 
 
 ###This method depreciated in favor of force_boundaries_from_gradients(), below.
