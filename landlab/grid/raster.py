@@ -1010,6 +1010,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg.set_looped_boundaries(True, True)
+        >>> rmg.looped_node_properties['boundary_node_IDs']
+        array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
+        >>> rmg.looped_node_properties['linked_node_IDs']
+        array([10, 11, 12, 13, 14,  8,  6, 13, 11,  5,  6,  7,  8,  9])
+        
+            15  16  17  18  19
+            10  11  12  13  14
+             5   6   7   8   9
+             0   1   2   3   4
 
         TODO: Assign BC_statuses also to *links*
         """
@@ -1060,8 +1069,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties = {}
         all_the_IDs = numpy.concatenate((these_boundary_IDs, existing_IDs))
         ID_ordering = numpy.argsort(all_the_IDs)
-        self.looped_node_properties['boundary_node_IDs'] = all_the_IDs[ID_ordering]
-        self.looped_node_properties['linked_node_IDs'] = numpy.concatenate((these_linked_nodes,existing_links))[ID_ordering]
+        self.looped_node_properties['boundary_node_IDs'] = all_the_IDs[ID_ordering].astype(int)
+        self.looped_node_properties['linked_node_IDs'] = numpy.concatenate((these_linked_nodes,existing_links))[ID_ordering].astype(int)
 
         if numpy.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
             raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')        
@@ -1337,10 +1346,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.fixed_gradient_of = gradient_of
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
-            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes
-            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes
+            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(int)
+            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(int)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links
+            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links.astype(int)
             #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
             self.fixed_gradient_link_properties['boundary_link_gradients'] = -self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 
@@ -1364,10 +1373,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
-            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes
-            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes
+            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(int)
+            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(int)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links
+            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links.astype(int)
             #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
             self.fixed_gradient_link_properties['boundary_link_gradients'] = -self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 

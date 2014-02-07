@@ -332,9 +332,12 @@ class PerronNLDiffuse(object):
             if corner_flags[i] == 1:
                 true_corner = self.antimask_corner_position[i]
                 _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,true_corner]]*elev[_interior_corners[i]+modulator_mask[corners_antimasks[i,true_corner]]])
-            elif corner_flags[i] == 4: #inactive boundary cell
+            elif corner_flags[i] == 4 or corner_flags[i] == 3: #inactive boundary cell
                 #Actually the easiest case! Equivalent to fixed gradient, but the gradient is zero, so material only goes in the linked cell. And because it's a true corner, that linked cell doesn't appear in the interior matrix at all!
                 pass
+            elif corner_flags[i] == 2:
+                true_corner = self.antimask_corner_position[i]
+                _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,true_corner]]*self.fixed_gradient_offset_map[_interior_corners[i]+modulator_mask[corners_antimasks[i,true_corner]]])
             else:
                 raise NameError('Sorry! This module cannot yet handle fixed gradient or looped BCs...')
             #Todo: handle these BCs properly, once the grid itself works with them.
@@ -384,6 +387,7 @@ class PerronNLDiffuse(object):
             bottom_op_mat_data_add[:(bottom_interior_IDs.size*3)] = _delta_t*(nine_node_map[_bottom_list,:][:,bottom_antimask]).flatten()
             #...& the corners
             this_corner_coords = numpy.array([0,1])
+            #order is bottom 2 lower left, bottom 2 lower right, lower left true corner, lower right true corner.
             bottom_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[this_corner_coords],2)
             bottom_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[this_corner_coords.reshape(2,1),this_corner_coords].flatten()
             bottom_op_mat_row_add[-2:] =  corner_interior_IDs[this_corner_coords] #new
@@ -400,8 +404,41 @@ class PerronNLDiffuse(object):
                 for i in [0,1]:
                     edge_list = edges[i]
                     _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*self.fixed_gradient_offset_map[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+        elif self.bottom_flag == 3:
+            #This will handle both top and bottom BCs...
+            bottom_op_mat_row_add = numpy.empty((bottom_interior_IDs.size*3+6)) #was 4
+            bottom_op_mat_col_add = numpy.empty((bottom_interior_IDs.size*3+6))
+            bottom_op_mat_data_add = numpy.empty((bottom_interior_IDs.size*3+6))
+            bottom_op_mat_row_add[:(bottom_interior_IDs.size*3)] = numpy.repeat(bottom_interior_IDs,3) #...put the values in the same places in the operating matrix...
+            bottom_op_mat_col_add[:(bottom_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask[3:6]]).flatten()
+            bottom_op_mat_data_add[:(bottom_interior_IDs.size*3)] = _delta_t*(nine_node_map[_bottom_list,:][:,bottom_antimask]).flatten() #...but the values refer to the TOP of the grid
+            top_op_mat_row_add = numpy.empty((top_interior_IDs.size*3+6))
+            top_op_mat_col_add = numpy.empty((top_interior_IDs.size*3+6))
+            top_op_mat_data_add = numpy.empty((top_interior_IDs.size*3+6))
+            top_op_mat_row_add[:(top_interior_IDs.size*3)] = numpy.repeat(top_interior_IDs,3)
+            top_op_mat_col_add[:(top_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.bottom_interior_IDs,:][:,self.bottom_mask[0:3]]).flatten()
+            top_op_mat_data_add[:(top_interior_IDs.size*3)] = _delta_t*(nine_node_map[_top_list,:][:,top_antimask]).flatten()
+            #& the corners
+            bottom_corner_coords = numpy.array([0,1])
+            top_corner_coords = numpy.array([2,3])
+            bottom_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[bottom_corner_coords],2)
+            bottom_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[top_corner_coords.reshape(2,1),top_corner_coords].flatten()
+            bottom_op_mat_row_add[-2:] =  corner_interior_IDs[bottom_corner_coords]
+            bottom_op_mat_col_add[-2:] = self.operating_matrix_corner_int_IDs[(top_corner_coords[0],top_corner_coords[0]),(top_corner_coords[1],top_corner_coords[1])].flatten()
+            bottom_op_mat_data_add[-6:-4] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[1,2]]].flatten()
+            bottom_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[0,1]]].flatten()
+            bottom_op_mat_data_add[-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,0]]
+            bottom_op_mat_data_add[-1] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,2]]
+            top_op_mat_row_add[-6:-2] = numpy.repeat(corner_interior_IDs[top_corner_coords],2)
+            top_op_mat_col_add[-6:-2] = self.operating_matrix_corner_int_IDs[bottom_corner_coords.reshape(2,1),bottom_corner_coords].flatten()
+            top_op_mat_row_add[-2:] =  corner_interior_IDs[top_corner_coords] #new
+            top_op_mat_col_add[-2:] = self.operating_matrix_corner_int_IDs[(bottom_corner_coords[0],bottom_corner_coords[0]),(bottom_corner_coords[1],bottom_corner_coords[1])].flatten()
+            top_op_mat_data_add[-6:-4] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[3,4]]].flatten()
+            top_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[2,3]]].flatten()
+            top_op_mat_data_add[-2] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,2]]
+            top_op_mat_data_add[-1] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,4]]
         else:
-            raise NameError('Sorry! This module cannot yet handle looped BCs...')
+            raise NameError('Something is very wrong with your boundary conditions...!')
 
         if self.top_flag == 1:
             #goes to RHS only
@@ -439,8 +476,10 @@ class PerronNLDiffuse(object):
                 for i in [2,3]:
                     edge_list = edges[i]
                     _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*self.fixed_gradient_offset_map[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+        elif self.top_flag == 3:
+            pass #dealt with above
         else:
-            raise NameError('Sorry! This module cannot yet handle looped BCs...')
+            raise NameError('Something is very wrong with your boundary conditions...!')
 
         if self.left_flag == 1:
             #goes to RHS only
@@ -474,9 +513,32 @@ class PerronNLDiffuse(object):
                 for i in [0,2]:
                     edge_list = edges[i]
                     _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*self.fixed_gradient_offset_map[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
-
+        elif self.left_flag ==3:
+            left_op_mat_row_add = numpy.empty((left_interior_IDs.size*3+4))
+            left_op_mat_col_add = numpy.empty((left_interior_IDs.size*3+4))
+            left_op_mat_data_add = numpy.empty((left_interior_IDs.size*3+4))
+            left_op_mat_row_add[:(left_interior_IDs.size*3)] = numpy.repeat(left_interior_IDs,3)
+            left_op_mat_col_add[:(left_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask[1::2]]).flatten()
+            left_op_mat_data_add[:(left_interior_IDs.size*3)] = _delta_t*(nine_node_map[_left_list,:][:,left_antimask]).flatten()
+            right_op_mat_row_add = numpy.empty((right_interior_IDs.size*3+4))
+            right_op_mat_col_add = numpy.empty((right_interior_IDs.size*3+4))
+            right_op_mat_data_add = numpy.empty((right_interior_IDs.size*3+4))
+            right_op_mat_row_add[:(right_interior_IDs.size*3)] = numpy.repeat(right_interior_IDs,3)
+            right_op_mat_col_add[:(right_interior_IDs.size*3)] = self.realIDtointerior(self.operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask[::2]]).flatten()
+            right_op_mat_data_add[:(right_interior_IDs.size*3)] = _delta_t*(nine_node_map[_right_list,:][:,right_antimask]).flatten()
+            #& the corners
+            left_corner_coords = numpy.array([0,2])
+            right_corner_coords = numpy.array([1,3])
+            left_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[left_corner_coords],2)
+            left_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[right_corner_coords.reshape(2,1),right_corner_coords].flatten()
+            left_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[0],:][corners_antimasks[0,[3,4]]].flatten()
+            left_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[2],:][corners_antimasks[2,[0,1]]].flatten()
+            right_op_mat_row_add[-4:] = numpy.repeat(corner_interior_IDs[right_corner_coords],2)
+            right_op_mat_col_add[-4:] = self.operating_matrix_corner_int_IDs[left_corner_coords.reshape(2,1),left_corner_coords].flatten()
+            right_op_mat_data_add[-4:-2] = _delta_t*nine_node_map[_interior_corners[1],:][corners_antimasks[1,[3,4]]].flatten()
+            right_op_mat_data_add[-2:] = _delta_t*nine_node_map[_interior_corners[3],:][corners_antimasks[3,[0,1]]].flatten()
         else:
-            raise NameError('Sorry! This module cannot yet handle looped BCs...')
+            raise NameError('Something is very wrong with your boundary conditions...!')
 
         if self.right_flag == 1:
             #goes to RHS only
@@ -510,8 +572,10 @@ class PerronNLDiffuse(object):
                 for i in [1,3]:
                     edge_list = edges[i]
                     _mat_RHS[corner_interior_IDs[i]] -= _delta_t*numpy.sum(nine_node_map[_interior_corners[i],:][corners_antimasks[i,edge_list]]*self.fixed_gradient_offset_map[_interior_corners[i]+modulator_mask[corners_antimasks[i,edge_list]]])
+        elif self.top_flag == 3:
+            pass #dealt with above
         else:
-            raise NameError('Sorry! This module cannot yet handle looped BCs...')
+            raise NameError('Something is very wrong with your boundary conditions...!')
 
         ###new approach using COO sparse matrix requires we build the matrix only now...
         self._operating_matrix = sparse.coo_matrix((numpy.concatenate((core_op_mat_data,corners_op_mat_data,bottom_op_mat_data,top_op_mat_data,left_op_mat_data,right_op_mat_data,bottom_op_mat_data_add,top_op_mat_data_add,left_op_mat_data_add,right_op_mat_data_add)),
@@ -587,7 +651,11 @@ class PerronNLDiffuse(object):
                 'node'][self.values_to_diffuse][grid.fixed_gradient_node_properties[
                 'anchor_node_IDs']] + grid.fixed_gradient_node_properties['values_to_add']
         if self.looped_BCs_present:
-            raise ValueError #need to update this once workflow for looped BCs is established
+            grid['node'][self.values_to_diffuse][
+                grid.looped_node_properties['boundary_node_IDs']] = grid[
+                'node'][self.values_to_diffuse][grid.looped_node_properties[
+                'linked_node_IDs']]
+            #raise ValueError #need to update this once workflow for looped BCs is established
         
         self.grid = grid
         return grid

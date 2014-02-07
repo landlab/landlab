@@ -18,7 +18,8 @@ init_elev = inputs.read_float('init_elev')
 
 mg = RasterModelGrid(nrows, ncols, dx)
 #mg.set_inactive_boundaries(False, False, False, False)
-mg.set_inactive_boundaries(True,True,True,True)
+#mg.set_inactive_boundaries(True,True,True,True)
+mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
 mg.create_node_array_zeros('planet_surface__elevation')
@@ -39,8 +40,6 @@ mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
 # Display a message
 print( 'Running ...' )
 start_time = time.time()
-
-#Need to test out if the routine applies its own uplift. We'll see... So don't uplift for now.
 
 #instantiate the component:
 diffusion_component = PerronNLDiffuse(mg, './drive_perron_params.txt')
