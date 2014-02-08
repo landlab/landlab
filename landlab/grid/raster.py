@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
+import numpy as np
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
@@ -2207,150 +2208,166 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         print divg2
         
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
-    	# coded by Katy Barnhart, early January 2014. 
-    	# calculates the aspect at each node based on the elevation of 
-    	# the node and its neighbors using a best fit plane calculated
-    	# using single value decomposition. 
-    	#
-    	# requires:
-    	# id: id of nodes at which to calculate the aspect
-    	# val: elevation at all nodes
-    	#
-    	# returns:
-    	# a: the aspect at the nodes given by id
-    	#
-    	# additional note, KRB has written three codes in raster.py
-    	# one to calculate slope, one to calculate aspect, and one
-    	# to calculate both
-		
-		# get the list of neighboring nodes for the nodes given by id
-		n=self.get_neighbor_list(id)
-		a=[]
-		
-		# for each node in id make a list with the node id and the ids of
-		# its neighbors. 
-		
-		# determine the values for the x, y, and z coordinates of each node, 
-		# pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
-		# slope and aspect. 
-		
-		for i in range(len(id)):
-			ns=list(n[i])
-			ns.append(id[i])
-			x=self.node_x[ns]
-			y=self.node_y[ns]
-			z=val[ns]
-			slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
-			a.append(aspect)
-			del ns		
-		# return aspect alone	
-		return a
-		
+        """
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+
+        Calculates the aspect at each node based on the elevation of 
+        the node and its neighbors using a best fit plane calculated
+        using single value decomposition. 
+
+        requires:
+        id: id of nodes at which to calculate the aspect
+        val: elevation at all nodes
+        
+        returns:
+        a: the aspect at the nodes given by id
+        """
+        # additional note, KRB has written three codes in raster.py
+        # one to calculate slope, one to calculate aspect, and one
+        # to calculate both
+        
+        # get the list of neighboring nodes for the nodes given by id
+        n=self.get_neighbor_list(id)
+        a=[]
+        
+        # for each node in id make a list with the node id and the ids of
+        # its neighbors. 
+        
+        # determine the values for the x, y, and z coordinates of each node, 
+        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # slope and aspect. 
+        
+        for i in range(len(id)):
+            ns=list(n[i])
+            ns.append(id[i])
+            x=self.node_x[ns]
+            y=self.node_y[ns]
+            z=val[ns]
+            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            a.append(aspect)
+            del ns        
+        # return aspect alone    
+        return a
+        
     def calculate_slope_at_nodes_bestFitPlane(self, id, val):
-    	# coded by Katy Barnhart, early January 2014. 
-    	# calculates the aspect at each node based on the elevation of 
-    	# the node and its neighbors using a best fit plane calculated
-    	# using single value decomposition. 
-    	#
-    	# requires:
-    	# id: id of nodes at which to calculate the aspect
-    	# val: elevation at all nodes
-    	#
-    	# returns:
-    	# a: the aspect at the nodes given by id
-    	#
-    	# additional note, KRB has written three codes in raster.py
-    	# one to calculate slope, one to calculate aspect, and one
-    	# to calculate both
-		
-		# get the list of neighboring nodes for the nodes given by id
-		n=self.get_neighbor_list(id)
-		s=[]
-		
-		# for each node in id make a list with the node id and the ids of
-		# its neighbors. 
-		
-		# determine the values for the x, y, and z coordinates of each node, 
-		# pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
-		# slope and aspect. 
-		
-		for i in range(len(id)):
-			ns=list(n[i])
-			ns.append(id[i])
-			x=self.node_x[ns]
-			y=self.node_y[ns]
-			z=val[ns]
-			slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
-			s.append(slope)
-			del ns	
-		# return slope alone	
-		return s
-		
+        """
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+
+        Calculates the aspect at each node based on the elevation of 
+        the node and its neighbors using a best fit plane calculated
+        using single value decomposition. 
+
+        requires:
+        id: id of nodes at which to calculate the aspect
+        val: elevation at all nodes
+
+        returns:
+        a: the aspect at the nodes given by id
+        """
+        #
+        # additional note, KRB has written three codes in raster.py
+        # one to calculate slope, one to calculate aspect, and one
+        # to calculate both
+        
+        # get the list of neighboring nodes for the nodes given by id
+        n=self.get_neighbor_list(id)
+        s=[]
+        
+        # for each node in id make a list with the node id and the ids of
+        # its neighbors. 
+        
+        # determine the values for the x, y, and z coordinates of each node, 
+        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # slope and aspect. 
+        
+        for i in range(len(id)):
+            ns=list(n[i])
+            ns.append(id[i])
+            x=self.node_x[ns]
+            y=self.node_y[ns]
+            z=val[ns]
+            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            s.append(slope)
+            del ns    
+        # return slope alone    
+        return s
+        
     def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
-    	# coded by Katy Barnhart, early January 2014. 
-    	# calculates the aspect at each node based on the elevation of 
-    	# the node and its neighbors using a best fit plane calculated
-    	# using single value decomposition. 
-    	#
-    	# requires:
-    	# id: id of nodes at which to calculate the aspect
-    	# val: elevation at all nodes
-    	#
-    	# returns:
-    	# a: the aspect at the nodes given by id
-    	#
-    	# additional note, KRB has written three codes in raster.py
-    	# one to calculate slope, one to calculate aspect, and one
-    	# to calculate both
-		
-		# get the list of neighboring nodes for the nodes given by id
-		n=self.get_neighbor_list(id)
-		a=[]
-		s=[]
-		
-		# for each node in id make a list with the node id and the ids of
-		# its neighbors. 
-		
-		# determine the values for the x, y, and z coordinates of each node, 
-		# pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
-		# slope and aspect. 
-	
-		for i in range(len(id)):
-			ns=list(n[i])
-			ns.append(id[i])
-			x=self.node_x[ns]
-			y=self.node_y[ns]
-			z=val[ns]
-			slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
-			a.append(aspect)
-			s.append(slope)
-			
-			del ns
-		# return slope and aspect			
-		return s, a
-		
+        """
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+
+        Calculates the aspect at each node based on the elevation of 
+        the node and its neighbors using a best fit plane calculated
+        using single value decomposition. 
+
+        requires:
+        id: id of nodes at which to calculate the aspect
+        val: elevation at all nodes
+
+        returns:
+        a: the aspect at the nodes given by id
+        """
+
+        # additional note, KRB has written three codes in raster.py
+        # one to calculate slope, one to calculate aspect, and one
+        # to calculate both
+        
+        # get the list of neighboring nodes for the nodes given by id
+        n=self.get_neighbor_list(id)
+        a=[]
+        s=[]
+        
+        # for each node in id make a list with the node id and the ids of
+        # its neighbors. 
+        
+        # determine the values for the x, y, and z coordinates of each node, 
+        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # slope and aspect. 
+    
+        for i in range(len(id)):
+            ns=list(n[i])
+            ns.append(id[i])
+            x=self.node_x[ns]
+            y=self.node_y[ns]
+            z=val[ns]
+            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            a.append(aspect)
+            s.append(slope)
+            
+            del ns
+        # return slope and aspect            
+        return s, a
+        
     def hillshade(self, alt, az, slp, asp):
-		# coded by Katy Barnhart, early January 2014. code taken from
-		# GeospatialPython.com example from December 14th, 2014
-		
-		# krb note: I don't know where this code is best put, probably not in
-		# raster.py, but I'll set someone else (Dan, Greg, Eric) who knows the
-		# whole landlab structure better put it where you think it should go.
-		# it doesn't need self as an input, though if at some point, slope and
-		# aspect were properties of the nodes, then they wouldn't need to be passed around
-		
-		# 		az = sun azimuth (degrees from north)
-		# 		alt = sun altitude (degrees up from horizon)
-		# 		slp = slope of cells at surface (degrees)
-		# 		asp = aspect of cells at surface (degrees from north)
-		
-		shaded = numpy.sin(numpy.radians(alt)) * numpy.sin(numpy.radians(slp)) \
-		+ numpy.cos(numpy.radians(alt)) * numpy.cos(numpy.radians(slp)) \
-		* numpy.cos(numpy.radians((az)) - numpy.radians(asp))
-	
-		return shaded
-		
-		
+        """
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+        
+        code taken from GeospatialPython.com example from December 14th, 2014
+        
+        az = sun azimuth (degrees from north)
+        alt = sun altitude (degrees up from horizon)
+        slp = slope of cells at surface (degrees)
+        asp = aspect of cells at surface (degrees from north)
+        """
+        
+        # krb note: I don't know where this code is best put, probably not in
+        # raster.py, but I'll set someone else (Dan, Greg, Eric) who knows the
+        # whole landlab structure better put it where you think it should go.
+        # it doesn't need self as an input, though if at some point, slope and
+        # aspect were properties of the nodes, then they wouldn't need to be
+        # passed around
+
+        (alt, az, slp, asp) = (np.radians(alt), np.radians(az),
+                               np.radians(slp), np.radians(asp))
+        
+        shaded = (
+            np.sin(alt) * np.sin(slp) +
+            np.cos(alt) * np.cos(slp) * np.cos(az - asp)
+        )
+    
+        return shaded
+        
+        
 def _is_closed_boundary(boundary_string):
     
     return boundary_string.lower() == 'closed'
