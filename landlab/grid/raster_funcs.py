@@ -466,17 +466,18 @@ def calculate_slope_aspect_BFP(xs, ys, zs):
     """
     .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
 
-    Fits a plane to the given N points with given x, y, and z values
+    Fits a plane to the given N points with given *xs*, *ys*, and *zs* values
     using single value decomposition. 
    
-    returns the slope and aspect based on the normal vector to the 
+    Returns a tuple of (*slope*, *aspect*) based on the normal vector to the 
     best fit plane. 
    
     .. note::
-        DOES NOT HAVE ANY ERROR CHECKING. PROBLEMS WILL EXIST IF:
-        len(x)!= len(y) != len(z)
-        or if the points fall on a line and not on a plane. 
+        This function does not check if the points fall on a line, rather
+        than a plane.
     """
+    if not (len(xs) == len(ys) == len(ys)):
+        raise ValueError('array must be the same length')
    
     # step 1: subtract the centroid from the points
     x0 = np.mean(xs)
