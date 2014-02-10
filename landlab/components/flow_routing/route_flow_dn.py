@@ -64,6 +64,8 @@ class FlowRouter():
             - Node array of steepest downhill slopes
             - Node array containing downstream-to-upstream ordered list of node
               IDs
+            - Node array containing ID of link that leads from each node to its
+              receiver (or UNDEFINED_INDEX if there is no receiver)
         
         Example:
             >>> mg = RasterModelGrid(5, 4, 1.0)
@@ -74,30 +76,30 @@ class FlowRouter():
                                  0., 0., 0., 0.])
             >>> mg.set_inactive_boundaries(False, True, True, True)
             >>> fr = FlowRouter(mg)
-            >>> r, a, q, ss, s = fr.route_flow(elev)
+            >>> r, a, q, ss, s, rl = fr.route_flow(elev)
             >>> r
             array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
                    17, 18, 19])
             >>> a
             array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
                     1.,  1.,  1.,  1.,  1.,  1.,  1.])
-            >>> r, a, q, ss, s = fr.route_flow(elev, 10.0)
+            >>> r, a, q, ss, s, rl = fr.route_flow(elev, 10.0)
             >>> a
             array([ 10.,  20.,  60.,  10.,  10.,  10.,  50.,  10.,  10.,  10.,  30.,
                     10.,  10.,  10.,  10.,  10.,  10.,  10.,  10.,  10.])
             >>> cell_areas = 10.0 + numpy.arange(mg.number_of_nodes)
-            >>> r, a, q, ss, s = fr.route_flow(elev, cell_areas)
+            >>> r, a, q, ss, s, rl = fr.route_flow(elev, cell_areas)
             >>> a
             array([  10.,   26.,  114.,   13.,   14.,   15.,  102.,   17.,   18.,
                      19.,   67.,   21.,   22.,   23.,   24.,   25.,   26.,   27.,
                      28.,   29.])
             >>> runoff_rate = numpy.arange(mg.number_of_nodes)
-            >>> r, a, q, ss, s = fr.route_flow(elev, 100.0, runoff_rate)
+            >>> r, a, q, ss, s, rl = fr.route_flow(elev, 100.0, runoff_rate)
             >>> q
             array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
                      800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
                     1600.,  1700.,  1800.,  1900.])
-            >>> r, a, q, ss, s = fr.route_flow(elev, cell_areas, runoff_rate)
+            >>> r, a, q, ss, s, rl = fr.route_flow(elev, cell_areas, runoff_rate)
             >>> q
             array([    0.,    86.,  1126.,    39.,    56.,    75.,  1102.,   119.,
                      144.,   171.,   835.,   231.,   264.,   299.,   336.,   375.,
@@ -111,8 +113,8 @@ class FlowRouter():
         (baselevel_nodes, ) = numpy.where( self._grid.node_status==1 )
 
         # Calculate flow directions
-        receiver, steepest_slope, sink = flow_direction_DN.flow_directions(
-                                         elevs, self._activelink_from,
+        receiver, steepest_slope, sink, recvr_link = \
+            flow_direction_DN.flow_directions(elevs, self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          baselevel_nodes)
 
@@ -120,7 +122,7 @@ class FlowRouter():
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area, runoff_rate)
 
-        return receiver, a, q, steepest_slope, s
+        return receiver, a, q, steepest_slope, s, recvr_link
 
 
 if __name__ == '__main__':

@@ -5,10 +5,13 @@ flow_direction_DN.py: calculates single-direction flow directions on a regular
 or irregular grid.
 
 GT Nov 2013
+Modified Feb 2014
 """
 
 
 import numpy
+
+UNDEFINED_INDEX = numpy.iinfo(int).min
 
 
 def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
@@ -19,12 +22,12 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
     
     Inputs:
         elev = array or list of elevations at nodes
-        active_links = array or list of links (ordered pairs of nodes)
         fromnode = array or list containing ID of the "from" node for each link
         tonode = array or list containing ID of the "to" node for each link
         link_slope = slope of each link, defined POSITIVE DOWNHILL (i.e., a
                      negative value means the link runs uphill from the fromnode
                      to the tonode)
+        (optional) baselevel_nodes = IDs of open boundary (baselevel) nodes
     
     Returns:
         receiver = Numpy array containing, for each node, the ID of the node
@@ -32,6 +35,10 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
                    other receiver is assigned.
         steepest_slope = the slope value (positive downhill) in the direction of
                          flow
+        sink = IDs of nodes that are flow sinks (they are their own receivers)
+        receiver_link = ID of link that leads from each node to its receiver,
+                        or UNDEFINED_INDEX if none (UNDEFINED_INDEX is the
+                        smallest integer
     
     The example below assigns elevations to the 10-node example network in
     Braun and Willett (2012), so that their original flow pattern should be
@@ -42,19 +49,23 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
         >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
         >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
         >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-        >>> r, ss, snk = flow_directions(z, fn, tn, s)
+        >>> r, ss, snk, rl = flow_directions(z, fn, tn, s)
         >>> r
         array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
         >>> ss
         array([ 1.4,  1. ,  1.2,  1. ,  0. ,  1.1,  0.9,  2.3,  1.1,  0.9])
         >>> snk
         array([4])
+        >>> rl[3:8]
+        array([15,  2,  6, 13, 11])
+
     """
     
     # Setup
     num_nodes = len(elev)
     steepest_slope = numpy.zeros(num_nodes)
     receiver = numpy.arange(num_nodes)
+    receiver_link = UNDEFINED_INDEX + numpy.zeros(num_nodes, dtype=int)
     
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
@@ -68,10 +79,12 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
         if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
             receiver[f] = t
             steepest_slope[f] = link_slope[i]
+            receiver_link[f] = i
             #print ' flows from',f,'to',t
         elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
             receiver[t] = f
             steepest_slope[t] = -link_slope[i]
+            receiver_link[f] = i
             #print ' flows from',t,'to',f
         #else:
             #print ' is flat'
@@ -87,7 +100,7 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
     # nodes that are also interior nodes).
     (sink, ) = numpy.where(node_id==receiver)
     
-    return receiver, steepest_slope, sink
+    return receiver, steepest_slope, sink, receiver_link
     
     
 if __name__ == '__main__':
