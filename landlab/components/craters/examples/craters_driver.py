@@ -18,13 +18,13 @@ nt = inputs.read_int('number_of_craters_per_loop')
 loops = inputs.read_int('number_of_loops')
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(False, False, False, False)
+mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
 mg.create_node_array_zeros('planet_surface__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
-mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/10000.
+mg['node'][ 'planet_surface__elevation'] = z #+ np.random.rand(len(z))/10000.
 
 # Display a message
 print( 'Running ...' )

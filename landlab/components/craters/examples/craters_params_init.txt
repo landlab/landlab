@@ -1,7 +1,7 @@
 nrows:
-1000
+100
 ncols:
-1000
+100
 dx:
 0.002
 leftmost_elevation:
@@ -19,10 +19,10 @@ min_ejecta_thickness:
 record_impacts:
 1
 forced_radius:
-0.4
+0.04
 x_position:
-0.3
+0.5
 y_position:
 0.5
 forced_angle:
-0.
+85.
