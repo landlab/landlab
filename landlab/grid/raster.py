@@ -303,10 +303,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def dx(self):
+        """
+        Returns the node spacing of a raster grid. Same as node_spacing.
+        Example: my_grid_spacing = my_raster_grid.dx 
+        (no parentheses, because it is a property rather than a method)
+        """
         return self._dx
 
     @property
     def node_spacing(self):
+        """
+        Returns the node spacing of a raster grid. Same as dx.
+        Example: my_grid_spacing = my_raster_grid.node_spacing 
+        (no parentheses, because it is a property rather than a method)
+        """
         return self._dx
 
     def node_links(self, *args):

@@ -8,7 +8,7 @@ Last updated GT July 2013
 
 """
 
-import landlab
+from landlab import RasterModelGrid
 import pylab, time
 import numpy as np
 

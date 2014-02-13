@@ -311,8 +311,8 @@ class ModelGrid(ModelDataFields):
         if name is None:
             return numpy.zeros(self.number_of_active_links)
         else: 
-            self.add_zeros('active_link', name)
-            return self.at_node[name]
+            self.add_zeros('link', name)
+            return self.at_link[name]
 
     def zeros(self, **kwds):
         """
