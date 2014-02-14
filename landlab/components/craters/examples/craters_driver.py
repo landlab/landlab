@@ -43,14 +43,17 @@ az = np.empty(nt)
 mass_balance = np.empty(nt)
 for i in xrange(loops):
     for j in xrange(nt):
+        if j == 1:
+            craters_component._ycoord = 0.45*(mg.get_grid_xdimension()-mg.dx)
+            craters_component._radius /= 10.
         mg = craters_component.excavate_a_crater_furbish(mg)
-        x[j] = craters_component.impact_property_dict['x']
-        y[j] = craters_component.impact_property_dict['y']
-        r[j] = craters_component.impact_property_dict['r']
-        slope[j] = craters_component.impact_property_dict['surface_slope']
-        angle[j] = craters_component.impact_property_dict['normal_angle']
-        az[j] = craters_component.impact_property_dict['impact_az']
-        mass_balance[j] = craters_component.impact_property_dict['mass_balance']
+        x[j] = craters_component.impact_xy_location[0]
+        y[j] = craters_component.impact_xy_location[1]
+        r[j] = craters_component.crater_radius
+        slope[j] = craters_component.surface_slope_beneath_crater
+        angle[j] = craters_component.impact_angle_to_normal
+        az[j] = craters_component.impactor_travel_azimuth
+        mass_balance[j] = craters_component.mass_balance
         print 'Completed loop ', j
     mystring = 'initial_topo'  #'craterssave'+str((i+1)*nt)
     np.save(mystring,mg['node']['planet_surface__elevation'])
@@ -77,4 +80,7 @@ pylab.title('Topography')
 print('Done.')
 print('Total run time = '+str(time.time()-start_time)+' seconds.')
 
+pylab.show()
+
+im=pylab.plot(elev_r[:,ncols//2])
 pylab.show()
