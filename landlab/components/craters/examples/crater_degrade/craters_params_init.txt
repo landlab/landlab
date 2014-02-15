@@ -19,9 +19,9 @@ min_ejecta_thickness:
 record_impacts:
 1
 forced_radius:
-0.2
+0.3
 x_position:
-0.001
+0.5
 y_position:
 0.5
 forced_angle:
