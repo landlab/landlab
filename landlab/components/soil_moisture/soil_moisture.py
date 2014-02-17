@@ -20,12 +20,12 @@ from numpy import *
 from math import *
 import landlab
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
-from landlab import ModelParameterDictionary
+from landlab.model_parameter_dictionary import ModelParameterDictionary
 from matplotlib.pyplot import *
 
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
-                                  'soilmoisture_input.in')
+                                  'soilmoisture_input_validation_high.txt')
 
 class SoilMoisture():
 
@@ -92,16 +92,13 @@ class SoilMoisture():
         self._Ro = 0.0
         self._time = 0.0
         self._WS = 0.0    # water stress
+        self._LAIlive = 0.0
+        self._fr = 0.0
        
-    def initialize( self, input_file=None ):
+    def initialize( self ):
+
         MPD = ModelParameterDictionary()
-
-        
-        if input_file is None:
-            input_file = _DEFAULT_INPUT_FILE
-        MPD.read_from_file(input_file)
-
-        
+        MPD.read_from_file(_DEFAULT_INPUT_FILE)
 
         self._iterate_storm = MPD.read_int( 'N_STORMS' )
         self._vegcover = MPD.read_float( 'VEG_COV' )
@@ -125,25 +122,26 @@ class SoilMoisture():
         
         
 
-    def update( self, P, Tb, Tr, Fveg ):
+    def update( self, P, Tb, Tr, fveg, PET ):
 
         V = self._vegcover   # total veg cover used for interception
         fbare = self._fbare
         ZR = self._zr
-        PET = self._PET
+        #PET = self._PET
         pc = self._soil_pc
         fc = self._soil_fc
         sc = self._soil_sc
         wp = self._soil_wp
         hgw = self._soil_hgw
         beta = self._soil_beta
+        self._fr = self._LAIlive/1.44
 
         
         Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V
         Int_cap = min(V*self._interception_cap, P)
         Peff = max(P-Int_cap, 0.0)
-        mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))
-        Ep = max((PET*Fveg+fbare*PET*(1-V)) - Int_cap, 0.0)
+        mu = (Inf_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))
+        Ep = max((PET*self._fr+fbare*PET*(1-self._fr)) - Int_cap, 0.001)
         nu = ((Ep/24.0)/1000.0)/(pc*ZR)
         nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR)
         sini = self._so + (Peff/(pc*ZR*1000.0))+self._runon
@@ -225,6 +223,8 @@ class SoilMoisture():
             ETA = (1000*ZR*pc*(sini-s))
 
         Water_Stress = min(max(pow(((sc - ((s+sini)/2)) / (sc - wp)),4),0.0),1.0) 
+        
+        #print 'soil moisture: ', s
     
         """ varaibles for get/set functions """
         self._Peff = Peff
@@ -234,7 +234,13 @@ class SoilMoisture():
         self._Ro = runoff
         self._time = self._time + (Tb + Tr)/(24*365.4)
         self._WS = Water_Stress
-        self._so = s   
+        self._so = s
+        self._tfc = tfc
+        self._tsc = tsc
+        self._twp = twp
+        self._mu = mu
+        self._nu = nu
+        self._nuw = nuw   
 
         """ Return Effective precipittion mm """
     def get_Peff( self ):
@@ -262,10 +268,39 @@ class SoilMoisture():
         """ Return Water Stress """
     def get_WaterStress( self ):
         return self._WS
+        
+    def get_tfc( self ):
+        return self._tfc
+        
+    def get_tsc( self ):
+        return self._tsc
+        
+    def get_twp( self ):
+        return self._twp
+        
+    def get_mu( self ):
+        return self._mu
+
+    def get_nu( self ):
+        return self._nu
+
+    def get_nuw( self ):
+        return self._nuw
 
         """ Set Number of Storms """
     def set_strms( self, strms ):
         self._iterate_storm = strms
+        
+    def set_LAIlive( self, LAI ):
+        self._LAIlive = LAI
+        
+        
+        """ Set Potential Evapotranspiration Rate """
+    def set_PET( self, PET ):
+        self._PET = PET
+        
+    def set_vegcover( self, VegCovR ):
+        self._vegcover = VegCovR
 
 
     def plott( self, P_, S_, ETA_, D_, Ro_, Time_ ):
@@ -275,12 +310,14 @@ class SoilMoisture():
         ylabel( 'Storm Depth [mm]' )
         title( 'Storm generation' )
         xlabel( 'Time:Year' )
+        savefig('figure1')
 
         figure(2)
         plot( Time_, S_ )
         ylabel( 'Degree of saturation: theta/porosity' )
         title( 'Soil Moisture Dynamics' )
         xlabel( 'Time:Year' )
+        savefig('figure2')
 
         figure(3)
         plot( Time_, ETA_, '--+', label = 'Interstorm-ET' )
@@ -293,9 +330,6 @@ class SoilMoisture():
         ylabel( 'Depth [mm]' )
         legend()
         title( 'Leakage/Losses' )
-                
+        savefig('figure3')
+
         show()
-
-
-
-        
