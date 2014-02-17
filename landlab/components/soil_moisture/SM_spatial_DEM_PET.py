@@ -21,7 +21,7 @@ from numpy import *
 from math import *
 import landlab
 from landlab import RasterModelGrid
-from landlab import ModelParameterDictionary
+from landlab.model_parameter_dictionary import ModelParameterDictionary
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.plot import imshow_grid, imshow_active_cells
 from matplotlib.pyplot import *
@@ -117,7 +117,7 @@ class SoilMoisture():
         self._soil_beta = MPD.read_float( 'BETA' )        
         
 
-    def update( self, P, Tb, Tr, fveg, SO ):
+    def update( self, P, Tb, Tr, VT, SO ):
 
         """
             Reading in 'P' storm depth, 'Tb' Interstorm duration, 'Tr' Storm
@@ -128,7 +128,7 @@ class SoilMoisture():
             Initializing parameters that are constant in space for a given Storm
         """
         
-        V = fveg     # total veg cover used for interception
+        #V = fveg     # total veg cover used for interception
         fbare = self._fbare
         ZR = self._zr
         pc = self._soil_pc
@@ -142,10 +142,10 @@ class SoilMoisture():
             Calculating parameters that are constant over space
         """
         
-        Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V # Infiltration capacity
-        Int_cap = min(V*self._interception_cap, P)  # Interception capacity
-        Peff = max(P-Int_cap, 0.0)             # Effective precipitation depth
-        mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))        
+        #Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V # Infiltration capacity
+        #Int_cap = min(V*self._interception_cap, P)  # Interception capacity
+        #Peff = max(P-Int_cap, 0.0)             # Effective precipitation depth
+        #mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))        
         
         """ 
             Initializing variables for spatial run for a given storm
@@ -158,6 +158,9 @@ class SoilMoisture():
         self._D = zeros((SO.shape))
         self._Ro = zeros((SO.shape))
         self._WS = zeros((SO.shape))
+        self._mu = zeros((SO.shape))  # for debugging
+        self._nu = zeros((SO.shape))  # for debugging
+        self._munu = zeros((SO.shape)) # for debugging
 
         """
             Looping over space for the time period (Tr+Tb)
@@ -170,6 +173,12 @@ class SoilMoisture():
             """ Columns """    
             
             for j in range(0,nn):
+
+                V = VT[i][j]
+                Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V # Infiltration capacity
+                Int_cap = min(V*self._interception_cap, P)  # Interception capacity
+                Peff = max(P-Int_cap, 0.0)             # Effective precipitation depth
+                mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1)) 
                 
                 """
                     Calculating parameters that are variable over space
@@ -180,7 +189,10 @@ class SoilMoisture():
                 nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
                 nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
                 so = SO[i][j]               # Initial Soil Moisture
-                sini = so + (Peff/(pc*ZR*1000.0))+self._runon       
+                sini = so + (Peff/(pc*ZR*1000.0))+self._runon 
+                self._mu[i][j] = mu   # for debugging
+                self._nu[i][j] = nu   # for debugging 
+                self._munu[i][j] = mu-nu # for debugging  
         
                 """
                     Evaluating Runoff and accordingly adjusting initial soil
@@ -202,8 +214,12 @@ class SoilMoisture():
         
                 if sini>=fc:
                     tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+                \
-                             log((nu-mu+mu*exp(beta*(sini-fc)))/nu))
-
+                            log((nu-mu+mu*exp(beta*(sini-fc)))/nu))
+                    if nu == 0:
+                        print 'nu is zero', nu
+                        print 'Veg Cover', V
+                        print 'Ep = ', Ep
+                        print 'pet = ', pet
                     tsc = ((fc-sc)/nu)+tfc
                     twp = ((sc-wp)/(nu-nuw))*log(nu/nuw)+tsc
         
@@ -329,9 +345,11 @@ class SoilMoisture():
         plot( Time_, P_ )
         ylabel( 'Storm Depth [mm]' )
         title( 'Storm generation' )
-        xlabel( 'Time:Year' )        
+        xlabel( 'Time:Year' )
+        savefig('StormDepth')        
 
         figure(2)
-        imshow_grid(RMG, S_, values_at = 'cell') 
+        imshow_grid(RMG, S_, values_at = 'cell')
+        savefig('CurrentSM_State') 
 
         show()
