@@ -25,20 +25,23 @@ The following code snippet sets the southern boudary nodes to be :data:`~landlab
 Can I import Landlab output into ParaView or VisIt?
 ---------------------------------------------------
 
-See ``How do I get netCDF output'' below.
+See :ref:`how_to_export_to_netcdf` below.
 
+
+.. _how_to_export_to_netcdf:
 
 How do I get netCDF output?
 ---------------------------
 
 At present, Landlab can write output to a netCDF file if you are using a raster grid
 (support for unstructured grids is coming later). A tutorial example is provided in
-``Discovering Landlab's Tools and Tricks'' [HOW DO WE CREATE A LINK TO THIS?] To create
-netCDF output, use the function :func:`~landlab.io.netcdf.write_netcdf`. This function
-will write to file (1) the grid geometry, and (2) any data arrays that are linked to the
-grid; this will automatically include any arrays that you created with functions such as
-:func:`~landlab.grid.base.ModelGrid.add_zeros`, as long as you provided a name for the
-array as one of the arguments.
+:ref:`landlab_tools_and_tricks`.  To create netCDF output, use the function
+:func:`~landlab.io.netcdf.write_netcdf`. This function will write to file
+  1. the grid geometry, and
+  2. any data arrays that are linked to the grid
+this will automatically include any arrays that you created with functions
+such as :func:`~landlab.grid.base.ModelGrid.add_zeros`, as long as you
+provided a name for the array as one of the arguments.
 
 
 Why are there no other FAQs besides these few?

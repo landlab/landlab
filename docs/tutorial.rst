@@ -121,6 +121,8 @@ Here is the resulting image:
 For more information about using the ModelGrid module, see *The ModelGrid Guide* (:download:`download pdf <model_grid_guide/model_grid_description_and_guide.pdf>`).
 
 
+.. _landlab_tools_and_tricks:
+
 Discovering Landlab's Tools and Tricks
 --------------------------------------
 
