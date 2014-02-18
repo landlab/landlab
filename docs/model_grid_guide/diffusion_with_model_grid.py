@@ -8,7 +8,7 @@ Last updated GT September 2013
 
 """
 
-import landlab
+from landlab import RasterModelGrid
 import pylab, time
 
 def main():
@@ -32,14 +32,13 @@ def main():
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
     
     # Create and initialize a raster model grid
-    mg = landlab.RasterModelGrid(numrows, numcols, dx)
+    mg = RasterModelGrid(numrows, numcols, dx)
     
     # Set the boundary conditions
     mg.set_inactive_boundaries(False, False, True, True)
 
     # Set up scalar values
-    z = mg.create_node_array_zeros()            # node elevations
-    dzdt = mg.create_node_array_zeros()  # node rate of elevation change
+    z = mg.add_zeros('node', 'Elevation')            # node elevations
     
     # Get a list of the interior cells
     interior_cells = mg.get_active_cell_node_ids()
