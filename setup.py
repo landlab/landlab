@@ -5,6 +5,45 @@ use_setuptools()
 from setuptools import setup
 import multiprocessing
 
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+
+
+def register(**kwds):
+    import httplib, urllib
+
+    data = urllib.urlencode(kwds)
+    header = {"Content-type": "application/x-www-form-urlencoded",
+              "Accept": "text/plain"}
+    conn = httplib.HTTPConnection('csdms.colorado.edu') 
+    conn.request('POST', '/register/', data, header)
+
+
+def register_landlab():
+    try:
+        from sys import argv
+        import platform
+        data = {
+            'name': 'landlab',
+            'platform': platform.platform(),
+            'desc': ';'.join(argv),
+        }
+        register(**data)
+    except Exception:
+        pass
+
+
+class install_and_register(install):
+    def run(self):
+        install.run(self)
+        register_landlab()
+
+
+class develop_and_register(develop):
+    def run(self):
+        develop.run(self)
+        register_landlab()
+
 
 setup(name='TheLandlab',
       version='0.1.0',
@@ -17,12 +56,10 @@ setup(name='TheLandlab',
                       'scipy>=0.12',
                       'nose>=1.0',
                       'memory_profiler'],
-                      #'matplotlib',
       install_requires=['numpy>=1.7',
                         'scipy>=0.12',
                         'nose>=1.0',
                         'memory_profiler'],
-                        #'matplotlib',
       packages=['landlab',
                 'landlab.components',
                 'landlab.grid',
@@ -43,4 +80,8 @@ setup(name='TheLandlab',
       },
       package_data={'': ['data/*asc']},
       test_suite='nose.collector',
+      cmdclass={
+          'install': install_and_register,
+          'develop': develop_and_register,
+      },
      )
