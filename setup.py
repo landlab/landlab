@@ -8,6 +8,8 @@ import multiprocessing
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 
+from landlab import __version__
+
 
 def register(**kwds):
     import httplib, urllib
@@ -25,12 +27,13 @@ def register_landlab():
         import platform
         data = {
             'name': 'landlab',
+            'version': __version__,
             'platform': platform.platform(),
             'desc': ';'.join(argv),
         }
         register(**data)
     except Exception:
-        pass
+        raise
 
 
 class install_and_register(install):
@@ -46,7 +49,7 @@ class develop_and_register(develop):
 
 
 setup(name='TheLandlab',
-      version='0.1.0',
+      version=__version__,
       author='Eric Hutton',
       author_email='eric.hutton@colorado.edu',
       url='https://csdms.colorado.edu/trac/landlab',
