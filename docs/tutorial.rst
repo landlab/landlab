@@ -58,7 +58,7 @@ The Numpy ``where`` function finds and returns the array indices where the condi
 This returns a version of ``z`` that has been converted into a 2D Numpy array. Then we display it using the Pylab function ``imshow``:
 
 >>> import pylab
->>> pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0, 400, 0, 200], origin='lower')
+>>> pylab.imshow(zr, cmap=pylab.cm.jet, extent=[0, 400, 0, 200], origin='lower')
 
 The result looks like this:
 
