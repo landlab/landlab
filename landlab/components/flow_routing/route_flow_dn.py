@@ -13,7 +13,7 @@ Created GT Nov 2013
 """
 
 import landlab
-from landlab import RasterModelGrid
+#from landlab import RasterModelGrid
 from landlab.components.flow_routing import flow_direction_DN
 reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
@@ -68,6 +68,7 @@ class FlowRouter():
               receiver (or UNDEFINED_INDEX if there is no receiver)
         
         Example:
+            >>> from landlab import RasterModelGrid
             >>> mg = RasterModelGrid(5, 4, 1.0)
             >>> elev = numpy.array([0.,  0.,  0., 0., \
                                  0., 21., 10., 0., \
@@ -107,6 +108,8 @@ class FlowRouter():
         """
         
         # Calculate the downhill-positive slopes at the d8 active links
+        #TODO: generalize to use EITHER D8, if raster, or just active links,
+        # otherwise.
         link_slope = -self._grid.calculate_gradients_at_d8_active_links(elevs)
         
         # Find the baselevel nodes
@@ -117,6 +120,11 @@ class FlowRouter():
             flow_direction_DN.flow_directions(elevs, self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          baselevel_nodes)
+        
+        # TODO: either need a way to calculate and return the *length* of the
+        # flow links, OR the caller has to handle the raster / non-raster case.
+        
+        #print 'sinks:', sink
 
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,

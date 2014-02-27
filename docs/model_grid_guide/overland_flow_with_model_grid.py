@@ -39,7 +39,7 @@ def main():
     next_report = time.time()+report_interval   # next time to report progress
     
     # Create and initialize a raster model grid
-    mg = landlab.RasterModelGrid(numrows, numcols, dx)
+    mg = RasterModelGrid(numrows, numcols, dx)
     
     # Set up boundaries. We'll have the right and left sides open, the top and
     # bottom closed. The water depth on the left will be 5 m, and on the right 

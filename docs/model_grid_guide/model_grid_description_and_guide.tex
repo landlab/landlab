@@ -456,15 +456,16 @@ As noted earlier, ModelGrid provides several different types of grid. Available 
    \label{gridtypestable}
 \end{table}
 
-Suppose, for example, that we wanted to model a scenario in which the domain is a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To run our diffusion model with this geometry, we only need to make some relatively simple changes. A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing, so we change lines 24--26 to:
+Suppose, for example, that we wanted to model a scenario in which the domain is a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To run our diffusion model with this geometry, we only need to make some relatively simple changes. A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing, so we change lines 28--30 to:
 
-\lstinputlisting[firstnumber=24,firstline=24,lastline=26]{diffusion_with_radial_model_grid.py}
-and also change \code{dx} to \code{dr} on line 32. To create a RadialModelGrid instead of a RasterModelGrid, we modify lines 35--36:
+\lstinputlisting[firstnumber=28,firstline=28,lastline=30]{diffusion_with_radial_model_grid.py}
+Note that we have changed \code{dx} to \code{dr} on line 30. To create a RadialModelGrid instead of a RasterModelGrid, we simply replace the name of the object \code{RasterModelGrid} with \code{RadialModelGrid}:\footnote{These two types of grid are examples of the use of {\em inheritance}: each is a sub-class of \code{ModelGrid}, which means they both automatically contain all the methods and attributes of that base class.}
 
-\lstinputlisting[firstnumber=35,firstline=35,lastline=36]{diffusion_with_radial_model_grid.py}
-Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands (lines 74--94) with the following:
+\lstinputlisting[firstnumber=39,firstline=39,lastline=39]{diffusion_with_radial_model_grid.py}
+Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands %(lines 74--94) 
+with the following:
 
-\lstinputlisting[firstnumber=74,firstline=74,lastline=89]{diffusion_with_radial_model_grid.py}
+\lstinputlisting[firstnumber=75,firstline=75,lastline=94]{diffusion_with_radial_model_grid.py}
 The result of our run is shown in Figure~\ref{radialdiffusion}.
 
 %%%%%%%%%%% FIGURE %%%%%%%%%%%
@@ -481,6 +482,8 @@ The result of our run is shown in Figure~\ref{radialdiffusion}.
 %%%%%%%%%%%%%%%%%%%%%
 
 \section{Using ModelGrid with a Landlab Component}
+
+[NOTE: THIS SECTION IS UNDER CONSTRUCTION]
 
 So far, we've seen examples in which you use ModelGrid to create a new model from scratch. You can also use ModelGrid together with a pre-existing Landlab component to create a model. There are two ways to do this. The first is to create a Landlab Model, which is the recommended way to link together Landlab components because it provides helpful capabilities (such as easy file I/O and display handling, and compatibility with the CSDMS Framework). Instructions on how to create a Landlab Model are provided in {\em [NAME OF DOCUMENT]}. The second is simply to write a short Python program that instantiates one or more components, initializes them, and then uses a loop to call their \code{update} methods in turn. Here, we will illustrate this second method in order to give an introduction to how Landlab components work.
 

@@ -29,3 +29,6 @@ class TestImshowGrid(unittest.TestCase):
         pp.savefig()
 
         pp.close()
+
+if __name__ == '__main__':
+    unittest.main()

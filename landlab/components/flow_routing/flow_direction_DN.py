@@ -59,6 +59,11 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
         >>> rl[3:8]
         array([15,  2,  6, 13, 11])
 
+    OK, the following are rough notes on design: we want to work with just the
+    active links. Ways to do this:
+        - Pass active_links in as argument
+        - In calling code, only refer to receiver_links for active nodes
+
     """
     
     # Setup
@@ -72,6 +77,8 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
     # from donor to receiver is steeper than the steepest one found so far for
     # the donor, then assign the receiver to the donor and record the new slope.
     # (Note the minus sign when looking at slope from "t" to "f").
+    #
+    # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
     for i in range(len(fromnode)):
         f = fromnode[i]
         t = tonode[i]
