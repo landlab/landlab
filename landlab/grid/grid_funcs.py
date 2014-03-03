@@ -7,7 +7,7 @@ def resolve_values_on_active_links(grid, active_link_values, out=None):
     resolved into the x and y directions.
     Two link arrays are returned; x, then y.
     """
-    if out in None:
+    if out is None:
         out = grid.empty(centering='active_link')
     return np.multiply(((grid.node_x[grid.activelink_tonode] - 
                          grid.node_x[grid.activelink_fromnode]) / 
@@ -24,7 +24,7 @@ def resolve_values_on_links(grid, link_values, out=None):
     resolved into the x and y directions.
     Two link arrays are returned; x, then y.
     """
-    if out in None:
+    if out is None:
         out = grid.empty(centering='link')
     return np.multiply(((grid.node_x[grid.link_tonode] - 
                          grid.node_x[grid.link_fromnode]) / 
