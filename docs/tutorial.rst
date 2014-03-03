@@ -42,7 +42,7 @@ This line creates a *grid object*, ``mg``. For this application, we want values 
 
 As the name suggests, the value of each element in the array is initially zero. Let's create a fault scarp by uplifting some of the grid nodes. To do this, we'll first create an array to represent the *y*-coordinate of the fault trace:
 
->>> fault_y = 5.0 + 0.25*mg.node_x
+>>> fault_y = 50.0 + 0.25*mg.node_x
 
 Here ``node_x`` is a Numpy array containing the *x*-coordinate of each node.
 
@@ -58,7 +58,7 @@ The Numpy ``where`` function finds and returns the array indices where the condi
 This returns a version of ``z`` that has been converted into a 2D Numpy array. Then we display it using the Pylab function ``imshow``:
 
 >>> import pylab
->>> pylab.imshow(zr, cmap=pylab.cm.jet, extent=[0, 400, 0, 200], origin='lower')
+>>> pylab.imshow(zr, cmap=pylab.cm.jet, extent=[0, 400, 0, 250], origin='lower')
 
 The result looks like this:
 
