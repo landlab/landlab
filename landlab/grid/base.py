@@ -422,6 +422,21 @@ class ModelGrid(ModelDataFields):
         
         return gradient
         
+    def resolve_values_on_links(self, link_values, out=None):
+        """
+        Resolves values provided defined on links into the x and y directions.
+        Returns values_along_x, values_along_y
+        """
+        return gfuncs.resolve_values_on_links(self, link_values, out=out)
+
+    def resolve_values_on_active_links(self, link_values, out=None):
+        """
+        Resolves values provided defined on active links into the x and y 
+        directions.
+        Returns values_along_x, values_along_y
+        """
+        return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
+        
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
         """

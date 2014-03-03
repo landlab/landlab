@@ -1,6 +1,39 @@
 
 import numpy as np
 
+def resolve_values_on_active_links(grid, active_link_values, out=None):
+    """
+    Takes a set of values defined on active links, and returns those values
+    resolved into the x and y directions.
+    Two link arrays are returned; x, then y.
+    """
+    if out in None:
+        out = grid.empty(centering='active_link')
+    return np.multiply(((grid.node_x[grid.activelink_tonode] - 
+                         grid.node_x[grid.activelink_fromnode]) / 
+                         grid.active_link_length),
+                         active_link_values, out=out), np.multiply(
+                       ((grid.node_y[grid.activelink_tonode] - 
+                         grid.node_y[grid.activelink_fromnode]) / 
+                         grid.active_link_length),
+                         active_link_values, out=out)
+
+def resolve_values_on_links(grid, link_values, out=None):
+    """
+    Takes a set of values defined on active links, and returns those values
+    resolved into the x and y directions.
+    Two link arrays are returned; x, then y.
+    """
+    if out in None:
+        out = grid.empty(centering='link')
+    return np.multiply(((grid.node_x[grid.link_tonode] - 
+                         grid.node_x[grid.link_fromnode]) / 
+                         grid.link_length),
+                         link_values, out=out), np.multiply(
+                       ((grid.node_y[grid.link_tonode] - 
+                         grid.node_y[grid.link_fromnode]) / 
+                         grid.link_length),
+                         link_values, out=out)
 
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """
