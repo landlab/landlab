@@ -164,7 +164,8 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     return dstack.s
     
     
-def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0):
+def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
+                                     boundary_nodes=None):
     """
     Calculates and returns the drainage area and water discharge at each node.
     
@@ -212,6 +213,11 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0):
     drainage_area = numpy.zeros(np) + node_cell_area
     discharge = numpy.zeros(np) + node_cell_area*runoff
     
+    # Optionally zero out drainage area and discharge at boundary nodes
+    if boundary_nodes is not None:
+        drainage_area[boundary_nodes] = 0
+        discharge[boundary_nodes] = 0
+    
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
     for i in range(np-1, -1, -1):
@@ -225,7 +231,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0):
     
 
 def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
-                      runoff_rate=1.0):
+                      runoff_rate=1.0, boundary_nodes=None):
     """
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
@@ -245,7 +251,7 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
     
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
-                                            runoff_rate)
+                                            runoff_rate, boundary_nodes)
     
     return a, q, s
     

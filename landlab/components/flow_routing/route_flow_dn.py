@@ -44,7 +44,8 @@ class FlowRouter():
         self.receiver = model_grid.create_node_array_zeros('receiver')
         self.steepest_slope = model_grid.create_node_array_zeros('steepest_slope')
         
-    def route_flow(self, elevs, node_cell_area=1.0, runoff_rate=1.0):
+    def route_flow(self, elevs, node_cell_area=1.0, runoff_rate=1.0,
+                   boundary_nodes=None):
         """
         Routes surface-water flow by (1) assigning to each node a single 
         drainage direction, and then (2) adding up the number of nodes that
@@ -128,7 +129,8 @@ class FlowRouter():
 
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
-                                                  node_cell_area, runoff_rate)
+                                                  node_cell_area, runoff_rate,
+                                                  boundary_nodes)
 
         return receiver, a, q, steepest_slope, s, recvr_link
 
