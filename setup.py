@@ -2,7 +2,7 @@
 
 from ez_setup import use_setuptools
 use_setuptools()
-from setuptools import setup
+from setuptools import setup, find_packages
 import multiprocessing
 
 from setuptools.command.install import install
@@ -63,15 +63,7 @@ setup(name='TheLandlab',
                         'scipy>=0.12',
                         'nose>=1.0',
                         'memory_profiler'],
-      packages=['landlab',
-                'landlab.components',
-                'landlab.grid',
-                'landlab.io',
-                'landlab.tests',
-                'landlab.utils',
-                'landlab.examples',
-                'landlab.framework',
-               ],
+      packages=find_packages(),
       entry_points={
           'console_scripts': [
               'craters = landlab.components.craters:main',
