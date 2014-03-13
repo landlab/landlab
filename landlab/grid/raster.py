@@ -671,7 +671,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if not self._diagonal_links_created:
             self._setup_diagonal_links()
             
-        return self._diag_active_links, \
+        return numpy.concatenate((self.active_links, 
+                                  self._diag_active_links)), \
                numpy.concatenate((self.activelink_fromnode, 
                                   self._diag_activelink_fromnode)), \
                numpy.concatenate((self.activelink_tonode,
