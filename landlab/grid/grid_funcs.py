@@ -9,6 +9,7 @@ def resolve_values_on_active_links(grid, active_link_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='active_link')
+
     return np.multiply(((grid.node_x[grid.activelink_tonode] - 
                          grid.node_x[grid.activelink_fromnode]) / 
                          grid.active_link_length),

@@ -280,7 +280,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # those links that cross a face will have this None value replaced with
         # a face ID.
         self.link_face = sgrid.face_index_at_links(self.shape,
-                                                   actives=self.active_links)
+                                                   actives=self.active_link_ids)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or

@@ -138,6 +138,15 @@ class ModelGrid(ModelDataFields):
         """Node IDs of all active nodes"""
         (active_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
         return active_node_ids
+    
+    @property
+    def active_links(self):
+        """Link IDs of all active links"""
+        try:
+            return self.active_link_ids
+        except:
+            self._reset_list_of_active_links()
+            return self.active_link_ids
 
     @property
     def node_index_at_active_cells(self):
@@ -414,7 +423,7 @@ class ModelGrid(ModelDataFields):
                 "len(gradient)!=number_of_active_links"
                 
         active_link_id = 0
-        for link_id in self.active_links:
+        for link_id in self.active_link_ids:
             gradient[active_link_id] = (s[self.link_tonode[link_id]]
                                         -s[self.link_fromnode[link_id]]) / \
                                         self.link_length[link_id]
@@ -559,7 +568,7 @@ class ModelGrid(ModelDataFields):
         # For each active link, add up the flux out of the "from" cell and 
         # into the "to" cell.
         active_link_id = 0
-        for link_id in self.active_links:
+        for link_id in self.active_link_ids:
             from_cell = self.node_activecell[self.link_fromnode[link_id]]
             to_cell = self.node_activecell[self.link_tonode[link_id]]
             total_flux = active_link_flux[active_link_id] * \
@@ -618,7 +627,7 @@ class ModelGrid(ModelDataFields):
         # For each active link, add up the flux out of the "from" cell and 
         # into the "to" cell.
         active_link_id = 0
-        for link_id in self.active_links:
+        for link_id in self.active_link_ids:
             from_node = self.link_fromnode[link_id]
             from_cell = self.node_activecell[from_node]
             to_node = self.link_tonode[link_id]
@@ -685,7 +694,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_link_length(self):
-        return self.link_length[self.active_links]
+        return self.link_length[self.active_link_ids]
 
     @property
     def link_length(self):
@@ -698,13 +707,13 @@ class ModelGrid(ModelDataFields):
         """
         Returns the horizontal length of the shortest active link in the grid.
         """
-        return numpy.amin(self.link_length[self.active_links])
+        return numpy.amin(self.link_length[self.active_link_ids])
 
     def max_active_link_length(self):
         """
         Returns the horizontal length of the longest active link in the grid.
         """
-        return numpy.amax(self.link_length[self.active_links])
+        return numpy.amax(self.link_length[self.active_link_ids])
 
     def calculate_link_length(self):
         if not hasattr(self, '_link_length'):
@@ -754,12 +763,12 @@ class ModelGrid(ModelDataFields):
                         ((tonode_status == INTERIOR_NODE) & ~
                          (fromnode_status == INACTIVE_BOUNDARY)))
 
-        (self.active_links, ) = numpy.where(active_links)
+        (self.active_link_ids, ) = numpy.where(active_links)
 
-        self._num_active_links = len(self.active_links)
+        self._num_active_links = len(self.active_link_ids)
         self._num_active_faces = self._num_active_links
-        self.activelink_fromnode = self.link_fromnode[self.active_links]
-        self.activelink_tonode = self.link_tonode[self.active_links]
+        self.activelink_fromnode = self.link_fromnode[self.active_link_ids]
+        self.activelink_tonode = self.link_tonode[self.active_link_ids]
         
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
@@ -946,7 +955,7 @@ class ModelGrid(ModelDataFields):
                      self._node_y[self.link_tonode[i]]], 'k-')
                      
         # Draw active links
-        for link in self.active_links:
+        for link in self.active_link_ids:
             plt.plot([self._node_x[self.link_fromnode[link]],
                      self._node_x[self.link_tonode[link]]],
                      [self._node_y[self.link_fromnode[link]],
@@ -1075,7 +1084,7 @@ class ModelGrid(ModelDataFields):
         self.node_status[nodes] = INACTIVE_BOUNDARY
         self._reset_list_of_active_links()
 
-    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=0, node_subset=numpy.nan):
+    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None, node_subset=numpy.nan, out_distance=None, out_azimuth=None):
         """
         Returns an array of distances for each node to a provided point.
         If "get_az" is set to 'angles', returns both the distance array and an
@@ -1085,57 +1094,172 @@ class ModelGrid(ModelDataFields):
         If "node_subset" is set as an ID, or list/array/etc of IDs method
         returns just the distance (and optionally azimuth) for that node.
         Point is provided as a tuple (x,y).
+        If out_distance (& out_azimuth) are provided, these arrays are used to
+        store the outputs. This is recommended for memory management reasons if
+        you are working with node subsets.
+        
+        ***Developer's note***
+        Once you start working with node subsets in Landlab, which can change
+        size between loops, it's quite possible for Python's internal memory
+        management to crap out after large numbers of loops (~>10k). This is
+        to do with the way it block allocates memory for arrays of differing
+        lengths, then cannot free this memory effectively.
+        The solution - as implemented here - is to pre-allocate all arrays as
+        nnodes long, then only work with the first [len_subset] entries by
+        slicing (in a pseudo-C-style). Care has to be taken not to
+        "accidentally" allow Python to allocate a new array you don't have
+        control over.
+        Then, to maintain efficient memory allocation, we create some "dummy"
+        nnode-long arrays to store intermediate parts of the solution in. We 
+        don't want these getting garbage collected in between each run, however,
+        with the attendant array creation costs. Thus we make them global
+        variables. Usefully, they can also be exploited by other methods!
         """
         assert isinstance(tuple_xy, tuple)
         assert len(tuple_xy) == 2
+            
+        if numpy.any(numpy.isnan(node_subset)):
+            subset_flag = False
+        else:
+            subset_flag = True
+        
+        if subset_flag:
+            if type(node_subset) == int:
+                node_subset = numpy.array([node_subset])
         
         try:
-            x_displacement = self.node_x[node_subset]-tuple_xy[0]
-            y_displacement = self.node_y[node_subset]-tuple_xy[1]
+            #have we created this array before?
+            azimuths_as_displacements
         except:
-            x_displacement = (self.node_x-tuple_xy[0])
-            y_displacement = (self.node_y-tuple_xy[1])
+            global azimuths_as_displacements
+            azimuths_as_displacements = numpy.empty((2, self.number_of_nodes))
+        try:
+            dummy_nodes_1 #these are arrays we can use for data storage if we're handling "nonstandard" length data arrays
+            dummy_nodes_2
+            dummy_nodes_3
+            dummy_bool
+        except:
+            global dummy_nodes_1
+            global dummy_nodes_2
+            global dummy_nodes_3
+            global dumy_bool
+            dummy_nodes_1 = numpy.empty(self.number_of_nodes)
+            dummy_nodes_2 = numpy.empty(self.number_of_nodes)
+            dummy_nodes_3 = numpy.empty(self.number_of_nodes)
+            dummy_bool = numpy.empty(self.number_of_nodes, dtype=bool)
+        
+        if out_distance is None:
+            try:
+                out_distance = numpy.empty(node_subset.size)
+            except:
+                out_distance = self.empty(centering='node')
+        else:
+            if subset_flag:
+                assert out_distance.size == node_subset.size
+            else:
+                assert out_distance.size == self.number_of_nodes
+        if out_azimuth is None and get_az:
+            try:
+                out_azimuth = numpy.empty((2,node_subset.size))
+            except:
+                out_azimuth = numpy.empty((2, self.number_of_nodes))
+            #only one of these colums will get used if get_az == 'angles'
+        elif out_azimuth is not None:
+            if subset_flag:
+                if get_az == 'displacements':
+                    assert out_azimuth.shape == (2,node_subset.shape[1])
+                elif get_az == 'angles':
+                    assert out_azimuth.size == node_subset.size
+            else:
+                assert out_azimuth.size == self.number_of_nodes
+            
 
-        dist_array = numpy.sqrt(x_displacement*x_displacement + y_displacement*y_displacement)
+        try:
+            len_subset = node_subset.size
+        except:
+            len_subset = self.number_of_nodes
+        
+        try:
+            azimuths_as_displacements[0,:len_subset] = self.node_x[node_subset]-tuple_xy[0]
+            azimuths_as_displacements[1,:len_subset] = self.node_y[node_subset]-tuple_xy[1]
+        except:
+            azimuths_as_displacements[0] = (self.node_x-tuple_xy[0])
+            azimuths_as_displacements[1] = (self.node_y-tuple_xy[1])
+
+        numpy.square(azimuths_as_displacements[0,:len_subset], out=dummy_nodes_1[:len_subset])
+        numpy.square(azimuths_as_displacements[1,:len_subset], out=dummy_nodes_2[:len_subset])
+        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[:len_subset], out=dummy_nodes_3[:len_subset])
+        numpy.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
         
         if get_az:
             if get_az == 'displacements':
-                azimuths_as_displacements = numpy.vstack(x_displacement,y_displacement)
-                del(x_displacement)
-                del(y_displacement)
-                return dist_array, azimuths_as_displacements
+                out_azimuth[:len_subset] = self.azimuths_as_displacements[:len_subset]
+                return out_distance, out_azimuth
             elif get_az == 'angles':
                 try:
-                    angle_to_xaxis = numpy.arctan(y_displacement/x_displacement)
+                    numpy.divide(azimuths_as_displacements[1,:len_subset],
+                                 azimuths_as_displacements[0,:len_subset],
+                                 out=dummy_nodes_1[:len_subset])
+                    numpy.arctan(dummy_nodes_1[:len_subset],
+                                 out=dummy_nodes_2[:len_subset]) #"angle_to_xaxis"
                 except: #These cases have the impact right on a gridline.
-                    try:
-                        azimuth_array = numpy.empty(len(x_displacement))
-                    except: #this is the single node case, impact directly N or S of the node of interest
-                        if y_displacement<0:
-                            azimuth_array = numpy.pi
+                    if len_subset == 1: #this is the single node case, point directly N or S of the node of interest
+                        if azimuths_as_displacements[1]<0:
+                            out_azimuth[0] = numpy.pi
                         else:
-                            azimuth_array = 0.
+                            out_azimuth[0] = 0.
                     else: #general case with whole array, with the impact right one one of the gridlines
-                        nonzero_nodes = numpy.nonzero(x_displacement)
-                        angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
-                        azimuth_array[nonzero_nodes] = numpy.where(x_displacement[nonzero_nodes]<0,1.5*numpy.pi-angle_to_xaxis,0.5*numpy.pi-angle_to_xaxis)
-                    zero_nodes = numpy.where(x_displacement==0.)[0]
-                    azimuth_array[zero_nodes] = numpy.where(y_displacement[zero_nodes]<0,numpy.pi,0.)
-                    del(zero_nodes)
-                    del(x_displacement)
-                    del(y_displacement)
-                    del(azimuth_array)
-                    del(angle_to_xaxis)
-                    del(nonzero_nodes)
+                        num_nonzero_nodes = numpy.count_nonzero(azimuths_as_displacements[0,:len_subset])
+                        dummy_nodes_3[:num_nonzero_nodes] = azimuths_as_displacements[0,:len_subset].nonzero() #"nonzero_nodes"
+                        nonzero_nodes = dummy_nodes_3[:num_nonzero_nodes]
+                        numpy.divide(azimuths_as_displacements[1,:len_subset][nonzero_nodes],
+                                     azimuths_as_displacements[0,:len_subset][nonzero_nodes],
+                                     out=dummy_nodes_1[:len_subset][nonzero_nodes])
+                        numpy.arctan(dummy_nodes_1[:len_subset][nonzero_nodes],
+                                     out=dummy_nodes_2[:len_subset][nonzero_nodes]) #"angle_to_xaxis"
+                        ##angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
+                        numpy.less(azimuths_as_displacements[0,:len_subset][nonzero_nodes], 0., out=dummy_bool[:len_subset][nonzero_nodes])
+                        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
+                        numpy.logical_not(dummy_bool[:len_subset][nonzero_nodes], out=dummy_bool[:len_subset][nonzero_nodes])
+                        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
+                        #out_azimuth[nonzero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset][nonzero_nodes]<0,
+                        #                                         1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes],
+                        #                                         0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes])
+                    num_zero_nodes = len_subset - num_nonzero_nodes
+                    #numpy.equal(azimuths_as_displacements[0,:len_subset], 0., out=dummy_bool[:num_zero_nodes]) #not clear if this will work, as output might be 2D
+                    dummy_nodes_3[:num_zero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset]==0.)[0] #"zero_nodes" ##POTENTIAL MEMORY LEAK REMAINS
+                    zero_nodes = dummy_nodes_3[:num_zero_nodes]
+                    numpy.less(azimuths_as_displacements[1,:len_subset][zero_nodes], 0., out=dummy_bool[:num_zero_nodes][zero_nodes])
+                    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = numpy.pi
+                    numpy.logical_not(dummy_bool[:num_zero_nodes][zero_nodes], out=dummy_bool[:num_zero_nodes][zero_nodes])
+                    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = 0.        
+                    #out_azimuth[zero_nodes] = numpy.where(azimuths_as_displacements[1,:len_subset][zero_nodes]<0.,numpy.pi,0.)
                 else: #the normal case
-                    azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
-                    del(x_displacement)
-                    del(angle_to_xaxis)
-                return dist_array, azimuth_array
+                    numpy.sign(azimuths_as_displacements[0,:len_subset],
+                               out=dummy_nodes_1[:len_subset])
+                    numpy.subtract(1., dummy_nodes_1[:len_subset],
+                                   out=dummy_nodes_3[:len_subset])
+                    numpy.multiply(dummy_nodes_3[:len_subset], 0.5*numpy.pi,
+                                   out=dummy_nodes_1[:len_subset])
+                    numpy.subtract(0.5*numpy.pi, dummy_nodes_2[:len_subset],
+                                   out=dummy_nodes_3[:len_subset])
+                    if out_azimuth is not None:
+                        numpy.add(dummy_nodes_1[:len_subset],
+                                  dummy_nodes_3[:len_subset],
+                                  out=out_azimuth)
+                    else:
+                        numpy.add(dummy_nodes_1[:len_subset],
+                                  dummy_nodes_3[:len_subset],
+                                  out=out_azimuth[0,:])
+                    ##azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis) #duplicated by the above
+                if out_azimuth.shape[0] == 2 and len(out_azimuth.shape) == 2:
+                    return out_distance, out_azimuth[0,:]
+                else:
+                    return out_distance, out_azimuth
             else:
                 print "Option set for get_az not recognised. Should be 'displacements' or 'angles'."
         else:
-            return dist_array
+            return out_distance
             
     def build_all_node_distances_azimuths_maps(self):
         """
