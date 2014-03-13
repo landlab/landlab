@@ -53,7 +53,7 @@ for i in range(grid.number_of_nodes):
 
 # Calculate lengths of flow links
 flow_link_length = ones(size(z))
-flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]]
+flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
 print 'fll:', flow_link_length
 
 # Get a 2D array version of the elevations
@@ -113,5 +113,5 @@ for t in range(num_time_steps):
         j = r[i]   # receiver (downstream node) of i
         print i, j
         if i != j:  # if sender and receiver are same, it's a boundary node
-            z[i] += alpha[i]*z[j]/(1.0+alpha[i])
+            z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
 
