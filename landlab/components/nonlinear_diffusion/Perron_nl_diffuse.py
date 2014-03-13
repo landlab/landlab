@@ -34,6 +34,11 @@ class PerronNLDiffuse(object):
             self.values_to_diffuse = inputs.read_str('values_to_diffuse')
         except:
             self.values_to_diffuse = 'planet_surface__elevation'
+        try:
+            self._delta_t = inputs.read_float('dt')
+        except:
+            print 'No timestep supplied, it must be set dynamically somewhere else. Be sure to call gear_timestep(timestep_in) as part of your run loop.'
+        
         self._delta_x = grid.node_spacing
         self._delta_y = self._delta_x
         self._one_over_delta_x = 1./self._delta_x
@@ -631,7 +636,8 @@ class PerronNLDiffuse(object):
         assert numpy.all(interior_ID < self.ninteriornodes)
         return interior_ID.astype(int)
 
-    def diffuse(self, elapsed_time):
+    def diffuse(self, grid_in, elapsed_time):
+        self.grid = grid_in
         grid = self.grid
         #Initialize the variables for the step:
         self.set_variables(grid)
