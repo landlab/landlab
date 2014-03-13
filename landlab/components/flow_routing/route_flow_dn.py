@@ -10,6 +10,9 @@ The "dn" in the name means that this is a generalization of the D8 algorithm,
 for a grid in which a node has N neighbors (N might happen to be 8, or not).
 
 Created GT Nov 2013
+Modified to save data to grid directly, DEJH March 2014
+DEJH added a hard-coded flag to suppress field output direct, and replace it
+with just return of the grid object.
 """
 
 import landlab
@@ -19,6 +22,7 @@ reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
 
+dans_output_suppression_flag = True
 
 class FlowRouter():
     
@@ -31,9 +35,11 @@ class FlowRouter():
         # the "D8" links; otherwise, it's just activelinks
         if type(model_grid) is landlab.grid.raster.RasterModelGrid:
             dal, d8f, d8t = model_grid.d8_active_links()
+            self._active_links = numpy.concatenate((model_grid.active_links, dal))
             self._activelink_from = d8f
             self._activelink_to = d8t
         else:
+            self._active_links = model_grid.active_links
             self._activelink_from = model_grid.activelink_fromnode
             self._activelink_to = model_grid.activelink_tonode
             
@@ -41,10 +47,14 @@ class FlowRouter():
         #   - drainage area at each node
         #   - receiver of each node
         self.drainage_area = model_grid.add_zeros('node', 'drainage_area')
-        self.receiver = model_grid.create_node_array_zeros('receiver')
+        self.receiver = model_grid.create_node_array_zeros('flow_receiver')
         self.steepest_slope = model_grid.create_node_array_zeros('steepest_slope')
+        self.discharges = model_grid.create_node_array_zeros('water_discharges')
+        self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
+        self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
         
-    def route_flow(self, elevs, node_cell_area=1.0, runoff_rate=1.0,
+        
+    def route_flow(self, elevs=None, grid=None, node_cell_area=1.0, runoff_rate=1.0,
                    boundary_nodes=None):
         """
         Routes surface-water flow by (1) assigning to each node a single 
@@ -67,6 +77,7 @@ class FlowRouter():
               IDs
             - Node array containing ID of link that leads from each node to its
               receiver (or UNDEFINED_INDEX if there is no receiver)
+            - the modified grid object
         
         Example:
             >>> from landlab import RasterModelGrid
@@ -108,6 +119,15 @@ class FlowRouter():
                      416.,   459.,   504.,   551.])
         """
         
+        #if elevs is not provided, default to stored grid values, which must be provided as grid
+        if elevs is None:
+            if grid is not None:
+                self._grid = grid
+                elevs = grid['node']['planet_surface__elevation']
+            else:
+                raise ValueError('Either an elevation array or a copy of the grid must be provided!')
+        
+        
         # Calculate the downhill-positive slopes at the d8 active links
         #TODO: generalize to use EITHER D8, if raster, or just active links,
         # otherwise.
@@ -118,7 +138,7 @@ class FlowRouter():
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link = \
-            flow_direction_DN.flow_directions(elevs, self._activelink_from,
+            flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          baselevel_nodes)
         
@@ -131,8 +151,44 @@ class FlowRouter():
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area, runoff_rate,
                                                   boundary_nodes)
+                                                  
+        #added DEJH March 2014:
+        #store the generated data in the grid
+        self._grid['node']['drainage_area'] = a
+        self._grid['node']['flow_receiver'] = receiver
+        self._grid['node']['steepest_slope'] = steepest_slope
+        self._grid['node']['water_discharges'] = q
+        self._grid['node']['upstream_ID_order'] = s
+        self._grid['node']['links_to_flow_receiver'] = recvr_link
 
-        return receiver, a, q, steepest_slope, s, recvr_link
+        if dans_output_suppression_flag:
+            return self._grid
+        else:
+            return receiver, a, q, steepest_slope, s, recvr_link
+
+    @property
+    def node_drainage_area(self):
+        return self._grid['node']['drainage_area']
+
+    @property
+    def node_receiving_flow(self):
+        return self._grid['node']['flow_receiver']
+
+    @property
+    def node_steepest_slope(self):
+        return self._grid['node']['steepest_slope']
+
+    @property
+    def node_water_discharge(self):
+        return self._grid['node']['water_discharges']
+
+    @property
+    def node_order_upstream(self):
+        return self._grid['node']['upstream_ID_order']
+
+    @property
+    def link_to_flow_receiving_node(self):
+        return self._grid['node']['links_to_flow_receiver']
 
 
 if __name__ == '__main__':

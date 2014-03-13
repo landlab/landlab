@@ -14,7 +14,7 @@ import numpy
 UNDEFINED_INDEX = numpy.iinfo(int).min
 
 
-def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
+def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_nodes=None):
     """
     Finds and returns flow directions for a given elevation grid. Each node is
     assigned a single direction, toward one of its N neighboring nodes (or
@@ -79,19 +79,19 @@ def flow_directions(elev, fromnode, tonode, link_slope, baselevel_nodes=None):
     # (Note the minus sign when looking at slope from "t" to "f").
     #
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
-    for i in range(len(fromnode)):
+    for i in xrange(len(fromnode)):
         f = fromnode[i]
         t = tonode[i]
         #print 'link from',f,'to',t,'with slope',link_slope[i]
         if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
             receiver[f] = t
             steepest_slope[f] = link_slope[i]
-            receiver_link[f] = i
+            receiver_link[f] = active_links[i]
             #print ' flows from',f,'to',t
         elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
             receiver[t] = f
             steepest_slope[t] = -link_slope[i]
-            receiver_link[f] = i
+            receiver_link[f] = active_links[i]
             #print ' flows from',t,'to',f
         #else:
             #print ' is flat'
