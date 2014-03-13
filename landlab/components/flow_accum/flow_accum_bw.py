@@ -82,7 +82,7 @@ def _make_number_of_donors_array(r):
     """
     np = len(r)
     nd = numpy.zeros(np, dtype=int)
-    for i in range(np):
+    for i in xrange(np):
         nd[r[i]] += 1
     return nd
     
@@ -108,7 +108,7 @@ def _make_delta_array(nd):
     np = len(nd)
     delta = numpy.zeros(np+1, dtype=int)
     delta[np] = np   # not np+1 as in B&W because here we number from 0
-    for i in range(np-1, -1, -1):
+    for i in xrange(np-1, -1, -1):
         delta[i] = delta[i+1] - nd[i]
     return delta
     
@@ -133,7 +133,7 @@ def _make_array_of_donors(r, delta):
     np = len(r)
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
-    for i in range(0, np):
+    for i in xrange(np):
         ri = r[i]
         D[delta[ri]+w[ri]] = i
         w[ri] += 1
