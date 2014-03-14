@@ -4,6 +4,7 @@ from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDif
 from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab import ModelParameterDictionary
+from landlab.plot import channel_profile as prf
 
 from landlab import RasterModelGrid
 import numpy as np
@@ -55,8 +56,15 @@ if not dynamic_timesteps:
         mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
         mg = fr.route_flow(grid=mg)
         mg = sp.erode(mg)
-        mg = diffuse.diffuse(mg, i*dt)
+        #mg = diffuse.diffuse(mg, i*dt)
         #mg = lin_diffuse.diffuse(mg, dt)
+        pylab.figure(4)
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+                mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
+                mg.at_node['flow_receiver'])
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+                profile_IDs, mg.at_node['links_to_flow_receiver'])
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['planet_surface__elevation'])
         print 'Completed loop ', i
 else:
     elapsed_time = 0.
