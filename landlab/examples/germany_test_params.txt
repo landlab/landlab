@@ -1,19 +1,20 @@
 nrows:
-200
+100
 ncols:
-200
+100
 dx:
 0.01
 leftmost_elevation:
 1.
 initial_slope:
-0.001
+0.
+#0.001
 dt:
 1.
 total_time:
-1.
+30.
 uplift_rate:
-0.001
+0.0005
 K_sp:
 0.01
 m_sp:
@@ -28,3 +29,11 @@ kappa:
 0.0001
 S_crit:
 0.56
+MEAN_STORM:
+1.
+MEAN_INTENSITY: #in meters
+1.
+MEAN_INTERSTORM: #in years (!)
+9.
+RUN_TIME:
+50.

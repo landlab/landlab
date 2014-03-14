@@ -79,6 +79,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     # (Note the minus sign when looking at slope from "t" to "f").
     #
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
+    #THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
+    #overridden as part of fastscape_stream_power
     for i in xrange(len(fromnode)):
         f = fromnode[i]
         t = tonode[i]
@@ -91,7 +93,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
         elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
             receiver[t] = f
             steepest_slope[t] = -link_slope[i]
-            receiver_link[f] = active_links[i]
+            receiver_link[t] = active_links[i]
             #print ' flows from',t,'to',f
         #else:
             #print ' is flat'

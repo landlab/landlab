@@ -16,10 +16,18 @@ class SPEroder(object):
     It needs to be supplied with the key variables:
         K_sp
         m_sp
-        dt
     ...which it will draw from a supplied input file. n_sp has to be 1 for the
     BW algorithm to work.
-        
+    
+    dt & rainfall_intensity are optional variables. dt is a fixed timestep, and
+    rainfall_intensity is a parameter which modulates K_sp (by a product, 
+    r_i**m_sp) to reflect the direct influence of rainfall intensity on 
+    erosivity.
+    If dt is not supplied, you must call gear_timestep(dt_in, rain_intensity_in)
+    each iteration to set these variables on-the-fly (rainfall_intensity will be
+    overridden if supplied in the input file).
+    If dt is supplied but rainfall_intensity is not, the module will assume you
+    mean r_i = 1.
     '''
     
     def __init__(self, grid, input_stream):
@@ -36,15 +44,24 @@ class SPEroder(object):
         try:
             self.dt = inputs.read_float('dt')
         except: #if dt isn't supplied, it must be set by another module, so look in the grid
-            print 'Setting dynamic timestep from the grid...'
-            self.dt = grid['timestep'] #this functionality doesn't exist yet, but it should
+            print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
+        else:
+            try:
+                self.r_i = inputs.read_float('dt')
+            except:
+                self.r_i = 1.
             
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
         self.alpha = grid.empty(centering='node')
         
         if self.n != 1.:
-            raise ValueError('The Braun Willett stream power algorithm requires n==1., sorry...')
+            raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
+
+    def gear_timestep(self, dt_in, rainfall_intensity_in):
+        self.dt = dt_in
+        self.r_i = rainfall_intensity_in
+        return self.dt, self.r_i
 
     def erode(self, grid_in):
         self.grid = grid_in #the variables must be stored internally to the grid, in fields
@@ -55,26 +72,22 @@ class SPEroder(object):
         #interior_nodes = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'], -1)
         #interior_nodes = (self.grid['node']['links_to_flow_receiver'][upstream_order_IDs])[nonboundaries]
         #flow_link_lengths = self.grid.link_length[interior_nodes]
-        flow_link_lengths = UNDEFINED_INDEX + numpy.zeros_like(self.alpha)
         defined_flow_receivers = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'],-1)
-        print self.grid.number_of_links
-        print self.grid.number_of_nodes
-        print (self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers]
-        flow_link_lengths[defined_flow_receivers] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers]]
+        #flow_link_lengths = numpy.zeros_like(self.alpha)
+        flow_link_lengths = self.grid.link_length[self.grid['node']['links_to_flow_receiver'][defined_flow_receivers]]
+        
+        #regular_links = numpy.less(self.grid['node']['links_to_flow_receiver'][defined_flow_receivers],self.grid.number_of_links)
+        #flow_link_lengths[defined_flow_receivers][regular_links] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
+        #diagonal_links = numpy.logical_not(regular_links)
+        #flow_link_lengths[defined_flow_receivers][diagonal_links] = numpy.sqrt(self.grid.node_spacing*self.grid.node_spacing)
         numpy.power(self.grid['node']['drainage_area'], self.m, out=self.A_to_the_m)
         #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
-        self.alpha = self.K * self.dt * self.A_to_the_m / flow_link_lengths
-
+        self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
         for i in upstream_order_IDs:
             j = self.grid['node']['flow_receiver'][i]
             if i != j:
                 z[i] = (z[i] + self.alpha[i]*z[j])/(1.0+self.alpha[i])
-                        
-#        for i in upstream_order_IDs[nonboundaries]: #this loop will be SLOW - is there a way of accelerating it using clever searching or cumsums?
-#            j = self.grid['node']['flow_receiver'][i]   # receiver (downstream node) of i
-#            print i,j
-#            z[i] += self.alpha[i]*z[j]/(1.+self.alpha[i])
         
         self.grid['node']['planet_surface__elevation'] = z
         

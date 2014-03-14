@@ -35,7 +35,7 @@ class FlowRouter():
         # the "D8" links; otherwise, it's just activelinks
         if type(model_grid) is landlab.grid.raster.RasterModelGrid:
             dal, d8f, d8t = model_grid.d8_active_links()
-            self._active_links = numpy.concatenate((model_grid.active_links, dal))
+            self._active_links = dal
             self._activelink_from = d8f
             self._activelink_to = d8t
         else:
@@ -127,6 +127,10 @@ class FlowRouter():
             else:
                 raise ValueError('Either an elevation array or a copy of the grid must be provided!')
         
+        try:
+            node_cell_area = self._grid.forced_cell_areas
+        except:
+            pass
         
         # Calculate the downhill-positive slopes at the d8 active links
         #TODO: generalize to use EITHER D8, if raster, or just active links,
@@ -137,7 +141,7 @@ class FlowRouter():
         (baselevel_nodes, ) = numpy.where( self._grid.node_status==1 )
 
         # Calculate flow directions
-        receiver, steepest_slope, sink, recvr_link = \
+        receiver, steepest_slope, sink, recvr_link  = \
             flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          baselevel_nodes)
