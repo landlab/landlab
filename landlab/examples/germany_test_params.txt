@@ -29,6 +29,12 @@ kappa:
 0.0001
 S_crit:
 0.56
+
+DIFMOD_KD:
+0.0001
+DIFMOD_UPLIFT_RATE:
+0.
+
 MEAN_STORM:
 1.
 MEAN_INTENSITY: #in meters

@@ -1,6 +1,7 @@
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
+from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab import ModelParameterDictionary
 
@@ -45,6 +46,8 @@ print 'Running ...'
 fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
 diffuse = PerronNLDiffuse(mg, input_file)
+lin_diffuse = DiffusionComponent(grid=mg)
+lin_diffuse.initialize(input_file)
 
 #perform the loops:
 if not dynamic_timesteps:
@@ -52,7 +55,8 @@ if not dynamic_timesteps:
         mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
         mg = fr.route_flow(grid=mg)
         mg = sp.erode(mg)
-        #mg = diffuse.diffuse(mg, i*dt)
+        mg = diffuse.diffuse(mg, i*dt)
+        #mg = lin_diffuse.diffuse(mg, dt)
         print 'Completed loop ', i
 else:
     elapsed_time = 0.
