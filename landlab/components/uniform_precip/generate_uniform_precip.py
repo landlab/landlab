@@ -80,7 +80,10 @@ class PrecipitationDistribution:
         self.intensity = self.get_storm_intensity()
         
         self.run_time = MPD.read_float('RUN_TIME')
-        self.delta_t = MPD.read_int('DELTA_T')
+        try: #DEJH thinks this is redundant
+            self.delta_t = MPD.read_int('DELTA_T')
+        except:
+            pass
 
 
     def update(self):
