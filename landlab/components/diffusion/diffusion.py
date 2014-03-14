@@ -13,8 +13,9 @@ from landlab import create_and_initialize_grid
 
 _ALPHA = 0.1   # time-step stability factor
 
-_VERSION = 'make_all_data'
+#_VERSION = 'make_all_data'
 #_VERSION = 'explicit'
+_VERSION = 'pass_grid'
 
 class DiffusionComponent():
     
@@ -115,7 +116,39 @@ class DiffusionComponent():
         # Update current time and return it
         self.current_time += dt
         return self.current_time
+    
+    def diffuse(self, grid, delta_t):
+        """
+        Another internalized single step updater, but it takes a reference to 
+        the grid, and returns the modified grid.
+        It also takes the time step of the running driver, and subdivides it
+        internally if necessary to improve stability.
+        """
+        # Take the smaller of delt or built-in time-step size self.dt
+        repeats = int(delta_t//self.dt)
+        extra_time = delta_t%self.dt
+        z = grid.at_node['planet_surface__elevation']
         
+        for i in xrange(repeats+1):
+            # Calculate the gradients and sediment fluxes
+            self.qs = -self.kd*self.grid.calculate_gradients_at_active_links(z)
+        
+            # Calculate the net deposition/erosion rate at each node
+            self.dqsds = grid.calculate_flux_divergence_at_nodes(self.qs)
+        
+            # Calculate the total rate of elevation change
+            dzdt = self.uplift_rate - self.dqsds
+        
+            # Update the elevations
+            if i == (repeats):
+                timestep = extra_time
+            else:
+                timestep = self.dt
+            grid.at_node['planet_surface__elevation'][grid.get_interior_nodes()] += dzdt[grid.get_interior_nodes()] * timestep
+                                 
+        #return the grid
+        return grid
+
         
     def run_until_explicit(self, mg, t, z, g, qs, dqsds, dzdt):
         
