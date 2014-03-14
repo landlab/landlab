@@ -997,6 +997,9 @@ class ModelGrid(ModelDataFields):
         else:
             return self.node_status[ids] == boundary_flag
     
+    def get_boundary_nodes(self):
+        return numpy.where(self.node_status != 0)[0]
+    
     def _assign_boundary_nodes_to_grid_sides(self):
         """
         For each boundary node, determines whether it belongs to the left, 
