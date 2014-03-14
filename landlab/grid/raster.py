@@ -296,6 +296,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.active_cell_areas = numpy.empty(self.number_of_active_cells)
         self.active_cell_areas.fill(self._dx ** 2)
         return self.active_cell_areas
+    
+    def _setup_cell_areas_array_force_inactive(self):
+        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self.forced_cell_areas.fill(self._dx ** 2)
+        return self.forced_cell_areas
 
     @property
     def shape(self):
@@ -439,6 +444,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
              
              
     def _reset_list_of_active_diagonal_links(self):
+        '''
+        Note that the IDs of the diagonal links need to be compatible with the
+        "normal" links - so we add self.number_links to these IDs.
+        '''
         
         assert(self._diagonal_links_created), 'Diagonal links not created'
         
@@ -454,11 +463,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                              ((diag_tonode_status == INTERIOR_NODE) & ~
                               (diag_fromnode_status == INACTIVE_BOUNDARY)))
 
-        (self._diag_active_links, ) = numpy.where(diag_active_links)
+        (_diag_active_links, ) = numpy.where(diag_active_links)
 
-        self._num_diag_active_links = len(self._diag_active_links)
-        self._diag_activelink_fromnode = self._diag_link_fromnode[self._diag_active_links]
-        self._diag_activelink_tonode = self._diag_link_tonode[self._diag_active_links]
+        self._num_diag_active_links = len(_diag_active_links)
+        self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
+        self._diag_activelink_tonode = self._diag_link_tonode[_diag_active_links]
+        self._diag_active_links = _diag_active_links + self.number_of_links
 
 
     def _reset_list_of_active_links(self):
@@ -633,6 +643,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return rfuncs.calculate_gradient_across_cell_corners(
             self, *args, **kwds)
             
+    @property
+    def link_length(self):
+        try:
+            return self._link_length
+        except AttributeError:
+            if not self._diagonal_links_created:
+                return self.calculate_link_length()
+            else:
+                self._link_length = numpy.empty(self.number_of_links + 2*(self._nrows-1)*(self._ncols-1))
+                self._link_length[:self.number_of_links] = self._dx
+                self._link_length[self.number_of_links:] = numpy.sqrt(2.*self._dx*self._dx)
+                return self._link_length
             
     def _setup_diagonal_links(self):
         """
@@ -660,8 +682,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diagonal_links_created = True
         
         self._reset_list_of_active_diagonal_links()
-        
-        
+                
     def d8_active_links(self):
         """
         Returns a set of active links that include diagonal connections between

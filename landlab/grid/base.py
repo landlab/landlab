@@ -662,6 +662,20 @@ class ModelGrid(ModelDataFields):
         except AttributeError:
             return self._setup_cell_areas_array()
 
+    @property
+    @make_return_array_immutable    
+    def forced_cell_areas(self):
+        """
+        Returns an array of grid cell areas. In the cases of inactive nodes,
+        this method forces the area of those nodes so it can return an nnodes-
+        long array. For a raster, it assumes areas are equal to the normal case.
+        For a voronoi...?
+        """
+        try:
+            return self.forced_cell_areas
+        except AttributeError:
+            return self._setup_cell_areas_array_force_inactive()        
+
     def get_active_cell_node_ids( self ):
         """
         Returns an integer vector of the node IDs of all active cells.
