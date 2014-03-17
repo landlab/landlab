@@ -1,7 +1,5 @@
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
-from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 
@@ -10,7 +8,7 @@ import numpy as np
 import pylab
 
 #get the needed properties to build the grid:
-input_file = './germany_test_params.txt'
+input_file = './stream_power_test_params.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -42,18 +40,12 @@ print 'Running ...'
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
-diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg)
-lin_diffuse.initialize(input_file)
-
 
 #perform the loops:
 for i in xrange(nt):
     mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
-    mg = diffuse.diffuse(mg, i*dt)
-    #mg = lin_diffuse.diffuse(mg, dt)
     
     ##plot long profiles along channels
     pylab.figure(6)

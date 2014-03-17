@@ -7,10 +7,10 @@ dx:
 1.
 dt:
 1.
-uplift: #per time, not per timestep
-0.001
+uplift_rate: #per time, not per timestep
+0.1
 run_time:
-100
+30
 init_elev:
 0.
 

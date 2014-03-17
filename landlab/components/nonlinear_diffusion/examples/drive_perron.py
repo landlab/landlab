@@ -13,7 +13,7 @@ dx = inputs.read_float('dx')
 dt = inputs.read_float('dt')
 time_to_run = inputs.read_float('run_time')
 #nt needs defining
-uplift = inputs.read_float('uplift')
+uplift = inputs.read_float('uplift_rate')
 init_elev = inputs.read_float('init_elev')
 
 mg = RasterModelGrid(nrows, ncols, dx)
@@ -49,9 +49,7 @@ elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
     print elapsed_time
     if elapsed_time+dt<time_to_run:
-        diffusion_component.gear_timestep(dt)
-    else:
-        diffusion_component.gear_timestep(time_to_run-elapsed_time)
+        diffusion_component.input_timestep(dt)
     mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
     #mg.at_node['planet_surface__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
     #pylab.figure(1)
@@ -79,6 +77,10 @@ im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
 print elev_r
 pylab.colorbar(im)
 pylab.title('Topography')
+
+pylab.figure(2)
+im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a colored image
+pylab.title('Vertical cross section')
 
 pylab.show()
 

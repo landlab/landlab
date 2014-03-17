@@ -1,6 +1,6 @@
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
+from landlab.components.nonlinear_diffusion.Perron_nl_diffuse_modified import PerronNLDiffuse
 from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
