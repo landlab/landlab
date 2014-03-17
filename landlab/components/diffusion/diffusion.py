@@ -34,7 +34,10 @@ class DiffusionComponent():
         
         # Read input/configuration parameters
         self.kd = inputs.get('DIFMOD_KD', ptype=float)
-        self.uplift_rate = inputs.get('DIFMOD_UPLIFT_RATE', 0., ptype=float)
+        try:
+            self.uplift_rate = inputs.get('DIFMOD_UPLIFT_RATE', 0., ptype=float)
+        except:
+            self.uplift_rate = inputs.read_float('uplift_rate')
         
         # Create grid if one doesn't already exist
         if self.grid==None:

@@ -24,8 +24,15 @@ class PerronNLDiffuse(object):
     '''
     def __init__(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
-        #self._delta_t = inputs.read_float('dt')      # timestep. Probably should be calculated for stability, but read for now
-        self._uplift = 0. #inputs.read_float('uplift')
+        self.inputs = inputs
+        self.grid = grid
+        
+        self.internal_uplifts = True
+                
+        try:
+            self._uplift = inputs.read_float('uplift')
+        except:
+            self._uplift = inputs.read_float('uplift_rate')
         self._rock_density = inputs.read_float('rock_density')
         self._sed_density = inputs.read_float('sed_density')
         self._kappa = inputs.read_float('kappa') # ==_a
@@ -35,9 +42,9 @@ class PerronNLDiffuse(object):
         except:
             self.values_to_diffuse = 'planet_surface__elevation'
         try:
-            self._delta_t = inputs.read_float('dt')
+            self.timestep_in = inputs.read_float('dt')  
         except:
-            print 'No timestep supplied, it must be set dynamically somewhere else. Be sure to call gear_timestep(timestep_in) as part of your run loop.'
+            print 'No fixed timestep supplied, it must be set dynamically somewhere else. Be sure to call input_timestep(timestep_in) as part of your run loop.'
         
         self._delta_x = grid.node_spacing
         self._delta_y = self._delta_x
@@ -46,8 +53,6 @@ class PerronNLDiffuse(object):
         self._one_over_delta_x_sqd = self._one_over_delta_x**2.
         self._one_over_delta_y_sqd = self._one_over_delta_y**2.
         self._b = 1./self._S_crit**2.
-        
-        self.grid = grid
         
         ncols = grid.number_of_node_columns
         self.ncols = ncols
@@ -202,14 +207,40 @@ class PerronNLDiffuse(object):
         self.operating_matrix_right_int_IDs = self.realIDtointerior(operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask])
         print "setup complete"
 
-    def gear_timestep(self, timestep_in):
+    def input_timestep(self, timestep_in):
         """
-        This fn allows the user to set the timestep for the model run.
-        In future, we may set a maximum allowable timestep. This method will allow
-        the gearing between the model run step and the  component (shorter) step.
+        Allows the user to set a dynamic (evolving) timestep manually as part of
+        a run loop.
         """
-        self._delta_t = timestep_in
-        return timestep_in
+        self.timestep_in = timestep_in
+
+    def gear_timestep(self, timestep_in, new_grid):
+        """
+        This method allows the gearing between the model run step and the 
+        component (shorter) step.
+        The method becomes unstable if S>Scrit, so we test to prevent this.
+        We implicitly assume the initial condition does not contain 
+        slopes > Scrit. If the method persistently explodes, this may be the 
+        problem.
+        """
+        extended_elevs = numpy.empty(self.grid.number_of_nodes+1, dtype=float)
+        extended_elevs[-1] = numpy.nan
+        node_neighbors = self.grid.get_neighbor_list()
+        extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
+        max_offset = numpy.nanmax(numpy.fabs(extended_elevs[:-1][node_neighbors] - extended_elevs[:-1].reshape((self.grid.number_of_nodes,1))))
+        if max_offset > numpy.tan(self._S_crit) * self.grid.dx: #using S not tan(S) adds a buffer - but not appropriate
+            self.internal_repeats = int(max_offset//(numpy.tan(self._S_crit)*self.grid.dx)) + 1
+            #now we rig it so the actual timestep is an integer divisor of T_in:
+            self._delta_t = timestep_in / self.internal_repeats
+            self.uplift_per_step = (new_grid['node'][self.values_to_diffuse]-self.grid['node'][self.values_to_diffuse])/self.internal_repeats
+            if self.internal_repeats > 10000:
+                raise ValueError('Uplift rate is too high; solution is not stable!!')
+            #print 'Reducing internal timestep..., internal loops=', self.internal_repeats
+        else:
+            self.internal_repeats = 1
+            self._delta_t = timestep_in
+            self.uplift_per_step = new_grid['node'][self.values_to_diffuse]-self.grid['node'][self.values_to_diffuse]
+        return self._delta_t
         
     #@profile #for line_profiler
     def set_variables(self, grid):
@@ -637,31 +668,41 @@ class PerronNLDiffuse(object):
         return interior_ID.astype(int)
 
     def diffuse(self, grid_in, elapsed_time):
-        self.grid = grid_in
-        grid = self.grid
-        #Initialize the variables for the step:
-        self.set_variables(grid)
-        #Solve interior of grid:
-        _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
-        #print 'solved the matrix'
-        #print _interior_elevs.shape
-        #this fn solves Ax=B for x
+        if self.internal_uplifts:
+            #this is adhoc to fix for the duration of Germany visit
+            self._uplift = self.inputs.read_float('uplift_rate')
+            self._delta_t = self.timestep_in
+            self.set_variables(self.grid)
+            _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
+            self.grid['node'][self.values_to_diffuse][self.interior_IDs_as_real] = _interior_elevs
+            #self.grid['node'][self.values_to_diffuse][grid_in.get_boundary_nodes()] += self._uplift
+            grid_in=self.grid
+        else:
+            self.gear_timestep(self.timestep_in, grid_in)
+            for i in xrange(self.internal_repeats):
+                grid_in['node'][self.values_to_diffuse] = self.grid['node'][self.values_to_diffuse] + self.uplift_per_step
+            #Initialize the variables for the step:
+                self.set_variables(grid_in)
+                #Solve interior of grid:
+                _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
+                #print 'solved the matrix'
+                #print _interior_elevs.shape
+                #this fn solves Ax=B for x
+                
+                #Handle the BC cells; test common cases first for speed
+                self.grid['node'][self.values_to_diffuse][self.interior_IDs_as_real] = _interior_elevs
+                
+                #if BC==1 or BC==4, don't need to take any action; in both cases the values are unchanged.
+                if self.fixed_grad_BCs_present:
+                    self.grid['node'][self.values_to_diffuse][
+                        grid_in.fixed_gradient_node_properties['boundary_node_IDs']] = self.grid[
+                        'node'][self.values_to_diffuse][self.grid.fixed_gradient_node_properties[
+                        'anchor_node_IDs']] + self.grid.fixed_gradient_node_properties['values_to_add']
+                if self.looped_BCs_present:
+                    self.grid['node'][self.values_to_diffuse][
+                        self.grid.looped_node_properties['boundary_node_IDs']] = self.grid[
+                        'node'][self.values_to_diffuse][self.grid.looped_node_properties[
+                        'linked_node_IDs']]
+                    #raise ValueError #need to update this once workflow for looped BCs is established
         
-        #Handle the BC cells; test common cases first for speed
-        grid['node'][self.values_to_diffuse][self.interior_IDs_as_real] = _interior_elevs
-        
-        #if BC==1 or BC==4, don't need to take any action; in both cases the values are unchanged.
-        if self.fixed_grad_BCs_present:
-            grid['node'][self.values_to_diffuse][
-                grid.fixed_gradient_node_properties['boundary_node_IDs']] = grid[
-                'node'][self.values_to_diffuse][grid.fixed_gradient_node_properties[
-                'anchor_node_IDs']] + grid.fixed_gradient_node_properties['values_to_add']
-        if self.looped_BCs_present:
-            grid['node'][self.values_to_diffuse][
-                grid.looped_node_properties['boundary_node_IDs']] = grid[
-                'node'][self.values_to_diffuse][grid.looped_node_properties[
-                'linked_node_IDs']]
-            #raise ValueError #need to update this once workflow for looped BCs is established
-        
-        self.grid = grid
-        return grid
+        return self.grid
