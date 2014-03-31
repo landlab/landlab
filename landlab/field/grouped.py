@@ -28,10 +28,12 @@ fields are in different groups (node and cell), they can have the same
 name.
 
 >>> fields.add_ones('node', 'planet_surface__elevation')
+array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 >>> fields.at_node['planet_surface__elevation']
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
 >>> fields.add_ones('cell', 'planet_surface__elevation')
+array([ 1.,  1.])
 >>> fields.at_cell['planet_surface__elevation']
 array([ 1.,  1.])
 """
