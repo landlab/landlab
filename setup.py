@@ -2,9 +2,8 @@
 
 from ez_setup import use_setuptools
 use_setuptools()
-from setuptools import setup, find_packages
-import multiprocessing
 
+from setuptools import setup, find_packages
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 
@@ -33,7 +32,7 @@ def register_landlab():
         }
         register(**data)
     except Exception:
-        raise
+        pass
 
 
 class install_and_register(install):
