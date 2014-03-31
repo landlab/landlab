@@ -50,8 +50,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         [pts, self._num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
         super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
         
-
-    def make_hex_points(self, num_rows, base_num_cols, dxh):
+    @staticmethod
+    def make_hex_points(num_rows, base_num_cols, dxh):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which the 
         points represent the centers of regular hexagonal cells, and the points
@@ -68,8 +68,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> hmg = HexModelGrid()
-            >>> [p, npt] = hmg.make_hex_points(3, 2, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points(3, 2, 1.0)
             >>> npt
             7
             >>> p[1,:]
