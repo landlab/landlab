@@ -503,3 +503,99 @@ def calculate_slope_aspect_BFP(xs, ys, zs):
     slp = 90.0 - np.degrees(np.arcsin(normal[2]))
 
     return slp, asp
+
+
+def find_nearest_node(rmg, coords, mode='raise'):
+    """
+    Find the index to the node nearest the given x, y coordinates.
+    Coordinates are provided as numpy arrays in the *coords* tuple.
+    *coords* is tuple of coordinates, one for each dimension.
+
+    The *mode* keyword is the same as that used with the numpy function
+    ravel_multi_index.
+
+    Returns the indices of the nodes nearest the given coordinates.
+
+    >>> import landlab
+    >>> rmg = landlab.RasterModelGrid(4, 5)
+    >>> find_nearest_node(rmg, (0.2, 0.6))
+    5
+    >>> find_nearest_node(rmg, (np.array([1.6, 3.6]), np.array([2.3, .7])))
+    array([12,  9])
+    """
+    if isinstance(coords[0], np.ndarray):
+        return _find_nearest_node_ndarray(rmg, coords, mode=mode)
+    else:
+        return find_nearest_node(
+            rmg, (np.array(coords[0]), np.array(coords[1])), mode=mode)
+
+
+def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
+    column_indices, row_indices = (np.empty(coords[0].shape, dtype=np.int),
+                                   np.empty(coords[1].shape, dtype=np.int))
+
+    np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing,
+              out=column_indices)
+    np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing,
+              out=row_indices)
+
+    return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
+
+
+def _value_is_in_bounds(value, bounds, out=None):
+    dummy = value >= bounds[0]
+    dummy &= value < bounds[1]
+    return dummy
+
+
+def _value_is_within_axis_bounds(rmg, value, axis):
+    axis_coord = rmg.node_axis_coordinates(axis)
+    return _value_is_in_bounds(value, (axis_coord[0], axis_coord[-1]))
+
+
+def is_coord_on_grid(rmg, coords, axes=(0, 1)):
+
+    coords = [np.array(coord) for coord in coords]
+
+    is_in_bounds = _value_is_within_axis_bounds(rmg, coords[1 - axes[0]],
+                                                axes[0])
+    for axis in axes[1:]:
+        is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis],
+                                                     axis)
+
+    return is_in_bounds
+
+
+def is_point_on_grid(self, xcoord, ycoord):
+    """
+    This method takes x,y coordinates and tests whether they lie within the
+    grid. The limits of the grid are taken to be links connecting the 
+    boundary nodes. We perform a special test to detect looped boundaries.
+        
+    Coordinates can be ints or arrays of ints. If arrays, will return an
+    array of the same length of truth values.
+    """
+    x_condition = numpy.logical_and(
+        numpy.less(0., xcoord),
+        numpy.less(xcoord, (self.get_grid_xdimension() - self._dx)))
+    y_condition = numpy.logical_and(
+        numpy.less(0., ycoord),
+        numpy.less(ycoord, (self.get_grid_ydimension() - self._dx)))
+
+    if (numpy.all(
+        self.node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or
+        numpy.all(self.node_status[sgrid.right_edge_node_ids(self.shape)] == 3)):
+        try:
+            x_condition[:] = 1
+        except:
+            x_condition = 1
+
+    if (numpy.all(
+        self.node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or
+        numpy.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3)):
+        try:
+            y_condition[:] = 1
+        except:
+            y_condition = 1
+
+    return numpy.logical_and(x_condition, y_condition)

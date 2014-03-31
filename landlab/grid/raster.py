@@ -17,11 +17,17 @@ from . import raster_funcs as rfuncs
 
 def node_has_boundary_neighbor(mg, id):
     for neighbor in mg.get_neighbor_list(id):
-        if mg.node_status[neighbor] != INTERIOR_NODE:
-            return True
+        try:
+            if mg.node_status[neighbor] != INTERIOR_NODE:
+                return True
+        except IndexError:
+            pass
     for neighbor in mg.get_diagonal_list(id):
-        if mg.node_status[neighbor] != INTERIOR_NODE:
-            return True
+        try:
+            if mg.node_status[neighbor] != INTERIOR_NODE:
+                return True
+        except IndexError:
+            pass
     return False
 
 
@@ -625,6 +631,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return vertices_array[numpy.argmin(distances_to_vertices)]
         #...per fancy indexing
     
+    def find_nearest_node(self, coords, mode='raise'):
+        """
+        Find the index to the node nearest the given x, y coordinates.
+        Coordinates are provided as numpy arrays in the *coords* tuple.
+
+        Use the *mode* keyword to specify what to do if the given coordinates
+        are out-of-bounds. See :func:`numpy.ravel_multi_index` for a
+        description of possible values for *mode*. Note that a coordinate is
+        out-of-bounds if it is beyond one half the node spacing from the
+        exterior nodes.
+
+        Returns the indices of the nodes nearest the given coordinates.
+
+        .. note::
+
+            For coordinates that are equidistant to two or more nodes, see
+            the rounding rules for :func:`numpy.around`.
+
+        >>> rmg = RasterModelGrid(4, 5)
+        >>> rmg.find_nearest_node([0.2, 0.2])
+        0
+        >>> rmg.find_nearest_node((np.array([1.6, 3.6]), np.array([2.3, .7])))
+        array([12,  9])
+        >>> rmg.find_nearest_node((-.4999, 1.))
+        5
+        """
+        return rfuncs.find_nearest_node(self, coords, mode=mode)
+
     def min_active_link_length(self):
         """
         Returns the horizontal length of the shortest active link in the grid.
@@ -1956,12 +1990,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         bottom]. Boundary nodes receive their actual neighbors (see example
         below); references to positions which are off the grid from boundary
         nodes receive -1.
-        
+
+        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.get_neighbor_list([-1, 6, 2])
-        array([[-1, -1, 18, 14],
-               [ 7, 11,  5,  1],
-               [ 3,  7,  1, -1]])
+        >>> np.all(mg.get_neighbor_list([-1, 6, 2]) == np.array([[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]]))
+        True
         >>> mg.get_neighbor_list(7)
         array([ 8, 12,  6,  2])
 
@@ -1980,47 +2013,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def create_neighbor_list( self ):
         """
         Creates a list of IDs of neighbor nodes for each node, as a
-        2D array. Formerly, only interior nodes were assigned neighbors;
-        boundary nodes got -1 for each neighbor. As of 01/30/14, DEJH has
-        modified the method so that neighboring nodes at the other end of active
-        links are returned, but otherwise -1. The order of the neighbors is
-        [right, top, left, bottom].
+        2D array. Only record neighbor nodes that are on the other end of an
+        *active* link. Nodes attached to *inactive* links or neighbor nodes
+        that would be outside of the grid are given an ID of :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
 
-        .. note:: This is equivalent to the neighbors of all cells, getting the
-            links between them, and setting neighbors at the other end of
-            inactive links to -1. 
-
-        .. todo: remove the loop by creating functions to return inactive links
-            in sgrid.
-
-        .. todo: Change to use BAD_INDEX_VALUE instead of -1.
+        Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
         """
-        # DH created this.  NG only changed labels.
         assert(self.neighbor_list_created == False)
 
+        self.neighbor_nodes = sgrid.neighbor_node_array(self.shape, 
+            closed_boundary_nodes=self.closed_boundary_nodes,
+            open_boundary_nodes=self.open_boundary_nodes,
+            inactive=BAD_INDEX_VALUE).T
+
         self.neighbor_list_created = True 
-        #Former method which assigned -1 to ALL neighbors of boundary nodes:
-        #self.neighbor_nodes = sgrid.neighbor_node_array(
-        #    self.shape, out_of_bounds=-1, boundary_node_mask=-1)
-        
-        #DEJH new method 01/30/14. Returns neighbors of boundary nodes if there
-        #are active links between them:
-        self.neighbor_nodes = sgrid.neighbor_node_array(
-            self.shape, out_of_bounds=-1)
-        #get the boundary nodes
-        boundary_nodes = sgrid.boundary_nodes(self.shape)
-        #get the link and active link arrays for these nodes, in order SWNE
-        links_from_each_BN = self.node_links(boundary_nodes)
-        active_links_from_each_BN = self.active_node_links(boundary_nodes)
-        #make a mask of links which AREN'T active (not v efficient)
-        #...but OK as this method is seldom called
-        mask = numpy.empty_like(links_from_each_BN)
-        for i in xrange(links_from_each_BN.shape[0]):
-            mask[i,:] = numpy.in1d(links_from_each_BN[i,:],
-                active_links_from_each_BN[i,:], invert=True)
-        #make sure to align the element orders, and blank the nodes at the end
-        #of inactive links
-        self.neighbor_nodes[numpy.fliplr(mask)] = -1
                 
     def has_boundary_neighbor(self, ids):
         """
