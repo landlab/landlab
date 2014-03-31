@@ -99,3 +99,54 @@ endpoints of any link or directed edge, and so on. These functions are listed
 and described below. 
 
 
+How Boundaries are Managed
+==========================
+
+.. _raster4x5:
+
+.. figure:: example_raster_grid.png
+    :scale: 50 %
+
+    Illustration of a simple four-row by five-column raster grid created with
+    :class:`~landlab.grid.raster.RasterModelGrid`. By default, all perimeter
+    nodes are tagged as active (fixed value) boundaries, and all interior cells
+    are tagged as active interior. An active link is one that connects either
+    two active interior cells, or one active interior and one active boundary.
+
+.. _raster4x5openclosed:
+
+.. figure:: example_raster_grid_with_closed_boundaries.png
+    :scale: 50 %
+
+    Illustration of a simple four-row by five-column raster grid with a
+    combination of open and closed boundaries.
+
+An important component of any numerical model is the method for handling
+boundary conditions. In general, it's up to the application developer to manage
+boundary conditions for each variable. However, ModelGrid makes this task a bit
+easier by providing lists of nodes and links that lie along the boundary of the
+grid, and those that lie in the interior. It also allows you to *de-activate*
+portions of the grid perimeter, so that they effectively act as walls.
+
+Let's look first at how ModelGrid treats its own geometrical boundaries. The
+outermost elements of a grid are nodes and links (as opposed to corners and
+faces). For example, :ref:`Figure 2 <raster4x5>` shows a sketch of a regular
+four-row by five-column grid created by RasterModelGrid. The edges of the grid
+are composed of nodes and links. Only the inner six nodes have cells around
+them; the remaining 14 nodes form the perimeter of the grid.
+
+All nodes are tagged as either *boundary* or *interior*. Those on the
+perimeter of the grid are automatically tagged as boundary nodes. Nodes on the
+inside are *interior* by default, but it is possible to tag some of them as
+*boundary* instead (this would be useful, for example, if you wanted to
+represent an irregular region inside a regular grid). In the example shown in
+:ref:`Figure 2 <rester4x5>`, all the inner nodes are *active interior*, and all
+perimeter nodes are *active boundary*. 
+
+Boundary nodes are flagged as either *open* (active) or *closed*
+(inactive), all links are tagged as *active* or *inactive*. An *active link*
+is one that joins either two interior nodes, or an *interior* and an
+*open boundary* node (:ref:`Figure 3 <raster4x5openclosed>`). You can use this
+distinction in models to implement closed boundaries by performing flow
+calculations only on active links, as the following simple example illustrates.
+
