@@ -12,7 +12,7 @@ import warnings
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
-from landlab.utils.decorators import make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable, deprecated
 from landlab.field import ModelDataFields
 from . import grid_funcs as gfuncs
 
@@ -134,17 +134,41 @@ class ModelGrid(ModelDataFields):
         return self.cell_node
 
     @property
+    @deprecated
     def active_nodes(self):
         """Node IDs of all active nodes"""
         (active_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
         return active_node_ids
+
+    @property
+    def open_nodes(self):
+        """Node id for all nodes not marked as a closed boundary"""
+        (open_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
+        return open_node_ids
+    
+    @property
+    def open_boundary_nodes(self):
+        """Node id of all open boundary_nodes
+        """
+        (open_boundary_node_ids, ) = numpy.where(
+            (self.node_status != INACTIVE_BOUNDARY) &
+            (self.node_status != INTERIOR_NODE))
+        return open_boundary_node_ids
+    
+    @property
+    def closed_boundary_nodes(self):
+        """Node id of all closed boundary nodes.
+        """
+        (closed_boundary_node_ids, ) = numpy.where(
+            self.node_status == INACTIVE_BOUNDARY)
+        return closed_boundary_node_ids
     
     @property
     def active_links(self):
         """Link IDs of all active links"""
         try:
             return self.active_link_ids
-        except:
+        except AttributeError:
             self._reset_list_of_active_links()
             return self.active_link_ids
 
