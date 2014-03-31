@@ -4,7 +4,7 @@ from nose.tools import (assert_is, assert_equal, assert_raises, raises,
                         assert_true, assert_false)
 
 from landlab import RasterModelGrid
-from landlab import BAD_INDEX_VALUE
+from landlab import BAD_INDEX_VALUE as X
 
 
 class TestRasterModelGrid(object):
@@ -65,28 +65,25 @@ class TestRasterModelGrid(object):
         assert_array_equal(self.rmg.get_neighbor_list(6),
                            np.array([7, 11, 5, 1]))
         assert_array_equal(self.rmg.get_neighbor_list(-1),
-                           np.array([-1, -1, -1, -1]))
+                           np.array([X, X, X, X]))
+        assert_array_equal(self.rmg.get_neighbor_list(-2),
+                           np.array([X, X, X, 13]))
 
     def test_neighbor_list_with_array_arg(self):
         assert_array_equal(self.rmg.get_neighbor_list([6, -1]),
-                           np.array([[7, 11, 5, 1], [-1, -1, -1, -1]]))
+                           np.array([[7, 11, 5, 1], [X, X, X, X]]))
 
     def test_neighbor_list_with_no_args(self):
-        assert_array_equal(
-            self.rmg.get_neighbor_list(),
-            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [ 7, 11,  5,  1], [ 8, 12,  6,  2], [ 9, 13,  7,  3], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [12, 16, 10,  6], [13, 17, 11,  7], [14, 18, 12,  8], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
+        expected = np.array([
+            [ X,  X,  X,  X], [ X,  6,  X,  X], [ X,  7,  X,  X], [ X,  8,  X,  X], [ X,  X,  X,  X],
+            [ 6,  X,  X,  X], [ 7, 11,  5,  1], [ 8, 12,  6,  2], [ 9, 13,  7,  3], [ X,  X,  8,  X],
+            [11,  X,  X,  X], [12, 16, 10,  6], [13, 17, 11,  7], [14, 18, 12,  8], [ X,  X, 13,  X],
+            [ X,  X,  X,  X], [ X,  X,  X, 11], [ X,  X,  X, 12], [ X,  X,  X, 13], [ X,  X,  X,  X]])
 
-    def test_neighbor_list_boundary(self):
-        """
-        All of the neighbor IDs for a boundary cell are -1.
-        """
-        import landlab.utils.structured_grid as sgrid
-        for node_id in sgrid.boundary_iter(self.rmg.shape):
-            assert_array_equal(self.rmg.get_neighbor_list(node_id),
-                               np.array([-1, -1, -1, -1]))
+        print expected
+        print self.rmg.get_neighbor_list() 
+
+        assert_array_equal(self.rmg.get_neighbor_list(), expected)
 
     def test_node_x(self):
         assert_array_equal(self.rmg.node_x,
@@ -309,15 +306,14 @@ class TestRasterModelGrid(object):
                        23, 24, 25, 26, -1, 27, 28, 29, 30, -1]]))
 
     def test_link_face(self):
-        BAD = BAD_INDEX_VALUE
         assert_array_equal(self.rmg.link_face,
-                           np.array([BAD, 0, 1, 2, BAD,
-                                     BAD, 3, 4, 5, BAD,
-                                     BAD, 6, 7, 8, BAD,
-                                     BAD, BAD, BAD, BAD,
+                           np.array([X, 0, 1, 2, X,
+                                     X, 3, 4, 5, X,
+                                     X, 6, 7, 8, X,
+                                     X, X, X, X,
                                      9, 10, 11, 12,
                                      13, 14, 15, 16,
-                                     BAD, BAD, BAD, BAD]))
+                                     X, X, X, X]))
 
     def test_grid_coords_to_node_id_with_scalar(self):
         assert_equal(self.rmg.grid_coords_to_node_id(3, 4), 19)
