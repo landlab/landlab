@@ -881,40 +881,106 @@ def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
     return ids
 
 
-def neighbor_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
-                        boundary_node_mask=None):
+
+def _neighbor_node_ids(ids_with_halo):
+    shape = (ids_with_halo.shape[0] - 2, ids_with_halo.shape[1] - 2)
+    kwds = {
+        'strides': ids_with_halo.strides,
+        'buffer': ids_with_halo,
+        'dtype': ids_with_halo.dtype,
+    }
+
+    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1])
+    west_ids = np.ndarray(shape, **kwds)
+
+    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 2)
+    east_ids = np.ndarray(shape, **kwds)
+
+    kwds['offset'] = ids_with_halo.itemsize
+    south_ids = np.ndarray(shape, **kwds)
+
+    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] * 2 + 1)
+    north_ids = np.ndarray(shape, **kwds)
+
+    return np.vstack(
+        (east_ids.flat, north_ids.flat, west_ids.flat, south_ids.flat))
+
+
+def _centered_node_ids(ids_with_halo):
+    shape = (ids_with_halo.shape[0] - 2, ids_with_halo.shape[1] - 2)
+    kwds = {'strides': ids_with_halo.strides,
+            'buffer': ids_with_halo,
+            'dtype': ids_with_halo.dtype, }
+
+    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 1)
+    return np.ndarray(shape, **kwds)
+
+
+def neighbor_node_ids(shape, inactive=BAD_INDEX_VALUE):
+    return linked_neighbor_node_ids(shape, [], inactive=inactive)
+
+
+def linked_neighbor_node_ids(shape, closed_boundary_nodes,
+                             open_boundary_nodes=[],
+                             inactive=BAD_INDEX_VALUE):
+    ids_with_halo = node_index_with_halo(shape, halo_indices=inactive)
+
+    # Everything that touches a closed boundary is inactive
+    if len(closed_boundary_nodes) > 0:
+        ids = _centered_node_ids(ids_with_halo)
+        ids.flat[closed_boundary_nodes] = inactive
+
+    neighbors = _neighbor_node_ids(ids_with_halo)
+
+    # Everything that a closed boundary touches is inactive
+    if len(closed_boundary_nodes) > 0:
+        neighbors[:, closed_boundary_nodes] = inactive
+
+    if len(open_boundary_nodes) > 0:
+        _set_open_boundary_neighbors(neighbors, open_boundary_nodes, inactive)
+
+    return neighbors
+
+
+def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
+    open_boundary_neighbors = neighbors[:, open_boundary_nodes]
+    is_open_boundary_neighbor = _find_open_boundary_neighbors(
+        neighbors, open_boundary_nodes)
+    nodes = np.choose(is_open_boundary_neighbor, (open_boundary_neighbors,
+                                                  value))
+    neighbors[:, open_boundary_nodes] = nodes
+    
+
+def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
+    open_boundary_neighbors = neighbors[:, open_boundary_nodes]
+    is_open_boundary_neighbor = np.in1d(open_boundary_neighbors,
+                                        open_boundary_nodes)
+    is_open_boundary_neighbor.shape = (neighbors.shape[0],
+                                       len(open_boundary_nodes))
+    return is_open_boundary_neighbor
+
+
+def neighbor_node_array(shape, **kwds):
     """
-    >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1)
-    >>> neighbors
+    >>> neighbors = neighbor_node_array((2, 3), inactive=-1)
+    >>> neighbors.T
     array([[ 1,  3, -1, -1],
            [ 2,  4,  0, -1],
            [-1,  5,  1, -1],
            [ 4, -1, -1,  0],
            [ 5, -1,  3,  1],
            [-1, -1,  4,  2]])
-    >>> neighbors.flags['C_CONTIGUOUS']
-    True
-    >>> neighbors = neighbor_node_array((2, 3), out_of_bounds=-1, contiguous=False)
-    >>> neighbors.flags['C_CONTIGUOUS']
-    False
     """
-    ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
+    closed_boundary_nodes = kwds.pop('closed_boundary_nodes', [])
+    open_boundary_nodes = kwds.get('open_boundary_nodes', [])
 
-    neighbors = np.vstack((
-        ids[1:shape[0] + 1, 2:].flat,
-        ids[2:, 1:shape[1] + 1].flat,
-        ids[1:shape[0] + 1, :shape[1]].flat,
-        ids[:shape[0], 1:shape[1] + 1].flat,)).T
-
-    if boundary_node_mask is not None:
-        boundaries = np.empty(4, dtype=np.int)
-        boundaries.fill(boundary_node_mask)
-        neighbors[boundary_nodes(shape)] = boundaries
-
-    if contiguous:
-        return neighbors.copy()
+    if len(closed_boundary_nodes) > 0 or len(open_boundary_nodes):
+        neighbors = linked_neighbor_node_ids(shape, closed_boundary_nodes,
+                                             **kwds)
     else:
-        return neighbors
+        neighbors = neighbor_node_ids(shape, **kwds)
+
+    return neighbors
 
 
 def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
