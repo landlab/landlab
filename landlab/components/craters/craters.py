@@ -178,8 +178,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = random() * (grid.get_grid_ydimension() - grid.dx)
+        self._xcoord = random() * grid.get_grid_xdimension()
+        self._ycoord = random() * grid.get_grid_ydimension()
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -649,13 +649,13 @@ class impactor(object):
         self.set_depth_from_size()
         self.set_crater_volume()
         try:
-            self._xcoord = kwds['forced_pos'][0]*(grid.get_grid_xdimension()-grid.dx)
+            self._xcoord = kwds['forced_pos'][0]*grid.get_grid_xdimension()
         except:
             print 'Randomly generating impact site...'
             self.set_coords(grid, data)
         else:
             try:
-                self._ycoord = kwds['forced_pos'][1]*(grid.get_grid_ydimension()-grid.dx)
+                self._ycoord = kwds['forced_pos'][1]*grid.get_grid_ydimension()
                 print self._xcoord, self._ycoord
                 self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
                 self.closest_node_elev = data.elev[self.closest_node_index]
