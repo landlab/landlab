@@ -508,15 +508,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def get_grid_xdimension(self):
         '''
-        Returns the x dimension of the grid. Method added 5/1/13 by DEJH.
+        Returns the x dimension of the grid. Method added 5/1/13 by DEJH, 
+        modified DEJH 4/3/14 to reflect fact boundary nodes don't have defined
+        cells.
+        NB: Because boundary nodes don't have cells, the dimension of the grid
+        is num_columns-1, not num_columns.
         '''
-        return (self.number_of_node_columns * self._dx)
+        return ((self.number_of_node_columns-1) * self._dx)
     
     def get_grid_ydimension(self):
         '''
-        Returns the y dimension of the grid. Method added 5/1/13 by DEJH.
+        Returns the y dimension of the grid. Method added 5/1/13 by DEJH,
+        modified DEJH 4/3/14, as above.
+        NB: Because boundary nodes don't have cells, the dimension of the grid
+        is num_rows-1, not num_rows.
         '''
-        return (self.number_of_node_rows * self._dx)
+        return ((self.number_of_node_rows-1) * self._dx)
 
     @property
     def number_of_interior_nodes(self):

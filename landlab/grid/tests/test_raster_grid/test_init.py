@@ -42,8 +42,8 @@ class TestRasterModelGrid(object):
         """
         Use the default spacing of 1.
         """
-        assert_equal(self.rmg.get_grid_ydimension(), self.num_rows)
-        assert_equal(self.rmg.get_grid_xdimension(), self.num_cols)
+        assert_equal(self.rmg.get_grid_ydimension(), self.num_rows-1)
+        assert_equal(self.rmg.get_grid_xdimension(), self.num_cols-1)
 
     def test_grid_dimensions_non_unit_spacing(self):
         """
@@ -51,8 +51,8 @@ class TestRasterModelGrid(object):
         y-dimension is the rows.
         """
         rmg = RasterModelGrid(4, 5, dx=2.)
-        assert_equal(rmg.get_grid_ydimension(), 8.)
-        assert_equal(rmg.get_grid_xdimension(), 10.)
+        assert_equal(rmg.get_grid_ydimension(), 6.)
+        assert_equal(rmg.get_grid_xdimension(), 8.)
 
     def test_nodes_around_point(self):
         surrounding_ids = self.rmg.get_nodes_around_point(2.1, 1.1)
