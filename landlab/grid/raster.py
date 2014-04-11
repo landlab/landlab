@@ -1996,7 +1996,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         For each node, the list gives neighbor ids as [right, top, left,
         bottom]. Boundary nodes receive their actual neighbors (see example
         below); references to positions which are off the grid from boundary
-        nodes receive -1.
+        nodes receive BAD_INDEX_VALUE. Only nodes which can be reached along an
+        active link are returned, otherwise again we get BAD_INDEX_VALUE.
 
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> mg = RasterModelGrid(4, 5)
