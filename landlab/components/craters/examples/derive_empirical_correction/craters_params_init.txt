@@ -20,9 +20,9 @@ record_impacts:
 1
 #forced_radius:
 #0.03
-x_position:
-0.5
-y_position:
-0.5
+#x_position:
+#0.5
+#y_position:
+#0.5
 #forced_angle:
 #0.

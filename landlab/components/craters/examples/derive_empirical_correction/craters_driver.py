@@ -37,12 +37,14 @@ param_collection = np.empty_like(params_from_first_try)
 
 slope_values = np.arange(0., 51.)/100.
 angle_values = np.arange(0., 85.)
+size_values = np.concatenate((np.exp2(np.arange(1., 3., 0.2))/400., np.exp2(np.arange(3., 7.5, 0.5))/400.))
+
 beta = []
 
 print 'Beginning loop...'
 
 repeats = 10
-work_with = slope_values
+work_with = size_values
 
 for i in range(repeats):
     mass_balance = []
@@ -52,16 +54,27 @@ for i in range(repeats):
         if work_with.size == slope_values.size:
             initial_slope = k
         elif work_with.size == angle_values.size:
+            craters_component.angle_auto_flag = 0
             craters_component._angle_to_vertical = k*np.pi/180.
+        elif work_with.size == size_values.size:
+            craters_component.radius_auto_flag = 0
+            craters_component._radius = k
+            print 'radius: ', k
         z = mg.create_node_array_zeros() + leftmost_elev
         z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
-        mg['node'][ 'planet_surface__elevation'] = z #+ np.random.rand(len(z))/10000.
+        mg.at_node[ 'planet_surface__elevation'] = z #+ np.random.rand(len(z))/10000.
     
-        craters_component.grid = mg
+        #craters_component.grid = mg
     
         mg = craters_component.excavate_a_crater_furbish(mg)
         mass_balance.append(craters_component.mass_balance)
         beta.append(craters_component.impact_angle_to_normal)
+
+        #elev_r = mg.node_vector_to_raster(mg.at_node['planet_surface__elevation'])
+        #pylab.figure(1)
+        #pylab.imshow(elev_r)
+        #pylab.colorbar()
+        #pylab.show()
         
     list_of_mass_bals += list(mass_balance)
                 
@@ -74,6 +87,7 @@ for i in range(repeats):
     
     print('Done ', i)
     
+    pylab.figure(2)
     pylab.plot(mass_balance)
     pylab.plot(synthetic_solution)
     #pylab.show()
@@ -84,4 +98,5 @@ fitParams, fitCovariances = curve_fit(fitFunc, np.tile(work_with, repeats), list
 
 aggregate_solution = fitFunc(work_with, fitParams[0], fitParams[1], fitParams[2], fitParams[3], fitParams[4], fitParams[5], fitParams[6])    
 
+pylab.figure(2)
 pylab.plot(aggregate_solution, 'x')

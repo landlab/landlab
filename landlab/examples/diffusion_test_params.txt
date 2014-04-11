@@ -13,7 +13,7 @@ dt:
 total_time:
 1.
 uplift_rate:
-0.1
+10.
 
 #terms for the nonlinear diffuser
 rock_density:

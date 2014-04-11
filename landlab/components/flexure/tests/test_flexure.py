@@ -63,11 +63,11 @@ class TestFlexureGrid(unittest.TestCase):
 
     def test_grid_xdimension(self):
         self.assertEqual(self.flex.grid.get_grid_xdimension(),
-                         _SHAPE[1] * _SPACING[1])
+                         (_SHAPE[1] - 1) * _SPACING[1])
 
     def test_grid_ydimension(self):
         self.assertEqual(self.flex.grid.get_grid_xdimension(),
-                         _SHAPE[0] * _SPACING[0])
+                         (_SHAPE[0] - 1) * _SPACING[0])
 
 
 class TestFlexureFields(unittest.TestCase):

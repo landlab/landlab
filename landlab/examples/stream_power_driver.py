@@ -8,7 +8,7 @@ import numpy as np
 import pylab
 
 #get the needed properties to build the grid:
-input_file = './stream_power_test_params.txt'
+input_file = './stream_power_params.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -42,11 +42,11 @@ fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
 
 #perform the loops:
-for i in xrange(nt):
+for i in xrange(10):
     mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
-    
+
     ##plot long profiles along channels
     pylab.figure(6)
     profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],

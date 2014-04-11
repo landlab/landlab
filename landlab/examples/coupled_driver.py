@@ -1,6 +1,6 @@
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse_modified import PerronNLDiffuse
+from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
@@ -10,7 +10,7 @@ import numpy as np
 import pylab
 
 #get the needed properties to build the grid:
-input_file = './germany_test_params.txt'
+input_file = './coupled_params.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
