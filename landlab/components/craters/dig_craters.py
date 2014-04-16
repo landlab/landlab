@@ -72,7 +72,7 @@ class impactor(object):
             self.set_coords()
         else:
             self.position_auto_flag = 0
-            self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
+            self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
             self.closest_node_elev = self.elev[self.closest_node_index]
         try:
             self._angle_to_vertical = inputs.read_float('forced_angle')*numpy.pi/180.
@@ -212,7 +212,7 @@ class impactor(object):
         self._xcoord = 0.5*grid.dx + random() * (grid.get_grid_xdimension() - grid.dx)
         self._ycoord = 0.5*grid.dx + random() * (grid.get_grid_ydimension() - grid.dx)
         #Snap impact to grid:
-        self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
+        self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
         #NB - snapping to the grid may be quite computationally demanding in a Voronoi.
 
@@ -240,6 +240,7 @@ class impactor(object):
         y = self._ycoord
         height = self.closest_node_elev
         not_done = True
+        impact_at_edge = False
         counter = 0
         while not_done and counter<30:
             print '...'
@@ -256,61 +257,63 @@ class impactor(object):
             hyp_line_horiz = numpy.fabs(line_horiz/sin_alpha)
             #print hyp_line_vert, hyp_line_horiz
             num_divisions = int(min(hyp_line_vert,hyp_line_horiz)//dx) #Spacing set to dx, ALONG LINE (so spacing always <dx in x,y)
-            if num_divisions > 2:
-                self.dummy_1[:(num_divisions-2)] = xrange(num_divisions-2)
-                numpy.add(self.dummy_1[:(num_divisions-2)], 1., out=self.dummy_2[:(num_divisions-2)])
-                numpy.multiply(self.dummy_2[:(num_divisions-2)], dx, out=self.dummy_1[:(num_divisions-2)])
-                #line_points = (numpy.arange(num_divisions-2)+1.)*dx #[dx,2dx,3dx...]; arbitrary reduction in length at end to keep clear of dodgy grid edge
+            if num_divisions > 0:
+                self.dummy_1[:(num_divisions)] = xrange(num_divisions)
+                numpy.add(self.dummy_1[:(num_divisions)], 1., out=self.dummy_2[:(num_divisions)])
+                numpy.multiply(self.dummy_2[:(num_divisions)], dx, out=self.dummy_1[:(num_divisions)])
+                #line_points = (numpy.arange(num_divisions)+1.)*dx #[dx,2dx,3dx...]; arbitrary reduction in length at end to keep clear of dodgy grid edge
             else:
-                self.dummy_1[:1] = numpy.array((dx,))
-                num_divisions = 3
-            numpy.multiply(self.dummy_1[:(num_divisions-2)], sin_alpha, out=self.dummy_2[:(num_divisions-2)])
-            numpy.add(self.dummy_2[:(num_divisions-2)], x, out=self.dummy_5[:(num_divisions-2)])
+                self.dummy_1[:1] = numpy.array((0.,))
+                num_divisions = 1
+                impact_at_edge = True
+                print 'AD HOC FIX'
+            numpy.multiply(self.dummy_1[:(num_divisions)], sin_alpha, out=self.dummy_2[:(num_divisions)])
+            numpy.add(self.dummy_2[:(num_divisions)], x, out=self.dummy_5[:(num_divisions)])
             #line_xcoords = x + sin_alpha*line_points
-            numpy.multiply(self.dummy_1[:(num_divisions-2)], cos_alpha, out=self.dummy_2[:(num_divisions-2)])
-            numpy.add(self.dummy_2[:(num_divisions-2)], y, out=self.dummy_6[:(num_divisions-2)])
+            numpy.multiply(self.dummy_1[:(num_divisions)], cos_alpha, out=self.dummy_2[:(num_divisions)])
+            numpy.add(self.dummy_2[:(num_divisions)], y, out=self.dummy_6[:(num_divisions)])
             #line_ycoords = y + cos_alpha*line_points #negative dimensions should sort themselves out
-            assert numpy.all(self.dummy_5[:(num_divisions-2)]>=0)
-            self.dummy_2[:(num_divisions-2)] = grid.snap_coords_to_grid(self.dummy_5[:(num_divisions-2)], self.dummy_6[:(num_divisions-2)])
+            assert numpy.all(self.dummy_5[:(num_divisions)]>=0) or impact_at_edge
+            self.dummy_2[:(num_divisions)] = grid.find_nearest_node((self.dummy_5[:(num_divisions)], self.dummy_6[:(num_divisions)]))
             #snapped_pts_along_line = grid.snap_coords_to_grid(line_xcoords,line_ycoords) #closest to to furthest from impact
             #print snapped_pts_along_line
             try:
-                numpy.divide(self.dummy_1[:(num_divisions-2)],numpy.tan(self._angle_to_vertical), out=self.dummy_3[:(num_divisions-2)])
-                numpy.add(self.dummy_3[:(num_divisions-2)], height, out=self.dummy_4[:(num_divisions-2)])
+                numpy.divide(self.dummy_1[:(num_divisions)],numpy.tan(self._angle_to_vertical), out=self.dummy_3[:(num_divisions)])
+                numpy.add(self.dummy_3[:(num_divisions)], height, out=self.dummy_4[:(num_divisions)])
                 #impactor_elevs_along_line = line_points/numpy.tan(self._angle_to_vertical) + height
             except ZeroDivisionError: #vertical impactor, no need to migrate anything
                 not_done = False
             else:
                 try: #start at edge, work in
-                    numpy.less_equal(self.dummy_4[(num_divisions-3)::-1], self.elev[self.dummy_2[(num_divisions-3)::-1].astype(int, copy=False)], out=self.dummy_int[:(num_divisions-2)])
+                    numpy.less_equal(self.dummy_4[(num_divisions-1)::-1], self.elev[self.dummy_2[(num_divisions-1)::-1].astype(int, copy=False)], out=self.dummy_int[:(num_divisions)])
                     #points_under_surface_reversed = impactor_elevs_along_line[::-1]<=self.elev[snapped_pts_along_line[::-1]]
-                    reversed_index = numpy.argmax(self.dummy_int[:(num_divisions-2)])
+                    reversed_index = numpy.argmax(self.dummy_int[:(num_divisions)])
                     #reversed_index = numpy.argmax(points_under_surface_reversed)
-                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[(num_divisions-3)::-1][reversed_index]]
+                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[(num_divisions-1)::-1][reversed_index]]
                     #intersect_pt_node_status = self.grid.node_status[snapped_pts_along_line[::-1][reversed_index]]
                 except IndexError: #only one item in array
-                    print num_divisions
-                    assert len(self.dummy_4[:(num_divisions-2)]) == 1
-                    numpy.less_equal(self.dummy_4[:(num_divisions-2)], self.elev[self.dummy_2[:(num_divisions-2)].astype(int, copy=False)], out=self.dummy_int[:(num_divisions-2)])
+                    print len(self.dummy_4[:(num_divisions)])
+                    assert len(self.dummy_4[:(num_divisions)]) == 1
+                    numpy.less_equal(self.dummy_4[:(num_divisions)], self.elev[self.dummy_2[:(num_divisions)].astype(int, copy=False)], out=self.dummy_int[:(num_divisions)])
                     #points_under_surface_reversed = impactor_elevs_along_line<=self.elev[snapped_pts_along_line]
-                    reversed_index = numpy.argmax(self.dummy_int[:(num_divisions-2)])
+                    reversed_index = numpy.argmax(self.dummy_int[:(num_divisions)])
                     #reversed_index = numpy.argmax(points_under_surface_reversed)
-                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[:(num_divisions-2)]]
+                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[:(num_divisions)]]
                     #intersect_pt_node_status = self.grid.node_status[snapped_pts_along_line]
-                if numpy.any(self.dummy_int[:(num_divisions-2)]):
+                if numpy.any(self.dummy_int[:(num_divisions)]):
                 #if numpy.any(points_under_surface_reversed):
                     #print 'points under surface...', numpy.sum(points_under_surface_reversed)
                     #reverse the array order as impactor comes from far and approaches the impact point
                     #If reversed_index is 0, the impact NEVER makes it above ground on the grid, and needs to be discarded.
                     #BUT, if boundaries are looped, we need to keep going!!
-                    if reversed_index and intersect_pt_node_status != 3: #not the final point (i.e., closest to edge), and not a looped boundary node
+                    if (reversed_index and intersect_pt_node_status != 3) and not impact_at_edge: #not the final point (i.e., closest to edge), and not a looped boundary node
                         print 'migrating...'
-                        index_of_impact = num_divisions - 4 - reversed_index
-                        self._xcoord = self.dummy_5[:(num_divisions-2)][index_of_impact]
-                        self._ycoord = self.dummy_6[:(num_divisions-2)][index_of_impact]
+                        index_of_impact = num_divisions - reversed_index
+                        self._xcoord = self.dummy_5[:(num_divisions)][index_of_impact]
+                        self._ycoord = self.dummy_6[:(num_divisions)][index_of_impact]
                         #self._xcoord = line_xcoords[index_of_impact]
                         #self._ycoord = line_ycoords[index_of_impact]
-                        self.closest_node_index = self.dummy_2[:(num_divisions-2)][index_of_impact]
+                        self.closest_node_index = self.dummy_2[:(num_divisions)][index_of_impact]
                         #self.closest_node_index = snapped_pts_along_line[index_of_impact]
                         self.closest_node_elev = self.elev[self.closest_node_index]
                         not_done = False
@@ -341,6 +344,10 @@ class impactor(object):
                             y = vert_coord
                             print x/gridx,y/gridy
                             counter += 1
+                            if counter >= 30:
+                                #This is a duff crater; kill it by setting r=0
+                                self._radius = 0.000001
+                                print 'Aborted this crater. Its trajectory was not physically plausible!'
                         elif self.position_auto_flag == 1:
                             self.draw_new_parameters()
                             self.check_coords_and_angles_for_grazing()
@@ -469,8 +476,8 @@ class impactor(object):
         distance_array = (inbounds_test1.astype(float) + inbounds_test2.astype(float))*self._radius
         radial_points1 = numpy.where(inbounds_test1, (slope_pts1[:,0],slope_pts1[:,1]), [[self._xcoord], [self._ycoord]])
         radial_points2 = numpy.where(inbounds_test2, (slope_pts2[:,0],slope_pts2[:,1]), [[self._xcoord], [self._ycoord]])
-        radial_points1 = grid.snap_coords_to_grid(radial_points1[0,:], radial_points1[1,:])
-        radial_points2 = grid.snap_coords_to_grid(radial_points2[0,:], radial_points2[1,:])
+        radial_points1 = grid.find_nearest_node((radial_points1[0,:], radial_points1[1,:]))
+        radial_points2 = grid.find_nearest_node((radial_points2[0,:], radial_points2[1,:]))
         #print 'radial pts arrays: ', radial_points1, radial_points2
         #print 'On grid?: ', inbounds_test1, inbounds_test2
         #print 'Dist array: ', distance_array
@@ -517,13 +524,13 @@ class impactor(object):
         pts_on_grid = grid.is_point_on_grid(slope_pts[:,0],slope_pts[:,1]) #needs to be on **interior** grid
         if not numpy.all(pts_on_grid) and not self.looped_BCs:
             slope_coords_ongrid = slope_pts[pts_on_grid]
-            slope_pts_ongrid = grid.snap_coords_to_grid(slope_coords_ongrid[:,0],slope_coords_ongrid[:,1])
+            slope_pts_ongrid = grid.find_nearest_node((slope_coords_ongrid[:,0],slope_coords_ongrid[:,1]))
             cardinal_elevs = elev[slope_pts_ongrid]
-            self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
+            self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
             self.set_crater_mean_slope_v2()
         else:
             slope_pts %= numpy.array([self.grid.get_grid_xdimension(), self.grid.get_grid_ydimension()]) #added new, to remove boundaries
-            slope_pts_ongrid = grid.snap_coords_to_grid(slope_pts[:,0],slope_pts[:,1])
+            slope_pts_ongrid = grid.find_nearest_node((slope_pts[:,0],slope_pts[:,1]))
             self.closest_node_index = slope_pts_ongrid[4]
             cardinal_elevs = elev[slope_pts_ongrid]
             #Now the Horn '81 algorithm for weighted max slope: (careful w signs! altered to give down as +ve)
@@ -1640,7 +1647,7 @@ class impactor(object):
         self.elev = grid.at_node['planet_surface__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
-        self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
+        self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
         self.check_coords_and_angles_for_grazing()
         self.set_crater_mean_slope_v3()
@@ -1677,7 +1684,7 @@ class impactor(object):
         self.elev = grid.at_node['planet_surface__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
-        self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
+        self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
         self.check_coords_and_angles_for_grazing()
         self.set_crater_mean_slope_v3()
