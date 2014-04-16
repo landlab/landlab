@@ -17,6 +17,8 @@ initial_slope = inputs.read_float('initial_slope')
 nt = inputs.read_int('number_of_craters_per_loop')
 loops = inputs.read_int('number_of_loops')
 
+arbitrary_node = (nrows*ncols)//2
+
 mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
 
@@ -41,6 +43,7 @@ slope = np.empty(nt)
 angle = np.empty(nt)
 az = np.empty(nt)
 mass_balance = np.empty(nt)
+arbitrary_pt_z = np.empty(nt)
 for i in xrange(loops):
     for j in xrange(nt):
         mg = craters_component.excavate_a_crater_furbish(mg)
@@ -51,6 +54,7 @@ for i in xrange(loops):
         angle[j] = craters_component.impact_angle_to_normal
         az[j] = craters_component.impactor_travel_azimuth
         mass_balance[j] = craters_component.mass_balance
+        arbitrary_pt_z[j] = mg.at_node['planet_surface__elevation'][arbitrary_node]
         print 'Completed loop ', j
     mystring = 'craterssave'+str((i+1)*nt)
     np.save(mystring,mg['node']['planet_surface__elevation'])
@@ -62,6 +66,7 @@ for i in xrange(loops):
     np.save(('angle_'+str((i+1)*nt)),angle)
     np.save(('az_'+str((i+1)*nt)),az)
     np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
+    np.save(('arbitrary_pt_z_'+str((i+1)*nt)),arbitrary_pt_z)
 
 #Finalize and plot
 elev = mg['node']['planet_surface__elevation']
