@@ -17,7 +17,7 @@ initial_slope = inputs.read_float('initial_slope')
 nt = inputs.read_int('number_of_craters_per_loop')
 loops = inputs.read_int('number_of_loops')
 
-arbitrary_node = (nrows*ncols)//2
+arbitrary_node = (nrows//2 * ncols) + ncols//2
 
 mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
