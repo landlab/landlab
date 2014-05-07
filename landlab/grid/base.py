@@ -143,6 +143,18 @@ class ModelGrid(ModelDataFields):
         return active_node_ids
 
     @property
+    def node_boundary_status(self):
+        """
+        Node BC status codes for all nodes:
+            0: interior, active node
+            1: fixed value open boundary
+            2: fixed gradient open boundary
+            3: looped open boundary
+            4: closed boundary
+        """
+        return self.node_status
+
+    @property
     def open_nodes(self):
         """Node id for all nodes not marked as a closed boundary"""
         (open_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
