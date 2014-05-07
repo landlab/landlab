@@ -1,4 +1,9 @@
 #! /usr/bin/env python
+"""
+A class used to create and manage regular square raster 
+grids for 2D numerical models in Landlab.
+
+"""
 
 import numpy
 import numpy as np
@@ -561,6 +566,49 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return numpy.squeeze(numpy.concatenate(
             (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
+
+  
+    def face_links(self, face_id):
+        '''
+        Returns an array of the link IDs for the links which intersect the faces
+        specificed by *face_id*. *face_id* can be either a scalar or an array.
+        
+        >>> mg = RasterModelGrid(4, 5)
+        >>> mg.face_links(0)
+        array([1])
+        
+        >>> mg.face_links([0, 4, 13])
+        array([ 1,  7, 23])
+        '''
+        face_ids = make_arg_into_array(face_id)
+        if type(face_ids) != numpy.ndarray:
+            face_ids = numpy.array(face_ids)
+        row = face_ids//(self.shape[1]-2)
+        in_rows = numpy.less(row,self.shape[0]-1)
+        in_cols = numpy.logical_not(in_rows)
+        excess_col = face_ids[in_cols]-(self.shape[0]-1)*(self.shape[1]-2)
+        col = excess_col//(self.shape[1]-1)
+        links = numpy.empty_like(face_ids)
+        links[in_rows] = row[in_rows]*self.shape[1] + face_ids[in_rows]%(self.shape[1]-2) + 1
+        links[in_cols] = self.shape[1]*(self.shape[0]-1) + (col+1)*(self.shape[1]-1) + excess_col%(self.shape[1]-1) #-1 cancels because of offset term
+        return links
+    
+    def link_faces(self, link_id):
+        '''
+        Returns an array of the face IDs for the faces which intersect the links
+        specified by *link_id*. *link_id* can be either a scalar or array.
+        
+        If a link does not have an associated face (e.g., some inactive links),
+        that entry in the returned array is set to BAD_INDEX_VALUE.
+        
+        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
+        >>> mg = RasterModelGrid(4, 5)
+        >>> mg.link_faces([0, 1, 15, 19, 12, 26])
+        array([ X,  0,  X,  9,  7, 16])
+        '''
+        link_ids = make_arg_into_array(link_id)
+        return self.link_face[link_ids]
+        
 
     def get_grid_xdimension(self):
         '''
@@ -2246,8 +2294,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # ng june 2013
         return self.node_status[id]
         
-#############################################
-###Todo: add methods for face_link, link_face, get_link_connecting...
 
     def get_face_connecting_cell_pair(self, cell_a, cell_b):
         """
@@ -2257,6 +2303,27 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cell_faces = self.cell_faces([cell_a, cell_b])
         return numpy.intersect1d(cell_faces[0], cell_faces[1],
                                  assume_unique=True)
+    
+    def get_link_connecting_node_pair(self, node_a, node_b):
+        '''
+        Returns an array of link indices that *node_a* and *node_b* share.
+        If the nodes do not share any links, returns an empty array.
+        The link does not have to be active.
+        '''
+        node_links_a = self.node_links(node_a)
+        node_links_b = self.node_links(node_b)
+        return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+        
+    def get_active_link_connecting_node_pair(self, node_a, node_b):
+        '''
+        Returns an array of active link indices that *node_a* and *node_b* 
+        share.
+        If the nodes do not share any active links, returns an empty array.
+        Overrides base function of the same name.
+        '''
+        node_links_a = self.active_node_links(node_a)
+        node_links_b = self.active_node_links(node_b)
+        return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
 
     def top_edge_node_ids(self):
         """
@@ -2419,7 +2486,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
 
-        Calculates the aspect at each node based on the elevation of 
+        Calculates the slope at each node based on the elevation of 
         the node and its neighbors using a best fit plane calculated
         using single value decomposition. 
 
@@ -2428,7 +2495,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         val: elevation at all nodes
 
         returns:
-        a: the aspect at the nodes given by id
+        s: the slope at the nodes given by id
         """
         #
         # additional note, KRB has written three codes in raster.py
@@ -2462,15 +2529,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
 
-        Calculates the aspect at each node based on the elevation of 
-        the node and its neighbors using a best fit plane calculated
-        using single value decomposition. 
+        Calculates both the slope and aspect at each node based on the 
+        elevation of the node and its neighbors using a best fit plane 
+        calculated using single value decomposition. 
 
         requires:
         id: id of nodes at which to calculate the aspect
         val: elevation at all nodes
 
         returns:
+        s, a
+        s: the slope at the nodes given by id
         a: the aspect at the nodes given by id
         """
 
@@ -2514,6 +2583,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         alt = sun altitude (degrees up from horizon)
         slp = slope of cells at surface (degrees)
         asp = aspect of cells at surface (degrees from north)
+        
+        returns: the hillshade at each pixel
         """
         
         # krb note: I don't know where this code is best put, probably not in
@@ -2535,6 +2606,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         
 def _is_closed_boundary(boundary_string):
+    '''
+    Helper function, probably depreciated due to changes in BC handling
+    procedures (DEJH, May 14).
+    '''
     
     return boundary_string.lower() == 'closed'
 

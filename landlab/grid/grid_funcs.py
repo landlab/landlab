@@ -40,11 +40,13 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     """
     Calculates the gradient in *quantity* node_values at each active link in
     the grid.
+    (Prior to 5/7/14, gave POSITIVE UP. As of this date, for internal 
+    consistency, gives POSITIVE DOWN.)
     """
     if out is None:
         out = grid.empty(centering='active_link')
-    return np.divide(node_values[grid.activelink_tonode] -
-                     node_values[grid.activelink_fromnode],
+    return np.divide(node_values[grid.activelink_fromnode] -
+                     node_values[grid.activelink_tonode],
                      grid.link_length[grid.active_links], out=out)
 
 
@@ -52,11 +54,13 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     """
     Calculates the gradient in *quantity* node_values at each link in
     the grid.
+    (Prior to 5/7/14, gave POSITIVE UP. As of this date, for internal 
+    consistency, gives POSITIVE DOWN.)
     """
     if out is None:
         out = grid.empty(centering='link')
-    return np.divide(node_values[grid.link_tonode] -
-                     node_values[grid.link_fromnode],
+    return np.divide(node_values[grid.link_fromnode] -
+                     node_values[grid.link_tonode],
                      grid.link_length, out=out)
 
 
@@ -64,7 +68,8 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     """
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
-    In this case, slope UP is positive.
+    In this case, slope UP is positive, in contast to the gradient methods 
+    above.
     """
     if out is None:
         out = grid.empty(centering='active_link')
@@ -76,7 +81,8 @@ def calculate_diff_at_links(grid, node_values, out=None):
     """
     Calculates the difference in quantity *node_values* at each link in the
     grid.
-    In this case, slope UP is positive.
+    In this case, slope UP is positive, in contast to the gradient methods 
+    above.
     """
     if out is None:
         out = grid.empty(centering='link')

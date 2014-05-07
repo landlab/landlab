@@ -84,11 +84,19 @@ def _sort_points_into_quadrants(x, y, nodes):
 
 
 def default_axis_names(n_dims):
+    '''
+    Returns a tuple of the default axis names.
+    (Helper function)
+    '''
     _DEFAULT_NAMES = ('z', 'y', 'x')
     return _DEFAULT_NAMES[- n_dims:]
 
 
 def default_axis_units(n_dims):
+    '''
+    Returns a tuple of the default axis units.
+    (Helper function)
+    '''
     return ('-', ) * n_dims
 
 
@@ -162,7 +170,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def open_boundary_nodes(self):
-        """Node id of all open boundary_nodes
+        """Node id of all open boundary nodes.
         """
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != INACTIVE_BOUNDARY) &
@@ -418,16 +426,20 @@ class ModelGrid(ModelDataFields):
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
         """
-        Calculates the gradient in quantity *node_values* at each active link
+        Calculates the difference in quantity *node_values* at every link
         in the grid.
+        Note that this is tonode-fromnode along links, and is thus equivalent to
+        positive gradient up.
         """
         return gfuncs.calculate_diff_at_links(self, node_values, out=out)
         
     @track_this_method
     def calculate_diff_at_active_links(self, node_values, out=None):
         """
-        Calculates the differenct in quantity *node_values* at each active link
+        Calculates the difference in quantity *node_values* at each active link
         in the grid.
+        Note that this is tonode-fromnode along links, and is thus equivalent to
+        positive gradient up.
         """
         return gfuncs.calculate_diff_at_active_links(self, node_values,
                                                      out=out)
@@ -435,8 +447,9 @@ class ModelGrid(ModelDataFields):
     @track_this_method
     def calculate_gradients_at_links(self, node_values, out=None):
         """
-        Calculates the gradient in quantity *node_values* at each active link
+        Calculates the gradient in quantity *node_values* at every link
         in the grid.
+        This method follows the convention POSITIVE DOWN.
         """
         return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
         
@@ -445,6 +458,7 @@ class ModelGrid(ModelDataFields):
         """
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
+        This method follows the convention POSITIVE DOWN.
         """
         return gfuncs.calculate_gradients_at_active_links(self, node_values,
                                                           out=out)
@@ -452,6 +466,8 @@ class ModelGrid(ModelDataFields):
     @track_this_method
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
         """
+        .. deprecated:: 0.1
+            Use :func:`calculate_gradients_at_active_links`
         Calculates the gradient in quantity s at each active link in the grid.
         """
         if gradient==None:
@@ -489,9 +505,7 @@ class ModelGrid(ModelDataFields):
         """
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
-        net_unit_flux. Overrides method of the same name in ModelGrid (nearly
-        identical, but uses scalars dx and cellarea instead of variable
-        link length and active cell area, respectively).
+        net_unit_flux.
         
         The function works by calling calculate_flux_divergence_at_nodes, then
         slicing out only the values at active cells. Therefore, it is slower
@@ -557,7 +571,8 @@ class ModelGrid(ModelDataFields):
             >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
             
         In this case, the function will not have to create the divflux array.
-            
+        
+        Note this method is untested with looped boundary conditions.
         """
         
         if self.DEBUG_TRACK_METHODS:
@@ -583,6 +598,8 @@ class ModelGrid(ModelDataFields):
     def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
                                                   net_unit_flux=False):
         """
+        .. deprecated:: 0.1
+            Use :func:`calculate_flux_divergence_at_active_cells`
         Original, slower version of calculate_flux_divergence_at_active_cells, 
         using a for-loop instead of simply calling the node-based version of
         the method. Kept here as illustration of what the method is intended
@@ -639,6 +656,8 @@ class ModelGrid(ModelDataFields):
         but simply return zeros for these entries. The advantage is that the 
         caller can work with node-based arrays instead of active-cell-based 
         arrays.
+        
+        This method is untested with looped boundary conditions.
         """
         return gfuncs.calculate_flux_divergence_at_nodes(self, active_link_flux,
                                                         out=out)
@@ -712,7 +731,21 @@ class ModelGrid(ModelDataFields):
         try:
             return self.forced_cell_areas
         except AttributeError:
-            return self._setup_cell_areas_array_force_inactive()        
+            return self._setup_cell_areas_array_force_inactive()    
+            
+    def _setup_cell_areas_array_force_inactive(self):
+        '''
+        Sets up an array of cell areas which is nnodes long. Nodes which have 
+        cells receive the area of that cell. Nodes which do not receive
+        numpy.nan entries.
+        Note this method is typically only required for some raster purposes, 
+        and is overridden in raster.py. It is unlikely this parent method will
+        ever need to be called.
+        '''
+        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self.forced_cell_areas.fill(numpy.nan)
+        cell_node_ids = self.get_active_cell_node_ids()
+        self.forced_cell_areas[cell_node_ids] = self.cell_areas
 
     def get_active_cell_node_ids( self ):
         """
@@ -746,10 +779,12 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_link_length(self):
+        """Returns the lengths of all active links, in ID order"""
         return self.link_length[self.active_link_ids]
 
     @property
     def link_length(self):
+        """Returns the lengths of all links, in ID order"""
         try:
             return self._link_length
         except AttributeError:
@@ -768,6 +803,10 @@ class ModelGrid(ModelDataFields):
         return numpy.amax(self.link_length[self.active_link_ids])
 
     def calculate_link_length(self):
+        """
+        Calculates, returns, and stores as a property of the grid the lengths
+        of all the links in the grid.
+        """
         if not hasattr(self, '_link_length'):
             self._link_length = self.empty(centering='link')
         dx = (self.node_x[self.node_index_at_link_head] -
@@ -1036,6 +1075,9 @@ class ModelGrid(ModelDataFields):
             return self.node_status[ids] == boundary_flag
     
     def get_boundary_nodes(self):
+        """
+        Returns ids of all open and closed boundary nodes in the grid.
+        """
         return numpy.where(self.node_status != 0)[0]
     
     def _assign_boundary_nodes_to_grid_sides(self):
@@ -1136,6 +1178,10 @@ class ModelGrid(ModelDataFields):
         self._reset_list_of_active_links()
 
     def set_inactive_nodes(self, nodes):
+        """
+        Sets the given nodes' boundary condition statuses to INACTIVE (==4),
+        and resets the list of active links to reflect any changes.
+        """
         self.node_status[nodes] = INACTIVE_BOUNDARY
         self._reset_list_of_active_links()
 
@@ -1329,6 +1375,8 @@ class ModelGrid(ModelDataFields):
         The arrays are called:
             self.all_node_distances_map
             self.all_node_azimuths_map
+        
+        The method returns these two arrays as output.
         """
         
         self.all_node_distances_map = numpy.empty((self.number_of_nodes,
