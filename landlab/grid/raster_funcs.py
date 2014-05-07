@@ -29,6 +29,7 @@ def _make_optional_arg_into_array(number_of_elements, *args):
 
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
+    Convention: positive gradient is UP.
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_index_at_cells[cell_ids]
@@ -36,7 +37,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     values_at_neighbors = node_values[grid.get_neighbor_list(node_ids)]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
-    out = np.subtract(values_at_nodes, values_at_neighbors, **kwds)
+    out = np.subtract(values_at_neighbors, values_at_nodes, **kwds)
     out *= 1. / grid.node_spacing
 
     return out
@@ -44,6 +45,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
 def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
+    Convention: positive gradient is UP.
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_index_at_cells[cell_ids]
@@ -51,20 +53,20 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     values_at_diagonals = node_values[grid.get_diagonal_list(node_ids)]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
-    out = np.subtract(values_at_nodes, values_at_diagonals, **kwds)
+    out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
     np.divide(out, np.sqrt(2.) * grid.node_spacing, out=out)
 
     return out
 
 
-def calculate_max_gradient_across_adjacent_cells(grid, node_values, *args,
+def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
                                                  **kwds):
-    """calculate_max_gradient_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
+    """calculate_steepest_descent_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
 
-    Calculate the slopes of *node_values*, given at every node in the grid,
-    relative to the nodes centered at *cell_ids*. Note that downward slopes
-    are reported as positive. That is, the gradient is positive if a neighbor
-    node's value is less than that of the node as *cell_ids*.
+    Calculate the steepest downward gradients in *node_values*, given at every
+    node in the grid, relative to the nodes centered at *cell_ids*. Note that 
+    upward gradients are reported as positive, so this method returns negative
+    numbers.
 
     If *cell_ids* is not provided, calculate the maximum gradient for all
     cells in the grid.
@@ -84,44 +86,45 @@ def calculate_max_gradient_across_adjacent_cells(grid, node_values, *args,
     >>> node_values = rmg.zeros()
     >>> node_values[1] = -1
     >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0)
-    array([ 1.])
+    array([-1.])
 
-    Get both the maximum gradient and the node to which the gradient is
-    measured.
+    Get both the steepest downward gradient and the node to which the gradient
+    is measured.
 
     >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0, return_node=True)
-    (array([ 1.]), array([1]))
+    (array([-1.]), array([1]))
     """
     method = kwds.pop('method', 'd4')
     assert_valid_routing_method(method)
 
     if method == 'd4':
-        return calculate_max_gradient_across_cell_faces(
+        return calculate_steepest_descent_across_cell_faces(
             grid, node_values, *args, **kwds)
     elif method == 'd8':
-        neighbor_grads = calculate_max_gradient_across_cell_faces(
+        neighbor_grads = calculate_steepest_descent_across_cell_faces(
             grid, node_values, *args, **kwds)
-        diagonal_grads = calculate_max_gradient_across_cell_corners(
+        diagonal_grads = calculate_steepest_descent_across_cell_corners(
             grid, node_values, *args, **kwds)
 
         return_node = kwds.pop('return_node', False)
 
         if not return_node:
-            return np.choose(neighbor_grads >= diagonal_grads,
+            return np.choose(neighbor_grads <= diagonal_grads,
                              (diagonal_grads, neighbor_grads), **kwds)
         else:
-            max_grads = np.choose(neighbor_grads[0] >= diagonal_grads[0],
+            min_grads = np.choose(neighbor_grads[0] <= diagonal_grads[0],
                                   (diagonal_grads[0], neighbor_grads[0]),
                                   **kwds)
-            node_ids = np.choose(neighbor_grads[0] >= diagonal_grads[0],
+            node_ids = np.choose(neighbor_grads[0] <= diagonal_grads[0],
                              (diagonal_grads[1], neighbor_grads[1]),
                              **kwds)
-            return (max_grads, node_ids)
+            return (min_grads, node_ids)
 
 
-def calculate_max_gradient_across_cell_corners(grid, node_values, *args,
+def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
                                                **kwds):
-    """calculate_max_gradient_across_cell_corners(grid, node_values [, cell_ids], return_node=False, out=None)
+    """calculate_steepest_descent_across_cell_corners(grid, node_values [, cell_ids], return_node=False, out=None)
+    Convention: positive gradient is up, find and return the minimum gradient.
     """
     return_node = kwds.pop('return_node', False)
 
@@ -130,7 +133,7 @@ def calculate_max_gradient_across_cell_corners(grid, node_values, *args,
     grads = calculate_gradient_across_cell_corners(grid, node_values, cell_ids)
 
     if return_node:
-        ind = np.argmax(grads, axis=1)
+        ind = np.argmin(grads, axis=1)
         node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
@@ -138,26 +141,28 @@ def calculate_max_gradient_across_cell_corners(grid, node_values, *args,
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
-        return grads.max(axis=1, **kwds)
+        return grads.min(axis=1, **kwds)
 
 
-def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
-    """calculate_max_gradient_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
+def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
+    """calculate_steepest_descent_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
+    Convention: gradients positive UP
 
     This method calculates the gradients in *node_values* across all four
-    faces of the cell or cells with ID *cell_ids*. Slopes downward from the
+    faces of the cell or cells with ID *cell_ids*. Slopes upward from the
     cell are reported as positive. If *cell_ids* is not given, calculate
     gradients for all cells.
 
     Use the *return_node* keyword to return a tuple, with the first element
     being the gradients and the second the node id of the node in the direction
-    of the maximum gradient.
+    of the minimum gradient, i.e., the steepest descent. Note the gradient value
+    returned is probably thus negative.
 
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
     >>> calculate_max_gradient_across_cell_faces(rmg, values_at_nodes)
-    array([ 3.])
+    array([-3.])
     >>> (_, ind) = calculate_max_gradient_across_cell_faces(rmg, values_at_nodes, return_node=True)
     >>> ind
     array([1])
@@ -169,7 +174,7 @@ def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     grads = calculate_gradient_across_cell_faces(grid, node_values, cell_ids)
 
     if return_node:
-        ind = np.argmax(grads, axis=1)
+        ind = np.argmin(grads, axis=1)
         node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
@@ -177,7 +182,7 @@ def calculate_max_gradient_across_cell_faces(grid, node_values, *args, **kwds):
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
-        return grads.max(axis=1, **kwds)
+        return grads.min(axis=1, **kwds)
 
 
 def active_link_id_of_cell_neighbor(grid, inds, *args):
@@ -309,6 +314,9 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
 def calculate_max_gradient_across_node(grid, u, cell_id):
     """
+    Possibly deprecated...?
+    
+    
     This method calculates the gradients in u across all 4 faces of the 
     cell with ID cell_id, and across the four diagonals. It then returns 
     the steepest (most negative) of these values, followed by its dip 

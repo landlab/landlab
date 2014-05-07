@@ -449,7 +449,7 @@ class ModelGrid(ModelDataFields):
         """
         Calculates the gradient in quantity *node_values* at every link
         in the grid.
-        This method follows the convention POSITIVE DOWN.
+        This method follows the convention POSITIVE UP.
         """
         return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
         
@@ -458,7 +458,7 @@ class ModelGrid(ModelDataFields):
         """
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
-        This method follows the convention POSITIVE DOWN.
+        This method follows the convention POSITIVE UP.
         """
         return gfuncs.calculate_gradients_at_active_links(self, node_values,
                                                           out=out)
