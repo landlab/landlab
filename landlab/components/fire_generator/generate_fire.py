@@ -22,7 +22,7 @@ from random import weibullvariate
 from scipy import special
 from landlab import ModelParameterDictionary
 
-_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), "fire.txt")
+_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 
 class FireGenerator:
 
