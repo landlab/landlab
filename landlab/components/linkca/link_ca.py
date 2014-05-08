@@ -21,7 +21,7 @@ _NODE_STATE = { _ROCK : 'rock', \
 _LINK_STATE = [ (_ROCK, _ROCK), (_ROCK, _SAP), (_SAP, _ROCK), (_SAP, _SAP) ]
 _NEVER = 1e12
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 
@@ -464,14 +464,16 @@ class LinkCellularAutomaton():
         # Continue until we've run out of either time or events
         while self.current_time < run_duration and self.event_queue:
         
-            #print 'Current Time = ', self.current_time
+            print 'Current Time = ', self.current_time
         
             # Pick the next transition event from the event queue
             ev = heappop(self.event_queue)
         
-            #print 'Event:',ev.time,ev.link,ev.xn_to
+            print 'Event:',ev.time,ev.link,ev.xn_to
         
             self.do_transition(ev, self.current_time)
+            
+            print self.node_state
         
             # Update current time
             self.current_time = ev.time
@@ -484,12 +486,11 @@ def example_test2():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 200
-    nc = 200
-    frac_spacing = 20
+    nr = 10
+    nc = 10
     plot_interval = 0.1
     next_plot = plot_interval
-    run_duration = 4.0
+    run_duration = 1.0
         
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
@@ -500,12 +501,14 @@ def example_test2():
     # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
     # can undergo a transition to 1-1, representing chemical weathering of the
     # rock.
-    ns_dict = { 0 : 'rock', 1 : 'saprolite' }
-    xn_list = setup_transition_list()
+    ns_dict = { 0 : 'air', 1 : 'immobile soil', 2 : 'mobile soil' }
+    xn_list = setup_transition_list2()
 
-    # The initial grid represents a chunk of fractured rock, with fractures
-    # represented by saprolite one cell wide.
-    node_state_grid = make_frac_grid(frac_spacing, model_grid=mg)
+    # The initial grid represents a domain with half immobile soil, half air
+    node_state_grid = mg.add_zeros('node', 'node_frog')
+    print (numpy.where(mg.node_y<nr/2),)
+    (lower_half,) = numpy.where(mg.node_y<nr/2)
+    node_state_grid[lower_half] = 1
     
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
@@ -518,7 +521,7 @@ def example_test2():
     # RUN
     current_time = 0.0
     time_slice =  0
-    filename = 'weathering_ca'+str(time_slice).zfill(5)+'.nc'
+    filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
     write_netcdf(filename, ca.grid)
     while current_time < run_duration:
         ca.run(current_time+plot_interval, ca.node_state)
@@ -529,7 +532,7 @@ def example_test2():
         #imshow_grid(mg, ca.node_state)
         #plt.show()
         time_slice += 1
-        filename = 'weathering_ca'+str(time_slice).zfill(5)+'.nc'
+        filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
         write_netcdf(filename, ca.grid)
         
     # FINALIZE
@@ -552,6 +555,62 @@ def setup_transition_list():
     if _DEBUG:
         print
         print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        for t in xn_list:
+            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+        
+    return xn_list
+    
+    
+def setup_transition_list2():
+    """
+    This one is a crude model of "sticky" particles on a gravity-free hill!
+    
+    There are three cell states: air (A=0), immobile soil (S=1), and mobile
+    soil (M=2)
+    
+    The transition rules are:
+        
+        1. Mobilization: A-S > A-M (all orientations equal)
+        2. Motion: A-M > M-A (")
+        3. Sticking: A-M > A-S (")
+
+    Example of link states associated with 3 node states (0, 1, and 2):
+    
+    Link states with "horizontal" orientation:
+
+    State:    Pair:  
+    0            0-0
+    1            0-1
+    2            0-2
+    3            1-0
+    4            1-1
+    5            1-2
+    6            2-0
+    7            2-1
+    8            2-2
+
+    Link states with "vertical" orientation:
+    
+    State:    Pair:  
+    9            0-0
+    10           0-1
+    11           0-2
+    12           1-0
+    13           1-1
+    14           1-2
+    15           2-0
+    16           2-1
+    17           2-2
+   
+    """
+    xn_list = []
+    
+    xn_list.append( Transition(1, 2, 1., 'mobilization') ) # 
+    xn_list.append( Transition(3, 6, 1., 'mobilization') ) # 
+        
+    if _DEBUG:
+        print
+        print 'setup_transition_list2(): list has',len(xn_list),'transitions:'
         for t in xn_list:
             print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
         

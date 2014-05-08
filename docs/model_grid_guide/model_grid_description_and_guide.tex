@@ -20,7 +20,7 @@
 
 \title{The ModelGrid Package}
 \author{Greg Tucker}
-\date{Draft, Feb 2014} % delete this line to display the current date
+\date{Last update May 2014} % delete this line to display the current date
 
 %%% BEGIN DOCUMENT
 \begin{document}
@@ -540,7 +540,20 @@ To run the diffusion component, we simply call its \code{run\_until} method, pas
 [SUBJECT TO CHANGE ONCE WE SORT OUT THE DISPLAY/WRITE]
 
 
+\section{Terminology for grid elements}
 
+[NOTE: THIS SHOULD BE WOVEN INTO TEXT IN THE INTRO, WHICH NEEDS TO BE UPDATED IN LIGHT OF REVISED TERMINOLOGY]
+
+NODE: basic component of the grid. A node is a point with a unique $(x,y)$ location. Each node is connected to one or more neighboring nodes by a LINK. The $i^{th}$ node is denoted $N_i$, and its location is $(x_i, y_i)$. 
+
+CELL: a cell is a polygon that contains one (and only one) node. Every cell contains an associated node, but nodes on the perimeter of a grid do not have cells.
+
+LINK: a link is a line segment that connects two NODES. Each link has a direction as well as a position in space. A link
+
+
+\section{Getting information about the grid and its elements}
+
+NODE location: grid.node\_x, grid.node\_y
 
 
 

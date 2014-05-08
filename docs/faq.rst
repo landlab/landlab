@@ -44,6 +44,17 @@ such as :func:`~landlab.grid.base.ModelGrid.add_zeros`, as long as you
 provided a name for the array as one of the arguments.
 
 
+How do I assign values from nodes to links?
+-------------------------------------------
+
+Suppose you have a set of values, such as water depths, that are defined at nodes. How do
+you figure out what the corresponding values would be at the links, so you can multiply
+these by some other quantity (such as water-surface slope) that is defined on links? Here 
+are some options:
+
+(1) To assign the *average* 
+
+
 Why are there no other FAQs besides these few?
 ----------------------------------------------
 
