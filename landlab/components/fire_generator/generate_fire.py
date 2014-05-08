@@ -22,66 +22,66 @@ from random import weibullvariate
 from scipy import special
 from landlab import ModelParameterDictionary
 
-_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
+_DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), "fire.txt")
 
 class FireGenerator:
 
     def __init__(self):
-        '''All initial values are set to zero until initalized
+        """All initial values are set to zero until initalized
         using the initialize() method which reads in data using
         the ModelParameterDictionary and sets the random variables
         according to their respective distribution
-        '''
+        """
         
         self.shape_parameter = 0.0
-        '''Shape parameter describes the skew of the Weibull distribution. 
+        """Shape parameter describes the skew of the Weibull distribution. 
         If shape < 3.5, data skews left.
         If shape == 3.5, data is normal.
         If shape > 3.5, data skews right.
-        '''
+        """
         
         self.scale_paramter = 0.0
-        '''Represents the peak of the Weibull function, located at the 63.5% value of the CDF.
+        """Represents the peak of the Weibull function, located at the 63.5% value of the CDF.
         If unknown, it can be found using the mean and the get_scale_parameter() method.
-        '''
+        """
         
         self.mean_fire_recurrence = 0.0
-        '''Average fire recurrence for a given area, elevation, vegetation type, etc.
-        '''
+        """Average fire recurrence for a given area, elevation, vegetation type, etc.
+        """
         
         self.total_run_time = 0
         self.delta_t = 0
-        '''Initial run time values
-        to be read in.'''
+        """Initial run time values
+        to be read in."""
         
         self.time_to_next_fire = 0.0
-        '''Initial value which is replaced with values generated from the 
+        """Initial value which is replaced with values generated from the 
         random.weibullvariate() function based on the scale and shape parameters
-        '''
+        """
         
     def initialize(self, input_file = None):
         MPD = ModelParameterDictionary()
         
-        '''We import methods from ModelParameterDictionary
+        """We import methods from ModelParameterDictionary
         to read the parameters from the input file.
         
         If the scale parameter is unknown, it can be found using the mean
         fire recurrence value, which MUST be known or estimated to run the
-        get_scale_parameter() method.'''
+        get_scale_parameter() method."""
         if input_file is None:
             input_file = _DEFAULT_INPUT_FILE
         MPD.read_from_file(input_file)
         
-        self.shape_parameter = MPD.read_float('SHAPE_PARAMETER')
-        self.scale_parameter = MPD.read_float('SCALE_PARAMETER')
-        self.mean_fire_recurrence = MPD.read_float('MEAN_FIRE_RECURRENCE')
-        self.total_run_time = MPD.read_float('RUN_TIME')
-        self.delta_t = MPD.read_int('DELTA_T')
+        self.shape_parameter = MPD.read_float("SHAPE_PARAMETER")
+        self.scale_parameter = MPD.read_float("SCALE_PARAMETER")
+        self.mean_fire_recurrence = MPD.read_float("MEAN_FIRE_RECURRENCE")
+        self.total_run_time = MPD.read_float("RUN_TIME")
+        self.delta_t = MPD.read_int("DELTA_T")
 
 
     def get_scale_parameter(self):
         
-        ''' If the scale factor is unknown, we can draw it from the mean
+        """ If the scale factor is unknown, we can draw it from the mean
         fire recurrence interval, given the following equation:
             
             This ONLY works if we have the shape parameter. Generally, the shape
@@ -90,7 +90,7 @@ class FireGenerator:
             
         Mean_fire_recurrence = scale_parameter*(gamma_function(1+(1/shape)))
         
-        :returns: scale_parameter as a float'''
+        :returns: scale_parameter as a float"""
         
         if self.scale_parameter == 0.0:   
             shape_in_gamma_func = float(1+(1/self.shape_parameter))
@@ -102,26 +102,26 @@ class FireGenerator:
             
     def generate_fire_recurrence(self):
         
-        ''' Finds the time to next fire (fire recurrence) based on the scale parameter (63.5% of
+        """ Finds the time to next fire (fire recurrence) based on the scale parameter (63.5% of
         fire Weibull distribution) and the shape parameter (describes the skew of the histogram, shape = 3.5
         represents a normal distribution).
         
         Rounds the time to next fire to 4 significant figures, for neatness.
         
-        :returns: time_to_next_fire as a float'''
+        :returns: time_to_next_fire as a float"""
         
         self.time_to_next_fire = round(weibullvariate(self.scale_parameter, self.shape_parameter),2)
         return self.time_to_next_fire
         
     def generate_fire_time_series(self):
         
-        '''Allows for a series of fire events to be generated given 
+        """Allows for a series of fire events to be generated given 
         a total time. 
         
         Created for situations where total run time is definite, and number
         of fires can change across different runs. 
         
-        :creates: array with several fire events, all values are float'''
+        :creates: array with several fire events, all values are float"""
         self.fire_events =[]
         event = self.generate_fire_recurrence()
         end_event = event + 365.0
@@ -139,13 +139,13 @@ class FireGenerator:
         
     def update(self):
         
-        '''Update function allows us to update the value of 'time_to_next_fire' by
+        """Update function allows us to update the value of "time_to_next_fire" by
         re-calling the generate_fire_reccurence() function.
         
         Created for instances when a definite number of fires need to
         be generated.
         
-        :returns: updated value for time_to_next_fire as a float'''
+        :returns: updated value for time_to_next_fire as a float"""
         
         self.time_to_next_fire = self.generate_fire_recurrence()
         return self.time_to_next_fire
