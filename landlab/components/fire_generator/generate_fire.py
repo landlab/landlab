@@ -35,7 +35,7 @@ class FireGenerator:
         
         self.shape_parameter = 0.0
         '''Shape parameter describes the skew of the Weibull distribution. 
-        </n>If shape < 3.5, data skews left.
+        If shape < 3.5, data skews left.
         If shape == 3.5, data is normal.
         If shape > 3.5, data skews right.
         '''
@@ -88,7 +88,9 @@ class FireGenerator:
             parameter will be greater than 3.5, creating a distribution that is skewed
             to the higher values (skewed to the right). 
             
-        Mean_fire_recurrence = scale_parameter*(gamma_function(1+(1/shape)))'''
+        Mean_fire_recurrence = scale_parameter*(gamma_function(1+(1/shape)))
+        
+        :returns: scale_parameter as a float'''
         
         if self.scale_parameter == 0.0:   
             shape_in_gamma_func = float(1+(1/self.shape_parameter))
@@ -104,7 +106,9 @@ class FireGenerator:
         fire Weibull distribution) and the shape parameter (describes the skew of the histogram, shape = 3.5
         represents a normal distribution).
         
-        Rounds the time to next fire to 4 significant figures, for neatness.'''
+        Rounds the time to next fire to 4 significant figures, for neatness.
+        
+        :returns: time_to_next_fire as a float'''
         
         self.time_to_next_fire = round(weibullvariate(self.scale_parameter, self.shape_parameter),2)
         return self.time_to_next_fire
@@ -115,7 +119,9 @@ class FireGenerator:
         a total time. 
         
         Created for situations where total run time is definite, and number
-        of fires can change across different runs. '''
+        of fires can change across different runs. 
+        
+        :creates: array with several fire events, all values are float'''
         self.fire_events =[]
         event = self.generate_fire_recurrence()
         end_event = event + 365.0
@@ -137,7 +143,9 @@ class FireGenerator:
         re-calling the generate_fire_reccurence() function.
         
         Created for instances when a definite number of fires need to
-        be generated.'''
+        be generated.
+        
+        :returns: updated value for time_to_next_fire as a float'''
         
         self.time_to_next_fire = self.generate_fire_recurrence()
         return self.time_to_next_fire
