@@ -35,7 +35,7 @@ class FireGenerator:
         
         self.shape_parameter = 0.0
         '''Shape parameter describes the skew of the Weibull distribution. 
-        <'/n'>If shape < 3.5, data skews left.
+        </n>If shape < 3.5, data skews left.
         If shape == 3.5, data is normal.
         If shape > 3.5, data skews right.
         '''
