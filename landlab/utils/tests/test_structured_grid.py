@@ -695,47 +695,20 @@ class TestNeighborArray(unittest.TestCase, NumpyArrayTestingMixIn):
                       [BAD,   5,   1, BAD],
                       [  4, BAD, BAD,   0],
                       [  5, BAD,   3,   1],
-                      [BAD, BAD,   4,   2]]))
+                      [BAD, BAD,   4,   2]]).T)
 
         self.assertTrue(neighbors.flags['C_CONTIGUOUS'])
         self.assertTrue(neighbors.base is None)
 
     def test_set_out_of_bounds(self):
-        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1)
+        neighbors = sgrid.neighbor_node_array((2, 3), inactive=-1)
         self.assertArrayEqual(neighbors,
                            np.array([[ 1,  3, -1, -1],
                                      [ 2,  4,  0, -1],
                                      [-1,  5,  1, -1],
                                      [ 4, -1, -1,  0],
                                      [ 5, -1,  3,  1],
-                                     [-1, -1,  4,  2]]))
-
-    def test_as_view(self):
-        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
-                                              contiguous=False)
-        self.assertArrayEqual(neighbors,
-                           np.array([[ 1,  3, -1, -1],
-                                     [ 2,  4,  0, -1],
-                                     [-1,  5,  1, -1],
-                                     [ 4, -1, -1,  0],
-                                     [ 5, -1,  3,  1],
-                                     [-1, -1,  4,  2]]))
-
-        self.assertFalse(neighbors.flags['C_CONTIGUOUS'])
-        self.assertTrue(isinstance(neighbors.base, np.ndarray))
-
-    def test_boundary_node_mask_no_actives(self):
-        neighbors = sgrid.neighbor_node_array((2, 3), out_of_bounds=-1,
-                                          boundary_node_mask=-2)
-        self.assertArrayEqual(neighbors, - 2 * np.ones((6, 4)))
-
-    def test_boundary_node_mask(self):
-        neighbors = sgrid.neighbor_node_array((3, 3), out_of_bounds=-1,
-                                              boundary_node_mask=-2)
-        self.assertArrayEqual(neighbors, 
-                           np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
-                                     [-2, -2, -2, -2], [ 5,  7,  3,  1], [-2, -2, -2, -2],
-                                     [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))
+                                     [-1, -1,  4,  2]]).T)
 
 
 class TestInlinkMatrix(unittest.TestCase, NumpyArrayTestingMixIn):
