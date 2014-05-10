@@ -1,27 +1,30 @@
+=========================
+landlab Developers' Guide
+=========================
 
-landlab development takes place in your own “fork” of the main landlab
-repository. A fork is a “clone” of the repository and is hosted on your
+landlab development takes place in your own *fork* of the main landlab
+repository. A fork is a *mirror* of the repository and is hosted on your
 personal GitHub account. You will use this fork for developing new landlab
 features. Your changes will migrate to the core repository (for review and
-merging) by requesting that the main repository “pull” in your changes. This
+merging) by requesting that the main repository "pull" in your changes. This
 is known as a pull request and is facilitated through the GitHub website.
 
 How to create a fork
 ====================
 
 You will only need to do this once for each project to which you want to
-contribute. Github has some great documentation on how to do this.
-
-`How to fork <https://help.github.com/articles/fork-a-repo>`_
+contribute. Github has some great documentation on
+`how to create a fork <https://help.github.com/articles/fork-a-repo>`_. We
+outline below the basic steps as applied to landlab.
 
 Create a GitHub account
 -----------------------
 
-You can create a GitHub account by going to the `GitHub website <https://github.com>`_.
+1. You can create a GitHub account by going to the `GitHub website <https://github.com>`_.
 
-Configure you account to allow write access. To get help on how to do this
-sse `Generating SSH Keys <https://help.github.com/articles/generating-ssh-keys>`_
-on GitHub.
+2. Configure you account to allow write access. To get help on how to do this
+   sse `Generating SSH Keys <https://help.github.com/articles/generating-ssh-keys>`_
+   on GitHub.
 
 
 Creating your own fork of landlab
@@ -42,7 +45,7 @@ of the landlab.
 Cloning your fork to your computer
 ----------------------------------
 
-From the command line, this is done with the following commands::
+This is done from the command line with the following commands::
 
   git clone git@github.com:your-user-name/landlab.git
   cd landlab
@@ -71,9 +74,9 @@ folder) run the following command::
   python setup.py develop -u
 
 With landlab uninstalled, you will not longer be able to import landlab
-from outside to root folder of your working copy.A
+from outside to root folder of your working copy.
 
-To check that you have correctly installed landlab, run the landlab tests.
+To check you have correctly installed landlab, run the landlab tests.
 
 
 Fetching updates to the trunk
@@ -90,7 +93,7 @@ Making a new branch
 
 Before making any changes to your code, you should create a new branch.
 
-Update your mirror with any upstream changes that you don't have::
+Update your mirror with any upstream changes you don't have::
 
   git fetch upstream
 
@@ -114,9 +117,8 @@ On your landlab GitHub page you will now be able to toggle between your
 various branches to see the code you have committed.
 
 
-Testing and landlab installation
+Testing the landlab installation
 ================================
-
 
 The easiest way to run the landlab tests is to do so from inside the Python
 interpreter::

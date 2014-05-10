@@ -8,7 +8,6 @@ Dependencies
 ============
 
 The Landlab has the following dependencies:
-
 - Python 2.7
 - Numpy 1.7 or greater
 - Scipy 0.12 or greater
@@ -19,8 +18,8 @@ The Landlab has the following dependencies:
   running `2to3 <http://docs.python.org/2/library/2to3.html>`_ on the source.
 
 
-Install Python
-==============
+Installing Python
+=================
 
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution, such as `Continuum IO's Anaconda
@@ -46,11 +45,9 @@ Install Landlab
 
 There are several ways to install Landlab. Which method you use will 
 depend on how you want to use landlab.
-
 - If you want to use Landlab as-is, and not see or make changes to the
-  code, you should follow the :ref:`Basic Installation <basic-install>`
+  code, you should follow the :ref:`Installing with pip <basic-install>`
   instructions.
-
 - If you would like to see the Landlab source code and/or make changes or
   add to the code, you should follow :ref:`Install as a Developer
   <developer-install>` instructions.
@@ -64,7 +61,7 @@ Installing with pip
 
   If you are developing landlab you will probably not want to do this!
   If you do, you would have to run this command everytime you make a change to
-  the code. Instead, you want to install the package in "development mode". See
+  the code. Instead, you want to install landlab in "development mode". See
   the :ref:`Install as a Developer <developer-install>` section for details
   on how to do this.
 
@@ -72,8 +69,9 @@ Use this method if you would like to install the landlab onto your machine
 so you can use it as-is. You will be able to import landlab from the Python
 command line, and write scripts that use landlab modules but will not have
 access to the source. If you would would like to see the code or make tweaks
-to it (large or small) you should get a copy of the source code (see
-below for a description of :ref:`how to do this <source-install>`).
+to it (large or small) you should install landlab from source (see
+:ref:`Installing from source <source-install>`, or the
+:ref:`Developer's Guide <developer-install>`).
 
 The most recent stable release of Landlab is available at the `Python Package
 Index <https://pypi.python.org/pypi>`_ and can be installed by running::
@@ -100,7 +98,7 @@ to keep up with the latest bug fixes.
 .. note::
 
     If you are planning on developing for landlab (making changes to the code)
-    please see our developers' guide for installation instructions.
+    please see our `Developers' Guide <dev_guide>` for installation instructions.
 
 .. note::
 
@@ -124,7 +122,8 @@ to keep up with the latest bug fixes.
 From source tarball
 >>>>>>>>>>>>>>>>>>>
 
-1. Download the latest tarball from `github <https://github.com/landlab/landlab/archive/master.zip>`_.
+1. Download the `latest tarball <https://github.com/landlab/landlab/archive/master.zip>`_
+   from the `landlab github page <https://github.com/landlab/landlab/`_.
 
 2. From the root directory where your unpacked Landlab, run::
 
