@@ -100,7 +100,7 @@ Update your mirror with any upstream changes you don't have::
 Make the new branch::
 
   git branch name-of-branch upstream/master
-  git checkout namd-of-branch
+  git checkout name-of-branch
 
 You will probably want to choose a descriptive name for your new branch so that
 you and others will remember what it is you are intending to do with your
