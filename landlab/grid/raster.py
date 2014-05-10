@@ -603,8 +603,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.link_faces([0, 1, 15, 19, 12, 26])
-        array([ X,  0,  X,  9,  7, 16])
+        >>> np.all(mg.link_faces([0, 1, 15, 19, 12, 26]) == np.array([ X,  0,  X,  9,  7, 16]))
+        True
         '''
         link_ids = make_arg_into_array(link_id)
         return self.link_face[link_ids]
@@ -924,13 +924,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = landlab.RasterModelGrid(3, 3)
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
-        >>> rmg.calculate_max_gradient_across_cell_faces(node_values, 0)
+        >>> rmg.calculate_steepest_descent_across_cell_faces(node_values, 0)
         array([-1.])
     
         Get both the maximum gradient and the node to which the gradient is
         measured.
     
-        >>> rmg.calculate_max_gradient_across_cell_faces(node_values, 0, return_node=True)
+        >>> rmg.calculate_steepest_descent_across_cell_faces(node_values, 0, return_node=True)
         (array([-1.]), array([1]))
         """
         return rfuncs.calculate_steepest_descent_across_cell_faces(self, *args,
@@ -989,13 +989,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = landlab.RasterModelGrid(4, 4)
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
-        >>> rmg.calculate_max_gradient_across_adjacent_cells(node_values, 0)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0)
         array([-1.])
     
         Get both the maximum gradient and the node to which the gradient is
         measured.
     
-        >>> rmg.calculate_max_gradient_across_adjacent_cells(node_values, 1, method='d8', return_node=True)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 1, method='d8', return_node=True)
         (array([-0.70710678]), array([1]))
 
         """
@@ -2327,15 +2327,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
         
     def get_active_link_connecting_node_pair(self, node_a, node_b):
-        '''
+        """
         Returns an array of active link indices that *node_a* and *node_b* 
-        share.
-        If the nodes do not share any active links, returns an empty array.
-        Overrides base function of the same name.
-        '''
+        share.  If the nodes do not share any active links, returns an
+        empty array.  Overrides base function of the same name.
+
+        >>> import landlab as ll
+        >>> rmg = ll.RasterModelGrid(4, 5)
+        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        2
+        """
         node_links_a = self.active_node_links(node_a)
         node_links_b = self.active_node_links(node_b)
-        return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+        return int(numpy.intersect1d(node_links_a, node_links_b))
 
     def top_edge_node_ids(self):
         """

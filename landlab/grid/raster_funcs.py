@@ -60,7 +60,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
 
 
 def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
-                                                 **kwds):
+                                                     **kwds):
     """calculate_steepest_descent_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
 
     Calculate the steepest downward gradients in *node_values*, given at every
@@ -85,13 +85,13 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     >>> rmg = landlab.RasterModelGrid(3, 3)
     >>> node_values = rmg.zeros()
     >>> node_values[1] = -1
-    >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0)
+    >>> calculate_steepest_descent_across_adjacent_cells(rmg, node_values, 0)
     array([-1.])
 
     Get both the steepest downward gradient and the node to which the gradient
     is measured.
 
-    >>> calculate_max_gradient_across_adjacent_cells(rmg, node_values, 0, return_node=True)
+    >>> calculate_steepest_descent_across_adjacent_cells(rmg, node_values, 0, return_node=True)
     (array([-1.]), array([1]))
     """
     method = kwds.pop('method', 'd4')
@@ -122,7 +122,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
 
 def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
-                                               **kwds):
+                                                   **kwds):
     """calculate_steepest_descent_across_cell_corners(grid, node_values [, cell_ids], return_node=False, out=None)
     Convention: positive gradient is up, find and return the minimum gradient.
     """
@@ -144,7 +144,8 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         return grads.min(axis=1, **kwds)
 
 
-def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
+def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
+                                                 **kwds):
     """calculate_steepest_descent_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
     Convention: gradients positive UP
 
@@ -161,9 +162,9 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwd
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
-    >>> calculate_max_gradient_across_cell_faces(rmg, values_at_nodes)
+    >>> calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes)
     array([-3.])
-    >>> (_, ind) = calculate_max_gradient_across_cell_faces(rmg, values_at_nodes, return_node=True)
+    >>> (_, ind) = calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes, return_node=True)
     >>> ind
     array([1])
     """

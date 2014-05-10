@@ -757,13 +757,6 @@ class ModelGrid(ModelDataFields):
         """
         Returns the ID number of the active link that connects the given pair of
         nodes, or None if not found.
-        
-        Example:
-            
-            >>> import landlab as ll
-            >>> rmg = ll.RasterModelGrid(4, 5)
-            >>> rmg.get_active_link_connecting_node_pair(8, 3)
-            2
         """
         active_link = None
         for alink in xrange(0, self.number_of_active_links):
