@@ -10,20 +10,29 @@ class ScalarDataFields(dict):
     def __init__(self, size):
         self._size = size
 
-        #print 'ScalarDataFields.__init__'
         super(ScalarDataFields, self).__init__()
         self._units = dict()
 
     @property
     def units(self):
+        """Units for values of the field.
+
+        Returns
+        -------
+        str
+            Units of the field.
+        """
         return self._units
 
     @property
     def size(self):
-        return self._size
+        """Number of elements in the field.
 
-    @property
-    def number_of_values(self):
+        Returns
+        -------
+        int
+            The number of elements in the field.
+        """
         return self._size
 
     def empty(self, **kwds):
@@ -49,7 +58,15 @@ class ScalarDataFields(dict):
         return np.zeros(self.size, **kwds)
 
     def add_empty(self, name, units=_UNKNOWN_UNITS, **kwds):
-        """
+        """Create and add an uninitialized array of values to the field.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
         Create a new array of the data field size, without initializing
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
@@ -60,7 +77,15 @@ class ScalarDataFields(dict):
         return self.add_field(name, self.empty(**kwds), units=units)
 
     def add_ones(self, name, units=_UNKNOWN_UNITS, **kwds):
-        """
+        """Create and add an array of values, initialized to 1, to the field.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
         Create a new array of the data field size, filled with ones, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
@@ -71,7 +96,15 @@ class ScalarDataFields(dict):
         return self.add_field(name, self.ones(**kwds), units=units)
 
     def add_zeros(self, name, units=_UNKNOWN_UNITS, **kwds):
-        """
+        """Create and add an array of values, initialized to 0, to the field.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
         Create a new array of the data field size, filled with zeros, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
@@ -82,6 +115,22 @@ class ScalarDataFields(dict):
         return self.add_field(name, self.zeros(**kwds), units=units)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False):
+        """Add an array of values to the field.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new field to add.
+        value_array : numpy.array
+            Array of values to add to the field.
+        units : str, optional
+            Optionally specify the units of the field.
+
+        Returns
+        -------
+        numpy.array
+            The input *value_array*.
+        """
         if copy:
             value_array = value_array.copy()
 
@@ -91,6 +140,20 @@ class ScalarDataFields(dict):
         return self[name]
 
     def set_units(self, name, units):
+        """Set the units for a field of values.
+
+        Parameters
+        ----------
+        name: str
+            Name of the field.
+        units: str
+            Units for the field
+
+        Raises
+        ------
+        KeyError
+            If the named field does not exist.
+        """
         self._units[name] = units
 
     def __setitem__(self, name, value_array):
