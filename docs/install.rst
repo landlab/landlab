@@ -57,8 +57,16 @@ depend on how you want to use landlab.
 
 .. _basic-install:
 
-Basic Installation
-------------------
+Installing with pip
+-------------------
+
+.. note::
+
+  If you are developing landlab you will probably not want to do this!
+  If you do, you would have to run this command everytime you make a change to
+  the code. Instead, you want to install the package in "development mode". See
+  the :ref:`Install as a Developer <developer-install>` section for details
+  on how to do this.
 
 Use this method if you would like to install the landlab onto your machine
 so you can use it as-is. You will be able to import landlab from the Python
@@ -78,85 +86,47 @@ an existing Landlab installation::
     pip install TheLandlab --upgrade
 
 
-.. _developer-install:
-
-Install as a Developer
-----------------------
-
-Use this method if you want to see and/or mess with the Landlab source code.
-
-.. note::
-
-   This section assumes that you have a version of `Subversion (svn)
-   <http://subversion.apache.org/>`_ installed for your operating system. 
-   Subversion is a version control system (VCS).  For an introduction to
-   Subversion, see the Subversion `quick start guide
-   <http://subversion.apache.org/quick-start>`_
-
-
-1. Checkout a version of Landlab using Subversion::
-
-    svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
-
-2. From the base directory of your landlab repository (the folder that
-   contains ``setup.py``), run the following::
-
-    pip install -e .
-
-This sets things up so that Python looks into your source directory for
-landlab modules, rather than copying your source into the Python site-packages
-directory. This ensures that any changes you make to sourece files will be
-immediately seen by Python.
-
-
 .. _source-install:
 
-Install the Latest Version
---------------------------
+Installing from source
+----------------------
 
-This is the recommended way to install the latest version of landlab from
-source.
+From Git
+>>>>>>>>
+
+This is the recommended way to install from source, as it will make it easiest
+to keep up with the latest bug fixes.
 
 .. note::
 
-   This section assumes that you have a version of `Subversion (svn)
-   <http://subversion.apache.org/>`_ installed for your operating system. 
-   Subversion is a version control system (VCS).  For an introduction to
-   Subversion, see the Subversion `quick start guide
-   <http://subversion.apache.org/quick-start>`_
+    If you are planning on developing for landlab (making changes to the code)
+    please see our developers' guide for installation instructions.
+
+.. note::
+
+    The following instructions assume you have a working version of `Git
+    <http://git-scm.com/>`_ installed on your system. Git is a
+    distributed version control system (DVCS) and source code management
+    system. For an introduction to Git and DVCS, see the official
+    `git documentation <http://git-scm.com/documentation>`_.
 
 
-1. Checkout a version of Landlab using Subversion::
+1. Clone landlab from the master repository, hosted on `github.com <http://www.github.com>`_::
 
-    svn checkout https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
+    git clone https://github.com/landlab/landlab.git
 
-2. From the root directory of the landlab package (this is the directory
-   that contains the file, ``setup.py``)::
+2. From the root directory of your landlab clone (the folder that contains
+   `setup.py`)::
 
     python setup.py install
 
-This will put the landlab package into a system-wide location so that you can
-import landlab from any python session. It will also install any required
-packages.
 
-.. note::
+From source tarball
+>>>>>>>>>>>>>>>>>>>
 
-  If you are developing landlab you will probably not want to do this!
-  If you do, you would have to run this command everytime you make a change to
-  the code. Instead, you want to install the package in "development mode". See
-  the :ref:`Install as a Developer <developer-install>` section for details
-  on how to do this.
+1. Download the latest tarball from `github <https://github.com/landlab/landlab/archive/master.zip>`_.
 
+2. From the root directory where your unpacked Landlab, run::
 
-Test Your Installation
-----------------------
-
-Once you have installed Landlab through one of the above methods, you can
-optionally run some tests to see if your installation is working (or rather,
-if it isn't working). From the Python command line, run::
-
-  >>> import landlab
-  >>> landlab.test()
-
-If this results in any errors, please report them to the `landlab team <huttone@colorado.edu>`_.
+    python setup.py install
 

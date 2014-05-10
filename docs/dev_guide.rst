@@ -1,153 +1,139 @@
-Using Subversion
-================
 
-The standard resource for Subversion "Version Control with Subversion" book.
-It's available online and is completely *free*!
+landlab development takes place in your own “fork” of the main landlab
+repository. A fork is a “clone” of the repository and is hosted on your
+personal GitHub account. You will use this fork for developing new landlab
+features. Your changes will migrate to the core repository (for review and
+merging) by requesting that the main repository “pull” in your changes. This
+is known as a pull request and is facilitated through the GitHub website.
 
-http://svnbook.red-bean.com/
+How to create a fork
+====================
+
+You will only need to do this once for each project to which you want to
+contribute. Github has some great documentation on how to do this.
+
+`How to fork <https://help.github.com/articles/fork-a-repo>`_
+
+Create a GitHub account
+-----------------------
+
+You can create a GitHub account by going to the `GitHub website <https://github.com>`_.
+
+Configure you account to allow write access. To get help on how to do this
+sse `Generating SSH Keys <https://help.github.com/articles/generating-ssh-keys>`_
+on GitHub.
 
 
-Checkout a copy of the source
+Creating your own fork of landlab
+---------------------------------
+
+The following steps will create a fork of the landlab repository under your
+github account.
+
+  1. Sign in to your GitHub account.  
+  2. Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
+     GitHub.
+  3. Click the *fork* button in the upper-right corner of the page.
+
+Once completed, you will be redirected to the home page for your own copy
+of the landlab.
+
+
+Cloning your fork to your computer
+----------------------------------
+
+From the command line, this is done with the following commands::
+
+  git clone git@github.com:your-user-name/landlab.git
+  cd landlab
+  git remote add upstream git://github.com/landlab/landlab.git
+
+
+.. _developer-install:
+
+Installing landlab in developer mode
+------------------------------------
+
+Now that you have a working copy of landlab on you computer, you need to
+install it. To install landlab in developer mode run the following command
+from the root landlab folder (the one that contains `setup.py`)::
+
+  python setup.py develop
+
+This installs landlab on your computer in such a way that Python always
+imports landlab from the working copy you just cloned. This ensures that any
+changes you make to your copy of the code is seen by Python the *next* time
+you import landlab.
+
+To uninstall your development version of landlab (again from the root landlab
+folder) run the following command::
+
+  python setup.py develop -u
+
+With landlab uninstalled, you will not longer be able to import landlab
+from outside to root folder of your working copy.A
+
+To check that you have correctly installed landlab, run the landlab tests.
+
+
+Fetching updates to the trunk
 -----------------------------
 
-Use Subversion to checkout the latest version of the source code::
+From time to time you should fetch commits to the trunk that you don't have
+in your working copy. You do this with the following command::
 
-    svn co https://csdms.colorado.edu/svn/TheLandlab/trunk landlab
+  git fetch upstream
 
-Alternatively, if you already have a working copy of the repository you may
-want to update it with changes that others have committed to the repository::
 
-    svn update
-
-Review your changes
+Making a new branch
 -------------------
 
-Now that you've made changes to some files, you'll probably want to have a
-look at what you've done. To see what it is you've changed since your last
-commit (or since you last checkout), use the status command::
+Before making any changes to your code, you should create a new branch.
 
-    svn status
+Update your mirror with any upstream changes that you don't have::
 
-Use the Subversion diff command to see the differences between your copy and the
-copy that you checked out::
+  git fetch upstream
 
-    svn diff <changed_file>
+Make the new branch::
 
-where *<changed_file>* is the name of the file you've made changes to. If you
-don't list any file names, this command will print the differences for *all*
-files that have changes.
+  git branch name-of-branch upstream/master
+  git checkout namd-of-branch
 
-Commit your changes to the repository
--------------------------------------
+You will probably want to choose a descriptive name for your new branch so that
+you and others will remember what it is you are intending to do with your
+branch (for example, `bugfix-for-that-major-problem`, or
+`add-that-cool-feature`).
 
-Once you have made changes to your copy of the source and are happy with the
-changes, you can commit them back to the repository::
+If you want to keep your branches on you public GitHub page for landlab (you
+probably do) you need to tell git to push changes to your github repo. This
+is done with the following command::
 
-    svn commit
+  git push --set-upstream origin name-of-branch
 
-This will commit all changes that you have made under the current directory. If
-you only want to commit changes to a file or two, you can list the file names
-separately on the command line::
-
-    svn commit <one_file> <another_file>
+On your landlab GitHub page you will now be able to toggle between your
+various branches to see the code you have committed.
 
 
-The Development Environment
-===========================
-
-Once I have a working copy of The Landlab source code, I use the pip command to
-install a development version of the code. If I'm in the base landlab folder
-(the folder that contains setup.py), I run the following::
-
-    pip install -e .
-
-This sets up python so that it knows where the landlab package is when try to
-import it - regardless of what directory you are in. This allows python commands
-like::
-
-    >>> import landlab
-    >>> from landlab import craters
-
-to work. If you didn't do this you might start getting errors that contain 
-something like::
-
-    ImportError: No module named landlab
-
-To uninstall your development version of landlab::
-
-    pip uninstall TheLandlab
+Testing and landlab installation
+================================
 
 
-Running Unit Tests
-==================
+The easiest way to run the landlab tests is to do so from inside the Python
+interpreter::
 
-Immediatly after update your working copy of the code (or checking out a new
-version) I will normally run the unit tests for the package to make sure nothing
-is broken. You can do this with setup.py::
+  >>> import landlab
+  >>> landlab.test()
 
-    python setup.py test
-
-You should also probably do this before commiting changes to the repository to
-make sure you didn't break things.
+This will run a series of tests and print our the result of each test. If
+there are any failures, you can report that at the `landlab issue tracker <https://github.com/landlab/landlab/issues>`_.
 
 
 Coding Style
 ============
 
-Because Python is so flexible style-wise, please try to stick to the coding
-style described by PEP8,
+* Please stick to the coding style described by `PEP8
+  <http://www.python.org/dev/peps/pep-0008/>`_.
 
-http://www.python.org/dev/peps/pep-0008/
-
-An easy way to make sure that you've done this is by running the pep8 command
-on each file that you edit. If you don't have pep8 installed, you will have to
-install it with::
-
-    pip install pep8
-
-Now you can run it on a Python source file. For instance::
-
-    pep8 craters.py
-
-At first, this will probably return lots of problems with you source file. Don't
-worry though, it won't take long to get used to the coding style and be able to
-write compatible code straigt away. If we stick to this it will make it much
-easier to read the code written by any one of us.
-
-
-Build API Documentation
-=======================
-
-You can build documentation for the LandLab API using Sphinx. Once you have set
-up your envrionment to properly import landlab, you can generate the necessary
-sphinx files with::
-
-    python setup.py build_sphinx
-
-This will put a bunch of files in the docs folder. The HTML documentation will
-be under the docs/_build/html/ folder. Pointing your browser to index.html
-under this folder will give you the top-level page for the documentation. This
-entire folder is relocatable, so if you would like your documentation elsewhere
-you can easily move the folder around.
-
-If you have added, removed, or renamed files you may need to regenerate some of
-the sphinx files and rebuild the api docs. If you have Sphinx installed, you can
-do this with (from the directory that contains setup.py)::
-
-    sphinx-apidoc -o docs landlab --force
-
-
-Build a Landlab Model
-=====================
-
-
-
-Build a Landlab Component
-=========================
-
-
-
-Policies and Procedures
-=======================
-
+* Class and function docstrings should follow the `numpydoc conventions
+  <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
 
