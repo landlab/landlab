@@ -46,18 +46,50 @@ from landlab.field import ScalarDataFields
 
 class ModelDataFields(object):
     def __init__(self, **kwds):
-        #print 'ModelDataFields.__init__'
         self._groups = dict()
         super(ModelDataFields, self).__init__(**kwds)
 
     @property
     def groups(self):
+        """Names of all the groups held in the field.
+
+        Returns
+        -------
+        list
+            List of quantity names.
+        """
         return set(self._groups.keys())
 
     def has_group(self, group):
+        """Check if the field has *group*.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+
+        Returns
+        -------
+        boolean
+            True if the field contains *group*, otherwise False.
+        """
         return group in self._groups
 
     def new_field_location(self, group, size):
+        """Add a new quantity to a field.
+
+        Parameters
+        ----------
+        group: str
+            Name of the new group to add to the field.
+        size: int
+            Number of elements in the new quantity.
+
+        Raises
+        ------
+        ValueError
+            If the field already contains the group.
+        """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
         else:
@@ -65,16 +97,55 @@ class ModelDataFields(object):
             setattr(self, 'at_' + group, self[group])
 
     def field_values(self, group, field):
+        """Get values of a field.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str
+            Name of the field withing *group*.
+
+        Returns
+        -------
+        array
+            The values of the field.
+
+        Raises
+        ------
+        KeyError
+            If either *field* or *group* does not exist.
+        """
         return self[group][field]
 
     def field_units(self, group, field):
+        """Get units for a field.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str
+            Name of the field withing *group*.
+
+        Returns
+        -------
+        str
+            The units of the field.
+
+        Raises
+        ------
+        KeyError
+            If either *field* or *group* does not exist.
+
+        """
         return self[group].units[field]
 
     def __getitem__(self, group):
         return self._groups[group]
 
 
-def get_method_from_class(clazz, method_name):
+def _get_method_from_class(clazz, method_name):
     method = getattr(clazz, method_name)
     if inspect.ismethod(method):
         return method
@@ -82,19 +153,19 @@ def get_method_from_class(clazz, method_name):
         raise TypeError('%s is not a bound method' % method_name)
 
 
-def is_regular_method_name(name):
+def _is_regular_method_name(name):
     return not (name.startswith('__') and name.endswith('__'))
 
 
-def regular_method_names(clazz):
+def _regular_method_names(clazz):
     methods = set()
     for (name, _) in inspect.getmembers(clazz, inspect.ismethod):
-        if is_regular_method_name(name):
+        if _is_regular_method_name(name):
             methods.add(name)
     return methods
 
 
-def prepend_arg_list_with_dict_value(destination_class, method):
+def _prepend_arg_list_with_dict_value(destination_class, method):
     def func_with_dict_value_first(self, group, *args, **kwds):
         return method(self[group], *args, **kwds)
     func_with_dict_value_first.__doc__ = method.__doc__
@@ -103,13 +174,13 @@ def prepend_arg_list_with_dict_value(destination_class, method):
                             destination_class)
 
 
-def add_methods_to_grouped_fields_class():
-    for name in (regular_method_names(ScalarDataFields) -
-                 regular_method_names(ModelDataFields)):
-        method = get_method_from_class(ScalarDataFields, name)
-        new_method = prepend_arg_list_with_dict_value(ModelDataFields,
+def _add_methods_to_grouped_fields_class():
+    for name in (_regular_method_names(ScalarDataFields) -
+                 _regular_method_names(ModelDataFields)):
+        method = _get_method_from_class(ScalarDataFields, name)
+        new_method = _prepend_arg_list_with_dict_value(ModelDataFields,
                                                       method)
         setattr(ModelDataFields, name, new_method)
 
 
-add_methods_to_grouped_fields_class()
+_add_methods_to_grouped_fields_class()
