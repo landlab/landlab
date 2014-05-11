@@ -37,9 +37,9 @@ class ModelDataFields(object):
 
     See Also
     --------
-    :class:`landlab.field.ScalarDataFields` : Data fields within a *group* are
+    landlab.field.ScalarDataFields : Data fields within a *group* are
         stored as :class:`landlab.field.ScalarDataFields`.
-    :class:`landlab.grid.ModelGrid` : Inherits from ModelDataFields.
+    landlab.grid.ModelGrid : Inherits from ModelDataFields.
 
     Examples
     --------

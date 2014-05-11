@@ -23,6 +23,11 @@ class FieldError(Error, KeyError):
 class ScalarDataFields(dict):
     """Collection of named data fields that are of the same size.
 
+    Holds a collection of data fields that all contain the same number of
+    elements and index each of them with a name. This class inherits from
+    a standard Python `dict`, which allows access to the fields through
+    dict-like syntax.
+
     Parameters
     ----------
     size : int
@@ -32,6 +37,11 @@ class ScalarDataFields(dict):
     ----------
     units
     size
+
+    See Also
+    --------
+    landlab.field.ModelDataFields.ones : Hold collections of
+        `ScalarDataFields`.
     """
     def __init__(self, size):
         self._size = size
@@ -70,10 +80,10 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.empty`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.ones`: Equivalent method that
+        numpy.empty : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.ones : Equivalent method that
             initializes the data to 1.
-        :ref:`landlab.field.ScalarDataFields.zeros`: Equivalent method that
+        landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
 
         Examples
@@ -98,10 +108,10 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.ones`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.empty`: Equivalent method that
+        numpy.ones : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.empty : Equivalent method that
             does not initialize the new array.
-        :ref:`landlab.field.ScalarDataFields.zeros`: Equivalent method that
+        landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
 
         Examples
@@ -127,11 +137,11 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.zeros`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.empty`: Equivalent method that
-            does not initialize the new array.
-        :ref:`landlab.field.ScalarDataFields.ones`: Equivalent method that
-            initializes the data to 1.
+        numpy.zeros : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.empty : Equivalent method that does not
+            initialize the new array.
+        landlab.field.scalar_data_fields.ScalarDataFields.ones : Equivalent
+            method that initializes the data to 1.
 
         Examples
         --------
@@ -168,10 +178,10 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.empty`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.empty`: Equivalent method that
+        numpy.empty : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.empty : Equivalent method that
             does not initialize the new array.
-        :ref:`landlab.field.ScalarDataFields.zeros`: Equivalent method that
+        landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
         """
         return self.add_field(name, self.empty(**kwds), units=units)
@@ -198,10 +208,10 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.ones`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.add_empty`: Equivalent method that
+        numpy.ones : See for a description of optional keywords.
+        andlab.field.ScalarDataFields.add_empty : Equivalent method that
             does not initialize the new array.
-        :ref:`landlab.field.ScalarDataFields.add_zeros`: Equivalent method that
+        andlab.field.ScalarDataFields.add_zeros : Equivalent method that
             initializes the data to 0.
 
         Examples
@@ -240,10 +250,10 @@ class ScalarDataFields(dict):
 
         See Also
         --------
-        :ref:`numpy.zeros`: See for a description of optional keywords.
-        :ref:`landlab.field.ScalarDataFields.add_empty`: Equivalent method that
+        zeros : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.add_empty : Equivalent method that
             does not initialize the new array.
-        :ref:`landlab.field.ScalarDataFields.add_ones`: Equivalent method that
+        landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
 
         """
