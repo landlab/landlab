@@ -248,14 +248,13 @@ class ScalarDataFields(dict):
         array :
             A reference to the newly-created array.
 
-        See Also
+        See also
         --------
-        zeros : See for a description of optional keywords.
+        numpy.zeros : See for a description of optional keywords.
         landlab.field.ScalarDataFields.add_empty : Equivalent method that
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
-
         """
         return self.add_field(name, self.zeros(**kwds), units=units)
 
