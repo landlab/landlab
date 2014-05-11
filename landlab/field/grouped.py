@@ -1,8 +1,23 @@
 #! /usr/bin/env python
+"""Store collections of data fields.
+"""
 import types
 import inspect
 
-from landlab.field import ScalarDataFields
+from .scalar_data_fields import ScalarDataFields, FieldError
+
+class Error(Exception):
+    """Base class for errors in this module."""
+    pass
+
+
+class GroupError(Error, KeyError):
+    """Raise this error for a missing group name."""
+    def __init__(self, group):
+        self._group = group
+
+    def __str__(self):
+        return self._group
 
 
 class ModelDataFields(object):
@@ -19,6 +34,12 @@ class ModelDataFields(object):
     Attributes
     ----------
     groups
+
+    See Also
+    --------
+    :class:`landlab.field.ScalarDataFields` : Data fields within a *group* are
+        stored as :class:`landlab.field.ScalarDataFields`.
+    :class:`landlab.grid.ModelGrid` : Inherits from ModelDataFields.
 
     Examples
     --------
@@ -61,8 +82,8 @@ class ModelDataFields(object):
 
         Returns
         -------
-        list
-            List of quantity names.
+        set
+            Set of quantity names.
         """
         return set(self._groups.keys())
 
@@ -78,11 +99,26 @@ class ModelDataFields(object):
         -------
         boolean
             True if the field contains *group*, otherwise False.
+
+        Examples
+        --------
+        Check if the field has the groups named *node* or *cell*.
+
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+        >>> fields.has_group('node')
+        True
+        >>> fields.has_group('cell')
+        False
         """
         return group in self._groups
 
     def new_field_location(self, group, size):
         """Add a new quantity to a field.
+
+        Create an empty group into which new fields can be added. The new group
+        is created but no memory allocated yet. The dictionary of the new group
+        can be through a new *at_* attribute of the class instance.
 
         Parameters
         ----------
@@ -95,6 +131,28 @@ class ModelDataFields(object):
         ------
         ValueError
             If the field already contains the group.
+
+        Examples
+        --------
+        Create a collection of fields and add two groups, *node* and *cell*,
+        to it.
+
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+        >>> fields.new_field_location('cell', 2)
+
+        The group names in the collection are retrieved with the *groups*
+        attribute as a `set`.
+
+        >>> names = list(fields.groups)
+        >>> names.sort()
+        >>> names
+        ['cell', 'node']
+
+        Access the new (empty) groups with the *at_* attributes.
+
+        >>> fields.at_cell, fields.at_node
+        ({}, {})
         """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
@@ -104,6 +162,9 @@ class ModelDataFields(object):
 
     def field_values(self, group, field):
         """Get values of a field.
+
+        Given a *group* and a *field*, return a reference to the associated
+        data array.
 
         Parameters
         ----------
@@ -119,13 +180,47 @@ class ModelDataFields(object):
 
         Raises
         ------
-        KeyError
-            If either *field* or *group* does not exist.
+        GroupError
+            If *group* does not exits
+        FieldError
+            If *field* does not exits
+
+        Examples
+        --------
+        Create a group of fields called *node*.
+
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+
+        Add a field, initialized to ones, called *planet_surface__elevation*
+        to the *node* group. The *field_values* method returns a reference
+        to the field's data.
+
+        >>> _ = fields.add_ones('node', 'planet_surface__elevation')
+        >>> fields.field_values('node', 'planet_surface__elevation')
+        array([ 1.,  1.,  1.,  1.])
+
+        Raise FieldError if *field* does not exist in *group*.
+
+        >>> fields.field_values('node', 'planet_surface__temperature')
+        Traceback (most recent call last):
+            ...
+        FieldError: planet_surface__temperature
+
+        If *group* does not exists, Raise GroupError.
+
+        >>> fields.field_values('cell', 'planet_surface__elevation')
+        Traceback (most recent call last):
+            ...
+        GroupError: cell
         """
         return self[group][field]
 
     def field_units(self, group, field):
         """Get units for a field.
+
+        Returns the unit string associated with the data array in *group* and
+        *field*.
 
         Parameters
         ----------
@@ -148,7 +243,10 @@ class ModelDataFields(object):
         return self[group].units[field]
 
     def __getitem__(self, group):
-        return self._groups[group]
+        try:
+            return self._groups[group]
+        except KeyError:
+            raise GroupError(group)
 
 
 def _get_method_from_class(clazz, method_name):
