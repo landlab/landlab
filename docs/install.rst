@@ -98,7 +98,7 @@ to keep up with the latest bug fixes.
 .. note::
 
     If you are planning on developing for landlab (making changes to the code)
-    please see our `Developers' Guide <dev_guide>` for installation instructions.
+    please see our :ref:`Developers' Guide <dev_guide>` for installation instructions.
 
 .. note::
 
