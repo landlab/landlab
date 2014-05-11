@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.field.grouped import ModelDataFields
+from landlab.field.grouped import ModelDataFields, GroupError
 
 
 class TestModelDataFields(unittest.TestCase):
@@ -76,6 +76,8 @@ class TestModelDataFields(unittest.TestCase):
         fields.new_field_location('node', 12)
 
         self.assertDictEqual(dict(), fields['node'])
+        with self.assertRaises(GroupError):
+            fields['cell']
         with self.assertRaises(KeyError):
             fields['cell']
 
