@@ -49,8 +49,8 @@ depend on how you want to use landlab.
   code, you should follow the :ref:`Installing with pip <basic-install>`
   instructions.
 - If you would like to see the Landlab source code and/or make changes or
-  add to the code, you should follow :ref:`Install as a Developer
-  <developer-install>` instructions.
+  add to the code, you should follow :ref:`The Developer's Guide
+  <dev_guide>`.
 
 .. _basic-install:
 
@@ -62,7 +62,7 @@ Installing with pip
   If you are developing landlab you will probably not want to do this!
   If you do, you would have to run this command everytime you make a change to
   the code. Instead, you want to install landlab in "development mode". See
-  the :ref:`Install as a Developer <developer-install>` section for details
+  the :ref:`The Developer's Guide <dev_guide>` section for details
   on how to do this.
 
 Use this method if you would like to install the landlab onto your machine
@@ -71,7 +71,7 @@ command line, and write scripts that use landlab modules but will not have
 access to the source. If you would would like to see the code or make tweaks
 to it (large or small) you should install landlab from source (see
 :ref:`Installing from source <source-install>`, or the
-:ref:`Developer's Guide <developer-install>`).
+:ref:`Developer's Guide <dev_guide>`).
 
 The most recent stable release of Landlab is available at the `Python Package
 Index <https://pypi.python.org/pypi>`_ and can be installed by running::
