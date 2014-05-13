@@ -14,13 +14,8 @@ from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
 from . import grid_funcs as gfuncs
-<<<<<<< HEAD
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-=======
-from .base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
-                   FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY, INACTIVE_BOUNDARY,
->>>>>>> FETCH_HEAD
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
 from . import raster_funcs as rfuncs
 
