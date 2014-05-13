@@ -60,7 +60,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
 
 
 def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
-                                                     **kwds):
+                                                 **kwds):
     """calculate_steepest_descent_across_adjacent_cells(grid, node_values, [cell_ids], method='d4', out=None)
 
     Calculate the steepest downward gradients in *node_values*, given at every
@@ -122,7 +122,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
 
 def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
-                                                   **kwds):
+                                               **kwds):
     """calculate_steepest_descent_across_cell_corners(grid, node_values [, cell_ids], return_node=False, out=None)
     Convention: positive gradient is up, find and return the minimum gradient.
     """
@@ -144,8 +144,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         return grads.min(axis=1, **kwds)
 
 
-def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
-                                                 **kwds):
+def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
     """calculate_steepest_descent_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
     Convention: gradients positive UP
 

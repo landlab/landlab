@@ -601,10 +601,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If a link does not have an associated face (e.g., some inactive links),
         that entry in the returned array is set to BAD_INDEX_VALUE.
         
-        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> mg = RasterModelGrid(4, 5)
-        >>> np.all(mg.link_faces([0, 1, 15, 19, 12, 26]) == np.array([ X,  0,  X,  9,  7, 16]))
-        True
+        >>> mg.link_faces([0, 1, 15, 19, 12, 26])
+        array([9223372036854775807,                   0, 9223372036854775807,
+                                 9,                   7,                  16])
         '''
         link_ids = make_arg_into_array(link_id)
         return self.link_face[link_ids]
@@ -1494,7 +1494,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.set_fixed_gradient_boundaries(False, True, False, True, my_gradients) #third case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([-0.5, -0.5, -0.5, -0.5,  0.6,  0.1,  0.1,  0.1, -0.4, -0.6, -0.1,
-            -0.1, -0.1,  0.4])
+               -0.1, -0.1,  0.4])
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
         array([ 9, 14,  5, 10,  0,  1,  2,  3,  4, 15, 16, 17, 18, 19])
         >>> rmg.fixed_gradient_node_properties['anchor_node_IDs']
@@ -1617,22 +1617,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 #the supplied gradient was a single number
                 fixed_gradient_array = numpy.array([], dtype=float)
                 if bottom_is_fixed:
-                    bottom_fixed_gradients = numpy.ones(bottom_edge.size, dtype=float)*fixed_gradient
+                    bottom_fixed_gradients = numpy.ones(bottom_edge.size, dtype=float)*-fixed_gradient
                     #force the corner gradient:
                     bottom_fixed_gradients[0] = 0.
                     bottom_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, bottom_fixed_gradients))
                 if right_is_fixed:
-                    right_fixed_gradients = numpy.ones(right_edge.size,dtype=float)*-fixed_gradient
+                    right_fixed_gradients = numpy.ones(right_edge.size,dtype=float)*fixed_gradient
                     #right_fixed_gradients[0] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, right_fixed_gradients))
                 if top_is_fixed:
-                    top_fixed_gradients = numpy.ones(top_edge.size,dtype=float)*-fixed_gradient
+                    top_fixed_gradients = numpy.ones(top_edge.size,dtype=float)*fixed_gradient
                     top_fixed_gradients[0] = 0.
                     top_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, top_fixed_gradients))
                 if left_is_fixed:
-                    left_fixed_gradients = numpy.ones(left_edge.size,dtype=float)*fixed_gradient
+                    left_fixed_gradients = numpy.ones(left_edge.size,dtype=float)*-fixed_gradient
                     #left_fixed_gradients[-1] = 0.
                     fixed_gradient_array = numpy.concatenate((fixed_gradient_array, left_fixed_gradients))
                 self.force_boundaries_from_gradients(boundary_links, fixed_gradient_array, gradient_of)
@@ -2327,19 +2327,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
         
     def get_active_link_connecting_node_pair(self, node_a, node_b):
-        """
+        '''
         Returns an array of active link indices that *node_a* and *node_b* 
-        share.  If the nodes do not share any active links, returns an
-        empty array.  Overrides base function of the same name.
-
-        >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid(4, 5)
-        >>> rmg.get_active_link_connecting_node_pair(8, 3)
-        2
-        """
+        share. *node_a* and *node_b* may be ints, or arrays of ints of equal
+        length.
+        If the nodes do not share any active links, returns the BAD_INDEX_VALUE.
+        Overrides base function of the same name.
+        '''
         node_links_a = self.active_node_links(node_a)
         node_links_b = self.active_node_links(node_b)
-        return int(numpy.intersect1d(node_links_a, node_links_b))
+        try:
+            dim = node_links_a.shape[1]
+            intersections = numpy.empty(dim, dtype=int)
+            for i in xrange(dim):
+                this_iter = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
+                intersections[i] = this_iter[this_iter!=-1]
+        except:
+            intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+            intersections = intersections[intersections!=-1]
+        return intersections
 
     def top_edge_node_ids(self):
         """
