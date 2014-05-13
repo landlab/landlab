@@ -146,8 +146,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
 
 def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
                                                  **kwds):
-    """calculate_steepest_descent_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
-    Convention: gradients positive UP
+    """calculate_steepest_descent_across_cell_faces(grid, node_values [, cell_ids], return_node=False, out=None)
 
     This method calculates the gradients in *node_values* across all four
     faces of the cell or cells with ID *cell_ids*. Slopes upward from the
@@ -159,11 +158,44 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     of the minimum gradient, i.e., the steepest descent. Note the gradient value
     returned is probably thus negative.
 
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Input grid.
+    node_values : array_like
+        Values to take gradient of.
+    cell_ids : array_link, optional
+        IDs of grid cells to measure gradients.
+    return_node: boolean, optional
+        Return node IDs of the node that has the steepest descent.
+    out : ndarray, optional
+        Alternative output array in which to place the result.  Must
+        be of the same shape and buffer length as the expected output.
+
+    Returns
+    -------
+    ndarray :
+        Calculated gradients to lowest node across cell faces.
+
+    Convention: gradients positive UP
+
+    Examples
+    --------
+    Create a rectilinear grid that is 3 nodes by 3 nodes and so has one cell
+    centered around node 4.
+
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
+
+    Calculate gradients across each cell face and choose the gradient to the
+    lowest node.
+
     >>> calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes)
     array([-3.])
+
+    The steepest gradient is to node with id 1.
+
     >>> (_, ind) = calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes, return_node=True)
     >>> ind
     array([1])
