@@ -144,9 +144,9 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         return grads.min(axis=1, **kwds)
 
 
-def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
-    """calculate_steepest_descent_across_cell_faces(grid, node_values, [cell_ids], return_node=False, out=None)
-    Convention: gradients positive UP
+def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
+                                                 **kwds):
+    """calculate_steepest_descent_across_cell_faces(grid, node_values [, cell_ids], return_node=False, out=None)
 
     This method calculates the gradients in *node_values* across all four
     faces of the cell or cells with ID *cell_ids*. Slopes upward from the
@@ -158,11 +158,44 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args, **kwd
     of the minimum gradient, i.e., the steepest descent. Note the gradient value
     returned is probably thus negative.
 
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Input grid.
+    node_values : array_like
+        Values to take gradient of.
+    cell_ids : array_link, optional
+        IDs of grid cells to measure gradients.
+    return_node: boolean, optional
+        Return node IDs of the node that has the steepest descent.
+    out : ndarray, optional
+        Alternative output array in which to place the result.  Must
+        be of the same shape and buffer length as the expected output.
+
+    Returns
+    -------
+    ndarray :
+        Calculated gradients to lowest node across cell faces.
+
+    Convention: gradients positive UP
+
+    Examples
+    --------
+    Create a rectilinear grid that is 3 nodes by 3 nodes and so has one cell
+    centered around node 4.
+
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
+
+    Calculate gradients across each cell face and choose the gradient to the
+    lowest node.
+
     >>> calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes)
     array([-3.])
+
+    The steepest gradient is to node with id 1.
+
     >>> (_, ind) = calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes, return_node=True)
     >>> ind
     array([1])
@@ -224,13 +257,43 @@ def node_id_of_cell_neighbor(grid, inds, *args):
 
 
 def node_id_of_cell_corner(grid, inds, *args):
-    """ node_id_of_cell_corner(grid, corner_ids [, cell_ids])
+    """node_id_of_cell_corner(grid, corner_ids [, cell_ids])
 
     Return an array of the node ids for diagonal neighbors of *cell_id* cells.
     *corner_ids* is an index into the corners of a cell as measured
     clockwise starting from the southeast.
 
     If *cell_ids* is not given, return neighbors for all cells in the grid.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Input grid.
+    corner_ids : array_like
+        IDs of the corner nodes.
+    cell_ids : array_like, optional
+        IDs of cell about which to get corners
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid(4, 5, 1.0)
+    >>> node_id_of_cell_corner(grid, 0, 0)
+    array([2])
+
+    Get the lower-right and the the upper-left corners for all the cells.
+
+    >>> node_id_of_cell_corner(grid, 0)
+    array([2, 3, 4, 7, 8, 9])
+    >>> node_id_of_cell_corner(grid, 2)
+    array([10, 11, 12, 15, 16, 17])
+
+    As an alternative to the above, use fancy-indexing to get both sets of
+    corners with one call.
+
+    >>> node_id_of_cell_corner(grid, np.array([0, 2]), [1, 4])
+    array([[ 3, 11],
+           [ 8, 16]])
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_index_at_cells[cell_ids]
@@ -239,36 +302,58 @@ def node_id_of_cell_corner(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return diagonals[xrange(len(cell_ids)), 3 - inds]
+    return np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
+                   3 - inds, axis=1)
+    #return diagonals[xrange(len(cell_ids)), 3 - inds]
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
-    """
+    """Net flux into or out of nodes.
+
     Same as calculate_flux_divergence_at_active_cells, but works with and
     returns a list of net unit fluxes that corresponds to all nodes, rather
     than just active cells.
     
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Input grid.
+    active_link_flux : array_like
+        Flux values at links.
+    out : ndarray, optional
+        Alternative output array in which to place the result.  Must
+        be of the same shape and buffer length as the expected output.
+        
+    See Also
+    --------
+    calculate_flux_divergence_at_active_cells
+
+    Notes
+    -----
     Note that we DO compute net unit fluxes at boundary nodes (even though
     these don't have active cells associated with them, and often don't have 
     cells of any kind, because they are on the perimeter). It's up to the 
     user to decide what to do with these boundary values.
-    
-    Example:
+
+    Example
+    -------
+    Calculate the gradient of values at a grid's nodes.
 
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(4, 5, 1.0)
-    >>> u = [0., 1., 2., 3., 0.,
-    ...      1., 2., 3., 2., 3.,
-    ...      0., 1., 2., 1., 2.,
-    ...      0., 0., 2., 2., 0.]
-    >>> u = np.array(u)
+    >>> u = np.array([0., 1., 2., 3., 0.,
+    ...               1., 2., 3., 2., 3.,
+    ...               0., 1., 2., 1., 2.,
+    ...               0., 0., 2., 2., 0.])
     >>> grad = rmg.calculate_gradients_at_active_links(u)
     >>> grad
     array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
             1.,  1., -1.,  1.])
-    >>> flux = -grad    # downhill flux proportional to gradient
-    >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
-    >>> df
+
+    Calculate the divergence of the gradients at each node.
+
+    >>> flux = - grad    # downhill flux proportional to gradient
+    >>> rmg.calculate_flux_divergence_at_nodes(flux)
     array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
            -4.,  1.,  0., -1.,  0.,  1.,  0.])
         
@@ -280,11 +365,10 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> rmg.number_of_nodes
     20
         
-    Then do this inside the loop:
+    Then do this inside the loop so that the function will not have to create
+    the df array but instead puts values into the *df* array.
         
-    >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
-        
-    In this case, the function will not have to create the df array.
+    >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
     """
     assert (len(active_link_flux) == grid.number_of_active_links), \
            "incorrect length of active_link_flux array"
