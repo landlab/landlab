@@ -1314,6 +1314,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         
@@ -1393,7 +1396,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if left_is_closed:
             self.node_status[left_edge] = CLOSED_BOUNDARY
-        
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         
@@ -1456,7 +1462,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if left_is_closed:
             self.node_status[left_edge] = CLOSED_BOUNDARY
-        
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         
@@ -1528,6 +1537,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                    these_linked_nodes,
                                    right_edge-1, left_edge+1))
 
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         try:
@@ -1768,6 +1780,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_links = self.node_links(left_edge)[3,:]
             boundary_links = numpy.concatenate((boundary_links, left_links))
         
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         try:

@@ -122,33 +122,33 @@ Access the grid geometry
 cells, links, faces. This might include their statuses (active/inactive; core/boundary;
 open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 
-.. autoattribute:: landlab.grid.base.ModelGrid.active_cell_index
-.. autoattribute:: landlab.grid.base.ModelGrid.active_cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.active_links
 .. autoattribute:: landlab.grid.base.ModelGrid.active_link_length
 .. automethod:: landlab.grid.base.ModelGrid.calculate_numbers_of_node_neighbors
 .. autoattribute:: landlab.grid.base.ModelGrid.closed_boundary_nodes
+.. autoattribute:: landlab.grid.base.ModelGrid.cell_index
+.. autoattribute:: landlab.grid.base.ModelGrid.cell_index_at_nodes
+.. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index
+.. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.face_index_at_links
 .. automethod:: landlab.grid.base.ModelGrid.get_active_cell_node_ids
 .. automethod:: landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
 .. automethod:: landlab.grid.base.ModelGrid.get_boundary_nodes
-.. automethod:: landlab.grid.base.ModelGrid.get_interior_nodes
+.. automethod:: landlab.grid.base.ModelGrid.get_core_nodes
 .. automethod:: landlab.grid.base.ModelGrid.get_node_status
 .. autoattribute:: landlab.grid.base.ModelGrid.link_length
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. automethod:: landlab.grid.base.ModelGrid.node_axis_coordinates
 .. autoattribute:: landlab.grid.base.ModelGrid.node_boundary_status
-.. autoattribute:: landlab.grid.base.ModelGrid.node_index_at_active_cells
+.. autoattribute:: landlab.grid.base.ModelGrid.node_index_at_core_cells
 .. autoattribute:: landlab.grid.base.ModelGrid.node_index_at_cells
 .. autoattribute:: landlab.grid.base.ModelGrid.node_index_at_link_head
 .. autoattribute:: landlab.grid.base.ModelGrid.node_index_at_link_tail
 .. autoattribute:: landlab.grid.base.ModelGrid.node_x
 .. autoattribute:: landlab.grid.base.ModelGrid.node_y
 .. autoattribute:: landlab.grid.base.ModelGrid.open_boundary_nodes
-.. autoattribute:: landlab.grid.base.ModelGrid.open_nodes
 
-.. automethod:: landlab.grid.raster.RasterModelGrid.active_node_links
-.. automethod:: landlab.grid.raster.RasterModelGrid.are_all_interior
+.. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.cell_faces
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.corner_nodes
@@ -162,9 +162,10 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_neighbor_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
 .. automethod:: landlab.grid.raster.RasterModelGrid.has_boundary_neighbor
-.. automethod:: landlab.grid.raster.RasterModelGrid.is_interior
+.. automethod:: landlab.grid.raster.RasterModelGrid.is_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.left_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.link_faces
+.. automethod:: landlab.grid.raster.RasterModelGrid.node_activelinks
 .. automethod:: landlab.grid.raster.RasterModelGrid.node_links
 .. automethod:: landlab.grid.raster.RasterModelGrid.right_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.top_edge_node_ids
@@ -196,7 +197,7 @@ data defined on the grid.*
 
 .. automethod:: landlab.grid.base.ModelGrid.calculate_diff_at_links
 .. automethod:: landlab.grid.base.ModelGrid.calculate_diff_at_active_links
-.. automethod:: landlab.grid.base.ModelGrid.calculate_flux_divergence_at_active_cells
+.. automethod:: landlab.grid.base.ModelGrid.calculate_flux_divergence_at_core_nodes
 .. automethod:: landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
 .. automethod:: landlab.grid.base.ModelGrid.calculate_gradients_at_links
 .. automethod:: landlab.grid.base.ModelGrid.calculate_gradients_at_active_links

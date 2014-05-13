@@ -502,6 +502,9 @@ class ModelGrid(ModelDataFields):
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
 
     @track_this_method
@@ -1339,12 +1342,28 @@ class ModelGrid(ModelDataFields):
             self.node_status[left_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
-        
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]        
         self._reset_list_of_active_links()
 
     def set_inactive_nodes(self, nodes):
         """
+        .. deprecated:: 0.6
+            Outdated terminology. Use :func:`set_closed_nodes` instead.
         Sets the given nodes' boundary condition statuses to INACTIVE (==4),
+        and resets the list of active links to reflect any changes.
+        """
+        self.node_status[nodes] = CLOSED_BOUNDARY
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
+        self._reset_list_of_active_links()
+        
+    def set_closed_nodes(self, nodes):
+        """
+        Sets the given nodes' boundary condition statuses to CLOSED (==4),
         and resets the list of active links to reflect any changes.
         """
         self.node_status[nodes] = CLOSED_BOUNDARY
