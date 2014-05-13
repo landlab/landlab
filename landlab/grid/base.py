@@ -686,7 +686,7 @@ class ModelGrid(ModelDataFields):
         active_link_id = 0
         for link_id in self.active_link_ids:
             from_node = self.link_fromnode[link_id]
-            from_cell = self.node_activecell[from_node]
+            from_cenode_activecell[from_node]
             to_node = self.link_tonode[link_id]
             to_cell = self.node_activecell[to_node]
             total_flux = active_link_flux[active_link_id] * \
@@ -756,19 +756,30 @@ class ModelGrid(ModelDataFields):
     def get_active_link_connecting_node_pair(self, node1, node2):
         """
         Returns the ID number of the active link that connects the given pair of
-        nodes, or None if not found.
+        nodes, or BAD_INDEX_VALUE if not found.
+        This method is slow, and can only take single ints as *node1* and 
+        *node2*. It should ideally be overridden for optimal functionality in
+        more specialized grid modules (e.g., raster).
+        
+        Example:
+            
+            >>> import landlab as ll
+            >>> rmg = ll.RasterModelGrid(4, 5)
+            >>> rmg.get_active_link_connecting_node_pair(8, 3)
+            array([2])
         """
-        active_link = None
+        active_link = BAD_INDEX_VALUE
         for alink in xrange(0, self.number_of_active_links):
             link_connects_nodes = (
                 (self.activelink_fromnode[alink] == node1 and
-                 self.activelink_tonode[alink] == node2) or
+                self.activelink_tonode[alink] == node2) or
                 (self.activelink_tonode[alink] == node1 and
-                 self.activelink_fromnode[alink] == node2))
+                self.activelink_fromnode[alink] == node2))
             if link_connects_nodes:
                 active_link = alink
                 break
-        return active_link
+        return numpy.array([active_link])
+        
 
     @property
     def active_link_length(self):

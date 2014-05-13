@@ -1,6 +1,12 @@
 #! /usr/env/python
 # -*- coding: utf-8 -*-
 
+"""
+.. deprecated:: 0.4
+This code is no longer supported.
+Use 'dig_craters.py" instead.
+"""
+
 from random import random
 import math
 import numpy
@@ -691,7 +697,6 @@ class impactor(object):
 #The functions in this segment give control over the execution of this module. Adjust the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
 #These should really be in a separate driver file.
 
-@profile
 def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, n_craters=1, surface_slope=0., **kwds):
     '''
     Ad hoc driver code to make this file run as a standalone.
@@ -743,7 +748,6 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, 
     vectors.viewing_raster = copy(elev_raster)
     return cr, mg, vectors
 
-@profile
 def dig_one_crater_then_degrade(loops=1, step=500):
     #Build the dictionary:
     crater_time_sequ = {}
