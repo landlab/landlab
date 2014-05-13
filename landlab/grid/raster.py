@@ -14,8 +14,13 @@ from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
 from . import grid_funcs as gfuncs
+<<<<<<< HEAD
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
+=======
+from .base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
+                   FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY, INACTIVE_BOUNDARY,
+>>>>>>> FETCH_HEAD
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
 from . import raster_funcs as rfuncs
 
@@ -1313,6 +1318,149 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[left_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
+        
+        self._reset_list_of_active_links()
+        
+        
+    def set_closed_boundaries(self, bottom_is_closed, right_is_closed, 
+                                top_is_closed, left_is_closed):
+        """
+        Sets the status of nodes along the specified side(s) of a raster 
+        grid---bottom, right, top, and/or left---to CLOSED_BOUNDARY.
+        
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left are closed (True) or not (False).
+        
+        For a closed boundary:
+            - the nodes are flagged CLOSED_BOUNDARY (status type 4)
+            - all links that connect to a CLOSED_BOUNDARY node are flagged as
+              inactive (so they appear on link-based lists, but not
+              active_link-based lists)
+              
+        This means that if you call the calculate_gradients_at_active_links
+        method, links connecting to closed boundaries will be ignored: there can 
+        be no gradients or fluxes calculated, because the links that connect to 
+        that edge of the grid are not included in the calculation. So, setting a
+        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
+        boundary condition. Note, however, that this applies to the grid as a
+        whole, rather than a particular variable that you might use in your
+        application. In other words, if you want a no-flux boundary in one
+        variable but a different boundary condition for another, then use 
+        another method.
+        
+        This method is a replacement for the now-deprecated method
+        set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
+        to CLOSED_BOUNDARY; it does not set any nodes to FIXED_VALUE_BOUNDARY.
+        
+        The following example sets the top and left boundaries as closed in a
+        four-row by five-column grid that initially has all boundaries open
+        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.set_closed_boundaries(False, False, True, True)
+        >>> rmg.number_of_active_links
+        12
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = BOTTOM
+            top right = TOP
+            top left = TOP
+        This scheme is necessary for internal consistency with looped boundaries.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_closed_boundaries'
+            
+        bottom_edge = range(0, self.number_of_node_columns)
+        right_edge = range(2*self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, 
+                         self.number_of_nodes-self.number_of_node_columns,
+                          self.number_of_node_columns)
+            
+        if bottom_is_closed:
+            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+
+        if right_is_closed:
+            self.node_status[right_edge] = CLOSED_BOUNDARY
+            
+        if top_is_closed:
+            self.node_status[top_edge] = CLOSED_BOUNDARY
+
+        if left_is_closed:
+            self.node_status[left_edge] = CLOSED_BOUNDARY
+        
+        self._reset_list_of_active_links()
+        
+        
+    def set_fixed_value_boundaries(self, bottom_is_fixed_val, right_is_fixed_val, 
+                                top_is_fixed_val, left_is_fixed_val):
+        """
+        Sets the status of nodes along the specified side(s) of a raster 
+        grid---bottom, right, top, and/or left---to FIXED_VALUE_BOUNDARY.
+        
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left sides are to be set (True) or not (False).
+        
+        The status of links (active or inactive) is automatically updated to
+        reflect the changes.
+                
+        The following example sets the bottom and right boundaries as 
+        fixed-value in a four-row by five-column grid that initially has all 
+        boundaries closed (i.e., flagged as node_status=4):
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.set_closed_boundaries(True, True, True, True)
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.set_closed_boundaries(False, False, True, True)
+        >>> rmg.number_of_active_links
+        12
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = BOTTOM
+            top right = TOP
+            top left = TOP
+        This scheme is necessary for internal consistency with looped boundaries.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_closed_boundaries'
+            
+        bottom_edge = range(0, self.number_of_node_columns)
+        right_edge = range(2*self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, 
+                         self.number_of_nodes-self.number_of_node_columns,
+                          self.number_of_node_columns)
+            
+        if bottom_is_closed:
+            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+
+        if right_is_closed:
+            self.node_status[right_edge] = CLOSED_BOUNDARY
+            
+        if top_is_closed:
+            self.node_status[top_edge] = CLOSED_BOUNDARY
+
+        if left_is_closed:
+            self.node_status[left_edge] = CLOSED_BOUNDARY
         
         self._reset_list_of_active_links()
         

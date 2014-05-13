@@ -12,7 +12,6 @@ Getting Started with Landlab
    about
    install
    tutorial
-   faq
 
 
 User's Guide
@@ -21,8 +20,17 @@ User's Guide
 .. toctree::
    :maxdepth: 1
 
-   users_guide
    model_grid
+   users_guide
+   
+   
+Frequently Asked Questions
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   faq
 
 
 Developer Documentation
@@ -46,7 +54,7 @@ API Documentation
 
 
 Bibliography
-------------
+============
 
 .. toctree::
    :maxdepth: 2

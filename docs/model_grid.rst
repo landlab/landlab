@@ -1,11 +1,24 @@
-================
-Model Grid Guide
-================
+========================================================================
+Building Simple Models with Landlab's Gridding Library: A Tutorial Guide
+========================================================================
 
 (NOTE: currently, this web version of the Model Grid Guide is incomplete and not fully 
 formatted. You can obtain a :download:`PDF version here <model_grid_guide/model_grid_description_and_guide.pdf>`.)
 
-ModelGrid is an open-source software package that creates and manages a regular
+When creating a two-dimensional simulation model, often the most time-consuming and
+error-prone task involves writing the code to set up the underlying grid. Irregular
+(or ``unstructured'') grids are especially tricky to implement. Landlab's *ModelGrid*
+package makes this process much easier, by providing a set of library routines for
+creating and managing a 2D grid, attaching data to the grid, performing common input
+and output operations, and  providing library functions that handle common numerical 
+operations such as calculating a field of gradients for a particular state variable. 
+By taking care of much of the overhead involved in writing grid-management code, 
+*ModelGrid* is designed to help you build 2D models quickly and efficiently, freeing you
+to concentration on the science behind the code.
+
+Some of *ModelGrid's* capabilities include:
+
+Landlab's *ModelGrid* is an open-source software package that creates and manages a regular
 or irregular grid for building 2D numerical simulation models. ModelGrid is
 especially useful for finite-volume (FV) and finite-difference (FD) models, but
 also can be used for a variety of other applications. ModelGrid provides
