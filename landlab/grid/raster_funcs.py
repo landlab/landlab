@@ -1,6 +1,6 @@
 import numpy as np
 
-from .base import INACTIVE_BOUNDARY
+from .base import CLOSED_BOUNDARY
 
 
 _VALID_ROUTING_METHODS = set(['d8', 'd4'])
@@ -512,7 +512,7 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
-        if self.node_status[a] != INACTIVE_BOUNDARY:
+        if self.node_status[a] != CLOSED_BOUNDARY:
             single_slope = (u[cell_id] - u[a])/self._dx
         else:
             single_slope = -9999

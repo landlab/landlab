@@ -2,7 +2,7 @@
 
 import numpy
 
-from landlab.grid.base import ModelGrid, INTERIOR_NODE, BAD_INDEX_VALUE
+from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 
 
 def simple_poly_area(x, y):
@@ -113,10 +113,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print x, y
         self._node_x = x
         self._node_y = y
-        [self.node_status, self.interior_nodes, self.boundary_nodes] = \
+        [self.node_status, self.core_nodes, self.boundary_nodes] = \
                 self.find_perimeter_nodes(pts)
-        self._num_active_nodes = len(self.interior_nodes)
-        self._num_cells = len(self.interior_nodes)
+        self._num_active_nodes = len(self.core_nodes)
+        self._num_cells = len(self.core_nodes)
         self._num_active_cells = self.number_of_cells
         [self.node_cell, self.cell_node] = self.setup_node_cell_connectivity(
             self.node_status, self.number_of_cells)
@@ -201,10 +201,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
-        interior_nodes = numpy.where(node_status==0)[0]
+        core_nodes = numpy.where(node_status==0)[0]
     
         # Return the results
-        return node_status, interior_nodes, boundary_nodes
+        return node_status, core_nodes, boundary_nodes
         
     @staticmethod
     def setup_node_cell_connectivity(node_status, ncells):
@@ -218,7 +218,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             node_status: 1D numpy array containing the boundary status code
                          for each node
             ncells: the number of cells (must equal the number of occurrences of
-                    INTERIOR_NODE in node_status)
+                    CORE_NODE in node_status)
                     
         Example:
             
@@ -231,14 +231,14 @@ class VoronoiDelaunayGrid(ModelGrid):
             >>> cell_node
             array([1, 2, 4])
         """
-        assert ncells==numpy.count_nonzero(node_status==INTERIOR_NODE), \
-               'ncells must equal number of INTERIOR_NODE values in node_status'
+        assert ncells==numpy.count_nonzero(node_status==CORE_NODE), \
+               'ncells must equal number of CORE_NODE values in node_status'
 
         cell = 0
         node_cell = numpy.ones(len(node_status), dtype=int)*BAD_INDEX_VALUE
         cell_node = numpy.zeros(ncells, dtype=int)
         for node in range(len(node_cell)):
-            if node_status[node] == INTERIOR_NODE:
+            if node_status[node] == CORE_NODE:
                 node_cell[node] = cell
                 cell_node[cell] = node
                 cell += 1
