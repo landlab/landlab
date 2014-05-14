@@ -219,26 +219,25 @@ properties.*
 particular improving functionality for Voronoi grids and rasters with non-perimeter
 
 .. autoattribute:: landlab.grid.base.ModelGrid.closed_boundary_nodes
+.. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
 .. automethod:: landlab.grid.base.ModelGrid.get_boundary_nodes
 .. automethod:: landlab.grid.base.ModelGrid.get_node_status
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. autoattribute:: landlab.grid.base.ModelGrid.node_boundary_status
-.. autoattribute:: landlab.grid.base.ModelGrid.open_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.open_boundary_nodes
-.. automethod:: landlab.grid.base.ModelGrid.set_inactive_boundaries
-.. automethod:: landlab.grid.base.ModelGrid.set_inactive_nodes
-.. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_inactive
+.. automethod:: landlab.grid.base.ModelGrid.set_closed_boundaries
+.. automethod:: landlab.grid.base.ModelGrid.set_closed_nodes
+.. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
 
-.. automethod:: landlab.grid.raster.RasterModelGrid.are_all_interior
+.. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.force_boundaries_from_gradients
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_boundary_code
 .. automethod:: landlab.grid.raster.RasterModelGrid.has_boundary_neighbor
-.. automethod:: landlab.grid.raster.RasterModelGrid.is_interior
+.. automethod:: landlab.grid.raster.RasterModelGrid.is_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.left_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.right_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_fixed_gradient_boundaries
-.. automethod:: landlab.grid.raster.RasterModelGrid.set_inactive_boundaries
+.. automethod:: landlab.grid.raster.RasterModelGrid.set_closed_boundaries
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 .. automethod:: landlab.grid.raster.RasterModelGrid.top_edge_node_ids
 
