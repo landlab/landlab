@@ -1029,6 +1029,10 @@ class ModelGrid(ModelDataFields):
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """
+        .. deprecated:: 0.6
+            Deprecated due to out of date terminology;
+            use :func:`set_nodata_nodes_to_closed` instead.
+            
         Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
         node_data is equal to the nodata_value.
         
@@ -1040,6 +1044,25 @@ class ModelGrid(ModelDataFields):
             array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
             >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
             >>> mg.set_nodata_nodes_to_inactive(h, -9999)
+            >>> mg.node_status
+            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        """
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+    
+    
+    def set_nodata_nodes_to_closed(self, node_data, nodata_value):
+        """
+        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
+        node_data is equal to the nodata_value.
+        
+        Example:
+            
+            >>> import landlab as ll
+            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+            >>> mg.node_status
+            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+            >>> mg.set_nodata_nodes_to_closed(h, -9999)
             >>> mg.node_status
             array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
@@ -1355,11 +1378,8 @@ class ModelGrid(ModelDataFields):
         Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
         """
-        self.node_status[nodes] = CLOSED_BOUNDARY
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.set_closed_nodes(nodes)
+        
         
     def set_closed_nodes(self, nodes):
         """
