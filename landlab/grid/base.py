@@ -111,6 +111,96 @@ class ModelGrid(ModelDataFields):
     be an unstructured polygonal grid that doesn't necessarily obey or
     understand the Delaunay triangulation, but rather simply accepts
     an input grid from the user. Also a HexModelGrid for hexagonal.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    ndim : int
+        Number of spatial dimensions.
+    node_index_at_cells :  ndarray
+        Nodes associated with cells.
+    active_nodes : ndarray
+        Core and open boundary nodes.
+    core_nodes : ndarray
+        Core nodes.
+    node_boundary_status : ndarray
+        Node status.
+    open_boundary_nodes : ndarray
+        Nodes whose status is *open boundary*.
+    closed_boundary_nodes : ndarray
+        Nodes whose status is *closed boundary*.
+    active_links : ndarray
+        Active links.
+    node_index_at_core_cells : ndarray
+        Nodes associated with core cells.
+    core_cell_index_at_nodes : ndarray
+        Core cells associated with nodes.
+    core_cell_index : ndarray
+        Core cells.
+    node_index_at_link_head : ndarray
+        Node that defines the start of a link.
+    node_index_at_link_tail : ndarray
+        Node defines the end of a link.
+    face_index_at_links : ndarray
+        Face associated with a link.
+    number_of_nodes : int
+        Number of nodes.
+    number_of_cells : int
+        Number of cells.
+    number_of_links : int
+        Number of links.
+    number_of_faces : int
+        Number of faces.
+    number_of_active_nodes : int
+        Number of core and open boundary nodes.
+    number_of_core_nodes : int
+        Number of core nodes.
+    number_of_active_cells: int
+        Number of active cells.
+    number_of_core_cells : int
+        Number of core cells.
+    number_of_active_links : int
+        Number of active links.
+    number_of_active_faces : int
+        Number of active faces.
+    at_node : ScalarDataFields
+        Quantities defined at nodes.
+    at_cell : ScalarDataFields
+        Quantities defined at cells.
+    at_link : ScalarDataFields
+        Quantities defined at links.
+    at_face : ScalarDataFields
+        Quantities defined at faces.
+    at_core_node : ScalarDataFields
+        Quantities defined at core nodes.
+    at_core_cell : ScalarDataFields
+        Quantities defined at core cells.
+    at_active_link : ScalarDataFields
+        Quantities defined at active links.
+    at_active_faces : ScalarDataFields
+        Quantities defined at active faces.
+    get_node_status : ndarray
+        Status of nodes.
+    node_x : ndarray
+        x-coordinates of nodes.
+    node_y : ndarray
+        y-coordinates of nodes.
+    axis_units : tuple
+        Units of axis coordinates.
+    axis_name : tuple
+        Names of axis coordinates.
+    cell_areas : ndarray
+        Areas of grid cells.
+    forced_cell_areas : ndarray
+        Aread of grid cells.
+    face_widths : ndarray
+        Widths of cell faces.
+    link_length : ndarray
+        Lengths of links
+    active_link_length : ndarray
+        Lengths of active links
     """
 
     # Debugging flags (if True, activates some output statements)
@@ -118,7 +208,6 @@ class ModelGrid(ModelDataFields):
     DEBUG_TRACK_METHODS = False
 
     def __init__(self, **kwds):
-        #print 'ModelGrid.__init__'
         super(ModelGrid, self).__init__()
         for element_name in _ARRAY_LENGTH_ATTRIBUTES:
             array_length = self.number_of_elements(element_name)
@@ -189,8 +278,9 @@ class ModelGrid(ModelDataFields):
     @property
     def open_nodes(self):
         """
-        .. deprecated:: 0.6
-            This terminology is no longer preferred, "active_nodes" is a synonym.
+        .. note:: Deprecated since version 0.6.
+            This terminology is no longer preferred, "active_nodes" is a
+            synonym.
             
         Node id for all nodes not marked as a closed boundary
         """
@@ -227,7 +317,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_index_at_active_cells(self):
         """
-        .. deprecated:: 0.6
+        .. note:: Deprecated since version 0.6.
             Deprecated due to out-of-date terminology; 
             use :func:`node_index_at_core_cells` for an exact equivalent.
         Node ID associated with active grid cells
@@ -246,7 +336,7 @@ class ModelGrid(ModelDataFields):
     @property
     def active_cell_index_at_nodes(self):
         """
-        .. deprecated:: 0.6
+        .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
             
@@ -257,7 +347,7 @@ class ModelGrid(ModelDataFields):
     @property
     def active_cell_index(self):
         """
-        .. deprecated:: 0.6
+        .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
         IDs of active cells
@@ -900,7 +990,9 @@ class ModelGrid(ModelDataFields):
         """
         Returns an array of grid cell areas. In the cases of inactive nodes,
         this method forces the area of those nodes so it can return an nnodes-
-        long array. For a raster, it assumes areas are equal to the normal case.
+        long array. For a raster, it assumes areas are equal to the normal
+        case.
+
         For a voronoi...?
         """
         try:
