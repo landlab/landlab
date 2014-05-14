@@ -608,9 +608,10 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 # conform to the interface standards.
 
 def calculate_max_gradient_across_node(grid, u, cell_id):
-    """
-    Possibly deprecated...?
-    
+    """Steepest descent using D8.
+
+    .. note:: Deprecated since version 0.1.
+        Use :func:`calculate_steepest_descent_across_adjacent_cells` instead
     
     This method calculates the gradients in u across all 4 faces of the 
     cell with ID cell_id, and across the four diagonals. It then returns 
@@ -687,9 +688,10 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
 
 
 def calculate_max_gradient_across_node_d4(self, u, cell_id):
-    """
-    .. deprecated:: 0.1
-        Use :func:`calculate_max_gradient_across_cell_faces` instead
+    """Steepest descent using D4.
+
+    .. note:: Deprecated since version 0.1.
+        Use :func:`calculate_steepest_descent_across_cell_faces` instead
 
     This method calculates the gradients in u across all 4 faces of the 
     cell with ID cell_id. It then returns 
@@ -936,8 +938,8 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
 def is_point_on_grid(self, xcoord, ycoord):
     """Check if a point is on a rectilinear grid.
 
-    .. note:: Deprecated
-            Replaced by the more flexible and faster `is_coord_on_grid`.
+    .. note:: Deprecated since version 0.5.
+              Replaced by the more flexible and faster `is_coord_on_grid`.
 
     This method takes x,y coordinates and tests whether they lie within the
     grid. The limits of the grid are taken to be links connecting the 
