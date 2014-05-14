@@ -226,6 +226,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.node_status = node_status
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
+        self._num_core_cells = len(core_nodes)
         self.core_cells = numpy.arange(len(core_nodes))
         self.node_corecell = numpy.empty(node_status.size)
         self.node_corecell.fill(BAD_INDEX_VALUE)
@@ -344,7 +345,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Return the results
         return link_fromnode, link_tonode, num_links
     
-    def is_valid_voronoi_ridge(self, vor, n):
+    @staticmethod
+    def is_valid_voronoi_ridge(vor, n):
         
         SUSPICIOUSLY_BIG = 40000000.0
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
