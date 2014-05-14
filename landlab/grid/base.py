@@ -17,7 +17,7 @@ from landlab.field import ModelDataFields
 from . import grid_funcs as gfuncs
 
 
-#: Indicates that an index is, in some way, *bad*.
+#: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
 
 
@@ -35,12 +35,19 @@ _ARRAY_LENGTH_ATTRIBUTES = {
 }
 
 # Define the boundary-type codes
+
+#: Indicates a node is *core*.
 CORE_NODE = 0
+
+#: Indicates a boundary node is has a fixed values.
 FIXED_VALUE_BOUNDARY = 1
+
+#: Indicates a boundary node is has a fixed gradient.
 FIXED_GRADIENT_BOUNDARY = 2
+
 TRACKS_CELL_BOUNDARY = 3
 
-#: Indicates that a boundary node is *closed*
+#: Indicates a boundary node is *closed*
 CLOSED_BOUNDARY = 4
 
 BOUNDARY_STATUS_FLAGS_LIST = [
@@ -83,25 +90,19 @@ def _sort_points_into_quadrants(x, y, nodes):
     return (west_nodes, east_nodes, north_nodes, south_nodes)
 
 
-def default_axis_names(n_dims):
-    '''
-    Returns a tuple of the default axis names.
-    (Helper function)
-    '''
+def _default_axis_names(n_dims):
+    """Returns a tuple of the default axis names."""
     _DEFAULT_NAMES = ('z', 'y', 'x')
     return _DEFAULT_NAMES[- n_dims:]
 
 
-def default_axis_units(n_dims):
-    '''
-    Returns a tuple of the default axis units.
-    (Helper function)
-    '''
+def _default_axis_units(n_dims):
+    """Returns a tuple of the default axis units."""
     return ('-', ) * n_dims
 
 
 class ModelGrid(ModelDataFields):
-    """
+    """ModelGrid()
     Base class for creating and manipulating 2D structured or
     unstructured grids for numerical models.
     
@@ -112,59 +113,41 @@ class ModelGrid(ModelDataFields):
     understand the Delaunay triangulation, but rather simply accepts
     an input grid from the user. Also a HexModelGrid for hexagonal.
 
-    Parameters
-    ----------
-
     Attributes
     ----------
-    ndim : int
-        Number of spatial dimensions.
-    node_index_at_cells :  ndarray
-        Nodes associated with cells.
-    active_nodes : ndarray
-        Core and open boundary nodes.
-    core_nodes : ndarray
-        Core nodes.
-    node_boundary_status : ndarray
-        Node status.
-    open_boundary_nodes : ndarray
-        Nodes whose status is *open boundary*.
-    closed_boundary_nodes : ndarray
-        Nodes whose status is *closed boundary*.
-    active_links : ndarray
-        Active links.
-    node_index_at_core_cells : ndarray
-        Nodes associated with core cells.
-    core_cell_index_at_nodes : ndarray
-        Core cells associated with nodes.
-    core_cell_index : ndarray
-        Core cells.
-    node_index_at_link_head : ndarray
-        Node that defines the start of a link.
-    node_index_at_link_tail : ndarray
-        Node defines the end of a link.
-    face_index_at_links : ndarray
-        Face associated with a link.
-    number_of_nodes : int
-        Number of nodes.
-    number_of_cells : int
-        Number of cells.
-    number_of_links : int
-        Number of links.
-    number_of_faces : int
-        Number of faces.
-    number_of_active_nodes : int
-        Number of core and open boundary nodes.
-    number_of_core_nodes : int
-        Number of core nodes.
-    number_of_active_cells: int
-        Number of active cells.
-    number_of_core_cells : int
-        Number of core cells.
-    number_of_active_links : int
-        Number of active links.
-    number_of_active_faces : int
-        Number of active faces.
+    ndim
+    node_index_at_cells
+    active_nodes
+    core_nodes
+    node_boundary_status
+    open_boundary_nodes
+    closed_boundary_nodes
+    active_links
+    node_index_at_core_cells
+    core_cell_index_at_nodes
+    core_cell_index
+    node_index_at_link_head
+    node_index_at_link_tail
+    face_index_at_links
+    number_of_nodes
+    number_of_cells
+    number_of_links
+    number_of_faces
+    number_of_active_nodes
+    number_of_core_nodes
+    number_of_active_cells
+    number_of_core_cells
+    number_of_active_links
+    number_of_active_faces
+    node_x
+    node_y
+    axis_units
+    axis_name
+    cell_areas
+    forced_cell_areas
+    face_widths
+    link_length
+    active_link_length
     at_node : ScalarDataFields
         Quantities defined at nodes.
     at_cell : ScalarDataFields
@@ -181,31 +164,11 @@ class ModelGrid(ModelDataFields):
         Quantities defined at active links.
     at_active_faces : ScalarDataFields
         Quantities defined at active faces.
-    get_node_status : ndarray
-        Status of nodes.
-    node_x : ndarray
-        x-coordinates of nodes.
-    node_y : ndarray
-        y-coordinates of nodes.
-    axis_units : tuple
-        Units of axis coordinates.
-    axis_name : tuple
-        Names of axis coordinates.
-    cell_areas : ndarray
-        Areas of grid cells.
-    forced_cell_areas : ndarray
-        Aread of grid cells.
-    face_widths : ndarray
-        Widths of cell faces.
-    link_length : ndarray
-        Lengths of links
-    active_link_length : ndarray
-        Lengths of active links
     """
 
     # Debugging flags (if True, activates some output statements)
-    DEBUG_VERBOSE = False
-    DEBUG_TRACK_METHODS = False
+    _DEBUG_VERBOSE = False
+    _DEBUG_TRACK_METHODS = False
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
@@ -216,8 +179,8 @@ class ModelGrid(ModelDataFields):
             except AttributeError:
                 pass
 
-        self.axis_name = kwds.get('axis_name', default_axis_names(self.ndim))
-        self.axis_units = kwds.get('axis_units', default_axis_units(self.ndim))
+        self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
+        self.axis_units = kwds.get('axis_units', _default_axis_units(self.ndim))
 
     def _initialize( self ):
         pass
@@ -316,11 +279,11 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_active_cells(self):
-        """
+        """Node ID associated with active grid cells
+
         .. note:: Deprecated since version 0.6.
-            Deprecated due to out-of-date terminology; 
+            Uses out-of-date terminology; 
             use :func:`node_index_at_core_cells` for an exact equivalent.
-        Node ID associated with active grid cells
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return active_cell_ids
@@ -335,22 +298,21 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_cell_index_at_nodes(self):
-        """
+        """Active cell ID associated with grid nodes.
+
         .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
-            
-        Active cell ID associated with grid nodes.
         """
         return self.node_activecell
 
     @property
     def active_cell_index(self):
-        """
+        """IDs of active cells
+
         .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
-        IDs of active cells
         """
         return self.active_cells
     
@@ -427,7 +389,6 @@ class ModelGrid(ModelDataFields):
         Number of core cells in the grid (excludes all boundary cells).
         """
         return self._num_core_cells
-        
 
     @property
     def number_of_active_links(self):
@@ -440,16 +401,21 @@ class ModelGrid(ModelDataFields):
         return self._num_active_faces
 
     def number_of_elements(self, element_name):
-        """Return the number of elements, given by the *element_name* string
-        in a grid. *element_name* must be one of:
-            * node
-            * cell
-            * link
-            * face
-            * core_node
-            * core_cell
-            * active_link
-            * active_face
+        """Number of instances of an element.
+        
+        Get the number of instances of a grid element in a grid.
+
+        Parameters
+        ----------
+        element_name : {'node', 'cell', 'link', 'face', 'core_node',
+            'core_cell', 'active_link', 'active_face'}
+            Name of the grid element.
+        }
+
+        Returns
+        -------
+        int :
+            Number of elements in the grid.
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
@@ -457,26 +423,33 @@ class ModelGrid(ModelDataFields):
             raise TypeError('element name not understood')
 
     def get_interior_nodes(self):
-        """
-        .. deprecated:: 0.6
-            Deprecated due to outdated terminology;
-            use :func:`core_nodes` instead.
-            
-        Return node IDs of all of a grid's interior nodes. Interior nodes
+        """Return node IDs of all of a grid's interior nodes. Interior nodes
         are active nodes that are not on a boundary.
+
+        .. note:: Deprecated since version 0.6.
+            Deprecated due to outdated terminology;
+            use :func:`get_core_nodes` instead.
         """
         return numpy.where(self.node_status == CORE_NODE)[0]
 
     def get_core_nodes(self):
-        """
-        Return node IDs of all of a grid's core nodes.
+        """Node IDs of core nodes.
+
+        Returns
+        -------
+        ndarray :
+            Node IDs of all of a grid's core nodes.
         """
         return self.core_nodes
 
     @make_return_array_immutable
     def get_node_status(self):
-        """
-        Returns an array of node boundary-status codes.
+        """Status of grid nodes.
+
+        Returns
+        -------
+        ndarray :
+            Node status of all a grid's nodes.
         """
         return self.node_status
 
@@ -494,10 +467,21 @@ class ModelGrid(ModelDataFields):
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
-        """
+        """Coordinates of nodes along a particular axis.
+
         Return node coordinates from a given *axis* (defaulting to 0). Axis
         numbering is the same as that for numpy arrays. That is, the zeroth
         axis is along the rows, and the first along the columns.
+
+        Parameters
+        ----------
+        axis : int, optional
+            Coordinate axis.
+
+        Returns
+        -------
+        ndarray :
+            Coordinates of nodes for a given axis.
         """
         AXES = ('node_y', 'node_x')
         try:
@@ -530,31 +514,45 @@ class ModelGrid(ModelDataFields):
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
 
-    def create_node_array_zeros( self, name=None ):
-        """
+    def create_node_array_zeros(self, name=None, **kwds):
+        """Return a new array of the given type, filled with zeros.
+
         Returns a 1D numpy array the same length as the number of nodes. If
-        user gives optional argument 'name', we add this data to the grid with
+        user gives optional argument *name*, we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
         create and return a 1D numpy array. This is the primary method for
         loading your data into the grid fields.
-        
-        Example of loading data:
-            >>> rmg = RasterModelGrid(4,5)
-            >>> mydata = numpy.arange(20, dtype=float)
-            >>> rmg.create_node_array_zeros('planet_surface__elevation')
-            array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                    0.,  0.,  0.,  0.,  0.,  0.,  0.])
-            >>> rmg.at_node['planet_surface__elevation'] = mydata
-            >>> rmg.at_node['planet_surface__elevation']
-            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
-            
-            
+
+        Parameters
+        ----------
+        name : str
+            Name of the quantity.
+
+        Returns
+        -------
+        ndarray :
+            The newly created array.
+
+        See Also
+        --------
+        zeros
+
+        Examples
+        --------
+        >>> rmg = RasterModelGrid(4,5)
+        >>> mydata = numpy.arange(20, dtype=float)
+        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        >>> rmg.at_node['planet_surface__elevation'] = mydata
+        >>> rmg.at_node['planet_surface__elevation']
+        array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         """
         if name is None:
-            return numpy.zeros(self.number_of_nodes)
+            return numpy.zeros(self.number_of_nodes, **kwds)
         else: 
-            self.add_zeros('node', name)
+            self.add_zeros('node', name, **kwds)
             return self.at_node[name]
         
     def create_active_link_array_zeros( self, name=None ):
@@ -665,11 +663,11 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
-        """
-        .. deprecated:: 0.1
+        """Calculates the gradient in quantity s at each active link in the
+        grid.
+
+        .. note:: Deprecated since version 0.1.
             Use :func:`calculate_gradients_at_active_links`
-        
-        Calculates the gradient in quantity s at each active link in the grid.
         """
         if gradient==None:
             gradient = numpy.zeros(self.number_of_active_links)
@@ -704,7 +702,7 @@ class ModelGrid(ModelDataFields):
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
         """
-        .. deprecated:: 0.6
+        .. note:: Deprecated since version 0.6
             Uses outdated terminology; use the exact equivalent
             :func:`calculate_flux_divergence_at_core_nodes` instead.
             
@@ -747,40 +745,40 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-        Example:
-            
-            >>> from landlab import RasterModelGrid
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
-            >>> divflux
-            array([ 2.,  4., -2.,  0.,  1., -4.])
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = [0., 1., 2., 3., 0.,
+        ...      1., 2., 3., 2., 3.,
+        ...      0., 1., 2., 1., 2.,
+        ...      0., 0., 2., 2., 0.]
+        >>> u = numpy.array(u)
+        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad
+        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
+        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
+        >>> divflux
+        array([ 2.,  4., -2.,  0.,  1., -4.])
             
         If calculate_gradients_at_active_links is called inside a loop, you can
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+        >>> divflux = rmg.zeros(centering='active_cell') # outside loop
             
         Then do this inside the loop:
             
-            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
+        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
             
         In this case, the function will not have to create the divflux array.
         
         Note this method is untested with looped boundary conditions.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -843,23 +841,23 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-        Example:
-            
-            >>> from landlab import RasterModelGrid
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
-            >>> divflux
-            array([ 2.,  4., -2.,  0.,  1., -4.])
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = [0., 1., 2., 3., 0.,
+        ...      1., 2., 3., 2., 3.,
+        ...      0., 1., 2., 1., 2.,
+        ...      0., 0., 2., 2., 0.]
+        >>> u = numpy.array(u)
+        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad
+        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
+        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
+        >>> divflux
+        array([ 2.,  4., -2.,  0.,  1., -4.])
             
         If calculate_gradients_at_core_nodes is called inside a loop, you can
         improve speed slightly by creating an array outside the loop. For 
@@ -876,7 +874,7 @@ class ModelGrid(ModelDataFields):
         Note this method is untested with looped boundary conditions.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -900,7 +898,7 @@ class ModelGrid(ModelDataFields):
     def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
                                                   net_unit_flux=False):
         """
-        .. deprecated:: 0.1
+        .. note:: Deprecated since version 0.1.
             Use :func:`calculate_flux_divergence_at_active_cells`
             
         Original, slower version of calculate_flux_divergence_at_active_cells, 
@@ -909,7 +907,7 @@ class ModelGrid(ModelDataFields):
         to do.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -1048,12 +1046,12 @@ class ModelGrid(ModelDataFields):
         *node2*. It should ideally be overridden for optimal functionality in
         more specialized grid modules (e.g., raster).
         
-        Example:
-            
-            >>> import landlab as ll
-            >>> rmg = ll.RasterModelGrid(4, 5)
-            >>> rmg.get_active_link_connecting_node_pair(8, 3)
-            array([2])
+        Examples
+        --------
+        >>> import landlab as ll
+        >>> rmg = ll.RasterModelGrid(4, 5)
+        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        array([2])
         """
         active_link = BAD_INDEX_VALUE
         for alink in xrange(0, self.number_of_active_links):
@@ -1134,7 +1132,7 @@ class ModelGrid(ModelDataFields):
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid._reset_list_of_active_links'
             
         fromnode_status = self.node_status[self.link_fromnode]
@@ -1201,45 +1199,57 @@ class ModelGrid(ModelDataFields):
         
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
-        """
-        .. deprecated:: 0.6
+        """Set the status to CLOSED_BOUNDARY for all nodes whose value
+        of node_data is equal to the nodata_value.
+
+        .. note:: Deprecated since version 0.6.
             Deprecated due to out of date terminology;
             use :func:`set_nodata_nodes_to_closed` instead.
-            
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
-        
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> mg.node_status
-            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.set_nodata_nodes_to_inactive(h, -9999)
-            >>> mg.node_status
-            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid(3, 4, 1.0)
+        >>> mg.node_status
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> mg.set_nodata_nodes_to_inactive(h, -9999)
+        >>> mg.node_status
+        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
     
     
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
-        """
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
+        """Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
+        of node_data is equal to the nodata_value.
         
-        Example:
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+
+        Examples
+        --------
             
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> mg.node_status
-            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.set_nodata_nodes_to_closed(h, -9999)
-            >>> mg.node_status
-            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+        >>> mg.node_status
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> mg.set_nodata_nodes_to_closed(h, -9999)
+        >>> mg.node_status
+        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
-        
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
@@ -1250,23 +1260,30 @@ class ModelGrid(ModelDataFields):
         
         
     def max_of_link_end_node_values(self, node_data):
-        """
+        """Maximum value at the end of links.
+
         For each active link, finds and returns the maximum value of node_data
         at either of the two ends. Use this, for example, if you want to find
         the maximum value of water depth at linked pairs of nodes (by passing
         in an array of water depth values at nodes).
         
-        node_data: a 1D numpy array with length = number of nodes
-        returns: a 1D numpy array of maximum values, with length = number of
-            active links.
+        Parameters
+        ----------
+        node_data : ndarray
+            Values at grid nodes.
+
+        Returns
+        -------
+        ndarray :
+            Maximum values whose length is the number of active links.
         
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
-            >>> mg.max_of_link_end_node_values(h)
-            array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
+        Examples
+        --------
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+        >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+        >>> mg.max_of_link_end_node_values(h)
+        array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
@@ -1317,9 +1334,6 @@ class ModelGrid(ModelDataFields):
         which is zero. By doing it this way, we maintain the efficiency that 
         comes with the use of numpy. Again, more info can be found in the 
         description of the flux divergence functions.
-        
-        Example:
-            
         """
         
         # Find the maximum number of neighbors for any node
@@ -1381,10 +1395,7 @@ class ModelGrid(ModelDataFields):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
     
     def display_grid(self, draw_voronoi=False):
-        """
-        Displays the grid (mainly for purposes of debugging/testing and
-        visual examples).
-        """
+        """Displays the grid."""
         import matplotlib.pyplot as plt
         
         # Plot nodes, colored by boundary vs interior
@@ -1420,9 +1431,22 @@ class ModelGrid(ModelDataFields):
         
         
     def is_boundary(self, ids, boundary_flag=None):
-        """
+        """Check if nodes are boundary nodes.
+
         Check if nodes at given *ids* are boundary nodes. Use the
         *boundary_flag* to specify a particular boundary type status flag.
+
+        Parameters
+        ----------
+        ids : ndarray
+            Node IDs to check.
+        boundary_flag : int, optional
+            A boundary type to check for.
+
+        Returns
+        -------
+        ndarray
+            Array of booleans indicating if nodes are boundary nodes.
         """
         if boundary_flag is None:
             return ~ (self.node_status[ids] == CORE_NODE)
@@ -1430,8 +1454,14 @@ class ModelGrid(ModelDataFields):
             return self.node_status[ids] == boundary_flag
     
     def get_boundary_nodes(self):
-        """
-        Returns ids of all open and closed boundary nodes in the grid.
+        """Boundary nodes of a grid.
+
+        Gat ids of all open and closed boundary nodes in the grid.
+
+        Returns
+        -------
+        ndarray
+            IDs of boundary nodes.
         """
         return numpy.where(self.node_status != 0)[0]
     
@@ -1441,21 +1471,23 @@ class ModelGrid(ModelDataFields):
         right, top or bottom of the grid, based on its distance from the grid's
         centerpoint (mean (x,y) position). Returns lists of nodes on each of 
         the four grid sides. Assumes self.node_status, self.number_of_nodes, 
-        self.boundary_nodes, self._node_x, and self._node_y have been initialized.
+        self.boundary_nodes, self._node_x, and self._node_y have been
+        initialized.
         
-        Example:
+        Examples
+        --------
 
-            >>> import landlab as ll
-            >>> m = ll.HexModelGrid(5, 3, 1.0)
-            >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
-            >>> l
-            array([ 7, 12,  3], dtype=int32)
-            >>> r
-            array([11, 15,  6], dtype=int32)
-            >>> t
-            array([16, 18, 17], dtype=int32)
-            >>> b
-            array([0, 2, 1], dtype=int32)
+        >>> import landlab as ll
+        >>> m = ll.HexModelGrid(5, 3, 1.0)
+        >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
+        >>> l
+        array([ 7, 12,  3], dtype=int32)
+        >>> r
+        array([11, 15,  6], dtype=int32)
+        >>> t
+        array([16, 18, 17], dtype=int32)
+        >>> b
+        array([0, 2, 1], dtype=int32)
         """
         # Calculate x and y distance from centerpoint
         dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
@@ -1467,9 +1499,10 @@ class ModelGrid(ModelDataFields):
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
         """
-        .. deprecated:: 0.6
+        .. note:: Deprecated since version 0.6.
             Due to imprecise terminology. Use :func:`set_closed_boundaries`
             instead.
+
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
@@ -1496,6 +1529,8 @@ class ModelGrid(ModelDataFields):
         four-row by five-column grid that initially has all boundaries active
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
         
+        Examples
+        --------
         >>> import landlab as ll
         >>> rmg = ll.HexModelGrid(5, 3, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
@@ -1508,7 +1543,7 @@ class ModelGrid(ModelDataFields):
         >>> rmg.node_status
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
@@ -1537,11 +1572,11 @@ class ModelGrid(ModelDataFields):
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_inactive_nodes(self, nodes):
-        """
-        .. deprecated:: 0.6
-            Outdated terminology. Use :func:`set_closed_nodes` instead.
-        Sets the given nodes' boundary condition statuses to INACTIVE (==4),
+        """Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
+
+        .. note:: Deprecated since version 0.6.
+            Outdated terminology. Use :func:`set_closed_nodes` instead.
         """
         self.set_closed_nodes(nodes)
         
