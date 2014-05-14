@@ -1235,8 +1235,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 top_is_inactive, left_is_inactive):
         """
         .. deprecated:: 0.6
-            Due to imprecise terminology. Use :func:`set_closed_boundaries`
-            instead.
+            Due to imprecise terminology. Use 
+        :func:`set_closed_boundaries_at_grid_edges` instead.
+        
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
@@ -1320,8 +1321,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_list_of_active_links()
         
         
-    def set_closed_boundaries(self, bottom_is_closed, right_is_closed, 
-                                top_is_closed, left_is_closed):
+    def set_closed_boundaries_at_grid_edges(self, bottom_is_closed, 
+                                right_is_closed, 
+                                top_is_closed,
+                                left_is_closed):
         """
         Sets the status of nodes along the specified side(s) of a raster 
         grid---bottom, right, top, and/or left---to CLOSED_BOUNDARY.
@@ -1359,7 +1362,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.set_closed_boundaries(False, False, True, True)
+        >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
         >>> rmg.number_of_active_links
         12
         >>> rmg.node_status
@@ -1373,7 +1376,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This scheme is necessary for internal consistency with looped boundaries.
         """
         if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_closed_boundaries'
+            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
             
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -1403,8 +1406,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_list_of_active_links()
         
         
-    def set_fixed_value_boundaries(self, bottom_is_fixed_val, right_is_fixed_val, 
-                                top_is_fixed_val, left_is_fixed_val):
+    def set_fixed_value_boundaries_at_grid_edges(self, bottom_is_fixed_val, 
+                                right_is_fixed_val, 
+                                top_is_fixed_val, 
+                                left_is_fixed_val):
         """
         Sets the status of nodes along the specified side(s) of a raster 
         grid---bottom, right, top, and/or left---to FIXED_VALUE_BOUNDARY.
@@ -1422,14 +1427,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.set_closed_boundaries(True, True, True, True)
+        >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
         >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.set_closed_boundaries(False, False, True, True)
+        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
+        >>> rmg.set_fixed_value_boundaries_at_grid_edges(False, False, True, True)
         >>> rmg.number_of_active_links
         12
         >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        array([4, 4, 4, 4, 4, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 1, 1, 1, 1, 1], dtype=int8)
         
         Note that the four corners are treated as follows:
             bottom left = BOTTOM
@@ -1439,7 +1444,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This scheme is necessary for internal consistency with looped boundaries.
         """
         if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_closed_boundaries'
+            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
             
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -1451,17 +1456,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                          self.number_of_nodes-self.number_of_node_columns,
                           self.number_of_node_columns)
             
-        if bottom_is_closed:
-            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+        if bottom_is_fixed_val:
+            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
-        if right_is_closed:
-            self.node_status[right_edge] = CLOSED_BOUNDARY
+        if right_is_fixed_val:
+            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
             
-        if top_is_closed:
-            self.node_status[top_edge] = CLOSED_BOUNDARY
+        if top_is_fixed_val:
+            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
-        if left_is_closed:
-            self.node_status[left_edge] = CLOSED_BOUNDARY
+        if left_is_fixed_val:
+            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
         node_ids = numpy.array(range(0, self.number_of_nodes))
         self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
@@ -1952,7 +1957,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                bc = None ):
         """
         .. deprecated:: 0.1
-                Use :func:`set_closed_boundaries` instead
+                Use :func:`set_closed_boundaries_at_grid_edges` instead
                 
         Assigns "no flux" status to one or more sides of the rectangular
         domain, for BoundaryCondition "bc", which defaults to ModelGrid's
