@@ -68,6 +68,15 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
     
+    Examples:
+        
+        >>> from numpy.random import rand
+        >>> x = rand(25)
+        >>> y = rand(25)
+        >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
+        >>> vmg.number_of_nodes
+        25
+    
     """
     #print 'VoronoiDelaunayGrid.__init__'
     
@@ -116,7 +125,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print x, y
         self._node_x = x
         self._node_y = y
-        [self.node_status, self.core_nodes, self.boundary_nodes] = \
+        [self.node_status, self._core_nodes, self._boundary_nodes] = \
                 self.find_perimeter_nodes(pts)
         self._num_active_nodes = self.number_of_nodes
         self._num_core_nodes = len(self.core_nodes)
@@ -218,7 +227,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
         self.core_cells = numpy.arange(len(core_nodes))
-        #self.core_nodes = core_nodes
         self.node_corecell = numpy.empty(node_status.size)
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[core_nodes] = self.core_cells
@@ -231,7 +239,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Return the results
         return node_status, core_nodes, boundary_nodes
         
-    @staticmethod
     def setup_node_cell_connectivity(self, node_status, ncells):
         """
         Creates and returns the following arrays:
@@ -275,7 +282,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         return node_cell, cell_node
         
 
-    @staticmethod
     def create_links_from_triangulation(self, tri):
         """
         From a Delaunay Triangulation of a set of points, contained in a
@@ -338,14 +344,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Return the results
         return link_fromnode, link_tonode, num_links
     
-    @staticmethod
     def is_valid_voronoi_ridge(self, vor, n):
         
         SUSPICIOUSLY_BIG = 40000000.0
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
                 and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
 
-    @staticmethod
     def create_links_and_faces_from_voronoi_diagram(self, vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),

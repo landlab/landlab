@@ -157,8 +157,11 @@ class ModelGrid(ModelDataFields):
         """
         Node IDs of all core nodes.
         """
-        (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return core_node_ids
+        try:
+            return self._core_nodes
+        except:
+            (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
+            return core_node_ids
 
     @property
     def node_boundary_status(self):
