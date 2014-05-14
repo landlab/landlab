@@ -23,6 +23,11 @@ User's Guide
    model_grid
    users_guide
    
+.. toctree::
+   :maxdepth: 2  
+   
+   manual_index_alt_format
+    
    
 Frequently Asked Questions
 ==========================

@@ -17,8 +17,10 @@ the type of task you may want to achieve:
 * `Manipulate arrays for plotting and display`_
 
 
-At the moment, this document only covers the base grid and the raster. Voronoi support
-coming soon.
+At the moment, the raster grid is much better developed than the Voronoi grid (and its
+derived unstructured grids). Most calls to ModelGrid methods below will work for such
+unstructured grids, but some may result in errors. Please report such missing 
+functionality through the github page if you need it urgently!
 
 
 Grid creation
@@ -27,6 +29,15 @@ Grid creation
 *These methods are used to create grids.*
 
 .. autoclass:: landlab.grid.raster.RasterModelGrid
+    :members: None
+
+.. autoclass:: landlab.grid.voronoi.VoronoiDelaunayGrid
+    :members: None
+
+.. autoclass:: landlab.grid.radial.RadialModelGrid
+    :members: None
+
+.. autoclass:: landlab.grid.hex.HexModelGrid
     :members: None
 
 

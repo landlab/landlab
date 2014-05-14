@@ -882,6 +882,16 @@ class ModelGrid(ModelDataFields):
         except AttributeError:
             return self._setup_cell_areas_array_force_inactive()    
             
+    @property
+    def face_widths(self):
+        """
+        Returns an array of face widths.
+        """
+        try:
+            return self._face_widths
+        except:
+            return self._setup_face_widths()
+    
     def _setup_cell_areas_array_force_inactive(self):
         '''
         Sets up an array of cell areas which is nnodes long. Nodes which have 

@@ -2658,6 +2658,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             array([13,  4])
         """
         return numpy.ravel_multi_index((row, col), self.shape, **kwds)
+    
+    def _setup_face_widths(self):
+        """
+        Produces an array of length nfaces containing the face width (dx).
+        """
+        self._face_widths = numpy.empty(self.number_of_faces)
+        self._face_widths.fill(self.dx)
+        return self._face_widths
       
     def unit_test( self ):
         """
