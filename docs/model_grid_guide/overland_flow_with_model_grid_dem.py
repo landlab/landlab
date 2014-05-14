@@ -76,8 +76,16 @@ def main():
     t = []
     q_outlet.append(0.)
     t.append(0.)
+    
+    # debugging here
+    print 'NAIM:',mg.node_active_inlink_matrix,type(mg.node_active_inlink_matrix)
+    print 'NAIM take 0:',mg.node_active_inlink_matrix.take([0])
+    print 'NAIM take 1:',mg.node_active_inlink_matrix.take([1])
+    
+    # this line is causing problems ...
     outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
                                                           node_next_to_outlet)
+    print 'outlet_link',type(outlet_link),outlet_link
     
     # Display a message
     print( 'Running ...' )
@@ -164,6 +172,8 @@ def main():
     
     # Plot discharge vs. time
     pylab.figure(1)
+    print 't',type(t)
+    print 'q_outlet',type(q_outlet)
     pylab.plot(np.array(t), np.array(q_outlet)*mg.dx)
     pylab.xlabel('Time (s)')
     pylab.ylabel('Q (m3/s)')

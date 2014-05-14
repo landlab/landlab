@@ -449,8 +449,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self.node_active_outlink_matrix.take(node_ids, axis=1)))
             else:
                 return numpy.hstack(
-                    (self.node_active_inlink_matrix.take(node_ids, axis=1),
-                    self.node_active_outlink_matrix.take(node_ids, axis=1)))
+                    (self.node_active_inlink_matrix.take([node_ids], axis=1),
+                    self.node_active_outlink_matrix.take([node_ids], axis=1)))
 
 
     def _setup_inlink_and_outlink_matrices(self):
@@ -2568,6 +2568,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         '''
         node_links_a = self.active_node_links(node_a)
         node_links_b = self.active_node_links(node_b)
+        print 'looking for an active link connecting nodes',node_a,'and',node_b
+        print 'node_a has',node_links_a
+        print 'node_b has',node_links_b
         try:
             dim = node_links_a.shape[1]
             intersections = numpy.empty(dim, dtype=int)
