@@ -228,6 +228,7 @@ Control boundary conditions
 properties.*
 *Note that boundary condition handling may change somewhat in future development, in
 particular improving functionality for Voronoi grids and rasters with non-perimeter
+boundary nodes.*
 
 .. autoattribute:: landlab.grid.base.ModelGrid.closed_boundary_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
@@ -248,7 +249,8 @@ particular improving functionality for Voronoi grids and rasters with non-perime
 .. automethod:: landlab.grid.raster.RasterModelGrid.left_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.right_edge_node_ids
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_fixed_gradient_boundaries
-.. automethod:: landlab.grid.raster.RasterModelGrid.set_closed_boundaries
+.. automethod:: landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
+.. automethod:: landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 .. automethod:: landlab.grid.raster.RasterModelGrid.top_edge_node_ids
 
