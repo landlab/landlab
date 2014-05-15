@@ -370,7 +370,7 @@ class ModelGrid(ModelDataFields):
         """
         .. deprecated:: 0.6
             Deprecated due to outdated terminology;
-            use :func:`get_core_nodes` instead.
+            use :func:`core_nodes` instead.
             
         Return node IDs of all of a grid's interior nodes. Interior nodes
         are active nodes that are not on a boundary.
@@ -381,7 +381,7 @@ class ModelGrid(ModelDataFields):
         """
         Return node IDs of all of a grid's core nodes.
         """
-        return numpy.where(self.node_status == CORE_NODE)[0]
+        return self.core_nodes
 
     @make_return_array_immutable
     def get_node_status(self):
@@ -445,7 +445,21 @@ class ModelGrid(ModelDataFields):
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array.
+        create and return a 1D numpy array. This is the primary method for
+        loading your data into the grid fields.
+        
+        Example of loading data:
+            >>> rmg = RasterModelGrid(4,5)
+            >>> mydata = numpy.arange(20, dtype=float)
+            >>> rmg.create_node_array_zeros('planet_surface__elevation')
+            array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                    0.,  0.,  0.,  0.,  0.,  0.,  0.])
+            >>> rmg.at_node['planet_surface__elevation'] = mydata
+            >>> rmg.at_node['planet_surface__elevation']
+            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
+            
+            
         """
         if name is None:
             return numpy.zeros(self.number_of_nodes)

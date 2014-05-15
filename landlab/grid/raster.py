@@ -2580,21 +2580,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         print 'node_b has',node_links_b
         try:
             dim = node_links_a.shape[1]
-            print 'dim=',dim
+        except AttributeError:
+            intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+            intersections = intersections[intersections!=-1]
+        else:
             intersections = numpy.empty(dim, dtype=int)
             print 'inters0=',intersections
             for i in xrange(dim):
                 print 'i=',i
                 this_iter = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
-                print 'this_iter=',this_iter
-                intersections[i] = this_iter[this_iter!=-1]
-            print 'try worked'
-        except:
-            print 'try failed'
-            intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
-            print 'inters',intersections
-            intersections = intersections[intersections!=-1]
-            print 'inters2',intersections
+                val_to_store = this_iter[this_iter!=-1]
+                if val_to_store.size:
+                    intersections[i] = val_to_store[0]
+                else:
+                    intersections[i] = BAD_INDEX_VALUE
         return intersections
 
     def top_edge_node_ids(self):

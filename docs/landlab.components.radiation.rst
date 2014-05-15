@@ -12,7 +12,7 @@ radiation Package
 :mod:`radiation` Module
 -----------------------
 
-.. automodule:: landlab.components.radiation.radiation
+.. automodule:: landlab.components.radiation.radiation_field
     :members:
     :undoc-members:
     :show-inheritance:
