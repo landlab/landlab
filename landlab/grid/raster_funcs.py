@@ -463,8 +463,9 @@ def node_id_of_cell_neighbor(grid, inds, *args):
         inds = np.array(inds)
 
     #return neighbors[xrange(len(cell_ids)), 3 - inds]
-    return np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
-                   3 - inds, axis=1)
+    return np.squeeze(
+        np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
+                3 - inds, axis=1))
 
 
 def node_id_of_cell_corner(grid, inds, *args):
@@ -513,8 +514,9 @@ def node_id_of_cell_corner(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
-                   3 - inds, axis=1)
+    return np.squeeze(
+        np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
+                3 - inds, axis=1))
     #return diagonals[xrange(len(cell_ids)), 3 - inds]
 
 
