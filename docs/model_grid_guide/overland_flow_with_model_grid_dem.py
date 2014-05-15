@@ -4,7 +4,7 @@
 2D numerical model of shallow-water flow over topography read from a DEM, using
 the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
-Last updated GT Oct 2013
+Last updated GT May 2014
 
 """
 

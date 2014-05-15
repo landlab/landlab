@@ -2,9 +2,9 @@
 """
 
 2D numerical model of diffusion, implemented using ModelGrid.
-Provides example of an unstructured grid.
+Provides example of a hexagonal grid.
 
-Last updated GT August 2013
+Last updated GT May 2014
 
 """
 
@@ -22,31 +22,28 @@ def main():
     # INITIALIZE
     
     # User-defined parameter values
-    numrows = 7          # number of rows in the grid
+    numrows = 7         # number of rows in the grid
     basenumcols = 6          # number of columns in the grid
     dx = 10.0             # grid cell spacing
     kd = 0.01             # diffusivity coefficient, in m2/yr
     uplift_rate = 0.001   # baselevel/uplift rate, in m/yr
     num_time_steps = 1000 # number of time steps in run
-    output_name = 'hex_grid_example'  # base name for output files
-    output_interval = 100 # interval between outputs, in time steps
     
     # Derived parameters
     dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
-    next_output = output_interval  # time of next output to file
     
     # Create and initialize a raster model grid
     mg = HexModelGrid(numrows, basenumcols, dx)
     
-    # Set up scalar values
-    z = mg.create_node_array_zeros()            # node elevations
-    dzdt = mg.create_node_array_zeros()  # node rate of elevation change
+    # Set up scalar values: elevation and elevation time derivative
+    z = mg.add_zeros('node', 'Land_surface__elevation')
+    dzdt = mg.add_zeros('node', 'Land_surface__time_derivative_of_elevation')
     
-    # Get a list of the interior cells
-    interior_cells = mg.get_active_cell_node_ids()
+    # Get a list of the core nodes
+    core_nodes = mg.core_nodes
 
     # Display a message
-    print( 'Running diffusion_with_model_grid.py' )
+    print( 'Running diffusion_with_model_hex_grid.py' )
     print( 'Time-step size has been set to ' + str( dt ) + ' years.' )
     start_time = time.time()
 
@@ -67,7 +64,7 @@ def main():
         dzdt = uplift_rate - dqsds
             
         # Update the elevations
-        z[interior_cells] = z[interior_cells] + dzdt[interior_cells] * dt
+        z[core_nodes] = z[core_nodes] + dzdt[core_nodes] * dt
         
    
     # FINALIZE
@@ -79,9 +76,9 @@ def main():
         perimeter = dx*6*(numpy.sqrt(3.)/3.)
         flux = kd*(numpy.amax(z)/dx)
         total_outflux = perimeter*flux
-        total_influx = mg.active_cell_areas*uplift_rate
+        total_influx = mg.cell_areas*uplift_rate  # just one cell ...
         print 'total influx=',total_influx,'total outflux=',total_outflux
-    print('Run time = '+str(time.time()-start_time))
+    print('Run time = '+str(time.time()-start_time)+' seconds')
     
     # Plot the points, colored by elevation
     pylab.figure()

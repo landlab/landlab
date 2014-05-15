@@ -164,6 +164,17 @@ class ModelGrid(ModelDataFields):
             return core_node_ids
 
     @property
+    def boundary_nodes(self):
+        """
+        Node IDs of all boundary nodes.
+        """
+        try:
+            return self._boundary_nodes
+        except:
+            (boundary_node_ids, ) = numpy.where(self.node_status != CORE_NODE)
+            return boundary_node_ids
+
+    @property
     def node_boundary_status(self):
         """
         Node BC status codes for all nodes:

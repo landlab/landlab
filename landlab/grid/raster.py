@@ -2571,20 +2571,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If the nodes do not share any active links, returns the BAD_INDEX_VALUE.
         Overrides base function of the same name.
         '''
-        node_links_a = self.active_node_links(node_a)
-        node_links_b = self.active_node_links(node_b)
+        node_links_a = self.node_activelinks(node_a)
+        node_links_b = self.node_activelinks(node_b)
+        #node_links_a = node_links_a.flatten()
+        #node_links_b = node_links_b.flatten()
         print 'looking for an active link connecting nodes',node_a,'and',node_b
         print 'node_a has',node_links_a
         print 'node_b has',node_links_b
         try:
             dim = node_links_a.shape[1]
+            print 'dim=',dim
             intersections = numpy.empty(dim, dtype=int)
+            print 'inters0=',intersections
             for i in xrange(dim):
+                print 'i=',i
                 this_iter = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
+                print 'this_iter=',this_iter
                 intersections[i] = this_iter[this_iter!=-1]
+            print 'try worked'
         except:
+            print 'try failed'
             intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+            print 'inters',intersections
             intersections = intersections[intersections!=-1]
+            print 'inters2',intersections
         return intersections
 
     def top_edge_node_ids(self):
