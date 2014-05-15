@@ -43,7 +43,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         describe connectivity information between nodes, links, cells, faces,
         patches, corners, and junctions.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'HexModelGrid._initialize('+str(num_rows)+', ' \
                    +str(base_num_cols)+', '+str(dx)+')'
         
