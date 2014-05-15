@@ -2,7 +2,7 @@
 ##
 ##  'Field' concept is implemented for Radiation component.
 ##
-##  Sai Nudurupati - 04Mar2014
+##  Sai Nudurupati - 14May2014
 #################################################################
 
 from landlab import Component
@@ -20,11 +20,27 @@ class Radiation( Component ):
     Landlab component that computes 1D and 2D total incident shortwave
     radiation. This code also computes relative incidence shortwave radiation
     compared to a flat surface.
-
-    >>> grid = RasterModelGrid( 5, 4, 1.e4 )
+    
+    
+    >>> from landlab import RasterModelGrid        
+    >>> from landlab.components.radiation.radiation_field import Radiation        
+    >>> import numpy as np        
+    >>> grid = RasterModelGrid( 5, 4, 0.2 )
+    >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
-    Radiation
+        Radiation
+    >>> current_time = 0.5
+    >>> rad.update( current_time )
+    >>> grid['cell']['TotalShortWaveRadiation']
+        Out[11]: 
+        array([ 1.90762961,  1.90701536,  1.90732026,  1.90617417,  1.90762696,
+        1.90718441])
+
+    >>> grid['cell']['RadiationFactor']
+        Out[12]: 
+        array([ 0.01091503,  0.01091151,  0.01091326,  0.0109067 ,  0.01091501,
+        0.01091248])
     """
     
     _name = 'Radiation'
@@ -90,7 +106,7 @@ class Radiation( Component ):
                         * (172 - self._julian))             # Declination angle
 
         
-        self._tau = (self._t + 12.0) * np.pi/12.0                # Hour Angle
+        self._tau = (self._t + 12.0) * np.pi/12.0                # Hour angle
 
         self._alpha = np.arcsin(np.sin(self._delta) * np.sin(self._phi)        \
                         + np.cos(self._delta) * np.cos(self._phi)              \
@@ -124,16 +140,18 @@ class Radiation( Component ):
         
         for i in range( 0, self.grid.number_of_cells ):
             
-            self._slope[i], angle = self.grid.calculate_max_gradient_across_node(self._elev,self.grid.cell_node[i])
-                            
-            #self._BETA[i] = self._angles*np.pi/180.
+                       
+            Slope, Aspect = self.grid.calculate_slope_aspect_at_nodes_bestFitPlane([self.grid.node_index_at_cells[i]],
+                                            self._elev)
+            self._slope[i] = Slope[0]               
+            aspect = Aspect[0] * np.pi/180.
             
             slope_in_radians = np.arctan(self._slope[i])
             
-            self._radf[i] = np.cos(np.arctan(slope_in_radians)) *             \
+            self._radf[i] = np.cos(slope_in_radians) *             \
                         np.sin(self._alpha) + np.sin(np.arctan(0)) *        \
                         np.cos(self._alpha)                                 \
-                       * np.cos(self._phisun - angle)/self._flat
+                       * np.cos(self._phisun - aspect)/self._flat
                           
             if self._radf[i] <= 0:
                 self._radf[i] = 0.1
