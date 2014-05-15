@@ -21,14 +21,14 @@ from numpy import *
 from math import *
 import landlab
 from landlab import RasterModelGrid
-from landlab.model_parameter_dictionary import ModelParameterDictionary
+from landlab import ModelParameterDictionary
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.plot import imshow_grid, imshow_active_cells
 from matplotlib.pyplot import *
 
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
-                                  'soilmoisture_input.in')
+                                  'soilmoisture_input_validation_high.txt')
 
 class SoilMoisture():
 
@@ -91,9 +91,10 @@ class SoilMoisture():
         
         self._Peff = 0.0        
         self._time = 0.0
+        self._LAI = 0.0
         
        
-    def initialize( self ):
+    def initialize( self, shape ):
 
         """ Read Input File """        
         MPD = ModelParameterDictionary()
@@ -114,10 +115,17 @@ class SoilMoisture():
         self._soil_sc = MPD.read_float( 'SC' )
         self._soil_wp = MPD.read_float( 'WP' )
         self._soil_hgw = MPD.read_float( 'HGW' )
-        self._soil_beta = MPD.read_float( 'BETA' )        
-        
+        self._soil_beta = MPD.read_float( 'BETA' )
+        self._so = MPD.read_float( 'so' )
+                
+        self._ETA = zeros(shape)
+        self._S = zeros(shape)
+        self._D = zeros(shape)
+        self._Ro = zeros(shape)
+        self._WS = zeros(shape)
+        self._SO = self._so * ones(shape)
 
-    def update( self, P, Tb, Tr, VT, SO ):
+    def update( self, P, Tb, Tr, PET ):
 
         """
             Reading in 'P' storm depth, 'Tb' Interstorm duration, 'Tr' Storm
@@ -128,7 +136,7 @@ class SoilMoisture():
             Initializing parameters that are constant in space for a given Storm
         """
         
-        #V = fveg     # total veg cover used for interception
+        #V = self._vegcover     # total veg cover used for interception
         fbare = self._fbare
         ZR = self._zr
         pc = self._soil_pc
@@ -137,30 +145,15 @@ class SoilMoisture():
         wp = self._soil_wp
         hgw = self._soil_hgw
         beta = self._soil_beta
+        self._fr = self._LAIlive/1.44
 
         """
             Calculating parameters that are constant over space
-        """
         
-        #Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V # Infiltration capacity
-        #Int_cap = min(V*self._interception_cap, P)  # Interception capacity
-        #Peff = max(P-Int_cap, 0.0)             # Effective precipitation depth
-        #mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1))        
-        
-        """ 
             Initializing variables for spatial run for a given storm
         """
         
-        (mm,nn) = SO.shape
-        
-        self._ETA = zeros((SO.shape))
-        self._S = zeros((SO.shape))
-        self._D = zeros((SO.shape))
-        self._Ro = zeros((SO.shape))
-        self._WS = zeros((SO.shape))
-        self._mu = zeros((SO.shape))  # for debugging
-        self._nu = zeros((SO.shape))  # for debugging
-        self._munu = zeros((SO.shape)) # for debugging
+        (mm,nn) = PET.shape
 
         """
             Looping over space for the time period (Tr+Tb)
@@ -174,25 +167,22 @@ class SoilMoisture():
             
             for j in range(0,nn):
 
-                V = VT[i][j]
+                V = self._vegcover[i][j]
                 Inf_cap = self._soil_Ib*(1-V) + self._soil_Iv*V # Infiltration capacity
                 Int_cap = min(V*self._interception_cap, P)  # Interception capacity
                 Peff = max(P-Int_cap, 0.0)             # Effective precipitation depth
-                mu = (Int_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1)) 
+                mu = (Inf_cap/1000.0)/(pc*ZR*(exp(beta*(1-fc))-1)) 
                 
                 """
                     Calculating parameters that are variable over space
                 """
                 
-                pet = self._PET[i][j]           # Potential Evapotranspiration
-                Ep = max((pet*V+fbare*pet*(1-V)) - Int_cap, 0.0)  #
+                pet = PET[i][j]           # Potential Evapotranspiration
+                Ep = max((pet*self._fr[i][j]+fbare*pet*(1-self._fr[i][j])) - Int_cap, 0.001)  #
                 nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
                 nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
-                so = SO[i][j]               # Initial Soil Moisture
-                sini = so + (Peff/(pc*ZR*1000.0))+self._runon 
-                self._mu[i][j] = mu   # for debugging
-                self._nu[i][j] = nu   # for debugging 
-                self._munu[i][j] = mu-nu # for debugging  
+                so = self._SO[i][j]               # Initial Soil Moisture
+                sini = so + (Peff/(pc*ZR*1000.0))+self._runon  
         
                 """
                     Evaluating Runoff and accordingly adjusting initial soil
@@ -201,6 +191,7 @@ class SoilMoisture():
                       
                 if sini>1:
                     runoff = (sini-1)*pc*ZR*1000
+                    print 'Runoff =', runoff
                     sini = 1
                 else:
                     runoff = 0
@@ -299,7 +290,7 @@ class SoilMoisture():
                 self._D[i][j] = Dd
                 self._Ro[i][j] = runoff                
                 self._WS[i][j] = Water_Stress
-                #self._so[i][j] = s 
+                self._SO[i][j] = s 
         self._time = self._time + (Tb + Tr)/(24*365.4)  
 
     """ Return Effective precipittion mm """
@@ -337,19 +328,10 @@ class SoilMoisture():
     """ Set Potential Evapotranspiration Rate """
     def set_PET( self, PET ):
         self._PET = PET
+        
+    def set_vegcover( self, VegCovR ):
+        self._vegcover = VegCovR
+        
+    def set_LAIlive( self, LAI ):
+        self._LAIlive = LAI
 
-
-    def plott( self, P_, S_, ETA_, D_, Ro_, Time_, RMG ):
-
-        figure(1)
-        plot( Time_, P_ )
-        ylabel( 'Storm Depth [mm]' )
-        title( 'Storm generation' )
-        xlabel( 'Time:Year' )
-        savefig('StormDepth')        
-
-        figure(2)
-        imshow_grid(RMG, S_, values_at = 'cell')
-        savefig('CurrentSM_State') 
-
-        show()
