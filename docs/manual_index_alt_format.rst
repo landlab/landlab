@@ -49,8 +49,8 @@ depths - with the grid object. Several can also be used to create new arrays of 
 related to numbers of grid elements (e.g., number of active nodes), but not to link them
 to the grid.*
 *Data stored inside the grid object allows you to pass this information between components
-more easily. The data can be accessed by, e.g., mygrid.at_node('my_data'), or a number
-of alternative methods (see below).*
+more easily. The data can be accessed by, e.g., mygrid.at_node('my_data_name'), or a
+number of alternative methods (see below).*
 
 .. automethod:: landlab.grid.base.ModelGrid.create_active_link_array_zeros
 .. automethod:: landlab.grid.base.ModelGrid.create_node_array_zeros
@@ -66,8 +66,11 @@ Access data in the grid fields
 *Once you've created the fields, these methods can be used to access and modify the data
 stored in them.* 
 
-(EH is making these in base.py this afternoon)
-
+    **grid.at_node['my_data_name']**
+    
+    **grid['node']['my_data_name']**
+    
+(see also entry for ModelGrid.create_node_array_zeros)
 
 
 Resolve, project, and move data between grid element types
@@ -141,6 +144,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.base.ModelGrid.cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index
 .. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index_at_nodes
+.. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.face_index_at_links
 .. automethod:: landlab.grid.base.ModelGrid.get_active_cell_node_ids
 .. automethod:: landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
