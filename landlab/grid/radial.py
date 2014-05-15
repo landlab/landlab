@@ -15,8 +15,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     
     Examples:
         
-        >>> hmg = HexModelGrid(3, 2, 1.0)
-        >>> hmg.number_of_nodes
+        >>> omg = RadialModelGrid(num_shells=5, dr=1., origin_x=0., origin_y=0.)
+        >>> omg.number_of_nodes
         7
     """
     
