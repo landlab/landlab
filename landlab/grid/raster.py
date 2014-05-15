@@ -427,30 +427,61 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def node_activelinks(self, *args):
         """node_activelinks([node_ids])
         
-        Returns the ids of active links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        with the south link. Diagonal links are never returned.
+        Parameters
+        ----------
+        node_ids : int or list of ints
+                   ID(s) of node(s) for which to find connected active links
+        
+        Returns
+        -------
+        1d numpy array
+            The ids of active links attached to grid nodes with
+            *node_ids*. If *node_ids* is not given, return links for all of the
+            nodes in the grid. Link ids are listed in clockwise order starting
+            with the south link. Diagonal links are never returned.
+        
+        Example
+        -------
+        
+            >>> rmg = RasterModelGrid(3, 4)
+            >>> rmg.node_activelinks(5, 6)
+            array([[0, 1],
+                   [4, 5],
+                   [2, 3],
+                   [5, 6]])
         """
         if len(args) > 1:
             raise ValueError('only zero or one arguments accepted')
 
+        # Test whether the caller gave us an argument
         try:
-            node_ids = args[0]
-        except IndexError: #return all nodes
-            return numpy.vstack((self.node_active_inlink_matrix,
+            node_ids = args[0]   # is there at least one argument?
+        except IndexError: # if not, return all nodes
+            return np.vstack((self.node_active_inlink_matrix,
                                  self.node_active_outlink_matrix))
-        else:
-            try:
-                float(node_ids) #single number (need to alter stacking)
+        else:  # if there is an argument ...
+            try:   # determine whether it's a single number
+                float(node_ids) # single number (need to convert to list)
             except:
+                # In this case, node_ids is a list or array. Select those columns
+                # in the active_inlink and outlink matrices listed in node_ids.
+                # The take() method does this. Then put the two together vertically.
+                # The result is an RxC array whose columns represent nodes we
+                # are interested in, and whose rows are IDs of the various
+                # connected active links, or -1 where no active link enters that side.
+                # Each column therefore is the list of connected active links
+                # for a particular node.
                 return numpy.vstack(
                     (self.node_active_inlink_matrix.take(node_ids, axis=1),
                     self.node_active_outlink_matrix.take(node_ids, axis=1)))
             else:
-                return numpy.hstack(
-                    (self.node_active_inlink_matrix.take([node_ids], axis=1),
-                    self.node_active_outlink_matrix.take([node_ids], axis=1)))
+                # In this case, we have just a single node. We stack together 
+                # horizontally its inlinks and outlinks to form a 1D array.
+                # Then we "vstack" this array to make it 2D, with one column
+                # and 4 rows.
+                return np.vstack( numpy.hstack(
+                    (self.node_active_inlink_matrix.take(node_ids, axis=1),
+                    self.node_active_outlink_matrix.take(node_ids, axis=1))))
 
 
     def _setup_inlink_and_outlink_matrices(self):
@@ -2564,37 +2595,52 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
         
     def get_active_link_connecting_node_pair(self, node_a, node_b):
+        '''Returns an array of active link indices that *node_a* and *node_b* 
+        share. 
+        
+        Parameters
+        ----------
+        node_a, node_b : ints, or lists or arrays of ints of equal length.
+                         IDs of the node pairs of interest
+                         
+        Returns
+        -------
+        1D numpy array
+            IDs of active link(s) connecting given node pair(s), or BAD_INDEX_VALUE if none found.
+            
+        Example
+        -------
+        
+            >>> rmg = RasterModelGrid(3, 4)
+            >>> rmg.get_active_link_connecting_node_pair(5, 6)
+            array([5])
         '''
-        Returns an array of active link indices that *node_a* and *node_b* 
-        share. *node_a* and *node_b* may be ints, or arrays of ints of equal
-        length.
-        If the nodes do not share any active links, returns the BAD_INDEX_VALUE.
-        Overrides base function of the same name.
-        '''
+        
+        # Get arrays containing active links attached to each of the two nodes.
+        # The method node_activelinks() returns a 2D array, with each column containing 
+        # the active links for a particular node, so we need to flatten it to a 1D array.
         node_links_a = self.node_activelinks(node_a)
         node_links_b = self.node_activelinks(node_b)
-        #node_links_a = node_links_a.flatten()
-        #node_links_b = node_links_b.flatten()
-        print 'looking for an active link connecting nodes',node_a,'and',node_b
-        print 'node_a has',node_links_a
-        print 'node_b has',node_links_b
-        try:
-            dim = node_links_a.shape[1]
-        except AttributeError:
-            intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
-            intersections = intersections[intersections!=-1]
-        else:
-            intersections = numpy.empty(dim, dtype=int)
-            print 'inters0=',intersections
-            for i in xrange(dim):
-                print 'i=',i
-                this_iter = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
-                val_to_store = this_iter[this_iter!=-1]
-                if val_to_store.size:
-                    intersections[i] = val_to_store[0]
-                else:
-                    intersections[i] = BAD_INDEX_VALUE
-        return intersections
+        
+        # Create the array, which has as many columns entries as there are columns in node_links_a
+        # (which is the number of nodes of interest)
+        connecting_links_ids = BAD_INDEX_VALUE + numpy.zeros(node_links_a.shape[1], dtype=int)
+
+        # Iterate over the number of columns, which is equal to the number of nodes of interest.
+        # Yes, this uses a loop, which is generally to be avoided. However, this is the sort
+        # of method that isn't likely to be called for large numbers of node pairs repeatedly.
+        for i in range(node_links_a.shape[1]):
+            
+            # Find any node IDs that the two links have in common.
+            common = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
+            
+            # Remove any -1 values from the list of common node IDs 
+            # (-1 just means "no active link at this slot")
+            common = common[common!=-1]
+            
+            connecting_links_ids[i] = common
+            
+        return connecting_links_ids
 
     def top_edge_node_ids(self):
         """
