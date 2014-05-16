@@ -89,7 +89,7 @@ class SoilMoisture( Component ):
         super(SoilMoisture, self).__init__(grid, **kwds)
         
         for name in self._input_var_names:
-            if not name in self.grid.at_node:
+            if not name in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
                 
         for name in self._output_var_names:
@@ -128,7 +128,7 @@ class SoilMoisture( Component ):
         beta = self._soil_beta        
               
                 
-        for cell in self.grid.number_of_cells:                 
+        for cell in range(0,self.grid.number_of_cells):              
 
             s = self._S[cell]
             
@@ -162,7 +162,7 @@ class SoilMoisture( Component ):
     
                 if Tb<tfc:
                     s = abs(sini-(1/beta)*np.log(((nu-mu+mu*                  \
-                            np.exp(beta*(sini-fc)))*np.np.exp(beta*(nu-mu)*Tb)         \
+                            np.exp(beta*(sini-fc)))*np.exp(beta*(nu-mu)*Tb)         \
                             -mu*np.exp(beta*(sini-fc)))/(nu-mu)))
 
                     self._D[cell] = ((pc*ZR*1000)*(sini-s))-(Tb*(Ep/24))
@@ -227,9 +227,9 @@ class SoilMoisture( Component ):
                 self._D[cell] = 0
                 self._ETA[cell] = (1000*ZR*pc*(sini-s))
     
-            self._water_stress[cell] = np.min(np.max(pow(((sc - ((s+sini)/2)) / (sc - wp)),4),0.0),1.0)
+            self._water_stress[cell] = min(max(pow(((sc - ((s+sini)/2)) / (sc - wp)),4),0.0),1.0)
             self._S[cell] = s
             self._SO[cell] = s
 
-        current_time += (Tb+Tr)
+        current_time += (Tb+Tr)/(24.*365.25)
         return( current_time )
