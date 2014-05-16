@@ -244,6 +244,7 @@ boundary nodes.*
 .. automethod:: landlab.grid.base.ModelGrid.set_closed_boundaries
 .. automethod:: landlab.grid.base.ModelGrid.set_closed_nodes
 .. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+.. automethod:: landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids

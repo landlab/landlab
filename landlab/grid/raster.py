@@ -1346,10 +1346,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         
     def set_closed_boundaries_at_grid_edges(self, bottom_is_closed, 
@@ -1431,10 +1428,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if left_is_closed:
             self.node_status[left_edge] = CLOSED_BOUNDARY
 
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         
     def set_fixed_value_boundaries_at_grid_edges(self, bottom_is_fixed_val, 
@@ -1499,10 +1493,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if left_is_fixed_val:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         
     def set_looped_boundaries(self, top_bottom_are_looped,sides_are_looped):
@@ -1573,10 +1564,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                    these_linked_nodes,
                                    right_edge-1, left_edge+1))
 
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         try:
             type(self.looped_node_properties)
@@ -1816,10 +1804,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_links = self.node_links(left_edge)[3,:]
             boundary_links = numpy.concatenate((boundary_links, left_links))
         
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         try:
             no_val_provided = numpy.all(numpy.isnan(gradient_in))

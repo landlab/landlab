@@ -531,9 +531,7 @@ class ModelGrid(ModelDataFields):
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
@@ -1064,6 +1062,51 @@ class ModelGrid(ModelDataFields):
         
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+    
+    def _reset_lists_of_nodes_cells(self):
+        """
+        Creates or resets various lists of nodes and cells based on their 
+        statuses. Call this function whenever you make changes to the
+        boundary conditions in the grid.
+        The updated attributes and arrays are:
+            _num_active_nodes
+            _num_active_cells
+            _num_core_nodes
+            _num_core_cells
+            activecell_node *
+            corecell_node *
+            active_cells
+            core_cells
+            node_corecell
+            _boundary_nodes
+        """
+        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)
+        self.corecell_node = numpy.where(self.node_status == CORE_NODE)
+        self._num_core_cells = self.corecell_node.size
+        self._num_core_nodes = self._num_core_cells
+        self._num_active_nodes = self.activecell_node.size
+        self._num_active_cells = self._num_core_cells
+        self.active_cells = numpy.arange(self._num_active_cells)
+        self.core_cells = numpy.arange(self._num_core_cells)
+        self.node_corecell = numpy.empty(self.number_of_nodes)
+        self.node_corecell.fill(BAD_INDEX_VALUE)
+        self.node_corecell[self.corecell_node] = self.core_cells
+        self.node_activecell = numpy.empty(self.number_of_nodes)
+        self.node_activecell.fill(BAD_INDEX_VALUE)
+        self.node_activecell[self.activecell_node] = self.active_cells
+        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)
+    
+    
+    def update_links_nodes_cells_to_new_BCs(self):
+        """
+        This method updates all of the various lists and attributes governed
+        by node status (e.g., core nodes, active links, etc) when you change
+        node statuses. Call it if your method or driver makes changes to the
+        boundary conditions of nodes in the grid.
+        """
+        self._reset_list_of_active_links()
+        self._reset_lists_of_nodes_cells()
+        
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """
@@ -1111,12 +1154,7 @@ class ModelGrid(ModelDataFields):
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
         
         # Recreate the list of active cell IDs
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        
-        # Recreate the list of active links
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         
     def max_of_link_end_node_values(self, node_data):
@@ -1404,10 +1442,7 @@ class ModelGrid(ModelDataFields):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]        
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     def set_inactive_nodes(self, nodes):
         """
@@ -1425,10 +1460,7 @@ class ModelGrid(ModelDataFields):
         and resets the list of active links to reflect any changes.
         """
         self.node_status[nodes] = CLOSED_BOUNDARY
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None, node_subset=numpy.nan, out_distance=None, out_azimuth=None):
         """
