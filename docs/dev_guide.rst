@@ -24,13 +24,9 @@ Create a GitHub account
 
 1. You can create a GitHub account by going to the `GitHub website <https://github.com>`_.
 
-2. If you haven't already,`Install Git  <https://help.github.com/articles/set-up-git>`_ . 
-Note that if you are using a mac with OS lower than 10.7, we have found it difficult to 
-setup git, and you may want to upgrade your OS. 
+2. If you haven't already, `Install Git  <https://help.github.com/articles/set-up-git>`_.  Note that if you are using a mac with OS lower than 10.7, we have found it difficult to setup git, and you may want to upgrade your OS. 
 
-3. Configure your account to allow write access. If you choose to install the git GUI, 
-then it will set-up an SSH key for you.  If you install on the command line, you might 
-need some help with this, see `Generating SSH Keys <https://help.github.com/articles/generating-ssh-keys>`_ on GitHub.
+3. Configure your account to allow write access. If you choose to install the git GUI, then it will set-up an SSH key for you.  If you install on the command line, you might need some help with this, see `Generating SSH Keys <https://help.github.com/articles/generating-ssh-keys>`_ on GitHub.
 
 4. If you want to ensure the ssh key is set correctly, go to your home page on github and hit the account settings (wrench and screwdriver button in upper right corner).  On this page hit the SSH keys tab on the left.  This should show that you have a key for whatever computer you are currently working on.  Note that you may have more than one key if you have installed git on more than one computer with the same user account. 
 
@@ -53,7 +49,7 @@ of the landlab.
 Cloning your fork to your computer
 ----------------------------------
 
-This is done from the GUI by
+This is done from the GUI by:
 
 1. Sign in to git on the GUI.
 2. Hit on your account on the left side of the GUI.
