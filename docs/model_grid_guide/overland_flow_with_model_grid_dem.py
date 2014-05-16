@@ -50,10 +50,10 @@ def main():
     print('Reading data from "'+str(DATA_FILE)+'"')
     (mg, z) = read_esri_ascii(DATA_FILE)
     print('DEM has ' + str(mg.number_of_node_rows) + ' rows, ' +
-          str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx))
+          str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx)) + ' m'
     
     # Modify the grid DEM to set all nodata nodes to inactive boundaries
-    mg.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bounds
+    mg.set_nodata_nodes_to_closed(z, 0) # set nodata nodes to inactive bounds
     
     # Set the open boundary (outlet) cell. We want to remember the ID of the 
     # outlet node and the ID of the interior node adjacent to it. We'll make
@@ -64,11 +64,11 @@ def main():
     mg.set_fixed_value_boundaries(outlet_node)
 
     # Set up state variables
-    h = mg.create_node_array_zeros() + h_init     # water depth (m)
+    h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
     q = mg.create_active_link_array_zeros()       # unit discharge (m2/s)
     
-    # Get a list of the interior cells
-    interior_cells = mg.get_active_cell_node_ids()
+    # Get a list of the core nodes
+    core_nodes = mg.core_nodes
     
     # To track discharge at the outlet through time, we create initially empty
     # lists for time and outlet discharge.
@@ -76,16 +76,8 @@ def main():
     t = []
     q_outlet.append(0.)
     t.append(0.)
-    
-    # debugging here
-    print 'NAIM:',mg.node_active_inlink_matrix,type(mg.node_active_inlink_matrix)
-    print 'NAIM take 0:',mg.node_active_inlink_matrix.take([0])
-    print 'NAIM take 1:',mg.node_active_inlink_matrix.take([1])
-    
-    # this line is causing problems ...
     outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
                                                           node_next_to_outlet)
-    print 'outlet_link',type(outlet_link),outlet_link
     
     # Display a message
     print( 'Running ...' )
@@ -141,7 +133,7 @@ def main():
             dt = dtmax
         
         # Update the water-depth field
-        h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+        h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
         h[outlet_node] = h[node_next_to_outlet]
         
         # Update current time
@@ -172,8 +164,6 @@ def main():
     
     # Plot discharge vs. time
     pylab.figure(1)
-    print 't',type(t)
-    print 'q_outlet',type(q_outlet)
     pylab.plot(np.array(t), np.array(q_outlet)*mg.dx)
     pylab.xlabel('Time (s)')
     pylab.ylabel('Q (m3/s)')

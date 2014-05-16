@@ -12,6 +12,11 @@ Getting Started with Landlab
    about
    install
    tutorial
+   
+.. toctree::
+   :maxdepth: 1
+   
+   dan_installs_on_linux
 
 
 User's Guide
