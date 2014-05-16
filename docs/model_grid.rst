@@ -187,3 +187,26 @@ is one that joins either two core nodes, or one *core* and one
 distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as the following simple example illustrates.
 
+
+Example #1: Diffusion
+=====================
+
+The following is a simple tutorial in which we use **ModelGrid** to build an explicit, 
+finite-volume, staggered-grid model of diffusion. The mathematics of diffusion describe 
+quite a few different phenomena, among them heat conduction in solids, chemical diffusion 
+of dissolved material, transport of momentum in a viscous shear flow, and transport of 
+soil on hillslopes. To make this exercise concrete, we will use the latter as our working 
+example, though in fact the solution could apply to any of these systems.
+
+To work through this example, you can type in and run the code below, or run the file
+*diffusion_with_model_grid.py*, which is located in the Landlab developer distribution
+under *docs/model_grid_guide*. The complete source code for the diffusion model is listed below. Line numbers are 
+included to make it easier to refer to particular lines of code (of course, these numbers 
+are not part of the source code). After the listing, we will take a closer look at each 
+piece of the code in turn. Output from the the diffusion model is shown in 
+Figure~\ref{basicdiffmod}.
+
+.. code:: python number-lines : 1
+
+
+
