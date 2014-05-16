@@ -22,7 +22,7 @@ Computer models can be tremendously useful in exploring and visualizing the cons
 
 The following tutorial examples give a flavor for what this means. The tutorial examples in this Quick Start guide can be typed directly on the command line of any Python interpreter. To try them out, you'll need (1) an installation of Python 2.x, (2) the Numpy, Scipy, and Pylab modules, and (3) Landlab. If you don't already have Numpy and its relatives installed, we recommend  Enthought Canopy (which provides a command-line interpreter, development environment, and the Numpy, Scipy, and Pylab modules all in one convenient package). To install Landlab, see :ref:`install`.
 
-In the first example, we will build a 2D model of the erosional degradation of a fault scarp. We start by importing Numpy and Landlab's RasterModelGrid class:
+In the first example, we will build a 2D model of the erosional degradation of a fault scarp. Note that ``>>>`` implies that we are on the command line in canopy, or your favorite python frontend.  We start by importing Numpy and Landlab's RasterModelGrid class:
 
 >>> import numpy
 >>> from landlab import RasterModelGrid
@@ -40,7 +40,7 @@ This line creates a *grid object*, ``mg``. For this application, we want values 
 >>> len(z)
 1000
 
-As the name suggests, the value of each element in the array is initially zero. Let's create a fault scarp by uplifting some of the grid nodes. To do this, we'll first create an array to represent the *y*-coordinate of the fault trace:
+As the name suggests, the value of each element in the array is initially zero. Let's create a fault scarp running diagonally across the domain by uplifting some of the grid nodes. To do this, we'll first create an array to represent the *y*-coordinate of the fault trace:
 
 >>> fault_y = 50.0 + 0.25*mg.node_x
 
@@ -72,17 +72,17 @@ Now we'll apply a diffusion model to calculate the degradation of the fault scar
 >>> dt
 2000.0
 
-For boundary conditions, we'll have fixed elevation values along the top and bottom sides, while the right and left sides will be no-flux boundaries. By default, all the grid edges are active nodes, meaning that they are treated as fixed-elevation boundaries. To turn the right and left sides into no-flux boundaries, we use the ``set_inactive_boundaries`` method:
+For boundary conditions, we'll have fixed elevation values along the top and bottom sides, while the right and left sides will be no-flux boundaries. By default, all the grid edges are open boundary nodes, meaning that they are treated as fixed-elevation boundaries. To turn the right and left sides into no-flux boundaries, we use the ``set_closed_boundaries_at_grid_edges`` method:
 
->>> mg.set_inactive_boundaries(False, True, False, True)
+>>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
-This method allows you to specify whether each of the four grid edges---counter-clockwise from the bottom---should be *inactive*, meaning that it is in effect a no-flux boundary.
+This method allows you to specify whether each of the four grid edges---counter-clockwise from the bottom---should be *closed*, meaning that it is in effect a no-flux boundary.
 
-We'll also need the ID numbers of those nodes that lie in the interior of the grid, because these are the ones whose elevations we will want to iteratively update:
+We'll also need the ID numbers of those nodes that lie in the core of the grid, because these are the ones whose elevations we will want to iteratively update:
 
->>> interior_nodes = mg.get_active_cell_node_ids()
+>>> interior_nodes = mg.get_core_nodes()
 
-This returns an array containing the ID numbers of all the interior nodes (of which there are (25-2) x (40-2) = 874).
+This returns an array containing the ID numbers of all the core nodes (of which there are (25-2) x (40-2) = 874).
 
 Next, we'll run 50,000 years (25 time steps) of scarp degradation. Here is our loop:
 
@@ -93,7 +93,7 @@ Next, we'll run 50,000 years (25 time steps) of scarp degradation. Here is our l
 ... 	dzdt = -dqsdx
 ... 	z[interior_nodes] += dzdt[interior_nodes]*dt
     	
-Our algorithm starts by calculating gradients at each of the *active links*, which are those that either connect two interior nodes, or connect an interior node with an open boundary node (top and bottom edges in this example). We then calculate the sediment fluxes associated with these links by using the transport law :math:`q_s = -k_d \nabla z`, where :math:`\nabla z` is the link gradient and :math:`q_s` is the flux per unit width along the link. Note that each link has a direction: it connects a *from node* to a *to node*. The sediment flux is positive when it runs in the same direction as the link, and negative otherwise.
+Our algorithm starts by calculating gradients at each of the *active links*, which are those that either connect two core nodes, or connect a core node with an open boundary node (top and bottom edges in this example). We then calculate the sediment fluxes associated with these links by using the transport law :math:`q_s = -k_d \nabla z`, where :math:`\nabla z` is the link gradient and :math:`q_s` is the flux per unit width along the link. Note that each link has a direction: it connects a *from node* to a *to node*. The sediment flux is positive when it runs in the same direction as the link, and negative otherwise.
 
 The next step is to add up the net sediment fluxes entering and leaving each cell in the grid. This is handled by a call to the grid's ``calculate_flux_divergence_at_nodes`` method. The result is the net volumetric sediment outflux per unit area for each node, which is our :math:`\nabla q_s`. The conservation of mass law says 
 
