@@ -12,8 +12,6 @@ Landlab has the following dependencies:
 - Numpy 1.7 or greater
 - Scipy 0.12 or greater
 
-nmg test
-
 If you don't already have these packages installed on your computer, simply install one 
 of the preassembled scientific Python collections described below under *Installing
 Python*.
