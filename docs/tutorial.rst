@@ -78,11 +78,11 @@ For boundary conditions, we'll have fixed elevation values along the top and bot
 
 This method allows you to specify whether each of the four grid edges---counter-clockwise from the bottom---should be *closed*, meaning that it is in effect a no-flux boundary.
 
-We'll also need the ID numbers of those nodes that lie in the interior of the grid, because these are the ones whose elevations we will want to iteratively update:
+We'll also need the ID numbers of those nodes that lie in the core of the grid, because these are the ones whose elevations we will want to iteratively update:
 
->>> interior_nodes = mg.get_active_cell_node_ids()
+>>> interior_nodes = mg.get_core_nodes()
 
-This returns an array containing the ID numbers of all the interior nodes (of which there are (25-2) x (40-2) = 874).
+This returns an array containing the ID numbers of all the core nodes (of which there are (25-2) x (40-2) = 874).
 
 Next, we'll run 50,000 years (25 time steps) of scarp degradation. Here is our loop:
 
