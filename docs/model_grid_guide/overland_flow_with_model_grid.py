@@ -47,17 +47,17 @@ def main():
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
     
     # Set up scalar values
-    z = mg.create_node_array_zeros()   # land elevation
-    h = mg.create_node_array_zeros() + h_init     # water depth (m)
+    z = mg.add_zeros('node', 'Land_surface__elevation')   # land elevation
+    h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
     q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
-    dhdt = mg.create_node_array_zeros()  # rate of water-depth change
+    dhdt = mg.add_zeros('node', 'Water_depth_time_derivative')  # rate of water-depth change
     
     # Left side has deep water
     leftside = mg.left_edge_node_ids()
     h[leftside] = h_boundary
     
-    # Get a list of the interior cells
-    interior_cells = mg.get_active_cell_node_ids()
+    # Get a list of the core nodes
+    core_nodes = mg.core_nodes
 
     # Display a message
     print( 'Running ...' )
@@ -67,7 +67,7 @@ def main():
     
     # Main loop
     while elapsed_time < run_time:
-        
+        print elapsed_time
         # Report progress
         if time.time()>=next_report:
             print('Time = '+str(elapsed_time)+' ('
@@ -79,7 +79,7 @@ def main():
         
         # Calculate the effective flow depth at active links. Bates et al. 2010
         # recommend using the difference between the highest water-surface
-        # and the highest bed elevation between each pair of cells.
+        # and the highest bed elevation between each pair of nodes.
         zmax = mg.max_of_link_end_node_values(z)
         w = h+z   # water-surface height
         wmax = mg.max_of_link_end_node_values(w)
@@ -107,7 +107,7 @@ def main():
             dt = dtmax
         
         # Update the water-depth field
-        h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+        h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
         
         # Update current time
         elapsed_time += dt
@@ -116,7 +116,7 @@ def main():
     # FINALIZE
     
     # Get a 2D array version of the elevations
-    hr = mg.node_vector_to_raster(h, flip_vertically=True)
+    hr = mg.node_vector_to_raster(h)
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
