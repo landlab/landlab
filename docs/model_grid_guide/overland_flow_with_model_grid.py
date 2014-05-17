@@ -44,7 +44,7 @@ def main():
     # Set up boundaries. We'll have the right and left sides open, the top and
     # bottom closed. The water depth on the left will be 5 m, and on the right 
     # just 1 mm.
-    mg.set_inactive_boundaries(True, False, True, False)
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
     
     # Set up scalar values
     z = mg.create_node_array_zeros()   # land elevation
