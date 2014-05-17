@@ -78,7 +78,7 @@ class ModelDataFields(object):
 
     @property
     def groups(self):
-        """Names of all the groups held in the field.
+        """List of group names.
 
         Returns
         -------
@@ -88,7 +88,7 @@ class ModelDataFields(object):
         return set(self._groups.keys())
 
     def has_group(self, group):
-        """Check if the field has *group*.
+        """Check if a group exists.
 
         Parameters
         ----------
@@ -112,6 +112,85 @@ class ModelDataFields(object):
         False
         """
         return group in self._groups
+
+    def has_field(self, group, field):
+        """Check if a field is in a group.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str
+            Name of the field.
+
+        Returns
+        -------
+        boolean
+            ``True`` if the group contains the field, otherwise ``False``.
+
+        Examples
+        --------
+        Check if the field named ``planet_surface__elevation`` is contained
+        in a group.
+
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+        >>> _ = fields.add_ones('node', 'planet_surface__elevation')
+        >>> fields.has_field('node', 'planet_surface__elevation')
+        True
+        >>> fields.has_field('cell', 'planet_surface__elevation')
+        False
+        """
+        return group in self._groups
+
+    def keys(self, group):
+        """List of field names in a group.
+
+        Returns a list of the field names as a list of strings.
+
+        Parameters
+        ----------
+        group : str
+            Group name.
+
+        Returns
+        -------
+        list
+            List of field names.
+
+        Examples
+        --------
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+        >>> fields.keys('node')
+        []
+        >>> _ = fields.add_empty('node', 'planet_surface__elevation')
+        >>> fields.keys('node')
+        ['planet_surface__elevation']
+        """
+        return self[group].keys()
+
+    def size(self, group):
+        """Size of the arrays stored in a group.
+
+        Parameters
+        ----------
+        group : str
+            Group name.
+
+        Returns
+        -------
+        int
+            Array size.
+
+        Examples
+        --------
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+        >>> fields.size('node')
+        4
+        """
+        return self[group].size
 
     def new_field_location(self, group, size):
         """Add a new quantity to a field.

@@ -188,7 +188,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'RasterModelGrid._initialize('+str(num_rows)+', ' \
                    +str(num_cols)+', '+str(dx)+')'
         
@@ -1313,7 +1313,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top left = TOP
         This scheme is necessary for internal consistency with looped boundaries.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
         bottom_edge = range(0, self.number_of_node_columns)
@@ -1403,7 +1403,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top left = TOP
         This scheme is necessary for internal consistency with looped boundaries.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_closed_boundaries_at_grid_edges'
             
         bottom_edge = range(0, self.number_of_node_columns)
@@ -1468,7 +1468,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top left = TOP
         This scheme is necessary for internal consistency with looped boundaries.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_closed_boundaries_at_grid_edges'
             
         bottom_edge = range(0, self.number_of_node_columns)
@@ -2049,7 +2049,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - self.number_of_node_columns
         
-        if self.DEBUG_VERBOSE:
+        if self._DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell
     
     def calculate_gradients_at_links(self, node_values, out=None):
@@ -2140,7 +2140,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         flow according the priority scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in these cases.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_steepest_descent_on_nodes'
             
         assert (len(link_gradients)==self.number_of_active_links), \
@@ -2264,7 +2264,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         it for cell "id".
         """
     
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'RasterModelGrid.calculate_flux_divergence here with cell',id
             print 'q:',q[self.faces[id,0:4]]
         fd = ( -( q[self.faces[id,2]]   # left face (positive=in)
