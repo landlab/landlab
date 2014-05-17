@@ -649,8 +649,7 @@ class ModelGrid(ModelDataFields):
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument *name*, we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array. This is the primary method for
-        loading your data into the grid fields.
+        create and return a 1D numpy array.
 
         Parameters
         ----------
