@@ -14,7 +14,7 @@ import os
 import pylab
 from numpy import ones, size
 
-dem_name = '../../io/tests/data/west_bijou_gully.asc'
+dem_name = '../../../io/tests/data/west_bijou_gully.asc'
 outlet_row = 82
 outlet_column = 38
 
