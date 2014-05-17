@@ -19,10 +19,17 @@ class SPEroder(object):
     ...which it will draw from a supplied input file. n_sp has to be 1 for the
     BW algorithm to work.
     
+    This module assumes you have already run 
+    :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
+    in the same timestep. It looks for 'upstream_ID_order', 
+    'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
+    'planet_surface__elevation' at the nodes in the grid.
+    
     dt & rainfall_intensity are optional variables. dt is a fixed timestep, and
     rainfall_intensity is a parameter which modulates K_sp (by a product, 
     r_i**m_sp) to reflect the direct influence of rainfall intensity on 
     erosivity.
+    
     If dt is not supplied, you must call gear_timestep(dt_in, rain_intensity_in)
     each iteration to set these variables on-the-fly (rainfall_intensity will be
     overridden if supplied in the input file).

@@ -8,4 +8,76 @@ List of Landlab Models
 List of Landlab Components
 ==========================
 
-(pending)
+This is a (probably incomplete) list of the existing components for 
+landlab. Most of these remain quite experimental, and may change in the 
+future! Documentation may also be wanting in some cases.
+
+Where a specific method is listed beneath the module class, this is the primary method of the module. This is the method you call in a loop to actually "crank the handle" of the process.
+
+
+Functional modules
+------------------
+
+.. autoclass:: landlab.components.diffusion.diffusion.DiffusionComponent
+	.. automethod:: landlab.components.diffusion.diffusion.DiffusionComponent.diffuse
+
+.. autoclass:: landlab.components.fire_generator.generate_fire.FireGenerator
+
+.. autoclass:: landlab.components.flexure.flexure.FlexureComponent
+
+.. autoclass:: landlab.components.flow_routing.route_flow_dn.FlowRouter
+	..automethod:: landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow
+
+.. autoclass:: landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse
+	.. automethod:: landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse.diffuse
+
+.. autoclass:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow
+	.. automethod:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow.run_one_step
+	This might not work...
+
+.. autoclass:: landlab.components.PET.ET_PriestlyTaylor.ET
+	.. automethod:: landlab.components.PET.ET_PriestlyTaylor.ET.update
+	This component implements a model for evapotranspiration.
+
+.. autoclass:: landlab.components.radiation.radiation_field.Radiation
+	.. automethod:: landlab.components.radiation.radiation_field.Radiation.update
+
+.. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
+	..automethod:: landlab.components.stream_power.fastscape_stream_power.SPEroder.erode
+
+.. autoclass:: landlab.components.single_vegetation.single_vegetation.SingleVegetation
+	.. automethod:: landlab.components.single_vegetation.single_vegetation.SingleVegetation.update
+	This component implements vegetation dynamics at a point.
+
+.. autoclass:: landlab.components.soil_moisture.soil_moisture_field.SoilMoisture
+	.. automethod:: landlab.components.soil_moisture.soil_moisture_field.SoilMoisture.update
+
+.. autoclass:: landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution
+	.. automethod:: landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.update
+	This class generates rainfall events and interstorm intervals based
+	on the Poisson-like statistical model of Eagleson (1978).
+
+
+Here be dragons!
+----------------
+
+These components are all in principle working, but either deviate from up 
+to date recommended Landlab style guidelines, or are otherwise 
+"confusing". 
+All remain definitely experimental.
+Procede at your own risk!
+
+.. automodule:: landlab.components.fracture_grid.fracture_grid
+	Note that this module runs in a script-style, and uses a syntax quite different to the "recommended" up to date landlab guidelines.
+
+.. autoclass:: landlab.components.linkca.link_ca.LinkCellularAutomaton
+
+
+Under development
+-----------------
+
+These components are currently under development for Landlab:
+
+	* Impact cratering
+	* Glacial flow, in a variety of forms
+	* ...
