@@ -6,7 +6,7 @@ import numpy as np
 from landlab.testing import NumpyArrayTestingMixIn
 
 import landlab.utils.structured_grid as sgrid
-from landlab.utils.structured_grid import BAD_INDEX_VALUE
+from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 
 
 class TestGetNodeCoords(unittest.TestCase, NumpyArrayTestingMixIn):
@@ -277,7 +277,7 @@ class TestActiveLinks(unittest.TestCase, NumpyArrayTestingMixIn):
 
     def test_with_node_status(self):
         status = sgrid.node_status((4, 5))
-        status[6] = sgrid.INACTIVE_BOUNDARY
+        status[6] = sgrid.CLOSED_BOUNDARY
         active_links = sgrid.active_links((4, 5), node_status_array=status)
 
         self.assertArrayEqual(active_links,
