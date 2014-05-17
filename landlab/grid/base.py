@@ -45,9 +45,10 @@ FIXED_VALUE_BOUNDARY = 1
 #: Indicates a boundary node is has a fixed gradient.
 FIXED_GRADIENT_BOUNDARY = 2
 
+#: Indicates a boundary node is wrap-around.
 TRACKS_CELL_BOUNDARY = 3
 
-#: Indicates a boundary node is *closed*
+#: Indicates a boundary node is closed
 CLOSED_BOUNDARY = 4
 
 BOUNDARY_STATUS_FLAGS_LIST = [
@@ -57,13 +58,6 @@ BOUNDARY_STATUS_FLAGS_LIST = [
     CLOSED_BOUNDARY,
 ]
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
-
-
-class Error(Exception):
-    """
-    Base class for exceptions from this module.
-    """
-    pass
 
 
 def _sort_points_into_quadrants(x, y, nodes):
@@ -228,13 +222,15 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_boundary_status(self):
-        """
-        Node BC status codes for all nodes:
-            0: core (nonboundary) node
-            1: fixed value open boundary
-            2: fixed gradient open boundary
-            3: looped open boundary
-            4: closed boundary
+        """Boundary status of nodes.
+
+        Return an array of the status of a grid's nodes. The node status can
+        be one of the following:
+        - `CORE_NODE`
+        - `FIXED_VALUE_BOUNDARY`
+        - `FIXED_GRADIENT_BOUNDARY `
+        - `TRACKS_CELL_BOUNDARY`
+        - `CLOSED_BOUNDARY `
         """
         return self.node_status
 
@@ -252,9 +248,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def open_boundary_nodes(self):
-        """
-        Node id of all open boundary nodes.
-        """
+        """Node id of all open boundary nodes."""
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
@@ -279,7 +273,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_active_cells(self):
-        """Node ID associated with active grid cells
+        """Node ID associated with active grid cells.
 
         .. note:: Deprecated since version 0.6.
             Uses out-of-date terminology; 
@@ -290,9 +284,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_core_cells(self):
-        """
-        Node ID associated with core grid cells
-        """
+        """Node ID associated with core grid cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return core_cell_ids
 
@@ -308,7 +300,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_cell_index(self):
-        """IDs of active cells
+        """IDs of active cells.
 
         .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
@@ -318,16 +310,12 @@ class ModelGrid(ModelDataFields):
     
     @property
     def core_cell_index_at_nodes(self):
-        """
-        Core cell ID associated with grid nodes.
-        """
+        """Core cell ID associated with grid nodes."""
         return self.node_corecell
         
     @property
     def core_cell_index(self):
-        """
-        IDs of core cells
-        """
+        """IDs of core cells."""
         return self.core_cells
 
     @property
@@ -385,9 +373,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_core_cells(self):
-        """
-        Number of core cells in the grid (excludes all boundary cells).
-        """
+        """Number of core cells in the grid (excludes all boundary cells)."""
         return self._num_core_cells
 
     @property
@@ -437,7 +423,7 @@ class ModelGrid(ModelDataFields):
 
         Returns
         -------
-        ndarray :
+        ndarray
             Node IDs of all of a grid's core nodes.
         """
         return self.core_nodes
@@ -448,7 +434,7 @@ class ModelGrid(ModelDataFields):
 
         Returns
         -------
-        ndarray :
+        ndarray
             Node status of all a grid's nodes.
         """
         return self.node_status
@@ -480,7 +466,7 @@ class ModelGrid(ModelDataFields):
 
         Returns
         -------
-        ndarray :
+        ndarray
             Coordinates of nodes for a given axis.
         """
         AXES = ('node_y', 'node_x')
@@ -492,7 +478,8 @@ class ModelGrid(ModelDataFields):
     @property
     def axis_units(self):
         """A tuple of the units (as a string) for each of a grid's
-        coordinates."""
+        coordinates.
+        """
         return self._axis_units
 
     @axis_units.setter
@@ -530,7 +517,7 @@ class ModelGrid(ModelDataFields):
 
         Returns
         -------
-        ndarray :
+        ndarray
             The newly created array.
 
         See Also
@@ -554,13 +541,35 @@ class ModelGrid(ModelDataFields):
         else: 
             self.add_zeros('node', name, **kwds)
             return self.at_node[name]
-        
+
     def create_active_link_array_zeros( self, name=None ):
-        """
+        """Return a new array of the given type, filled with zeros.
+
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
         create and return a 1D numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the quantity.
+
+        Returns
+        -------
+        ndarray
+            The newly created array.
+
+        See Also
+        --------
+        zeros
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid(3, 3)
+        >>> grid.create_active_link_array_zeros()
+        array([ 0.,  0.,  0.,  0.])
         """
         if name is None:
             return numpy.zeros(self.number_of_active_links)
@@ -767,7 +776,7 @@ class ModelGrid(ModelDataFields):
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-        >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
             
         Then do this inside the loop:
             
@@ -863,11 +872,11 @@ class ModelGrid(ModelDataFields):
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
             
         Then do this inside the loop:
             
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
+        >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
             
         In this case, the function will not have to create the divflux array.
         
@@ -1476,7 +1485,6 @@ class ModelGrid(ModelDataFields):
         
         Examples
         --------
-
         >>> import landlab as ll
         >>> m = ll.HexModelGrid(5, 3, 1.0)
         >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
