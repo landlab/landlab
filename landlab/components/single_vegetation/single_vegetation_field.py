@@ -1,11 +1,8 @@
 #################################################################
 ##
-##  Almost done - May be divide growing and senescence
-##  into separate functions.
-##
 ##  'Field' concept is implemented for Single Species Vegetation.
 ##
-##  Sai Nudurupati - 04Mar2014
+##  Sai Nudurupati and Erkan Istanbulluoglu - 04Mar2014
 #################################################################
 
 from landlab import Component
