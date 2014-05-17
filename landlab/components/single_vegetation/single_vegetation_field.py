@@ -112,7 +112,7 @@ class Vegetation( Component ):
             
             if PET[cell] > PETthreshold:  # Growing Season 
                     
-                NPP = max((ActualET[cell]/(Tb+Tr))*                \
+                NPP = max((ActualET[cell]/(Tb+Tr))*                            \
                             self._WUE*24*0.55*1000, 0.001)
                 Bmax = (self._LAI_max - LAIdead)/self._cb 
                 Yconst = (1/((1/Bmax)+(((self._kws*Water_stress[cell])+        \
@@ -120,7 +120,7 @@ class Vegetation( Component ):
                 Blive = (self._Blive_ini[cell] - Yconst) *np.exp(-(NPP/Yconst)*\
                             ((Tb+Tr)/24)) + Yconst
                 Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *          \
-                            np.exp(-self._ksg * Tb/24),0.00001)))*       \
+                            np.exp(-self._ksg * Tb/24),0.00001)))*             \
                             np.exp(-self._kdd * min( PET[cell]/10, 1 ) *       \
                             Tb/24)
     
@@ -130,7 +130,7 @@ class Vegetation( Component ):
                             Tb/24), 1 )
                 Bdead = max( (self._Bdead_ini[cell] + ( self._Blive_ini[cell]  \
                             -max( self._Blive_ini[cell]*np.exp( (-2) *         \
-                            self._ksg * Tb/24), 0.000001)))*             \
+                            self._ksg * Tb/24), 0.000001)))*                   \
                             np.exp( (-1)*self._kdd *                           \
                             min( PET[cell]/10, 1 ) * Tb/24), 0 ) 
                                                 
