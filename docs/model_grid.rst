@@ -322,12 +322,7 @@ piece of the code in turn. Output from the the diffusion model is shown in
     :figwidth: 80 %
     :align: center
 
-    Elements of a model grid. The main grid elements are nodes, links, and faces. 
-    Less commonly used elements include corners, patches, and junctions. In the 
-    spring 2014 version of Landlab, **ModelGrid** can implement raster (a) and 
-    Voronoi-Delaunay (b) grids, as well as radial and hexagonal grids (not shown).
-    (Note that not all links patches are shown, and only one representative cell is 
-    shaded.)
+    Figure 4: Output from the hillslope diffusion model.
     
 Below we explore how the code works line-by-line.
 
@@ -524,15 +519,14 @@ This change makes the solution symmetrical in the `y` direction, so that we can 
 
 	z(x') = \frac{U}{2K_d} \left( L^2 - x'^2 \right),
 
-where :math:`L` is the half-length of the domain and :math:`x'` is a transformed :math:`x` coordinate such that :math:`x'=0` at the ridge crest. The numerical solution fits the analytical solution quite well (Figure~\ref{diffrasteranalytical}).
+where :math:`L` is the half-length of the domain and :math:`x'` is a transformed :math:`x` coordinate such that :math:`x'=0` at the ridge crest. The numerical solution fits the analytical solution quite well (Figure 5).
 
 .. figure:: diffusion_raster_with_analytical.png
-    :figwidth: 80%
+    :scale: 50 %
     :align: center
-	
-	Figure 4: Diffusion model with two opposite sides as open boundaries. Left: overhead 	
-	view. Right: side view showing nodes (blue dots) and 1D analytical solution (red 	
-	line).
+
+    Figure 5: Output from the hillslope diffusion model, compared with the analytical solution (right, red curve).
+
 
 
 Example #2: Overland Flow
@@ -541,33 +535,306 @@ Example #2: Overland Flow
 In this second example, we look at an implementation of the storage-cell algorithm of Bates et al. (2010) [bates2010simple]_ for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid. The output is shown in :ref:`Figure 5 <inundation>`.
 
 .. figure:: inundation.png
-    :figwidth: 80%
+    :scale: 40%
     :align: center
 	
-	Figure 5: Simulated flood-wave propagation.
+	Figure 6: Simulated flood-wave propagation.
 
 Overland Flow Code Listing
 >>>>>>>>>>>>>>>>>>>>>>>>>>
 
 The source code can be found in the file *overland_flow_with_model_grid.py*.
 
-\lstinputlisting[firstnumber=1,firstline=1,lastline=143]{overland_flow_with_model_grid.py}
+.. code-block:: python
 
-\subsection{Packages}
+	#! /usr/env/python
+	"""
+	2D numerical model of shallow-water flow over topography, using the
+	Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
-\lstinputlisting[firstnumber=11,firstline=11,lastline=13]{overland_flow_with_model_grid.py}
+	Last updated GT May 2014
+	"""
+
+	from landlab import RasterModelGrid
+	import pylab, time
+	import numpy as np
+
+	def main():
+		"""
+		In this simple tutorial example, the main function does all the work: 
+		it sets the parameter values, creates and initializes a grid, sets up 
+		the state variables, runs the main loop, and cleans up.
+		"""
+	
+		# INITIALIZE
+	
+		# User-defined parameter values
+		numrows = 20
+		numcols = 100
+		dx = 50.
+		n = 0.03              # roughness coefficient
+		run_time = 1800       # duration of run, seconds
+		h_init = 0.001        # initial thin layer of water (m)
+		h_boundary = 2.5      # water depth at left side (m) 
+		g = 9.8
+		alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
+	
+		# Derived parameters
+		ten_thirds = 10./3.   # pre-calculate 10/3 for speed
+		elapsed_time = 0.0    # total time in simulation
+		report_interval = 2.  # interval to report progress (seconds)
+		next_report = time.time()+report_interval   # next time to report progress
+	
+		# Create and initialize a raster model grid
+		mg = RasterModelGrid(numrows, numcols, dx)
+	
+		# Set up boundaries. We'll have the right and left sides open, the top and
+		# bottom closed. The water depth on the left will be 5 m, and on the right 
+		# just 1 mm.
+		mg.set_inactive_boundaries(True, False, True, False)
+	
+		# Set up scalar values
+		z = mg.create_node_array_zeros()   # land elevation
+		h = mg.create_node_array_zeros() + h_init     # water depth (m)
+		q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
+		dhdt = mg.create_node_array_zeros()  # rate of water-depth change
+	
+		# Left side has deep water
+		leftside = mg.left_edge_node_ids()
+		h[leftside] = h_boundary
+	
+		# Get a list of the interior cells
+		interior_cells = mg.get_active_cell_node_ids()
+
+		# Display a message
+		print( 'Running ...' )
+		start_time = time.time()
+
+		# RUN
+	
+		# Main loop
+		while elapsed_time < run_time:
+		
+			# Report progress
+			if time.time()>=next_report:
+				print('Time = '+str(elapsed_time)+' ('
+					  +str(100.*elapsed_time/run_time)+'%)')
+				next_report += report_interval
+		
+			# Calculate time-step size for this iteration (Bates et al., eq 14)
+			dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
+		
+			# Calculate the effective flow depth at active links. Bates et al. 2010
+			# recommend using the difference between the highest water-surface
+			# and the highest bed elevation between each pair of cells.
+			zmax = mg.max_of_link_end_node_values(z)
+			w = h+z   # water-surface height
+			wmax = mg.max_of_link_end_node_values(w)
+			hflow = wmax - zmax
+		
+			# Calculate water-surface slopes
+			water_surface_slope = mg.calculate_gradients_at_active_links(w)
+	   
+			# Calculate the unit discharges (Bates et al., eq 11)
+			q = (q-g*hflow*dtmax*water_surface_slope)/ \
+				(1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
+		
+			# Calculate water-flux divergence and time rate of change of water depth
+			# at nodes
+			dhdt = -mg.calculate_flux_divergence_at_nodes(q)
+		
+			# Second time-step limiter (experimental): make sure you don't allow
+			# water-depth to go negative
+			if np.amin(dhdt) < 0.:
+				shallowing_locations = np.where(dhdt<0.)
+				time_to_drain = -h[shallowing_locations]/dhdt[shallowing_locations]
+				dtmax2 = alpha*np.amin(time_to_drain)
+				dt = np.min([dtmax, dtmax2])
+			else:
+				dt = dtmax
+		
+			# Update the water-depth field
+			h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+		
+			# Update current time
+			elapsed_time += dt
+
+	  
+		# FINALIZE
+	
+		# Get a 2D array version of the elevations
+		hr = mg.node_vector_to_raster(h, flip_vertically=True)
+	
+		# Create a shaded image
+		pylab.close()  # clear any pre-existing plot
+		image_extent = [0, 0.001*dx*numcols, 0, 0.001*dx*numrows] # in km
+		im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=image_extent)
+		pylab.xlabel('Distance (km)', fontsize=12)
+		pylab.ylabel('Distance (km)', fontsize=12)
+	
+		# add contour lines with labels
+		cset = pylab.contour(hr, extent=image_extent)
+		pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
+	
+		# add a color bar on the side
+		cb = pylab.colorbar(im)
+		cb.set_label('Water depth (m)', fontsize=12)
+	
+		# add a title
+		pylab.title('Simulated inundation')
+
+		# Display the plot
+		pylab.show()
+		print('Done.')
+		print('Total run time = '+str(time.time()-start_time)+' seconds.')
+
+	if __name__ == "__main__":
+		main()
+
+Packages
+>>>>>>>>
+
+.. code-block:: python
+
+	from landlab import RasterModelGrid
+	import pylab, time
+	import numpy as np
+
 
 For this program, we'll need ModelGrid as well as the pylab, time, and numpy packages.
 
-\subsection{User-Defined Parameters}
+User-Defined Parameters
+>>>>>>>>>>>>>>>>>>>>>>>
 
-\lstinputlisting[firstnumber=24,firstline=24,lastline=33]{overland_flow_with_model_grid.py}
+.. code-block:: python
+
+		# User-defined parameter values
+		numrows = 20
+		numcols = 100
+		dx = 50.
+		n = 0.03              # roughness coefficient
+		run_time = 1800       # duration of run, seconds
+		h_init = 0.001        # initial thin layer of water (m)
+		h_boundary = 2.5      # water depth at left side (m) 
+		g = 9.8
+		alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
+	
 
 Several of the user-defined parameters are the same as those used in the diffusion example: the dimensions and cell size of our raster grid, and the duration of the run. Here the duration is in seconds. In addition, we need to specify the Manning roughness coefficient (``n``), the initial water depth (here set to 1 mm), the water depth along the left-hand boundary, gravitational acceleration, and a time-step factor.
 
-\subsection{Derived Parameters}
+Derived Parameters
+>>>>>>>>>>>>>>>>>>
 
-\lstinputlisting[firstnumber=35,firstline=35,lastline=39]{overland_flow_with_model_grid.py}
+.. code-block:: python
+
+		# Derived parameters
+		ten_thirds = 10./3.   # pre-calculate 10/3 for speed
+		elapsed_time = 0.0    # total time in simulation
+		report_interval = 2.  # interval to report progress (seconds)
+		next_report = time.time()+report_interval   # next time to report progress
+	
+		# Create and initialize a raster model grid
+		mg = RasterModelGrid(numrows, numcols, dx)
+	
+		# Set up boundaries. We'll have the right and left sides open, the top and
+		# bottom closed. The water depth on the left will be 5 m, and on the right 
+		# just 1 mm.
+		mg.set_inactive_boundaries(True, False, True, False)
+	
+		# Set up scalar values
+		z = mg.create_node_array_zeros()   # land elevation
+		h = mg.create_node_array_zeros() + h_init     # water depth (m)
+		q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
+		dhdt = mg.create_node_array_zeros()  # rate of water-depth change
+	
+		# Left side has deep water
+		leftside = mg.left_edge_node_ids()
+		h[leftside] = h_boundary
+	
+		# Get a list of the interior cells
+		interior_cells = mg.get_active_cell_node_ids()
+
+		# Display a message
+		print( 'Running ...' )
+		start_time = time.time()
+
+		# RUN
+	
+		# Main loop
+		while elapsed_time < run_time:
+		
+			# Report progress
+			if time.time()>=next_report:
+				print('Time = '+str(elapsed_time)+' ('
+					  +str(100.*elapsed_time/run_time)+'%)')
+				next_report += report_interval
+		
+			# Calculate time-step size for this iteration (Bates et al., eq 14)
+			dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
+		
+			# Calculate the effective flow depth at active links. Bates et al. 2010
+			# recommend using the difference between the highest water-surface
+			# and the highest bed elevation between each pair of cells.
+			zmax = mg.max_of_link_end_node_values(z)
+			w = h+z   # water-surface height
+			wmax = mg.max_of_link_end_node_values(w)
+			hflow = wmax - zmax
+		
+			# Calculate water-surface slopes
+			water_surface_slope = mg.calculate_gradients_at_active_links(w)
+	   
+			# Calculate the unit discharges (Bates et al., eq 11)
+			q = (q-g*hflow*dtmax*water_surface_slope)/ \
+				(1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
+		
+			# Calculate water-flux divergence and time rate of change of water depth
+			# at nodes
+			dhdt = -mg.calculate_flux_divergence_at_nodes(q)
+		
+			# Second time-step limiter (experimental): make sure you don't allow
+			# water-depth to go negative
+			if np.amin(dhdt) < 0.:
+				shallowing_locations = np.where(dhdt<0.)
+				time_to_drain = -h[shallowing_locations]/dhdt[shallowing_locations]
+				dtmax2 = alpha*np.amin(time_to_drain)
+				dt = np.min([dtmax, dtmax2])
+			else:
+				dt = dtmax
+		
+			# Update the water-depth field
+			h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+		
+			# Update current time
+			elapsed_time += dt
+
+	  
+		# FINALIZE
+	
+		# Get a 2D array version of the elevations
+		hr = mg.node_vector_to_raster(h, flip_vertically=True)
+	
+		# Create a shaded image
+		pylab.close()  # clear any pre-existing plot
+		image_extent = [0, 0.001*dx*numcols, 0, 0.001*dx*numrows] # in km
+		im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=image_extent)
+		pylab.xlabel('Distance (km)', fontsize=12)
+		pylab.ylabel('Distance (km)', fontsize=12)
+	
+		# add contour lines with labels
+		cset = pylab.contour(hr, extent=image_extent)
+		pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
+	
+		# add a color bar on the side
+		cb = pylab.colorbar(im)
+		cb.set_label('Water depth (m)', fontsize=12)
+	
+		# add a title
+		pylab.title('Simulated inundation')
+
+		# Display the plot
+		pylab.show()
+		print('Done.')
+		print('Total run time = '+str(time.time()-start_time)+' seconds.')
 
 Here, we pre-calculate the value of 10/3 so as to avoid repeating a division operation throughout the main loop. We also set up some variables to track the progress of the run. The elapsed time refers here to model time. In this model, we use a variable time-step size, and so rather than counting through a predetermined number of iterations, we instead keep track of the elapsed run time and halt the simulation when we reach the desired run duration.
 
