@@ -60,6 +60,18 @@ number of alternative methods (see below).*
 .. automethod:: landlab.grid.base.ModelGrid.zeros
 
 
+DEM and NetCDF input/output
+===========================
+
+*The landlab/io folder contains the various methods that allow Landlab to ingest DEMs,
+and to import and export NetCDF files. i/o with vtk files is also possible, but not
+detailed here.*
+
+.. automethod:: landlab.io.esri_ascii.read_esri_ascii
+.. automethod:: landlab.io.netcdf.read.read_netcdf
+.. automethod:: landlab.io.netcdf.write.write_netcdf
+
+
 Access data in the grid fields
 ==============================
 
@@ -69,6 +81,9 @@ stored in them.*
     **grid.at_node['my_data_name']**
     
     **grid['node']['my_data_name']**
+    
+    **grid.at_node.keys()**
+        Get the names of the data fields already stored on nodes in the grid.
     
 (see also entry for ModelGrid.create_node_array_zeros)
 
