@@ -4,7 +4,7 @@
 2D numerical model of shallow-water flow over topography, using the
 Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
-Last updated GT July 2013
+Last updated GT May 2014
 
 """
 
@@ -67,7 +67,7 @@ def main():
     
     # Main loop
     while elapsed_time < run_time:
-        print elapsed_time
+        
         # Report progress
         if time.time()>=next_report:
             print('Time = '+str(elapsed_time)+' ('

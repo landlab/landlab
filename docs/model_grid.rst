@@ -535,7 +535,7 @@ Example #2: Overland Flow
 In this second example, we look at an implementation of the storage-cell algorithm of Bates et al. (2010) [bates2010simple]_ for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid. The output is shown in :ref:`Figure 5 <inundation>`.
 
 .. figure:: inundation.png
-    :scale: 40%
+    :scale: 30%
     :align: center
 	
 	Figure 6: Simulated flood-wave propagation.
@@ -591,20 +591,20 @@ The source code can be found in the file *overland_flow_with_model_grid.py*.
 		# Set up boundaries. We'll have the right and left sides open, the top and
 		# bottom closed. The water depth on the left will be 5 m, and on the right 
 		# just 1 mm.
-		mg.set_inactive_boundaries(True, False, True, False)
+		mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 	
 		# Set up scalar values
-		z = mg.create_node_array_zeros()   # land elevation
-		h = mg.create_node_array_zeros() + h_init     # water depth (m)
+		z = mg.add_zeros('node', 'Land_surface__elevation')   # land elevation
+		h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
 		q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
-		dhdt = mg.create_node_array_zeros()  # rate of water-depth change
+		dhdt = mg.add_zeros('node', 'Water_depth_time_derivative')
 	
 		# Left side has deep water
 		leftside = mg.left_edge_node_ids()
 		h[leftside] = h_boundary
 	
-		# Get a list of the interior cells
-		interior_cells = mg.get_active_cell_node_ids()
+		# Get a list of the core nodes
+		core_nodes = mg.core_nodes
 
 		# Display a message
 		print( 'Running ...' )
@@ -614,7 +614,7 @@ The source code can be found in the file *overland_flow_with_model_grid.py*.
 	
 		# Main loop
 		while elapsed_time < run_time:
-		
+			
 			# Report progress
 			if time.time()>=next_report:
 				print('Time = '+str(elapsed_time)+' ('
@@ -626,7 +626,7 @@ The source code can be found in the file *overland_flow_with_model_grid.py*.
 		
 			# Calculate the effective flow depth at active links. Bates et al. 2010
 			# recommend using the difference between the highest water-surface
-			# and the highest bed elevation between each pair of cells.
+			# and the highest bed elevation between each pair of nodes.
 			zmax = mg.max_of_link_end_node_values(z)
 			w = h+z   # water-surface height
 			wmax = mg.max_of_link_end_node_values(w)
@@ -654,7 +654,7 @@ The source code can be found in the file *overland_flow_with_model_grid.py*.
 				dt = dtmax
 		
 			# Update the water-depth field
-			h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+			h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
 		
 			# Update current time
 			elapsed_time += dt
@@ -663,7 +663,7 @@ The source code can be found in the file *overland_flow_with_model_grid.py*.
 		# FINALIZE
 	
 		# Get a 2D array version of the elevations
-		hr = mg.node_vector_to_raster(h, flip_vertically=True)
+		hr = mg.node_vector_to_raster(h)
 	
 		# Create a shaded image
 		pylab.close()  # clear any pre-existing plot
@@ -733,27 +733,243 @@ Derived Parameters
 		report_interval = 2.  # interval to report progress (seconds)
 		next_report = time.time()+report_interval   # next time to report progress
 	
-		# Create and initialize a raster model grid
-		mg = RasterModelGrid(numrows, numcols, dx)
-	
-		# Set up boundaries. We'll have the right and left sides open, the top and
-		# bottom closed. The water depth on the left will be 5 m, and on the right 
-		# just 1 mm.
-		mg.set_inactive_boundaries(True, False, True, False)
-	
-		# Set up scalar values
-		z = mg.create_node_array_zeros()   # land elevation
-		h = mg.create_node_array_zeros() + h_init     # water depth (m)
-		q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
-		dhdt = mg.create_node_array_zeros()  # rate of water-depth change
-	
-		# Left side has deep water
-		leftside = mg.left_edge_node_ids()
-		h[leftside] = h_boundary
-	
-		# Get a list of the interior cells
-		interior_cells = mg.get_active_cell_node_ids()
+Here, we pre-calculate the value of 10/3 so as to avoid repeating a division operation throughout the main loop. We also set up some variables to track the progress of the run. The elapsed time refers here to model time. In this model, we use a variable time-step size, and so rather than counting through a predetermined number of iterations, we instead keep track of the elapsed run time and halt the simulation when we reach the desired run duration.
 
+The ``report_interval`` refers to clock time rather than run time. Every two seconds of clock time, we will report the percentage completion to the user, so that he/she is aware that the run is progressing and has an idea how much more is left to go. The variable ``next_report`` keeps track of the next time (on the clock) to report progress to the user.
+
+Setting up the grid and state variables
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+    # Create and initialize a raster model grid
+    mg = RasterModelGrid(numrows, numcols, dx)
+    
+    # Set up boundaries. We'll have the right and left sides open, the top and
+    # bottom closed. The water depth on the left will be 5 m, and on the right 
+    # just 1 mm.
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+    
+    # Set up scalar values
+    z = mg.add_zeros('node', 'Land_surface__elevation')   # land elevation
+    h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
+    q = mg.create_active_link_array_zeros()  # unit discharge (m2/s)
+    dhdt = mg.add_zeros('node', 'Water_depth_time_derivative')
+    
+    # Left side has deep water
+    leftside = mg.left_edge_node_ids()
+    h[leftside] = h_boundary
+    
+    # Get a list of the core nodes
+    core_nodes = mg.core_nodes
+
+Next, we create and configure a raster grid. In this example, we'll have the left and right boundaries open and the top and bottom closed; we set this up with a call to ``set_closed_boundaries_at_grid_edges()`` on line 47.
+
+Our key variables are as follows: land elevation, ``z`` (which remains constant and uniform at zero in this example), water depth, ``h`` (which starts out at ``h_init``), discharge per unit width, ``q``, and the rate of change of water depth, ``dhdt``. Three of these---elevation, depth, and :math:`dh/dt`, are scalars that are evaluated at nodes. The fourth, discharge, is evaluated at active links.
+
+In this example, we will have the left boundary maintain a fixed water depth of 2.5 m. To accomplish this, we first obtain a list of the ID numbers of the boundary nodes that lie along the left grid edge by calling RasterModelGrid's ``left_edge_node_ids()`` method, which returns a Numpy array containing the IDs. We then use them to set the new depth values on the following line. Finally, we obtain a list of core node IDs, just as we did in the diffusion example.
+
+Main loop, part 1
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+    # Main loop
+    while elapsed_time < run_time:
+        
+        # Report progress
+        if time.time()>=next_report:
+            print('Time = '+str(elapsed_time)+' ('
+                  +str(100.*elapsed_time/run_time)+'%)')
+            next_report += report_interval
+        
+        # Calculate time-step size for this iteration (Bates et al., eq 14)
+        dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
+        
+        # Calculate the effective flow depth at active links. Bates et al. 2010
+        # recommend using the difference between the highest water-surface
+        # and the highest bed elevation between each pair of nodes.
+        zmax = mg.max_of_link_end_node_values(z)
+        w = h+z   # water-surface height
+        wmax = mg.max_of_link_end_node_values(w)
+        hflow = wmax - zmax
+        
+        # Calculate water-surface slopes
+        water_surface_slope = mg.calculate_gradients_at_active_links(w)
+      
+        # Calculate the unit discharges (Bates et al., eq 11)
+        q = (q-g*hflow*dtmax*water_surface_slope)/ \
+            (1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
+        
+The main loop uses a ``while`` rather than a ``for`` loop because the time-step size is variable. We begin with a block of code that prints the percentage completion to the screen every two seconds. After this, we calculate a maximum time-step size size using the formula of Bates et al. (2010) [bates2010simple]_, which depends on grid-cell spacing and on the shallow water wave celerity, :math:`\sqrt{g h}`. For water depth, we use the maximum value in the grid, because it is this value that will have the greatest celerity and therefore be most restrictive.
+
+The next several lines calculate unit discharge values along each active link. To do this, we need to know the effective water depth at each of these locations. Bates et al. (2010) [bates2010simple]_ recommend using the difference between the highest water-surface elevation and the highest bed-surface elevation at each pair of adjacent nodes---that is, at each active link. To find these maximum values, we call the ``active_link_max`` function, first with bed elevation, and then with water-surface elevation, ``w``. The resulting effective flow depths at the active links are stored in Numpy array called ``hflow``. 
+
+Calculating discharge also requires us to know the water-surface gradient at each active link. We find this by calling ``calculate_gradients_at_active_links`` and passing it the water-surface height. We then have everything we need to calculate the discharge values using the Bates et al. (2010) [bates2010simple]_ formula, which is done with the line
+
+.. code::
+
+        q = (q-g*hflow*dtmax*water_surface_slope)/ \
+            (1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
+
+
+Main loop, part 2
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+        # Calculate water-flux divergence and time rate of change of water depth
+        # at nodes
+        dhdt = -mg.calculate_flux_divergence_at_nodes(q)
+        
+        # Second time-step limiter (experimental): make sure you don't allow
+        # water-depth to go negative
+        if np.amin(dhdt) < 0.:
+            shallowing_locations = np.where(dhdt<0.)
+            time_to_drain = -h[shallowing_locations]/dhdt[shallowing_locations]
+            dtmax2 = alpha*np.amin(time_to_drain)
+            dt = np.min([dtmax, dtmax2])
+        else:
+            dt = dtmax
+        
+        # Update the water-depth field
+        h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
+        
+        # Update current time
+        elapsed_time += dt
+
+Because we have no source term in the flow equations---we are assuming there is no rainfall or infiltration to add or remove water in each cell---the rate of depth change is equal to :math:`-\nabla q`, the divergence of water discharge. Just as in the diffusion example, we can calculate the flux divergence in a single line with help from the ``calculate_flux_divergence_at_nodes`` method.
+
+The next block of code provides a second limit on time-step size, designed to prevent water depth from becoming negative. At some locations in the grid, it is possible that the rate of change of water depth will be negative, meaning that the water depth is becoming shallower over time. If we were to extrapolate this shallowing too far into the future, by taking too big a time step, we could end up with negative water depth. To avoid this situation, we first determine whether there are any locations where ``dhdt`` is negative, using the Numpy ``amin`` function. If there are, we call the Numpy ``where`` function to obtain a list of the node IDs at which the water depth is shallowing. The next line calculates the time it would take to reach zero water thickness. On line 104, we find the minimum of these time intervals, and multiply it by the ``alpha`` time-step parameter. This ensures that we won't actually completely drain any cells of water. Finally, we determine which limiting time-step is smaller: ``dtmax``, which reflects the limitation due to fluid velocity, or ``dtmax2``, which is the limitation due to cell drainage. If no cells have :math:`dh/dt<0`, then we simply use the fluid-velocity time step size.
+
+We then update the values of water depth at all core nodes. Finally, we increment the total elapsed time.
+
+Plotting the results
+>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+    # Get a 2D array version of the elevations
+    hr = mg.node_vector_to_raster(h)
+    
+    # Create a shaded image
+    pylab.close()  # clear any pre-existing plot
+    image_extent = [0, 0.001*dx*numcols, 0, 0.001*dx*numrows] # in km
+    im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=image_extent)
+    pylab.xlabel('Distance (km)', fontsize=12)
+    pylab.ylabel('Distance (km)', fontsize=12)
+    
+    # add contour lines with labels
+    cset = pylab.contour(hr, extent=image_extent)
+    pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
+    
+    # add a color bar on the side
+    cb = pylab.colorbar(im)
+    cb.set_label('Water depth (m)', fontsize=12)
+    
+    # add a title
+    pylab.title('Simulated inundation')
+
+    # Display the plot
+    pylab.show()
+    print('Done.')
+    print('Total run time = '+str(time.time()-start_time)+' seconds.')
+
+The final portion of the code uses the RasterModelGrid ``node_vector_to_raster()`` method along with some Pylab functions to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
+
+
+Example 3: Overland Flow using a DEM
+------------------------------------
+
+In the next example, we create a version of the storage-cell overland-flow model that uses a digital elevation model (DEM) for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor. The complete code listing is below. Output is shown in :ref:`Figure 7 <olflowdem>`.
+
+.. _olflowdem:
+
+.. figure:: overland_flow_dem.png
+    :scale: 20%
+    :align: center
+	
+	Figure 7: Output from a model of overland flow run on a DEM. Left: images showing topography, and water depth at end of run. Right: hydrograph at catchment outlet.
+
+.. code-block:: python
+
+	#! /usr/env/python
+	"""
+	2D numerical model of shallow-water flow over topography read from a DEM, using
+	the Bates et al. (2010) algorithm for storage-cell inundation modeling.
+
+	Last updated GT May 2014
+	"""
+
+	from landlab.io import read_esri_ascii
+	import time
+	import os
+	import pylab
+	import numpy as np
+
+
+	def main():
+		"""
+		In this simple tutorial example, the main function does all the work: 
+		it sets the parameter values, creates and initializes a grid, sets up 
+		the state variables, runs the main loop, and cleans up.
+		"""
+	
+		# INITIALIZE
+	
+		# User-defined parameter values
+		dem_name = 'ExampleDEM/west_bijou_gully.asc'
+		outlet_row = 82
+		outlet_column = 38
+		next_to_outlet_row = 81
+		next_to_outlet_column = 38
+		n = 0.06              # roughness coefficient (Manning's n)
+		h_init = 0.001        # initial thin layer of water (m)
+		g = 9.8               # gravitational acceleration (m/s2)
+		alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
+		run_time = 2400       # duration of run, seconds
+		rainfall_mmhr = 100   # rainfall rate, in mm/hr
+		rain_duration = 15*60 # rainfall duration, in seconds
+	
+		# Derived parameters
+		rainfall_rate = (rainfall_mmhr/1000.)/3600.  # rainfall in m/s
+		ten_thirds = 10./3.   # pre-calculate 10/3 for speed
+		elapsed_time = 0.0    # total time in simulation
+		report_interval = 5.  # interval to report progress (seconds)
+		next_report = time.time()+report_interval   # next time to report progress
+		DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
+	
+		# Create and initialize a raster model grid by reading a DEM
+		print('Reading data from "'+str(DATA_FILE)+'"')
+		(mg, z) = read_esri_ascii(DATA_FILE)
+		print('DEM has ' + str(mg.number_of_node_rows) + ' rows, ' +
+			  str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx)) + ' m'
+	
+		# Modify the grid DEM to set all nodata nodes to inactive boundaries
+		mg.set_nodata_nodes_to_closed(z, 0) # set nodata nodes to inactive bounds
+	
+		# Set the open boundary (outlet) cell. We want to remember the ID of the 
+		# outlet node and the ID of the interior node adjacent to it. We'll make
+		# the outlet node an open boundary.
+		outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
+		node_next_to_outlet = mg.grid_coords_to_node_id(next_to_outlet_row, next_to_outlet_column)
+		mg.set_fixed_value_boundaries(outlet_node)
+
+		# Set up state variables
+		h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
+		q = mg.create_active_link_array_zeros()       # unit discharge (m2/s)
+	
+		# Get a list of the core nodes
+		core_nodes = mg.core_nodes
+	
+		# To track discharge at the outlet through time, we create initially empty
+		# lists for time and outlet discharge.
+		q_outlet = []
+		t = []
+		q_outlet.append(0.)
+		t.append(0.)
+		outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
+	
 		# Display a message
 		print( 'Running ...' )
 		start_time = time.time()
@@ -787,9 +1003,15 @@ Derived Parameters
 			q = (q-g*hflow*dtmax*water_surface_slope)/ \
 				(1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
 		
-			# Calculate water-flux divergence and time rate of change of water depth
-			# at nodes
-			dhdt = -mg.calculate_flux_divergence_at_nodes(q)
+			# Calculate water-flux divergence at nodes
+			dqds = mg.calculate_flux_divergence_at_nodes(q)
+		
+			# Update rainfall rate
+			if elapsed_time > rain_duration:
+				rainfall_rate = 0.
+		
+			# Calculate rate of change of water depth
+			dhdt = rainfall_rate-dqds
 		
 			# Second time-step limiter (experimental): make sure you don't allow
 			# water-depth to go negative
@@ -802,208 +1024,285 @@ Derived Parameters
 				dt = dtmax
 		
 			# Update the water-depth field
-			h[interior_cells] = h[interior_cells] + dhdt[interior_cells]*dt
+			h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
+			h[outlet_node] = h[node_next_to_outlet]
 		
 			# Update current time
 			elapsed_time += dt
-
+		
+			# Remember discharge and time
+			t.append(elapsed_time)
+			q_outlet.append(q[outlet_link])
+		
 	  
 		# FINALIZE
 	
-		# Get a 2D array version of the elevations
-		hr = mg.node_vector_to_raster(h, flip_vertically=True)
-	
-		# Create a shaded image
-		pylab.close()  # clear any pre-existing plot
-		image_extent = [0, 0.001*dx*numcols, 0, 0.001*dx*numrows] # in km
-		im = pylab.imshow(hr, cmap=pylab.cm.RdBu, extent=image_extent)
-		pylab.xlabel('Distance (km)', fontsize=12)
-		pylab.ylabel('Distance (km)', fontsize=12)
-	
-		# add contour lines with labels
-		cset = pylab.contour(hr, extent=image_extent)
-		pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
-	
-		# add a color bar on the side
-		cb = pylab.colorbar(im)
-		cb.set_label('Water depth (m)', fontsize=12)
-	
-		# add a title
-		pylab.title('Simulated inundation')
+		# Set the elevations of the nodata cells to the minimum active cell
+		# elevation (convenient for plotting)
+		z[np.where(z<=0.)] = 9999            # temporarily change their elevs ...
+		zmin = np.amin(z)                    # ... so we can find the minimum ...
+		z[np.where(z==9999)] = zmin          # ... and assign them this value.
 
-		# Display the plot
+		# Get a 2D array version of the water depths and elevations
+		hr = mg.node_vector_to_raster(h)
+		zr = mg.node_vector_to_raster(z)
+	
+		# Clear previous plots
+		pylab.figure(1)
+		pylab.close()
+		pylab.figure(2)
+		pylab.close()
+	
+		# Plot discharge vs. time
+		pylab.figure(1)
+		pylab.plot(np.array(t), np.array(q_outlet)*mg.dx)
+		pylab.xlabel('Time (s)')
+		pylab.ylabel('Q (m3/s)')
+		pylab.title('Outlet discharge')
+	
+		# Plot topography
+		pylab.figure(2)
+		pylab.subplot(121)
+		im = pylab.imshow(zr, cmap=pylab.cm.RdBu,
+						  extent=[0, mg.number_of_node_columns * mg.dx,
+								  0, mg.number_of_node_rows * mg.dx])
+		cb = pylab.colorbar(im)
+		cb.set_label('Elevation (m)', fontsize=12)
+		pylab.title('Topography')
+	
+		# Plot water depth
+		pylab.subplot(122)
+		im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu,
+						   extent=[0, mg.number_of_node_columns * mg.dx,
+								   0, mg.number_of_node_rows * mg.dx])
+		pylab.clim(0, 0.25)
+		cb = pylab.colorbar(im2)
+		cb.set_label('Water depth (m)', fontsize=12)
+		pylab.title('Water depth')
+	
+		# Display the plots
 		pylab.show()
 		print('Done.')
 		print('Total run time = '+str(time.time()-start_time)+' seconds.')
 
-Here, we pre-calculate the value of 10/3 so as to avoid repeating a division operation throughout the main loop. We also set up some variables to track the progress of the run. The elapsed time refers here to model time. In this model, we use a variable time-step size, and so rather than counting through a predetermined number of iterations, we instead keep track of the elapsed run time and halt the simulation when we reach the desired run duration.
 
-The ``report_interval`` refers to clock time rather than run time. Every two seconds of clock time, we will report the percentage completion to the user, so that he/she is aware that the run is progressing and has an idea how much more is left to go. The variable ``next_report`` keeps track of the next time (on the clock) to report progress to the user.
+	if __name__ == "__main__":
+		main()
 
-\newpage
-\subsection{Setting up the grid and state variables}
+Loading modules
+>>>>>>>>>>>>>>>
 
-\lstinputlisting[firstnumber=41,firstline=41,lastline=60]{overland_flow_with_model_grid.py}
+.. code-block:: python
 
-Next, we create and configure a raster grid. In this example, we'll have the left and right boundaries open and the top and bottom closed; we set this up with a call to ``set_inactive_boundaries`` on line 47.
+	from landlab.io import read_esri_ascii
+	import time
+	import os
+	import pylab
+	import numpy as np
 
-Our key variables are as follows: land elevation, ``z`` (which remains constant and uniform at zero in this example), water depth, ``h`` (which starts out at ``h_init``), discharge per unit width, ``q``, and the rate of change of water depth, ``dhdt``. Three of these---elevation, depth, and :math:`dh/dt`, are scalars that are evaluated at nodes. The fourth, discharge, is evaluated at active links.
+In order to import the DEM, we will use Landlab's ``read_esri_ascii`` function, so we need to import this. We also need the ``time`` module for timekeeping, ``os`` for manipulating path names, ``pylab`` for plotting, and ``numpy`` for numerical operations. 
 
-In this example, we will have the left boundary maintain a fixed water depth of 2.5 m. To accomplish this, we first obtain a list of the ID numbers of the boundary nodes that lie along the left grid edge by calling RasterModelGrid's ``left_edge_node_ids()`` method, which returns a Numpy array containing the IDs. We then use them to set the new depth values on the following line. Finally, on line 60, we obtain a list of interior node IDs, just as we did in the diffusion example.
+User-defined variables
+>>>>>>>>>>>>>>>>>>>>>>
 
-\subsection{Main loop, part 1}
+.. code-block:: python
 
-\lstinputlisting[firstnumber=68,firstline=68,lastline=93]{overland_flow_with_model_grid.py}
+    # User-defined parameter values
+    dem_name = 'ExampleDEM/west_bijou_gully.asc'
+    outlet_row = 82
+    outlet_column = 38
+    next_to_outlet_row = 81
+    next_to_outlet_column = 38
+    n = 0.06              # roughness coefficient (Manning's n)
+    h_init = 0.001        # initial thin layer of water (m)
+    g = 9.8               # gravitational acceleration (m/s2)
+    alpha = 0.2           # time-step factor (ND; from Bates et al., 2010)
+    run_time = 2400       # duration of run, seconds
+    rainfall_mmhr = 100   # rainfall rate, in mm/hr
+    rain_duration = 15*60 # rainfall duration, in seconds
 
-The main loop uses a ``while`` rather than a ``for`` loop because the time-step size is variable. We begin with a block of code that prints the percentage completion to the screen every two seconds. After this, we calculate a maximum time-step size size using the formula of \citet{bates2010simple}, which depends on grid-cell spacing and on the shallow water wave celerity, :math:`\sqrt{g h}`. For water depth, we use the maximum value in the grid, because it is this value that will have the greatest celerity and therefore be most restrictive.
-
-The next several lines calculate unit discharge values along each active link. To do this, we need to know the effective water depth at each of these locations. \citet{bates2010simple} recommend using the difference between the highest water-surface elevation and the highest bed-surface elevation at each pair of adjacent nodes---that is, at each active link. To find these maximum values, we call the ``active_link_max`` function, first with bed elevation, and then with water-surface elevation, ``w``. The resulting effective flow depths at the active links are stored in Numpy array called ``hflow``. 
-
-Calculating discharge also requires us to know the water-surface gradient at each active link. We find this by calling ``calculate_gradients_at_active_links`` and passing it the water-surface height. We then have everything we need to calculate the discharge values using the \citet{bates2010simple} formula, which is done on lines 92 and 93.
-
-\subsection{Main loop, part 2}
-
-\lstinputlisting[firstnumber=95,firstline=95,lastline=113]{overland_flow_with_model_grid.py}
-
-Because we have no source term in the flow equations---we are assuming there is no rainfall or infiltration to add or remove water in each cell---the rate of depth change is equal to :math:`-\nabla q`, the divergence of water discharge. Just as in the diffusion example, we can calculate the flux divergence in a single line with help from the ``calculate_flux_divergence_at_nodes`` method.
-
-The next block of code provides a second limit on time-step size, designed to prevent water depth from becoming negative. At some locations in the grid, it is possible that the rate of change of water depth will be negative, meaning that the water depth is becoming shallower over time. If we were to extrapolate this shallowing too far into the future, by taking too big a time step, we could end up with negative water depth. To avoid this situation, we first determine whether there are any locations where ``dhdt`` is negative, using the Numpy ``amin`` function. If there are, we call the Numpy ``where`` function to obtain a list of the node IDs at which the water depth is shallowing. The next line calculates the time it would take to reach zero water thickness. On line 104, we find the minimum of these time intervals, and multiply it by the ``alpha`` time-step parameter. This ensures that we won't actually completely drain any cells of water. Finally, we determine which limiting time-step is smaller: ``dtmax``, which reflects the limitation due to fluid velocity, or ``dtmax2``, which is the limitation due to cell drainage. If no cells have :math:`dh/dt<0`, then we simply use the fluid-velocity time step size.
-
-Line 110 updates the values of water depth at all interior cells. Finally, line 113 increments the total elapsed time.
-
-\subsection{Plotting the results}
-
-\lstinputlisting[firstnumber=118,firstline=118,lastline=141]{overland_flow_with_model_grid.py}
-
-The final portion of the code uses the ModelGrid ``node_vector_to_raster`` method along with some Pylab functions to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
-
-
-%%%%%%%%%%%%%
-
-\section{Example 3: Overland Flow using a DEM}
-
-In the next example, we create a version of the storage-cell overland-flow model that uses a DEM for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor.
-The complete code listing is below. Output is shown in Figure~\ref{olflowdem}.
-
-%%%%%%%%%%% FIGURE %%%%%%%%%%%
- \begin{figure}[h!]
-    \centering
-    \includegraphics{overland_flow_dem.pdf}
-    \caption{Output from a model of overland flow run on a DEM. Left: images showing topography, and water depth at end of run. Right: hydrograph at catchment outlet.}
-   \label{olflowdem}
-\end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\lstinputlisting[firstnumber=1,firstline=1,lastline=195]{overland_flow_with_model_grid_dem.py}
-
-\subsection{Loading modules}
-
-\lstinputlisting[firstnumber=11,firstline=11,lastline=15]{overland_flow_with_model_grid_dem.py}
-
-In order to import the DEM, we will use Landlab's ``read_esri_ascii`` function, so we need to import this. We also need the Time module for timekeeping, OS for manipulating path names, Pylab for plotting, and Numpy for numerical operations. 
-
-\subsection{User-defined variables}
-
-\lstinputlisting[firstnumber=28,firstline=28,lastline=39]{overland_flow_with_model_grid_dem.py}
-
-We will obtain topography from a 3-m resolution digital elevation model (DEM) of a small gully watershed in the West Bijou Creek drainage basin, east-central Colorado, USA. The drainage area of this catchment is about one hectare. The topography derives from airborne lidar data. The DEM is contained in an ArcInfo-format ascii file called {\em west_bijou_gully.asc``, located in the {\em ExampleDEM} folder.
+We will obtain topography from a 3-m resolution digital elevation model (DEM) of a small gully watershed in the West Bijou Creek drainage basin, east-central Colorado, USA. The drainage area of this catchment is about one hectare. The topography derives from airborne lidar data. The DEM is contained in an ArcInfo-format ascii file called * west_bijou_gully.asc*, located in the *ExampleDEM* folder.
 
 In this example, we will allow flow through a single outlet cell, which we need to flag as a fixed-value boundary. We will also monitor discharge at the outlet. To accomplish these tasks, we need the row and column of the cell that will be used as the outlet and the cell next to it.
 
 Our run will apply water as rainfall, with a rate given by ``rainfall_mmhr`` and a duration given by ``rain_duration``. In fact, in this simple model, we won't allow any infiltration, so the rainfall rate is actually a runoff rate.
 
-\subsection{Derived parameters}
+Derived parameters
+>>>>>>>>>>>>>>>>>>
 
-\lstinputlisting[firstnumber=42,firstline=42,lastline=47]{overland_flow_with_model_grid_dem.py}
+.. code-block:: python
+
+    # Derived parameters
+    rainfall_rate = (rainfall_mmhr/1000.)/3600.  # rainfall in m/s
+    ten_thirds = 10./3.   # pre-calculate 10/3 for speed
+    elapsed_time = 0.0    # total time in simulation
+    report_interval = 5.  # interval to report progress (seconds)
+    next_report = time.time()+report_interval   # next time to report progress
+    DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
 
 In this block of code, we convert the rainfall rate from millimeters per hour to meters per second. We also find the full path name of the input DEM by combining the pathname of the python code file (which is stored in ``__file__``) with the specified DEM file name. We take advantage of the ``dirname`` and ``join`` functions in the OS module.
 
-\subsection{Reading and initializing the DEM}
+Reading and initializing the DEM
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-\lstinputlisting[firstnumber=49,firstline=49,lastline=56]{overland_flow_with_model_grid_dem.py}
+.. code-block:: python
 
-ModelGrid's IO module allows us to read an ArcInfo ascii-format DEM with a call to the ``read_esri_ascii`` function. The function creates and returns a RasterModelGrid of the correct size and resolution, as well as a Numpy array of node elevation values. In this example, we know that the DEM contains elevations for a small watershed; nodes outside the watershed have a no-data value of zero. We don't want any flow to cross the watershed perimeter except at a single outlet cell. The call to the ModelGrid function ``deactivate_nodata_nodes`` accomplishes this by identifying all nodes for which the corresponding value in ``z`` equals the specified no-data value of zero.
+    # Create and initialize a raster model grid by reading a DEM
+    print('Reading data from "'+str(DATA_FILE)+'"')
+    (mg, z) = read_esri_ascii(DATA_FILE)
+    print('DEM has ' + str(mg.number_of_node_rows) + ' rows, ' +
+          str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx)) + ' m'
+    
+    # Modify the grid DEM to set all nodata nodes to inactive boundaries
+    mg.set_nodata_nodes_to_closed(z, 0) # set nodata nodes to inactive bounds
 
-\subsection{Setting up the watershed outlet}
+Landlab's IO module allows us to read an ArcInfo ascii-format DEM with a call to the ``read_esri_ascii`` function. The function creates and returns a ``RasterModelGrid`` of the correct size and resolution, as well as a Numpy array of node elevation values. In this example, we know that the DEM contains elevations for a small watershed; nodes outside the watershed have a no-data value of zero. We don't want any flow to cross the watershed perimeter except at a single outlet cell. The call to the ModelGrid method ``set_nodata_nodes_to_closed`` accomplishes this by identifying all nodes for which the corresponding value in ``z`` equals the specified no-data value of zero.
 
-\lstinputlisting[firstnumber=58,firstline=58,lastline=64]{overland_flow_with_model_grid_dem.py}
+Setting up the watershed outlet
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-We will handle the outlet by keeping the water-surface slope the same as the bed-surface slope along the link that leads to the outlet boundary cell. To accomplish this, the first thing we need to do is find the ID of the outlet node and the interior node adjacent to it. We already know what the row and column numbers of these nodes are; to obtain the corresponding node ID, we use ModelGrid's ``grid_coords_to_node_id`` method. We then convert the outlet node to a fixed-value (i.e., open) boundary with the ``set_fixed_value_boundaries`` method. (Note that in doing this, we've converted what was an interior node into a fixed boundary; had we converted a no-data node, we would end up with a waterfall at the outlet because the no-data nodes all have zero elevation, while the interior nodes all have elevations above 1600 m).
+.. code-block:: python
 
-\subsection{Preparing to track discharge at the outlet}
+    # Set the open boundary (outlet) cell. We want to remember the ID of the 
+    # outlet node and the ID of the interior node adjacent to it. We'll make
+    # the outlet node an open boundary.
+    outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
+    node_next_to_outlet = mg.grid_coords_to_node_id(next_to_outlet_row, 
+                                                    next_to_outlet_column)
+    mg.set_fixed_value_boundaries(outlet_node)
 
-\lstinputlisting[firstnumber=74,firstline=74,lastline=81]{overland_flow_with_model_grid_dem.py}
+We will handle the outlet by keeping the water-surface slope the same as the bed-surface slope along the link that leads to the outlet boundary cell. To accomplish this, the first thing we need to do is find the ID of the outlet node and the interior node adjacent to it. We already know what the row and column numbers of these nodes are; to obtain the corresponding node ID, we use ModelGrid's ``grid_coords_to_node_id`` method. We then convert the outlet node to a fixed-value (i.e., open) boundary with the ``set_fixed_value_boundaries`` method. (Note that in doing this, we've converted what was a core node into a fixed boundary; had we converted a no-data node, we would end up with a waterfall at the outlet because the no-data nodes all have zero elevation, while the interior nodes all have elevations above 1600 m).
 
-For this model, it would be nice to track discharge through time at the watershed outlet. To do this, we create two new lists: one for the time corresponding to each iteration, and one for the outlet discharge. Using lists will be slightly slower than using pre-defined Numpy arrays, but avoids forcing us to guess how many iterations there will be (recall that time-step size depends on the flow conditions in any given iteration). We append zeros to each list to represent the starting condition. To find out which active link represents the watershed outlet, we use ModelGrid's ``get_active_link_connecting_node_pair`` method. This method takes a pair of node IDs as arguments. If the nodes are connected by an active link, it returns the ID of that active link; otherwise, it returns None.
+Preparing to track discharge at the outlet
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-\subsection{Main loop}
+.. code-block:: python
 
-\lstinputlisting[firstnumber=119,firstline=119,lastline=124]{overland_flow_with_model_grid_dem.py}
+    # To track discharge at the outlet through time, we create initially empty
+    # lists for time and outlet discharge.
+    q_outlet = []
+    t = []
+    q_outlet.append(0.)
+    t.append(0.)
+    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
+                                                          node_next_to_outlet)
+
+For this model, it would be nice to track discharge through time at the watershed outlet. To do this, we create two new lists: one for the time corresponding to each iteration, and one for the outlet discharge. Using lists will be slightly slower than using pre-defined Numpy arrays, but avoids forcing us to guess how many iterations there will be (recall that time-step size depends on the flow conditions in any given iteration). We append zeros to each list to represent the starting condition. To find out which active link represents the watershed outlet, we use ModelGrid's ``get_active_link_connecting_node_pair`` method. This method takes a pair of node IDs as arguments. If the nodes are connected by an active link, it returns the ID of that active link; otherwise, it returns ``ModelGrid.BAD_INDEX_VALUE``.
+
+Main loop
+>>>>>>>>>
+
+.. code-block:: python
+
+        # Update rainfall rate
+        if elapsed_time > rain_duration:
+            rainfall_rate = 0.
+        
+        # Calculate rate of change of water depth
+        dhdt = rainfall_rate-dqds
 
 Most of the main loop is identical to what we saw in Example 2, and here we will only list the parts that are new or different. One difference is that we now have a source term that represents rainfall and runoff. The code listed above sets the rainfall rate to zero when the elapsed time is greater than the rainfall duration. It also adds ``rainfall_rate`` as a source term when computing :math:`dh/dt`.
 
-\lstinputlisting[firstnumber=135,firstline=135,lastline=137]{overland_flow_with_model_grid_dem.py}
+.. code-block:: python
 
-After updating water depth values for the interior cells, we also need to update the water depth at the outlet boundary so that it matches the depth at the adjacent cell.
+        # Update the water-depth field
+        h[core_nodes] = h[core_nodes] + dhdt[core_nodes]*dt
+        h[outlet_node] = h[node_next_to_outlet]
 
-\lstinputlisting[firstnumber=142,firstline=142,lastline=144]{overland_flow_with_model_grid_dem.py}
+After updating water depth values for the core nodes, we also need to update the water depth at the outlet boundary so that it matches the depth at the adjacent node.
+
+.. code-block:: python
+
+        # Remember discharge and time
+        t.append(elapsed_time)
+        q_outlet.append(q[outlet_link])
 
 The last few lines in the main loop keep track of discharge at the outlet by appending the current time and discharge to their respective lists.
 
-\subsection{Plotting the result}
+Plotting the result
+>>>>>>>>>>>>>>>>>>>
 
 The plotting section is similar to what we saw in the previous two examples. One difference is that we now use two figures: one for the topography and water depth, and one for outlet discharge over time. We also use Pylab's sub-plot capability to place images of topography and water depth side by side.
 
 
-%%%%%%%%%%%%%%%%%%%%%
+Using a Different Grid Type
+---------------------------
 
-\section{Using a Different Grid Type}
+As noted earlier, Landlab provides several different types of grid. Available grids (as of this writing) are listed in the table below. Grids are designed using Python classes, with 
+more specialized grids inheriting properties and behavior from more general types. The
+class heirarchy is given in the second column, **Inherits from**. 
 
-As noted earlier, ModelGrid provides several different types of grid. Available grids (as of this writing) are listed in Table~\ref{gridtypestable}.
+=======================   =======================   ==================   ================
+Grid type                 Inherits from             Node arrangement     Cell geometry
+=======================   =======================   ==================   ================
+``RasterModelGrid``       ``ModelGrid``             raster               squares
+``VoronoiDelaunayGrid``   ``ModelGrid``             Delaunay triangles   Voronoi polygons
+``HexModelGrid``          ``VoronoiDelaunayGrid``   triagonal            hexagons
+``RadialModelGrid``       ``VoronoiDelaunayGrid``   concentric           Voronoi polygons
+=======================   =======================   ==================   ================
 
-\begin{table}[htbp]
-   \centering
-   \topcaption{List of available grid types} % requires the topcapt package
-   \begin{tabular}{@{} lccl @{}} % Column formatting, @{} suppresses leading/trailing space
-      \toprule
-      
-      %\cmidrule(r){1-2} % Partial rule. (r) trims the line a little bit on the right; (l) & (lr) also possible
-      Grid type & Inherits from & Nodes & Cells \\
-      \midrule
-      RasterModelGrid  & ModelGrid & regular & square \\
-      
-      VoronoiDelaunayGrid & ModelGrid & Delaunay$^1$ & Voronoi$^2$ \\
-      HexModelGrid & VoronoiDelaunayGrid & triagonal$^{1,3}$ & hexagonal$^4$ \\
-      RadialModelGrid & VoronoiDelaunayGrid & concentric$^{1,5}$ & Voronoi$^2$ \\
-      \bottomrule
-      \multicolumn{4}{l}{$^1$ Nodes are connected by a Delaunay triangulation; user specifies node coordinates} \\
-      \multicolumn{4}{l}{$^2$ Cells are Voronoi polygons} \\
-      \multicolumn{4}{l}{$^3$ Nodes in regular triangular lattice with spacing $\delta$} \\
-      \multicolumn{4}{l}{$^4$ Regular hexagons with side length $\delta/\sqrt{3}$ and area $\sqrt{3} \delta^2 / 2$} \\
-      \multicolumn{4}{l}{$^5$ Points arranged in concentric circles with radial spacing $r$ and arc spacing $\approx r$} \\
-   \end{tabular}
-   %\caption{Remember, \emph{never} use vertical lines in tables.}
-   \label{gridtypestable}
-\end{table}
+In a *VoronoiDelaunay* grid, a set of node coordinates is given as an initial condition. Landlab then forms a
+Delaunay triangulation, so that the links between nodes are the edges of the triangles, and the cells are Voronoi polygons. A *HexModelGrid* is a special type of *VoronoiDelaunay* grid in which the Voronoi cells happen to be regular hexagons. In a *RadialModelGrid*, nodes
+are created in concentric circles and then connected to form a Delaunay triangulation (again with Voronoi polygons as cells). The next example illustrates the use of a 
+*RadialModelGrid*.
 
-Suppose, for example, that we wanted to model a scenario in which the domain is a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To run our diffusion model with this geometry, we only need to make some relatively simple changes. A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing, so we change lines 28--30 to:
+Suppose that we wanted to model the long-term evolution, via hillslope soil creep, of a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To start, we'll look at the highly idealized case of a perfectly circular island that is subject to uniform baselevel lowering along its edges (as if it were shaped like a gigantic undersea column, and sea-level were steadily falling). We can implement such a model simply by making a few small changes to our previous diffusion-model code. 
 
-\lstinputlisting[firstnumber=28,firstline=28,lastline=30]{diffusion_with_radial_model_grid.py}
-Note that we have changed ``dx`` to ``dr`` on line 30. To create a RadialModelGrid instead of a RasterModelGrid, we simply replace the name of the object ``RasterModelGrid`` with ``RadialModelGrid``:\footnote{These two types of grid are examples of the use of {\em inheritance}: each is a sub-class of ``ModelGrid}, which means they both automatically contain all the methods and attributes of that base class.}
+A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing. We'll change the code that sets up grid geometry to the following:
 
-\lstinputlisting[firstnumber=39,firstline=39,lastline=39]{diffusion_with_radial_model_grid.py}
-Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands %(lines 74--94) 
+.. code-block:: python
+
+    # User-defined parameter values
+    num_shells=10         # number of radial "shells" in the grid
+    #numcols = 30         # not needed for a radial model grid
+    dr = 10.0             # grid cell spacing
+
+Note that we have changed ``dx`` to ``dr`` on line 30. To create a RadialModelGrid instead of a RasterModelGrid, we simply replace the name of the object ``RasterModelGrid`` with ``RadialModelGrid``.
+
+.. code-block:: python
+
+    # Create and initialize a radial model grid
+    mg = RadialModelGrid(num_shells, dr)
+
+Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands 
 with the following:
 
-\lstinputlisting[firstnumber=75,firstline=75,lastline=94]{diffusion_with_radial_model_grid.py}
-The result of our run is shown in Figure~\ref{radialdiffusion}.
+.. code-block:: python
 
-%%%%%%%%%%% FIGURE %%%%%%%%%%%
- \begin{figure}[h!]
-    \centering
-    \includegraphics{radial_example.pdf}
-    \caption{Diffusion model implemented with a radial model grid. (a) Nodes and links. Green nodes are active interior points, and red nodes are open boundaries. Active links in green; inactive links in black. Node gray shading is proportional to height. (b) Voronoi diagram, highlighting cells. Blue dots are nodes, and green circles are corners (cell vertices. Lines are faces (Voronoi polygon edges, sometimes called ``Voronoi ridges''). Dashed lines show orientation of undefined Voronoi edges. (c) Side view of model, showing nodes (blue dots) in comparison with analytical solution (red curve). All axes in meters.}
-   \label{radialdiffusion}
-\end{figure}
+    # Plot the points, colored by elevation
+    import numpy
+    maxelev = numpy.amax(z)
+    for i in range(mg.number_of_nodes):
+        mycolor = str(z[i]/maxelev)
+        pylab.plot(mg.node_x[i], mg.node_y[i], 'o', color=mycolor, ms=10)
+    
+    mg.display_grid()
+    
+    # Plot the points from the side, with analytical solution
+    pylab.figure(3)
+    L = num_shells*dr
+    xa = numpy.arange(-L, L+dr, dr)
+    z_analytical = (uplift_rate/(4*kd))*(L*L-xa*xa)
+    pylab.plot(mg.node_x, z, 'o')
+    pylab.plot(xa, z_analytical, 'r-')
+    pylab.xlabel('Distance from center (m)')
+    pylab.ylabel('Height (m)')
+    
+    pylab.show()
 
- 
+The result of our run is shown below.
+
+.. figure:: radial_example.png
+    :figwidth: 80 %
+    :scale: 10 %
+    :align: center
+
+    Figure 8: Hillslope diffusion model implemented with a radial model grid. (a) Nodes and links. Green nodes are active interior points, and red nodes are open boundaries. Active links in green; inactive links in black. Node gray shading is proportional to height. (b) Voronoi diagram, highlighting cells. Blue dots are nodes, and green circles are corners (cell vertices. Lines are faces (Voronoi polygon edges, sometimes called "Voronoi ridges"). Dashed lines show orientation of undefined Voronoi edges. (c) Side view of model, showing nodes (blue dots) in comparison with analytical solution (red curve). All axes in meters.
+
+Where to go next?
+=================
+
+All of the codes in these exercises are available in the Landlab distribution, under the folder *docs/model_grid_guide*.
+
+
+.. [bates2010simple] Bates, P., M. Horritt, and T. Fewtrell (2010), A simple inertial formulation of the shallow water equations for efficient two-dimensional flood inundation modelling, Journal of Hydrology, 387(1), 33–45.
