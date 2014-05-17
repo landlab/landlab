@@ -1080,8 +1080,8 @@ class ModelGrid(ModelDataFields):
             node_corecell
             _boundary_nodes
         """
-        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        self.corecell_node = numpy.where(self.node_status == CORE_NODE)
+        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)[0]
+        self.corecell_node = numpy.where(self.node_status == CORE_NODE)[0]
         self._num_core_cells = self.corecell_node.size
         self._num_core_nodes = self._num_core_cells
         self._num_active_nodes = self.activecell_node.size
@@ -1094,7 +1094,7 @@ class ModelGrid(ModelDataFields):
         self.node_activecell = numpy.empty(self.number_of_nodes)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell[self.activecell_node] = self.active_cells
-        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)
+        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0]
     
     
     def update_links_nodes_cells_to_new_BCs(self):
