@@ -2,9 +2,6 @@
 Building Simple Models with Landlab's Gridding Library: A Tutorial Guide
 ========================================================================
 
-(NOTE: currently, this web version of the Model Grid Guide is incomplete and not fully 
-formatted. You can obtain a :download:`PDF version here <model_grid_guide/model_grid_description_and_guide.pdf>`.)
-
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
 (or ``unstructured'') grids are especially tricky to implement. Landlab's **ModelGrid**
@@ -49,10 +46,11 @@ Basic Grid Elements
 
 .. _grid:
 
-.. figure:: grid_schematic.png
-    :scale: 50 %
-
-    Elements of a model grid. The main grid elements are nodes, links, and faces. 
+.. figure:: grid_schematic_ab.png
+    :figwidth: 80%
+    :align: center
+	
+    Figure 1: Elements of a model grid. The main grid elements are nodes, links, and faces. 
     Less commonly used elements include corners, patches, and junctions. In the 
     spring 2014 version of Landlab, **ModelGrid** can implement raster (a) and 
     Voronoi-Delaunay (b) grids, as well as radial and hexagonal grids (not shown).
@@ -68,7 +66,7 @@ or temperature.
 Each adjacent pair of nodes is connected by a line segment known as
 a *link*. A link has both a position in space, denoted
 by the coordinates of the two bounding nodes, and a direction: a link
-runs from one node (know as its ``from node'') to another (its ``to node''). 
+runs from one node (known as its ``from node'') to another (its ``to node''). 
 
 Every node in the grid interior is associated with a polygon known as a ``cell`` (illustrated,
 for example, by the shaded square region in :ref:`Figure 1a <grid>`). Each cell is 
@@ -123,9 +121,9 @@ made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
 triangulations and Voronoi diagrams are said to be dual to one another: for any
 given Delaunay triangulation, there is a unique corresponding Voronoi diagram
-\citep[e.g.,][]{braun1997modelling,tucker2001object}. With ModelGrid, one can
-create a mesh with either Voronoi polygons or Delaunay triangles as cells
-(:ref:`Figure 1b and d <grid>`). Alternatively, with a raster grid, one simply has
+\citep[e.g.,][]{braun1997modelling,tucker2001object}. With **ModelGrid,** one can
+create a mesh with Voronoi polygons as cells and Delaunay triangles as patches
+(:ref:`Figure 1b <grid>`). Alternatively, with a raster grid, one simply has
 two sets of square elements that are offset by half the grid spacing
 (:ref:`Figure 1a <grid>`). Whatever the form of the tessellation, **ModelGrid** keeps
 track of the geometry and topology of the grid. For example, one can call
@@ -142,9 +140,10 @@ Managing Grid Boundaries
 .. _raster4x5:
 
 .. figure:: example_raster_grid.png
-    :scale: 50 %
+    :figwidth: 80%
+    :align: center
 
-    Illustration of a simple four-row by five-column raster grid created with
+    Figure 2: Illustration of a simple four-row by five-column raster grid created with
     :class:`~landlab.grid.raster.RasterModelGrid`. By default, all perimeter
     nodes are tagged as open (fixed value) boundaries, and all interior cells
     are tagged as core. An active link is one that connects either
@@ -153,9 +152,10 @@ Managing Grid Boundaries
 .. _raster4x5openclosed:
 
 .. figure:: example_raster_grid_with_closed_boundaries.png
-    :scale: 50 %
+    :figwidth: 80 %
+    :align: center
 
-    Illustration of a simple four-row by five-column raster grid with a
+    Figure 3: Illustration of a simple four-row by five-column raster grid with a
     combination of open and closed boundaries.
 
 An important component of any numerical model is the method for handling
@@ -188,25 +188,555 @@ distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as the following simple example illustrates.
 
 
-Example #1: Diffusion
-=====================
+Examples
+========
 
-The following is a simple tutorial in which we use **ModelGrid** to build an explicit, 
+This section illustrates Landlab's grid capabilities through the use of several examples, 
+including a 2D numerical model of diffusion and a model of overland-flow routing.
+
+Example #1: Modeling Diffusion on a Raster Grid
+-----------------------------------------------
+
+The following is a simple example in which we use **ModelGrid** to build an explicit, 
 finite-volume, staggered-grid model of diffusion. The mathematics of diffusion describe 
-quite a few different phenomena, among them heat conduction in solids, chemical diffusion 
-of dissolved material, transport of momentum in a viscous shear flow, and transport of 
-soil on hillslopes. To make this exercise concrete, we will use the latter as our working 
-example, though in fact the solution could apply to any of these systems.
+quite a few different phenomena, including heat conduction in solids, chemical diffusion 
+of solutes, transport of momentum in a viscous shear flow, and transport of 
+soil on hillslopes. To make this example concrete, we will use the hillslope evolution as 
+our working case study, though in fact the solution could apply to any of these systems.
 
 To work through this example, you can type in and run the code below, or run the file
 *diffusion_with_model_grid.py*, which is located in the Landlab developer distribution
-under *docs/model_grid_guide*. The complete source code for the diffusion model is listed below. Line numbers are 
+under *docs/model_grid_guide*. The complete source code for the diffusion model is listed 
+below. Line numbers are 
 included to make it easier to refer to particular lines of code (of course, these numbers 
 are not part of the source code). After the listing, we will take a closer look at each 
 piece of the code in turn. Output from the the diffusion model is shown in 
-Figure~\ref{basicdiffmod}.
+:ref:`Figure 3 <diff1>`.
 
-.. code:: python number-lines : 1
+.. code-block:: python
+   :linenos:
+
+	#! /usr/env/python
+	"""
+
+	2D numerical model of diffusion, implemented using Landlab's ModelGrid module.
+	Provides a simple tutorial example of ModelGrid functionality.
+
+	Last updated GT May 2014
+
+	"""
+
+	from landlab import RasterModelGrid
+	import pylab, time
+
+	def main():
+		"""
+		In this simple tutorial example, the main function does all the work: 
+		it sets the parameter values, creates and initializes a grid, sets up 
+		the state variables, runs the main loop, and cleans up.
+		"""
+	
+		# INITIALIZE
+	
+		# User-defined parameter values
+		numrows = 20          # number of rows in the grid
+		numcols = 30          # number of columns in the grid
+		dx = 10.0             # grid cell spacing
+		kd = 0.01             # diffusivity coefficient, in m2/yr
+		uplift_rate = 0.0001  # baselevel/uplift rate, in m/yr
+		num_time_steps = 10000 # number of time steps in run
+	
+		# Derived parameters
+		dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
+	
+		# Create and initialize a raster model grid
+		mg = RasterModelGrid(numrows, numcols, dx)
+	
+		# Set the boundary conditions
+		mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+
+		# Set up scalar values
+		z = mg.add_zeros('node', 'Elevation')            # node elevations
+	
+		# Get a list of the core cells
+		core_cells = mg.get_core_cell_node_ids()
+
+		# Display a message, and record the current clock time
+		print( 'Running diffusion_with_model_grid.py' )
+		print( 'Time-step size has been set to ' + str( dt ) + ' years.' )
+		start_time = time.time()
+
+		# RUN
+	
+		# Main loop
+		for i in range(0, num_time_steps):
+		
+			# Calculate the gradients and sediment fluxes
+			g = mg.calculate_gradients_at_active_links(z)
+			qs = -kd*g
+		
+			# Calculate the net deposition/erosion rate at each node
+			dqsds = mg.calculate_flux_divergence_at_nodes(qs)
+		
+			# Calculate the total rate of elevation change
+			dzdt = uplift_rate - dqsds
+			
+			# Update the elevations
+			z[core_cells] = z[core_cells] + dzdt[core_cells] * dt
 
 
+		# FINALIZE
 
+		# Get a 2D array version of the elevations
+		zr = mg.node_vector_to_raster(z)
+	
+		# Create a shaded image
+		pylab.close()  # clear any pre-existing plot
+		im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx],
+						  origin='lower')
+		# add contour lines with labels
+		cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0], hold='on',
+							 origin='image')
+		pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
+	
+		# add a color bar on the side
+		cb = pylab.colorbar(im)
+		cb.set_label('Elevation in meters')
+	
+		# add a title and axis labels
+		pylab.title('Simulated topography with uplift and diffusion')
+		pylab.xlabel('Distance (m)')
+		pylab.ylabel('Distance (m)')
+
+		# Display the plot
+		pylab.show()
+		print('Run time = '+str(time.time()-start_time)+' seconds')
+
+	if __name__ == "__main__":
+		main()
+	   
+
+.. _diff1:
+
+.. figure:: basic_diffusion_example.png
+    :figwidth: 80 %
+    :align: center
+
+    Elements of a model grid. The main grid elements are nodes, links, and faces. 
+    Less commonly used elements include corners, patches, and junctions. In the 
+    spring 2014 version of Landlab, **ModelGrid** can implement raster (a) and 
+    Voronoi-Delaunay (b) grids, as well as radial and hexagonal grids (not shown).
+    (Note that not all links patches are shown, and only one representative cell is 
+    shaded.)
+    
+Below we explore how the code works line-by-line.
+
+Importing Packages
+>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+	from landlab import RasterModelGrid
+	import pylab, time
+
+We start by importing the grid class ``RasterModelGrid`` from the ``landlab`` package (note that the ``landlab`` package must first be installed; see instructions under :ref:`Installing Landlab <install>`). We'll also import ``pylab`` so we can plot the results, and ``time`` so we can report the time it takes to run the model.
+
+Setting the User-Defined Parameters
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+		# User-defined parameter values
+		numrows = 20          # number of rows in the grid
+		numcols = 30          # number of columns in the grid
+		dx = 10.0             # grid cell spacing
+		kd = 0.01             # diffusivity coefficient, in m2/yr
+		uplift_rate = 0.0001  # baselevel/uplift rate, in m/yr
+		num_time_steps = 10000 # number of time steps in run
+
+The first thing we'll do in the ``main()`` function is set a group of user-defined parameters. The size of the grid is set by ``numrows`` and ``numcols``, with cell spacing ``dx``. In this example, we have a 20 by 30 grid with 10~m grid spacing, so our domain represents a 200 by 300~m rectangular patch of land. The diffusivity coefficient ``kd`` describes the efficiency of soil creep, while the ``uplift_rate`` indicates how fast the land is rising relative to base level along its boundaries. Finally, we set how many time steps we want to compute.
+
+Note that the code for our simple program lives inside a ``main()`` function. This isn't strictly necessary---we could have put the code in the file without a ``main()`` function and it would work just fine when we run it---but it is good Python practice, and will be helpful later on.
+
+Calculating Derived Parameters
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+		# Derived parameters
+		dt = 0.1*dx**2 / kd    # time-step size set by CFL condition
+		
+Next, we calculate the values of parameters that are derived from the user-defined parameters. In this case, we have just one: the time-step size, which is set by the Courant-Friedrichs-Lewy condition for an explicit, finite-difference solution to the diffusion equation (to be on the safe side, we multiply the ratio :math:`\Delta x^2 / k_d` by 0.1 instead of the theoretical limit of 1/2). With the parameter values above, :math:`\Delta t = 1000` years, so our total run duration will be one million years. Remember, though, that the same code could be used for any diffusion application with a source term. For instance, we could model conductive heat flow, with :math:`k_d` representing thermal diffusivity and ``uplift_rate`` representing steady head input.
+
+
+Creating and Configuring the Grid
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+    # Create and initialize a raster model grid
+    mg = RasterModelGrid(numrows, numcols, dx)
+    
+    # Set the boundary conditions
+    mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+
+Our model grid is created with a call to ``RasterModelGrid()``. Object-oriented programmers will recognize this as the syntax for creating a new object---in this case a
+raster model grid. The variable ``mg`` now contains a ``RasterModelGrid`` object that has
+been configured with 20 rows and 30 columns.
+
+For our boundary conditions, we would like to keep the nodes along the bottom and right edges of the grid fixed at zero elevation. We also want to have the top and left boundaries represent ridge-lines with a fixed horizontal position and no flow of sediment in or out. To accomplish this, we call the ``set_closed_boundaries_at_grid_edges`` method. (Note: the term *method* is object-oriented parlance for a function that belongs to a particular class of object, and is always called in reference to a particular object). The method takes four boolean arguments, which indicate whether there should be closed boundary condition on the bottom, right, top, and left sides of the grid. Here we have set the flag to ``True`` for the top and left sides. This means that the links connecting the interior nodes to the perimeter nodes along these two sides will be flagged as inactive, just as illustrated (with a smaller grid) in :ref:`Figure 3 <raster4x5openclosed>`. As we'll see in a moment, we will simply not bother to calculate any mass flux across these closed boundaries.
+
+
+Creating Data
+>>>>>>>>>>>>>
+
+Our state variable, :math:`z(x,y,t)`, represents the land surface elevation. One of the unique aspects of ModelGrid is that grid-based variables like :math:`z` are represented as 1D rather than 2D Numpy arrays. Why do it this way, if we have a regular grid that naturally lends itself to 2D arrays? The answer is that we might want to have an irregular, unstructured grid, which is much easier to handle with 1D arrays of values. By using 1D arrays for all types of ModelGrid, we allow the user to switch seamlessly between structured and unstructured grids.
+
+We create our data structure for :math:`z` values with  ``add_zeros``, a ModelGrid method that creates and returns a 1D Numpy array filled with zeros (behind the scenes, it also ``attaches'' the array to the grid; we'll see later why this is useful). The length of the array is equal to the number of nodes in the grid (:math:`20\times 30=600`), which makes sense because we want to have an elevation value associated with every node in the grid.
+
+When we update elevation values, we will want to operate only on the active cells. To help with this, we call the ``get_active_cell_node_ids`` method. This method returns a 1D numpy array of integers that represent the node ID numbers associated with all of the active cells (of which there are :math:`18\times 28 = 504`). Finally, we display a message to tell the user that we're about to run and with what time step size.
+
+Main Loop
+>>>>>>>>>
+
+.. code-block:: python
+
+		# Main loop
+		for i in range(0, num_time_steps):
+
+Our model implements a finite-volume solution to the diffusion equation. The idea here is that we calculate sediment fluxes around the perimeter of each cell. We then integrate these fluxes forward in time to calculate the net change in volume, which is divided by the cell's surface area to obtain an equivalent change in height. The numerical solution is given by:
+
+.. math::
+
+	\begin{equation}
+	\frac{d z_i}{dt} \approx \frac{z^{T+1}_i-z^T_i}{\Delta t}
+	= - \frac{1}{\Lambda_i} \sum_{j=1}^{N_i} \mathbf{q}_{Sij}^T \lambda_{ij}.
+	\label{eq:dzdt}
+	\end{equation}
+
+Here, :math:`z_i^T` is the elevation at node :math:`i` at time step :math:`T`, :math:`t` is time, :math:`\Lambda_i` is the surface area of cell :math:`i`, :math:`N_i` is the number of cells adjacent to :math:`i` (called the cell's {\em neighbors}), :math:`\mathbf{q}_{Sij}^T` is the sediment flux per unit face width from cell :math:`i` to cell :math:`j`, and :math:`\lambda_{ij}` is the width of the face between cells :math:`i` and :math:`j`. The flux between a pair of adjacent cells is the product of the slope (positive upward) between their associated nodes, :math:`\mathbf{S}_{ij}`, and a transport coefficient, :math:`k_d`,
+
+.. math::
+
+	\begin{equation}
+	\mathbf{q}_{Sij} = - k_d \mathbf{S}_{ij} = - k_d \frac{z_j-z_i}{L_{ij}}
+	\end{equation}
+
+where :math:`L_{ij}` is the length of the link connecting nodes :math:`i` and :math:`j`. Notice that elevation values (which are scalars) are associated with nodes, while slopes and sediment fluxes (which are vectors) are associated with links and faces. If we want to think of the slopes and fluxes as being calculated at a particular point, that point is the junction between a link and its corresponding face (Figure~\ref{grid}).
+
+Because we are using a regular (raster) grid with node spacing :math:`\Delta x`, the face width and link length are both equal to :math:`\Delta x` everywhere, and the cell area :math:`\Lambda=\Delta x^2`. This would not be true, however, for an unstructured grid.
+
+Calculating gradients and sediment fluxes
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+		
+			# Calculate the gradients and sediment fluxes
+			g = mg.calculate_gradients_at_active_links(z)
+			qs = -kd*g
+
+In order to calculate new elevation values, the first quantity we need to know is the gradient (slope) values between all the node pairs. We can calculate this in a single line of code using ModelGrid's ``calculate_gradients_at_active_links`` method. This method takes a single argument: a 1D numpy array of scalar values associated with nodes. The length of this array must be the same as the number of nodes in the grid. The method calculates the gradients in ``z`` between each pair of nodes. It returns a 1D numpy array, ``g`` (for gradient), the size of which is the same as the number of active links in the grid (the difference between active and inactive links is illustrated in :ref:`Figure 2 <raster4x5>` and :ref:`3 <raster4x5openclosed>`. The sign of each value of ``g`` is positive when the slope runs uphill from a link's *from-node* to its *to-node*, and negative otherwise.
+
+To calculate the sediment fluxes, we multiply each gradient value by the transport coefficient ``kd``. The minus sign simply means that the sediment goes downhill: where the gradient is negative, the flux should be positive, and vice versa. Here, we are taking advantage of numpy's ability to perform mathematical operations on entire arrays in a single line of code, rather than having to write out a ``for`` loop. Line 60 in our code multiplies ``ks`` by every value of ``g``, and returns the result as a numpy array the same size as ``g``.
+
+Calculating net fluxes in and out of cells
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+		
+			# Calculate the net deposition/erosion rate at each node
+			dqsds = mg.calculate_flux_divergence_at_nodes(qs)
+		
+Now that we know the unit flux associated with each link and its corresponding cell face, the next thing we need to do is add up the total flux around the perimeter of each cell. In other words, we need to calculate the summation in equation above. Landlab allows us to do this in one line of code, by calling the ``calculate_flux_divergence_at_nodes`` method. This method takes a single argument: a 1D Numpy array containing the flux per unit width at each face in the grid. The method multiplies each unit flux by its corresponding face width, adds up the fluxes across each face for each cell, and divides the result by the surface area of the cell. It returns a 1D Numpy array that contains the net rate of change of volume per unit cell area. The length of this array is the same as the number of nodes in the grid. We will store the result in ``dqsds``.
+
+If the boundary nodes around the grid perimeter do not have associated cells, why do we bother calculating net fluxes for them? In fact, we do not need to; we could have called the method ``calculate_flux_divergence_at_active_cells`` instead. This would have given us an array the length of the number of active cells, not nodes. There are two reasons to do the net flux calculation at all nodes. The first is simply that the node-based method is slightly faster than the cell-based version. The second is that by using nodes, we retain some information about the flow of mass into the boundary cells. This could be useful in testing whether our model correctly balances mass (though we do not actually use that capability in this example).
+
+Updating elevations
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+		
+			# Calculate the total rate of elevation change
+			dzdt = uplift_rate - dqsds
+			
+			# Update the elevations
+			z[core_cells] = z[core_cells] + dzdt[core_cells] * dt
+
+When we calculated flux divergence, we got back an array of numbers, ``dqsds``, that represents the deposition (positive) or erosion (negative) rate of each cell. Now we need to combine this with the source term---representing rock uplift relative to the base level at the model's fixed boundaries---in order to calculate the total rate of elevation change at the nodes. Once we've calculated rates of change, we update all node elevations by simply multiplying ``dzdt`` by our time step size. We do not want to change the elevations of the boundary nodes, however, and so we perform the update only on the interior cells. Because we are using numpy arrays, we can isolate the interior cells simply by putting our array of node IDs for interior cells inside square brackets. 
+
+
+Plotting the Results
+>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+		# Get a 2D array version of the elevations
+		zr = mg.node_vector_to_raster(z)
+	
+		# Create a shaded image
+		pylab.close()  # clear any pre-existing plot
+		im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx],
+						  origin='lower')
+		# add contour lines with labels
+		cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0], hold='on',
+							 origin='image')
+		pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
+	
+		# add a color bar on the side
+		cb = pylab.colorbar(im)
+		cb.set_label('Elevation in meters')
+	
+		# add a title and axis labels
+		pylab.title('Simulated topography with uplift and diffusion')
+		pylab.xlabel('Distance (m)')
+		pylab.ylabel('Distance (m)')
+
+		# Display the plot
+		pylab.show()
+		print('Run time = '+str(time.time()-start_time)+' seconds')
+
+The last section of the ``main`` function plots the result of our calculation. We do this using pylab's ``imshow`` and ``contour`` functions to create a colored image of topography overlain by contours. To use these functions, we need our elevations to be ordered in a 2D array. We obtain a 2D array version of our ``z`` values through a call to RasterModelGrid's ``node_vector_to_raster`` method.
+
+Running the ``main()`` function
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: python
+
+	if __name__ == "__main__":
+		main()
+
+The last two lines of code are standard Python syntax. They will execute the ``main`` function when the code is run, but not when the code is simply imported as a module.
+
+That's it. The 2D diffusion code is less than 100 lines long. In fact, only about 20 of these actually implement the diffusion calculation; the rest handle plotting, comments, blank lines, etc.
+
+Checking against the analytical solution
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+To test the diffusion model against an analytical solution, we can change the setup to have closed boundaries on two opposite sides, by modifying line 39 to read:
+
+.. code:: python
+
+	mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+
+This change makes the solution symmetrical in the `y` direction, so that we can compare it with a 1D analytical solution. For a 1D steady state configuration with a constant source term (baselevel lowering) and two fixed boundaries, the elevation field is a parabola:
+
+.. math::
+
+	z(x') = \frac{U}{2K_d} \left( L^2 - x'^2 \right),
+
+where :math:`L` is the half-length of the domain and :math:`x'` is a transformed :math:`x` coordinate such that :math:`x'=0` at the ridge crest. The numerical solution fits the analytical solution quite well (Figure~\ref{diffrasteranalytical}).
+
+.. figure:: diffusion_raster_with_analytical.png
+    :figwidth: 80%
+    :align: center
+	
+	Figure 4: Diffusion model with two opposite sides as open boundaries. Left: overhead 	
+	view. Right: side view showing nodes (blue dots) and 1D analytical solution (red 	
+	line).
+
+
+Example #2: Overland Flow
+-------------------------
+
+In this second example, we look at an implementation of the storage-cell algorithm of Bates et al. (2010) [bates2010simple]_ for modeling flood inundation. In this example, we will use a flat terrain, and prescribe a water depth of 2.5 meters at the left side of the grid. This will create a wave that travels from left to right across the grid. The output is shown in :ref:`Figure 5 <inundation>`.
+
+.. figure:: inundation.png
+    :figwidth: 80%
+    :align: center
+	
+	Figure 5: Simulated flood-wave propagation.
+
+Overland Flow Code Listing
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+The source code can be found in the file *overland_flow_with_model_grid.py*.
+
+\lstinputlisting[firstnumber=1,firstline=1,lastline=143]{overland_flow_with_model_grid.py}
+
+\subsection{Packages}
+
+\lstinputlisting[firstnumber=11,firstline=11,lastline=13]{overland_flow_with_model_grid.py}
+
+For this program, we'll need ModelGrid as well as the pylab, time, and numpy packages.
+
+\subsection{User-Defined Parameters}
+
+\lstinputlisting[firstnumber=24,firstline=24,lastline=33]{overland_flow_with_model_grid.py}
+
+Several of the user-defined parameters are the same as those used in the diffusion example: the dimensions and cell size of our raster grid, and the duration of the run. Here the duration is in seconds. In addition, we need to specify the Manning roughness coefficient (``n``), the initial water depth (here set to 1 mm), the water depth along the left-hand boundary, gravitational acceleration, and a time-step factor.
+
+\subsection{Derived Parameters}
+
+\lstinputlisting[firstnumber=35,firstline=35,lastline=39]{overland_flow_with_model_grid.py}
+
+Here, we pre-calculate the value of 10/3 so as to avoid repeating a division operation throughout the main loop. We also set up some variables to track the progress of the run. The elapsed time refers here to model time. In this model, we use a variable time-step size, and so rather than counting through a predetermined number of iterations, we instead keep track of the elapsed run time and halt the simulation when we reach the desired run duration.
+
+The ``report_interval`` refers to clock time rather than run time. Every two seconds of clock time, we will report the percentage completion to the user, so that he/she is aware that the run is progressing and has an idea how much more is left to go. The variable ``next_report`` keeps track of the next time (on the clock) to report progress to the user.
+
+\newpage
+\subsection{Setting up the grid and state variables}
+
+\lstinputlisting[firstnumber=41,firstline=41,lastline=60]{overland_flow_with_model_grid.py}
+
+Next, we create and configure a raster grid. In this example, we'll have the left and right boundaries open and the top and bottom closed; we set this up with a call to ``set_inactive_boundaries`` on line 47.
+
+Our key variables are as follows: land elevation, ``z`` (which remains constant and uniform at zero in this example), water depth, ``h`` (which starts out at ``h_init``), discharge per unit width, ``q``, and the rate of change of water depth, ``dhdt``. Three of these---elevation, depth, and :math:`dh/dt`, are scalars that are evaluated at nodes. The fourth, discharge, is evaluated at active links.
+
+In this example, we will have the left boundary maintain a fixed water depth of 2.5 m. To accomplish this, we first obtain a list of the ID numbers of the boundary nodes that lie along the left grid edge by calling RasterModelGrid's ``left_edge_node_ids()`` method, which returns a Numpy array containing the IDs. We then use them to set the new depth values on the following line. Finally, on line 60, we obtain a list of interior node IDs, just as we did in the diffusion example.
+
+\subsection{Main loop, part 1}
+
+\lstinputlisting[firstnumber=68,firstline=68,lastline=93]{overland_flow_with_model_grid.py}
+
+The main loop uses a ``while`` rather than a ``for`` loop because the time-step size is variable. We begin with a block of code that prints the percentage completion to the screen every two seconds. After this, we calculate a maximum time-step size size using the formula of \citet{bates2010simple}, which depends on grid-cell spacing and on the shallow water wave celerity, :math:`\sqrt{g h}`. For water depth, we use the maximum value in the grid, because it is this value that will have the greatest celerity and therefore be most restrictive.
+
+The next several lines calculate unit discharge values along each active link. To do this, we need to know the effective water depth at each of these locations. \citet{bates2010simple} recommend using the difference between the highest water-surface elevation and the highest bed-surface elevation at each pair of adjacent nodes---that is, at each active link. To find these maximum values, we call the ``active_link_max`` function, first with bed elevation, and then with water-surface elevation, ``w``. The resulting effective flow depths at the active links are stored in Numpy array called ``hflow``. 
+
+Calculating discharge also requires us to know the water-surface gradient at each active link. We find this by calling ``calculate_gradients_at_active_links`` and passing it the water-surface height. We then have everything we need to calculate the discharge values using the \citet{bates2010simple} formula, which is done on lines 92 and 93.
+
+\subsection{Main loop, part 2}
+
+\lstinputlisting[firstnumber=95,firstline=95,lastline=113]{overland_flow_with_model_grid.py}
+
+Because we have no source term in the flow equations---we are assuming there is no rainfall or infiltration to add or remove water in each cell---the rate of depth change is equal to :math:`-\nabla q`, the divergence of water discharge. Just as in the diffusion example, we can calculate the flux divergence in a single line with help from the ``calculate_flux_divergence_at_nodes`` method.
+
+The next block of code provides a second limit on time-step size, designed to prevent water depth from becoming negative. At some locations in the grid, it is possible that the rate of change of water depth will be negative, meaning that the water depth is becoming shallower over time. If we were to extrapolate this shallowing too far into the future, by taking too big a time step, we could end up with negative water depth. To avoid this situation, we first determine whether there are any locations where ``dhdt`` is negative, using the Numpy ``amin`` function. If there are, we call the Numpy ``where`` function to obtain a list of the node IDs at which the water depth is shallowing. The next line calculates the time it would take to reach zero water thickness. On line 104, we find the minimum of these time intervals, and multiply it by the ``alpha`` time-step parameter. This ensures that we won't actually completely drain any cells of water. Finally, we determine which limiting time-step is smaller: ``dtmax``, which reflects the limitation due to fluid velocity, or ``dtmax2``, which is the limitation due to cell drainage. If no cells have :math:`dh/dt<0`, then we simply use the fluid-velocity time step size.
+
+Line 110 updates the values of water depth at all interior cells. Finally, line 113 increments the total elapsed time.
+
+\subsection{Plotting the results}
+
+\lstinputlisting[firstnumber=118,firstline=118,lastline=141]{overland_flow_with_model_grid.py}
+
+The final portion of the code uses the ModelGrid ``node_vector_to_raster`` method along with some Pylab functions to create a color image plus contour plot of the water depth at the end of the run. This part of the code is essentially the same as what we used in the diffusion example.
+
+
+%%%%%%%%%%%%%
+
+\section{Example 3: Overland Flow using a DEM}
+
+In the next example, we create a version of the storage-cell overland-flow model that uses a DEM for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor.
+The complete code listing is below. Output is shown in Figure~\ref{olflowdem}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{overland_flow_dem.pdf}
+    \caption{Output from a model of overland flow run on a DEM. Left: images showing topography, and water depth at end of run. Right: hydrograph at catchment outlet.}
+   \label{olflowdem}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\lstinputlisting[firstnumber=1,firstline=1,lastline=195]{overland_flow_with_model_grid_dem.py}
+
+\subsection{Loading modules}
+
+\lstinputlisting[firstnumber=11,firstline=11,lastline=15]{overland_flow_with_model_grid_dem.py}
+
+In order to import the DEM, we will use Landlab's ``read_esri_ascii`` function, so we need to import this. We also need the Time module for timekeeping, OS for manipulating path names, Pylab for plotting, and Numpy for numerical operations. 
+
+\subsection{User-defined variables}
+
+\lstinputlisting[firstnumber=28,firstline=28,lastline=39]{overland_flow_with_model_grid_dem.py}
+
+We will obtain topography from a 3-m resolution digital elevation model (DEM) of a small gully watershed in the West Bijou Creek drainage basin, east-central Colorado, USA. The drainage area of this catchment is about one hectare. The topography derives from airborne lidar data. The DEM is contained in an ArcInfo-format ascii file called {\em west_bijou_gully.asc``, located in the {\em ExampleDEM} folder.
+
+In this example, we will allow flow through a single outlet cell, which we need to flag as a fixed-value boundary. We will also monitor discharge at the outlet. To accomplish these tasks, we need the row and column of the cell that will be used as the outlet and the cell next to it.
+
+Our run will apply water as rainfall, with a rate given by ``rainfall_mmhr`` and a duration given by ``rain_duration``. In fact, in this simple model, we won't allow any infiltration, so the rainfall rate is actually a runoff rate.
+
+\subsection{Derived parameters}
+
+\lstinputlisting[firstnumber=42,firstline=42,lastline=47]{overland_flow_with_model_grid_dem.py}
+
+In this block of code, we convert the rainfall rate from millimeters per hour to meters per second. We also find the full path name of the input DEM by combining the pathname of the python code file (which is stored in ``__file__``) with the specified DEM file name. We take advantage of the ``dirname`` and ``join`` functions in the OS module.
+
+\subsection{Reading and initializing the DEM}
+
+\lstinputlisting[firstnumber=49,firstline=49,lastline=56]{overland_flow_with_model_grid_dem.py}
+
+ModelGrid's IO module allows us to read an ArcInfo ascii-format DEM with a call to the ``read_esri_ascii`` function. The function creates and returns a RasterModelGrid of the correct size and resolution, as well as a Numpy array of node elevation values. In this example, we know that the DEM contains elevations for a small watershed; nodes outside the watershed have a no-data value of zero. We don't want any flow to cross the watershed perimeter except at a single outlet cell. The call to the ModelGrid function ``deactivate_nodata_nodes`` accomplishes this by identifying all nodes for which the corresponding value in ``z`` equals the specified no-data value of zero.
+
+\subsection{Setting up the watershed outlet}
+
+\lstinputlisting[firstnumber=58,firstline=58,lastline=64]{overland_flow_with_model_grid_dem.py}
+
+We will handle the outlet by keeping the water-surface slope the same as the bed-surface slope along the link that leads to the outlet boundary cell. To accomplish this, the first thing we need to do is find the ID of the outlet node and the interior node adjacent to it. We already know what the row and column numbers of these nodes are; to obtain the corresponding node ID, we use ModelGrid's ``grid_coords_to_node_id`` method. We then convert the outlet node to a fixed-value (i.e., open) boundary with the ``set_fixed_value_boundaries`` method. (Note that in doing this, we've converted what was an interior node into a fixed boundary; had we converted a no-data node, we would end up with a waterfall at the outlet because the no-data nodes all have zero elevation, while the interior nodes all have elevations above 1600 m).
+
+\subsection{Preparing to track discharge at the outlet}
+
+\lstinputlisting[firstnumber=74,firstline=74,lastline=81]{overland_flow_with_model_grid_dem.py}
+
+For this model, it would be nice to track discharge through time at the watershed outlet. To do this, we create two new lists: one for the time corresponding to each iteration, and one for the outlet discharge. Using lists will be slightly slower than using pre-defined Numpy arrays, but avoids forcing us to guess how many iterations there will be (recall that time-step size depends on the flow conditions in any given iteration). We append zeros to each list to represent the starting condition. To find out which active link represents the watershed outlet, we use ModelGrid's ``get_active_link_connecting_node_pair`` method. This method takes a pair of node IDs as arguments. If the nodes are connected by an active link, it returns the ID of that active link; otherwise, it returns None.
+
+\subsection{Main loop}
+
+\lstinputlisting[firstnumber=119,firstline=119,lastline=124]{overland_flow_with_model_grid_dem.py}
+
+Most of the main loop is identical to what we saw in Example 2, and here we will only list the parts that are new or different. One difference is that we now have a source term that represents rainfall and runoff. The code listed above sets the rainfall rate to zero when the elapsed time is greater than the rainfall duration. It also adds ``rainfall_rate`` as a source term when computing :math:`dh/dt`.
+
+\lstinputlisting[firstnumber=135,firstline=135,lastline=137]{overland_flow_with_model_grid_dem.py}
+
+After updating water depth values for the interior cells, we also need to update the water depth at the outlet boundary so that it matches the depth at the adjacent cell.
+
+\lstinputlisting[firstnumber=142,firstline=142,lastline=144]{overland_flow_with_model_grid_dem.py}
+
+The last few lines in the main loop keep track of discharge at the outlet by appending the current time and discharge to their respective lists.
+
+\subsection{Plotting the result}
+
+The plotting section is similar to what we saw in the previous two examples. One difference is that we now use two figures: one for the topography and water depth, and one for outlet discharge over time. We also use Pylab's sub-plot capability to place images of topography and water depth side by side.
+
+
+%%%%%%%%%%%%%%%%%%%%%
+
+\section{Using a Different Grid Type}
+
+As noted earlier, ModelGrid provides several different types of grid. Available grids (as of this writing) are listed in Table~\ref{gridtypestable}.
+
+\begin{table}[htbp]
+   \centering
+   \topcaption{List of available grid types} % requires the topcapt package
+   \begin{tabular}{@{} lccl @{}} % Column formatting, @{} suppresses leading/trailing space
+      \toprule
+      
+      %\cmidrule(r){1-2} % Partial rule. (r) trims the line a little bit on the right; (l) & (lr) also possible
+      Grid type & Inherits from & Nodes & Cells \\
+      \midrule
+      RasterModelGrid  & ModelGrid & regular & square \\
+      
+      VoronoiDelaunayGrid & ModelGrid & Delaunay$^1$ & Voronoi$^2$ \\
+      HexModelGrid & VoronoiDelaunayGrid & triagonal$^{1,3}$ & hexagonal$^4$ \\
+      RadialModelGrid & VoronoiDelaunayGrid & concentric$^{1,5}$ & Voronoi$^2$ \\
+      \bottomrule
+      \multicolumn{4}{l}{$^1$ Nodes are connected by a Delaunay triangulation; user specifies node coordinates} \\
+      \multicolumn{4}{l}{$^2$ Cells are Voronoi polygons} \\
+      \multicolumn{4}{l}{$^3$ Nodes in regular triangular lattice with spacing $\delta$} \\
+      \multicolumn{4}{l}{$^4$ Regular hexagons with side length $\delta/\sqrt{3}$ and area $\sqrt{3} \delta^2 / 2$} \\
+      \multicolumn{4}{l}{$^5$ Points arranged in concentric circles with radial spacing $r$ and arc spacing $\approx r$} \\
+   \end{tabular}
+   %\caption{Remember, \emph{never} use vertical lines in tables.}
+   \label{gridtypestable}
+\end{table}
+
+Suppose, for example, that we wanted to model a scenario in which the domain is a circular volcanic island. A radial, semi-structured arrangement of grid nodes might be a good solution. To run our diffusion model with this geometry, we only need to make some relatively simple changes. A radial model grid is defined by specifying a number of concentric ``shells'' of a given radial spacing, so we change lines 28--30 to:
+
+\lstinputlisting[firstnumber=28,firstline=28,lastline=30]{diffusion_with_radial_model_grid.py}
+Note that we have changed ``dx`` to ``dr`` on line 30. To create a RadialModelGrid instead of a RasterModelGrid, we simply replace the name of the object ``RasterModelGrid`` with ``RadialModelGrid``:\footnote{These two types of grid are examples of the use of {\em inheritance}: each is a sub-class of ``ModelGrid}, which means they both automatically contain all the methods and attributes of that base class.}
+
+\lstinputlisting[firstnumber=39,firstline=39,lastline=39]{diffusion_with_radial_model_grid.py}
+Finally, because our grid is now no longer a simple raster, we need to modify our plotting code. Here we'll replace the original plotting commands %(lines 74--94) 
+with the following:
+
+\lstinputlisting[firstnumber=75,firstline=75,lastline=94]{diffusion_with_radial_model_grid.py}
+The result of our run is shown in Figure~\ref{radialdiffusion}.
+
+%%%%%%%%%%% FIGURE %%%%%%%%%%%
+ \begin{figure}[h!]
+    \centering
+    \includegraphics{radial_example.pdf}
+    \caption{Diffusion model implemented with a radial model grid. (a) Nodes and links. Green nodes are active interior points, and red nodes are open boundaries. Active links in green; inactive links in black. Node gray shading is proportional to height. (b) Voronoi diagram, highlighting cells. Blue dots are nodes, and green circles are corners (cell vertices. Lines are faces (Voronoi polygon edges, sometimes called ``Voronoi ridges''). Dashed lines show orientation of undefined Voronoi edges. (c) Side view of model, showing nodes (blue dots) in comparison with analytical solution (red curve). All axes in meters.}
+   \label{radialdiffusion}
+\end{figure}
+
+ 
