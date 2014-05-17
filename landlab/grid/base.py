@@ -1,10 +1,170 @@
 #! /usr/env/python
 """
-Python implementation of ModelGrid, a class used to
-create and manage grids for 2D numerical models.
+Python implementation of ModelGrid, a base class used to create and manage
+grids for 2D numerical models.
 
-First version GT, July 2010
-Last modified May 2014
+Data Fields in ModelGrid
+------------------------
+:class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
+provides `~.ModelGrid`, and its subclasses, with the ability to, optionally,
+store data values that are associated with the different types grid elements
+(nodes, cells, etc.). In particular, as part of ``ModelGrid.__init__()``,
+data field *groups* are added to the `ModelGrid` that provide containers to
+put data fields into. There is one group for each of the eight grid elements
+(node, cell, link, face, core_node, core_cell, active_link, and active_face).
+
+To access these groups, use the same methods as accessing groups with
+`~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
+itself that provide access to the values groups:
+
+==================================  ==============================
+:attr:`~.ModelGrid.at_node`         Value defined at nodes.
+:attr:`~.ModelGrid.at_cell`         Value defined at cells.
+:attr:`~.ModelGrid.at_link`         Value defined at links.
+:attr:`~.ModelGrid.at_face`         Value defined at faces.
+:attr:`~.ModelGrid.at_core_node`    Value defined at core nodes.
+:attr:`~.ModelGrid.at_core_cell`    Value defined at core cells.
+:attr:`~.ModelGrid.at_active_link`  Value defined at active links.
+:attr:`~.ModelGrid.at_active_face`  Value defined at active faces.
+==================================  ==============================
+
+Each of these attributes returns a ``dict``-like object whose keys are value
+names as strings and values are numpy arrays that gives quantities at
+grid elements.
+
+
+Create Field Arrays
++++++++++++++++++++
+:class:`~.ModelGrid` inherits several useful methods for creating new data
+fields and adding new data fields to a ModelGrid instance. Methods to add or
+create a new data array follow the ``numpy`` syntax for creating arrays. The
+folowing methods create and, optionally, initialize new arrays. These arrays
+are of the correct size but a new field will not be added to the field:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.empty
+    ~landlab.field.grouped.ModelDataFields.ones
+    ~landlab.field.grouped.ModelDataFields.zeros
+
+Add Fields to a ModelGrid
++++++++++++++++++++++++++
+Unlike with the equivalent numpy functions, these do not take a size argument
+as the size of the returned arrays is determined from the size of the
+ModelGrid. However, the keyword arguments are the same as those of the numpy
+equivalents.
+
+The following methods will create a new array and add a reference to that
+array to the ModelGrid:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.add_empty
+    ~landlab.field.grouped.ModelDataFields.add_ones
+    ~landlab.field.grouped.ModelDataFields.add_zeros
+    ~landlab.field.grouped.ModelDataFields.add_field
+
+These methods operate in the same way as the previous set except that, in
+addition to creating a new array, the newly-created array is added to the
+ModelGrid. The calling signature is the same but with the addition of an
+argument that gives the name of the new field as a string. The additional
+method, :meth:`~.ModelDataFields.add_field`, adds a previously allocation
+array to the ModelGrid. If the array is of the incorrect size it will raise
+``ValueError``.
+
+Query Fields
+++++++++++++
+Use the following methods/attributes get information about the stored data
+fields:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.size
+    ~landlab.field.grouped.ModelDataFields.keys
+    ~landlab.field.grouped.ModelDataFields.has_group
+    ~landlab.field.grouped.ModelDataFields.has_field
+    ~landlab.field.grouped.ModelDataFields.groups
+
+Notes
+-----
+It is important that when creating a new grid class that inherits from
+``ModelGrid``, to call ``ModelGrid.__init__()`` in the new grid's
+``__init__()``. For example, the new class's __init__ should contain the
+following code,
+
+.. code-block:: python
+
+    class NewGrid(ModelGrid):
+        def __init__(self, *args, **kwds):
+            ModelGrid.__init__(self, **kwds)
+            # Code that initializes the NewGrid
+
+Without this, the new grid class will not have the ``at_*`` attributes.
+
+Examples
+--------
+Although the following examples use a :class:`~.RasterModelGrid`, they apply
+equally to any grid that inherits from :class:`~.ModelGrid`.  The new grid
+comes with a set of pre-defined value groups. One group for each grid element.
+Use the groups attribute to see the group names.
+
+>>> from landlab import RasterModelGrid
+>>> grid = RasterModelGrid(3, 3)
+>>> groups = list(grid.groups)
+>>> groups.sort()
+>>> groups
+['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'face', 'link', 'node']
+
+Create Field Arrays
++++++++++++++++++++
+If you just want to create an array but not add it to the grid, you can use
+the :meth:`~.ModelGrid.ones` method.
+
+>>> grid.ones(centering='node')
+array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+>>> grid.at_node.keys() # Nothing has been added to the grid
+[]
+
+Add Field Arrays
+++++++++++++++++
+Use the ``add_*`` methods to add value arrays attached to grid elements. Each
+of these methods accepts two arguments. The first is name of the grid element
+where values are associated and the second the name of the quantity. The
+quantity name must be unique within a group but the same quantity can appear
+in multiple goups.
+
+>>> grid.at_node.keys() # There a no values defined at grid nodes
+[]
+>>> z = grid.add_ones('node', 'planet_surface__elevation')
+
+We now see that the array has been added to the grid as a reference to the
+array returned by ``add_ones``.
+
+>>> grid.at_node.keys()
+['planet_surface__elevation']
+>>> grid.at_node['planet_surface__elevation']
+array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+>>> z is grid.at_node['planet_surface__elevation']
+True
+
+To add a previously created array to the grid, use the
+:meth:`~.ModelGrid.add_field` method but be aware that it must be of the
+correct size (if it's not a ``ValueError`` will be raised).
+
+>>> import numpy as np
+>>> t = np.zeros(9.)
+>>> t is grid.add_field('node', 'air__temperature', t)
+True
+>>> grid.has_field('node', 'air__temperature')
+True
+>>> t is grid.at_node['air__temperature']
+True
 """
 
 import numpy
@@ -13,7 +173,7 @@ import warnings
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
-from landlab.field import ModelDataFields
+from landlab.field import ModelDataFields, ScalarDataFields
 from . import grid_funcs as gfuncs
 
 
@@ -96,73 +256,55 @@ def _default_axis_units(n_dims):
 
 
 class ModelGrid(ModelDataFields):
-    """ModelGrid()
-    Base class for creating and manipulating 2D structured or
-    unstructured grids for numerical models.
+    """Base class for creating and manipulating 2D structured or unstructured
+    grids for numerical models.
     
     The idea is to have at least two inherited
     classes, RasterModelGrid and DelaunayModelGrid, that can create and
     manage grids. To this might be added a GenericModelGrid, which would
     be an unstructured polygonal grid that doesn't necessarily obey or
     understand the Delaunay triangulation, but rather simply accepts
-    an input grid from the user. Also a HexModelGrid for hexagonal.
+    an input grid from the user. Also a :class:`~.HexModelGrid` for hexagonal.
 
     Attributes
     ----------
-    ndim
-    node_index_at_cells
-    active_nodes
-    core_nodes
-    node_boundary_status
-    open_boundary_nodes
-    closed_boundary_nodes
-    active_links
-    node_index_at_core_cells
-    core_cell_index_at_nodes
-    core_cell_index
-    node_index_at_link_head
-    node_index_at_link_tail
-    face_index_at_links
-    number_of_nodes
-    number_of_cells
-    number_of_links
-    number_of_faces
-    number_of_active_nodes
-    number_of_core_nodes
-    number_of_active_cells
-    number_of_core_cells
-    number_of_active_links
-    number_of_active_faces
-    node_x
-    node_y
-    axis_units
-    axis_name
-    cell_areas
-    forced_cell_areas
-    face_widths
-    link_length
-    active_link_length
-    at_node : ScalarDataFields
-        Quantities defined at nodes.
-    at_cell : ScalarDataFields
-        Quantities defined at cells.
-    at_link : ScalarDataFields
-        Quantities defined at links.
-    at_face : ScalarDataFields
-        Quantities defined at faces.
-    at_core_node : ScalarDataFields
-        Quantities defined at core nodes.
-    at_core_cell : ScalarDataFields
-        Quantities defined at core cells.
-    at_active_link : ScalarDataFields
-        Quantities defined at active links.
-    at_active_faces : ScalarDataFields
-        Quantities defined at active faces.
+    at_node : dict-like
+        Values at nodes.
+    at_cell : dict-like
+        Values at cells.
+    at_link : dict-like
+        Values at links.
+    at_face : dict-like
+        Values at faces.
+    at_core_node : dict-like
+        Values at core nodes.
+    at_core_cell : dict-like
+        Values at core cells.
+    at_active_link : dict-like
+        Values at active links.
+    at_active_face : dict-like
+        Values at active faces.
+
+    Other Parameters
+    ----------------
+    axis_name : tuple, optional
+        Name of axes
+    axis_units : tuple, optional
+        Units of coordinates
     """
 
     # Debugging flags (if True, activates some output statements)
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
+
+    at_node = {} #: Values defined at nodes
+    at_cell = {} #: Values defined at cells
+    at_link = {} #: Values defined at links
+    at_face = {}  #: Values defined at faces
+    at_core_node = {} #: Values defined at core nodes
+    at_core_cell = {} #: Values defined at core cells
+    at_active_link = {} #: Values defined at active links
+    at_active_face = {} #: Values defined at active faces
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
@@ -526,6 +668,7 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4,5)
         >>> mydata = numpy.arange(20, dtype=float)
         >>> rmg.create_node_array_zeros('planet_surface__elevation')
