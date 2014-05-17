@@ -2,7 +2,7 @@
 ##
 ##  'Field' concept is implemented for Soil Moisture component.
 ##
-##  Sai Nudurupati - 15May2014
+##  Sai Nudurupati and Erkan Istanbulluoglu - 15May2014
 #################################################################
 
 from landlab import Component

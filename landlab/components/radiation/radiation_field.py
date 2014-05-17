@@ -2,7 +2,7 @@
 ##
 ##  'Field' concept is implemented for Radiation component.
 ##
-##  Sai Nudurupati - 14May2014
+##  Sai Nudurupati and Erkan Istanbulluoglu - 14May2014
 #################################################################
 
 from landlab import Component

@@ -2,7 +2,7 @@
 ##  
 ##    Example for single_vegetation_field.py
 ##
-##    Sai Nudurupati   16May2014
+##    Sai Nudurupati and Erkan Istanbulluoglu - 16May2014
 ##
 #########################################################
 from landlab import RasterModelGrid
