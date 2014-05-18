@@ -684,8 +684,8 @@ class ModelGrid(ModelDataFields):
             self.add_zeros('node', name, **kwds)
             return self.at_node[name]
 
-    def create_active_link_array_zeros( self, name=None ):
-        """Return a new array of the given type, filled with zeros.
+    def create_active_link_array_zeros(self, name=None):
+        """Array, filled with zeros, for a given element.
 
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
@@ -765,7 +765,8 @@ class ModelGrid(ModelDataFields):
             raise TypeError(centering)
 
     def set_fixed_value_boundaries(self, node_ids):
-        """
+        """Make nodes fixed value boundaries.
+
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
@@ -774,17 +775,38 @@ class ModelGrid(ModelDataFields):
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
-        """
+        """Differences at links.
+
         Calculates the difference in quantity *node_values* at every link
-        in the grid.
-        Note that this is tonode-fromnode along links, and is thus equivalent to
-        positive gradient up.
+        in the grid. Note that this is tonode-fromnode along links, and is
+        thus equivalent to positive gradient up.
+
+        Parameters
+        ----------
+        node_values : ndarary
+            Values at grid nodes.
+
+        Returns
+        -------
+        ndarray
+            Differences over links.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(3, 3)
+        >>> z = np.zeros(9.)
+        >>> z[4] = 1.
+        >>> rmg.calculate_diff_at_links(z)
+        array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
         """
         return gfuncs.calculate_diff_at_links(self, node_values, out=out)
         
     @track_this_method
     def calculate_diff_at_active_links(self, node_values, out=None):
-        """
+        """Differences at active links.
+
         Calculates the difference in quantity *node_values* at each active link
         in the grid.
         Note that this is tonode-fromnode along links, and is thus equivalent to
@@ -795,7 +817,8 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_links(self, node_values, out=None):
-        """
+        """Gradients at links.
+
         Calculates the gradient in quantity *node_values* at every link
         in the grid.
         This method follows the convention POSITIVE UP.
@@ -804,7 +827,8 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_active_links(self, node_values, out=None):
-        """
+        """Gradients at active links.
+
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
         This method follows the convention POSITIVE UP.
@@ -814,7 +838,8 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
-        """Calculates the gradient in quantity s at each active link in the
+        """*Deprecated*.
+        Calculates the gradient in quantity s at each active link in the
         grid.
 
         .. note:: Deprecated since version 0.1.
@@ -836,14 +861,16 @@ class ModelGrid(ModelDataFields):
         return gradient
         
     def resolve_values_on_links(self, link_values, out=None):
-        """
+        """xy-components of links.
+
         Resolves values provided defined on links into the x and y directions.
         Returns values_along_x, values_along_y
         """
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
     def resolve_values_on_active_links(self, link_values, out=None):
-        """
+        """xy-components of active links.
+
         Resolves values provided defined on active links into the x and y 
         directions.
         Returns values_along_x, values_along_y
@@ -852,7 +879,8 @@ class ModelGrid(ModelDataFields):
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
-        """
+        """Flux divergence for active cells.
+
         .. note:: Deprecated since version 0.6
             Uses outdated terminology; use the exact equivalent
             :func:`calculate_flux_divergence_at_core_nodes` instead.
@@ -952,7 +980,8 @@ class ModelGrid(ModelDataFields):
         
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux, 
                                                   net_unit_flux=None):
-        """
+        """Flux divergence for core nodes.
+
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
         net_unit_flux.
@@ -1046,9 +1075,10 @@ class ModelGrid(ModelDataFields):
         return net_unit_flux
 
 
-    def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
-                                                  net_unit_flux=False):
-        """
+    def _calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
+                                                        net_unit_flux=False):
+        """Flux divergence for active cells.
+
         .. note:: Deprecated since version 0.1.
             Use :func:`calculate_flux_divergence_at_active_cells`
             
@@ -1097,7 +1127,8 @@ class ModelGrid(ModelDataFields):
 
     @track_this_method
     def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
-        """
+        """Flux divergence at nodes.
+
         Same as calculate_flux_divergence_at_active_cells, but works with and
         returns a list of net unit fluxes that corresponds to all nodes, rather
         than just active cells. 
@@ -1118,7 +1149,8 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable
     def cell_areas(self):
-        """
+        """Cell areas.
+
         Returns an array of grid-cell areas.
 
         .. note::
@@ -1136,7 +1168,8 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable    
     def forced_cell_areas(self):
-        """
+        """Cell areas.
+
         Returns an array of grid cell areas. In the cases of inactive nodes,
         this method forces the area of those nodes so it can return an nnodes-
         long array. For a raster, it assumes areas are equal to the normal
@@ -1151,8 +1184,7 @@ class ModelGrid(ModelDataFields):
             
     @property
     def face_widths(self):
-        """
-        Returns an array of face widths.
+        """Width of grid faces.
         """
         try:
             return self._face_widths
@@ -1174,17 +1206,22 @@ class ModelGrid(ModelDataFields):
         self.forced_cell_areas[cell_node_ids] = self.cell_areas
 
     def get_active_cell_node_ids( self ):
-        """
-        Returns an integer vector of the node IDs of all active (i.e., core +
+        """Nodes of active cells.
+
+        Return an integer vector of the node IDs of all active (i.e., core +
         open boundary) cells.
-        get_core_cell_node_ids may be preferable.
+
+        See Also
+        --------
+        get_core_cell_node_ids : may be preferable.
         """
         return self.activecell_node
         
         
-    def get_core_cell_node_ids( self ):
-        """
-        Returns an integer vector of the node IDs of all core cells.
+    def get_core_cell_node_ids(self):
+        """Nodes of core cells.
+
+        Return an integer vector of the node IDs of all core cells.
         """
         return self.corecell_node
 
@@ -1224,26 +1261,32 @@ class ModelGrid(ModelDataFields):
 
     @property
     def link_length(self):
-        """Returns the lengths of all links, in ID order"""
+        """Lengths of grid links.
+
+        Lengths of all links, in ID order.
+        """
         try:
             return self._link_length
         except AttributeError:
-            return self.calculate_link_length()
+            return self._calculate_link_length()
 
     def min_active_link_length(self):
-        """
+        """Shortest active link.
+
         Returns the horizontal length of the shortest active link in the grid.
         """
         return numpy.amin(self.link_length[self.active_link_ids])
 
     def max_active_link_length(self):
-        """
+        """Longest active link.
+
         Returns the horizontal length of the longest active link in the grid.
         """
         return numpy.amax(self.link_length[self.active_link_ids])
 
-    def calculate_link_length(self):
-        """
+    def _calculate_link_length(self):
+        """Lengths of links.
+
         Calculates, returns, and stores as a property of the grid the lengths
         of all the links in the grid.
         """
@@ -1256,11 +1299,33 @@ class ModelGrid(ModelDataFields):
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
         return self.link_length
 
-    def assign_upslope_vals_to_active_links( self, u, v=[0] ):
-        """
-        Assigns to each active link the value of u at whichever of its
-        neighbors has a higher value of v. If v is omitted, uses u for
-        both.
+    def assign_upslope_vals_to_active_links(self, u, v=[0]):
+        """Assign upslope node value to link.
+
+        Assigns to each active link the value of *u* at whichever of its
+        neighbors has a higher value of *v*. If *v* is omitted, uses *u* for
+        both. The order of the link values is by link ID.
+
+        Parameters
+        ----------
+        u : array-like
+            Node values to assign to links.
+        v : array-like, optional
+            Node values to test for upslope-ness.
+
+        Returns
+        -------
+        ndarray
+            Values at active links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> grid = RasterModelGrid(3, 3)
+        >>> u = np.arange(9.)
+        >>> grid.assign_upslope_vals_to_active_links(u)
+        array([ 4.,  7.,  4.,  5.])
         """
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
@@ -1339,7 +1404,8 @@ class ModelGrid(ModelDataFields):
     
     
     def update_links_nodes_cells_to_new_BCs(self):
-        """
+        """Update grid element connectivity, status.
+
         This method updates all of the various lists and attributes governed
         by node status (e.g., core nodes, active links, etc) when you change
         node statuses. Call it if your method or driver makes changes to the
@@ -1350,7 +1416,9 @@ class ModelGrid(ModelDataFields):
         
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
-        """Set the status to CLOSED_BOUNDARY for all nodes whose value
+        """Make no-data nodes inactive.
+
+        Set the status to CLOSED_BOUNDARY for all nodes whose value
         of node_data is equal to the nodata_value.
 
         .. note:: Deprecated since version 0.6.
@@ -1379,7 +1447,9 @@ class ModelGrid(ModelDataFields):
     
     
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
-        """Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
+        """Make no-data nodes closed boundaries.
+
+        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
         of node_data is equal to the nodata_value.
         
         Parameters
@@ -1440,7 +1510,8 @@ class ModelGrid(ModelDataFields):
                              node_data[self.activelink_tonode])
         
     def calculate_numbers_of_node_neighbors(self):
-        """
+        """Number of neighbor nodes.
+
         Calculates the number of neighboring nodes for each node, and returns
         the result as a 1D numpy array. Used to find the maximum number of
         neighbors, so that inlink and outlink matrices can be dimensioned
@@ -1648,7 +1719,8 @@ class ModelGrid(ModelDataFields):
                 
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
-        """
+        """Set boundaries to inactive.
+
         .. note:: Deprecated since version 0.6.
             Due to imprecise terminology. Use :func:`set_closed_boundaries`
             instead.
@@ -1722,7 +1794,9 @@ class ModelGrid(ModelDataFields):
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_inactive_nodes(self, nodes):
-        """Sets the given nodes' boundary condition statuses to INACTIVE (==4),
+        """Make nodes inactive.
+
+        Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
 
         .. note:: Deprecated since version 0.6.
@@ -1732,7 +1806,8 @@ class ModelGrid(ModelDataFields):
         
         
     def set_closed_nodes(self, nodes):
-        """
+        """Make nodes closed boundaries.
+
         Sets the given nodes' boundary condition statuses to CLOSED (==4),
         and resets the list of active links to reflect any changes.
         """
@@ -1899,20 +1974,27 @@ class ModelGrid(ModelDataFields):
             return out_distance
             
     def build_all_node_distances_azimuths_maps(self):
-        """
+        """Build distance-azimuth maps.
+
         This function creates and stores in the grid field two nnodes*nnodes 
         arrays that map the distances and azimuths of all nodes in the grid to 
         all nodes in the grid.
+
         This is useful if your module needs to make repeated lookups of distances
         between the same nodes, but does potentially use up a lot of memory so
         should be used with caution.
+
         The map is symmetrical, so it does not matter whether rows are "from" or
         "to".
+
         The arrays are called:
-            self.all_node_distances_map
-            self.all_node_azimuths_map
+            - ``self.all_node_distances_map``
+            - ``self.all_node_azimuths_map``
         
-        The method returns these two arrays as output.
+        Returns
+        -------
+        tuple of ndarrays
+            Tuple of (distances, azimuths)
         """
         
         self.all_node_distances_map = numpy.empty((self.number_of_nodes,
