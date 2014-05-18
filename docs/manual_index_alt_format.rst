@@ -76,7 +76,7 @@ Access data in the grid fields
 ==============================
 
 *Once you've created the fields, these methods can be used to access and modify the data
-stored in them.* 
+stored in them. Many other methods are available, see the docstring of base.py.* 
 
     **grid.at_node['my_data_name']**
     
@@ -85,7 +85,8 @@ stored in them.*
     **grid.at_node.keys()**
         Get the names of the data fields already stored on nodes in the grid.
     
-(see also entry for ModelGrid.create_node_array_zeros)
+(see also entry for ModelGrid.create_node_array_zeros, and the docstrings of
+the base.py module.)
 
 
 Resolve, project, and move data between grid element types

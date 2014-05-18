@@ -27,6 +27,7 @@ User's Guide
 
    model_grid
    users_guide
+   landlab_component_tutorial
    
 .. toctree::
    :maxdepth: 2  
