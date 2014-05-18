@@ -405,6 +405,22 @@ class ModelGrid(ModelDataFields):
         return closed_boundary_node_ids
     
     @property
+    def fixed_gradient_boundary_nodes(self):
+        """Node id of all fixed gradient boundary nodes
+        """
+        (fixed_gradient_boundary_node_ids, ) = numpy.where(
+            self.node_status == FIXED_GRADIENT_BOUNDARY)
+        return fixed_gradient_boundary_node_ids
+    
+    @property
+    def fixed_value_boundary_nodes(self):
+        """Node id of all fixed value boundary nodes
+        """
+        (fixed_value_boundary_node_ids, ) = numpy.where(
+            self.node_status == FIXED_VALUE_BOUNDARY)
+        return fixed_value_boundary_node_ids
+    
+    @property
     def active_links(self):
         """Link IDs of all active links"""
         try:

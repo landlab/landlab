@@ -3,17 +3,17 @@ nrows:
 ncols:
 50
 dx:
-0.2
+0.1
 leftmost_elevation:
 0.
 initial_slope:
 0.
 dt:
-50.
+0.01
 total_time:
-10000.
+1.
 uplift_rate:
-0.0001
+10.
 
 #terms for the nonlinear diffuser
 rock_density:
@@ -21,10 +21,10 @@ rock_density:
 sed_density:
 2.7
 kappa:
-0.01
+5.
 S_crit:
 0.56
 
 #the linear diffuser uses this kappa term
 DIFMOD_KD:
-0.01
+5.

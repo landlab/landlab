@@ -1,6 +1,7 @@
 import numpy
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
+from landlab.grid.base import BAD_INDEX_VALUE
 
 #these ones only so we can run this module ad-hoc:
 #import pylab
@@ -12,15 +13,45 @@ from landlab import ModelParameterDictionary
 class PerronNLDiffuse(object):
     '''
     This module uses Taylor Perron's implicit (2011) method to solve the 
-    nonlinear hillslope diffusion equation across a rectangular grid for a 
-    single timestep. Note it works with the mass flux implicitly, and thus does 
-    not actually calculate it. Grid must be at least 5x5.
+    nonlinear hillslope diffusion equation across a rectangular, regular grid
+    for a single timestep. Note it works with the mass flux implicitly, and 
+    thus does not actually calculate it. Grid must be at least 5x5.
     Built DEJH early June 2013.
     
     Boundary condition handling assumes each edge uses the same BC for each of 
     its nodes.
     This component cannot yet handle looped boundary conditions, but all others
     should be fine.
+    
+    This components requires the following parameters be set in the input file,
+    *input_stream*, set in the component initialization:
+        
+        'uplift' or 'uplift_rate', both equivalent to the uplift rate
+        'rock_density'
+        'sed_density'
+        'kappa', the diffusivity to use
+        'S_crit', the maximum possible surface slope (radians)
+    
+    Optional inputs are:
+        
+        'dt', the model timestep (assumed constant)
+        'values_to_diffuse', a string giving the name of the grid field
+        containing the data to diffuse.
+    
+    If 'dt' is not supplied, you must call the method :func:`set_timestep` as
+    part of your run loop. This allows you to set a dynamic timestep for this
+    class.
+    If 'values_to_diffuse' is not provided, defaults to 
+    'planet_surface__elevation'.
+    
+    No particular units are necessary where they are not specified, as long as
+    all units are internally consistent.
+    
+    The component takes *grid*, the RasterModelGrid object, and *input_stream*,
+    the filename of (& optionally, path to) the parameter file, in its
+    initialization.
+    
+    The primary method of this class is :func:`diffuse`.
     '''
     def __init__(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
@@ -319,6 +350,9 @@ class PerronNLDiffuse(object):
         #replacing loop:
         cell_neighbors = grid.get_neighbor_list() #E,N,W,S
         cell_diagonals = grid.get_diagonal_list() #NE,NW,SW,SE
+        cell_neighbors[cell_neighbors==BAD_INDEX_VALUE] = -1
+        cell_diagonals[cell_diagonals==BAD_INDEX_VALUE] = -1
+        
         _z_x = (elev[cell_neighbors[:,0]]-elev[cell_neighbors[:,2]])*0.5*_one_over_delta_x
         _z_y = (elev[cell_neighbors[:,1]]-elev[cell_neighbors[:,3]])*0.5*_one_over_delta_y
         _z_xx = (elev[cell_neighbors[:,0]]-2.*elev+elev[cell_neighbors[:,2]])*_one_over_delta_x_sqd
@@ -667,7 +701,28 @@ class PerronNLDiffuse(object):
         assert numpy.all(interior_ID < self.ninteriornodes)
         return interior_ID.astype(int)
 
-    def diffuse(self, grid_in, elapsed_time):
+    def diffuse(self, grid_in, elapsed_time, num_uplift_implicit_comps = 1):
+        """
+        This is the primary method of the class. Call it to perform an iteration
+        of the model. Takes *grid_in*, the model grid, and *elapsed_time*, the
+        total model time elapsed so far.
+        
+        *grid_in* must contain the field to diffuse, which defaults to
+        'planet_surface__elevation'. This can be overridden with the 
+        values_to_diffuse property in the input file.
+        
+        See the class docstring for a list of the other properties necessary
+        in the input file for this component to run.
+        
+        Note that the implicit nature of this component requires it to
+        incorporate uplift into its execution in order to stay stable.
+        If you only have one module that requires this, do not add uplift
+        manually in your loop; this method will include uplift automatically.
+        
+        If more than one of your components has this requirement, set
+        *num_uplift_implicit_comps* to the total number of components that
+        do.
+        """
         if self.internal_uplifts:
             #this is adhoc to fix for the duration of Germany visit
             self._uplift = self.inputs.read_float('uplift_rate')

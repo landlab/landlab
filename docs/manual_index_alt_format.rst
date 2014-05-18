@@ -67,9 +67,9 @@ DEM and NetCDF input/output
 and to import and export NetCDF files. i/o with vtk files is also possible, but not
 detailed here.*
 
-.. automethod:: landlab.io.esri_ascii.read_esri_ascii
-.. automethod:: landlab.io.netcdf.read.read_netcdf
-.. automethod:: landlab.io.netcdf.write.write_netcdf
+.. autofunction:: landlab.io.esri_ascii.read_esri_ascii
+.. autofunction:: landlab.io.netcdf.read.read_netcdf
+.. autofunction:: landlab.io.netcdf.write.write_netcdf
 
 
 Access data in the grid fields
