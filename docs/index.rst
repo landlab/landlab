@@ -22,12 +22,23 @@ Getting Started with Landlab
 User's Guide
 ============
 
+Tutorials
+---------
+
 .. toctree::
    :maxdepth: 1
 
    model_grid
-   users_guide
    landlab_component_tutorial
+   ecohydrology_tutorial
+
+Simple guides to functionality
+------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   users_guide
    
 .. toctree::
    :maxdepth: 2  
@@ -53,8 +64,12 @@ Developer Documentation
    dev_guide
 
 
-API Documentation
+Code Documentation
 =================
+
+These webpages are auto-generated from Landlab, and list all available functions, methods,
+and properties. All available documentation in the code is reproduced here in a tree
+reflecting Landlab's file structure.
 
 .. toctree::
    :maxdepth: 2

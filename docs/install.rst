@@ -98,7 +98,7 @@ From source tarball
 >>>>>>>>>>>>>>>>>>>
 
 1. Download the `latest tarball <https://github.com/landlab/landlab/archive/master.zip>`_
-   from the `landlab github page <https://github.com/landlab/landlab/`_.
+   from the `landlab github page <https://github.com/landlab/landlab/>`_.
 
 2. From the root directory where your unpacked Landlab, run::
 
