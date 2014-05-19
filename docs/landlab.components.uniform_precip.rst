@@ -1,19 +1,22 @@
-uniform_precip Package
-======================
+landlab.components.uniform_precip package
+=========================================
 
-:mod:`uniform_precip` Package
------------------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.uniform_precip
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`generate_uniform_precip` Module
--------------------------------------
+landlab.components.uniform_precip.generate_uniform_precip module
+----------------------------------------------------------------
 
 .. automodule:: landlab.components.uniform_precip.generate_uniform_precip
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.uniform_precip
+    :members:
+    :undoc-members:
+    :show-inheritance:

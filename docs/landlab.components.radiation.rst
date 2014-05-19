@@ -1,19 +1,30 @@
-radiation Package
-=================
+landlab.components.radiation package
+====================================
 
-:mod:`radiation` Package
-------------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.radiation
+landlab.components.radiation.radiation module
+---------------------------------------------
+
+.. automodule:: landlab.components.radiation.radiation
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`radiation` Module
------------------------
+landlab.components.radiation.radiation_field module
+---------------------------------------------------
 
 .. automodule:: landlab.components.radiation.radiation_field
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.radiation
+    :members:
+    :undoc-members:
+    :show-inheritance:

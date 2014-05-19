@@ -1,11 +1,22 @@
-fracture_grid Package
-=====================
+landlab.components.fracture_grid package
+========================================
 
-:mod:`fracture_grid` Module
----------------------------
+Submodules
+----------
+
+landlab.components.fracture_grid.fracture_grid module
+-----------------------------------------------------
 
 .. automodule:: landlab.components.fracture_grid.fracture_grid
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.fracture_grid
+    :members:
+    :undoc-members:
+    :show-inheritance:

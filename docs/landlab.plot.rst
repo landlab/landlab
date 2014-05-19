@@ -1,19 +1,30 @@
-plot Package
-============
+landlab.plot package
+====================
 
-:mod:`plot` Package
--------------------
+Submodules
+----------
 
-.. automodule:: landlab.plot
+landlab.plot.channel_profile module
+-----------------------------------
+
+.. automodule:: landlab.plot.channel_profile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`imshow` Module
---------------------
+landlab.plot.imshow module
+--------------------------
 
 .. automodule:: landlab.plot.imshow
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.plot
+    :members:
+    :undoc-members:
+    :show-inheritance:

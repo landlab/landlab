@@ -137,7 +137,7 @@ the links from the `Landlab ReadTheDocs main page <landlab.readthedocs.org>`_, c
 the links directly, based on module name:
 
     `<http://landlab.readthedocs.org/en/latest/landlab.components.flow_routing.html>`_
-    `<http://landlab.readthedocs.org/en/latest/landlab.components.fastscape_stream_power.html>`_
+    `<http://landlab.readthedocs.org/en/latest/landlab.components.stream_power.html>`_
 
 
 Example 3: Module interaction, and coupling failure

@@ -1,27 +1,30 @@
-flexure Package
-===============
+landlab.components.flexure package
+==================================
 
-:mod:`flexure` Package
-----------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.flexure
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`flexure` Module
----------------------
+landlab.components.flexure.flexure module
+-----------------------------------------
 
 .. automodule:: landlab.components.flexure.flexure
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`funcs` Module
--------------------
+landlab.components.flexure.funcs module
+---------------------------------------
 
 .. automodule:: landlab.components.flexure.funcs
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.flexure
+    :members:
+    :undoc-members:
+    :show-inheritance:

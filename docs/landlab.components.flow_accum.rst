@@ -1,27 +1,38 @@
-flow_accum Package
-==================
+landlab.components.flow_accum package
+=====================================
 
-:mod:`flow_accum_bw` Module
----------------------------
+Submodules
+----------
+
+landlab.components.flow_accum.flow_accum_bw module
+--------------------------------------------------
 
 .. automodule:: landlab.components.flow_accum.flow_accum_bw
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`flow_accumulation` Module
--------------------------------
+landlab.components.flow_accum.flow_accumulation module
+------------------------------------------------------
 
 .. automodule:: landlab.components.flow_accum.flow_accumulation
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`flow_accumulation2` Module
---------------------------------
+landlab.components.flow_accum.flow_accumulation2 module
+-------------------------------------------------------
 
 .. automodule:: landlab.components.flow_accum.flow_accumulation2
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.flow_accum
+    :members:
+    :undoc-members:
+    :show-inheritance:
