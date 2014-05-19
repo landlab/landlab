@@ -47,8 +47,8 @@ lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
 
 #perform the loops:
 for i in xrange(nt):
-    mg = diffuse.diffuse(mg, i*dt)
-    #mg = lin_diffuse.diffuse(mg, dt)
+    #mg = diffuse.diffuse(mg, i*dt)
+    mg = lin_diffuse.diffuse(mg, dt)
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
     

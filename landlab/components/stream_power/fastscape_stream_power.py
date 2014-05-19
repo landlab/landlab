@@ -19,12 +19,15 @@ class SPEroder(object):
     required input file.
     
     It needs to be supplied with the key variables:
+    
         *K_sp*
         *m_sp*
+    
     ...which it will draw from the supplied input file. n_sp has to be 1 for the
     BW algorithm to work.
     
-    *dt*, *rainfall_intensity*, and *value_field* are optional variables. 
+    *dt*, *rainfall_intensity*, and *value_field* are optional variables.
+    
     *dt* is a fixed timestep, and *rainfall_intensity* is a parameter which 
     modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
     rainfall intensity on erosivity. *value_field* is a string giving the name

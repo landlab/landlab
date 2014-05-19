@@ -96,7 +96,7 @@ Example 2: Using the stream power law component, simple channel profiling
 
 The driver ``stream_power_driver.py`` illustrates use of the flow routing and stream
 power modules together. It also shows the use of the simple channel profiling tool,
-:module:`landlab.plot.channel_profile`.
+:mod:`landlab.plot.channel_profile`.
 
 It follows the same basic driver framework as illustrated in example 1, above. This time,
 we leave the top and bottom boundaries of the grid as open, fixed gradient (line 27)::
@@ -144,7 +144,8 @@ Example 3: Module interaction, and coupling failure
 ===================================================
 
 Now we're familiar with both diffusive and stream power modules in Landlab, it would be
-nice to run them together. ``examples.coupled_driver.py`` shows an attempt at this.
+nice to run them together. ``landlab.examples.coupled_driver.py`` shows an attempt at 
+this.
 
 Open it up and have a look. The form of the file should be familiar by now. As before,
 we import, instantiate, set up grid, then loop. The basic principle of the looping is
@@ -161,6 +162,10 @@ as it has been before:
 
 Notice that again we don't need to include the uplift explicitly, as the diffuser 
 incorporates it implicitly. We initialize only the linear diffusion at first.
+
+
+Linear diffusion model
+----------------------
 
 Run the script. It should run stably, and you will again see the set of output graphs
 you first saw as part of the stream power exercise. At first glance, everything looks
@@ -189,8 +194,12 @@ into it, the flow just terminates here. This is clearly not physically plausible
 
 The best solution would be to incorporate some model description of flow ponding and
 breach into the flow routing module. However, it might also be possible to suppress this
-effect by turning down the explicit timestep used in the model. Experiment with this
-possibility.
+effect by turning down the explicit timestep used in the model. You can experiment with 
+this possibility.
+
+
+Nonlinear diffusion model
+-------------------------
 
 Now switch to the nonlinear diffusion component. If you haven't changed any of the 
 settings in the driver, you'll immediately end up with problems - the run will possibly 
@@ -200,10 +209,25 @@ to the script as it runs, you'll also see it dramatically slow down somewhere ar
 loop 15, which is a clue to what's going on. 
 
 If you reduce the total run time to ~20, so
-it terminates before the crash, you'll see what is going on here. A look at the total 
-relief on these landscapes shows it to be on the order of 10^5 km (!), and slopes (Fig. 5)
-can get up to ~10^7. However, you will probably still see things that look like bizarre
-drainage networks in the surface. The slopes are a clue as to what is going on here - 
+it terminates before the crash, you'll see what actually is happening here. A look at the 
+total  relief on these landscapes shows it to be on the order of 10^5 km (!), and slopes 
+(Fig. 5) can get up to ~10^7. However, you will probably still see things that look like 
+bizarre drainage networks in the surface:
+
+.. figure:: nonlinear_coupled_topo.png
+    :figwidth: 80%
+    :align: center
+    
+.. figure:: nonlinear_coupled_Q.png
+    :figwidth: 80%
+    :align: center
+    
+.. figure:: nonlinear_coupled_SA.png
+    :figwidth: 80%
+    :align: center
+
+
+The slopes are a clue as to what is going on here - 
 the nonlinear module is unable to process slopes which are already above the angle of
 repose when an iteration begins, and the vast majority of this landscape consists of such 
 slopes. Why? **The fluvial module is capable of locally oversteepening the landscape to 
