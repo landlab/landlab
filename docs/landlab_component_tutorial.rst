@@ -132,7 +132,7 @@ This can be accessed directly from an interactive python session:
         help(route_flow_dn)
 
 ...or by looking up the module in the online documentation. The easiest way is to follow
-the links from the `Landlab ReadTheDocs main page <landlab.readthedocs.org>`, clicking
+the links from the `Landlab ReadTheDocs main page <landlab.readthedocs.org>`_, clicking
 *landlab package* under the *API documentation* section. Alternatively, you can enter
 the links directly, based on module name:
 
