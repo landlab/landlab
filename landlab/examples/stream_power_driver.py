@@ -43,7 +43,7 @@ sp = SPEroder(mg, input_file)
 
 #perform the loops:
 for i in xrange(10):
-    mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
+    mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
 
