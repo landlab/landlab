@@ -19,43 +19,54 @@ Functional modules
 ------------------
 
 .. autoclass:: landlab.components.diffusion.diffusion.DiffusionComponent
-	.. automethod:: landlab.components.diffusion.diffusion.DiffusionComponent.diffuse
+	:members: diffuse
+
 
 .. autoclass:: landlab.components.fire_generator.generate_fire.FireGenerator
 
+
 .. autoclass:: landlab.components.flexure.flexure.FlexureComponent
 
+
 .. autoclass:: landlab.components.flow_routing.route_flow_dn.FlowRouter
-	..automethod:: landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow
+	:members: route_flow
+
 
 .. autoclass:: landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse
-	.. automethod:: landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse.diffuse
+	:members: diffuse
+
 
 .. autoclass:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow
-	.. automethod:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow.run_one_step
-	This might not work...
+	:members: run_one_step
+	*This might not work...*
 
-.. autoclass:: landlab.components.PET.ET_PriestlyTaylor.ET
-	.. automethod:: landlab.components.PET.ET_PriestlyTaylor.ET.update
-	This component implements a model for evapotranspiration.
+
+.. autoclass:: landlab.components.PET.potential_evapotranspiration_field.PotentialEvapotranspiration
+	:members: update
+	*This component implements a model for evapotranspiration.*
+
 
 .. autoclass:: landlab.components.radiation.radiation_field.Radiation
-	.. automethod:: landlab.components.radiation.radiation_field.Radiation.update
+	:members: update
+
 
 .. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
-	..automethod:: landlab.components.stream_power.fastscape_stream_power.SPEroder.erode
+	:members: erode
 
-.. autoclass:: landlab.components.single_vegetation.single_vegetation.SingleVegetation
-	.. automethod:: landlab.components.single_vegetation.single_vegetation.SingleVegetation.update
-	This component implements vegetation dynamics at a point.
+
+.. autoclass:: landlab.components.single_vegetation.single_vegetation_field.Vegetation
+	:members: update
+	*This component implements vegetation dynamics at a point.*
+
 
 .. autoclass:: landlab.components.soil_moisture.soil_moisture_field.SoilMoisture
-	.. automethod:: landlab.components.soil_moisture.soil_moisture_field.SoilMoisture.update
+	:members: update
+
 
 .. autoclass:: landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution
-	.. automethod:: landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.update
-	This class generates rainfall events and interstorm intervals based
-	on the Poisson-like statistical model of Eagleson (1978).
+	:members: update
+	*This class generates rainfall events and interstorm intervals based
+	on the Poisson-like statistical model of Eagleson (1978).*
 
 
 Here be dragons!

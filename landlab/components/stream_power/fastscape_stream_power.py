@@ -21,10 +21,11 @@ class SPEroder(object):
     It needs to be supplied with the key variables:
     
         *K_sp*
+        
         *m_sp*
     
-    ...which it will draw from the supplied input file. n_sp has to be 1 for the
-    BW algorithm to work.
+    ...which it will draw from the supplied input file. *n_sp* has to be 1 for 
+    the BW algorithm to work.
     
     *dt*, *rainfall_intensity*, and *value_field* are optional variables.
     
