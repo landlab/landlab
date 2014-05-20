@@ -26,5 +26,5 @@ imshow_field(grid,'RadiationFactor',
 plt.figure(1)
 imshow_field(grid,'PotentialEvapotranspiration',
                 values_at = 'cell', grid_units = ('m','m'))
-
+plt.savefig('PET_test')
 plt.show()
