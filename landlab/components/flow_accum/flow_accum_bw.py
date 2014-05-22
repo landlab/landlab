@@ -138,7 +138,7 @@ def _make_array_of_donors(r, delta):
         >>> D
         array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
-#    np = len(r)
+    np = len(r)
 #    w = numpy.zeros(np, dtype=int)
 #    D = numpy.zeros(np, dtype=int)
 #    for i in xrange(np):
@@ -242,10 +242,11 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
+        #DEJH: this loop may not be removable... Could use weave?
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge[recvr] += discharge[donor]
-            
+      
     return drainage_area, discharge
     
 

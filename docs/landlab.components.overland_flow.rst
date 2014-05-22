@@ -4,6 +4,14 @@ landlab.components.overland_flow package
 Submodules
 ----------
 
+landlab.components.overland_flow.functionality_test module
+----------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.functionality_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.overland_flow.generate_overland_flow module
 --------------------------------------------------------------
 
