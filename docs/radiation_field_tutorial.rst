@@ -1,5 +1,6 @@
 A Quick Tutorial for radiation_field Component
-===============================================
+==============================================
+
 This article is a step by step tutorial for a simple implementation of 
 radiation_field.py which is available in 'radiation' package under 
 'landlab/components'.
