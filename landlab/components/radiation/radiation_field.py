@@ -21,7 +21,22 @@ class Radiation( Component ):
     radiation. This code also computes relative incidence shortwave radiation
     compared to a flat surface.
     
-    
+    Radiation(grid, **kwds)
+        Adds two 'cellular' fields on grid 'TotalShortWaveRadiation' and 
+        'RadiationFactor'
+        
+    Parameters:
+        grid : RasterModelGrid (might work on other grids but not tested yet)
+        
+      Optional (**kwds):
+        method : Currently, only default is available
+        CLOUDINESS: set cloudiness value. default value is 0.5
+        LATITUDE: set Latitude. default value is 34.0
+        ALBEDO: set albedo. default value is 0.8
+        SOLARCONSTANT: default value is 1353.0
+        CLRSKYTURBIDITY: set clear sky turbidity. default value is 2.
+        OPTAIRMASS: set optical air mass. default value is 0.0
+        
     >>> from landlab import RasterModelGrid        
     >>> from landlab.components.radiation.radiation_field import Radiation        
     >>> import numpy as np        
@@ -32,11 +47,11 @@ class Radiation( Component ):
         Radiation
     >>> current_time = 0.5
     >>> rad.update( current_time )
+    
     >>> grid['cell']['TotalShortWaveRadiation']
         Out[11]: 
         array([ 1.90762961,  1.90701536,  1.90732026,  1.90617417,  1.90762696,
         1.90718441])
-
     >>> grid['cell']['RadiationFactor']
         Out[12]: 
         array([ 0.01091503,  0.01091151,  0.01091326,  0.0109067 ,  0.01091501,
@@ -158,16 +173,4 @@ class Radiation( Component ):
             if self._radf[i] > 6.0:
                 self._radf[i] = 6.0       
         
-            self._Rs[i] = self._Rgl * self._radf[i]    # Incoming Shortwave Radn
-
-
-
-
-
-
-
-
-
-
-
-        
+            self._Rs[i] = self._Rgl * self._radf[i]    # Incoming Shortwave Radn        

@@ -74,16 +74,22 @@ def _make_number_of_donors_array(r):
     The example below is from Braun and Willett (2012); nd corresponds to their
     d_i in Table 1.
     
+    Vectorized, DEJH, 5/20/14
+    
     Example:
         >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
         >>> nd = _make_number_of_donors_array(r)
         >>> nd
         array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
-    np = len(r)
-    nd = numpy.zeros(np, dtype=int)
-    for i in xrange(np):
-        nd[r[i]] += 1
+#    np = len(r)
+#    nd = numpy.zeros(np, dtype=int)
+#    for i in xrange(np):
+#        nd[r[i]] += 1
+
+    nd = numpy.zeros(r.size)
+    max_index = numpy.max(r)
+    nd[:(max_index+1)] = numpy.bincount(r)
     return nd
     
     
@@ -123,6 +129,8 @@ def _make_array_of_donors(r, delta):
     Table 1 (except that here the ID numbers are one less, because we number
     indices from zero).
     
+    Vectorized, DEJH, 5/20/14
+    
     Example:
         >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
         >>> delta = numpy.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
@@ -131,12 +139,23 @@ def _make_array_of_donors(r, delta):
         array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
     np = len(r)
-    w = numpy.zeros(np, dtype=int)
+#    w = numpy.zeros(np, dtype=int)
+#    D = numpy.zeros(np, dtype=int)
+#    for i in xrange(np):
+#        ri = r[i]
+#        D[delta[ri]+w[ri]] = i
+#        w[ri] += 1
+#    return D
+    
     D = numpy.zeros(np, dtype=int)
-    for i in xrange(np):
-        ri = r[i]
-        D[delta[ri]+w[ri]] = i
-        w[ri] += 1
+    wri_fin = numpy.bincount(r)
+    wri_fin_nz = wri_fin.nonzero()[0]
+    wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
+    logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
+    cum_logical = numpy.cumsum(logical, axis=1)
+    wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
+    D_index = delta[r] + wri
+    D[D_index] = numpy.arange(r.size)
     return D
 
 
@@ -223,10 +242,11 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
+        #DEJH: this loop may not be removable... Could use weave?
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge[recvr] += discharge[donor]
-            
+      
     return drainage_area, discharge
     
 

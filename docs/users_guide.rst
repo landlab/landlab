@@ -43,12 +43,12 @@ Functional modules
 
 .. autoclass:: landlab.components.PET.potential_evapotranspiration_field.PotentialEvapotranspiration
 	:members: update
-	*This component implements a model for evapotranspiration.*
+	*This component implements a model for potential evapotranspiration.*
 
 
 .. autoclass:: landlab.components.radiation.radiation_field.Radiation
 	:members: update
-
+	*This component implements a model to compute spatial radiation distribution.
 
 .. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
 	:members: erode
@@ -56,12 +56,12 @@ Functional modules
 
 .. autoclass:: landlab.components.single_vegetation.single_vegetation_field.Vegetation
 	:members: update
-	*This component implements vegetation dynamics at a point.*
+	*This component implements spatial vegetation dynamics.*
 
 
 .. autoclass:: landlab.components.soil_moisture.soil_moisture_field.SoilMoisture
 	:members: update
-
+	*This component implements spatial soil moisture dynamics.*
 
 .. autoclass:: landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution
 	:members: update
