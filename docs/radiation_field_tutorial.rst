@@ -7,9 +7,6 @@ radiation_field.py which is available in 'radiation' package under
 Article author: Sai Siddhartha Nudurupati (saisiddu@uw.edu) and Erkan Istanbulluoglu
 Date: 22 May 2014
     
-Lets get into action!
-======================
-    
 Radiation component calculates total incoming shortwave radiation and
 relative radiation factor (ratio of total radiation incident on the surface
 with respect to the total radiation incident on flat surface).
@@ -139,7 +136,7 @@ The results might look similar to the following figures:
     :figwidth: 80%
     :align: center
 	
-    Figure 2: Plot of total incident shortwave radiation
+    Figure 1: Plot of total incident shortwave radiation
 
 .. _radiationfactor:
 
