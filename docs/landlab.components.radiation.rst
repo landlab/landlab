@@ -4,14 +4,6 @@ landlab.components.radiation package
 Submodules
 ----------
 
-landlab.components.radiation.radiation module
----------------------------------------------
-
-.. automodule:: landlab.components.radiation.radiation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 landlab.components.radiation.radiation_field module
 ---------------------------------------------------
 
