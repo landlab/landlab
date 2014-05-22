@@ -138,7 +138,7 @@ def _make_array_of_donors(r, delta):
         >>> D
         array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
-#    np = len(r)
+    np = len(r)
 #    w = numpy.zeros(np, dtype=int)
 #    D = numpy.zeros(np, dtype=int)
 #    for i in xrange(np):
