@@ -131,6 +131,24 @@ pop up.
 
 >>> plt.show()
 
+The results might look similar to the following figures:
+
+.. _totalradiation:
+
+.. figure:: Radiation.png
+    :figwidth: 80%
+    :align: center
+	
+    Figure 2: Plot of total incident shortwave radiation
+
+.. _radiationfactor:
+
+.. figure:: RadiationFactor.png
+    :figwidth: 80%
+    :align: center
+	
+    Figure 2: Plot of radiation factor
+
 Please note that this is a simple implementation of radiation_field
 component intended to familiarize its use. Please refer to the documentation
 of landlab/components/radiation/radiation_field for more information to 
