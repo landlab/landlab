@@ -30,7 +30,7 @@ Tutorials
 
    model_grid
    landlab_component_tutorial
-   ecohydrology_tutorial
+   radiation_field_tutorial
 
 Simple guides to functionality
 ------------------------------
