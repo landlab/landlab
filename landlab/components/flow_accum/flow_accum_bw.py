@@ -242,10 +242,11 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
+        #DEJH: this loop may not be removable... Could use weave?
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge[recvr] += discharge[donor]
-            
+      
     return drainage_area, discharge
     
 
