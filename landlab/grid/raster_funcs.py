@@ -434,6 +434,11 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     cell_ids : array_like, optional
         IDs of cell about which to get neighbors.
 
+    Returns
+    -------
+    ndarray
+        Node IDs for given neighbors of cells.
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -463,7 +468,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
         inds = np.array(inds)
 
     #return neighbors[xrange(len(cell_ids)), 3 - inds]
-    return np.squeeze(
+    return (
         np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
 
@@ -514,7 +519,7 @@ def node_id_of_cell_corner(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return np.squeeze(
+    return (
         np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
     #return diagonals[xrange(len(cell_ids)), 3 - inds]

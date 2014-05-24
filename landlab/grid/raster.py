@@ -462,7 +462,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.node_links(5)
-        array([ 1, 11,  5, 12])
+        array([[ 1],
+               [11],
+               [ 5],
+               [12]])
         >>> grid.node_links((5, 6))
         array([[ 1,  2],
                [11, 12],
@@ -479,7 +482,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                               self.node_outlink_matrix))
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
-            return np.squeeze(
+            return (
                 np.vstack((self.node_inlink_matrix[:, node_ids],
                            self.node_outlink_matrix[:, node_ids])
                          ).reshape(4, -1))
@@ -523,7 +526,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> rmg = RasterModelGrid(3, 4)
         >>> rmg.node_links(5)
-        array([ 1, 11,  5, 12])
+        array([[ 1],
+               [11],
+               [ 5],
+               [12]])
         >>> rmg.node_activelinks((5, 6))
         array([[0, 1],
                [4, 5],
@@ -741,6 +747,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             face_ids = np.broadcast_arrays(args[0])[0]
         else:
             raise ValueError()
+        face_ids.shape = (-1, )
 
         #face_ids = _make_arg_into_array(face_id)
         #if type(face_ids) != numpy.ndarray:
