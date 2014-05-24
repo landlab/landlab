@@ -65,31 +65,39 @@ class _DrainageStack():
                 
                 
 def _make_number_of_donors_array(r):
-    """
+    """Number of donors for each node.
+
     Creates and returns an array containing the number of donors for each node.
     
-    Inputs: r = Numpy array with ID of receiver for each node.
-    Returns: Numpy array containing number of donors for each node.
+    Parameters
+    ----------
+    r : ndarray
+        ID of receiver for each node.
     
+    Returns
+    -------
+    ndarray
+        Number of donors for each node.
+    
+    Examples
+    --------
     The example below is from Braun and Willett (2012); nd corresponds to their
     d_i in Table 1.
     
-    Vectorized, DEJH, 5/20/14
-    
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> nd = _make_number_of_donors_array(r)
-        >>> nd
-        array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
+    >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> nd = _make_number_of_donors_array(r)
+    >>> nd
+    array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
+    # Vectorized, DEJH, 5/20/14
 #    np = len(r)
 #    nd = numpy.zeros(np, dtype=int)
 #    for i in xrange(np):
 #        nd[r[i]] += 1
 
-    nd = numpy.zeros(r.size)
+    nd = numpy.zeros(r.size, dtype=np.int)
     max_index = numpy.max(r)
-    nd[:(max_index+1)] = numpy.bincount(r)
+    nd[:(max_index + 1)] = numpy.bincount(r)
     return nd
     
     
