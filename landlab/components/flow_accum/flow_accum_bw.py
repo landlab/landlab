@@ -95,7 +95,7 @@ def _make_number_of_donors_array(r):
 #    for i in xrange(np):
 #        nd[r[i]] += 1
 
-    nd = numpy.zeros(r.size, dtype=np.int)
+    nd = numpy.zeros(r.size, dtype=numpy.int)
     max_index = numpy.max(r)
     nd[:(max_index + 1)] = numpy.bincount(r)
     return nd
