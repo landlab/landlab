@@ -41,20 +41,21 @@ print 'Running ...'
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg)
-lin_diffuse.initialize(input_file)
+lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
+#lin_diffuse.initialize(input_file)
 
 #Perform the loops.
 #First, we do the nonlinear diffusion:
 
 #We're going to perform a block uplift of the interior of the grid, but leave the boundary nodes at their original elevations.
-uplifted_nodes = mg.get_interior_nodes() #access this function of the grid, and store the output with a local name
+uplifted_nodes = mg.get_core_nodes() #access this function of the grid, and store the output with a local name
 #(Note: Node numbering runs across from the bottom left of the grid.)
 
 for i in xrange(nt): #nt is the number of timesteps we calculated above, i.e., loop nt times. We never actually use i within the loop, but we could do.
     #("xrange" is a clever memory-saving way of producing consecutive integers to govern a loop)
     #this colon-then-tab-in arrangement is what Python uses to delineate connected blocks of text, instead of brackets or parentheses
     #This line performs the actual functionality of the component:
+    #mg = lin_diffuse.diffuse(mg, dt) #linear diffusion
     mg = diffuse.diffuse(mg, i*dt) #nonlinear diffusion
     #...swap around which line is commented out to switch between formulations of diffusion
 
@@ -109,7 +110,7 @@ for i in xrange(nt):
     #This line performs the actual functionality of the component:
     #***NB: the nonlinear diffuser contains an "automatic" element of uplift. If you instead use the linear diffuser, you need to add the uplift manually...
     mg['node']['planet_surface__elevation'][uplifted_nodes] += uplift_per_step 
-    mg = lin_diffuse.diffuse(mg, dt) #linear diffusion
+    mg = lin_diffuse.diffuse(mg, internal_uplift=False) #linear diffusion
 
     pylab.figure(4)
     elev_r = mg.node_vector_to_raster(mg['node']['planet_surface__elevation'])

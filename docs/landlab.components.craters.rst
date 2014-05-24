@@ -1,27 +1,46 @@
-craters Package
-===============
+landlab.components.craters package
+==================================
 
-:mod:`craters` Package
-----------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.craters
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`component` Module
------------------------
+landlab.components.craters.component module
+-------------------------------------------
 
 .. automodule:: landlab.components.craters.component
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`craters` Module
----------------------
+landlab.components.craters.craters module
+-----------------------------------------
 
 .. automodule:: landlab.components.craters.craters
     :members:
     :undoc-members:
     :show-inheritance:
 
+landlab.components.craters.dig_craters module
+---------------------------------------------
+
+.. automodule:: landlab.components.craters.dig_craters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.craters.dig_craters_copy module
+--------------------------------------------------
+
+.. automodule:: landlab.components.craters.dig_craters_copy
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.craters
+    :members:
+    :undoc-members:
+    :show-inheritance:

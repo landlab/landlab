@@ -4,7 +4,7 @@
 2D numerical model of diffusion, implemented using ModelGrid.
 Provides example of a radial grid.
 
-Last updated GT August 2013
+Last updated GT May 2014
 
 """
 
@@ -37,15 +37,14 @@ def main():
     
     # Create and initialize a radial model grid
     mg = RadialModelGrid(num_shells, dr)
-    #mg.initialize(num_shells, dr)
     
-    # Set up scalar values
-    z = mg.add_zeros('node', 'Elevation')
-    #z = mg.create_node_array_zeros('Elevation')            # node elevations
-    dzdt = mg.create_node_array_zeros()  # node rate of elevation change
+    # Set up scalar values: elevation and time rate of change of elevation.
+    # Note use of CSDMS standard names for these variables.
+    z = mg.add_zeros('node', 'Land_surface__elevation')
+    dzdt = mg.add_zeros('node', 'Land_surface__time_derivative_of_elevation')
     
-    # Get a list of the interior cells
-    interior_cells = mg.get_active_cell_node_ids()
+    # Get a list of the core nodes
+    core_nodes = mg.core_nodes
 
     # Display a message
     print( 'Running diffusion_with_radial_model_grid.py' )
@@ -67,7 +66,7 @@ def main():
         dzdt = uplift_rate - dqsds
             
         # Update the elevations
-        z[interior_cells] = z[interior_cells] + dzdt[interior_cells] * dt
+        z[core_nodes] = z[core_nodes] + dzdt[core_nodes] * dt
 
       
     # FINALIZE

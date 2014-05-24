@@ -1,83 +1,86 @@
-grid Package
-============
+landlab.grid package
+====================
 
-:mod:`grid` Package
--------------------
+Submodules
+----------
 
-.. automodule:: landlab.grid
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`base` Module
-------------------
+landlab.grid.base module
+------------------------
 
 .. automodule:: landlab.grid.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`create` Module
---------------------
+landlab.grid.create module
+--------------------------
 
 .. automodule:: landlab.grid.create
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`grid_funcs` Module
-------------------------
+landlab.grid.grid_funcs module
+------------------------------
 
 .. automodule:: landlab.grid.grid_funcs
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`hex` Module
------------------
+landlab.grid.hex module
+-----------------------
 
 .. automodule:: landlab.grid.hex
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`mappers` Module
----------------------
+landlab.grid.mappers module
+---------------------------
 
 .. automodule:: landlab.grid.mappers
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`radial` Module
---------------------
+landlab.grid.radial module
+--------------------------
 
 .. automodule:: landlab.grid.radial
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`raster` Module
---------------------
+landlab.grid.raster module
+--------------------------
 
 .. automodule:: landlab.grid.raster
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`raster_funcs` Module
---------------------------
+landlab.grid.raster_funcs module
+--------------------------------
 
 .. automodule:: landlab.grid.raster_funcs
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`voronoi` Module
----------------------
+landlab.grid.voronoi module
+---------------------------
 
 .. automodule:: landlab.grid.voronoi
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.grid
+    :members:
+    :undoc-members:
+    :show-inheritance:

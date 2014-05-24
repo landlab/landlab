@@ -13,21 +13,43 @@ class SPEroder(object):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the amount
     of erosion at each node in a grid, following a stream power framework.
-    It needs to be supplied with the key variables:
-        K_sp
-        m_sp
-    ...which it will draw from a supplied input file. n_sp has to be 1 for the
-    BW algorithm to work.
     
-    dt & rainfall_intensity are optional variables. dt is a fixed timestep, and
-    rainfall_intensity is a parameter which modulates K_sp (by a product, 
-    r_i**m_sp) to reflect the direct influence of rainfall intensity on 
-    erosivity.
+    On initialization, it takes *grid*, a reference to a ModelGrid, and
+    *input_stream*, a string giving the filename (and optionally, path) of the
+    required input file.
+    
+    It needs to be supplied with the key variables:
+    
+        *K_sp*
+        
+        *m_sp*
+    
+    ...which it will draw from the supplied input file. *n_sp* has to be 1 for 
+    the BW algorithm to work.
+    
+    *dt*, *rainfall_intensity*, and *value_field* are optional variables.
+    
+    *dt* is a fixed timestep, and *rainfall_intensity* is a parameter which 
+    modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
+    rainfall intensity on erosivity. *value_field* is a string giving the name
+    of the field containing the elevation data in the grid. It defaults to
+    'planet_surface__elevation' if not supplied.
+    
+    This module assumes you have already run 
+    :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
+    in the same timestep. It looks for 'upstream_ID_order', 
+    'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
+    'planet_surface__elevation' at the nodes in the grid. 'drainage_area' should
+    be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
+    FlowRouter.route_flow).
+    
     If dt is not supplied, you must call gear_timestep(dt_in, rain_intensity_in)
     each iteration to set these variables on-the-fly (rainfall_intensity will be
     overridden if supplied in the input file).
     If dt is supplied but rainfall_intensity is not, the module will assume you
     mean r_i = 1.
+    
+    The primary method of this class is :func:`erode`.
     '''
     
     def __init__(self, grid, input_stream):
@@ -50,6 +72,10 @@ class SPEroder(object):
                 self.r_i = inputs.read_float('dt')
             except:
                 self.r_i = 1.
+        try:
+            self.value_field = inputs.read_str('value_field')
+        except:
+            self.value_field = 'planet_surface__elevation'
             
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
@@ -64,11 +90,22 @@ class SPEroder(object):
         return self.dt, self.r_i
 
     def erode(self, grid_in):
+        """
+        This method implements the stream power erosion, following the Braun-
+        Willett (2013) implicit Fastscape algorithm. This should allow it to
+        be stable against larger timesteps than an explicit stream power scheme.
+        
+        The method takes *grid*, a reference to the model grid.
+        
+        It returns the grid, in which it will have modified the value of 
+        *value_field*, as specified in component initialization.
+        """
+        
         self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
         #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
-        z = self.grid['node']['planet_surface__elevation']
+        z = self.grid['node'][self.value_field]
         #interior_nodes = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'], -1)
         #interior_nodes = (self.grid['node']['links_to_flow_receiver'][upstream_order_IDs])[nonboundaries]
         #flow_link_lengths = self.grid.link_length[interior_nodes]
@@ -89,7 +126,7 @@ class SPEroder(object):
             if i != j:
                 z[i] = (z[i] + self.alpha[i]*z[j])/(1.0+self.alpha[i])
         
-        self.grid['node']['planet_surface__elevation'] = z
+        self.grid['node'][self.value_field] = z
         
         return self.grid
 

@@ -1,2 +1,2 @@
 
-import landlab.components.single_vegetation
+import landlab.components.single_vegetation.single_vegetation_field

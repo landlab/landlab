@@ -1,21 +1,5 @@
-io Package
-==========
-
-:mod:`io` Package
------------------
-
-.. automodule:: landlab.io
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`esri_ascii` Module
-------------------------
-
-.. automodule:: landlab.io.esri_ascii
-    :members:
-    :undoc-members:
-    :show-inheritance:
+landlab.io package
+==================
 
 Subpackages
 -----------
@@ -26,3 +10,22 @@ Subpackages
     landlab.io.tests
     landlab.io.vtk
 
+Submodules
+----------
+
+landlab.io.esri_ascii module
+----------------------------
+
+.. automodule:: landlab.io.esri_ascii
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: landlab.io
+    :members:
+    :undoc-members:
+    :show-inheritance:

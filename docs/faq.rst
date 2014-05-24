@@ -1,5 +1,3 @@
-Frequently Asked Questions
-==========================
 
 How do I set the boundary codes for the edges of a grid?
 --------------------------------------------------------

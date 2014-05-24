@@ -1,27 +1,30 @@
-diffusion Package
-=================
+landlab.components.diffusion package
+====================================
 
-:mod:`diffusion` Package
-------------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.diffusion
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`diffusion` Module
------------------------
+landlab.components.diffusion.diffusion module
+---------------------------------------------
 
 .. automodule:: landlab.components.diffusion.diffusion
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`diffusion_model` Module
------------------------------
+landlab.components.diffusion.diffusion_model module
+---------------------------------------------------
 
 .. automodule:: landlab.components.diffusion.diffusion_model
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.diffusion
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,19 +1,22 @@
-sed_trp_shallow_flow Package
-============================
+landlab.components.sed_trp_shallow_flow package
+===============================================
 
-:mod:`sed_trp_shallow_flow` Package
------------------------------------
+Submodules
+----------
 
-.. automodule:: landlab.components.sed_trp_shallow_flow
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`transport_sed_in_shallow_flow` Module
--------------------------------------------
+landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow module
+----------------------------------------------------------------------------
 
 .. automodule:: landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.components.sed_trp_shallow_flow
+    :members:
+    :undoc-members:
+    :show-inheritance:

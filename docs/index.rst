@@ -12,17 +12,47 @@ Getting Started with Landlab
    about
    install
    tutorial
-   faq
+   
+.. toctree::
+   :maxdepth: 1
+   
+   dan_installs_on_linux
 
 
 User's Guide
 ============
 
+Tutorials
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   model_grid
+   landlab_component_tutorial
+   radiation_field_tutorial
+
+Simple guides to functionality
+------------------------------
+
 .. toctree::
    :maxdepth: 1
 
    users_guide
-   model_grid
+   
+.. toctree::
+   :maxdepth: 2  
+   
+   manual_index_alt_format
+    
+   
+Frequently Asked Questions
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   faq
 
 
 Developer Documentation
@@ -34,8 +64,12 @@ Developer Documentation
    dev_guide
 
 
-API Documentation
+Code Documentation
 =================
+
+These webpages are auto-generated from Landlab, and list all available functions, methods,
+and properties. All available documentation in the code is reproduced here in a tree
+reflecting Landlab's file structure.
 
 .. toctree::
    :maxdepth: 2
@@ -46,7 +80,7 @@ API Documentation
 
 
 Bibliography
-------------
+============
 
 .. toctree::
    :maxdepth: 2

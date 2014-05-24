@@ -13,11 +13,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     circular shell at regular intervals that get as close as possible to dr.
     The points are then arranged in a Delaunay triangulation with Voronoi cells.
     
-   # Examples:
-   #     
-   #     >>> hmg = HexModelGrid(3, 2, 1.0)
-   #     >>> hmg.number_of_nodes
-   #     7
+    Examples:
+        
+        >>> omg = RadialModelGrid(num_shells=5, dr=1., origin_x=0., origin_y=0.)
+        >>> omg.number_of_nodes
+        7
     """
     
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
@@ -37,7 +37,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     def _initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """
         """
-        #if self.DEBUG_TRACK_METHODS:
+        #if self._DEBUG_TRACK_METHODS:
         print 'RadialModelGrid._initialize('+str(num_shells)+', '+str(dr)+')'
         
         [pts, npts] = self.make_radial_points(num_shells, dr)
