@@ -239,8 +239,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # Return the results
         return node_status, core_nodes, boundary_nodes
-        
-    def setup_node_cell_connectivity(self, node_status, ncells):
+
+    @staticmethod
+    def setup_node_cell_connectivity(node_status, ncells):
         """
         Creates and returns the following arrays:
             1) for each node, the ID of the corresponding cell, or
@@ -277,13 +278,13 @@ class VoronoiDelaunayGrid(ModelGrid):
                 cell += 1
                 
         #save the arrays
-        self.node_cell = node_cell
-        self.cell_node = cell_node
+        #self.node_cell = node_cell
+        #self.cell_node = cell_node
         
         return node_cell, cell_node
         
-
-    def create_links_from_triangulation(self, tri):
+    @staticmethod
+    def create_links_from_triangulation(tri):
         """
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
@@ -338,9 +339,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
         
         #save the results
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self._num_links = num_links
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self._num_links = num_links
     
         # Return the results
         return link_fromnode, link_tonode, num_links
@@ -352,7 +353,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
                 and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
 
-    def create_links_and_faces_from_voronoi_diagram(self, vor):
+    @staticmethod
+    def create_links_and_faces_from_voronoi_diagram(vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
@@ -440,12 +442,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print 'vor ridge points:',vor.ridge_points
         
         #save the data
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self.active_link_ids = active_links
-        self._face_widths = face_width
-        self._num_faces = face_width.size
-        self._num_active_links = active_links.size
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self.active_link_ids = active_links
+        #self._face_widths = face_width
+        #self._num_faces = face_width.size
+        #self._num_active_links = active_links.size
         
         return link_fromnode, link_tonode, active_links, face_width
 
