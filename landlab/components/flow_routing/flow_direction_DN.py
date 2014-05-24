@@ -15,55 +15,63 @@ UNDEFINED_INDEX = numpy.iinfo(int).min
 
 
 def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_nodes=None):
-    """
+    """Find flow directions on a grid.
+
     Finds and returns flow directions for a given elevation grid. Each node is
     assigned a single direction, toward one of its N neighboring nodes (or
     itself, if none of its neighbors are lower).
     
-    Inputs:
-        elev = array or list of elevations at nodes
-        fromnode = array or list containing ID of the "from" node for each link
-        tonode = array or list containing ID of the "to" node for each link
-        link_slope = slope of each link, defined POSITIVE DOWNHILL (i.e., a
-                     negative value means the link runs uphill from the fromnode
-                     to the tonode)
-        (optional) baselevel_nodes = IDs of open boundary (baselevel) nodes
+    Parameters
+    ----------
+    elev : array_like
+        Elevations at nodes.
+    fromnode : array_like
+        IDs of the "from" node for each link.
+    tonode : array_like
+        IDs of the "to" node for each link.
+    link_slope : array_like
+        slope of each link, defined POSITIVE DOWNHILL (i.e., a negative value
+        means the link runs uphill from the fromnode to the tonode).
+    baselevel_nodes : array_like, optional
+        IDs of open boundary (baselevel) nodes.
     
-    Returns:
-        receiver = Numpy array containing, for each node, the ID of the node
-                   that receives its flow. Defaults to the node itself if no 
-                   other receiver is assigned.
-        steepest_slope = the slope value (positive downhill) in the direction of
-                         flow
-        sink = IDs of nodes that are flow sinks (they are their own receivers)
-        receiver_link = ID of link that leads from each node to its receiver,
-                        or UNDEFINED_INDEX if none (UNDEFINED_INDEX is the
-                        smallest integer
+    Returns
+    -------
+    receiver : ndarray
+        For each node, the ID of the node that receives its flow. Defaults to
+        the node itself if no other receiver is assigned.
+    steepest_slope : ndarray
+        The slope value (positive downhill) in the direction of flow
+    sink : ndarray
+        IDs of nodes that are flow sinks (they are their own receivers)
+    receiver_link : ndarray
+        ID of link that leads from each node to its receiver, or
+        UNDEFINED_INDEX if none (UNDEFINED_INDEX is the smallest integer).
     
+    Examples
+    --------
     The example below assigns elevations to the 10-node example network in
     Braun and Willett (2012), so that their original flow pattern should be
     re-created.
     
-    Example:
-        >>> z = numpy.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
-        >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
-        >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
-        >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-        >>> r, ss, snk, rl = flow_directions(z, fn, tn, s)
-        >>> r
-        array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
-        >>> ss
-        array([ 1.4,  1. ,  1.2,  1. ,  0. ,  1.1,  0.9,  2.3,  1.1,  0.9])
-        >>> snk
-        array([4])
-        >>> rl[3:8]
-        array([15,  2,  6, 13, 11])
+    >>> z = numpy.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
+    >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
+    >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
+    >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
+    >>> r, ss, snk, rl = flow_directions(z, fn, tn, s)
+    >>> r
+    array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
+    >>> ss
+    array([ 1.4,  1. ,  1.2,  1. ,  0. ,  1.1,  0.9,  2.3,  1.1,  0.9])
+    >>> snk
+    array([4])
+    >>> rl[3:8]
+    array([15,  2,  6, 13, 11])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
         - Pass active_links in as argument
         - In calling code, only refer to receiver_links for active nodes
-
     """
     
     # Setup
