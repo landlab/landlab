@@ -20,8 +20,7 @@ install:
   - conda create -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - source activate test-env
   - if [[ "$TRAVIS_PYTHON_VERSION" == 3.* ]]; then
-      mv landlab landlab2;
-      2to3 -o landlab -n -W --no-diffs landlab2/;
+      2to3 --no-diffs -w -n landlab
     fi
   - python setup.py install
 
