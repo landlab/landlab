@@ -1,4 +1,4 @@
-scipy
+scipy>=0.12
 numpy
 nose>=1.3
 matplotlib
