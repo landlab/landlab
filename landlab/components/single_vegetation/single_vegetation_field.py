@@ -20,11 +20,12 @@ class Vegetation( Component ):
     """
     Landlab component that implements 1D and 2D vegetation dynamics
     model.
-    
+
+    >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> veg = Vegetation(grid)
     >>> veg.name
-    Vegetation
+    'Vegetation'
     """
     _name = 'Vegetation'
     
