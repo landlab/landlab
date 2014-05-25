@@ -22,6 +22,7 @@ install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == 3.* ]]; then
       2to3 --no-diffs -w -n landlab;
       2to3 --no-diffs -w -n ez_setup.py;
+      2to3 --no-diffs -w -n setup.py;
     fi
   - python setup.py install
 
