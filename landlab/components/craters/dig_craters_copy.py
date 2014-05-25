@@ -21,7 +21,6 @@ import numpy
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
-import memory_profiler
 
 from landlab import ModelParameterDictionary
 
