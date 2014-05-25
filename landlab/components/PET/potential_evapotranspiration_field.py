@@ -20,10 +20,11 @@ class PotentialEvapotranspiration( Component ):
     """
     Landlab component that calculates Potential Evapotranspiration.
     
+    >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
-    Potential Evapotranspiration
+    'Potential Evapotranspiration'
     """
     _name = 'Potential Evapotranspiration'
     
