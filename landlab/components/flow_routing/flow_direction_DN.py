@@ -25,6 +25,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     ----------
     elev : array_like
         Elevations at nodes.
+    active_links : array_like
+        IDs of active links.
     fromnode : array_like
         IDs of the "from" node for each link.
     tonode : array_like
@@ -58,7 +60,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
     >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
     >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-    >>> r, ss, snk, rl = flow_directions(z, fn, tn, s)
+    >>> active_links = numpy.arange(len(fn))
+    >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s)
     >>> r
     array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
     >>> ss
@@ -66,7 +69,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     >>> snk
     array([4])
     >>> rl[3:8]
-    array([15,  2,  6, 13, 11])
+    array([                  15, -9223372036854775808,                    1,
+                              6,                    2])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
