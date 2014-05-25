@@ -25,7 +25,7 @@ script: nosetests
 virtualenv:
   system_site_packages: true
 
-before_install:
-  - conda update --yes conda
-  #- sudo apt-get install -qq python-numpy python-scipy
+#before_install:
+#  - conda update --yes conda
+#  #- sudo apt-get install -qq python-numpy python-scipy
 
