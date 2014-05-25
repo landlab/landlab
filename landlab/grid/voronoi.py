@@ -292,14 +292,14 @@ class VoronoiDelaunayGrid(ModelGrid):
             2) a numpy array containing the ID of the "to" node for each link
             3) the number of links in the triangulation
         
-        Example:
-            
-            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
-            >>> from scipy.spatial import Delaunay
-            >>> dt = Delaunay(pts)
-            >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
-            >>> print myfrom, myto, nl
-            [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
+        Examples
+        --------
+        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from scipy.spatial import Delaunay
+        >>> dt = Delaunay(pts)
+        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
+        >>> print myfrom, myto, nl # doctest: +SKIP
+        [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
         
         """
     
