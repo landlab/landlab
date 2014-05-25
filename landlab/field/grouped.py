@@ -71,6 +71,12 @@ class ModelDataFields(object):
     array([ 1.,  1.])
     >>> fields.at_cell['planet_surface__elevation']
     array([ 1.,  1.])
+
+    Each group acts as a `dict` so, for instance, to get the variables names
+    in a group use the `keys` method,
+
+    >>> fields.at_cell.keys()
+    ['planet_surface__elevation']
     """
     def __init__(self, **kwds):
         self._groups = dict()

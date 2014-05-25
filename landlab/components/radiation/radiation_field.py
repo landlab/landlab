@@ -44,18 +44,21 @@ class Radiation( Component ):
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
-        Radiation
+    'Radiation'
     >>> current_time = 0.5
     >>> rad.update( current_time )
     
-    >>> grid['cell']['TotalShortWaveRadiation']
-        Out[11]: 
-        array([ 1.90762961,  1.90701536,  1.90732026,  1.90617417,  1.90762696,
-        1.90718441])
-    >>> grid['cell']['RadiationFactor']
-        Out[12]: 
-        array([ 0.01091503,  0.01091151,  0.01091326,  0.0109067 ,  0.01091501,
-        0.01091248])
+    >>> x = grid['cell']['TotalShortWaveRadiation']
+    >>> type(x)
+    <type 'numpy.ndarray'>
+    >>> x.shape
+    (6,)
+
+    >>> x = grid['cell']['RadiationFactor']
+    >>> type(x)
+    <type 'numpy.ndarray'>
+    >>> x.shape
+    (6,)
     """
     
     _name = 'Radiation'
