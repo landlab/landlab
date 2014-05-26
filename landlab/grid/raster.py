@@ -790,8 +790,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.link_faces(2)
         1
         >>> rmg.link_faces([0, 1, 15, 19, 12, 26])
-        array([9223372036854775807,                   0, 9223372036854775807,
-                                 9,                   7,                  16])
+        array([2147483647,          0, 2147483647,          9,          7,
+                       16])
         """
         if len(args) == 0:
             #face_ids = np.arange(self.number_of_faces)
