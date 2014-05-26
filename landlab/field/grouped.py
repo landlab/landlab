@@ -287,16 +287,14 @@ class ModelDataFields(object):
 
         Raise FieldError if *field* does not exist in *group*.
 
-        >>> fields.field_values('node', 'planet_surface__temperature')
+        >>> fields.field_values('node', 'planet_surface__temperature') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         FieldError: planet_surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.field_values('cell', 'planet_surface__elevation')
+        >>> fields.field_values('cell', 'planet_surface__elevation') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         GroupError: cell
         """
         return self[group][field]
@@ -610,9 +608,8 @@ class ModelDataFields(object):
         array([1, 1, 1, 1])
         >>> field.at_node['planet_surface__elevation'] is values
         False
-        >>> field.add_field('node', 'planet_surface__elevation', values, noclobber=True)
+        >>> field.add_field('node', 'planet_surface__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         FieldError: planet_surface__elevation
         """
         return self[group].add_field(name, value_array, **kwds)

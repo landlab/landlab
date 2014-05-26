@@ -178,7 +178,7 @@ from . import grid_funcs as gfuncs
 
 
 #: Indicates an index is, in some way, *bad*.
-BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
+BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
 
 
 # Map names grid elements to the ModelGrid attribute that contains the count

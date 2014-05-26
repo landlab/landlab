@@ -9,7 +9,6 @@ from landlab import RasterModelGrid
 from landlab.components.soil_moisture.soil_moisture_field import SoilMoisture
 from landlab.components.single_vegetation.single_vegetation_field import Vegetation
 import numpy as np
-from landlab.plot.imshow
 #import matplotlib.pyplot as plt
 
 grid = RasterModelGrid( 10, 10, 1. )

@@ -49,14 +49,14 @@ class Radiation( Component ):
     >>> rad.update( current_time )
     
     >>> x = grid['cell']['TotalShortWaveRadiation']
-    >>> type(x)
-    <type 'numpy.ndarray'>
+    >>> isinstance(x, np.ndarray)
+    True
     >>> x.shape
     (6,)
 
     >>> x = grid['cell']['RadiationFactor']
-    >>> type(x)
-    <type 'numpy.ndarray'>
+    >>> isinstance(x, np.ndarray)
+    True
     >>> x.shape
     (6,)
     """
