@@ -108,11 +108,11 @@ class FlowRouter():
         Example:
             >>> from landlab import RasterModelGrid
             >>> mg = RasterModelGrid(5, 4, 1.0)
-            >>> elev = numpy.array([0.,  0.,  0., 0., \
-                                 0., 21., 10., 0., \
-                                 0., 31., 20., 0., \
-                                 0., 32., 30., 0., \
-                                 0., 0., 0., 0.])
+            >>> elev = numpy.array([0.,  0.,  0., 0.,
+            ...                     0., 21., 10., 0.,
+            ...                     0., 31., 20., 0.,
+            ...                     0., 32., 30., 0.,
+            ...                     0.,  0.,  0., 0.])
             >>> mg.set_inactive_boundaries(False, True, True, True)
             >>> fr = FlowRouter(mg)
             >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
