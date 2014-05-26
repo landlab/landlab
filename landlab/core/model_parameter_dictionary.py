@@ -79,6 +79,7 @@ import types
  
 import scipy.io
 from numpy import *  
+import numpy as np
 #------------------------------------------------------------
 
 
@@ -195,8 +196,8 @@ class ModelParameterDictionary(dict):
     Lines containing commas are converted to numpy arrays. The type of the
     array is determined by the values.
 
-    >>> type(params['DBL_ARRAY'])
-    <type 'numpy.ndarray'>
+    >>> isinstance(params['DBL_ARRAY'], np.ndarray)
+    True
     >>> print params['INT_ARRAY']
     [1 2 3]
     >>> print params['DBL_ARRAY']
