@@ -315,9 +315,8 @@ class ScalarDataFields(dict):
         array([1, 1, 1, 1])
         >>> field['planet_surface__elevation'] is values
         False
-        >>> field.add_field('planet_surface__elevation', values, noclobber=True)
+        >>> field.add_field('planet_surface__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         FieldError: planet_surface__elevation
         """
         if noclobber and name in self:
