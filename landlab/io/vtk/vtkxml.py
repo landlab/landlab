@@ -74,7 +74,8 @@ class VtkSpacing(object):
         return 'VtkSpacing(%s)' % self._spacing
     
     
-class VtkElement(object, xml.dom.minidom.Element):
+#class VtkElement(object, xml.dom.minidom.Element):
+class VtkElement(xml.dom.minidom.Element):
     def __init__ (self, name, **kwargs):
         xml.dom.minidom.Element.__init__(self, str(name), namespaceURI='VTK')
         self.setAttributes(**kwargs)
