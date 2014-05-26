@@ -29,6 +29,7 @@ def test_hugo_read_file_name():
     assert_equal(field.size, 55 * 76)
     assert_equal(field.shape, (55 * 76, ))
 
+
 def test_hugo_read_file_like():
     with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
@@ -37,6 +38,7 @@ def test_hugo_read_file_like():
 
     assert_equal(field.size, 55 * 76)
     assert_equal(field.shape, (55 * 76, ))
+
 
 def test_hugo_reshape():
     with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
@@ -117,8 +119,7 @@ cellsize      10.
 NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
         """)
-    with assert_raises(DataSizeError):
-        (grid, field) = read_esri_ascii(asc_file)
+    assert_raises(DataSizeError, read_esri_ascii, asc_file)
 
 
 def test_header_missing_required_key():
@@ -130,8 +131,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
         """)
-    with assert_raises(MissingRequiredKeyError):
-        header = read_asc_header(asc_file)
+    assert_raises(MissingRequiredKeyError, read_asc_header, asc_file)
+
 
 def test_header_missing_mutex_key():
     asc_file = StringIO(
@@ -142,8 +143,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
         """)
-    with assert_raises(MissingRequiredKeyError):
-        header = read_asc_header(asc_file)
+    assert_raises(MissingRequiredKeyError, read_asc_header, asc_file)
+
 
 def test_header_mutex_key():
     asc_file = StringIO(
@@ -157,8 +158,9 @@ NODATA_value  -9999
         """)
     header = read_asc_header(asc_file)
     assert_equal(header['xllcenter'], 1.)
-    with assert_raises(KeyError):
-        header['xllcorner']
+    #with assert_raises(KeyError):
+    #    header['xllcorner']
+    assert_raises(KeyError, lambda k: header[k], 'xllcorner')
 
     asc_file = StringIO(
         """
@@ -171,8 +173,8 @@ NODATA_value  -9999
         """)
     header = read_asc_header(asc_file)
     assert_equal(header['xllcorner'], 1.)
-    with assert_raises(KeyError):
-        header['xllcenter']
+    assert_raises(KeyError, lambda k: header[k], 'xllcenter')
+
 
 def test_header_missing_optional():
     asc_file = StringIO(
@@ -184,8 +186,8 @@ yllcorner     2.
 cellsize      10.
         """)
     header = read_asc_header(asc_file)
-    with assert_raises(KeyError):
-        header['nodata_value']
+    assert_raises(KeyError, lambda k: header[k], 'nodata_value')
+
 
 def test_header_case_insensitive():
     asc_file = StringIO(
@@ -212,8 +214,7 @@ YLLCORNER     2.
 CELLSIZE      10.
 NODATA_value  -999
         """)
-    with assert_raises(KeyTypeError):
-        header = read_asc_header(asc_file)
+    assert_raises(KeyTypeError, read_asc_header, asc_file)
 
 
 if __name__ == '__main__':
