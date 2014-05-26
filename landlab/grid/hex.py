@@ -99,30 +99,30 @@ class HexModelGrid(VoronoiDelaunayGrid):
             array([ 0. ,  1. , -0.5])
         """
 
-        dxv = dxh*numpy.sqrt(3.)/2.
-        half_dxh = dxh/2.
+        dxv = dxh * numpy.sqrt(3.) / 2.
+        half_dxh = dxh / 2.
 
-        if numpy.mod(num_rows, 2)==0:  # even number of rows
-            npts = num_rows*base_num_cols+(num_rows*num_rows)/4
+        if numpy.mod(num_rows, 2) == 0:  # even number of rows
+            npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
             #print 'even # rows, npts=', npts
         else:  # odd number of rows
-            npts = num_rows*base_num_cols + ((num_rows-1)/2)*((num_rows-1)/2)
+            npts = num_rows * base_num_cols + ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
             #print 'odd # rows, npts=', npts
-        pts = numpy.zeros((npts,2))
-        middle_row = num_rows/2
+        pts = numpy.zeros((npts, 2))
+        middle_row = num_rows // 2
         extra_cols = 0
         xshift = 0.
-        i=0
+        i = 0
         for r in range(num_rows):
-            for c in range(base_num_cols+extra_cols):
-                pts[i,0] = c*dxh+xshift
-                pts[i,1] = r*dxv
+            for c in range(base_num_cols + extra_cols):
+                pts[i,0] = c * dxh + xshift
+                pts[i,1] = r * dxv
                 i += 1
-            if r<middle_row:
+            if r < middle_row:
                 extra_cols += 1
             else:
                 extra_cols -= 1
-            xshift = -half_dxh*extra_cols
+            xshift = - half_dxh * extra_cols
         
         return pts, npts
 
