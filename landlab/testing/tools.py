@@ -1,4 +1,4 @@
-from nose.tools import assert_true
+from nose.tools import assert_true, assert_equal
 
 
 def assert_is(expr1, expr2, msg=None):
