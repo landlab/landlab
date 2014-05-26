@@ -48,7 +48,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                    +str(base_num_cols)+', '+str(dx)+')'
         
         # Create a set of hexagonally arranged points. These will be our nodes.
-        [pts, self._num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
+        [pts, self._num_nodes] = HexModelGrid.make_hex_points(num_rows, base_num_cols, dx)
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
