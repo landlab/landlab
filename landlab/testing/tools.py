@@ -35,3 +35,17 @@ def assert_is_instance(obj, cls, msg=None):
 
 def assert_not_is_instance(obj, cls, msg=None):
     assert_true(not isinstance(obj, cls), msg=msg)
+
+
+def assert_list_equal(list1, list2, msg=None):
+    assert_true(isinstance(list1, list))
+    assert_true(isinstance(list2, list))
+    for a, b in zip(list1, list2):
+        assert_equal(a, b)
+
+
+def assert_tuple_equal(tuple1, tuple2, msg=None):
+    assert_true(isinstance(list1, tuple))
+    assert_true(isinstance(list2, tuple))
+    for a, b in zip(list1, list2):
+        assert_equal(a, b)
