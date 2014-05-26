@@ -45,7 +45,19 @@ def assert_list_equal(list1, list2, msg=None):
 
 
 def assert_tuple_equal(tuple1, tuple2, msg=None):
-    assert_true(isinstance(list1, tuple))
-    assert_true(isinstance(list2, tuple))
-    for a, b in zip(list1, list2):
+    assert_true(isinstance(tuple1, tuple))
+    assert_true(isinstance(tuple1, tuple))
+    for a, b in zip(tuple1, tuple2):
         assert_equal(a, b)
+
+
+def assert_dict_equal(dict1, dict2, msg=None):
+    assert_true(isinstance(dict1, dict))
+    assert_true(isinstance(dict2, dict))
+    assert_equal(dict1, dict2)
+
+
+def assert_set_equal(set1, set2, msg=None):
+    assert_true(isinstance(set1, set))
+    assert_true(isinstance(set2, set))
+    assert_equal(set1, set2)
