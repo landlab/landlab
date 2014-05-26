@@ -16,7 +16,7 @@ Modified to save data to grid directly, DEJH March 2014
 import landlab
 #from landlab import RasterModelGrid
 from landlab.components.flow_routing import flow_direction_DN
-reload(flow_direction_DN)
+#reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
 
