@@ -9,7 +9,8 @@ os:
   - osx
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
+  - if [[ "$TRAVIS_OS_NAME" == "Linux" ]]; then
       OS="Linux-x86_64";
     else
       OS="MacOSX-x86_64";
