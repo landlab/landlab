@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import (assert_is, assert_equal, assert_raises, raises,
-                        assert_true, assert_false)
+from nose.tools import (assert_equal, assert_raises, raises, assert_true,
+                        assert_false)
+try:
+    from nose.tools import assert_is 
+except ImportError:
+    from landlab.testing.tools import assert_is 
 
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE as X

@@ -1,8 +1,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import (assert_is, assert_equal, assert_is_instance,
-                        assert_raises, assert_false, assert_true)
-
+from nose.tools import assert_equal, assert_raises, assert_false, assert_true
+try:
+    from nose.tools import assert_is, assert_is_instance
+except ImportError:
+    from landlab.testing.tools import assert_is, assert_is_instance
 import landlab.utils.structured_grid as sgrid
 from landlab.utils.structured_grid import BAD_INDEX_VALUE
 
