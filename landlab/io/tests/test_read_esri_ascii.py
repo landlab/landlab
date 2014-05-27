@@ -5,12 +5,11 @@ Unit tests for landlab.io.esri_ascii module.
 import os
 import numpy as np
 from StringIO import StringIO
-from nose.tools import (assert_equal, assert_true, assert_raises,
-                        assert_list_equal)
+from nose.tools import assert_equal, assert_true, assert_raises
 try:
-    from nose.tools import assert_is_instance
+    from nose.tools import assert_is_instance, assert_list_equal
 except ImportError:
-    from landlab.testing.tools import assert_is_instance
+    from landlab.testing.tools import assert_is_instance, assert_list_equal
 
 from landlab.io import read_esri_ascii, read_asc_header
 from landlab.io import MissingRequiredKeyError, KeyTypeError, DataSizeError

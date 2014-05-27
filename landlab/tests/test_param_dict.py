@@ -92,11 +92,9 @@ def test_read_file_like_twice():
 def test_read_int():
     assert_equal(param_dict.read_int('INT_VAL'), 1)
 
-    with assert_raises(ParameterValueError):
-        param_dict.read_int('FLOAT_VAL')
+    assert_raises(ParameterValueError, param_dict.read_int, 'FLOAT_VAL')
 
-    with assert_raises(MissingKeyError):
-        param_dict.read_int('MISSING_INT')
+    assert_raises(MissingKeyError, param_dict.read_int, 'MISSING_INT')
 
     assert_equal(param_dict.read_int('MISSING_INT', 2), 2)
 
@@ -105,11 +103,9 @@ def test_read_int():
 def test_get_int():
     assert_equal(param_dict.get('INT_VAL', ptype=int), 1)
 
-    with assert_raises(ParameterValueError):
-        param_dict.get('FLOAT_VAL', ptype=int)
+    assert_raises(ParameterValueError, param_dict.get, 'FLOAT_VAL', ptype=int)
 
-    with assert_raises(MissingKeyError):
-        param_dict.get('MISSING_INT', ptype=int)
+    assert_raises(MissingKeyError, param_dict.get, 'MISSING_INT', ptype=int)
 
 
 @with_setup(setup)
@@ -123,11 +119,9 @@ def test_read_float():
     assert_equal(param_dict.read_float('FLOAT_VAL'), 2.2)
     assert_equal(param_dict.read_float('INT_VAL'), 1)
 
-    with assert_raises(ParameterValueError):
-        param_dict.read_float('STRING_VAL')
+    assert_raises(ParameterValueError, param_dict.read_float, 'STRING_VAL')
 
-    with assert_raises(MissingKeyError):
-        param_dict.read_float('MISSING_FLOAT')
+    assert_raises(MissingKeyError, param_dict.read_float, 'MISSING_FLOAT')
 
 
 @with_setup(setup)
@@ -136,8 +130,7 @@ def test_read_string():
     assert_equal(param_dict.read_string('INT_VAL'), '1')
     assert_equal(param_dict.read_string('FLOAT_VAL'), '2.2')
 
-    with assert_raises(MissingKeyError):
-        param_dict.read_string('MISSING_STRING')
+    assert_raises(MissingKeyError, param_dict.read_string, 'MISSING_STRING')
 
 
 @with_setup(setup)
@@ -145,11 +138,9 @@ def test_read_bool():
     assert_equal(param_dict.read_bool('TRUE_BOOL_VAL'), True)
     assert_equal(param_dict.read_bool('FALSE_BOOL_VAL'), False)
 
-    with assert_raises(MissingKeyError):
-        param_dict.read_bool('MISSING_BOOLEAN')
+    assert_raises(MissingKeyError, param_dict.read_bool, 'MISSING_BOOLEAN')
 
-    with assert_raises(ParameterValueError):
-        param_dict.read_bool('STRING_VAL')
+    assert_raises(ParameterValueError, param_dict.read_bool, 'STRING_VAL')
 
 
 @with_setup(setup)

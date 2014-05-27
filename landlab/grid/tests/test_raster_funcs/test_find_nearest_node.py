@@ -52,17 +52,17 @@ def test_beyond_grid():
     rmg = RasterModelGrid(4, 5, dx=2.)
 
     assert_equal(rfuncs.find_nearest_node(rmg, (-.999, .2)), 0)
-    with assert_raises(ValueError):
-        rfuncs.find_nearest_node(rmg, (-1.001, .2))
+    assert_raises(ValueError,
+                  rfuncs.find_nearest_node, rmg, (-1.001, .2))
 
     assert_equal(rfuncs.find_nearest_node(rmg, (8.999, .2)), 4)
-    with assert_raises(ValueError):
-        rfuncs.find_nearest_node(rmg, (9.001, .2))
+    assert_raises(ValueError,
+                  rfuncs.find_nearest_node, rmg, (9.001, .2))
 
     assert_equal(rfuncs.find_nearest_node(rmg, (.2, -.999)), 0)
-    with assert_raises(ValueError):
-        rfuncs.find_nearest_node(rmg, (.2, -1.001))
+    assert_raises(ValueError,
+                  rfuncs.find_nearest_node, rmg, (.2, -1.001))
 
     assert_equal(rfuncs.find_nearest_node(rmg, (.2, 6.999)), 15)
-    with assert_raises(ValueError):
-        rfuncs.find_nearest_node(rmg, (.2, 7.001))
+    assert_raises(ValueError,
+                  rfuncs.find_nearest_node, rmg, (.2, 7.001))
