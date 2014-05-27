@@ -4,13 +4,21 @@ python:
   - "2.7"
   - "3.3"
   - "3.4"
+os:
+  - linux
+  - osx
 
 install:
-  - sudo apt-get update
-  - if [[ "$TRAVIS_PYTHON_VERSION" == 2.* ]]; then
-      wget http://repo.continuum.io/miniconda/Miniconda-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      OS="Linux-x86_64";
     else
-      wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+      OS="MacOSX-x86_64";
+    fi
+  - sudo apt-get update 2> /dev/null || echo "No apt-get"
+  - if [[ "$TRAVIS_PYTHON_VERSION" == 2.* ]]; then
+      wget http://repo.continuum.io/miniconda/Miniconda-3.4.2-$OS.sh -O miniconda.sh;
+    else
+      wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-$OS.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
