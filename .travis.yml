@@ -10,10 +10,10 @@ os:
 
 install:
   - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
-  - if [[ "$TRAVIS_OS_NAME" == "Linux" ]]; then
-      OS="Linux-x86_64";
-    else
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       OS="MacOSX-x86_64";
+    else
+      OS="Linux-x86_64";
     fi
   - sudo apt-get update 2> /dev/null || echo "No apt-get"
   - if [[ "$TRAVIS_PYTHON_VERSION" == 2.* ]]; then
