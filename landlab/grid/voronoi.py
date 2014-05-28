@@ -68,27 +68,43 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
     
-    Examples:
-        
+    Examples
+    --------
+    >>> from numpy.random import rand
+    >>> x, y = rand(25), rand(25)
+    >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
+    >>> vmg.number_of_nodes
+    25
+    """
+    def __init__(self, x=None, y=None, **kwds):
+        """Create a Voronoi Delaunay grid from a set of points.
+
+        Create an unstructured grid from points whose coordinates are given
+        by the arrays *x*, *y*.
+
+        Parameters
+        ----------
+        x : array_like
+            x-coordinate of points
+        y : array_like
+            y-coordinate of points
+
+        Returns
+        -------
+        VoronoiDelaunayGrid
+            A newly-created grid.
+
+        Examples
+        --------
         >>> from numpy.random import rand
-        >>> x = rand(25)
-        >>> y = rand(25)
+        >>> x, y = rand(25), rand(25)
         >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
         >>> vmg.number_of_nodes
         25
-    
-    """
-    #print 'VoronoiDelaunayGrid.__init__'
-    
-    def __init__(self, x=None, y=None, **kwds):
-        """
-        If x and y are provided, creates an unstructured grid using those 
-        coordinates as the node positions.
         """
         if (x is not None) and (y is not None):
             self._initialize(x, y)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
-        
         
     def _initialize(self, x, y):
         """
