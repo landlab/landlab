@@ -7,6 +7,8 @@ from landlab import RasterModelGrid
 import numpy as np
 import pylab
 
+from time import time
+
 #get the needed properties to build the grid:
 input_file = './stream_power_params.txt'
 inputs = ModelParameterDictionary(input_file)
@@ -41,6 +43,7 @@ print 'Running ...'
 fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
 
+time_on = time()
 #perform the loops:
 for i in xrange(10):
     mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
@@ -59,6 +62,7 @@ for i in xrange(10):
  
 print 'Completed the simulation. Plotting...'
 
+time_off = time()
 
 #Finalize and plot
 elev = fr.node_water_discharge
@@ -94,5 +98,6 @@ pylab.xlabel('Upstream drainage area, m^2')
 pylab.ylabel('Maximum slope')
 
 print('Done.')
+print 'Time: ', time_off-time_on
 
 pylab.show()

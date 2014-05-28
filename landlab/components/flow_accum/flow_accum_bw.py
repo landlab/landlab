@@ -120,13 +120,19 @@ def _make_delta_array(nd):
         >>> delta
         array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
+    #np = len(nd)
+    #delta = numpy.zeros(np+1, dtype=int)
+    #delta[np] = np   # not np+1 as in B&W because here we number from 0
+    #for i in xrange(np-1, -1, -1):
+    #    delta[i] = delta[i+1] - nd[i]
+    #return delta
+
+    #DEJH efficient delooping (only a small gain)
     np = len(nd)
     delta = numpy.zeros(np+1, dtype=int)
-    delta[np] = np   # not np+1 as in B&W because here we number from 0
-    for i in xrange(np-1, -1, -1):
-        delta[i] = delta[i+1] - nd[i]
+    delta.fill(np)
+    delta[-2::-1] -= numpy.cumsum(nd[::-1])
     return delta
-    
     
 def _make_array_of_donors(r, delta):
     """
@@ -138,7 +144,7 @@ def _make_array_of_donors(r, delta):
     Table 1 (except that here the ID numbers are one less, because we number
     indices from zero).
     
-    Vectorized, DEJH, 5/20/14
+    Vectorized - inefficiently! - DEJH, 5/20/14
     
     Example:
         >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
@@ -148,24 +154,26 @@ def _make_array_of_donors(r, delta):
         array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
     np = len(r)
-#    w = numpy.zeros(np, dtype=int)
-#    D = numpy.zeros(np, dtype=int)
-#    for i in xrange(np):
-#        ri = r[i]
-#        D[delta[ri]+w[ri]] = i
-#        w[ri] += 1
-#    return D
-    
+    w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
-    wri_fin = numpy.bincount(r)
-    wri_fin_nz = wri_fin.nonzero()[0]
-    wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    cum_logical = numpy.cumsum(logical, axis=1)
-    wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    D_index = delta[r] + wri
-    D[D_index] = numpy.arange(r.size)
+    for i in xrange(np):
+        ri = r[i]
+        D[delta[ri]+w[ri]] = i
+        w[ri] += 1
     return D
+    
+    #DEJH notes that for reasons he's not clear on, this looped version is
+    #actually much slower!
+    #D = numpy.zeros(np, dtype=int)
+    #wri_fin = numpy.bincount(r)
+    #wri_fin_nz = wri_fin.nonzero()[0]
+    #wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
+    #logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
+    #cum_logical = numpy.cumsum(logical, axis=1)
+    #wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
+    #D_index = delta[r] + wri
+    #D[D_index] = numpy.arange(r.size)
+    #return D
 
 
 def make_ordered_node_array(receiver_nodes, baselevel_nodes):
@@ -187,8 +195,9 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
+    add_it = dstack.add_to_stack
     for k in baselevel_nodes:
-        dstack.add_to_stack(k)
+        add_it(k)
     return dstack.s
     
     
