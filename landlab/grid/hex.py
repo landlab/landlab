@@ -6,26 +6,49 @@ from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
-    """
+    """A grid of hexagonal cells.
+
     This inherited class implements a regular 2D grid with hexagonal cells and
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
     
-    Examples:
-        
-        >>> hmg = HexModelGrid(3, 2, 1.0)
-        >>> hmg.number_of_nodes
-        7
+    Examples
+    --------
+    >>> hmg = HexModelGrid(3, 2, 1.0)
+    >>> hmg.number_of_nodes
+    7
     """
     
     def __init__(self, num_rows=0, base_num_cols=0, dx=1.0, **kwds):
+        """Create a grid of hexagonal cells.
+
+        Create a regular 2D grid with hexagonal cells and triangular patches.
+        It is a special type of VoronoiDelaunay grid in which the initial set
+        of points is arranged in a triangular/hexagonal lattice.
+
+        Parameters
+        ----------
+        num_rows : int
+            Number of rows of nodes.
+        base_num_cols : int
+            Number of nodes on the first row.
+        dx : float, optional
+            Node spacing.
+
+        Returns
+        -------
+        HexModelGrid
+            A newly-created grid.
+
+        Examples
+        --------
+        Create a hex grid with 2 rows of nodes. The first and third rows will
+        have 2 nodes, and the second nodes.
+
+        >>> hmg = HexModelGrid(3, 2, 1.0)
+        >>> hmg.number_of_nodes
+        7
         """
-        Optionally takes numbers of rows and columns and cell size as
-        inputs. If this are given, calls initialize() to set up the grid.
-        
-        """
-        #print 'HexModelGrid.__init__'
-        
         # Set number of nodes, and initialize if caller has given dimensions
         #self._num_nodes = num_rows * num_cols
         if num_rows * base_num_cols > 0:

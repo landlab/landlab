@@ -28,17 +28,10 @@ Grid creation
 
 *These methods are used to create grids.*
 
-.. autoclass:: landlab.grid.raster.RasterModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.voronoi.VoronoiDelaunayGrid
-    :members: None
-
-.. autoclass:: landlab.grid.radial.RadialModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.hex.HexModelGrid
-    :members: None
+.. automethod:: landlab.grid.raster.RasterModelGrid.__init__
+.. automethod:: landlab.grid.voronoi.VoronoiDelaunayGrid.__init__
+.. automethod:: landlab.grid.radial.RadialModelGrid.__init__
+.. automethod:: landlab.grid.hex.HexModelGrid.__init__
 
 
 Create data in the grid fields
