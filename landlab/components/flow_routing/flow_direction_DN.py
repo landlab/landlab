@@ -10,11 +10,12 @@ Modified Feb 2014
 
 
 import numpy
+from landlab import RasterModelGrid
 
-UNDEFINED_INDEX = numpy.iinfo(int).min
+UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 
-def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_nodes=None):
+def flow_directions(elev, active_links, fromnode, tonode, link_slope, grid=None, baselevel_nodes=None):
     """Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
@@ -72,10 +73,41 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     array([                  15, -9223372036854775808,                    1,
                               6,                    2])
 
+    Example 2
+    ---------
+    This example implements a simple routing on a (4,5) raster grid:
+        
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid(4,5)
+    >>> z = numpy.array([5., 0., 5., 5., 5., 5., 1., 2., 2., 5., 5., 3., 4., 3., 5., 5., 5., 5., 5., 5.])
+    >>> fn = None
+    >>> tn = None
+    >>> s = None
+    >>> active_links = None #these can all be dummy variables
+    >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s, grid=mg)
+    >>> r
+    array([ 1,  1,  1,  8,  4,  6,  1,  6,  6,  8, 11, 10,  7, 18, 14, 15, 16,
+           12, 18, 19])
+    >>> ss
+    array([ 1.4,  0. ,  1.2,  3. ,  0. ,  3. ,  1. ,  0.3,  1.1,  3. ,  3. ,
+            2. ,  4. ,  1. ,  0. ,  0. ,  0. ,  5. ,  0. ,  0. ])
+    >>> snk
+    array([ 1,  4, 14, 15, 16, 18, 19])
+    >>> rl
+    array([                   3, -9223372036854775808,                    4,
+                              2, -9223372036854775808,                    9,
+                              0,                    9,                   13,
+                             12,                   13,                   13,
+                              4,                    8, -9223372036854775808,
+           -9223372036854775808, -9223372036854775808,                    7,
+           -9223372036854775808, -9223372036854775808])
+    
+
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
         - Pass active_links in as argument
         - In calling code, only refer to receiver_links for active nodes
+    
     """
     
     # Setup
@@ -93,22 +125,61 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, baselevel_
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
     #THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
     #overridden as part of fastscape_stream_power
-    for i in xrange(len(fromnode)):
-        f = fromnode[i]
-        t = tonode[i]
-        #print 'link from',f,'to',t,'with slope',link_slope[i]
-        if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
-            receiver[f] = t
-            steepest_slope[f] = link_slope[i]
-            receiver_link[f] = active_links[i]
-            #print ' flows from',f,'to',t
-        elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
-            receiver[t] = f
-            steepest_slope[t] = -link_slope[i]
-            receiver_link[t] = active_links[i]
-            #print ' flows from',t,'to',f
-        #else:
-            #print ' is flat'
+
+    #DEJH attempting to replace the node-by-node loop, 5/28/14:
+    #This is actually about the same speed on a 100*100 grid!
+    try:
+        raise AttributeError #hardcoded for now, until raster method works
+        links_at_each_node = grid.node_activelinks()
+        if not isinstance(grid, RasterModelGrid):
+            raise AttributeError
+    except AttributeError:
+        #print "looped method"
+        #do the loops, shifted from ln 96
+        for i in xrange(len(fromnode)):
+            f = fromnode[i]
+            t = tonode[i]
+            #print 'link from',f,'to',t,'with slope',link_slope[i]
+            if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
+                receiver[f] = t
+                steepest_slope[f] = link_slope[i]
+                receiver_link[f] = active_links[i]
+                #print ' flows from',f,'to',t
+            elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
+                receiver[t] = f
+                steepest_slope[t] = -link_slope[i]
+                receiver_link[t] = active_links[i]
+                #print ' flows from',t,'to',f
+            #else:
+                #print ' is flat'
+    else:    
+        #alternative, assuming grid structure doesn't change between steps
+        #*********** not yet working! ***********
+        global neighbor_nodes
+        global links_list
+        global one_over_sqrt_two
+        try:
+            elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max)
+        except NameError:
+            print 'creating global neighbor list...'
+            one_over_sqrt_two = 1./numpy.sqrt(2.)
+            neighbor_nodes = numpy.empty((grid.number_of_active_nodes, 8), dtype=int)
+            neighbor_nodes[:,:4] = grid.get_neighbor_list()[grid.active_nodes,:] #(nnodes, 4), and E,N,W,S
+            neighbor_nodes[:,4:] = grid.get_diagonal_list()[grid.active_nodes,:] #NE,NW,SW,SE
+            neighbor_nodes = numpy.where(neighbor_nodes!=UNDEFINED_INDEX, neighbor_nodes, -1)
+            links_list = numpy.empty_like(neighbor_nodes)
+            links_list[:,:4] = grid.node_activelinks().T[grid.active_nodes,:]
+            links_list[:,4:].fill(UNDEFINED_INDEX)
+            elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max/1000.)
+        slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.max_active_link_length()
+        slope_array[:,4:] *= one_over_sqrt_two
+        axis_indices = numpy.argmax(slope_array, axis=1)
+        steepest_slope[grid.active_nodes] = slope_array[numpy.indices(axis_indices.shape),axis_indices]
+        downslope = numpy.greater(steepest_slope, 0.)
+        downslope_active = downslope[grid.active_nodes]
+        receiver[downslope] = neighbor_nodes[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
+        receiver_link[downslope] = links_list[numpy.indices(axis_indices.shape),(7-axis_indices)][0,downslope_active]
+
             
     node_id = numpy.arange(num_nodes)
 

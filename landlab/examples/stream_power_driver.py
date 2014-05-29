@@ -50,7 +50,7 @@ for i in xrange(10):
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
 
-    ##plot long profiles along channels
+    #plot long profiles along channels
     pylab.figure(6)
     profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
             mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],

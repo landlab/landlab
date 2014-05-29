@@ -170,7 +170,9 @@ class FlowRouter():
         receiver, steepest_slope, sink, recvr_link  = \
             flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
                                          self._activelink_to, link_slope, 
-                                         baselevel_nodes)
+                                         grid=grid,
+                                         baselevel_nodes=baselevel_nodes)
+#############grid=None???
         
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
