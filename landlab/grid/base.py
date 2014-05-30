@@ -1631,7 +1631,36 @@ class ModelGrid(ModelDataFields):
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+            
+    def _make_link_unit_vectors(self):
+        
+        # Create the arrays for unit vectors for each link. These each get an
+        # additional array element at the end with the value zero. This allows
+        # any references to "link ID -1" in the node_inlink_matrix and
+        # node_outlink_matrix to refer to the zero value in this extra element,
+        # so that when we're summing up link unit vectors, or multiplying by a
+        # nonexistent unit vector, we end up just treating these as zero.
+        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
     
+        # Calculate the unit vectors using triangle similarity and the Pythagorean
+        # Theorem.
+        dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
+        dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        self.link_unit_vec_x[:self.number_of_links] = dx / self.link_length
+        self.link_unit_vec_y[:self.number_of_links] = dy / self.link_length
+                
+        # While we're at it, calculate the unit vector sums for each node.
+        # These will be useful in averaging link-based vectors at the nodes.
+        node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
+        for i in range(max_num_inlinks_per_node):
+            node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_inlink_matrix[i,:]])
+            node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_inlink_matrix[i,:]])
+            node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_outlink_matrix[i,:]])
+            node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
+        
     def display_grid(self, draw_voronoi=False):
         """Displays the grid."""
         import matplotlib.pyplot as plt
