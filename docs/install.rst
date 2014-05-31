@@ -12,9 +12,9 @@ Landlab has the following dependencies:
 - Numpy 1.7 or greater
 - Scipy 0.12 or greater
 
-If you don't already have these packages installed on your computer, simply install one 
-of the preassembled scientific Python collections described below under *Installing
-Python*.
+If you don't already have these packages installed on your computer, simply
+install one of the preassembled scientific Python collections described below
+under *Installing Python*.
 
 .. note::
 
@@ -53,7 +53,7 @@ depend on how you want to use Landlab: whether you want to view the source code,
 simply run it as is.
 
 - If you would like to see the Landlab source code and/or make changes or
-  add to the code, you should follow :ref:`The Developer's Guide
+  add to the code, you should follow :ref:`The Developer Guide
   <dev_guide>`.
 - If you want to use Landlab as-is, and not see or make changes to the
   code, you should follow the :ref:`Installing with pip <basic-install>`
@@ -73,7 +73,8 @@ to keep up with the latest bug fixes.
 .. note::
 
     If you are planning on developing for landlab (making changes to the code)
-    please see our :ref:`Developers' Guide <dev_guide>` for installation instructions.
+    please see our :ref:`Developer Guide <dev_guide>` for installation
+    instructions.
 
 .. note::
 
@@ -115,7 +116,7 @@ Installing with pip
   If you are developing landlab you will probably not want to do this!
   If you do, you would have to run this command everytime you make a change to
   the code. Instead, you want to install landlab in "development mode". See
-  the :ref:`The Developer's Guide <dev_guide>` section for details
+  the :ref:`The Developer Guide <dev_guide>` section for details
   on how to do this.
 
 Use this method if you would like to install the landlab onto your machine
@@ -124,7 +125,7 @@ command line, and write scripts that use landlab modules but will not have
 access to the source. If you would would like to see the code or make tweaks
 to it (large or small) you should install landlab from source (see
 :ref:`Installing from source <source-install>`, or the
-:ref:`Developer's Guide <dev_guide>`).
+:ref:`Developer Guide <dev_guide>`).
 
 The most recent stable release of Landlab is available at the `Python Package
 Index <https://pypi.python.org/pypi>`_ and can be installed by running::

@@ -1,8 +1,8 @@
 .. _dev_guide:
 
-=========================
-landlab Developers' Guide
-=========================
+=======================
+landlab Developer Guide
+=======================
 
 landlab development takes place in your own *fork* of the main landlab
 repository. A fork is a *mirror* of the repository and is hosted on your
@@ -37,10 +37,10 @@ Creating your own fork of landlab
 The following steps will create a fork of the landlab repository under your
 github account.
 
-  1. Sign in to your GitHub account.  
-  2. Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
-     GitHub.
-  3. Click the *fork* button in the upper-right corner of the page.
+# Sign in to your GitHub account.  
+# Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
+  GitHub.
+# Click the *fork* button in the upper-right corner of the page.
 
 Once completed, you will be redirected to the home page for your own copy
 of the landlab.
@@ -51,9 +51,13 @@ Cloning your fork to your computer
 
 This is done from the GUI by:
 
-1. Sign in to git on the GUI.
-2. Hit on your account on the left side of the GUI.
-3. This will show you your fork of landlab.  Hit the clone option next to the fork.  This will download the landlab package to your local computer.  If you are on a windows machine, this will put landlab in the Documents/GitHub folder.  If you are on a mac, you are given the option of where to put the downloaded landlab package.
+# Sign in to git on the GUI.
+# Hit on your account on the left side of the GUI.
+# This will show you your fork of landlab.  Hit the clone option next to the
+  fork.  This will download the landlab package to your local computer.  If
+  you are on a windows machine, this will put landlab in the Documents/GitHub
+  folder.  If you are on a mac, you are given the option of where to put the
+  downloaded landlab package.
 
 This is done from the command line with the following commands::
 
@@ -148,4 +152,36 @@ Coding Style
 
 * Class and function docstrings should follow the `numpydoc conventions
   <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
+
+
+Testing
+=======
+
+Before merging any changes into the landlab trunk, *all* unit tests (including
+doctests) should be passing. In addition, any new features added to landlab
+should have an associated set of unit tests to verify that the new features
+are working properly.
+
+landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
+testing. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
+shows the latest testing results. A new set of tests are executed whenever
+any changes are pushed to the landlab repository and with every pull request.
+We currently run test suites for Python versions 2.6, 2.7, 3.3, and 3.4 (for
+Python 3 versions we use the `2to3 <https://docs.python.org/2/library/2to3.html>`_
+tool).
+
+Once you send a pull request from GitHub, you will be taken to the landlab
+pull request page and all unit tests are run. You will see the status
+of the unit tests next to your latest commit description. If you see a green
+check, all tests passed and your changes can be merged! However, if you see
+an ex there was a problem running the tests. If you believe your changes are
+responsible for the failures, please fix them until the tests pass. Note that
+you do not need to send a new pull request after committing for fixes. They
+will be added to the current pull request and the tests automatically rerun.
+
+You can also run unit tests locally with `nose
+<https://nose.readthedocs.org>`_. From the top-level landlab folder (the one
+that contains `setup.py`) run::
+
+  nosetests
 
