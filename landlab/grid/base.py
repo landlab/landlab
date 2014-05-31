@@ -1633,7 +1633,56 @@ class ModelGrid(ModelDataFields):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
             
     def _make_link_unit_vectors(self):
+        """Makes arrays to store the unit vectors associated with each link.
         
+        Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
+        for each link, the x and y components of the link's unit vector (that is,
+        the link's x and y dimensions if it were shrunk to unit length but 
+        retained its orientation). The length of these arrays is the number of
+        links plus one. The last entry in each array is set to zero, and is used
+        to handle references to "link -1" (meaning, a non-existent link, whose
+        unit vector is (0,0)).
+            Also builds arrays to store the unit-vector component sums for each 
+        node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are 
+        designed to be used when mapping link vector values to nodes (one takes 
+        the average of the x- and y-components of all connected links).
+        
+        Parameters
+        ----------
+        
+        (none)
+        
+        Returns
+        -------
+        
+        (none)
+        
+        Creates
+        -------
+        
+        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
+            x and y components of unit vectors at each link (extra 0 entries @ end)
+        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+            Sums of x & y unit vector components for each node. Sum is over all
+            links connected to a given node.
+            
+        Examples
+        --------
+        In the example below, the first 8 links are vertical, and have unit
+        vectors (0,1), whereas the remaining links are horizontal with (1,0).
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> mg.link_unit_vec_x
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  0.])
+        >>> mg.link_unit_vec_y
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.])
+        >>> mg.node_unit_vector_sum_x
+        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
+        >>> mg.node_unit_vector_sum_y
+        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        """
         # Create the arrays for unit vectors for each link. These each get an
         # additional array element at the end with the value zero. This allows
         # any references to "link ID -1" in the node_inlink_matrix and
@@ -1652,14 +1701,14 @@ class ModelGrid(ModelDataFields):
                 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
-        node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
-        node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
         max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
         for i in range(max_num_inlinks_per_node):
-            node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_inlink_matrix[i,:]])
-            node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_inlink_matrix[i,:]])
-            node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_outlink_matrix[i,:]])
-            node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
+            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_inlink_matrix[i,:]])
+            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_inlink_matrix[i,:]])
+            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_outlink_matrix[i,:]])
+            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
         
     def display_grid(self, draw_voronoi=False):
         """Displays the grid."""
