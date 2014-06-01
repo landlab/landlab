@@ -687,6 +687,96 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
 
+    def _make_link_unit_vectors(self):
+        """Makes arrays to store the unit vectors associated with each link.
+        Overrides ModelGrid._make_link_unit_vectors().
+        
+        Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
+        for each link, the x and y components of the link's unit vector (that is,
+        the link's x and y dimensions if it were shrunk to unit length but 
+        retained its orientation). The length of these arrays is the number of
+        links plus one. The last entry in each array is set to zero, and is used
+        to handle references to "link -1" (meaning, a non-existent link, whose
+        unit vector is (0,0)).
+            Also builds arrays to store the unit-vector component sums for each 
+        node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are 
+        designed to be used when mapping link vector values to nodes (one takes 
+        the average of the x- and y-components of all connected links).
+        
+        Parameters
+        ----------
+        
+        (none)
+        
+        Returns
+        -------
+        
+        (none)
+        
+        Creates
+        -------
+        
+        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
+            x and y components of unit vectors at each link (extra 0 entries @ end)
+        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+            Sums of x & y unit vector components for each node. Sum is over all
+            links connected to a given node.
+            
+        Examples
+        --------
+        In the example below, the first 8 links are vertical, and have unit
+        vectors (0,1), whereas the remaining links are horizontal with (1,0).
+        The middle columns have x-component vector sums equal to 2 (one
+        horizontal inlink and one horizontal outlink), while the middle rows
+        have y-component vector sums equal to 2 (one vertical inlink and one
+        vertical outlink). The rest of the entries have ones, representing the
+        left and right columns (only one horizontal link) and top and bottom
+        rows (only one vertical link).
+        
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> mg.link_unit_vec_x
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  0.])
+        >>> mg.link_unit_vec_y
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.])
+        >>> mg.node_unit_vector_sum_x
+        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
+        >>> mg.node_unit_vector_sum_y
+        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        """
+         
+        # Create the unit vectors for each link.
+        # Assume that the order of links is:
+        # - The first (R-1)*C are vertical and oriented upward
+        # - The remaining R*(C-1) are horizontal and oriented rightward
+        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
+        n_vert_links = (self.number_of_node_rows-1)*self.number_of_node_columns
+        self.link_unit_vec_y[:n_vert_links] = 1.0
+        self.link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        
+        # While we're at it, calculate the unit vector sums for each node.
+        # These will be useful in averaging link-based vectors at the nodes.
+        # To do this, we take advantage of the node inlink and outlink matrices,
+        # each of which has 2 rows, corresponding to the maximum possible 2
+        # inlinks and 2 outlinks in a raster grid.
+        #     Create the arrays
+        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        #     x-component contribution from inlinks
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[1,:]])
+        #     x-component contribution from outlinks
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[1,:]])
+        #     y-component contribution from inlinks
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[1,:]])
+        #     y-component contribution from outlinks
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[1,:]])
 
     def cell_faces(self, *args):
         """cell_faces([cell_id])

@@ -185,6 +185,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         # nodes of active links.
         self._reset_list_of_active_links()
 
+        # LINKS: set up link unit vectors and node unit-vector sums
+        self._make_link_unit_vectors()
+
         # LINKS: ID of corresponding face, if any
         self.link_face = (numpy.zeros(self.number_of_links, dtype=int) +
                           BAD_INDEX_VALUE)  # make the list

@@ -1666,22 +1666,31 @@ class ModelGrid(ModelDataFields):
             Sums of x & y unit vector components for each node. Sum is over all
             links connected to a given node.
             
-        Examples
-        --------
-        In the example below, the first 8 links are vertical, and have unit
-        vectors (0,1), whereas the remaining links are horizontal with (1,0).
+        Example
+        -------
+        The example below is a seven-node hexagonal grid, with six nodes around
+        the perimeter and one node (#3) in the interior. There are four 
+        horizontal links with unit vector (1,0), and 8 diagonal links with
+        unit vector (+/-0.5, +/-sqrt(3)/2) (note: sqrt(3)/2 ~ 0.866).
+            Note: this example assumes that the triangulation places links in a
+        certain order. Because the order is arbitrary, this might break on
+        different platforms. If that happens, the example needs to be 
+        made generic somehow ... 
+        
         >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid(3, 4, 2.0)
-        >>> mg.link_unit_vec_x
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  0.])
-        >>> mg.link_unit_vec_y
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.])
-        >>> mg.node_unit_vector_sum_x
-        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
-        >>> mg.node_unit_vector_sum_y
-        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        >>> hmg = ll.HexModelGrid(3, 2, 2.0)
+        >>> hmg.link_unit_vec_x
+        array([ 0.5, -0.5, -1. , -0.5,  1. ,  0.5,  0.5, -1. , -0.5,  0.5,  1. ,
+               -0.5,  0. ])
+        >>> hmg.link_unit_vec_y
+        array([ 0.8660254,  0.8660254,  0.       , -0.8660254,  0.       ,
+               -0.8660254, -0.8660254,  0.       , -0.8660254, -0.8660254,
+                0.       , -0.8660254,  0.       ])
+        >>> hmg.node_unit_vector_sum_x
+        array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
+        >>> hmg.node_unit_vector_sum_y
+        array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
+                1.73205081,  1.73205081])
         """
         # Create the arrays for unit vectors for each link. These each get an
         # additional array element at the end with the value zero. This allows
