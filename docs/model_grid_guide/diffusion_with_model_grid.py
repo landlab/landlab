@@ -1,10 +1,10 @@
 #! /usr/env/python
 """
 
-2D numerical model of diffusion, implemented using ModelGrid.
+2D numerical model of diffusion, implemented using Landlab's ModelGrid module.
 Provides a simple tutorial example of ModelGrid functionality.
 
-Last updated GT September 2013
+Last updated GT May 2014
 
 """
 
