@@ -592,9 +592,43 @@ def node_status(shape, boundary_status=FIXED_VALUE_BOUNDARY):
 
 
 def active_links(shape, node_status_array=None, link_nodes=None):
-    """
+    """Link IDs for active links of a structured quad grid.
+
+    Return the link IDs for links that are *active* in a structured grid of quadrilaterals. Use the
+    *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each of the
+    perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+
+    Use the *link_nodes* keyword to provide, as a tuple of arrays, that give the *from-node* and the *to-node*
+    for each for each link in the grid.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of grid as number of node rows and columns.
+    node_status_array : array_like, optional
+        Status of each grid node.
+    link_nodes : array_like, optional
+
+    Examples
+    --------
+    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes, only links attached to the
+    interior nodes are *active*.
+
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
+
+    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link is between the two core nodes.
+
+    >>> node_status = np.ones(3 * 4) * CLOSED_BOUNDARY
+    >>> node_status[5:7] = CORE_NODE
+    >>> active_links((3, 4), node_status_array=node_status)
+    array([12])
+
+    You can also provide a list of all the *from_nodes* and *to_nodes* for the grid. The following describes
+    a grid with only a single link (between nodes 5 and 6).
+
+    >>> active_links((3, 4), link_nodes=(np.array([5]), np.array([6])))
+    array([0])
     """
     if node_status_array is None:
         node_status_array = node_status(shape)
@@ -943,15 +977,55 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
 def setup_active_outlink_matrix(shape, node_status=None, return_count=True):
     links = active_outlinks(shape, node_status=node_status)
     if return_count:
-        return (links, active_outlink_count_per_node(shape))
+        return links, active_outlink_count_per_node(shape)
     else:
         return links
 
 
 def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
+    """Active links entering nodes.
+
+    Return the IDs of the active links that enter each node of a grid. The shape of the returned array is
+    (2, *N*) where *N* is the number of nodes in the grid. The first row contains the link ID entering the
+    node from the bottom, and the second row the link entering the node from the left.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the number of active links attached
+    to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each
+    of the perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row list links entering nodes from the
+    bottom, and the second links entering from the left.
+
+    >>> setup_active_inlink_matrix((3, 4), return_count=False)
+    array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
+           [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1]])
+    >>> _, count = setup_active_inlink_matrix((3, 4))
+    >>> count
+    array([0, 0, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0])
+    """
     links = active_inlinks(shape, node_status=node_status)
     if return_count:
-        return (links, active_inlink_count_per_node(shape))
+        return links, active_inlink_count_per_node(shape)
     else:
         return links
 
