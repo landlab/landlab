@@ -1429,6 +1429,16 @@ class ModelGrid(ModelDataFields):
         """
         self._reset_list_of_active_links()
         self._reset_lists_of_nodes_cells()
+        try:
+            if self.diagonal_list_created == True:
+                self.diagonal_list_created = False
+        except AttributeError:
+            pass
+        try:
+            if self.neighbor_list_created == True:
+                self.neighbor_list_created = False
+        except AttributeError:
+            pass
         
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):

@@ -3043,19 +3043,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             same ID. However, this is the old-style grid structure as
             boundary nodes no longer have associated cells.
             
-            DEJH: Note the inconsistency with the definition of the orthogonal
-            neighbors, where boundary nodes still have neighbors, where they
-            are found at the ends of active links. This diagonal method needs
-            changing similarly.
-        ..todo: That! (perimeter nodes can have neighbors)
-
-        .. todo: Change to use BAD_INDEX_VALUE instead of -1.
+            DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and 
+            boundary nodes now have neighbors, where they are found at the ends 
+            of active links. Note however, that only core node neighbors are
+            returned.
         """
         assert(self.diagonal_list_created == False)
 
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
-            self.shape, out_of_bounds=-1, boundary_node_mask=-1)
+            self.shape, out_of_bounds=BAD_INDEX_VALUE) #, boundary_node_mask=-1)
+        
+        closed_boundaries = np.empty(4, dtype=np.int)
+        closed_boundaries.fill(BAD_INDEX_VALUE)
+        self.diagonal_cells[self.closed_boundary_nodes,:] = closed_boundaries
+        self.diagonal_cells.ravel()[
+            numpy.in1d(self.diagonal_cells.ravel(), 
+                self.closed_boundary_nodes)] = BAD_INDEX_VALUE
+        
 
     def is_interior(self, *args):
         """is_interior([ids])
@@ -3445,6 +3450,158 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             del ns
         # return slope alone
         return s
+    
+    def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='planet_surface__elevation'):
+        """
+        Calculates the local topographic slope (i.e., the down-dip slope, and 
+        presented as positive), and the aspect (dip direction in degrees 
+        clockwise from north), at the given nodes, *ids*. All *ids* must be of 
+        core nodes.
+        This method uses the Horn 1981 algorithm, the one employed by many GIS
+        packages. It should be significantly faster than alternative slope
+        methods.
+        
+        If *ids* is not provided, the slope will be returned for all core 
+        nodes.
+        
+        *vals* is either the name of an existing grid field from which to draw
+        topographic data, or an array of values to use. If an array of values is
+        passed, it must be nnodes long.
+        If *vals* is not provided, this method will default to trying to use the
+        field "planet_surface__elevation".
+        
+        Returns:
+            s, a len(ids) array of slopes at each node provided.
+            a, a len(ids) array of aspects at each node provided.
+        """
+        
+        if ids==None:
+            ids = self.core_nodes
+        if type(vals) == str:
+            vals = self.at_node[vals]
+        else:
+            if not (len(vals)==self.number_of_nodes):
+                raise IndexError('*vals* was not of a compatible length!')
+        
+        
+        neighbors = self.get_neighbor_list(ids) #[right, top, left, bottom]
+        diagonals = self.get_diagonal_list(ids) #[topright, topleft, bottomleft, bottomright]
+        input_array = np.empty((len(ids), 9), dtype = int)
+        input_array[:,0] = ids
+        input_array[:,1:5] = neighbors
+        input_array[:,5:] = diagonals
+        
+        def one_line_slopes(input_array, grid, vals):
+            node = input_array[0]
+            diagonals = input_array[5:]
+            neighbors = input_array[1:5]
+            if not grid.node_boundary_status[node] == 0:
+                raise IndexError('One or more of the provided nodes was closed!')
+            try:
+                S_we = ((vals[diagonals[1]]+2.*vals[neighbors[2]]+vals[diagonals[2]])-(vals[diagonals[0]]+2.*vals[neighbors[0]]+vals[diagonals[3]]))/(8.*grid.dx)
+                S_sn = ((vals[diagonals[2]]+2.*vals[neighbors[3]]+vals[diagonals[3]])-(vals[diagonals[1]]+2.*vals[neighbors[:,1]]+vals[diagonals[0]]))/(8.*grid.dx)
+                return S_we, S_sn
+            except IndexError:
+                C = vals[node]
+                weighting_verticals = 4.
+                weighting_horizontals = 4.
+                try:
+                    vertical_grad = (vals[neighbors[3]] - vals[neighbors[1]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        vertical_grad = (C - vals[neighbors[1]])/grid.dx
+                    except IndexError:
+                        try:
+                            vertical_grad = (vals[neighbors[3]] - C)/grid.dx
+                        except IndexError:
+                            vertical_grad = 0.
+                            weighting_verticals -= 2.
+                try:
+                    horizontal_grad = (vals[neighbors[2]] - vals[neighbors[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        horizontal_grad = (C - vals[neighbors[0]])/grid.dx
+                    except IndexError:
+                        try:
+                            horizontal_grad = (vals[neighbors[2]] - C)/grid.dx
+                        except IndexError:
+                            horizontal_grad = 0.
+                            weighting_horizontals -= 2.
+                try:
+                    left_grad = (vals[diagonals[2]] - vals[diagonals[1]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[2]]
+                    except:
+                        left_grad = 0.
+                        weighting_verticals -= 1.
+                    else:
+                        try:
+                            left_grad = (C - vals[diagonals[1]])/grid.dx
+                        except IndexError:
+                            left_grad = (vals[diagonals[2]] - C)/grid.dx
+                try:
+                    right_grad = (vals[diagonals[3]] - vals[diagonals[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[0]]
+                    except:
+                        right_grad = 0.
+                        weighting_verticals -= 1.
+                    else:
+                        try:
+                            right_grad = (C - vals[diagonals[0]])/grid.dx
+                        except IndexError:
+                            right_grad = (vals[diagonals[3]] - C)/grid.dx
+                try:
+                    top_grad = (vals[diagonals[1]] - vals[diagonals[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[1]]
+                    except:
+                        top_grad = 0.
+                        weighting_horizontals -= 1.
+                    else:
+                        try:
+                            top_grad = (C - vals[diagonals[0]])/grid.dx
+                        except IndexError:
+                            top_grad = (vals[diagonals[1]] - C)/grid.dx
+                try:
+                    bottom_grad = (vals[diagonals[2]] - vals[diagonals[3]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[3]]
+                    except:
+                        bottom_grad = 0.
+                        weighting_horizontals -= 1.
+                    else:
+                        try:
+                            bottom_grad = (C - vals[diagonals[3]])/grid.dx
+                        except IndexError:
+                            bottom_grad = (vals[diagonals[2]] - C)/grid.dx
+                
+                S_we = (top_grad + 2.*horizontal_grad + bottom_grad) / weighting_horizontals
+                S_sn = (left_grad + 2.*vertical_grad + right_grad) / weighting_verticals
+                return S_we, S_sn
+                
+        #S_we = ((vals[diagonals[:,1]]+2.*vals[neighbors[:,2]]+vals[diagonals[:,2]])-(vals[diagonals[:,0]]+2.*vals[neighbors[:,0]]+vals[diagonals[:,3]]))/(8.*self.dx)
+        #S_sn = ((vals[diagonals[:,2]]+2.*vals[neighbors[:,3]]+vals[diagonals[:,3]])-(vals[diagonals[:,1]]+2.*vals[neighbors[:,1]]+vals[diagonals[:,0]]))/(8.*self.dy)
+        
+        slopes_array = numpy.apply_along_axis(one_line_slopes, 1, input_array, self, vals)
+        S_we = slopes_array[:,0]
+        S_sn = slopes_array[:,1]
+                
+        s = numpy.sqrt(S_we*S_we + S_sn*S_sn)
+        a = numpy.empty_like(s)
+        simple_cases = S_we!=0.
+        complex_cases = numpy.logical_not(simple_cases)
+        a[complex_cases][S_sn[complex_cases]<0.] = numpy.pi
+        a[complex_cases][S_sn[complex_cases]>=0.] = 0.
+        angle_to_xaxis = numpy.arctan(S_sn[simple_cases]/S_we[simple_cases]) #+ve is CCW rotation from x axis
+        a[simple_cases] = ((1.-numpy.sign(S_we[simple_cases]))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+        
+        return s.ravel(), a.ravel()
+                
 
     def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
         """Slope aspect of best-fit plane at nodes.
