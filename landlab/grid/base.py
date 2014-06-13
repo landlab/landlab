@@ -334,13 +334,17 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     vectors. The algorithm should recover the correct vector component values of 
     4 and 3. The FOR loop examines each pair of links in turn.
     
-    >>> bx = array([0.5, -0.5, -1., -0.5, 1., 0.5])
-    >>> by = array([0.866, 0.866, 0., -0.866, 0., -0.866])
-    >>> L = array([4.6, 0.6, -4., -4.6, 4., -0.6])
+    >>> bx = numpy.array([0.5, -0.5, -1., -0.5, 1., 0.5])
+    >>> by = numpy.array([0.866, 0.866, 0., -0.866, 0., -0.866])
+    >>> L = numpy.array([4.6, 0.6, -4., -4.6, 4., -0.6])
     >>> for i in range(5):
-    ...     ax, ay = find_true_vector_from_link_vector_pair(L[i], bx[i], by[i], L[i+1], bx[i+1], by[i+1])
+    ...     ax, ay = find_true_vector_from_link_vector_pair(L[i], L[i+1], bx[i], by[i], bx[i+1], by[i+1])
     ...     round(ax,1), round(ay,1)
-    4.0, 3.0
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
     """
     assert ((b1x!=0 and b2y!=0) or (b2x!=0 and b1y!=0)), \
             'Improper unit vectors'
