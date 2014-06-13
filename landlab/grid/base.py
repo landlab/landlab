@@ -255,6 +255,106 @@ def _default_axis_units(n_dims):
     return ('-', ) * n_dims
 
 
+def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
+    """Separates a pair of links with vector values into x and y components.
+    
+    The concept here is that a pair of adjacent links attached to a node are 
+    projections of a 'true' but unknown vector. This function finds and returns 
+    the x and y components of this true vector. The trivial case is the 
+    situation in which the two links are orthogonal and aligned with the grid 
+    axes, in which case the vectors of these two links *are* the x and y 
+    components.
+    
+    Parameters
+    ----------
+    L1, L2 : float
+        Values (magnitudes) associated with the two links
+    b1x, b1y, b2x, b2y : float
+        Unit vectors of the two links
+        
+    Returns
+    -------
+    ax, ay : float
+        x and y components of the 'true' vector
+    
+    Notes
+    -----
+    The function does an inverse vector projection. Suppose we have a given
+    'true' vector :math:`a`, and we want to project it onto two other lines with unit
+    vectors (b1x,b1y) and (b2x,b2y). In the context of Landlab, the 'true' vector
+    is some unknown vector quantity, which might for example represent the local
+    water flow velocity. The lines represent two adjacent links in the grid.
+    
+    Let :math:`\mathbf{a}` be the true vector, :math:`\mathbf{B}` be a different vector
+    with unit vector :math:`\mathbf{b}`, and :math:`L` be the scalar projection
+    of *a* onto *B*. Then,
+    
+    ..math::
+        L = \mathbf{a} \dot \mathbf{b} = a_x b_x + a_y b_y,
+        
+    where :math:`(a_x,a_y)` are the components of **a** and :math:`(b_x,b_y)`
+    are the components of the unit vector **b**.
+    
+    In this case, we know *b* (the link unit vector), and we want to know the
+    *x* and *y* components of **a**. The problem is that we have one equation
+    and two unknowns (:math:`a_x` and :math:`a_y`). But we can solve this if we
+    have *two* vectors, both of which are projections of **a**. Using the 
+    subscripts 1 and 2 to denote the two vectors, we can obtain equations for 
+    both :math:`a_x` and :math:`a_y`:
+        
+    ..math::
+    
+        a_x = L_1 / b_{1x} - a_y b_{1y} / b_{1x}
+
+        a_y = L_2 / b_{2y} - a_x b_{2x} / b_{2y}
+        
+    Substituting the second into the first,
+    
+    ..math::
+    
+        a_x = [L_1/b_{1x}-L_2 b_{1y}/(b_{1x} b_{2y})] / [1-b_{1y} b_{2x}/(b_{1x} b_{2y})]
+        
+    Hence, we find the original vector :math:`(a_x,a_y)` from two links with 
+    unit vectors :math:`(b_{1x},b_{1y})` and :math:`(b_{2x},b_{2y})` and
+    associated values :math:`L_1` and :math:`L_2`.  
+   
+    Note that the above equations require that :math:`b_{1x}>0` and 
+    :math:`b_{2y}>0`. If this isn't the case, we invert the order of the two
+    links, which requires :math:`b_{2x}>0` and :math:`b_{1y}>0`. If none of 
+    these conditions is met, then we have a degenerate case.
+    
+    Examples
+    --------
+    The following example represents the active links in a 7-node hexagonal
+    grid, with just one core node. The 'true' vector has a magnitude of 5 units
+    and an orientation of 30 degrees, pointing up and to the right (i.e., the
+    postive-x and postive-y quadrant), so that its vector components are 4 (x)
+    and 3 (y) (in other words, it is a 3-4-5 triangle). The values assigned to
+    L below are the projection of that true vector onto the six link
+    vectors. The algorithm should recover the correct vector component values of 
+    4 and 3. The FOR loop examines each pair of links in turn.
+    
+    >>> bx = array([0.5, -0.5, -1., -0.5, 1., 0.5])
+    >>> by = array([0.866, 0.866, 0., -0.866, 0., -0.866])
+    >>> L = array([4.6, 0.6, -4., -4.6, 4., -0.6])
+    >>> for i in range(5):
+    ...     ax, ay = find_true_vector_from_link_vector_pair(L[i], bx[i], by[i], L[i+1], bx[i+1], by[i+1])
+    ...     round(ax,1), round(ay,1)
+    4.0, 3.0
+    """
+    assert ((b1x!=0 and b2y!=0) or (b2x!=0 and b1y!=0)), \
+            'Improper unit vectors'
+    
+    if b1x!=0. and b2y!=0.:
+        ax = (L1/b1x - L2*(b1y/(b1x*b2y)))/(1.-(b1y*b2x)/(b1x*b2y))
+        ay = L2/b2y - ax*(b2x/b2y)
+    elif b2x!=0. and b1y!=0.: 
+        ax = (L2/b2x - L1*(b2y/(b2x*b1y)))/(1.-(b2y*b1x)/(b2x*b1y))
+        ay = L1/b1y - ax*(b1x/b1y)
+        
+    return ax, ay
+
+
 class ModelGrid(ModelDataFields):
     """Base class for creating and manipulating 2D structured or unstructured
     grids for numerical models.
