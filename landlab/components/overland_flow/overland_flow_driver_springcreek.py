@@ -1,7 +1,14 @@
 #! /usr/env/python
-"""
+""" overland_flow_driver_springcreek.py
 
-This tests the overland flow and shear stress generator.
+ This component simulates overland flow using
+ the 2-D numerical model of shallow-water flow
+ over topography using the Bates et al. (2010)
+ algorithm for storage-cell inundation modeling
+ across a small watershed in Spring Creek, Colorado
+
+Written by Jordan Adams, Nicole Gasparini and Greg Tucker
+
 
 """
 
