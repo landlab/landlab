@@ -29,10 +29,6 @@ class OverlandFlow(Component):
     This component calculates discharge, depth and shear stress after some precipitation event across
     any raster grid. Default input file is named "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
-    
-        >>> DEM_name = 'DEM_name.asc'
-        >>> (rg, z) = read_esri_ascii(DEM_name)
-        >>> of = OverlandFlow(rg)
         
         Inputs
         ------
@@ -57,6 +53,11 @@ class OverlandFlow(Component):
             Density of water, \frac{kg}{m^3}
         ten_thirds : float
             Precalculated value of \frac{10}{3} which is used in the implicit shallow water equation.
+            
+            
+        >>> DEM_name = 'DEM_name.asc'
+        >>> (rg, z) = read_esri_ascii(DEM_name)
+        >>> of = OverlandFlow(rg)
         '''   
  
     
