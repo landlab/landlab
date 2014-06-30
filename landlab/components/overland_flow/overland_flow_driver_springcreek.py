@@ -1,11 +1,13 @@
 #! /usr/env/python
+""" overland_flow_driver_springcreek.py
+
+This is a sample driver which utilizes the
+OverlandFlow class from generate_overland_flow_DEM.py
+across a subwatershed in Spring Creek, Colorado.
+
 """
 
-This tests the overland flow and shear stress generator.
-
-"""
-
-from landlab.components.overland_flow.generate_overland_flow_DEM_rewrite import OverlandFlow
+from landlab.components.overland_flow.generate_overland_flow_DEM import OverlandFlow
 from landlab.io import read_esri_ascii
 from matplotlib import pyplot as plt
 import os
@@ -91,7 +93,7 @@ def main():
     rg.set_fixed_value_boundaries(the_outlet_node)
                                                                                                        
     # To plot the grid, we can call the plot_topography() function
-    plot_topography(rg, z)
+    #plot_topography(rg, z)
     
     # Now we will initialize the Overland Flow component.
     of=OverlandFlow(rg)   
@@ -113,7 +115,7 @@ def main():
     # coordinates.
     
     # This is the standard way to call the flow_at_one_node method using the input file.
-    of.flow_at_one_node(rg, z, study_node)
+    of.flow_at_one_node(rg, z, study_node, 7500)
 
     # Once run, we can plot the output
     of.plot_at_one_node()
@@ -156,7 +158,7 @@ def main():
     print endtime - start_time, "seconds"
     
     #If you call the plot_topography method...
-    plt.show()
+    #plt.show()
 
 
 if __name__ == "__main__":

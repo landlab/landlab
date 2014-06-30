@@ -387,7 +387,7 @@ class OverlandFlow(Component):
         plt.legend(loc=1)
         plt.ylabel('Discharge, m^3/s')
         plt.xlabel('Time, s')
-        
+  
         plt.figure('Shear Stress at Study Node')
         plt.plot(self.time, self.tau_study, 'r-')
         plt.ylabel('Shear Stress, Pa')

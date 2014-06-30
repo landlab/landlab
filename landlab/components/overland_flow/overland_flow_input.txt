@@ -3,4 +3,4 @@ MANNINGS_N: n value in manning's velocity equation, generally 0.01 to 0.1
 RAINFALL_RATE: in m/s
 0.0000092177
 RAIN_DURATION: in seconds
-100
+5868
