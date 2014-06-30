@@ -1,21 +1,12 @@
 #! /usr/env/python
 """ overland_flow_driver_springcreek.py
-<<<<<<< HEAD
 
 This is a sample driver which utilizes the
 OverlandFlow class from generate_overland_flow_DEM.py
 across a subwatershed in Spring Creek, Colorado.
-=======
 
- This component simulates overland flow using
- the 2-D numerical model of shallow-water flow
- over topography using the Bates et al. (2010)
- algorithm for storage-cell inundation modeling
- across a small watershed in Spring Creek, Colorado
+Written by Jordan Adams, Greg Tucker and Nicole Gasparini.
 
-Written by Jordan Adams, Nicole Gasparini and Greg Tucker
-
->>>>>>> origin/master
 
 """
 
