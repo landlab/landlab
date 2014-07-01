@@ -6,26 +6,49 @@ from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
-    """
+    """A grid of hexagonal cells.
+
     This inherited class implements a regular 2D grid with hexagonal cells and
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
     
-    Examples:
-        
-        >>> hmg = HexModelGrid(3, 2, 1.0)
-        >>> hmg.number_of_nodes
-        7
+    Examples
+    --------
+    >>> hmg = HexModelGrid(3, 2, 1.0)
+    >>> hmg.number_of_nodes
+    7
     """
     
     def __init__(self, num_rows=0, base_num_cols=0, dx=1.0, **kwds):
+        """Create a grid of hexagonal cells.
+
+        Create a regular 2D grid with hexagonal cells and triangular patches.
+        It is a special type of VoronoiDelaunay grid in which the initial set
+        of points is arranged in a triangular/hexagonal lattice.
+
+        Parameters
+        ----------
+        num_rows : int
+            Number of rows of nodes.
+        base_num_cols : int
+            Number of nodes on the first row.
+        dx : float, optional
+            Node spacing.
+
+        Returns
+        -------
+        HexModelGrid
+            A newly-created grid.
+
+        Examples
+        --------
+        Create a hex grid with 2 rows of nodes. The first and third rows will
+        have 2 nodes, and the second nodes.
+
+        >>> hmg = HexModelGrid(3, 2, 1.0)
+        >>> hmg.number_of_nodes
+        7
         """
-        Optionally takes numbers of rows and columns and cell size as
-        inputs. If this are given, calls initialize() to set up the grid.
-        
-        """
-        #print 'HexModelGrid.__init__'
-        
         # Set number of nodes, and initialize if caller has given dimensions
         #self._num_nodes = num_rows * num_cols
         if num_rows * base_num_cols > 0:
@@ -43,12 +66,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         describe connectivity information between nodes, links, cells, faces,
         patches, corners, and junctions.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'HexModelGrid._initialize('+str(num_rows)+', ' \
                    +str(base_num_cols)+', '+str(dx)+')'
         
         # Create a set of hexagonally arranged points. These will be our nodes.
-        [pts, self._num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
+        [pts, self._num_nodes] = HexModelGrid.make_hex_points(num_rows, base_num_cols, dx)
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -99,30 +122,30 @@ class HexModelGrid(VoronoiDelaunayGrid):
             array([ 0. ,  1. , -0.5])
         """
 
-        dxv = dxh*numpy.sqrt(3.)/2.
-        half_dxh = dxh/2.
+        dxv = dxh * numpy.sqrt(3.) / 2.
+        half_dxh = dxh / 2.
 
-        if numpy.mod(num_rows, 2)==0:  # even number of rows
-            npts = num_rows*base_num_cols+(num_rows*num_rows)/4
+        if numpy.mod(num_rows, 2) == 0:  # even number of rows
+            npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
             #print 'even # rows, npts=', npts
         else:  # odd number of rows
-            npts = num_rows*base_num_cols + ((num_rows-1)/2)*((num_rows-1)/2)
+            npts = num_rows * base_num_cols + ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
             #print 'odd # rows, npts=', npts
-        pts = numpy.zeros((npts,2))
-        middle_row = num_rows/2
+        pts = numpy.zeros((npts, 2))
+        middle_row = num_rows // 2
         extra_cols = 0
         xshift = 0.
-        i=0
+        i = 0
         for r in range(num_rows):
-            for c in range(base_num_cols+extra_cols):
-                pts[i,0] = c*dxh+xshift
-                pts[i,1] = r*dxv
+            for c in range(base_num_cols + extra_cols):
+                pts[i,0] = c * dxh + xshift
+                pts[i,1] = r * dxv
                 i += 1
-            if r<middle_row:
+            if r < middle_row:
                 extra_cols += 1
             else:
                 extra_cols -= 1
-            xshift = -half_dxh*extra_cols
+            xshift = - half_dxh * extra_cols
         
         return pts, npts
 

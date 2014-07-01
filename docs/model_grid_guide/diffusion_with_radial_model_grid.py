@@ -37,7 +37,6 @@ def main():
     
     # Create and initialize a radial model grid
     mg = RadialModelGrid(num_shells, dr)
-    #mg.initialize(num_shells, dr)
     
     # Set up scalar values: elevation and time rate of change of elevation.
     # Note use of CSDMS standard names for these variables.

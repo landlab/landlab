@@ -6,8 +6,12 @@
     
     Created DEJH, 8/2013
 """
+try:
+    from scipy import weave
+except ImportError:
+    import warnings
+    warnings.warn('unable to import scipy.weave')
 
-from scipy import weave
 import numpy as np
 #weave.test()
 #import flow_routing_D8

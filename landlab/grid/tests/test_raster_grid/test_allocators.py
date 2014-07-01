@@ -1,12 +1,17 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_equal, assert_is
+from nose.tools import assert_equal
+try:
+    from nose.tools import assert_is 
+except ImportError:
+    from landlab.testing.tools import assert_is 
 
 from landlab import RasterModelGrid
 
 
 ELEMENTS = ['node', 'cell', 'link', 'face']
-ELEMENTS += ['active_' + name for name in ELEMENTS]
+ELEMENTS += ['core_node', 'core_cell', 'active_link', 'active_face']
+#ELEMENTS += ['active_' + name for name in ELEMENTS]
 TYPES = ['float', 'int', 'bool']
 
 def generate_zeros_tests():
@@ -63,7 +68,8 @@ def generate_add_ones_tests():
 
 def generate_empty_tests():
     elements = ['node', 'cell', 'link', 'face']
-    elements += ['active_' + name for name in elements]
+    elements += ['core_node', 'core_cell', 'active_link', 'active_face']
+    #elements += ['active_' + name for name in elements]
 
     types = ['float', 'int', 'bool']
 
@@ -80,7 +86,8 @@ def generate_empty_tests():
 
 def generate_add_empty_tests():
     elements = ['node', 'cell', 'link', 'face']
-    elements += ['active_' + name for name in elements]
+    elements += ['core_node', 'core_cell', 'active_link', 'active_face']
+    #elements += ['active_' + name for name in elements]
 
     types = ['float', 'int', 'bool']
 

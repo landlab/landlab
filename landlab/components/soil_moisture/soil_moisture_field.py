@@ -2,7 +2,7 @@
 ##
 ##  'Field' concept is implemented for Soil Moisture component.
 ##
-##  Sai Nudurupati - 15May2014
+##  Sai Nudurupati and Erkan Istanbulluoglu - 15May2014
 #################################################################
 
 from landlab import Component
@@ -30,13 +30,14 @@ class SoilMoisture( Component ):
     are obtained in hours    
     
     >>> from landlab import RasterModelGrid        
+    >>> from landlab.components.radiation.radiation_field import Radiation
     >>> from landlab.components.soil_moisture.soil_moisture_field import SoilMoisture        
     >>> import numpy as np        
     >>> grid = RasterModelGrid( 5, 4, 0.2 )
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
-        Radiation
+    'Radiation'
     >>> current_time = 0.5
     >>> rad.update( current_time )
     >>> 

@@ -1,43 +1,54 @@
-overland_flow Package
-=====================
+landlab.components.overland_flow package
+========================================
 
-:mod:`overland_flow_driver` Module
-----------------------------------
+Submodules
+----------
+
+landlab.components.overland_flow.functionality_test module
+----------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.functionality_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.overland_flow.generate_overland_flow module
+--------------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.generate_overland_flow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.overland_flow.generate_overland_flow_DEM module
+------------------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_DEM
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.overland_flow.overland_flow_driver module
+------------------------------------------------------------
 
 .. automodule:: landlab.components.overland_flow.overland_flow_driver
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`overland_flow_driver_springcreek` Module
-----------------------------------------------
+landlab.components.overland_flow.overland_flow_driver_springcreek module
+------------------------------------------------------------------------
 
 .. automodule:: landlab.components.overland_flow.overland_flow_driver_springcreek
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`overland_flow_driver_test_jma` Module
--------------------------------------------
 
-.. automodule:: landlab.components.overland_flow.overland_flow_driver_test_jma
+Module contents
+---------------
+
+.. automodule:: landlab.components.overland_flow
     :members:
     :undoc-members:
     :show-inheritance:
-
-:mod:`overland_flow_generator` Module
--------------------------------------
-
-.. automodule:: landlab.components.overland_flow.overland_flow_generator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`overland_flow_generator_jma` Module
------------------------------------------
-
-.. automodule:: landlab.components.overland_flow.overland_flow_generator_jma
-    :members:
-    :undoc-members:
-    :show-inheritance:
-

@@ -28,17 +28,10 @@ Grid creation
 
 *These methods are used to create grids.*
 
-.. autoclass:: landlab.grid.raster.RasterModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.voronoi.VoronoiDelaunayGrid
-    :members: None
-
-.. autoclass:: landlab.grid.radial.RadialModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.hex.HexModelGrid
-    :members: None
+.. automethod:: landlab.grid.raster.RasterModelGrid.__init__
+.. automethod:: landlab.grid.voronoi.VoronoiDelaunayGrid.__init__
+.. automethod:: landlab.grid.radial.RadialModelGrid.__init__
+.. automethod:: landlab.grid.hex.HexModelGrid.__init__
 
 
 Create data in the grid fields
@@ -60,17 +53,33 @@ number of alternative methods (see below).*
 .. automethod:: landlab.grid.base.ModelGrid.zeros
 
 
+DEM and NetCDF input/output
+===========================
+
+*The landlab/io folder contains the various methods that allow Landlab to ingest DEMs,
+and to import and export NetCDF files. i/o with vtk files is also possible, but not
+detailed here.*
+
+.. autofunction:: landlab.io.esri_ascii.read_esri_ascii
+.. autofunction:: landlab.io.netcdf.read.read_netcdf
+.. autofunction:: landlab.io.netcdf.write.write_netcdf
+
+
 Access data in the grid fields
 ==============================
 
 *Once you've created the fields, these methods can be used to access and modify the data
-stored in them.* 
+stored in them. Many other methods are available, see the docstring of base.py.* 
 
     **grid.at_node['my_data_name']**
     
     **grid['node']['my_data_name']**
     
-(see also entry for ModelGrid.create_node_array_zeros)
+    **grid.at_node.keys()**
+        Get the names of the data fields already stored on nodes in the grid.
+    
+(see also entry for ModelGrid.create_node_array_zeros, and the docstrings of
+the base.py module.)
 
 
 Resolve, project, and move data between grid element types
@@ -244,6 +253,7 @@ boundary nodes.*
 .. automethod:: landlab.grid.base.ModelGrid.set_closed_boundaries
 .. automethod:: landlab.grid.base.ModelGrid.set_closed_nodes
 .. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+.. automethod:: landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
 .. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids

@@ -1,43 +1,46 @@
-tests Package
-=============
+landlab.tests package
+=====================
 
-:mod:`tests` Package
---------------------
+Submodules
+----------
 
-.. automodule:: landlab.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`run_raster_model_grid_builtin_unit_test` Module
------------------------------------------------------
+landlab.tests.run_raster_model_grid_builtin_unit_test module
+------------------------------------------------------------
 
 .. automodule:: landlab.tests.run_raster_model_grid_builtin_unit_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`speed_test_model_grid` Module
------------------------------------
+landlab.tests.speed_test_model_grid module
+------------------------------------------
 
 .. automodule:: landlab.tests.speed_test_model_grid
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_collections` Module
-------------------------------
+landlab.tests.test_collections module
+-------------------------------------
 
 .. automodule:: landlab.tests.test_collections
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_param_dict` Module
------------------------------
+landlab.tests.test_param_dict module
+------------------------------------
 
 .. automodule:: landlab.tests.test_param_dict
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

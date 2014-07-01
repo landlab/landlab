@@ -1,35 +1,38 @@
-utils Package
-=============
+landlab.utils package
+=====================
 
-:mod:`utils` Package
---------------------
+Submodules
+----------
 
-.. automodule:: landlab.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`count_repeats` Module
----------------------------
+landlab.utils.count_repeats module
+----------------------------------
 
 .. automodule:: landlab.utils.count_repeats
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`decorators` Module
-------------------------
+landlab.utils.decorators module
+-------------------------------
 
 .. automodule:: landlab.utils.decorators
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`structured_grid` Module
------------------------------
+landlab.utils.structured_grid module
+------------------------------------
 
 .. automodule:: landlab.utils.structured_grid
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,43 +1,38 @@
-flow_routing Package
-====================
+landlab.components.flow_routing package
+=======================================
 
-:mod:`flow_direction_DN` Module
--------------------------------
+Submodules
+----------
+
+landlab.components.flow_routing.flow_direction_DN module
+--------------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.flow_direction_DN
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`flow_routing_D8` Module
------------------------------
+landlab.components.flow_routing.flow_routing_D8 module
+------------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.flow_routing_D8
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`route_flow_dn` Module
----------------------------
+landlab.components.flow_routing.route_flow_dn module
+----------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.route_flow_dn
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`test_script_for_flow_routing` Module
-------------------------------------------
 
-.. automodule:: landlab.components.flow_routing.test_script_for_flow_routing
+Module contents
+---------------
+
+.. automodule:: landlab.components.flow_routing
     :members:
     :undoc-members:
     :show-inheritance:
-
-:mod:`test_script_for_route_flow_dn` Module
--------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.test_script_for_route_flow_dn
-    :members:
-    :undoc-members:
-    :show-inheritance:
-

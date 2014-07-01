@@ -71,6 +71,12 @@ class ModelDataFields(object):
     array([ 1.,  1.])
     >>> fields.at_cell['planet_surface__elevation']
     array([ 1.,  1.])
+
+    Each group acts as a `dict` so, for instance, to get the variables names
+    in a group use the `keys` method,
+
+    >>> fields.at_cell.keys()
+    ['planet_surface__elevation']
     """
     def __init__(self, **kwds):
         self._groups = dict()
@@ -78,7 +84,7 @@ class ModelDataFields(object):
 
     @property
     def groups(self):
-        """Names of all the groups held in the field.
+        """List of group names.
 
         Returns
         -------
@@ -88,7 +94,7 @@ class ModelDataFields(object):
         return set(self._groups.keys())
 
     def has_group(self, group):
-        """Check if the field has *group*.
+        """Check if a group exists.
 
         Parameters
         ----------
@@ -112,6 +118,85 @@ class ModelDataFields(object):
         False
         """
         return group in self._groups
+
+    def has_field(self, group, field):
+        """Check if a field is in a group.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str
+            Name of the field.
+
+        Returns
+        -------
+        boolean
+            ``True`` if the group contains the field, otherwise ``False``.
+
+        Examples
+        --------
+        Check if the field named ``planet_surface__elevation`` is contained
+        in a group.
+
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+        >>> _ = fields.add_ones('node', 'planet_surface__elevation')
+        >>> fields.has_field('node', 'planet_surface__elevation')
+        True
+        >>> fields.has_field('cell', 'planet_surface__elevation')
+        False
+        """
+        return group in self._groups
+
+    def keys(self, group):
+        """List of field names in a group.
+
+        Returns a list of the field names as a list of strings.
+
+        Parameters
+        ----------
+        group : str
+            Group name.
+
+        Returns
+        -------
+        list
+            List of field names.
+
+        Examples
+        --------
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+        >>> fields.keys('node')
+        []
+        >>> _ = fields.add_empty('node', 'planet_surface__elevation')
+        >>> fields.keys('node')
+        ['planet_surface__elevation']
+        """
+        return self[group].keys()
+
+    def size(self, group):
+        """Size of the arrays stored in a group.
+
+        Parameters
+        ----------
+        group : str
+            Group name.
+
+        Returns
+        -------
+        int
+            Array size.
+
+        Examples
+        --------
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+        >>> fields.size('node')
+        4
+        """
+        return self[group].size
 
     def new_field_location(self, group, size):
         """Add a new quantity to a field.
@@ -202,16 +287,14 @@ class ModelDataFields(object):
 
         Raise FieldError if *field* does not exist in *group*.
 
-        >>> fields.field_values('node', 'planet_surface__temperature')
+        >>> fields.field_values('node', 'planet_surface__temperature') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         FieldError: planet_surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.field_values('cell', 'planet_surface__elevation')
+        >>> fields.field_values('cell', 'planet_surface__elevation') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
         GroupError: cell
         """
         return self[group][field]
@@ -242,49 +325,316 @@ class ModelDataFields(object):
         """
         return self[group].units[field]
 
+    def empty(self, group, **kwds):
+        """Uninitialized array whose size is that of the field.
+
+        Return a new array of the data field size, without initializing
+        entries. Keyword arguments are the same as that for the equivalent
+        numpy function.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+
+        See Also
+        --------
+        numpy.empty : See for a description of optional keywords.
+        landlab.field.ModelDataFields.ones : Equivalent method that
+            initializes the data to 1.
+        landlab.field.ModelDataFields.zeros : Equivalent method that
+            initializes the data to 0.
+
+        Examples
+        --------
+        >>> field = ModelDataFields()
+        >>> field.new_field_location('node', 4)
+        >>> field.empty('node') # doctest: +SKIP
+        array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
+        ... 2.78134232e-309]) # Uninitialized memory
+
+        Note that a new field is *not* added to the collection of fields.
+
+        >>> field.keys('node')
+        []
+        """
+        return self[group].empty(**kwds)
+
+    def ones(self, group, **kwds):
+        """Array, initialized to 1, whose size is that of the field.
+
+        Return a new array of the data field size, filled with ones. Keyword
+        arguments are the same as that for the equivalent numpy function.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+
+        See Also
+        --------
+        numpy.ones : See for a description of optional keywords.
+        landlab.field.ModelDataFields.empty : Equivalent method that
+            does not initialize the new array.
+        landlab.field.ModelDataFields.zeros : Equivalent method that
+            initializes the data to 0.
+
+        Examples
+        --------
+        >>> field = ModelDataFields()
+        >>> field.new_field_location('node', 4)
+        >>> field.ones('node')
+        array([ 1.,  1.,  1.,  1.])
+        >>> field.ones('node', dtype=int)
+        array([1, 1, 1, 1])
+
+        Note that a new field is *not* added to the collection of fields.
+
+        >>> field.keys('node')
+        []
+        """
+        return self[group].ones(**kwds)
+
+    def zeros(self, group, **kwds):
+        """Array, initialized to 0, whose size is that of the field.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+
+        Return a new array of the data field size, filled with zeros. Keyword
+        arguments are the same as that for the equivalent numpy function.
+
+        See Also
+        --------
+        numpy.zeros : See for a description of optional keywords.
+        landlab.field.ModelDataFields.empty : Equivalent method that does not
+            initialize the new array.
+        landlab.field.ModelDataFields.ones : Equivalent
+            method that initializes the data to 1.
+
+        Examples
+        --------
+        >>> field = ModelDataFields()
+        >>> field.new_field_location('node', 4)
+        >>> field.zeros('node')
+        array([ 0.,  0.,  0.,  0.])
+
+        Note that a new field is *not* added to the collection of fields.
+
+        >>> field.keys('node')
+        []
+        """
+        return self[group].zeros(**kwds)
+
+    def add_empty(self, group, name, **kwds):
+        """Create and add an uninitialized array of values to the field.
+
+        Create a new array of the data field size, without initializing
+        entries, and add it to the field as *name*. The *units* keyword gives
+        the units of the new fields as a string. Remaining keyword arguments
+        are the same as that for the equivalent numpy function.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
+        Returns
+        -------
+        array :
+            A reference to the newly-created array.
+
+        See Also
+        --------
+        numpy.empty : See for a description of optional keywords.
+        landlab.field.ModelDataFields.empty : Equivalent method that
+            does not initialize the new array.
+        landlab.field.ModelDataFields.zeros : Equivalent method that
+            initializes the data to 0.
+        """
+        units = kwds.pop('units', None)
+        return self.add_field(group, name,
+                              ModelDataFields.empty(self, group, **kwds),
+                              units=units)
+
+    def add_ones(self, group, name, units=None, **kwds):
+        """Create and add an array of values, initialized to 1, to the field.
+
+        Create a new array of the data field size, filled with ones, and
+        add it to the field as *name*. The *units* keyword gives the units of
+        the new fields as a string. Remaining keyword arguments are the same
+        as that for the equivalent numpy function.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
+        Returns
+        -------
+        array :
+            A reference to the newly-created array.
+
+        See Also
+        --------
+        numpy.ones : See for a description of optional keywords.
+        andlab.field.ModelDataFields.add_empty : Equivalent method that
+            does not initialize the new array.
+        andlab.field.ModelDataFields.add_zeros : Equivalent method that
+            initializes the data to 0.
+
+        Examples
+        --------
+        Add a new, named field to a collection of fields.
+
+        >>> field = ModelDataFields()
+        >>> field.new_field_location('node', 4)
+        >>> field.add_ones('node', 'planet_surface__elevation')
+        array([ 1.,  1.,  1.,  1.])
+        >>> field.keys('node')
+        ['planet_surface__elevation']
+        >>> field['node']['planet_surface__elevation']
+        array([ 1.,  1.,  1.,  1.])
+        >>> field.at_node['planet_surface__elevation']
+        array([ 1.,  1.,  1.,  1.])
+        """
+        units = kwds.pop('units', None)
+        return self.add_field(group, name,
+                              ModelDataFields.ones(self, group, **kwds),
+                              units=units)
+
+    def add_zeros(self, group, name, units=None, **kwds):
+        """Create and add an array of values, initialized to 0, to the field.
+
+        Create a new array of the data field size, filled with zeros, and
+        add it to the field as *name*. The *units* keyword gives the units of
+        the new fields as a string. Remaining keyword arguments are the same
+        as that for the equivalent numpy function.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name : str
+            Name of the new field to add.
+        units : str, optional
+            Optionally specify the units of the field.
+
+        Returns
+        -------
+        array :
+            A reference to the newly-created array.
+
+        See also
+        --------
+        numpy.zeros : See for a description of optional keywords.
+        landlab.field.ScalarDataFields.add_empty : Equivalent method that
+            does not initialize the new array.
+        landlab.field.ScalarDataFields.add_ones : Equivalent method that
+            initializes the data to 1.
+        """
+        units = kwds.pop('units', None)
+        return self.add_field(group, name,
+                              ModelDataFields.zeros(self, group, **kwds),
+                              units=units)
+
+    def add_field(self, group, name, value_array, **kwds):
+        """add_field(group, name, value_array, units='-', copy=False, noclobber=False)
+        Add an array of values to the field.
+
+        Add an array of data values to a collection of fields and associate it
+        with the key, *name*. Use the *copy* keyword to, optionally, add a
+        copy of the provided array.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name : str
+            Name of the new field to add.
+        value_array : numpy.array
+            Array of values to add to the field.
+        units : str, optional
+            Optionally specify the units of the field.
+        copy : boolean, optional
+            If True, add a *copy* of the array to the field. Otherwise save add
+            a reference to the array.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
+
+        Returns
+        -------
+        numpy.array
+            The data array added to the field. Depending on the *copy*
+            keyword, this could be a copy of *value_array* or *value_array*
+            itself.
+
+        Raises
+        ------
+        ValueError :
+            If *value_array* has a size different from the field.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> field = ModelDataFields()
+        >>> field.new_field_location('node', 4)
+        >>> values = np.ones(4, dtype=int)
+        >>> field.add_field('node', 'planet_surface__elevation', values)
+        array([1, 1, 1, 1])
+
+        A new field is added to the collection of fields. The saved value
+        array is the same as the one initially created.
+
+        >>> field.at_node['planet_surface__elevation'] is values
+        True
+
+        If you want to save a copy of the array, use the *copy* keyword. In
+        addition, adding values to an existing field will remove the reference
+        to the previously saved array. The *noclobber* keyword changes this
+        behavior to raise an exception in such a case.
+
+        >>> field.add_field('node', 'planet_surface__elevation', values, copy=True)
+        array([1, 1, 1, 1])
+        >>> field.at_node['planet_surface__elevation'] is values
+        False
+        >>> field.add_field('node', 'planet_surface__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        FieldError: planet_surface__elevation
+        """
+        return self[group].add_field(name, value_array, **kwds)
+
+    def set_units(self, group, name, units):
+        """Set the units for a field of values.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name: str
+            Name of the field.
+        units: str
+            Units for the field
+
+        Raises
+        ------
+        KeyError
+            If the named field does not exist.
+        """
+        self[group].set_units(name, units)
+
     def __getitem__(self, group):
         try:
             return self._groups[group]
         except KeyError:
             raise GroupError(group)
-
-
-def _get_method_from_class(clazz, method_name):
-    method = getattr(clazz, method_name)
-    if inspect.ismethod(method):
-        return method
-    else:
-        raise TypeError('%s is not a bound method' % method_name)
-
-
-def _is_regular_method_name(name):
-    return not (name.startswith('__') and name.endswith('__'))
-
-
-def _regular_method_names(clazz):
-    methods = set()
-    for (name, _) in inspect.getmembers(clazz, inspect.ismethod):
-        if _is_regular_method_name(name):
-            methods.add(name)
-    return methods
-
-
-def _prepend_arg_list_with_dict_value(destination_class, method):
-    def func_with_dict_value_first(self, group, *args, **kwds):
-        return method(self[group], *args, **kwds)
-    func_with_dict_value_first.__doc__ = method.__doc__
-    func_with_dict_value_first.__name__ = method.__name__
-    return types.MethodType(func_with_dict_value_first, None,
-                            destination_class)
-
-
-def _add_methods_to_grouped_fields_class():
-    for name in (_regular_method_names(ScalarDataFields) -
-                 _regular_method_names(ModelDataFields)):
-        method = _get_method_from_class(ScalarDataFields, name)
-        new_method = _prepend_arg_list_with_dict_value(ModelDataFields,
-                                                      method)
-        setattr(ModelDataFields, name, new_method)
-
-
-_add_methods_to_grouped_fields_class()

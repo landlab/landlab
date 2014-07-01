@@ -1,35 +1,38 @@
-testing Package
-===============
+landlab.testing package
+=======================
 
-:mod:`testing` Package
-----------------------
+Submodules
+----------
 
-.. automodule:: landlab.testing
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`decorators` Module
-------------------------
+landlab.testing.decorators module
+---------------------------------
 
 .. automodule:: landlab.testing.decorators
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`nosetester` Module
-------------------------
+landlab.testing.nosetester module
+---------------------------------
 
 .. automodule:: landlab.testing.nosetester
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`numpy_mixins` Module
---------------------------
+landlab.testing.numpy_mixins module
+-----------------------------------
 
 .. automodule:: landlab.testing.numpy_mixins
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.testing
+    :members:
+    :undoc-members:
+    :show-inheritance:

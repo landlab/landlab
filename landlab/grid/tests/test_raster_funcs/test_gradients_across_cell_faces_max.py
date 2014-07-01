@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_is, assert_equal
+from nose.tools import assert_equal
+try:
+    from nose.tools import assert_is
+except ImportError:
+    from landlab.testing.tools import assert_is
 
 from landlab.grid import raster_funcs as rfuncs
 

@@ -25,7 +25,7 @@ rock_density:
 sed_density:
 2.7
 kappa:
-0.0003
+0.0001 
 S_crit:
 0.56
 
