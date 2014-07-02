@@ -120,7 +120,7 @@ def main():
     # coordinates.
     
     # This is the standard way to call the flow_at_one_node method using the input file.
-    of.flow_at_one_node(rg, z, study_node,500)
+    of.flow_at_one_node(rg, z, study_node)
 
    # Once run, we can plot the output
     of.plot_at_one_node()

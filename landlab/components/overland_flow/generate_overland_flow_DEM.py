@@ -24,40 +24,39 @@ _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
     
 class OverlandFlow(Component):
     '''  Landlab component that simulates overland flow using the Bates et al., (2010) approximations
-    of the 1D shallow water equations to be used for 2D flood inundation modeling. 
+of the 1D shallow water equations to be used for 2D flood inundation modeling. 
     
-    This component calculates discharge, depth and shear stress after some precipitation event across
-    any raster grid. Default input file is named "overland_flow_input.txt' and is contained in the
-    landlab.components.overland_flow folder.
+This component calculates discharge, depth and shear stress after some precipitation event across
+any raster grid. Default input file is named "overland_flow_input.txt' and is contained in the
+landlab.components.overland_flow folder.
         
-        Inputs
-        ------
-        grid : Requires a RasterGridModel instance
+Inputs
+------
+    grid : Requires a RasterGridModel instance
         
-        input_file : Contains necessary and optional inputs. If not given, default input file is used.
-            - Manning's n is REQUIRED.
-            - Storm duration is needed IF rain_duration is not passed in the initialization
-            - Rainfall intensity is needed IF rainfall_intensity is not passed in the initialization
-            - Model run time can be provided in initialization. If not it is set to the storm duration
+    input_file : Contains necessary and optional inputs. If not given, default input file is used.
+        - Manning's n is REQUIRED.
+        - Storm duration is needed IF rain_duration is not passed in the initialization
+        - Rainfall intensity is needed IF rainfall_intensity is not passed in the initialization
+        - Model run time can be provided in initialization. If not it is set to the storm duration
         
-        Constants
-        ---------
-        
-        h_init : float
-            Some initial depth in the channels. Default = 0.001 m
-        g : float
-            Gravitational acceleration, \frac{m}{s^2}
-        alpha : float
-            Non-dimensional time step factor from Bates et al., (2010)
-        rho : integer
-            Density of water, \frac{kg}{m^3}
-        ten_thirds : float
-            Precalculated value of \frac{10}{3} which is used in the implicit shallow water equation.
+Constants
+---------
+    h_init : float
+        Some initial depth in the channels. Default = 0.001 m
+    g : float
+        Gravitational acceleration, \frac{m}{s^2}
+    alpha : float
+        Non-dimensional time step factor from Bates et al., (2010)
+    rho : integer
+        Density of water, \frac{kg}{m^3}
+    ten_thirds : float
+        Precalculated value of \frac{10}{3} which is used in the implicit shallow water equation.
             
             
-        >>> DEM_name = 'DEM_name.asc'
-        >>> (rg, z) = read_esri_ascii(DEM_name)
-        >>> of = OverlandFlow(rg)
+    >>> DEM_name = 'DEM_name.asc'
+    >>> (rg, z) = read_esri_ascii(DEM_name)
+    >>> of = OverlandFlow(rg)
         '''   
  
     
