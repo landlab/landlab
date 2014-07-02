@@ -1,7 +1,7 @@
 # Sai Nudurupati and Erkan Istanbulluoglu- 16May2014 : 
 # Example to use potential_evapotranspiration_field.py
 
-import landlab
+#import landlab
 from landlab import RasterModelGrid
 from landlab.components.radiation.radiation_field import Radiation
 from landlab.components.PET.potential_evapotranspiration_field import PotentialEvapotranspiration
