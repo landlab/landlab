@@ -372,6 +372,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #   set up the list of active links
         self._reset_list_of_active_links()
+        
+        #   set up link unit vectors and node unit-vector sums
+        self._make_link_unit_vectors()
 
         #   set up link faces
         #
@@ -684,6 +687,96 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
 
+    def _make_link_unit_vectors(self):
+        """Makes arrays to store the unit vectors associated with each link.
+        Overrides ModelGrid._make_link_unit_vectors().
+        
+        Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
+        for each link, the x and y components of the link's unit vector (that is,
+        the link's x and y dimensions if it were shrunk to unit length but 
+        retained its orientation). The length of these arrays is the number of
+        links plus one. The last entry in each array is set to zero, and is used
+        to handle references to "link -1" (meaning, a non-existent link, whose
+        unit vector is (0,0)).
+            Also builds arrays to store the unit-vector component sums for each 
+        node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are 
+        designed to be used when mapping link vector values to nodes (one takes 
+        the average of the x- and y-components of all connected links).
+        
+        Parameters
+        ----------
+        
+        (none)
+        
+        Returns
+        -------
+        
+        (none)
+        
+        Creates
+        -------
+        
+        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
+            x and y components of unit vectors at each link (extra 0 entries @ end)
+        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+            Sums of x & y unit vector components for each node. Sum is over all
+            links connected to a given node.
+            
+        Examples
+        --------
+        In the example below, the first 8 links are vertical, and have unit
+        vectors (0,1), whereas the remaining links are horizontal with (1,0).
+        The middle columns have x-component vector sums equal to 2 (one
+        horizontal inlink and one horizontal outlink), while the middle rows
+        have y-component vector sums equal to 2 (one vertical inlink and one
+        vertical outlink). The rest of the entries have ones, representing the
+        left and right columns (only one horizontal link) and top and bottom
+        rows (only one vertical link).
+        
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> mg.link_unit_vec_x
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  0.])
+        >>> mg.link_unit_vec_y
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.])
+        >>> mg.node_unit_vector_sum_x
+        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
+        >>> mg.node_unit_vector_sum_y
+        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        """
+         
+        # Create the unit vectors for each link.
+        # Assume that the order of links is:
+        # - The first (R-1)*C are vertical and oriented upward
+        # - The remaining R*(C-1) are horizontal and oriented rightward
+        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
+        n_vert_links = (self.number_of_node_rows-1)*self.number_of_node_columns
+        self.link_unit_vec_y[:n_vert_links] = 1.0
+        self.link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        
+        # While we're at it, calculate the unit vector sums for each node.
+        # These will be useful in averaging link-based vectors at the nodes.
+        # To do this, we take advantage of the node inlink and outlink matrices,
+        # each of which has 2 rows, corresponding to the maximum possible 2
+        # inlinks and 2 outlinks in a raster grid.
+        #     Create the arrays
+        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        #     x-component contribution from inlinks
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[1,:]])
+        #     x-component contribution from outlinks
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[1,:]])
+        #     y-component contribution from inlinks
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[1,:]])
+        #     y-component contribution from outlinks
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[1,:]])
 
     def cell_faces(self, *args):
         """cell_faces([cell_id])
@@ -2950,19 +3043,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             same ID. However, this is the old-style grid structure as
             boundary nodes no longer have associated cells.
             
-            DEJH: Note the inconsistency with the definition of the orthogonal
-            neighbors, where boundary nodes still have neighbors, where they
-            are found at the ends of active links. This diagonal method needs
-            changing similarly.
-        ..todo: That! (perimeter nodes can have neighbors)
-
-        .. todo: Change to use BAD_INDEX_VALUE instead of -1.
+            DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and 
+            boundary nodes now have neighbors, where they are found at the ends 
+            of active links. Note however, that only core node neighbors are
+            returned.
         """
         assert(self.diagonal_list_created == False)
 
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
-            self.shape, out_of_bounds=-1, boundary_node_mask=-1)
+            self.shape, out_of_bounds=BAD_INDEX_VALUE) #, boundary_node_mask=-1)
+        
+        closed_boundaries = np.empty(4, dtype=np.int)
+        closed_boundaries.fill(BAD_INDEX_VALUE)
+        self.diagonal_cells[self.closed_boundary_nodes,:] = closed_boundaries
+        self.diagonal_cells.ravel()[
+            numpy.in1d(self.diagonal_cells.ravel(), 
+                self.closed_boundary_nodes)] = BAD_INDEX_VALUE
+        
 
     def is_interior(self, *args):
         """is_interior([ids])
@@ -3352,6 +3450,158 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             del ns
         # return slope alone
         return s
+    
+    def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='planet_surface__elevation'):
+        """
+        Calculates the local topographic slope (i.e., the down-dip slope, and 
+        presented as positive), and the aspect (dip direction in degrees 
+        clockwise from north), at the given nodes, *ids*. All *ids* must be of 
+        core nodes.
+        This method uses the Horn 1981 algorithm, the one employed by many GIS
+        packages. It should be significantly faster than alternative slope
+        methods.
+        
+        If *ids* is not provided, the slope will be returned for all core 
+        nodes.
+        
+        *vals* is either the name of an existing grid field from which to draw
+        topographic data, or an array of values to use. If an array of values is
+        passed, it must be nnodes long.
+        If *vals* is not provided, this method will default to trying to use the
+        field "planet_surface__elevation".
+        
+        Returns:
+            s, a len(ids) array of slopes at each node provided.
+            a, a len(ids) array of aspects at each node provided.
+        """
+        
+        if ids==None:
+            ids = self.core_nodes
+        if type(vals) == str:
+            vals = self.at_node[vals]
+        else:
+            if not (len(vals)==self.number_of_nodes):
+                raise IndexError('*vals* was not of a compatible length!')
+        
+        
+        neighbors = self.get_neighbor_list(ids) #[right, top, left, bottom]
+        diagonals = self.get_diagonal_list(ids) #[topright, topleft, bottomleft, bottomright]
+        input_array = np.empty((len(ids), 9), dtype = int)
+        input_array[:,0] = ids
+        input_array[:,1:5] = neighbors
+        input_array[:,5:] = diagonals
+        
+        def one_line_slopes(input_array, grid, vals):
+            node = input_array[0]
+            diagonals = input_array[5:]
+            neighbors = input_array[1:5]
+            if not grid.node_boundary_status[node] == 0:
+                raise IndexError('One or more of the provided nodes was closed!')
+            try:
+                S_we = ((vals[diagonals[1]]+2.*vals[neighbors[2]]+vals[diagonals[2]])-(vals[diagonals[0]]+2.*vals[neighbors[0]]+vals[diagonals[3]]))/(8.*grid.dx)
+                S_sn = ((vals[diagonals[2]]+2.*vals[neighbors[3]]+vals[diagonals[3]])-(vals[diagonals[1]]+2.*vals[neighbors[:,1]]+vals[diagonals[0]]))/(8.*grid.dx)
+                return S_we, S_sn
+            except IndexError:
+                C = vals[node]
+                weighting_verticals = 4.
+                weighting_horizontals = 4.
+                try:
+                    vertical_grad = (vals[neighbors[3]] - vals[neighbors[1]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        vertical_grad = (C - vals[neighbors[1]])/grid.dx
+                    except IndexError:
+                        try:
+                            vertical_grad = (vals[neighbors[3]] - C)/grid.dx
+                        except IndexError:
+                            vertical_grad = 0.
+                            weighting_verticals -= 2.
+                try:
+                    horizontal_grad = (vals[neighbors[2]] - vals[neighbors[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        horizontal_grad = (C - vals[neighbors[0]])/grid.dx
+                    except IndexError:
+                        try:
+                            horizontal_grad = (vals[neighbors[2]] - C)/grid.dx
+                        except IndexError:
+                            horizontal_grad = 0.
+                            weighting_horizontals -= 2.
+                try:
+                    left_grad = (vals[diagonals[2]] - vals[diagonals[1]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[2]]
+                    except:
+                        left_grad = 0.
+                        weighting_verticals -= 1.
+                    else:
+                        try:
+                            left_grad = (C - vals[diagonals[1]])/grid.dx
+                        except IndexError:
+                            left_grad = (vals[diagonals[2]] - C)/grid.dx
+                try:
+                    right_grad = (vals[diagonals[3]] - vals[diagonals[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[0]]
+                    except:
+                        right_grad = 0.
+                        weighting_verticals -= 1.
+                    else:
+                        try:
+                            right_grad = (C - vals[diagonals[0]])/grid.dx
+                        except IndexError:
+                            right_grad = (vals[diagonals[3]] - C)/grid.dx
+                try:
+                    top_grad = (vals[diagonals[1]] - vals[diagonals[0]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[1]]
+                    except:
+                        top_grad = 0.
+                        weighting_horizontals -= 1.
+                    else:
+                        try:
+                            top_grad = (C - vals[diagonals[0]])/grid.dx
+                        except IndexError:
+                            top_grad = (vals[diagonals[1]] - C)/grid.dx
+                try:
+                    bottom_grad = (vals[diagonals[2]] - vals[diagonals[3]])/(2.*grid.dx)
+                except IndexError:
+                    try:
+                        C = vals[neighbors[3]]
+                    except:
+                        bottom_grad = 0.
+                        weighting_horizontals -= 1.
+                    else:
+                        try:
+                            bottom_grad = (C - vals[diagonals[3]])/grid.dx
+                        except IndexError:
+                            bottom_grad = (vals[diagonals[2]] - C)/grid.dx
+                
+                S_we = (top_grad + 2.*horizontal_grad + bottom_grad) / weighting_horizontals
+                S_sn = (left_grad + 2.*vertical_grad + right_grad) / weighting_verticals
+                return S_we, S_sn
+                
+        #S_we = ((vals[diagonals[:,1]]+2.*vals[neighbors[:,2]]+vals[diagonals[:,2]])-(vals[diagonals[:,0]]+2.*vals[neighbors[:,0]]+vals[diagonals[:,3]]))/(8.*self.dx)
+        #S_sn = ((vals[diagonals[:,2]]+2.*vals[neighbors[:,3]]+vals[diagonals[:,3]])-(vals[diagonals[:,1]]+2.*vals[neighbors[:,1]]+vals[diagonals[:,0]]))/(8.*self.dy)
+        
+        slopes_array = numpy.apply_along_axis(one_line_slopes, 1, input_array, self, vals)
+        S_we = slopes_array[:,0]
+        S_sn = slopes_array[:,1]
+                
+        s = numpy.sqrt(S_we*S_we + S_sn*S_sn)
+        a = numpy.empty_like(s)
+        simple_cases = S_we!=0.
+        complex_cases = numpy.logical_not(simple_cases)
+        a[complex_cases][S_sn[complex_cases]<0.] = numpy.pi
+        a[complex_cases][S_sn[complex_cases]>=0.] = 0.
+        angle_to_xaxis = numpy.arctan(S_sn[simple_cases]/S_we[simple_cases]) #+ve is CCW rotation from x axis
+        a[simple_cases] = ((1.-numpy.sign(S_we[simple_cases]))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+        
+        return s.ravel(), a.ravel()
+                
 
     def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
         """Slope aspect of best-fit plane at nodes.

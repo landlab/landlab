@@ -16,6 +16,14 @@ def assert_array_size_matches(array, size, msg=None):
 
 
 def imshow_node_grid(grid, values, **kwds):
+    """
+    Prepares a map view of data over all nodes in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the nodes (length nnodes)
+    """
     assert_array_size_matches(values, grid.number_of_nodes,
             'number of values does not match number of nodes')
 
@@ -25,36 +33,106 @@ def imshow_node_grid(grid, values, **kwds):
     _imshow_grid_values(grid, data, **kwds)
 
 
-def imshow_active_node_grid(grid, values, **kwds):
+def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over only the active (i.e., not closed) nodes
+    in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the open, active nodes OR the values on all nodes in
+    the grid. If the latter is provided, this method will only plot the active
+    subset.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all nodes that are not active. It defaults to 'min', which is the minimum
+    value found on any active node in the grid.
+    """
     active_nodes = grid.active_nodes
-    assert_array_size_matches(values, active_nodes.size,
+    try:
+        assert_array_size_matches(values, active_nodes.size,
             'number of values does not match number of active nodes')
+    except ValueError:
+        assert_array_size_matches(values[active_nodes], active_nodes.size,
+            'number of values does not match number of active nodes')
+        values_to_use = values[active_nodes]
+    else:
+        values_to_use = values
     
     data = np.zeros(grid.number_of_nodes)
-    data[active_nodes] = values.flat
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_nodes] = values_to_use.flat
     data.shape = grid.shape
 
     _imshow_grid_values(grid, data, **kwds)
 
 
 def imshow_cell_grid(grid, values, **kwds):
-    assert_array_size_matches(values, grid.number_of_cells,
+    """
+    Prepares a map view of data over all cells in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the cells OR the values on all nodes in the grid, from
+    which the cell values will be extracted.
+    """
+    cells = grid.node_index_at_cells
+    try:
+        assert_array_size_matches(values, cells.size,
             'number of values does not match number of cells')
-
-    data = values.view()
+    except ValueError:
+        assert_array_size_matches(values[cells], cells.size,
+            'number of values does not match number of cells')
+        values_to_use = values[cells]
+    else:
+        values_to_use = values
+        
+    data = values_to_use.view()
     data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     _imshow_grid_values(grid, data, **kwds)
 
 
-def imshow_active_cell_grid(grid, values, **kwds):
+def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over all active (i.e., core and open boundary)
+    cells in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the active cells OR the values on all nodes in the 
+    grid, from which the active cell values will be extracted.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all cells that are not active. It defaults to 'min', which is the minimum
+    value found on any active cell in the grid.
+    """
+
     active_cells = grid.node_index_at_active_cells
-    assert_array_size_matches(values, active_cells.size,
+    try:
+        assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')
+    except ValueError:
+        assert_array_size_matches(values[active_cells], active_cells.size,
+            'number of values does not match number of active cells')
+        values_to_use = values[active_cells]
+    else:
+        values_to_use = values
 
     data = np.zeros(grid.number_of_nodes)
-    data[active_cells] = values
-    data.shape = grid.shape
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_cells] = values_to_use
+    data = data[grid.node_index_at_cells]
+    data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -122,6 +200,10 @@ def imshow_field(field, name, **kwds):
 # Added by Sai Nudurupati 29Oct2013 
 # This function is exactly the same as imshow_grid but this function plots
 # arrays spread over cells rather than nodes
+##DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
+""".. deprecated:: 0.6
+    Use :meth:`imshow_active_cell_grid`, above, instead.
+"""
 
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
                 grid_units=(None, None), symmetric_cbar=False,

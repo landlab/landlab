@@ -1238,6 +1238,10 @@ def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
 
 def has_boundary_neighbor(neighbors, diagonals,
                           out_of_bounds=BAD_INDEX_VALUE):
+    """
+    DEJH thinks this method is broken since terminology update: it returns closed
+    neihbors, not boundary neighbors.
+    """
     return (out_of_bounds in neighbors |
             out_of_bounds in diagonals)
 
