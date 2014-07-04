@@ -145,6 +145,8 @@ Access the grid geometry
 cells, links, faces. This might include their statuses (active/inactive; core/boundary;
 open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 
+.. autoattribute:: landlab.grid.base.ModelGrid.node_inlink_matrix
+.. autoattribute:: landlab.grid.base.ModelGrid.node_outlink_matrix
 .. autoattribute:: landlab.grid.base.ModelGrid.active_links
 .. autoattribute:: landlab.grid.base.ModelGrid.active_link_length
 .. automethod:: landlab.grid.base.ModelGrid.calculate_numbers_of_node_neighbors
