@@ -58,3 +58,4 @@ docs/_build/
 *.swo
 
 landlab/test.pdf
+test-results.xml
