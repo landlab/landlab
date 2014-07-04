@@ -41,12 +41,14 @@ class PrecipitationDistribution(Component):
             
     So, without an input file (selecting the default), we can call this component like...
     
-        >>> PrecipitationDistribution()
+        >>> precip = PrecipitationDistribution()
         
     To use hard-coded values for mean storm, mean interstorm, mean depth, model run time and delta t...
     Say we use 1.5 for mean storm, 15 for mean interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
     
-        >>> PrecipitationDistribution(input_file=None, mean_storm=1.5, mean_interstorm=15.0, mean_storm_depth=0.5, total_t=100.0, delta_t=1)
+        >>> precip = PrecipitationDistribution(input_file=None,
+        ...     mean_storm=1.5, mean_interstorm=15.0, mean_storm_depth=0.5,
+        ...     total_t=100.0, delta_t=1)
     '''
 
     def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None, mean_storm_depth=None, total_t=None, delta_t=None):
@@ -123,10 +125,11 @@ class PrecipitationDistribution(Component):
         
             >>> PD = PrecipitationDistribution()
             >>> storm_duration_list=[]
+            >>> i = 0
             >>> while i < 4:
-                    storm_duration_list.append(PD.storm_duration)
-                    PD.update()
-                    i+=1        
+            ...     storm_duration_list.append(PD.storm_duration)
+            ...     PD.update()
+            ...     i+=1        
          """
         
         self.storm_duration = self.get_precipitation_event_duration()

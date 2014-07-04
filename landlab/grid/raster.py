@@ -45,13 +45,13 @@ def node_has_boundary_neighbor(mg, id):
             if mg.node_status[neighbor] != CORE_NODE:
                 return True
         except IndexError:
-            pass
+            return True
     for neighbor in mg.get_diagonal_list(id):
         try:
             if mg.node_status[neighbor] != CORE_NODE:
                 return True
         except IndexError:
-            pass
+            return True
     return False
 
 
@@ -3010,8 +3010,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.get_diagonal_list([-1, 6])
-        array([[-1, -1, -1, -1],
-               [12, 10,  0,  2]])
+        array([[2147483647, 2147483647,         13, 2147483647],
+               [        12,         10,          0,          2]])
         >>> mg.get_diagonal_list(7)
         array([13, 11,  1,  3])
 
