@@ -55,9 +55,9 @@ Constants
             
             
     >>> DEM_name = 'DEM_name.asc'
-    >>> (rg, z) = read_esri_ascii(DEM_name)
-    >>> of = OverlandFlow(rg)
-        '''   
+    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
+    >>> of = OverlandFlow(rg) # doctest: +SKIP
+    '''   
  
     
     def __init__(self, grid, input_file=None, rain_duration=None, rainfall_intensity=None, model_run_time=None):
@@ -134,8 +134,8 @@ Constants
         
         >>> study_row = 10
         >>> study_column = 10
-        >>> rg.node_coords_to_id(study_row, study_column)
-        >>> of.flow_at_one_node(rg, z, study_node, model_run_time, storm_intensity, storm_duration)
+        >>> rg.node_coords_to_id(study_row, study_column) # doctest: +SKIP
+        >>> of.flow_at_one_node(rg, z, study_node, model_run_time, storm_intensity, storm_duration) # doctest: +SKIP
         
         The study_node should NOT be a boundary node.
         '''
@@ -413,7 +413,7 @@ Constants
             Presently, all nodes with water depths less than 1 cm are considered to have
             no flow/no depth and are plotted as white in the raster, using the following call:
                 
-                >>>  palette.set_under('w', 0.01) 
+                >>>  palette.set_under('w', 0.01) # doctest: +SKIP 
               
             If this value is changed, the value in the pylab.clim()
             function MUST also be changed.
@@ -421,7 +421,7 @@ Constants
             Additionally, the maximum value for plotted water depths is 1 m,
             using the following call:
                 
-                >>> pylab.clim(0.01, 1)
+                >>> pylab.clim(0.01, 1) # doctest: +SKIP
                 
             Changing the value of 1 will extend the colorbar to higher values.
             
@@ -469,9 +469,10 @@ Constants
             
             Discharges beneath 1*10^-6 cubic meters are not shown, using the following
             function calls:
-                
-                >>> pylab.clim(vmin=0.000001) # All discharges beneath the minimum are shown in white.
-                >>> palette.set_under('w', 0.000001)
+            
+            # All discharges beneath the minimum are shown in white.
+            >>> pylab.clim(vmin=0.000001) # doctest: +SKIP
+            >>> palette.set_under('w', 0.000001) # doctest: +SKIP
                 
             To change this minimum, both the pylab.clim() and pylab.set_under() values must be changed.
             
@@ -571,7 +572,7 @@ Constants
             can be added to the function. Say we want the low values on the color bar to start at 10
             and increase to 100, which is currently the default setting:
                 
-                >>> pylab.clim(vmin=10, vmax=100)
+                >>> pylab.clim(vmin=10, vmax=100) # doctest: +SKIP
                 
             The colorbar is plotted using a blocked color map like those found here:
             http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
@@ -620,14 +621,14 @@ Constants
             Presently, all nodes the colorbar is blocked at intervals of ten, using
             the following function call:
                 
-                >>> cmap = plt.get_cmap('RdYlGn_r', 10)
-                
+                >>> cmap = plt.get_cmap('RdYlGn_r', 10) # doctest: +SKIP
+
             To change the interval at which color blocks are set, the value of 10 can
             be changed.
             
             Presently, all nodes with slopes less than 0.01 are plotted as white in the raster, using the following call:
                 
-                >>> cmap.set_under('w', 0.01) 
+                >>> cmap.set_under('w', 0.01) # doctest: +SKIP
 
             If this value is changed, the value in the pylab.clim()
             function MUST also be changed.
@@ -635,7 +636,7 @@ Constants
             Additionally, the maximum value for plotted slopes is 50,
             using the following call:
                 
-                >>> pylab.clim(0.01, 50) 
+                >>> pylab.clim(0.01, 50) # doctest: +SKIP
                 
             To specify a particular range of slope values, the above two lines must be
             edited. The minimum (by default 0.01) must be changed in the set_under() and
