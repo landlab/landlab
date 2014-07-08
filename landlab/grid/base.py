@@ -1859,6 +1859,8 @@ class ModelGrid(ModelDataFields):
             
         Notes
         -----        
+        THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
+        
         The concept here is that q contains a vector variable that is defined
         at each link. The magnitude is given by the value of q, and the direction
         is given by the orientation of the link, as described by its unit vector.
