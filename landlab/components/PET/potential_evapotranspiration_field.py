@@ -3,7 +3,6 @@
 ##  'Field' concept is implemented for Potential Evapotranspiration component.
 ##
 ##  Sai Nudurupati and Erkan Istanbulluoglu - 16May2014
-## Test - Branching! 09Jul14
 #################################################################
 
 from landlab import Component
