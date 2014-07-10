@@ -1369,3 +1369,26 @@ def nodes_around_point(shape, coords, spacing=(1., 1.)):
 
     return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
                      node_id + 1])
+                     
+def interior_node_id_to_node_id(shape, core_node_ids):
+    """
+    Converts the id of an interior node ID (i.e., if just the interior nodes
+    were numbered) to a node ID.
+    """
+    IGW = shape[1]-2
+    real_ID = (core_node_ids//IGW + 1) * shape[1] + (core_node_ids%IGW) + 1
+    assert np.all(real_ID < shape[0]*shape[1])
+    return real_ID.astype(int)
+    
+def node_id_to_interior_node_id(shape, node_ids):
+    """
+    Converts a node ID to the id of an interior node ID (i.e., if just the 
+    interior nodes were numbered)
+    """
+    ncols = shape[1]
+    interior_ID = (node_ids//ncols - 1)*(ncols-2) + (node_ids%ncols) - 1
+    if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
+        print "One of the supplied nodes was outside the interior grid!"
+        raise NameError()
+    else:
+        return interior_ID.astype(int)
