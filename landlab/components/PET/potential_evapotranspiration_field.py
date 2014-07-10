@@ -1,8 +1,12 @@
 #################################################################
 ##
-##  'Field' concept is implemented for Potential Evapotranspiration component.
+##  Potential Evapotranspiration Component calculate spatially distributed
+##  potential evapotranspiration based on input radiation factor (spatial
+##  distribution of incoming radiation) using chosen method such as a
+##  constant or Priestly Taylor. 
 ##
 ##  Sai Nudurupati and Erkan Istanbulluoglu - 16May2014
+##  Added Priestly Taylor on 09Jul2014
 #################################################################
 
 from landlab import Component
@@ -50,7 +54,7 @@ class PotentialEvapotranspiration( Component ):
         self._y = kwds.pop('PsychometricConstant', 0.066)
         self._sigma = kwds.pop('StefanBoltzmannConstant', 0.0000000567)
         self._Gsc = kwds.pop('SolarConstant', 1366.67)
-        self._lat = kwds.pop('Latitude', 34.0)
+        self._phi = (3.14/180)*(kwds.pop('Latitude', 34.0))
         self._z = kwds.pop('ElevationofMeasurement', 300)
         self._Krs = kwds.pop('AdjustmentCoefficient', 0.18)
                 
@@ -73,73 +77,95 @@ class PotentialEvapotranspiration( Component ):
         if self._method == 'Constant':
             PET_value = kwds.pop('ConstantPotentialEvapotranspiration', 6.)
         elif self._method == 'PriestlyTaylor':
-            PET_value = self.PriestlyTaylor( current_time )
+            Tmin = kwds.pop('Tmin',0.0)
+            Tmax = kwds.pop('Tmax',1.0)
+            Tavg = kwds.pop('Tavg',0.5)
+            PET_value = self.PriestlyTaylor( current_time,Tmax, Tmin, Tavg )
         self._PET = PET_value * self._cell_values['RadiationFactor']
         self._cell_values['PotentialEvapotranspiration'] = self._PET
         
-    def PriestlyTaylor(self, current_time):
+    def PriestlyTaylor(self, current_time, Tmax, Tmin, Tavg):                
         
         """
-            Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (25)
-        """        
-        self._J = np.floor( (current_time - np.floor( current_time)) * 365 ) 
-
+            Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         """
-            Solar Declination Angle - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (51)
+        self._J = np.floor( (current_time - np.floor( current_time)) * 365 )
+        
+        """
+            Saturation Vapor Pressure - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 6, (37)
+        """
+        self._es = 0.6108*np.exp((17.27*Tavg)/(237.7+Tavg))
+        """
+            Actual Vapor Pressure - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 8, (38)
+        """
+        self._ea = 0.6108*np.exp((17.27*Tmin)/(237.7+Tmin))
+        """
+            Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 5, (36)
+        """
+        self._delta = (4098.0*self._es)/(pow((237.3+Tavg),2.0))
+        """
+            Solar Declination Angle - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 24,(51)
         """
         self._sdecl = 0.409*np.sin((((2.0*3.14)/365.0)*self._J)-1.39)
-
         """
-            Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (50)
+            Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 23,(50)
         """
         self._dr = 1 + (0.033*np.cos((2.0*3.14/365.0)*self._J))
-
         """
-            To calculate ws - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (61)
+            To calculate ws - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 29,(61)
         """
-        self._x = 1.0-((((np.tan(self._phi))**2.0))*((np.tan(self._sdecl)**2.0)))  
+        self._x = 1.0-((pow((np.tan(self._phi)),2.0))*(pow(np.tan(self._sdecl),2.0)))  
         if self._x <= 0:
             self._x = 0.00001;
             
         """
-            Sunset Hour Angle - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (60)
+            Sunset Hour Angle - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 28,(60)
         """
-        self._ws = (3.14/2.0)-np.atan((-1*np.tan(self._phi)*np.tan(self._sdecl))/(self._x**2.0))
-
+        self._ws = (3.14/2.0)-np.arctan((-1*np.tan(self._phi)*np.tan(self._sdecl))/(pow(self._x,2.0)))
         """
-            Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (48)
+            Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 21, (48)
         """
         self._Ra = 11.57*(24.0/3.14)*4.92*self._dr*((self._ws*np.sin(self._phi)*np.sin(self._sdecl))+ \
                         (np.cos(self._phi)*np.cos(self._sdecl)*(np.sin(self._ws))))
-
         """
-            Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (47)
+            Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 19, (47)
         """
-        self._Rs = (0.75+((2.0*(10**-5.0))*self._z))*self._Ra
-
+        self._Rso = (0.75+((2.0*pow(10,-5.0))*self._z))*self._Ra
+        self._Rs = min(self._Krs*self._Ra*np.sqrt(Tmax-Tmin), self._Rso)
         """
-            Net Short Wave Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (43)
+            Net Short Wave Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 16, (43)
         """
         self._Rns = self._Rs*(1-self._a)
 
         """
-            Relative Cloudiness - ASCE-EWRI Task Committee Report, Jan-2005 - Page 35
+            Relative Cloudiness - ASCE-EWRI Task Committee Report, Jan-2005 - Page 20,35
         """
-        self._u = 0.3
-        
+        if self._Rso > 0:
+            self._u = self._Rs/self._Rso
+        else:
+            self._u = 0
+
+        if self._u < 0.3:
+            self._u = 0.3
+        elif self._u > 1:
+            self._u = 1.0
+
         """
-            Cloudiness Function - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (45)
+            Cloudiness Function - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 18, (45)
         """
         self._fcd = (1.35*self._u)-0.35
+        """
+            Net Long Wave Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 17, (44)
+        """
+        self._Rnl = self._sigma*self._fcd*(0.34-(0.14*np.sqrt(self._ea))* \
+                        ((pow((Tmax+273.16),4.0)+ \
+                        pow((Tmin+273.16),4.0))/2.0))
 
         """
-            Net Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn (42)
+            Net Radiation - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 15, (42)
         """                                         
-        self._Rn = self._Rns 
+        self._Rn = self._Rns - self._Rnl
 
-        """
-            Priestly Taylor Evapotranspiration in mm/day - Priestly et. al. 1972
-        """
         self._ETp = max(self._alpha*(self._delta/(self._delta+self._y) \
                         )*(self._Rn/self._pwhv), 0)
         
