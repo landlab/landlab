@@ -70,6 +70,43 @@ def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
 
     _imshow_grid_values(grid, data, **kwds)
 
+def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over only the core nodes
+    in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the core nodes OR the values on all nodes in
+    the grid. If the latter is provided, this method will only plot the core
+    subset.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all nodes that are not core. It defaults to 'min', which is the minimum
+    value found on any core node in the grid.
+    """
+    active_nodes = grid.core_nodes
+    try:
+        assert_array_size_matches(values, active_nodes.size,
+            'number of values does not match number of active nodes')
+    except ValueError:
+        assert_array_size_matches(values[active_nodes], active_nodes.size,
+            'number of values does not match number of active nodes')
+        values_to_use = values[active_nodes]
+    else:
+        values_to_use = values
+    
+    data = np.zeros(grid.number_of_nodes)
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_nodes] = values_to_use.flat
+    data.shape = grid.shape
+
+    _imshow_grid_values(grid, data, **kwds)
+
 
 def imshow_cell_grid(grid, values, **kwds):
     """
