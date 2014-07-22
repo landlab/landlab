@@ -6,7 +6,7 @@ test_script_for_route_flow_dn.py:
 Tests and illustrates use of route_flow_dn component.
 """
 
-#from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing.route_flow_dn import FlowRouter
 #from landlab import FlowRouter
 #components.flow_routing.route_flow_dn
 from landlab.io import read_esri_ascii
@@ -14,7 +14,7 @@ from landlab.plot.imshow import imshow_node_grid
 import os
 import pylab
 
-dem_name = '../../io/tests/data/west_bijou_gully.asc'
+dem_name = '../../../io/tests/data/west_bijou_gully.asc'
 outlet_row = 82
 outlet_column = 38
 
@@ -26,10 +26,10 @@ outlet_node = grid.grid_coords_to_node_id(outlet_row, outlet_column)
 
 # Route flow
 flow_router = FlowRouter(grid)
-r, a, q, ss, s = flow_router.route_flow(z)
+flow_router.route_flow(z)
 
 # Get a 2D array version of the elevations
-ar = grid.node_vector_to_raster(a)
+ar = grid.node_vector_to_raster(grid['node']['drainage_area'])
 
 numcols = grid.number_of_node_columns
 numrows = grid.number_of_node_rows
@@ -53,3 +53,5 @@ pylab.ylabel('Distance (m)')
 
 # Display the plot
 pylab.show()
+    
+    
