@@ -473,15 +473,13 @@ class LinkCellularAutomaton():
         
             self.do_transition(ev, self.current_time)
             
-            print self.node_state
-        
             # Update current time
             self.current_time = ev.time
 
         
 def example_test2():
     
-    from landlab.io.netcdf import write_netcdf
+    #from landlab.io.netcdf import write_netcdf
     
     # INITIALIZE
 
@@ -489,9 +487,9 @@ def example_test2():
     nr = 10
     nc = 10
     plot_interval = 0.1
-    next_plot = plot_interval
-    run_duration = 1.0
-        
+    #next_plot = plot_interval
+    run_duration = 4.0
+
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
     mg.set_inactive_boundaries(True, True, True, True)
@@ -505,7 +503,7 @@ def example_test2():
     xn_list = setup_transition_list2()
 
     # The initial grid represents a domain with half immobile soil, half air
-    node_state_grid = mg.add_zeros('node', 'node_frog')
+    node_state_grid = mg.add_zeros('node', 'node_frog', dtype=int)
     print (numpy.where(mg.node_y<nr/2),)
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 1
@@ -513,16 +511,25 @@ def example_test2():
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
     
+    print 'INITIALIZING'
+    print type(node_state_grid[0])
+    n = ca.grid.number_of_nodes
+    for r in range(ca.grid.number_of_node_rows):
+        for c in range(ca.grid.number_of_node_columns):
+            n -= 1
+            print '{0:.0f}'.format(ca.node_state[n]),
+        print
+    
     # Plot initial state
-    plt.figure()
-    imshow_grid(mg, ca.node_state)
+    #plt.figure()
+    #imshow_grid(mg, ca.node_state)
     
 
     # RUN
     current_time = 0.0
-    time_slice =  0
-    filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
-    write_netcdf(filename, ca.grid)
+    #time_slice =  0
+    #filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
+    #write_netcdf(filename, ca.grid)
     while current_time < run_duration:
         ca.run(current_time+plot_interval, ca.node_state)
         current_time += plot_interval
@@ -531,9 +538,16 @@ def example_test2():
         #plt.figure()
         #imshow_grid(mg, ca.node_state)
         #plt.show()
-        time_slice += 1
-        filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
-        write_netcdf(filename, ca.grid)
+        #time_slice += 1
+        #filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
+        #write_netcdf(filename, ca.grid)
+        n = ca.grid.number_of_nodes
+        for r in range(ca.grid.number_of_node_rows):
+            for c in range(ca.grid.number_of_node_columns):
+                n -= 1
+                print '{0:.0f}'.format(ca.node_state[n]),
+            print
+        
         
     # FINALIZE
     
@@ -607,6 +621,10 @@ def setup_transition_list2():
     
     xn_list.append( Transition(1, 2, 1., 'mobilization') ) # 
     xn_list.append( Transition(3, 6, 1., 'mobilization') ) # 
+    xn_list.append( Transition(2, 6, 1., 'left motion') )
+    xn_list.append( Transition(6, 2, 1., 'right motion') )
+    #xn_list.append( Transition(11, 15, 1., 'downward motion') )
+    #xn_list.append( Transition(15, 11, 1., 'upward motion') )    
         
     if _DEBUG:
         print
