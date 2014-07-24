@@ -85,7 +85,7 @@ class LinkCellularAutomaton():
     determined by the states of the cell pair.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, orientation_matters=False):
                  
         # Keep a copy of the model grid
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
@@ -99,8 +99,13 @@ class LinkCellularAutomaton():
         
         # Figure out how many states there are, and make sure the input data
         # are self consistent.
+        #   There are 2 x (N^2) link states, where N is the number of node 
+        # states. For example, if there are just two node states, 0 and 1, then 
+        # the possible oriented link pairs are listed below:
+        #   0-0 0-1 1-0 1-1  0 0 1 1
+        #                    0 1 0 1
         self.num_node_states = len(node_state_dict)
-        self.num_link_states = self.num_node_states*self.num_node_states
+        self.num_link_states = 2*self.num_node_states*self.num_node_states
         
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
@@ -116,8 +121,13 @@ class LinkCellularAutomaton():
         self.next_update = self.grid.create_active_link_array_zeros()
     
         # Assign link types from node types
-        self.create_link_state_dictionary_and_pair_list()
+        self.create_oriented_link_state_dict_and_pair_list()
     
+        # Memorize the number of vertical links, so we can figure out
+        # node-pair orientations
+        self.number_of_vertical_links = self.grid.number_of_node_columns * \
+                                        (self.grid.number_of_node_rows-1)
+
         # Using the grid of node states, figure out all the link states
         self.assign_link_states_from_node_types()
     
@@ -126,7 +136,7 @@ class LinkCellularAutomaton():
 
         # Put the various transitions on the event queue
         self.push_transitions_to_event_queue()
-
+        
 
     def set_node_state_grid(self, node_states):
         """
@@ -147,6 +157,7 @@ class LinkCellularAutomaton():
                  
     def create_link_state_dictionary_and_pair_list(self):
         """
+        NOW OBSOLETE
         Creates a dictionary that can be used as a lookup table to find out 
         which link state corresponds to a particular pair of node states. The 
         dictionary keys are 2-element tuples that represent the states of the 
@@ -170,20 +181,60 @@ class LinkCellularAutomaton():
             print self.cell_pair
 
 
+    def create_oriented_link_state_dict_and_pair_list(self):
+        """
+        Creates a dictionary that can be used as a lookup table to find out 
+        which link state corresponds to a particular pair of node states. The 
+        dictionary keys are 3-element tuples, each of which represents the state
+        of the FROM node, the TO node, and the orientation of the link. The 
+        values are integer codes representing the link state numbers.
+        """
+        self.link_state_dict = {}
+        self.cell_pair = []
+        k=0
+        for orientation in range(2):
+            for fromstate in range(self.num_node_states):
+                for tostate in range(self.num_node_states):
+                    self.link_state_dict[(fromstate,tostate,orientation)] = k
+                    k+=1
+                    self.cell_pair.append((fromstate,tostate,orientation))
+    
+        if _DEBUG:
+            print 
+            print 'create_oriented_link_state_dict_and_pair_list(): dict is:'
+            print self.link_state_dict
+            print '  and the pair list is:'
+            print self.cell_pair
+
+
+    def active_link_orientation(self, act_link_id):
+        """
+        Returns 0 if active link *act_link_id* is horizontal (oriented along 
+        x-axis), and 1 if it is vertical (oriented along y-axis).
+        """
+        if self.grid.active_links[act_link_id]<self.number_of_vertical_links:
+            return 1
+        else:
+            return 0
+    
+    
     def assign_link_states_from_node_types(self):
         """
         Assigns a link-state code for each link, and returns a list of these.
         
         Takes lists/arrays of "from" and "to" node IDs for each link, and a 
         dictionary that associates pairs of node states (represented as a 
-        2-element tuple) to link states.
+        3-element tuple, comprising the FROM state, TO state, and orientation) 
+        to link states.
         """
         self.link_state = numpy.zeros(self.grid.number_of_active_links,
                                       dtype=int)
     
         for i in range(self.grid.number_of_active_links):
+            orientation = self.active_link_orientation(i)
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
-                         self.node_state[self.grid.activelink_tonode[i]])
+                         self.node_state[self.grid.activelink_tonode[i]], \
+                         orientation)
             #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
         
@@ -488,7 +539,7 @@ def example_test2():
     nc = 10
     plot_interval = 0.1
     #next_plot = plot_interval
-    run_duration = 4.0
+    run_duration = 0.001
 
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
