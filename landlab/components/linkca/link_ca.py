@@ -21,7 +21,7 @@ import pylab as plt
 #_LINK_STATE = [ (_ROCK, _ROCK), (_ROCK, _SAP), (_SAP, _ROCK), (_SAP, _SAP) ]
 _NEVER = 1e12
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -455,11 +455,11 @@ class LinkCellularAutomaton():
                         print 'f checking link',link
                     if link!=-1 and link!=event.link:
                     
-                        fromnode = self.grid.activelink_fromnode[link]
-                        tonode = self.grid.activelink_tonode[link]
+                        this_link_fromnode = self.grid.activelink_fromnode[link]
+                        this_link_tonode = self.grid.activelink_tonode[link]
                         orientation = self.active_link_orientation(link)
-                        current_pair = (self.node_state[fromnode], 
-                                        self.node_state[tonode], orientation)
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
 
@@ -474,13 +474,22 @@ class LinkCellularAutomaton():
                         print 't checking link',link
                     if link!=-1 and link!=event.link:
                     
-                        fromnode = self.grid.activelink_fromnode[link]
-                        tonode = self.grid.activelink_tonode[link]
+                        this_link_fromnode = self.grid.activelink_fromnode[link]
+                        this_link_tonode = self.grid.activelink_tonode[link]
                         orientation = self.active_link_orientation(link)
-                        current_pair = (self.node_state[fromnode], 
-                                        self.node_state[tonode], orientation)
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
+
+            n = self.grid.number_of_nodes
+            for r in range(self.grid.number_of_node_rows):
+                for c in range(self.grid.number_of_node_columns):
+                    n -= 1
+                    print '{0:.0f}'.format(self.node_state[n]),
+                print
+            print 'enter to continue:'
+            frog = raw_input('')
 
         elif _DEBUG:
             print '  event time is',event.time,'but update time is', \
@@ -515,11 +524,11 @@ def example_test2():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 5
-    nc = 5
+    nr = 9
+    nc = 9
     plot_interval = 1.0
     #next_plot = plot_interval
-    run_duration = 1.5
+    run_duration = 4.0
 
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
