@@ -17,6 +17,6 @@ def number_of_cells(shape):
     Examples
     --------
     >>> number_of_cells((3, 4))
-    6
+    2
     """
-    return np.prod(np.array(shape) - 1)
+    return np.prod(np.array(shape) - 2)
