@@ -2,6 +2,8 @@ import itertools
 
 import numpy as np
 
+from ..base import CORE_NODE, FIXED_VALUE_BOUNDARY
+
 
 def number_of_nodes(shape):
     """Number of nodes is a structured quad grid.
@@ -65,6 +67,29 @@ def corners(shape):
     """
     node_count = number_of_nodes(shape)
     return np.array([0, shape[1] - 1, node_count - shape[1], node_count - 1])
+
+
+def node_ids(shape):
+    """IDs of nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        IDs of the nodes.
+
+    Examples
+    --------
+    >>> node_ids((3, 4))
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+    """
+    return np.arange(number_of_nodes(shape)).reshape(shape)
 
 
 def interior_nodes(shape):
@@ -177,7 +202,7 @@ def perimeter(shape):
     Parameters
     ----------
     shape : tuple of int
-    Shape of grid of nodes.
+        Shape of grid of nodes.
 
     Returns
     -------
@@ -191,3 +216,34 @@ def perimeter(shape):
 
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
+
+
+def status_with_perimeter_as_boundary(shape, status_on_perimeter=FIXED_VALUE_BOUNDARY):
+    """Node status for a grid whose boundary is along its perimeter.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Node status for grid.
+
+    Examples
+    --------
+    >>> status_with_perimeter_as_boundary((3, 4))
+    array([[1, 1, 1, 1],
+           [1, 0, 0, 1],
+           [1, 1, 1, 1]])
+    >>> status_with_perimeter_as_boundary((3, 4), status_on_perimeter=-1)
+    array([[-1, -1, -1, -1],
+           [-1,  0,  0, -1],
+           [-1, -1, -1, -1]])
+    """
+    status = np.empty(shape, dtype=int)
+    status.fill(CORE_NODE)
+    status.flat[perimeter(shape)] = status_on_perimeter
+
+    return status
