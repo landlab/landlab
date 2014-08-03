@@ -4,7 +4,7 @@ Examples
 --------
 >>> import numpy as np
 >>> (y, x) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
->>> grid = StructuredModelGrid((y, x))
+>>> grid = StructuredQuadModelGrid((y, x))
 >>> grid.number_of_nodes
 20
 >>> grid.number_of_interior_nodes
@@ -22,11 +22,13 @@ array([ 0,  4, 15, 19])
 """
 from numpy import ravel
 
-from .base import ModelGrid, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
-from ..utils import structured_grid as sgrid
+from ..base import ModelGrid, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
+from ...utils import structured_grid as sgrid
+from . import links
+from . import nodes
 
 
-class StructuredModelGrid(ModelGrid):
+class StructuredQuadModelGrid(ModelGrid):
     def __init__(self, node_coord, shape=None):
         """
         Parameters
@@ -44,7 +46,7 @@ class StructuredModelGrid(ModelGrid):
 
         self._shape = shape
 
-        self._num_nodes = sgrid.node_count(self.shape)
+        self._num_nodes = nodes.number_of_nodes(self.shape)
         self._num_active_nodes = self.number_of_nodes
 
         self._num_cells = sgrid.cell_count(self.shape)
@@ -53,7 +55,7 @@ class StructuredModelGrid(ModelGrid):
         self._num_core_nodes = self.number_of_cells
         self._num_core_cells = self.number_of_cells
 
-        self._num_links = sgrid.link_count(self.shape)
+        self._num_links = links.number_of_links(self.shape)
         self._num_active_links = sgrid.active_link_count(self.shape)
 
         self._num_faces = sgrid.face_count(self.shape)
