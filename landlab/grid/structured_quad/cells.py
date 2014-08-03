@@ -55,7 +55,7 @@ def node_id_at_cells(shape):
 
     Returns
     -------
-    int :
+    ndarray :
         ID of node associated with each cell.
 
     Examples
@@ -77,7 +77,7 @@ def cell_ids(shape):
 
     Returns
     -------
-    int :
+    ndarray :
         ID of node associated with each cell.
 
     Examples
