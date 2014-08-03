@@ -91,6 +91,27 @@ def number_of_horizontal_links(shape):
     return np.prod(shape_of_horizontal_links(shape))
 
 
+def number_of_links(shape):
+    """Number of links in a structured quad grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    int :
+        Number of links in grid.
+
+    Examples
+    --------
+    >>> number_of_links((3, 4))
+    17
+    """
+    return number_of_vertical_links(shape) + number_of_horizontal_links(shape)
+
+
 def vertical_link_ids(shape):
     """IDs of vertical links in a structured quad grid.
 
