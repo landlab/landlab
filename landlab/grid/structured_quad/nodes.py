@@ -24,6 +24,27 @@ def number_of_nodes(shape):
     return np.prod(shape)
 
 
+def number_of_core_nodes(shape):
+    """Number of core nodes is a structured quad grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    int :
+        Number of core nodes in the grid.
+
+    Examples
+    --------
+    >>> number_of_core_nodes((3, 4))
+    2
+    """
+    return np.prod(np.array(shape) - 2)
+
+
 def corners(shape):
     """IDs of corner nodes.
 
