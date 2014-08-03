@@ -2,6 +2,7 @@ import numpy as np
 
 
 from . import nodes
+from ..base import CORE_NODE, CLOSED_BOUNDARY
 
 
 def shape_of_vertical_links(shape):
@@ -483,3 +484,56 @@ def node_id_at_link_end(shape):
     """
     all_node_ids = nodes.node_ids(shape)
     return np.concatenate((all_node_ids[1:, :].flat, all_node_ids[:, 1:].flat))
+
+
+def is_active_link(shape, node_status):
+    """IDs of active links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Links IDs at the active links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> status = status_with_perimeter_as_boundary((3, 4))
+    >>> is_active_link((3, 4), status)
+    array([False,  True,  True, False, False,  True,  True, False, False,
+           False, False,  True,  True,  True, False, False, False], dtype=bool)
+    """
+    status_at_link_start = node_status.flat[node_id_at_link_start(shape)]
+    status_at_link_end = node_status.flat[node_id_at_link_end(shape)]
+
+    return (((status_at_link_start == CORE_NODE) &
+             ~ (status_at_link_end == CLOSED_BOUNDARY)) |
+            ((status_at_link_end == CORE_NODE) &
+             ~ (status_at_link_start == CLOSED_BOUNDARY)))
+
+
+def active_link_ids(shape, node_status):
+    """IDs of active links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Links IDs at the active links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> status = status_with_perimeter_as_boundary((3, 4))
+    >>> active_link_ids((3, 4), status)
+    array([ 1,  2,  5,  6, 11, 12, 13])
+    """
+    return np.where(is_active_link(shape, node_status))[0]
