@@ -439,3 +439,47 @@ def node_link_ids(shape):
     offset[0] = 0
 
     return node_link_ids[node_link_ids >= 0], offset
+
+
+def node_id_at_link_start(shape):
+    """Node ID at start of links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Node IDs at start of links.
+
+    Examples
+    --------
+    >>> node_id_at_link_start((3, 4))
+    array([ 0,  1,  2,  3,  4,  5,  6,  7,  0,  1,  2,  4,  5,  6,  8,  9, 10])
+    """
+    all_node_ids = nodes.node_ids(shape)
+    return np.concatenate((all_node_ids[:-1, :].flat, all_node_ids[:, :-1].flat))
+
+
+def node_id_at_link_end(shape):
+    """Node ID at end of links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Node IDs at end of links.
+
+    Examples
+    --------
+    >>> node_id_at_link_end((3, 4))
+    array([ 4,  5,  6,  7,  8,  9, 10, 11,  1,  2,  3,  5,  6,  7,  9, 10, 11])
+    """
+    all_node_ids = nodes.node_ids(shape)
+    return np.concatenate((all_node_ids[1:, :].flat, all_node_ids[:, 1:].flat))
