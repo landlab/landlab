@@ -7,8 +7,6 @@ Examples
 >>> grid = StructuredQuadModelGrid((y, x))
 >>> grid.number_of_nodes
 20
->>> grid.number_of_interior_nodes
-6
 >>> grid.number_of_core_nodes
 6
 >>> grid.number_of_node_rows
@@ -20,16 +18,14 @@ array([ 0,  4, 15, 19])
 >>> grid.number_of_cells
 6
 """
-from numpy import ravel
+import numpy as np
 
-from ..base import ModelGrid, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
-from ...utils import structured_grid as sgrid
-from . import links
-from . import nodes
+from ..base import FIXED_VALUE_BOUNDARY
+from . import links, nodes, cells, faces
 
 
-class StructuredQuadModelGrid(ModelGrid):
-    def __init__(self, node_coord, shape=None):
+class StructuredQuadModelGrid(object):
+    def __init__(self, node_coord, shape=None, node_status=None):
         """
         Parameters
         ----------
@@ -47,111 +43,38 @@ class StructuredQuadModelGrid(ModelGrid):
         self._shape = shape
 
         self._num_nodes = nodes.number_of_nodes(self.shape)
-        self._num_active_nodes = self.number_of_nodes
-
-        self._num_cells = sgrid.cell_count(self.shape)
-        self._num_active_cells = self.number_of_cells
-
-        self._num_core_nodes = self.number_of_cells
-        self._num_core_cells = self.number_of_cells
-
+        self._num_cells = cells.number_of_cells(self.shape)
         self._num_links = links.number_of_links(self.shape)
-        self._num_active_links = sgrid.active_link_count(self.shape)
+        self._num_faces = faces.number_of_faces(self.shape)
 
-        self._num_faces = sgrid.face_count(self.shape)
-        self._num_active_faces = sgrid.active_face_count(self.shape)
+        self._num_core_nodes = nodes.number_of_core_nodes(self.shape)
+        self._num_core_cells = self._num_cells
 
         self._node_x, self._node_y = (
-            ravel(node_coord[0]),
-            ravel(node_coord[1]),
+            np.ravel(node_coord[0]),
+            np.ravel(node_coord[1]),
         )
 
-        # Node boundary/active status:
-        # Next, we set up an array of "node status" values, which indicate
-        # whether a given node is an active, non-boundary node, or some type of
-        # boundary. Here we default to having all perimeter nodes be active
-        # fixed-value boundaries.
-        self.node_status = sgrid.node_status(
-            self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
+        assert(node_status is None or node_status.size == self._num_nodes)
 
-        self.cell_node = sgrid.node_index_at_cells(self.shape)
-        self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
-        self.core_cells = sgrid.core_cell_index(self.shape)
-        self.corecell_node = self.cell_node
+        if node_status is None:
+            self._status = nodes.status_with_perimeter_as_boundary(
+                self.shape, status_on_perimeter=FIXED_VALUE_BOUNDARY)
+        else:
+            self._status = node_status
 
-        (self.link_fromnode,
-         self.link_tonode) = sgrid.node_index_at_link_ends(self.shape)
+        self._node_id_at_cells = cells.node_id_at_cells(self.shape)
+        self._cell_id_at_nodes = cells.cell_ids(self.shape)
 
-        # set up in-link and out-link matrices and numbers
-        self._setup_inlink_and_outlink_matrices()
-        #(self.node_inlink_matrix,
-        # self.node_numinlink) = sgrid.setup_inlink_matrix(shape)
+        self._cell_node = cells.node_id_at_cells(self.shape)
 
-        #(self.node_outlink_matrix,
-        # self.node_numoutlink) = sgrid.setup_outlink_matrix(shape)
+        self._in_link_id_at_nodes = links.node_in_link_ids(self.shape)
+        self._out_link_id_at_nodes = links.node_out_link_ids(self.shape)
 
-        # Flag indicating whether we have created diagonal links.
-        self._diagonal_links_created = False
+        self._node_id_at_link_start = links.node_id_at_link_start(self.shape)
+        self._node_id_at_link_end = links.node_id_at_link_end(self.shape)
 
-        # Set up the list of active links
-        self._reset_list_of_active_links()
-
-        #   set up link faces
-        #
-        #   Here we assume that we've already created a list of active links
-        # in which all 4 boundaries are "open", such that each boundary node
-        # (except the 4 corners) is connected to an adjacent interior node. In
-        # this case, there will be the same number of faces as active links,
-        # and the numbering of faces will be the same as the corresponding
-        # active links. We start off creating a list of all None values. Only
-        # those links that cross a face will have this None value replaced with
-        # a face ID.
-        self.link_face = sgrid.face_index_at_links(self.shape,
-                                                   actives=self.active_link_ids)
-
-        # List of neighbors for each cell: we will start off with no
-        # list. If a caller requests it via get_neighbor_list or
-        # create_neighbor_list, we'll create it if necessary.
-        self.neighbor_list_created = False
-
-        # List of diagonal neighbors. As with the neighbor list, we'll only
-        # create it if requested.
-        self.diagonal_list_created = False
-
-        super(StructuredModelGrid, self).__init__()
-
-    def _setup_inlink_and_outlink_matrices(self):
-        (self.node_inlink_matrix,
-         self.node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
-
-        (self.node_outlink_matrix,
-         self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
-
-    def _setup_active_inlink_and_outlink_matrices(self):
-        """
-        Creates data structures to record the numbers of active inlinks and
-        active outlinks for each node. These data structures are equivalent to
-        the "regular" inlink and outlink matrices, except that it uses the IDs
-        of active links (only).
-        """
-
-        node_status = self.node_status != CLOSED_BOUNDARY
-
-        (self.node_active_inlink_matrix, self.node_numactiveinlink) = (
-            sgrid.setup_active_inlink_matrix(self.shape, node_status=node_status))
-
-        (self.node_active_outlink_matrix, self.node_numactiveoutlink) = (
-            sgrid.setup_active_outlink_matrix(self.shape, node_status=node_status))
-
-    def _reset_list_of_active_links(self):
-        """
-        Assuming the active link list has already been created elsewhere, this
-        helper method checks link statuses (active/inactive) for internal
-        consistency after the BC status of some nodes has been changed.
-        """
-        super(StructuredModelGrid, self)._reset_list_of_active_links()
-        #if self._diagonal_links_created:
-        #    self._reset_list_of_active_diagonal_links()
+        self._active_link_ids = links.active_link_ids(self.shape, self._status)
 
     @property
     def shape(self):
@@ -160,13 +83,22 @@ class StructuredQuadModelGrid(ModelGrid):
         return self._shape
 
     @property
-    def number_of_interior_nodes(self):
-        """Number of interior nodes.
-
-        Returns the number of interior nodes on the grid, i.e., non-perimeter
-        nodes. Compare self.number_of_core_nodes.
+    def number_of_cells(self):
+        """Number of cells.
         """
-        return sgrid.interior_node_count(self.shape)
+        return self._num_cells
+
+    @property
+    def number_of_nodes(self):
+        """Number of nodes.
+        """
+        return self._num_nodes
+
+    @property
+    def number_of_core_nodes(self):
+        """Number of core nodes.
+        """
+        return self._num_core_nodes
 
     @property
     def number_of_node_columns(self):
@@ -199,8 +131,8 @@ class StructuredQuadModelGrid(ModelGrid):
         --------
         >>> import numpy as np
         >>> (x, y) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
-        >>> grid = StructuredModelGrid((x, y))
+        >>> grid = StructuredQuadModelGrid((x, y))
         >>> grid.corner_nodes
         array([ 0,  4, 15, 19])
         """
-        return sgrid.corners(self.shape)
+        return nodes.corners(self.shape)
