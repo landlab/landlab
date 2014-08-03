@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from .structured import StructuredModelGrid
+from .structured import StructuredQuadModelGrid
 
 
-class RectilinearModelGrid(StructuredModelGrid):
+class RectilinearModelGrid(StructuredQuadModelGrid):
     """
     Parameters
     ----------
@@ -19,8 +19,6 @@ class RectilinearModelGrid(StructuredModelGrid):
     >>> grid = RectilinearModelGrid((y, x))
     >>> grid.number_of_nodes
     20
-    >>> grid.number_of_interior_nodes
-    6
     >>> grid.number_of_core_nodes
     6
     >>> grid.number_of_node_rows
@@ -78,8 +76,6 @@ class UniformRectilinearModelGrid(RectilinearModelGrid):
     >>> grid = UniformRectilinearModelGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
     >>> grid.number_of_nodes
     20
-    >>> grid.number_of_interior_nodes
-    6
     >>> grid.number_of_core_nodes
     6
     >>> grid.number_of_node_rows
