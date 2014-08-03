@@ -1,6 +1,9 @@
 import numpy as np
 
 
+from . import nodes
+
+
 def shape_of_vertical_links(shape):
     """Shape of vertical link grid.
 
@@ -249,7 +252,7 @@ def number_of_out_links_per_node(shape):
     return link_count
 
 
-def node_out_link_ids(shape):
+def _node_out_link_ids(shape):
     """Link IDs for links leaving each node.
 
     Parameters
@@ -264,7 +267,7 @@ def node_out_link_ids(shape):
 
     Examples
     --------
-    >>> (vert, horiz) = node_out_link_ids((3, 4))
+    >>> (vert, horiz) = _node_out_link_ids((3, 4))
     >>> vert
     array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
@@ -285,7 +288,7 @@ def node_out_link_ids(shape):
     return node_vertical_link_ids, node_horizontal_link_ids
 
 
-def node_in_link_ids(shape):
+def _node_in_link_ids(shape):
     """Link IDs for links entering each node.
 
     Parameters
@@ -300,7 +303,7 @@ def node_in_link_ids(shape):
 
     Examples
     --------
-    >>> (vert, horiz) = node_in_link_ids((3, 4))
+    >>> (vert, horiz) = _node_in_link_ids((3, 4))
     >>> vert
     array([[-1, -1, -1, -1],
            [ 0,  1,  2,  3],
@@ -319,6 +322,80 @@ def node_in_link_ids(shape):
     node_vertical_link_ids[0, :] = -1
 
     return node_vertical_link_ids, node_horizontal_link_ids
+
+
+def node_in_link_ids(shape):
+    """Link IDs for links entering each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    tuple :
+        Tuple of array of link IDs as (vertical_links, horizontal_links).
+
+    Examples
+    --------
+    >>> (links, offset) = node_in_link_ids((3, 4))
+    >>> links
+    array([ 8,  9, 10,  0,  1, 11,  2, 12,  3, 13,  4,  5, 14,  6, 15,  7, 16])
+    >>> offset
+    array([ 0,  0,  1,  2,  3,  4,  6,  8, 10, 11, 13, 15, 17])
+
+    The links entering the 1st, 5th, and last node,
+
+    >>> for link in [0, 4, 11]: links[offset[link]:offset[link + 1]]
+    array([], dtype=int64)
+    array([0])
+    array([ 7, 16])
+    """
+    (in_vert, in_horiz) = _node_in_link_ids(shape)
+    node_link_ids = np.vstack((in_vert.flat, in_horiz.flat)).T
+    #offset = np.cumsum(number_of_in_links_per_node(shape))
+
+    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    np.cumsum(number_of_in_links_per_node(shape), out=offset[1:])
+    offset[0] = 0
+    return node_link_ids[node_link_ids >= 0], offset
+
+
+def node_out_link_ids(shape):
+    """Link IDs for links leaving each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    tuple :
+        Tuple of array of link IDs as (vertical_links, horizontal_links).
+
+    Examples
+    --------
+    >>> (links, offset) = node_out_link_ids((3, 4))
+    >>> links
+    array([ 0,  8,  1,  9,  2, 10,  3,  4, 11,  5, 12,  6, 13,  7, 14, 15, 16])
+    >>> offset
+    array([ 0,  2,  4,  6,  7,  9, 11, 13, 14, 15, 16, 17, 17])
+
+    The links leaving the 1st, 8th, and last node,
+
+    >>> for link in [0, 7, 11]: links[offset[link]:offset[link + 1]]
+    array([0, 8])
+    array([7])
+    array([], dtype=int64)
+    """
+    (out_vert, out_horiz) = _node_out_link_ids(shape)
+    node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
+    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    np.cumsum(number_of_out_links_per_node(shape), out=offset[1:])
+    offset[0] = 0
+    return node_link_ids[node_link_ids >= 0], offset
 
 
 def node_link_ids(shape):
@@ -341,20 +418,24 @@ def node_link_ids(shape):
     array([ 0,  8,  8,  1,  9,  9,  2, 10, 10,  3,  0,  4, 11,  1, 11,  5, 12,
             2, 12,  6, 13,  3, 13,  7,  4, 14,  5, 14, 15,  6, 15, 16,  7, 16])
     >>> offset
-    array([ 2,  5,  8, 10, 13, 17, 21, 24, 26, 29, 32, 34])
+    array([ 0,  2,  5,  8, 10, 13, 17, 21, 24, 26, 29, 32, 34])
 
     The links attached to node 0
 
-    >>> links[:offset[0]]
+    >>> links[offset[0]:offset[1]]
     array([0, 8])
 
     The links attached to node 5
 
-    >>> links[offset[4]:offset[5]]
+    >>> links[offset[5]:offset[6]]
     array([ 1, 11,  5, 12])
     """
-    (in_vert, in_horiz) = node_in_link_ids(shape)
-    (out_vert, out_horiz) = node_out_link_ids(shape)
+    (in_vert, in_horiz) = _node_in_link_ids(shape)
+    (out_vert, out_horiz) = _node_out_link_ids(shape)
     node_link_ids = np.vstack((in_vert.flat, in_horiz.flat, out_vert.flat, out_horiz.flat)).T
-    offset = np.cumsum(number_of_links_per_node(shape))
+
+    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    np.cumsum(number_of_links_per_node(shape), out=offset[1:])
+    offset[0] = 0
+
     return node_link_ids[node_link_ids >= 0], offset
