@@ -179,12 +179,73 @@ def number_of_links_per_node(shape):
     array([[2, 3, 3, 2],
            [3, 4, 4, 3],
            [2, 3, 3, 2]])
+    >>> (number_of_in_links_per_node((3, 4)) +
+    ...  number_of_out_links_per_node((3, 4)))
+    array([[2, 3, 3, 2],
+           [3, 4, 4, 3],
+           [2, 3, 3, 2]])
     """
     link_count = np.empty(shape, np.int)
     link_count[1:-1, 1:-1] = 4
     link_count[(0, -1), 1:-1] = 3
     link_count[1:-1, (0, -1)] = 3
     link_count[(0, 0, -1, -1), (0, -1, 0, -1)] = 2
+    return link_count
+
+
+def number_of_in_links_per_node(shape):
+    """Number of links entering each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Array of number of in-links per node.
+
+    Examples
+    --------
+    >>> number_of_in_links_per_node((3, 4))
+    array([[0, 1, 1, 1],
+           [1, 2, 2, 2],
+           [1, 2, 2, 2]])
+    """
+    link_count = np.empty(shape, np.int)
+    link_count[1:, 1:] = 2
+    link_count[0, 0] = 0
+    link_count[0, 1:] = 1
+    link_count[1:, 0] = 1
+    return link_count
+
+
+def number_of_out_links_per_node(shape):
+    """Number of links leaving each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Array of number of out-links per node.
+
+    Examples
+    --------
+    >>> number_of_out_links_per_node((3, 4))
+    array([[2, 2, 2, 1],
+           [2, 2, 2, 1],
+           [1, 1, 1, 0]])
+    """
+    link_count = np.empty(shape, np.int)
+    link_count[:-1, :-1] = 2
+    link_count[-1, -1] = 0
+    link_count[-1, :-1] = 1
+    link_count[:-1, -1] = 1
     return link_count
 
 
