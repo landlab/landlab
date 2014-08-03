@@ -65,3 +65,25 @@ def node_id_at_cells(shape):
     """
     node_ids = nodes.node_ids(shape)
     return node_ids[1:-1, 1:-1].copy().reshape(shape_of_cells(shape))
+
+
+def cell_ids(shape):
+    """IDs of all cells.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    int :
+        ID of node associated with each cell.
+
+    Examples
+    --------
+    >>> cell_ids((3, 4))
+    array([[0, 1]])
+    """
+    return np.arange(number_of_cells(shape)).reshape(shape_of_cells(shape))
+
