@@ -47,9 +47,31 @@ class HexModelGrid(VoronoiDelaunayGrid):
             print 'HexModelGrid._initialize('+str(num_rows)+', ' \
                    +str(base_num_cols)+', '+str(dx)+')'
         
+        # Create a set of hexagonally arranged points. These will be our nodes.
         [pts, self._num_nodes] = self.make_hex_points(num_rows, base_num_cols, dx)
+        
+        # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
+        # the nodes into a grid.
         super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
         
+        # Remember grid spacing
+        self._dx = dx
+
+    def _setup_cell_areas_array(self):
+        """
+        Creates and returns an array containing the surface areas of the 
+        hexagonal (Voronoi) cells.
+        
+        These cells are perfect hexagons in which the apothem is dx/2. The
+        formula for area is:
+        
+        .. math::
+        
+            A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
+        """
+        self._cell_areas = 0.8660254*self._dx**2 + numpy.zeros(self.number_of_cells)
+        return self._cell_areas
+                           
     @staticmethod
     def make_hex_points(num_rows, base_num_cols, dxh):
         """

@@ -31,7 +31,9 @@ Download and follow the appropriate instructions for your operating
 system/distribution.
 
 On Linux systems, you can also install Python and the landlab dependencies
-from your package manager.
+from your package manager. If you're running Linux but aren't that familiar
+with handling Python packages in it, :ref:`this <dan_installs_on_linux>`
+might help.
 
 Landlab uses `setuptools <https://pypi.python.org/pypi/setuptools>`_ for
 packaging and is configured to automatically download and install the most

@@ -35,13 +35,13 @@ def main():
     mg = RasterModelGrid(numrows, numcols, dx)
     
     # Set the boundary conditions
-    mg.set_inactive_boundaries(False, False, True, True)
+    mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     # Set up scalar values
     z = mg.add_zeros('node', 'Elevation')            # node elevations
     
-    # Get a list of the interior cells
-    interior_cells = mg.get_active_cell_node_ids()
+    # Get a list of the core cells
+    core_cells = mg.get_core_cell_node_ids()
 
     # Display a message, and record the current clock time
     print( 'Running diffusion_with_model_grid.py' )
@@ -64,19 +64,21 @@ def main():
         dzdt = uplift_rate - dqsds
             
         # Update the elevations
-        z[interior_cells] = z[interior_cells] + dzdt[interior_cells] * dt
+        z[core_cells] = z[core_cells] + dzdt[core_cells] * dt
 
 
     # FINALIZE
 
     # Get a 2D array version of the elevations
-    zr = mg.node_vector_to_raster(z, flip_vertically=True)
+    zr = mg.node_vector_to_raster(z)
     
     # Create a shaded image
     pylab.close()  # clear any pre-existing plot
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
+    im = pylab.imshow(zr, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx],
+                      origin='lower')
     # add contour lines with labels
-    cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0], hold='on')
+    cset = pylab.contour(zr, extent=[0,numcols*dx,numrows*dx,0], hold='on',
+                         origin='image')
     pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
     
     # add a color bar on the side
@@ -90,7 +92,7 @@ def main():
 
     # Display the plot
     pylab.show()
-    print('Run time = '+str(time.time()-start_time))
+    print('Run time = '+str(time.time()-start_time)+' seconds')
 
 if __name__ == "__main__":
     main()

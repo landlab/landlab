@@ -4,7 +4,7 @@ Python implementation of ModelGrid, a class used to
 create and manage grids for 2D numerical models.
 
 First version GT, July 2010
-Last modified August 2013
+Last modified May 2014
 """
 
 import numpy
@@ -28,26 +28,26 @@ _ARRAY_LENGTH_ATTRIBUTES = {
     'cell': 'number_of_cells',
     'link': 'number_of_links',
     'face': 'number_of_faces',
-    'active_node': 'number_of_active_nodes',
-    'active_cell': 'number_of_active_cells',
+    'core_node': 'number_of_core_nodes',
+    'core_cell': 'number_of_core_cells',
     'active_link': 'number_of_active_links',
     'active_face': 'number_of_active_faces',
 }
 
 # Define the boundary-type codes
-INTERIOR_NODE = 0
+CORE_NODE = 0
 FIXED_VALUE_BOUNDARY = 1
 FIXED_GRADIENT_BOUNDARY = 2
 TRACKS_CELL_BOUNDARY = 3
 
-#: Indicates that a boundary node is *inactive*
-INACTIVE_BOUNDARY = 4
+#: Indicates that a boundary node is *closed*
+CLOSED_BOUNDARY = 4
 
 BOUNDARY_STATUS_FLAGS_LIST = [
     FIXED_VALUE_BOUNDARY,
     FIXED_GRADIENT_BOUNDARY,
     TRACKS_CELL_BOUNDARY,
-    INACTIVE_BOUNDARY,
+    CLOSED_BOUNDARY,
 ]
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
@@ -144,17 +144,41 @@ class ModelGrid(ModelDataFields):
         return self.cell_node
 
     @property
-    @deprecated
     def active_nodes(self):
-        """Node IDs of all active nodes"""
-        (active_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
+        """
+        Node IDs of all active (core & open boundary) nodes.
+        core_nodes will return just core nodes.
+        """
+        (active_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
         return active_node_ids
+
+    @property
+    def core_nodes(self):
+        """
+        Node IDs of all core nodes.
+        """
+        try:
+            return self._core_nodes
+        except:
+            (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
+            return core_node_ids
+
+    @property
+    def boundary_nodes(self):
+        """
+        Node IDs of all boundary nodes.
+        """
+        try:
+            return self._boundary_nodes
+        except:
+            (boundary_node_ids, ) = numpy.where(self.node_status != CORE_NODE)
+            return boundary_node_ids
 
     @property
     def node_boundary_status(self):
         """
         Node BC status codes for all nodes:
-            0: interior, active node
+            0: core (nonboundary) node
             1: fixed value open boundary
             2: fixed gradient open boundary
             3: looped open boundary
@@ -164,17 +188,23 @@ class ModelGrid(ModelDataFields):
 
     @property
     def open_nodes(self):
-        """Node id for all nodes not marked as a closed boundary"""
-        (open_node_ids, ) = numpy.where(self.node_status != INACTIVE_BOUNDARY)
+        """
+        .. deprecated:: 0.6
+            This terminology is no longer preferred, "active_nodes" is a synonym.
+            
+        Node id for all nodes not marked as a closed boundary
+        """
+        (open_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
         return open_node_ids
     
     @property
     def open_boundary_nodes(self):
-        """Node id of all open boundary nodes.
+        """
+        Node id of all open boundary nodes.
         """
         (open_boundary_node_ids, ) = numpy.where(
-            (self.node_status != INACTIVE_BOUNDARY) &
-            (self.node_status != INTERIOR_NODE))
+            (self.node_status != CLOSED_BOUNDARY) &
+            (self.node_status != CORE_NODE))
         return open_boundary_node_ids
     
     @property
@@ -182,7 +212,7 @@ class ModelGrid(ModelDataFields):
         """Node id of all closed boundary nodes.
         """
         (closed_boundary_node_ids, ) = numpy.where(
-            self.node_status == INACTIVE_BOUNDARY)
+            self.node_status == CLOSED_BOUNDARY)
         return closed_boundary_node_ids
     
     @property
@@ -196,19 +226,57 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_active_cells(self):
-        """Node ID associated with active grid cells"""
-        (active_cell_ids, ) = numpy.where(self.node_status == INTERIOR_NODE)
+        """
+        .. deprecated:: 0.6
+            Deprecated due to out-of-date terminology; 
+            use :func:`node_index_at_core_cells` for an exact equivalent.
+        Node ID associated with active grid cells
+        """
+        (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return active_cell_ids
 
     @property
+    def node_index_at_core_cells(self):
+        """
+        Node ID associated with core grid cells
+        """
+        (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
+        return core_cell_ids
+
+    @property
     def active_cell_index_at_nodes(self):
-        """Active cell ID associated with grid nodes"""
+        """
+        .. deprecated:: 0.6
+            "active" terminology now superceded by "core", unless explicitly
+            referring to the open boundaries as well as core cells.
+            
+        Active cell ID associated with grid nodes.
+        """
         return self.node_activecell
 
     @property
     def active_cell_index(self):
-        """IDs of active cells"""
+        """
+        .. deprecated:: 0.6
+            "active" terminology now superceded by "core", unless explicitly
+            referring to the open boundaries as well as core cells.
+        IDs of active cells
+        """
         return self.active_cells
+    
+    @property
+    def core_cell_index_at_nodes(self):
+        """
+        Core cell ID associated with grid nodes.
+        """
+        return self.node_corecell
+        
+    @property
+    def core_cell_index(self):
+        """
+        IDs of core cells
+        """
+        return self.core_cells
 
     @property
     def node_index_at_link_head(self):
@@ -247,13 +315,29 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_active_nodes(self):
-        """Number of active nodes in the grid"""
+        """Number of active nodes in the grid (i.e., core + open boundary)"""
         return self._num_active_nodes
+    
+    @property
+    def number_of_core_nodes(self):
+        """Number of core nodes in the grid (i.e., not boundaries)"""
+        return self._num_core_nodes
 
     @property
     def number_of_active_cells(self):
-        """Number of active cells in the grid"""
+        """
+        Number of active cells in the grid (includes any possible
+        boundary cells)
+        """
         return self._num_active_cells
+    
+    @property
+    def number_of_core_cells(self):
+        """
+        Number of core cells in the grid (excludes all boundary cells).
+        """
+        return self._num_core_cells
+        
 
     @property
     def number_of_active_links(self):
@@ -272,8 +356,8 @@ class ModelGrid(ModelDataFields):
             * cell
             * link
             * face
-            * active_node
-            * active_cell
+            * core_node
+            * core_cell
             * active_link
             * active_face
         """
@@ -283,10 +367,21 @@ class ModelGrid(ModelDataFields):
             raise TypeError('element name not understood')
 
     def get_interior_nodes(self):
-        """Return node IDs of all of a grids interior nodes. Interior nodes
+        """
+        .. deprecated:: 0.6
+            Deprecated due to outdated terminology;
+            use :func:`core_nodes` instead.
+            
+        Return node IDs of all of a grid's interior nodes. Interior nodes
         are active nodes that are not on a boundary.
         """
-        return numpy.where(self.node_status == INTERIOR_NODE)[0]
+        return numpy.where(self.node_status == CORE_NODE)[0]
+
+    def get_core_nodes(self):
+        """
+        Return node IDs of all of a grid's core nodes.
+        """
+        return self.core_nodes
 
     @make_return_array_immutable
     def get_node_status(self):
@@ -350,7 +445,21 @@ class ModelGrid(ModelDataFields):
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array.
+        create and return a 1D numpy array. This is the primary method for
+        loading your data into the grid fields.
+        
+        Example of loading data:
+            >>> rmg = RasterModelGrid(4,5)
+            >>> mydata = numpy.arange(20, dtype=float)
+            >>> rmg.create_node_array_zeros('planet_surface__elevation')
+            array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                    0.,  0.,  0.,  0.,  0.,  0.,  0.])
+            >>> rmg.at_node['planet_surface__elevation'] = mydata
+            >>> rmg.at_node['planet_surface__elevation']
+            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
+            
+            
         """
         if name is None:
             return numpy.zeros(self.number_of_nodes)
@@ -421,6 +530,9 @@ class ModelGrid(ModelDataFields):
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
 
     @track_this_method
@@ -468,6 +580,7 @@ class ModelGrid(ModelDataFields):
         """
         .. deprecated:: 0.1
             Use :func:`calculate_gradients_at_active_links`
+        
         Calculates the gradient in quantity s at each active link in the grid.
         """
         if gradient==None:
@@ -503,6 +616,10 @@ class ModelGrid(ModelDataFields):
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
         """
+        .. deprecated:: 0.6
+            Uses outdated terminology; use the exact equivalent
+            :func:`calculate_flux_divergence_at_core_nodes` instead.
+            
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
         net_unit_flux.
@@ -595,11 +712,109 @@ class ModelGrid(ModelDataFields):
                 
         return net_unit_flux
         
+        
+    def calculate_flux_divergence_at_core_nodes(self, active_link_flux, 
+                                                  net_unit_flux=None):
+        """
+        Given an array of fluxes along links, computes the net total flux
+        within each cell, divides by cell area, and stores the result in
+        net_unit_flux.
+        
+        The function works by calling calculate_flux_divergence_at_nodes, then
+        slicing out only the values at core nodes. Therefore, it is slower
+        than calculate_flux_divergence_at_nodes, even though it returns a
+        shorter list of numbers.
+        
+        The input active_link_flux should be flux of
+        something (e.g., mass, momentum, energy) per unit face width, positive
+        if flowing in the same direction as its link, and negative otherwise.
+        There should be one value per active link. Returns an array of net
+        total flux per unit area, one value per core node (creates this
+        array if it is not given as an argument).
+          By convention, divergence is positive for net outflow, and negative 
+        for net outflow. That's why we *add* outgoing flux and *subtract* 
+        incoming flux. This makes net_unit_flux have the same sign and 
+        dimensions as a typical divergence term in a conservation equation.
+
+        In general, for a polygonal cell with $N$ sides of lengths
+        Li and with surface area A, the net influx divided by cell
+        area would be:
+            .. math::
+                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+
+        For a square cell, which is what we have in RasterModelGrid,
+        the sum is over 4 sides of length dx, and
+        :math:`A = dx^2`, so:
+            .. math::
+                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
+
+        .. note::
+            The net flux is defined as positive outward, negative
+            inward. In a diffusion problem, for example, one would use:
+                .. math::
+                    {du \over dt} = \\text{source} - \\text{fd}
+            where fd is "flux divergence".
+            
+        Example:
+            
+            >>> from landlab import RasterModelGrid
+            >>> rmg = RasterModelGrid(4, 5, 1.0)
+            >>> u = [0., 1., 2., 3., 0.,
+            ...      1., 2., 3., 2., 3.,
+            ...      0., 1., 2., 1., 2.,
+            ...      0., 0., 2., 2., 0.]
+            >>> u = numpy.array(u)
+            >>> grad = rmg.calculate_gradients_at_active_links(u)
+            >>> grad
+            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                    1.,  1., -1.,  1.])
+            >>> flux = -grad    # downhill flux proportional to gradient
+            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
+            >>> divflux
+            array([ 2.,  4., -2.,  0.,  1., -4.])
+            
+        If calculate_gradients_at_core_nodes is called inside a loop, you can
+        improve speed slightly by creating an array outside the loop. For 
+        example, do this once, before the loop:
+            
+            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+            
+        Then do this inside the loop:
+            
+            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
+            
+        In this case, the function will not have to create the divflux array.
+        
+        Note this method is untested with looped boundary conditions.
+        """
+        
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
+            
+        assert (len(active_link_flux) == self.number_of_active_links), \
+               "incorrect length of active_link_flux array"
+            
+        # If needed, create net_unit_flux array
+        if net_unit_flux is None:
+            net_unit_flux = numpy.zeros(self.number_of_core_nodes)
+        else:
+            net_unit_flux[:] = 0.
+            
+        assert (len(net_unit_flux)) == self.number_of_core_nodes
+        
+        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
+                
+        net_unit_flux = node_net_unit_flux[self.corecell_node]
+                
+        return net_unit_flux
+
+
     def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
                                                   net_unit_flux=False):
         """
         .. deprecated:: 0.1
             Use :func:`calculate_flux_divergence_at_active_cells`
+            
         Original, slower version of calculate_flux_divergence_at_active_cells, 
         using a for-loop instead of simply calling the node-based version of
         the method. Kept here as illustration of what the method is intended
@@ -639,7 +854,7 @@ class ModelGrid(ModelDataFields):
             active_link_id += 1
         
         # Divide by cell area
-        net_unit_flux = net_unit_flux / self.active_cell_areas
+        net_unit_flux = net_unit_flux / self._cell_areas
         
         return net_unit_flux
 
@@ -662,45 +877,7 @@ class ModelGrid(ModelDataFields):
         return gfuncs.calculate_flux_divergence_at_nodes(self, active_link_flux,
                                                         out=out)
         
-    def calculate_flux_divergence_at_nodes_slow(self, active_link_flux, 
-                                           net_unit_flux=False):
-        """
-        This is the original, slower, for-loop-based version. We keep it here
-        just as an illustration of what the flux divergence functions are 
-        meant to do.
-        """
-        
-        assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux==False:
-            net_unit_flux = numpy.zeros(self.number_of_nodes)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert (len(net_unit_flux)) == self.number_of_nodes
-        
-        # For each active link, add up the flux out of the "from" cell and 
-        # into the "to" cell.
-        active_link_id = 0
-        for link_id in self.active_link_ids:
-            from_node = self.link_fromnode[link_id]
-            from_cenode_activecell[from_node]
-            to_node = self.link_tonode[link_id]
-            to_cell = self.node_activecell[to_node]
-            total_flux = active_link_flux[active_link_id] * \
-                         self.face_width[self.link_face[link_id]]
-            if from_cell != BAD_INDEX_VALUE:
-                net_unit_flux[from_node] += total_flux / \
-                                            self.active_cell_areas[from_cell]
-            if to_cell != BAD_INDEX_VALUE:
-                net_unit_flux[to_node] -= total_flux / \
-                                          self.active_cell_areas[to_cell]
-            active_link_id += 1
-        
-        return net_unit_flux
-        
+                        
     @property
     @make_return_array_immutable
     def cell_areas(self):
@@ -715,7 +892,7 @@ class ModelGrid(ModelDataFields):
             time cell areas are requested.
         """
         try:
-            return self.active_cell_areas
+            return self._cell_areas
         except AttributeError:
             return self._setup_cell_areas_array()
 
@@ -733,6 +910,16 @@ class ModelGrid(ModelDataFields):
         except AttributeError:
             return self._setup_cell_areas_array_force_inactive()    
             
+    @property
+    def face_widths(self):
+        """
+        Returns an array of face widths.
+        """
+        try:
+            return self._face_widths
+        except:
+            return self._setup_face_widths()
+    
     def _setup_cell_areas_array_force_inactive(self):
         '''
         Sets up an array of cell areas which is nnodes long. Nodes which have 
@@ -749,9 +936,19 @@ class ModelGrid(ModelDataFields):
 
     def get_active_cell_node_ids( self ):
         """
-        Returns an integer vector of the node IDs of all active cells.
+        Returns an integer vector of the node IDs of all active (i.e., core +
+        open boundary) cells.
+        get_core_cell_node_ids may be preferable.
         """
         return self.activecell_node
+        
+        
+    def get_core_cell_node_ids( self ):
+        """
+        Returns an integer vector of the node IDs of all core cells.
+        """
+        return self.corecell_node
+
         
     def get_active_link_connecting_node_pair(self, node1, node2):
         """
@@ -853,10 +1050,10 @@ class ModelGrid(ModelDataFields):
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
 
-        active_links = (((fromnode_status == INTERIOR_NODE) & ~
-                         (tonode_status == INACTIVE_BOUNDARY)) |
-                        ((tonode_status == INTERIOR_NODE) & ~
-                         (fromnode_status == INACTIVE_BOUNDARY)))
+        active_links = (((fromnode_status == CORE_NODE) & ~
+                         (tonode_status == CLOSED_BOUNDARY)) |
+                        ((tonode_status == CORE_NODE) & ~
+                         (fromnode_status == CLOSED_BOUNDARY)))
 
         (self.active_link_ids, ) = numpy.where(active_links)
 
@@ -870,7 +1067,11 @@ class ModelGrid(ModelDataFields):
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """
-        Sets self.node_status to INACTIVE_BOUNDARY for all nodes whose value of
+        .. deprecated:: 0.6
+            Deprecated due to out of date terminology;
+            use :func:`set_nodata_nodes_to_closed` instead.
+            
+        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
         node_data is equal to the nodata_value.
         
         Example:
@@ -884,15 +1085,35 @@ class ModelGrid(ModelDataFields):
             >>> mg.node_status
             array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+    
+    
+    def set_nodata_nodes_to_closed(self, node_data, nodata_value):
+        """
+        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
+        node_data is equal to the nodata_value.
+        
+        Example:
+            
+            >>> import landlab as ll
+            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+            >>> mg.node_status
+            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+            >>> mg.set_nodata_nodes_to_closed(h, -9999)
+            >>> mg.node_status
+            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        """
         
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
-        self.node_status[nodata_locations] = INACTIVE_BOUNDARY
+        self.node_status[nodata_locations] = CLOSED_BOUNDARY
         
         # Recreate the list of active cell IDs
         node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status == INTERIOR_NODE)]
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         
         # Recreate the list of active links
         self._reset_list_of_active_links()
@@ -1037,8 +1258,8 @@ class ModelGrid(ModelDataFields):
         import matplotlib.pyplot as plt
         
         # Plot nodes, colored by boundary vs interior
-        plt.plot(self._node_x[self.interior_nodes], 
-                 self._node_y[self.interior_nodes], 'go')
+        plt.plot(self._node_x[self.core_nodes], 
+                 self._node_y[self.core_nodes], 'go')
         plt.plot(self._node_x[self.boundary_nodes], 
                  self._node_y[self.boundary_nodes], 'ro')
                  
@@ -1074,7 +1295,7 @@ class ModelGrid(ModelDataFields):
         *boundary_flag* to specify a particular boundary type status flag.
         """
         if boundary_flag is None:
-            return ~ (self.node_status[ids] == INTERIOR_NODE)
+            return ~ (self.node_status[ids] == CORE_NODE)
         else:
             return self.node_status[ids] == boundary_flag
     
@@ -1111,18 +1332,22 @@ class ModelGrid(ModelDataFields):
         dy = self._node_y[self.boundary_nodes] - numpy.mean(self._node_y)
 
         return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
-        
+
+                
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
         """
+        .. deprecated:: 0.6
+            Due to imprecise terminology. Use :func:`set_closed_boundaries`
+            instead.
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
         left are inactive (True) or not (False).
         
         For an inactive boundary:
-            - the nodes are flagged INACTIVE_BOUNDARY
-            - the links between them and the adjacent interior nodes are
+            - the nodes are flagged CLOSED_BOUNDARY
+            - the links between them and the adjacent core nodes are
               inactive (so they appear on link-based lists, but not
               active_link-based lists)
               
@@ -1130,7 +1355,7 @@ class ModelGrid(ModelDataFields):
         method, the inactive boundaries will be ignored: there can be no
         gradients or fluxes calculated, because the links that connect to that
         edge of the grid are not included in the calculation. So, setting a
-        grid edge to INACTIVE_BOUNDARY is a convenient way to impose a no-flux
+        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
         boundary condition. Note, however, that this applies to the grid as a
         whole, rather than a particular variable that you might use in your
         application. In other words, if you want a no-flux boundary in one
@@ -1160,33 +1385,49 @@ class ModelGrid(ModelDataFields):
                 self._assign_boundary_nodes_to_grid_sides()
             
         if bottom_is_inactive:
-            self.node_status[bottom_edge] = INACTIVE_BOUNDARY
+            self.node_status[bottom_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
-            self.node_status[right_edge] = INACTIVE_BOUNDARY
+            self.node_status[right_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
             
         if top_is_inactive:
-            self.node_status[top_edge] = INACTIVE_BOUNDARY
+            self.node_status[top_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_inactive:
-            self.node_status[left_edge] = INACTIVE_BOUNDARY
+            self.node_status[left_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
-        
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]        
         self._reset_list_of_active_links()
 
     def set_inactive_nodes(self, nodes):
         """
+        .. deprecated:: 0.6
+            Outdated terminology. Use :func:`set_closed_nodes` instead.
         Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
         """
-        self.node_status[nodes] = INACTIVE_BOUNDARY
+        self.set_closed_nodes(nodes)
+        
+        
+    def set_closed_nodes(self, nodes):
+        """
+        Sets the given nodes' boundary condition statuses to CLOSED (==4),
+        and resets the list of active links to reflect any changes.
+        """
+        self.node_status[nodes] = CLOSED_BOUNDARY
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None, node_subset=numpy.nan, out_distance=None, out_azimuth=None):
@@ -1215,10 +1456,7 @@ class ModelGrid(ModelDataFields):
         "accidentally" allow Python to allocate a new array you don't have
         control over.
         Then, to maintain efficient memory allocation, we create some "dummy"
-        nnode-long arrays to store intermediate parts of the solution in. We 
-        don't want these getting garbage collected in between each run, however,
-        with the attendant array creation costs. Thus we make them global
-        variables. Usefully, they can also be exploited by other methods!
+        nnode-long arrays to store intermediate parts of the solution in.
         """
         assert isinstance(tuple_xy, tuple)
         assert len(tuple_xy) == 2
@@ -1232,26 +1470,11 @@ class ModelGrid(ModelDataFields):
             if type(node_subset) == int:
                 node_subset = numpy.array([node_subset])
         
-        try:
-            #have we created this array before?
-            azimuths_as_displacements
-        except:
-            global azimuths_as_displacements
-            azimuths_as_displacements = numpy.empty((2, self.number_of_nodes))
-        try:
-            dummy_nodes_1 #these are arrays we can use for data storage if we're handling "nonstandard" length data arrays
-            dummy_nodes_2
-            dummy_nodes_3
-            dummy_bool
-        except:
-            global dummy_nodes_1
-            global dummy_nodes_2
-            global dummy_nodes_3
-            global dumy_bool
-            dummy_nodes_1 = numpy.empty(self.number_of_nodes)
-            dummy_nodes_2 = numpy.empty(self.number_of_nodes)
-            dummy_nodes_3 = numpy.empty(self.number_of_nodes)
-            dummy_bool = numpy.empty(self.number_of_nodes, dtype=bool)
+        azimuths_as_displacements = numpy.empty((2, self.number_of_nodes))
+        dummy_nodes_1 = numpy.empty(self.number_of_nodes)
+        dummy_nodes_2 = numpy.empty(self.number_of_nodes)
+        dummy_nodes_3 = numpy.empty(self.number_of_nodes)
+        dummy_bool = numpy.empty(self.number_of_nodes, dtype=bool)
         
         if out_distance is None:
             try:

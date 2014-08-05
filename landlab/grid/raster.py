@@ -14,9 +14,9 @@ from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
 from . import grid_funcs as gfuncs
-from .base import (INTERIOR_NODE, FIXED_VALUE_BOUNDARY,
+from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   INACTIVE_BOUNDARY, BAD_INDEX_VALUE, )
+                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
 from . import raster_funcs as rfuncs
 
 
@@ -31,13 +31,13 @@ def node_has_boundary_neighbor(mg, id):
     '''
     for neighbor in mg.get_neighbor_list(id):
         try:
-            if mg.node_status[neighbor] != INTERIOR_NODE:
+            if mg.node_status[neighbor] != CORE_NODE:
                 return True
         except IndexError:
             pass
     for neighbor in mg.get_diagonal_list(id):
         try:
-            if mg.node_status[neighbor] != INTERIOR_NODE:
+            if mg.node_status[neighbor] != CORE_NODE:
                 return True
         except IndexError:
             pass
@@ -144,9 +144,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             (20, 6, 31, 17)
             >>> rmg.node_status
             array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-            >>> rmg.node_activecell[3] == ll.BAD_INDEX_VALUE
+            >>> rmg.node_corecell[3] == ll.BAD_INDEX_VALUE
             True
-            >>> rmg.node_activecell[8]
+            >>> rmg.node_corecell[8]
             2
             >>> rmg.node_numinlink
             array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
@@ -204,6 +204,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._num_cells = sgrid.cell_count(self.shape)
         self._num_active_cells = self.number_of_cells
+        
+        self._num_core_nodes = self.number_of_cells
+        self._num_core_cells = self.number_of_cells
 
         self._num_links = sgrid.link_count(self.shape)
         self._num_active_links = sgrid.active_link_count(self.shape)
@@ -272,8 +275,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # or None if it has no associated active cell (i.e., it is a boundary)
         self.cell_node = sgrid.node_index_at_cells(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
+        self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
+        self.core_cells = sgrid.core_cell_index(self.shape)
         self.activecell_node = self.cell_node.copy()
+        self.corecell_node = self.cell_node
         #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
@@ -342,9 +348,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This method supports the creation of the array that stores cell areas.
         It is not meant to be called manually.
         '''
-        self.active_cell_areas = numpy.empty(self.number_of_active_cells)
-        self.active_cell_areas.fill(self._dx ** 2)
-        return self.active_cell_areas
+        self._cell_areas = numpy.empty(self.number_of_cells)
+        self._cell_areas.fill(self._dx ** 2)
+        return self._cell_areas
     
     def _setup_cell_areas_array_force_inactive(self):
         '''
@@ -405,31 +411,78 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def active_node_links(self, *args):
         """active_node_links([node_ids])
-
-        Returns the ids of links attached to active grid nodes with
+        
+        .. deprecated:: 0.6
+            Deprecated due to confusing terminology.
+            Use :func:`node_activelinks` instead.
+        
+        Returns the ids of active links attached to grid nodes with
         *node_ids*. If *node_ids* is not given, return links for all of the
         nodes in the grid. Link ids are listed in clockwise order starting
         with the south link. Diagonal links are never returned.
         """
+        return self.node_activelinks(*args)
+
+
+    def node_activelinks(self, *args):
+        """node_activelinks([node_ids])
+        
+        Parameters
+        ----------
+        node_ids : int or list of ints
+                   ID(s) of node(s) for which to find connected active links
+        
+        Returns
+        -------
+        1d numpy array
+            The ids of active links attached to grid nodes with
+            *node_ids*. If *node_ids* is not given, return links for all of the
+            nodes in the grid. Link ids are listed in clockwise order starting
+            with the south link. Diagonal links are never returned.
+        
+        Example
+        -------
+        
+            >>> rmg = RasterModelGrid(3, 4)
+            >>> rmg.node_activelinks(5, 6)
+            array([[0, 1],
+                   [4, 5],
+                   [2, 3],
+                   [5, 6]])
+        """
         if len(args) > 1:
             raise ValueError('only zero or one arguments accepted')
 
+        # Test whether the caller gave us an argument
         try:
-            node_ids = args[0]
-        except IndexError: #return all nodes
-            return numpy.vstack((self.node_active_inlink_matrix,
+            node_ids = args[0]   # is there at least one argument?
+        except IndexError: # if not, return all nodes
+            return np.vstack((self.node_active_inlink_matrix,
                                  self.node_active_outlink_matrix))
-        else:
-            try:
-                float(node_ids) #single number (need to alter stacking)
+        else:  # if there is an argument ...
+            try:   # determine whether it's a single number
+                float(node_ids) # single number (need to convert to list)
             except:
+                # In this case, node_ids is a list or array. Select those columns
+                # in the active_inlink and outlink matrices listed in node_ids.
+                # The take() method does this. Then put the two together vertically.
+                # The result is an RxC array whose columns represent nodes we
+                # are interested in, and whose rows are IDs of the various
+                # connected active links, or -1 where no active link enters that side.
+                # Each column therefore is the list of connected active links
+                # for a particular node.
                 return numpy.vstack(
                     (self.node_active_inlink_matrix.take(node_ids, axis=1),
                     self.node_active_outlink_matrix.take(node_ids, axis=1)))
             else:
-                return numpy.hstack(
+                # In this case, we have just a single node. We stack together 
+                # horizontally its inlinks and outlinks to form a 1D array.
+                # Then we "vstack" this array to make it 2D, with one column
+                # and 4 rows.
+                return np.vstack( numpy.hstack(
                     (self.node_active_inlink_matrix.take(node_ids, axis=1),
-                    self.node_active_outlink_matrix.take(node_ids, axis=1)))
+                    self.node_active_outlink_matrix.take(node_ids, axis=1))))
+
 
     def _setup_inlink_and_outlink_matrices(self):
         """
@@ -490,7 +543,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         of active links (only).
         """ 
 
-        node_status = self.node_status != INACTIVE_BOUNDARY
+        node_status = self.node_status != CLOSED_BOUNDARY
 
         (self.node_active_inlink_matrix,
          self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
@@ -521,10 +574,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diag_fromnode_status = self.node_status[self._diag_link_fromnode]
         diag_tonode_status = self.node_status[self._diag_link_tonode]
         
-        diag_active_links = (((diag_fromnode_status == INTERIOR_NODE) & ~
-                              (diag_tonode_status == INACTIVE_BOUNDARY)) |
-                             ((diag_tonode_status == INTERIOR_NODE) & ~
-                              (diag_fromnode_status == INACTIVE_BOUNDARY)))
+        diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
+                              (diag_tonode_status == CLOSED_BOUNDARY)) |
+                             ((diag_tonode_status == CORE_NODE) & ~
+                              (diag_fromnode_status == CLOSED_BOUNDARY)))
 
         (_diag_active_links, ) = numpy.where(diag_active_links)
 
@@ -632,9 +685,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     def number_of_interior_nodes(self):
         """
-        Returns the number of interior nodes on the grid.
+        Returns the number of interior nodes on the grid, i.e., non-perimeter
+        nodes. Compare self.number_of_core_nodes.
         """
         return sgrid.interior_node_count(self.shape)
+    
+    @property
+    def number_of_core_nodes(self):
+        """
+        The number of core nodes on the grid (i.e., excluding all boundary
+        nodes).
+        """
+        return self._num_core_nodes
 
     @property
     def number_of_nodes(self):
@@ -718,10 +780,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
     def snap_coords_to_grid(self, xcoord, ycoord):
         '''
+        .. deprecated:: 0.6
+            :func:`find_nearest_node` is equivalent, and faster.
+        
         This method takes existing coordinates, inside the grid, and returns
-        the ID of the closest grid node. That node can be active or inactive.
+        the ID of the closest grid node. That node can be a boundary node.
         DEJH, 9/24/13.
-        :::Depreciated in favor of self.find_nearest_node(coords)
         '''
         #This testing suppressed for speed. While suppressed, coordinates provided MUST be within the grid or silent instability will occur.
         #if type(xcoord) == int:
@@ -1080,7 +1144,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         slopes = []
         diagonal_dx = numpy.sqrt(2.)
         for a in neighbor_nodes:
-            if self.node_status[a] != INACTIVE_BOUNDARY:
+            if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/self.dx
             else:
                 single_slope = -9999
@@ -1096,7 +1160,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 print 'NaNs present in the grid!'
         for a in diagonal_nodes:
-            if self.node_status[a] != INACTIVE_BOUNDARY:
+            if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/diagonal_dx
             else:
                 single_slope = -9999
@@ -1159,7 +1223,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #print 'Neighbor cells: ', neighbor_cells
         slopes = []
         for a in neighbor_nodes:
-            if self.node_status[a] != INACTIVE_BOUNDARY:
+            if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/self.dx
             else:
                 single_slope = -9999
@@ -1201,13 +1265,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
         """
+        .. deprecated:: 0.6
+            Due to imprecise terminology. Use 
+        :func:`set_closed_boundaries_at_grid_edges` instead.
+        
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
         left are inactive (True) or not (False).
         
         For an inactive boundary:
-            - the nodes are flagged INACTIVE_BOUNDARY (normally status type 4)
+            - the nodes are flagged CLOSED_BOUNDARY (normally status type 4)
             - the links between them and the adjacent interior nodes are
               inactive (so they appear on link-based lists, but not
               active_link-based lists)
@@ -1216,7 +1284,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         method, the inactive boundaries will be ignored: there can be no
         gradients or fluxes calculated, because the links that connect to that
         edge of the grid are not included in the calculation. So, setting a
-        grid edge to INACTIVE_BOUNDARY is a convenient way to impose a no-flux
+        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
         boundary condition. Note, however, that this applies to the grid as a
         whole, rather than a particular variable that you might use in your
         application. In other words, if you want a no-flux boundary in one
@@ -1259,35 +1327,194 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                           self.number_of_node_columns)
             
         if bottom_is_inactive:
-            self.node_status[bottom_edge] = INACTIVE_BOUNDARY
+            self.node_status[bottom_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
-            self.node_status[right_edge] = INACTIVE_BOUNDARY
+            self.node_status[right_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
             
         if top_is_inactive:
-            self.node_status[top_edge] = INACTIVE_BOUNDARY
+            self.node_status[top_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_inactive:
-            self.node_status[left_edge] = INACTIVE_BOUNDARY
+            self.node_status[left_edge] = CLOSED_BOUNDARY
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
         
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
+        self._reset_list_of_active_links()
+        
+        
+    def set_closed_boundaries_at_grid_edges(self, bottom_is_closed, 
+                                right_is_closed, 
+                                top_is_closed,
+                                left_is_closed):
+        """
+        Sets the status of nodes along the specified side(s) of a raster 
+        grid---bottom, right, top, and/or left---to CLOSED_BOUNDARY.
+        
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left are closed (True) or not (False).
+        
+        For a closed boundary:
+            - the nodes are flagged CLOSED_BOUNDARY (status type 4)
+            - all links that connect to a CLOSED_BOUNDARY node are flagged as
+              inactive (so they appear on link-based lists, but not
+              active_link-based lists)
+              
+        This means that if you call the calculate_gradients_at_active_links
+        method, links connecting to closed boundaries will be ignored: there can 
+        be no gradients or fluxes calculated, because the links that connect to 
+        that edge of the grid are not included in the calculation. So, setting a
+        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
+        boundary condition. Note, however, that this applies to the grid as a
+        whole, rather than a particular variable that you might use in your
+        application. In other words, if you want a no-flux boundary in one
+        variable but a different boundary condition for another, then use 
+        another method.
+        
+        This method is a replacement for the now-deprecated method
+        set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
+        to CLOSED_BOUNDARY; it does not set any nodes to FIXED_VALUE_BOUNDARY.
+        
+        The following example sets the top and left boundaries as closed in a
+        four-row by five-column grid that initially has all boundaries open
+        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+        >>> rmg.number_of_active_links
+        12
+        >>> rmg.node_status
+        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = BOTTOM
+            top right = TOP
+            top left = TOP
+        This scheme is necessary for internal consistency with looped boundaries.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
+            
+        bottom_edge = range(0, self.number_of_node_columns)
+        right_edge = range(2*self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, 
+                         self.number_of_nodes-self.number_of_node_columns,
+                          self.number_of_node_columns)
+            
+        if bottom_is_closed:
+            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+
+        if right_is_closed:
+            self.node_status[right_edge] = CLOSED_BOUNDARY
+            
+        if top_is_closed:
+            self.node_status[top_edge] = CLOSED_BOUNDARY
+
+        if left_is_closed:
+            self.node_status[left_edge] = CLOSED_BOUNDARY
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
+        self._reset_list_of_active_links()
+        
+        
+    def set_fixed_value_boundaries_at_grid_edges(self, bottom_is_fixed_val, 
+                                right_is_fixed_val, 
+                                top_is_fixed_val, 
+                                left_is_fixed_val):
+        """
+        Sets the status of nodes along the specified side(s) of a raster 
+        grid---bottom, right, top, and/or left---to FIXED_VALUE_BOUNDARY.
+        
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left sides are to be set (True) or not (False).
+        
+        The status of links (active or inactive) is automatically updated to
+        reflect the changes.
+                
+        The following example sets the bottom and right boundaries as 
+        fixed-value in a four-row by five-column grid that initially has all 
+        boundaries closed (i.e., flagged as node_status=4):
+        
+        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg.number_of_active_links
+        17
+        >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+        >>> rmg.node_status
+        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
+        >>> rmg.set_fixed_value_boundaries_at_grid_edges(False, False, True, True)
+        >>> rmg.number_of_active_links
+        12
+        >>> rmg.node_status
+        array([4, 4, 4, 4, 4, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 1, 1, 1, 1, 1], dtype=int8)
+        
+        Note that the four corners are treated as follows:
+            bottom left = BOTTOM
+            bottom right = BOTTOM
+            top right = TOP
+            top left = TOP
+        This scheme is necessary for internal consistency with looped boundaries.
+        """
+        if self.DEBUG_TRACK_METHODS:
+            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
+            
+        bottom_edge = range(0, self.number_of_node_columns)
+        right_edge = range(2*self.number_of_node_columns - 1,
+                           self.number_of_nodes - 1,
+                           self.number_of_node_columns)
+        top_edge = range((self.number_of_node_rows - 1) *
+                         self.number_of_node_columns, self.number_of_nodes)
+        left_edge = range(self.number_of_node_columns, 
+                         self.number_of_nodes-self.number_of_node_columns,
+                          self.number_of_node_columns)
+            
+        if bottom_is_fixed_val:
+            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
+
+        if right_is_fixed_val:
+            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
+            
+        if top_is_fixed_val:
+            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
+
+        if left_is_fixed_val:
+            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
+
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         
     def set_looped_boundaries(self, top_bottom_are_looped,sides_are_looped):
         """
-        Added DEJH Feb 2014
         Handles boundary conditions by setting corresponding parallel grid edges
         as looped "tracks_cell" (==3) status, linked to each other. If top_bottom_are_looped 
         is True, the top and bottom edges will link to each other. If sides_are_
         looped is True, the left and right edges will link to each other.
+        
+        Looped boundaries are experimental, and not as yet well integrated into 
+        the Landlab framework. Many functions may not recognise them, or 
+        silently create unforeseen errors. Use at your own risk!
         
         Note that because of the symmetries this BC implies, the corner nodes
         are all paired with the bottom/top edges, not the sides.
@@ -1312,6 +1539,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
              0   1   2   3   4
 
         TODO: Assign BC_statuses also to *links*
+        Added DEJH Feb 2014
         """
         
         bottom_edge = numpy.array(range(0, self.number_of_node_columns))
@@ -1345,6 +1573,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                    these_linked_nodes,
                                    right_edge-1, left_edge+1))
 
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         try:
@@ -1371,7 +1602,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             right_is_fixed, top_is_fixed, left_is_fixed, gradient_in=numpy.nan,
             gradient_of='planet_surface__elevation'):
         """
-        Added DEJH Jan 2014
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to 'active (fixed gradient)' (==2) status.
         Arguments are booleans indicating whether the bottom, right, top, and
@@ -1519,6 +1749,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> numpy.all(numpy.equal(elevs, updated_elevs))
         True
         
+        Added DEJH Jan 2014
         """
         
         bottom_edge = range(0, self.number_of_node_columns)
@@ -1585,6 +1816,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_links = self.node_links(left_edge)[3,:]
             boundary_links = numpy.concatenate((boundary_links, left_links))
         
+        node_ids = numpy.array(range(0, self.number_of_nodes))
+        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
+        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
         self._reset_list_of_active_links()
         
         try:
@@ -1754,7 +1988,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                bc = None ):
         """
         .. deprecated:: 0.1
-                Use :func:`set_inactive_boundaries` instead
+                Use :func:`set_closed_boundaries_at_grid_edges` instead
                 
         Assigns "no flux" status to one or more sides of the rectangular
         domain, for BoundaryCondition "bc", which defaults to ModelGrid's
@@ -1907,7 +2141,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients, max_slope=False, dstr_node_ids=False):
         """
-        Likely to be DEPRECIATED in near future, in favor of the component 
+        Likely to be DEPRECATED in near future, in favor of the component 
         flow_routing.route_flow_dn. This component is MUCH faster and more
         efficient than the option provided here.
         
@@ -2057,12 +2291,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
     def update_noflux_boundaries( self, u, bc = None ):
         """
+        .. deprecated:: 0.1
+            Use the newer BC handling framework instead
+            
         Sets the value of u at all noflux boundary cells equal to the
         value of their interior neighbors, as recorded in the
         "boundary_nbrs" array.
-
-        .. deprecated:: 0.1
-            Use the newer BC handling framework instead
         """
     
         if bc==None:
@@ -2114,7 +2348,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def cell_vector_to_raster(self, u, flip_vertically=False):
         """
-        Converts cell (i.e., interior node) vector u to a 2D array and returns it, 
+        Converts cell vector u to a 2D array and returns it, 
         so that it can be plotted, output, etc.
         
         If the optional argument flip_vertically=True, the function returns an 
@@ -2273,6 +2507,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def is_interior( self, *args ):
         """is_interior([ids])
         
+        .. deprecated:: 0.6
+            Deprecated due to out-of-date terminology.
+            Use :func:`is_core` instead.
+        
         Returns an boolean array of truth values for each node ID provided;
         True if the node is an interior node, False otherwise. 
         If no IDs are provided, method returns a boolean array for every node.
@@ -2285,23 +2523,53 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             node_ids = args[0]
         except IndexError: #return all nodes
-            return numpy.equal(self.node_status, INTERIOR_NODE)
+            return numpy.equal(self.node_status, CORE_NODE)
         else:
-            return numpy.equal(self.node_status[node_ids], INTERIOR_NODE)
+            return numpy.equal(self.node_status[node_ids], CORE_NODE)
+
+    def is_core( self, *args ):
+        """is_core([ids])
+        
+        Returns an boolean array of truth values for each node ID provided;
+        True if the node is a core node, False otherwise. 
+        If no IDs are provided, method returns a boolean array for every node.
+        
+        (Core status is typically indicated by a value of 0 in node_status.)
+        """
+        # NG changed this.
+        # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
+        # should still be back-conmpatible.
+        try:
+            node_ids = args[0]
+        except IndexError: #return all nodes
+            return numpy.equal(self.node_status, CORE_NODE)
+        else:
+            return numpy.equal(self.node_status[node_ids], CORE_NODE)
     
     def are_all_interior( self, IDs ):
         """
+        .. deprecated:: 0.6
+            Deprecated due to out-of-date terminology.
+            Use :func:`are_all_core` instead.
+            
         Returns a single boolean truth value, True if all nodes with *IDs* are
         interior nodes, False if not.
         """
-        return numpy.all(numpy.equal(self.node_status[IDs], INTERIOR_NODE))
-        
+        return numpy.all(numpy.equal(self.node_status[IDs], CORE_NODE))
+  
+    def are_all_core( self, IDs ):
+        """
+        Returns a single boolean truth value, True if all nodes with *IDs* are
+        core nodes, False if not.
+        """
+        return numpy.all(numpy.equal(self.node_status[IDs], CORE_NODE))      
         
     def get_boundary_code( self, id ):
         """
+        .. deprecated:: 0.6
+            Use :func:`node_boundary_status` instead.
+            
         Returns the boundary status of a node.
-        Depreciated in favor of base.py inherited property, 
-        node_boundary_status (DEJH, May 2014)
         """
         # ng june 2013
         return self.node_status[id]
@@ -2327,25 +2595,52 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
         
     def get_active_link_connecting_node_pair(self, node_a, node_b):
+        '''Returns an array of active link indices that *node_a* and *node_b* 
+        share. 
+        
+        Parameters
+        ----------
+        node_a, node_b : ints, or lists or arrays of ints of equal length.
+                         IDs of the node pairs of interest
+                         
+        Returns
+        -------
+        1D numpy array
+            IDs of active link(s) connecting given node pair(s), or BAD_INDEX_VALUE if none found.
+            
+        Example
+        -------
+        
+            >>> rmg = RasterModelGrid(3, 4)
+            >>> rmg.get_active_link_connecting_node_pair(5, 6)
+            array([5])
         '''
-        Returns an array of active link indices that *node_a* and *node_b* 
-        share. *node_a* and *node_b* may be ints, or arrays of ints of equal
-        length.
-        If the nodes do not share any active links, returns the BAD_INDEX_VALUE.
-        Overrides base function of the same name.
-        '''
-        node_links_a = self.active_node_links(node_a)
-        node_links_b = self.active_node_links(node_b)
-        try:
-            dim = node_links_a.shape[1]
-            intersections = numpy.empty(dim, dtype=int)
-            for i in xrange(dim):
-                this_iter = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
-                intersections[i] = this_iter[this_iter!=-1]
-        except:
-            intersections = numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
-            intersections = intersections[intersections!=-1]
-        return intersections
+        
+        # Get arrays containing active links attached to each of the two nodes.
+        # The method node_activelinks() returns a 2D array, with each column containing 
+        # the active links for a particular node, so we need to flatten it to a 1D array.
+        node_links_a = self.node_activelinks(node_a)
+        node_links_b = self.node_activelinks(node_b)
+        
+        # Create the array, which has as many columns entries as there are columns in node_links_a
+        # (which is the number of nodes of interest)
+        connecting_links_ids = BAD_INDEX_VALUE + numpy.zeros(node_links_a.shape[1], dtype=int)
+
+        # Iterate over the number of columns, which is equal to the number of nodes of interest.
+        # Yes, this uses a loop, which is generally to be avoided. However, this is the sort
+        # of method that isn't likely to be called for large numbers of node pairs repeatedly.
+        for i in range(node_links_a.shape[1]):
+            
+            # Find any node IDs that the two links have in common.
+            common = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
+            
+            # Remove any -1 values from the list of common node IDs 
+            # (-1 just means "no active link at this slot")
+            common = common[common!=-1]
+            
+            connecting_links_ids[i] = common
+            
+        return connecting_links_ids
 
     def top_edge_node_ids(self):
         """
@@ -2426,6 +2721,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             array([13,  4])
         """
         return numpy.ravel_multi_index((row, col), self.shape, **kwds)
+    
+    def _setup_face_widths(self):
+        """
+        Produces an array of length nfaces containing the face width (dx).
+        """
+        self._face_widths = numpy.empty(self.number_of_faces)
+        self._face_widths.fill(self.dx)
+        return self._face_widths
       
     def unit_test( self ):
         """
