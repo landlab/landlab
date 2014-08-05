@@ -43,11 +43,7 @@ Some of the things you can do with **ModelGrid** include:
 - Easily read in model parameters from a formatted text file
 - Write grid and data output to netCDF files for import into open-source visualization 
   packages such as ParaView and VisIt
-<<<<<<< HEAD
-- Set up and run ``link-based'' cellular automaton models
-=======
 - Set up and run "link-based" cellular automaton models
->>>>>>> FETCH_HEAD
 - Switch between structured and unstructured grids without needing to change the rest of
   the code
 - Develop complete, 2D numerical finite-volume or finite-difference models much more
@@ -88,16 +84,6 @@ Basic Grid Elements
     (Note that not all links patches are shown, and only one representative cell is 
     shaded.)
 
-<<<<<<< HEAD
-    Elements of a model grid. The main grid elements are nodes, links, and faces. 
-    Less commonly used elements include corners, patches, and junctions. In the 
-    spring 2014 version of Landlab, **ModelGrid** can implement raster (a) and 
-    Voronoi-Delaunay (b) grids, as well as radial and hexagonal grids (not shown).
-    (Note that not all links patches are shown, and only one representative cell is 
-    shaded.)
-
-=======
->>>>>>> FETCH_HEAD
 :ref:`Figure 1 <grid>` illustrates how **ModelGrid** represents a simulation grid. The
 grid contains a set of *(x,y)* points called *nodes*. In a typical
 finite-difference or finite-volume model, nodes are the locations at which one tracks 
@@ -107,11 +93,7 @@ or temperature.
 Each adjacent pair of nodes is connected by a line segment known as
 a *link*. A link has both a position in space, denoted
 by the coordinates of the two bounding nodes, and a direction: a link
-<<<<<<< HEAD
-runs from one node (know as its ``from node'') to another (its ``to node''). 
-=======
 runs from one node (known as its *from-node*) to another (its *to-node*). 
->>>>>>> FETCH_HEAD
 
 Every node in the grid interior is associated with a polygon known as a ``cell`` (illustrated,
 for example, by the shaded square region in :ref:`Figure 1a <grid>`). Each cell is 
@@ -150,12 +132,6 @@ along links, and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The tutorial examples below illustrate how
 this capability can be used to create models of processes such as diffusion and
 overland flow.
-<<<<<<< HEAD
-
-Other Grid Elements
--------------------
-=======
->>>>>>> FETCH_HEAD
 
 Other Grid Elements
 -------------------
