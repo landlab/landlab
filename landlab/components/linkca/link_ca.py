@@ -578,8 +578,8 @@ def example_test2():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 66
-    nc = 66
+    nr = 128
+    nc = 128
     plot_interval = 0.5
     #next_plot = plot_interval
     run_duration = 50.0
