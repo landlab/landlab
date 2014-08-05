@@ -33,11 +33,7 @@ any of these should be fine). Download and follow the appropriate instructions
 for your operating system/distribution. These collections already include compatible
 (and in some cases accelerated) versions of all of landlab's dependencies.
 
-<<<<<<< HEAD
-On Linux systems, you can also install Python and the landlab dependencies
-=======
 On Linux systems, you can also install Python and the Landlab dependencies
->>>>>>> FETCH_HEAD
 from your package manager. If you're running Linux but aren't that familiar
 with handling Python packages in it, :ref:`this <dan_installs_on_linux>`
 might help.
