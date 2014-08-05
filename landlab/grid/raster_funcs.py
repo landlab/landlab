@@ -187,6 +187,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
     Calculate gradients to cell diagonals and choose the gradient to the
     lowest node.
+<<<<<<< HEAD
 
     >>> from math import sqrt
     >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
@@ -198,6 +199,19 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
     With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
 
+=======
+
+    >>> from math import sqrt
+    >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
+    ...     method='d4')
+    array([-2.])
+    >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
+    ...     method='d8') * sqrt(2.)
+    array([-4.])
+
+    With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
+
+>>>>>>> FETCH_HEAD
     >>> (_, ind) = calculate_steepest_descent_across_adjacent_cells(rmg,
     ...                values_at_nodes, return_node=True)
     >>> ind
@@ -434,6 +448,14 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     cell_ids : array_like, optional
         IDs of cell about which to get neighbors.
 
+<<<<<<< HEAD
+=======
+    Returns
+    -------
+    ndarray
+        Node IDs for given neighbors of cells.
+
+>>>>>>> FETCH_HEAD
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -463,7 +485,11 @@ def node_id_of_cell_neighbor(grid, inds, *args):
         inds = np.array(inds)
 
     #return neighbors[xrange(len(cell_ids)), 3 - inds]
+<<<<<<< HEAD
     return np.squeeze(
+=======
+    return (
+>>>>>>> FETCH_HEAD
         np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
 
@@ -514,7 +540,11 @@ def node_id_of_cell_corner(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
+<<<<<<< HEAD
     return np.squeeze(
+=======
+    return (
+>>>>>>> FETCH_HEAD
         np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
     #return diagonals[xrange(len(cell_ids)), 3 - inds]

@@ -13,15 +13,16 @@ from landlab.components.fracture_grid.fracture_grid import *
 import numpy
 from landlab.plot import imshow_grid
 import pylab as plt
+import time
 
-_ROCK = 0
-_SAP = 1
-_NODE_STATE = { _ROCK : 'rock', \
-                _SAP : 'saprolite' }
-_LINK_STATE = [ (_ROCK, _ROCK), (_ROCK, _SAP), (_SAP, _ROCK), (_SAP, _SAP) ]
+#_ROCK = 0
+#_SAP = 1
+#_NODE_STATE = { _ROCK : 'rock', \
+#                _SAP : 'saprolite' }
+#_LINK_STATE = [ (_ROCK, _ROCK), (_ROCK, _SAP), (_SAP, _ROCK), (_SAP, _SAP) ]
 _NEVER = 1e12
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -75,6 +76,33 @@ class Event():
             return True
         else:
             return False
+            
+            
+class CAPlotter():
+    
+    def __init__(self, ca):
+        
+        self.ca = ca
+        
+        plt.ion()
+        plt.figure(1)
+        nsr=ca.grid.node_vector_to_raster(ca.node_state)
+        plt.imshow(nsr, interpolation='None')
+        plt.draw()
+        plt.pause(0.01)
+
+    def update_plot(self):
+
+        plt.clf()
+        nsr = self.ca.grid.node_vector_to_raster(self.ca.node_state)
+        plt.imshow(nsr, interpolation='None', origin='lower')
+        plt.draw()
+        plt.pause(0.01)
+        
+    def finalize(self):
+        
+        plt.ioff()
+        plt.show()
         
         
 class LinkCellularAutomaton():
@@ -85,7 +113,7 @@ class LinkCellularAutomaton():
     determined by the states of the cell pair.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, orientation_matters=False):
                  
         # Keep a copy of the model grid
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
@@ -99,8 +127,13 @@ class LinkCellularAutomaton():
         
         # Figure out how many states there are, and make sure the input data
         # are self consistent.
+        #   There are 2 x (N^2) link states, where N is the number of node 
+        # states. For example, if there are just two node states, 0 and 1, then 
+        # the possible oriented link pairs are listed below:
+        #   0-0 0-1 1-0 1-1  0 0 1 1
+        #                    0 1 0 1
         self.num_node_states = len(node_state_dict)
-        self.num_link_states = self.num_node_states*self.num_node_states
+        self.num_link_states = 2*self.num_node_states*self.num_node_states
         
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
@@ -116,8 +149,13 @@ class LinkCellularAutomaton():
         self.next_update = self.grid.create_active_link_array_zeros()
     
         # Assign link types from node types
-        self.create_link_state_dictionary_and_pair_list()
+        self.create_link_state_dict_and_pair_list()
     
+        # Memorize the number of vertical links, so we can figure out
+        # node-pair orientations
+        self.number_of_vertical_links = self.grid.number_of_node_columns * \
+                                        (self.grid.number_of_node_rows-1)
+
         # Using the grid of node states, figure out all the link states
         self.assign_link_states_from_node_types()
     
@@ -126,7 +164,7 @@ class LinkCellularAutomaton():
 
         # Put the various transitions on the event queue
         self.push_transitions_to_event_queue()
-
+        
 
     def set_node_state_grid(self, node_states):
         """
@@ -145,49 +183,64 @@ class LinkCellularAutomaton():
         self.node_state[:] = node_states
         
                  
-    def create_link_state_dictionary_and_pair_list(self):
+    def create_link_state_dict_and_pair_list(self):
         """
         Creates a dictionary that can be used as a lookup table to find out 
         which link state corresponds to a particular pair of node states. The 
-        dictionary keys are 2-element tuples that represent the states of the 
-        FROM and TO nodes in the link. The values are integer codes representing 
-        the link state numbers.
+        dictionary keys are 3-element tuples, each of which represents the state
+        of the FROM node, the TO node, and the orientation of the link. The 
+        values are integer codes representing the link state numbers.
         """
         self.link_state_dict = {}
         self.cell_pair = []
         k=0
-        for fromstate in range(self.num_node_states):
-            for tostate in range(self.num_node_states):
-                self.link_state_dict[(fromstate,tostate)] = k
-                k+=1
-                self.cell_pair.append((fromstate,tostate))
+        for orientation in range(2):
+            for fromstate in range(self.num_node_states):
+                for tostate in range(self.num_node_states):
+                    self.link_state_dict[(fromstate,tostate,orientation)] = k
+                    k+=1
+                    self.cell_pair.append((fromstate,tostate,orientation))
     
-        if _DEBUG:
+        if False and _DEBUG:
             print 
-            print 'create_link_state_dictionary_and_pair_list(): dict is:'
+            print 'create_link_state_dict_and_pair_list(): dict is:'
             print self.link_state_dict
             print '  and the pair list is:'
             print self.cell_pair
 
 
+    def active_link_orientation(self, act_link_id):
+        """
+        Returns 0 if active link *act_link_id* is horizontal (oriented along 
+        x-axis), and 1 if it is vertical (oriented along y-axis).
+        """
+        if self.grid.active_links[act_link_id]<self.number_of_vertical_links:
+            return 1
+        else:
+            return 0
+    
+    
     def assign_link_states_from_node_types(self):
         """
         Assigns a link-state code for each link, and returns a list of these.
         
         Takes lists/arrays of "from" and "to" node IDs for each link, and a 
         dictionary that associates pairs of node states (represented as a 
-        2-element tuple) to link states.
+        3-element tuple, comprising the FROM state, TO state, and orientation) 
+        to link states.
         """
         self.link_state = numpy.zeros(self.grid.number_of_active_links,
                                       dtype=int)
     
         for i in range(self.grid.number_of_active_links):
+            orientation = self.active_link_orientation(i)
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
-                         self.node_state[self.grid.activelink_tonode[i]])
+                         self.node_state[self.grid.activelink_tonode[i]], \
+                         orientation)
             #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
         
-        if _DEBUG:
+        if False and _DEBUG:
             print 
             print 'assign_link_states_from_node_types(): the link state array is:'
             print self.link_state
@@ -231,7 +284,7 @@ class LinkCellularAutomaton():
             self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
             self.n_xn[from_state] += 1
     
-        if _DEBUG:
+        if False and _DEBUG:
             print 
             print 'setup_transition_data():'
             print '  n_xn',self.n_xn
@@ -295,7 +348,7 @@ class LinkCellularAutomaton():
     
     def push_transitions_to_event_queue(self):
     
-        if _DEBUG:
+        if False and _DEBUG:
             print 'push_transitions_to_event_queue():',self.num_link_states,self.n_xn
         for i in range(self.grid.number_of_active_links):
         
@@ -309,7 +362,7 @@ class LinkCellularAutomaton():
             else:
                 self.next_update[i] = _NEVER
             
-        if _DEBUG:
+        if True and _DEBUG:
             print '  push_transitions_to_event_queue(): events in queue are now:'
             for e in self.event_queue:
                 print '    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to
@@ -326,8 +379,10 @@ class LinkCellularAutomaton():
         old_tonode_state = self.node_state[tonode]
     
         # Change to the new states
-        self.node_state[fromnode] = self.cell_pair[new_link_state][0]
-        self.node_state[tonode] = self.cell_pair[new_link_state][1]
+        if self.grid.node_status[fromnode]==landlab.grid.base.CORE_NODE:
+            self.node_state[fromnode] = self.cell_pair[new_link_state][0]
+        if self.grid.node_status[tonode]==landlab.grid.base.CORE_NODE:
+            self.node_state[tonode] = self.cell_pair[new_link_state][1]
     
         if _DEBUG:
             print 'update_node_states() for',fromnode,'and',tonode
@@ -352,6 +407,23 @@ class LinkCellularAutomaton():
         if _DEBUG:
             print
             print 'update_link_state()'
+            
+        # If the link connects to a boundary, we might have a different state
+        # than the one we planned
+        fn = self.grid.activelink_fromnode[link]
+        tn = self.grid.activelink_tonode[link]
+        if _DEBUG:
+            print 'fn',fn,'tn',tn,'fnstat',self.grid.node_status[fn],'tnstat',self.grid.node_status[tn]
+        if self.grid.node_status[fn]!=landlab.grid.base.CORE_NODE or \
+           self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
+            fns = self.node_state[self.grid.activelink_fromnode[link]]
+            tns = self.node_state[self.grid.activelink_tonode[link]]
+            orientation = self.active_link_orientation(link)
+            actual_pair = (fns,tns,orientation)
+            new_link_state = self.link_state_dict[actual_pair]
+            if _DEBUG:
+                print '**Boundary: overriding new link state to',new_link_state
+            
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
             event = self.get_next_event(link, new_link_state, current_time)
@@ -363,11 +435,12 @@ class LinkCellularAutomaton():
         if _DEBUG:
             print
             print '  at link',link
-            print '  state changed to',self.link_state[link]
+            print '  state changed to',self.link_state[link],self.cell_pair[self.link_state[link]]
             print '  update time now',self.next_update[link]
         
             
-    def do_transition(self, event, current_time):
+    def do_transition(self, event, current_time, plot_each_transition=False,
+                      plotter=None):
         """
         Implements a state transition. First checks that the transition is still
         valid by comparing the link's next_update time with the corresponding update
@@ -426,12 +499,15 @@ class LinkCellularAutomaton():
             
                 for link in self.node_active_links[:,fromnode]:
                     
+                    if _DEBUG:
+                        print 'f checking link',link
                     if link!=-1 and link!=event.link:
                     
-                        fromnode = self.grid.activelink_fromnode[link]
-                        tonode = self.grid.activelink_tonode[link]
-                        current_pair = (self.node_state[fromnode], 
-                                        self.node_state[tonode])
+                        this_link_fromnode = self.grid.activelink_fromnode[link]
+                        this_link_tonode = self.grid.activelink_tonode[link]
+                        orientation = self.active_link_orientation(link)
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
 
@@ -442,21 +518,36 @@ class LinkCellularAutomaton():
             
                 for link in self.node_active_links[:,tonode]:
                 
+                    if _DEBUG:
+                        print 't checking link',link
                     if link!=-1 and link!=event.link:
                     
-                        fromnode = self.grid.activelink_fromnode[link]
-                        tonode = self.grid.activelink_tonode[link]
-                        current_pair = (self.node_state[fromnode], 
-                                        self.node_state[tonode])
+                        this_link_fromnode = self.grid.activelink_fromnode[link]
+                        this_link_tonode = self.grid.activelink_tonode[link]
+                        orientation = self.active_link_orientation(link)
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
                         self.update_link_state(link, new_link_state, event.time)
+
+            if plot_each_transition and (plotter is not None):
+                plotter.update_plot()
+                
+            if _DEBUG:
+                n = self.grid.number_of_nodes
+                for r in range(self.grid.number_of_node_rows):
+                    for c in range(self.grid.number_of_node_columns):
+                        n -= 1
+                        print '{0:.0f}'.format(self.node_state[n]),
+                    print
 
         elif _DEBUG:
             print '  event time is',event.time,'but update time is', \
                   self.next_update[event.link],'so event will be ignored'
                   
                   
-    def run(self, run_duration, node_state_grid=None):
+    def run(self, run_duration, node_state_grid=None, plot_each_transition=False,
+            plotter=None):
         
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
@@ -464,37 +555,43 @@ class LinkCellularAutomaton():
         # Continue until we've run out of either time or events
         while self.current_time < run_duration and self.event_queue:
         
-            print 'Current Time = ', self.current_time
+            if _DEBUG:
+                print 'Current Time = ', self.current_time
         
             # Pick the next transition event from the event queue
             ev = heappop(self.event_queue)
         
-            print 'Event:',ev.time,ev.link,ev.xn_to
+            if _DEBUG:
+                print 'Event:',ev.time,ev.link,ev.xn_to
         
-            self.do_transition(ev, self.current_time)
+            self.do_transition(ev, self.current_time, plot_each_transition,
+                               plotter)
             
-            print self.node_state
-        
             # Update current time
             self.current_time = ev.time
 
         
 def example_test2():
     
-    from landlab.io.netcdf import write_netcdf
+    #from landlab.io.netcdf import write_netcdf
     
     # INITIALIZE
 
     # User-defined parameters
-    nr = 10
-    nc = 10
-    plot_interval = 0.1
-    next_plot = plot_interval
-    run_duration = 1.0
-        
+    nr = 66
+    nc = 66
+    plot_interval = 0.5
+    #next_plot = plot_interval
+    run_duration = 50.0
+    report_interval = 5.0  # report interval, in real-time seconds
+    
+    # Initialize real time
+    current_real_time = time.time()
+    next_report = current_real_time + report_interval
+
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
-    mg.set_inactive_boundaries(True, True, True, True)
+    #mg.set_inactive_boundaries(True, True, True, True)
     
     # Transition data here represent a body of fractured rock, with rock 
     # represented by nodes with state 0, and saprolite (weathered rock)
@@ -505,40 +602,67 @@ def example_test2():
     xn_list = setup_transition_list2()
 
     # The initial grid represents a domain with half immobile soil, half air
-    node_state_grid = mg.add_zeros('node', 'node_frog')
-    print (numpy.where(mg.node_y<nr/2),)
+    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    if _DEBUG:
+        print (numpy.where(mg.node_y<nr/2),)
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 1
+    
+    # Set the left and right boundary conditions
+    node_state_grid[mg.left_edge_node_ids()] = 0
+    node_state_grid[mg.right_edge_node_ids()] = 0
     
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
     
-    # Plot initial state
-    plt.figure()
-    imshow_grid(mg, ca.node_state)
+    print 'INITIALIZING'
+    n = ca.grid.number_of_nodes
+    if _DEBUG:
+        for r in range(ca.grid.number_of_node_rows):
+            for c in range(ca.grid.number_of_node_columns):
+                n -= 1
+                print '{0:.0f}'.format(ca.node_state[n]),
+            print
+        
+    ca_plotter = CAPlotter(ca)
     
-
     # RUN
     current_time = 0.0
-    time_slice =  0
-    filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
-    write_netcdf(filename, ca.grid)
+    #time_slice =  0
+    #filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
+    #write_netcdf(filename, ca.grid)
     while current_time < run_duration:
-        ca.run(current_time+plot_interval, ca.node_state)
+        
+        # Once in a while, print out simulation and real time to let the user
+        # know that the sim is running ok
+        current_real_time = time.time()
+        if current_real_time >= next_report:
+            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            next_report = current_real_time + report_interval
+        
+        ca.run(current_time+plot_interval, ca.node_state, 
+               plot_each_transition=False) #, plotter=ca_plotter)
         current_time += plot_interval
-        print 'time:',current_time
-        print 'ca time:',ca.current_time
-        #plt.figure()
-        #imshow_grid(mg, ca.node_state)
-        #plt.show()
-        time_slice += 1
-        filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
-        write_netcdf(filename, ca.grid)
+        if _DEBUG:
+            print 'time:',current_time
+            print 'ca time:',ca.current_time
+        ca_plotter.update_plot()
+        #time_slice += 1
+        #filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
+        #write_netcdf(filename, ca.grid)
+        if _DEBUG:
+            n = ca.grid.number_of_nodes
+            for r in range(ca.grid.number_of_node_rows):
+                for c in range(ca.grid.number_of_node_columns):
+                    n -= 1
+                    print '{0:.0f}'.format(ca.node_state[n]),
+                print
+        
         
     # FINALIZE
     
     # Plot
-        
+    ca_plotter.finalize()
         
         
 def setup_transition_list():
@@ -552,7 +676,7 @@ def setup_transition_list():
     xn_list.append( Transition(1, 3, 1., 'weathering') ) # rock-sap to sap-sap
     xn_list.append( Transition(2, 3, 1., 'weathering') ) # sap-rock to sap-sap
         
-    if _DEBUG:
+    if False and _DEBUG:
         print
         print 'setup_transition_list(): list has',len(xn_list),'transitions:'
         for t in xn_list:
@@ -589,26 +713,33 @@ def setup_transition_list2():
     7            2-1
     8            2-2
 
-    Link states with "vertical" orientation:
+    Link states with "vertical" orientation (the first number in each pair is
+    the lower of the two, i.e., the one with the smaller y coordinate):
     
     State:    Pair:  
-    9            0-0
-    10           0-1
-    11           0-2
-    12           1-0
-    13           1-1
-    14           1-2
-    15           2-0
-    16           2-1
-    17           2-2
+    9            0^0
+    10           0^1
+    11           0^2
+    12           1^0
+    13           1^1
+    14           1^2
+    15           2^0
+    16           2^1
+    17           2^2
    
     """
     xn_list = []
     
     xn_list.append( Transition(1, 2, 1., 'mobilization') ) # 
     xn_list.append( Transition(3, 6, 1., 'mobilization') ) # 
+    xn_list.append( Transition(10, 11, 1., 'mobilization') ) # 
+    xn_list.append( Transition(12, 15, 1., 'mobilization') ) # 
+    xn_list.append( Transition(2, 6, 10., 'left motion') )
+    xn_list.append( Transition(6, 2, 10., 'right motion') )
+    xn_list.append( Transition(11, 15, 1000., 'downward motion') )
+    xn_list.append( Transition(15, 11, 1.0, 'upward motion') )    
         
-    if _DEBUG:
+    if False and _DEBUG:
         print
         print 'setup_transition_list2(): list has',len(xn_list),'transitions:'
         for t in xn_list:

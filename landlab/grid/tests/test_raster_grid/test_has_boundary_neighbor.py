@@ -1,7 +1,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import (with_setup, assert_tuple_equal, assert_true,
-                        assert_false, )
+from nose.tools import with_setup, assert_true, assert_false
+try:
+    from nose.tools import assert_tuple_equal
+except ImportError:
+    from landlab.testing.tools import assert_tuple_equal
 
 from landlab import RasterModelGrid
 

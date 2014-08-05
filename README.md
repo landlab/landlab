@@ -21,5 +21,13 @@ python -c 'import landlab; landlab.test()'
 
 The most current development version is always available from our git
 repository:
+<<<<<<< HEAD
 
 http://github.com/landlab/landlab
+=======
+
+http://github.com/landlab/landlab
+
+[![Build Status](https://travis-ci.org/landlab/landlab.svg?branch=master)](https://travis-ci.org/landlab/landlab)
+[![Coverage Status](https://coveralls.io/repos/landlab/landlab/badge.png)](https://coveralls.io/r/landlab/landlab)
+>>>>>>> FETCH_HEAD

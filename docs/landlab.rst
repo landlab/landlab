@@ -1,29 +1,5 @@
-landlab Package
+landlab package
 ===============
-
-:mod:`landlab` Package
-----------------------
-
-.. automodule:: landlab.__init__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`model_component` Module
------------------------------
-
-.. automodule:: landlab.model_component
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`model_parameter_dictionary` Module
-----------------------------------------
-
-.. automodule:: landlab.model_parameter_dictionary
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Subpackages
 -----------
@@ -31,6 +7,7 @@ Subpackages
 .. toctree::
 
     landlab.components
+    landlab.core
     landlab.examples
     landlab.field
     landlab.framework
@@ -41,3 +18,10 @@ Subpackages
     landlab.tests
     landlab.utils
 
+Module contents
+---------------
+
+.. automodule:: landlab
+    :members:
+    :undoc-members:
+    :show-inheritance:

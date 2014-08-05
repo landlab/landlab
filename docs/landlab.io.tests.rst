@@ -1,11 +1,22 @@
-tests Package
-=============
+landlab.io.tests package
+========================
 
-:mod:`test_read_esri_ascii` Module
-----------------------------------
+Submodules
+----------
+
+landlab.io.tests.test_read_esri_ascii module
+--------------------------------------------
 
 .. automodule:: landlab.io.tests.test_read_esri_ascii
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.io.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

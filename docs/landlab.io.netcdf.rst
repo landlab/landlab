@@ -1,43 +1,38 @@
-netcdf Package
-==============
+landlab.io.netcdf package
+=========================
 
-:mod:`netcdf` Package
----------------------
+Submodules
+----------
 
-.. automodule:: landlab.io.netcdf
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`_constants` Module
-------------------------
-
-.. automodule:: landlab.io.netcdf._constants
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`errors` Module
---------------------
+landlab.io.netcdf.errors module
+-------------------------------
 
 .. automodule:: landlab.io.netcdf.errors
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`read` Module
-------------------
+landlab.io.netcdf.read module
+-----------------------------
 
 .. automodule:: landlab.io.netcdf.read
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`write` Module
--------------------
+landlab.io.netcdf.write module
+------------------------------
 
 .. automodule:: landlab.io.netcdf.write
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.io.netcdf
+    :members:
+    :undoc-members:
+    :show-inheritance:

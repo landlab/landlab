@@ -1,27 +1,30 @@
-field Package
-=============
+landlab.field package
+=====================
 
-:mod:`field` Package
---------------------
+Submodules
+----------
 
-.. automodule:: landlab.field
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`grouped` Module
----------------------
+landlab.field.grouped module
+----------------------------
 
 .. automodule:: landlab.field.grouped
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`scalar_data_fields` Module
---------------------------------
+landlab.field.scalar_data_fields module
+---------------------------------------
 
 .. automodule:: landlab.field.scalar_data_fields
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: landlab.field
+    :members:
+    :undoc-members:
+    :show-inheritance:

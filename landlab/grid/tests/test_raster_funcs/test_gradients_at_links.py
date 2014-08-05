@@ -1,7 +1,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_is
+try:
+    from nose.tools import assert_is
+except ImportError:
+    from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid
 

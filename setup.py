@@ -54,6 +54,7 @@ setup(name='TheLandlab',
       url='https://csdms.colorado.edu/trac/landlab',
       description='Plugin-based component modeling tool.',
       long_description=open('README.md').read(),
+<<<<<<< HEAD
       setup_requires=['numpy>=1.7',
                       'scipy>=0.12',
                       'nose>=1.0',
@@ -64,6 +65,16 @@ setup(name='TheLandlab',
                         'nose>=1.0',
                         'memory_profiler', 
                         'numpydoc'],
+=======
+      #setup_requires=['numpy>=1.7',
+      #                'scipy>=0.12',
+      #                'nose>=1.0',
+      #                'numpydoc' ],
+      #install_requires=['numpy>=1.7',
+      #                  'scipy>=0.12',
+      #                  'nose>=1.0',
+      #                  'numpydoc'],
+>>>>>>> FETCH_HEAD
       packages=find_packages(),
       entry_points={
           'console_scripts': [
