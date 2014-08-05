@@ -2,11 +2,7 @@
 ##
 ##  'Field' concept is implemented for Radiation component.
 ##
-<<<<<<< HEAD
-##  Sai Nudurupati - 14May2014
-=======
 ##  Sai Nudurupati and Erkan Istanbulluoglu - 14May2014
->>>>>>> FETCH_HEAD
 #################################################################
 
 from landlab import Component
@@ -25,9 +21,6 @@ class Radiation( Component ):
     radiation. This code also computes relative incidence shortwave radiation
     compared to a flat surface.
     
-<<<<<<< HEAD
-    
-=======
     Radiation(grid, **kwds)
         Adds two 'cellular' fields on grid 'TotalShortWaveRadiation' and 
         'RadiationFactor'
@@ -44,7 +37,6 @@ class Radiation( Component ):
         CLRSKYTURBIDITY: set clear sky turbidity. default value is 2.
         OPTAIRMASS: set optical air mass. default value is 0.0
         
->>>>>>> FETCH_HEAD
     >>> from landlab import RasterModelGrid        
     >>> from landlab.components.radiation.radiation_field import Radiation        
     >>> import numpy as np        
@@ -52,20 +44,6 @@ class Radiation( Component ):
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
-<<<<<<< HEAD
-        Radiation
-    >>> current_time = 0.5
-    >>> rad.update( current_time )
-    >>> grid['cell']['TotalShortWaveRadiation']
-        Out[11]: 
-        array([ 1.90762961,  1.90701536,  1.90732026,  1.90617417,  1.90762696,
-        1.90718441])
-
-    >>> grid['cell']['RadiationFactor']
-        Out[12]: 
-        array([ 0.01091503,  0.01091151,  0.01091326,  0.0109067 ,  0.01091501,
-        0.01091248])
-=======
     'Radiation'
     >>> current_time = 0.5
     >>> rad.update( current_time )
@@ -81,7 +59,6 @@ class Radiation( Component ):
     True
     >>> x.shape
     (6,)
->>>>>>> FETCH_HEAD
     """
     
     _name = 'Radiation'
