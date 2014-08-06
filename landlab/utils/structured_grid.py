@@ -8,17 +8,7 @@ from ..grid.base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                          FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                          CLOSED_BOUNDARY,BAD_INDEX_VALUE)
 
-<<<<<<< HEAD
-CORE_NODE = 0
-FIXED_VALUE_BOUNDARY = 1
-FIXED_GRADIENT_BOUNDARY = 2
-TRACKS_CELL_BOUNDARY = 3
-CLOSED_BOUNDARY = 4
-
-BAD_INDEX_VALUE = np.iinfo(np.int).max
-=======
 #BAD_INDEX_VALUE = np.iinfo(np.int).max
->>>>>>> FETCH_HEAD
 
 from landlab.utils import count_repeated_values
 
