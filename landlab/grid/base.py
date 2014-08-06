@@ -1,12 +1,5 @@
 #! /usr/env/python
 """
-<<<<<<< HEAD
-Python implementation of ModelGrid, a class used to
-create and manage grids for 2D numerical models.
-
-First version GT, July 2010
-Last modified May 2014
-=======
 Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
 
@@ -172,7 +165,6 @@ True
 True
 >>> t is grid.at_node['air__temperature']
 True
->>>>>>> FETCH_HEAD
 """
 
 import numpy
@@ -203,15 +195,11 @@ _ARRAY_LENGTH_ATTRIBUTES = {
 }
 
 # Define the boundary-type codes
-<<<<<<< HEAD
-CORE_NODE = 0
-=======
 
 #: Indicates a node is *core*.
 CORE_NODE = 0
 
 #: Indicates a boundary node is has a fixed values.
->>>>>>> FETCH_HEAD
 FIXED_VALUE_BOUNDARY = 1
 
 #: Indicates a boundary node is has a fixed gradient.
@@ -220,11 +208,7 @@ FIXED_GRADIENT_BOUNDARY = 2
 #: Indicates a boundary node is wrap-around.
 TRACKS_CELL_BOUNDARY = 3
 
-<<<<<<< HEAD
-#: Indicates that a boundary node is *closed*
-=======
 #: Indicates a boundary node is closed
->>>>>>> FETCH_HEAD
 CLOSED_BOUNDARY = 4
 
 BOUNDARY_STATUS_FLAGS_LIST = [
@@ -467,35 +451,6 @@ class ModelGrid(ModelDataFields):
     def core_nodes(self):
         """
         Node IDs of all core nodes.
-<<<<<<< HEAD
-        """
-        try:
-            return self._core_nodes
-        except:
-            (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
-            return core_node_ids
-
-    @property
-    def boundary_nodes(self):
-        """
-        Node IDs of all boundary nodes.
-        """
-        try:
-            return self._boundary_nodes
-        except:
-            (boundary_node_ids, ) = numpy.where(self.node_status != CORE_NODE)
-            return boundary_node_ids
-
-    @property
-    def node_boundary_status(self):
-        """
-        Node BC status codes for all nodes:
-            0: core (nonboundary) node
-            1: fixed value open boundary
-            2: fixed gradient open boundary
-            3: looped open boundary
-            4: closed boundary
-=======
         """
         try:
             return self._core_nodes
@@ -525,21 +480,15 @@ class ModelGrid(ModelDataFields):
         - `FIXED_GRADIENT_BOUNDARY `
         - `TRACKS_CELL_BOUNDARY`
         - `CLOSED_BOUNDARY `
->>>>>>> FETCH_HEAD
         """
         return self.node_status
 
     @property
     def open_nodes(self):
         """
-<<<<<<< HEAD
-        .. deprecated:: 0.6
-            This terminology is no longer preferred, "active_nodes" is a synonym.
-=======
         .. note:: Deprecated since version 0.6.
             This terminology is no longer preferred, "active_nodes" is a
             synonym.
->>>>>>> FETCH_HEAD
             
         Node id for all nodes not marked as a closed boundary
         """
@@ -548,13 +497,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def open_boundary_nodes(self):
-<<<<<<< HEAD
-        """
-        Node id of all open boundary nodes.
-        """
-=======
         """Node id of all open boundary nodes."""
->>>>>>> FETCH_HEAD
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
@@ -595,92 +538,49 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_active_cells(self):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-            Deprecated due to out-of-date terminology; 
-            use :func:`node_index_at_core_cells` for an exact equivalent.
-        Node ID associated with active grid cells
-=======
         """Node ID associated with active grid cells.
 
         .. note:: Deprecated since version 0.6.
             Uses out-of-date terminology; 
             use :func:`node_index_at_core_cells` for an exact equivalent.
->>>>>>> FETCH_HEAD
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return active_cell_ids
 
     @property
     def node_index_at_core_cells(self):
-<<<<<<< HEAD
-        """
-        Node ID associated with core grid cells
-        """
-=======
         """Node ID associated with core grid cells."""
->>>>>>> FETCH_HEAD
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return core_cell_ids
 
     @property
     def active_cell_index_at_nodes(self):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-            "active" terminology now superceded by "core", unless explicitly
-            referring to the open boundaries as well as core cells.
-            
-        Active cell ID associated with grid nodes.
-=======
         """Active cell ID associated with grid nodes.
 
         .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
->>>>>>> FETCH_HEAD
         """
         return self.node_activecell
 
     @property
     def active_cell_index(self):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-            "active" terminology now superceded by "core", unless explicitly
-            referring to the open boundaries as well as core cells.
-        IDs of active cells
-=======
         """IDs of active cells.
 
         .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
->>>>>>> FETCH_HEAD
         """
         return self.active_cells
     
     @property
     def core_cell_index_at_nodes(self):
-<<<<<<< HEAD
-        """
-        Core cell ID associated with grid nodes.
-        """
-=======
         """Core cell ID associated with grid nodes."""
->>>>>>> FETCH_HEAD
         return self.node_corecell
         
     @property
     def core_cell_index(self):
-<<<<<<< HEAD
-        """
-        IDs of core cells
-        """
-=======
         """IDs of core cells."""
->>>>>>> FETCH_HEAD
         return self.core_cells
 
     @property
@@ -738,16 +638,8 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_core_cells(self):
-<<<<<<< HEAD
-        """
-        Number of core cells in the grid (excludes all boundary cells).
-        """
-        return self._num_core_cells
-        
-=======
         """Number of core cells in the grid (excludes all boundary cells)."""
         return self._num_core_cells
->>>>>>> FETCH_HEAD
 
     @property
     def number_of_active_links(self):
@@ -760,18 +652,6 @@ class ModelGrid(ModelDataFields):
         return self._num_active_faces
 
     def number_of_elements(self, element_name):
-<<<<<<< HEAD
-        """Return the number of elements, given by the *element_name* string
-        in a grid. *element_name* must be one of:
-            * node
-            * cell
-            * link
-            * face
-            * core_node
-            * core_cell
-            * active_link
-            * active_face
-=======
         """Number of instances of an element.
         
         Get the number of instances of a grid element in a grid.
@@ -787,7 +667,6 @@ class ModelGrid(ModelDataFields):
         -------
         int :
             Number of elements in the grid.
->>>>>>> FETCH_HEAD
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
@@ -795,16 +674,7 @@ class ModelGrid(ModelDataFields):
             raise TypeError('element name not understood')
 
     def get_interior_nodes(self):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-            Deprecated due to outdated terminology;
-            use :func:`core_nodes` instead.
-            
-        Return node IDs of all of a grid's interior nodes. Interior nodes
-=======
         """Return node IDs of all of a grid's interior nodes. Interior nodes
->>>>>>> FETCH_HEAD
         are active nodes that are not on a boundary.
 
         .. note:: Deprecated since version 0.6.
@@ -821,15 +691,6 @@ class ModelGrid(ModelDataFields):
         ndarray
             Node IDs of all of a grid's core nodes.
         """
-<<<<<<< HEAD
-        return numpy.where(self.node_status == CORE_NODE)[0]
-
-    def get_core_nodes(self):
-        """
-        Return node IDs of all of a grid's core nodes.
-        """
-=======
->>>>>>> FETCH_HEAD
         return self.core_nodes
 
     @make_return_array_immutable
@@ -911,23 +772,6 @@ class ModelGrid(ModelDataFields):
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument *name*, we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
-<<<<<<< HEAD
-        create and return a 1D numpy array. This is the primary method for
-        loading your data into the grid fields.
-        
-        Example of loading data:
-            >>> rmg = RasterModelGrid(4,5)
-            >>> mydata = numpy.arange(20, dtype=float)
-            >>> rmg.create_node_array_zeros('planet_surface__elevation')
-            array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                    0.,  0.,  0.,  0.,  0.,  0.,  0.])
-            >>> rmg.at_node['planet_surface__elevation'] = mydata
-            >>> rmg.at_node['planet_surface__elevation']
-            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
-            
-            
-=======
         create and return a 1D numpy array.
 
         Parameters
@@ -956,7 +800,6 @@ class ModelGrid(ModelDataFields):
         >>> rmg.at_node['planet_surface__elevation']
         array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
                 11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
->>>>>>> FETCH_HEAD
         """
         if name is None:
             return numpy.zeros(self.number_of_nodes, **kwds)
@@ -1051,13 +894,7 @@ class ModelGrid(ModelDataFields):
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         node_ids = numpy.array(range(0, self.number_of_nodes))
-<<<<<<< HEAD
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
-=======
         self.update_links_nodes_cells_to_new_BCs()
->>>>>>> FETCH_HEAD
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
@@ -1130,11 +967,6 @@ class ModelGrid(ModelDataFields):
 
         .. note:: Deprecated since version 0.1.
             Use :func:`calculate_gradients_at_active_links`
-<<<<<<< HEAD
-        
-        Calculates the gradient in quantity s at each active link in the grid.
-=======
->>>>>>> FETCH_HEAD
         """
         if gradient==None:
             gradient = numpy.zeros(self.number_of_active_links)
@@ -1170,14 +1002,9 @@ class ModelGrid(ModelDataFields):
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-=======
         """Flux divergence for active cells.
 
         .. note:: Deprecated since version 0.6
->>>>>>> FETCH_HEAD
             Uses outdated terminology; use the exact equivalent
             :func:`calculate_flux_divergence_at_core_nodes` instead.
             
@@ -1276,12 +1103,8 @@ class ModelGrid(ModelDataFields):
         
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux, 
                                                   net_unit_flux=None):
-<<<<<<< HEAD
-        """
-=======
         """Flux divergence for core nodes.
 
->>>>>>> FETCH_HEAD
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
         net_unit_flux.
@@ -1321,25 +1144,6 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-<<<<<<< HEAD
-        Example:
-            
-            >>> from landlab import RasterModelGrid
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
-            >>> divflux
-            array([ 2.,  4., -2.,  0.,  1., -4.])
-=======
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1357,57 +1161,20 @@ class ModelGrid(ModelDataFields):
         >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
         >>> divflux
         array([ 2.,  4., -2.,  0.,  1., -4.])
->>>>>>> FETCH_HEAD
             
         If calculate_gradients_at_core_nodes is called inside a loop, you can
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-<<<<<<< HEAD
-            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
-            
-        Then do this inside the loop:
-            
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
-=======
         >>> divflux = rmg.zeros(centering='core_cell') # outside loop
             
         Then do this inside the loop:
             
         >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
->>>>>>> FETCH_HEAD
             
         In this case, the function will not have to create the divflux array.
         
         Note this method is untested with looped boundary conditions.
-<<<<<<< HEAD
-        """
-        
-        if self.DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
-            
-        assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux is None:
-            net_unit_flux = numpy.zeros(self.number_of_core_nodes)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert (len(net_unit_flux)) == self.number_of_core_nodes
-        
-        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
-                
-        net_unit_flux = node_net_unit_flux[self.corecell_node]
-                
-        return net_unit_flux
-
-
-    def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
-                                                  net_unit_flux=False):
-=======
->>>>>>> FETCH_HEAD
         """
         
         if self._DEBUG_TRACK_METHODS:
@@ -1540,12 +1307,7 @@ class ModelGrid(ModelDataFields):
             
     @property
     def face_widths(self):
-<<<<<<< HEAD
-        """
-        Returns an array of face widths.
-=======
         """Width of grid faces.
->>>>>>> FETCH_HEAD
         """
         try:
             return self._face_widths
@@ -1567,12 +1329,6 @@ class ModelGrid(ModelDataFields):
         self.forced_cell_areas[cell_node_ids] = self.cell_areas
 
     def get_active_cell_node_ids( self ):
-<<<<<<< HEAD
-        """
-        Returns an integer vector of the node IDs of all active (i.e., core +
-        open boundary) cells.
-        get_core_cell_node_ids may be preferable.
-=======
         """Nodes of active cells.
 
         Return an integer vector of the node IDs of all active (i.e., core +
@@ -1581,21 +1337,14 @@ class ModelGrid(ModelDataFields):
         See Also
         --------
         get_core_cell_node_ids : may be preferable.
->>>>>>> FETCH_HEAD
         """
         return self.activecell_node
         
         
-<<<<<<< HEAD
-    def get_core_cell_node_ids( self ):
-        """
-        Returns an integer vector of the node IDs of all core cells.
-=======
     def get_core_cell_node_ids(self):
         """Nodes of core cells.
 
         Return an integer vector of the node IDs of all core cells.
->>>>>>> FETCH_HEAD
         """
         return self.corecell_node
 
@@ -1785,14 +1534,6 @@ class ModelGrid(ModelDataFields):
         node statuses. Call it if your method or driver makes changes to the
         boundary conditions of nodes in the grid.
         """
-<<<<<<< HEAD
-        .. deprecated:: 0.6
-            Deprecated due to out of date terminology;
-            use :func:`set_nodata_nodes_to_closed` instead.
-            
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
-=======
         self._reset_list_of_active_links()
         self._reset_lists_of_nodes_cells()
         try:
@@ -1805,7 +1546,7 @@ class ModelGrid(ModelDataFields):
                 self.neighbor_list_created = False
         except AttributeError:
             pass
->>>>>>> FETCH_HEAD
+
         
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
@@ -1864,45 +1605,13 @@ class ModelGrid(ModelDataFields):
         >>> mg.node_status
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
-<<<<<<< HEAD
-        self.set_nodata_nodes_to_closed(node_data, nodata_value)
-    
-    
-    def set_nodata_nodes_to_closed(self, node_data, nodata_value):
-        """
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
-        
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> mg.node_status
-            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.set_nodata_nodes_to_closed(h, -9999)
-            >>> mg.node_status
-            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
-        """
-        
-=======
->>>>>>> FETCH_HEAD
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
         
         # Recreate the list of active cell IDs
-<<<<<<< HEAD
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        
-        # Recreate the list of active links
-        self._reset_list_of_active_links()
-=======
         self.update_links_nodes_cells_to_new_BCs()
->>>>>>> FETCH_HEAD
         
         
     def max_of_link_end_node_values(self, node_data):
@@ -2421,19 +2130,12 @@ class ModelGrid(ModelDataFields):
                 
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
-<<<<<<< HEAD
-        """
-        .. deprecated:: 0.6
-            Due to imprecise terminology. Use :func:`set_closed_boundaries`
-            instead.
-=======
         """Set boundaries to inactive.
 
         .. note:: Deprecated since version 0.6.
             Due to imprecise terminology. Use :func:`set_closed_boundaries`
             instead.
 
->>>>>>> FETCH_HEAD
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
@@ -2500,23 +2202,11 @@ class ModelGrid(ModelDataFields):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-<<<<<<< HEAD
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]        
-        self._reset_list_of_active_links()
-
-    def set_inactive_nodes(self, nodes):
-        """
-        .. deprecated:: 0.6
-            Outdated terminology. Use :func:`set_closed_nodes` instead.
-=======
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_inactive_nodes(self, nodes):
         """Make nodes inactive.
 
->>>>>>> FETCH_HEAD
         Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
 
@@ -2527,24 +2217,13 @@ class ModelGrid(ModelDataFields):
         
         
     def set_closed_nodes(self, nodes):
-<<<<<<< HEAD
-        """
-=======
         """Make nodes closed boundaries.
 
->>>>>>> FETCH_HEAD
         Sets the given nodes' boundary condition statuses to CLOSED (==4),
         and resets the list of active links to reflect any changes.
         """
         self.node_status[nodes] = CLOSED_BOUNDARY
-<<<<<<< HEAD
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
-=======
         self.update_links_nodes_cells_to_new_BCs()
->>>>>>> FETCH_HEAD
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None, node_subset=numpy.nan, out_distance=None, out_azimuth=None):
         """
