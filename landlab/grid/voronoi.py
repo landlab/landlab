@@ -372,7 +372,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
                 and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
 
-    def create_links_and_faces_from_voronoi_diagram(self, vor):
+    @staticmethod
+    def create_links_and_faces_from_voronoi_diagram(vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
