@@ -14,19 +14,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     The points are then arranged in a Delaunay triangulation with Voronoi
     cells.
     
-<<<<<<< HEAD
-    Examples:
-        
-        >>> omg = RadialModelGrid(num_shells=5, dr=1., origin_x=0., origin_y=0.)
-        >>> omg.number_of_nodes
-        7
-=======
     Examples
     --------
     >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
     >>> omg.number_of_nodes
     7
->>>>>>> FETCH_HEAD
     """
     
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
