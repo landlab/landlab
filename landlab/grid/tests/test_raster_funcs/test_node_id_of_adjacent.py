@@ -63,11 +63,7 @@ def test_corner_multiple_corners():
 @with_setup(setup_grid)
 def test_face_multiple_faces():
     node_ids = rfuncs.node_id_of_cell_neighbor(rmg, np.array([0, 1]), (4, ))
-<<<<<<< HEAD
-    assert_array_equal(node_ids, np.array([ 7, 11]))
-=======
     assert_array_equal(node_ids, np.array([[ 7, 11]]))
->>>>>>> FETCH_HEAD
 
 
 @with_setup(setup_grid)
