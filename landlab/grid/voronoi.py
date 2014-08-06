@@ -68,17 +68,6 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
     
-<<<<<<< HEAD
-    Examples:
-        
-        >>> from numpy.random import rand
-        >>> x = rand(25)
-        >>> y = rand(25)
-        >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
-        >>> vmg.number_of_nodes
-        25
-    
-=======
     Examples
     --------
     >>> from numpy.random import rand
@@ -86,14 +75,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
     25
->>>>>>> FETCH_HEAD
     """
     def __init__(self, x=None, y=None, **kwds):
-<<<<<<< HEAD
-        """
-        If x and y are provided, creates an unstructured grid using those 
-        coordinates as the node positions.
-=======
         """Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
@@ -118,7 +101,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
         >>> vmg.number_of_nodes
         25
->>>>>>> FETCH_HEAD
         """
         if (x is not None) and (y is not None):
             self._initialize(x, y)
@@ -273,20 +255,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.activecell_node = core_nodes
         self.corecell_node = core_nodes
         self._boundary_nodes = boundary_nodes
-<<<<<<< HEAD
-        
-        # Return the results
-        return node_status, core_nodes, boundary_nodes
-        
-    def setup_node_cell_connectivity(self, node_status, ncells):
-=======
         
         # Return the results
         return node_status, core_nodes, boundary_nodes
 
     @staticmethod
     def setup_node_cell_connectivity(node_status, ncells):
->>>>>>> FETCH_HEAD
         """
         Creates and returns the following arrays:
             1) for each node, the ID of the corresponding cell, or
@@ -323,15 +297,6 @@ class VoronoiDelaunayGrid(ModelGrid):
                 cell += 1
                 
         #save the arrays
-<<<<<<< HEAD
-        self.node_cell = node_cell
-        self.cell_node = cell_node
-        
-        return node_cell, cell_node
-        
-
-    def create_links_from_triangulation(self, tri):
-=======
         #self.node_cell = node_cell
         #self.cell_node = cell_node
         
@@ -339,7 +304,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         
     @staticmethod
     def create_links_from_triangulation(tri):
->>>>>>> FETCH_HEAD
         """
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
@@ -394,15 +358,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
         
         #save the results
-<<<<<<< HEAD
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self._num_links = num_links
-=======
         #self.link_fromnode = link_fromnode
         #self.link_tonode = link_tonode
         #self._num_links = num_links
->>>>>>> FETCH_HEAD
     
         # Return the results
         return link_fromnode, link_tonode, num_links
@@ -502,21 +460,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print 'vor ridge points:',vor.ridge_points
         
         #save the data
-<<<<<<< HEAD
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self.active_link_ids = active_links
-        self._face_widths = face_width
-        self._num_faces = face_width.size
-        self._num_active_links = active_links.size
-=======
         #self.link_fromnode = link_fromnode
         #self.link_tonode = link_tonode
         #self.active_link_ids = active_links
         #self._face_widths = face_width
         #self._num_faces = face_width.size
         #self._num_active_links = active_links.size
->>>>>>> FETCH_HEAD
         
         return link_fromnode, link_tonode, active_links, face_width
 
