@@ -1,30 +1,10 @@
-================
-Model Grid Guide
-================
+========================================================================
+Building Simple Models with Landlab's Gridding Library: A Tutorial Guide
+========================================================================
 
-<<<<<<< HEAD
-(NOTE: currently, this web version of the Model Grid Guide is incomplete and not fully 
-formatted. You can obtain a :download:`PDF version here <model_grid_guide/model_grid_description_and_guide.pdf>`.)
-
-<<<<<<< HEAD
-ModelGrid is an open-source software package that creates and manages a regular
-or irregular grid for building 2D numerical simulation models. ModelGrid is
-especially useful for finite-volume (FV) and finite-difference (FD) models, but
-also can be used for a variety of other applications. ModelGrid provides
-efficient built-in functions for common operations in FD and FV models, such as
-calculating local gradients and integrating fluxes around the perimeter of grid
-cells. Staggered-grid models are especially easy to implement with ModelGrid.
-A novel feature of ModelGrid is the ability to switch seamlessly between
-structured and unstructured grids.
-=======
-When creating a two-dimensional simulation model, often the most time-consuming and
-error-prone task involves writing the code to set up the underlying grid. Irregular
-(or ``unstructured'') grids are especially tricky to implement. Landlab's **ModelGrid**
-=======
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
 (or "unstructured") grids are especially tricky to implement. Landlab's **ModelGrid**
->>>>>>> FETCH_HEAD
 package makes this process much easier, by providing a set of library routines for
 creating and managing a 2D grid, attaching data to the grid, performing common input
 and output operations, and  providing library functions that handle common numerical 
@@ -52,13 +32,6 @@ Some of the things you can do with **ModelGrid** include:
 - Create models by coupling together your own and/or pre-built process components (note 
   that this capability is still under development as of Spring 2014)
 - Use models built by others from process components
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> FETCH_HEAD
-=======
->>>>>>> FETCH_HEAD
-=======
->>>>>>> FETCH_HEAD
 
 This document provides a basic introduction to building applications using
 **ModelGrid**. It covers: (1) how grids are represented, and (2) a set of tutorial examples
@@ -111,15 +84,9 @@ configurations are possible as well. The spring 2014 version of Landlab includes
 support for hexagonal and radial grids, which are specialized versions of the 
 Voronoi-Delaunay grid shown in :ref:`Figure 1b <grid>`. Note that the node-link-cell-face
 topology is general enough to represent other types of grid; for example, one could use
-<<<<<<< HEAD
-**ModelGrid's** data structures to implement a quad-tree grid (:ref:`Figure 1c <grid>`), 
-or a Delaunay-Voronoi grid in which cells are triangular elements with
-nodes at their circumcenters (:ref:`Figure 1d <grid>`).
-=======
 **ModelGrid's** data structures to implement a quad-tree grid, 
 or a Delaunay-Voronoi grid in which cells are triangular elements with
 nodes at their circumcenters.
->>>>>>> FETCH_HEAD
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
@@ -157,21 +124,10 @@ create a mesh with Voronoi polygons as cells and Delaunay triangles as patches
 (:ref:`Figure 1b <grid>`). Alternatively, with a raster grid, one simply has
 two sets of square elements that are offset by half the grid spacing
 (:ref:`Figure 1a <grid>`). Whatever the form of the tessellation, **ModelGrid** keeps
-<<<<<<< HEAD
-track of the geometry and topology of the grid. For example, one can call
-various ModelGrid functions to obtain lists of the *(x,y)* coordinates of
-nodes, corners, and junctions; get lists of neighbors for any cell; get the
-endpoints of any link or directed edge, and so on. These functions are listed
-and described below. 
-
-
-
-=======
 track of the geometry and topology of the grid.
 
 
 
->>>>>>> FETCH_HEAD
 Managing Grid Boundaries
 ========================
 
@@ -199,12 +155,7 @@ Managing Grid Boundaries
 An important component of any numerical model is the method for handling
 boundary conditions. In general, it's up to the application developer to manage
 boundary conditions for each variable. However, **ModelGrid** makes this task a bit
-<<<<<<< HEAD
-easier by providing lists of nodes and links that lie along the boundary of the
-grid, and those that lie in the interior. It also allows you to de-activate
-=======
 easier by tagging nodes that are treated as boundaries (*boundary nodes*) and those that are treated as regular nodes belonging to the interior computational domain (*core nodes*). It also allows you to de-activate ("close")
->>>>>>> FETCH_HEAD
 portions of the grid perimeter, so that they effectively act as walls.
 
 Let's look first at how ModelGrid treats its own geometrical boundaries. The
