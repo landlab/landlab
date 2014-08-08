@@ -106,8 +106,10 @@ class UniformRectilinearGrid(RectilinearGrid):
             raise ValueError('only 2d grids are supported')
 
         coords = (
-            np.arange(origin[0], origin[0] + shape[0] * spacing[0], spacing[0], dtype=np.float64),
-            np.arange(origin[1], origin[1] + shape[1] * spacing[1], spacing[1], dtype=np.float64),
+            np.arange(origin[0], origin[0] + shape[0] * spacing[0], spacing[0],
+                      dtype=np.float64),
+            np.arange(origin[1], origin[1] + shape[1] * spacing[1], spacing[1],
+                      dtype=np.float64),
         )
 
         super(UniformRectilinearGrid, self).__init__(coords)
@@ -133,5 +135,38 @@ class UniformRectilinearGrid(RectilinearGrid):
         return self._spacing[1]
 
 
-class UniformRectilinearGrid(RectilinearGrid):
-    pass
+class RasterGrid(UniformRectilinearGrid):
+    """
+    Examples
+    --------
+    >>> grid = RasterGrid((4, 5), spacing=2, origin=(-1, 1))
+    >>> grid.number_of_nodes
+    20
+    >>> grid.number_of_core_nodes
+    6
+    >>> grid.number_of_node_rows
+    4
+    >>> grid.number_of_node_columns
+    5
+    >>> grid.corner_nodes
+    array([ 0,  4, 15, 19])
+    >>> grid.number_of_cells
+    6
+    >>> grid.node_row_coord
+    array([-1.,  1.,  3.,  5.])
+    >>> grid.node_col_coord
+    array([ 1.,  3.,  5.,  7.,  9.])
+    """
+    def __init__(self, shape, spacing=1., origin=0.):
+        """
+        Parameters
+        ----------
+        shape : tuple
+            Shape of the grid in nodes.
+        spacing : float, optional
+            Spacing between rows and columns.
+        origin : tuple, optional
+            Coordinates of grid origin.
+        """
+        super(RasterGrid, self).__init__(shape, origin=origin,
+                                         spacing=(spacing, ) * len(shape))
