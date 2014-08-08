@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from .structured import StructuredQuadModelGrid
+from .structured import StructuredQuadGrid
 
 
-class RectilinearModelGrid(StructuredQuadModelGrid):
+class RectilinearGrid(StructuredQuadGrid):
     """
     Parameters
     ----------
@@ -16,7 +16,7 @@ class RectilinearModelGrid(StructuredQuadModelGrid):
     --------
     >>> import numpy as np
     >>> (y, x) = np.arange(4.), np.arange(5.)
-    >>> grid = RectilinearModelGrid((y, x))
+    >>> grid = RectilinearGrid((y, x))
     >>> grid.number_of_nodes
     20
     >>> grid.number_of_core_nodes
@@ -50,7 +50,7 @@ class RectilinearModelGrid(StructuredQuadModelGrid):
         )
         node_coord = np.meshgrid(*coord, indexing='ij')
 
-        super(RectilinearModelGrid, self).__init__(node_coord, shape)
+        super(RectilinearGrid, self).__init__(node_coord, shape)
 
         self._coord = (coord[0], coord[1])
 
@@ -69,11 +69,11 @@ class RectilinearModelGrid(StructuredQuadModelGrid):
         return self._coord[1]
 
 
-class UniformRectilinearModelGrid(RectilinearModelGrid):
+class UniformRectilinearGrid(RectilinearGrid):
     """
     Examples
     --------
-    >>> grid = UniformRectilinearModelGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
+    >>> grid = UniformRectilinearGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
     >>> grid.number_of_nodes
     20
     >>> grid.number_of_core_nodes
@@ -110,7 +110,7 @@ class UniformRectilinearModelGrid(RectilinearModelGrid):
             np.arange(origin[1], origin[1] + shape[1] * spacing[1], spacing[1], dtype=np.float64),
         )
 
-        super(UniformRectilinearModelGrid, self).__init__(coords)
+        super(UniformRectilinearGrid, self).__init__(coords)
 
         self._spacing = tuple(spacing)
 
@@ -131,3 +131,7 @@ class UniformRectilinearModelGrid(RectilinearModelGrid):
         """Spacing between columns of grid nodes.
         """
         return self._spacing[1]
+
+
+class UniformRectilinearGrid(RectilinearGrid):
+    pass

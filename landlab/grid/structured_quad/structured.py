@@ -4,7 +4,7 @@ Examples
 --------
 >>> import numpy as np
 >>> (y, x) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
->>> grid = StructuredQuadModelGrid((y, x))
+>>> grid = StructuredQuadGrid((y, x))
 >>> grid.number_of_nodes
 20
 >>> grid.number_of_core_nodes
@@ -24,7 +24,7 @@ from ..base import FIXED_VALUE_BOUNDARY
 from . import links, nodes, cells, faces
 
 
-class StructuredQuadModelGrid(object):
+class StructuredQuadGrid(object):
     def __init__(self, node_coord, shape=None, node_status=None):
         """
         Parameters
@@ -131,7 +131,7 @@ class StructuredQuadModelGrid(object):
         --------
         >>> import numpy as np
         >>> (x, y) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
-        >>> grid = StructuredQuadModelGrid((x, y))
+        >>> grid = StructuredQuadGrid((x, y))
         >>> grid.corner_nodes
         array([ 0,  4, 15, 19])
         """
