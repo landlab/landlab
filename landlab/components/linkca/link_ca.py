@@ -9,17 +9,11 @@ from heapq import heappush
 from heapq import heappop
 from landlab import RasterModelGrid
 import landlab
-from landlab.components.fracture_grid.fracture_grid import *
 import numpy
 from landlab.plot import imshow_grid
 import pylab as plt
 import time
 
-#_ROCK = 0
-#_SAP = 1
-#_NODE_STATE = { _ROCK : 'rock', \
-#                _SAP : 'saprolite' }
-#_LINK_STATE = [ (_ROCK, _ROCK), (_ROCK, _SAP), (_SAP, _ROCK), (_SAP, _SAP) ]
 _NEVER = 1e12
 
 _DEBUG = False
@@ -747,16 +741,6 @@ def setup_transition_list2():
         
     return xn_list
     
-    
-example_test2()
-
-#xn_list = setup_transition_list()
-#model_grid = RasterModelGrid(3, 5, 1.0)
-#ns_dict = { 0 : 'rock', 1 : 'saprolite' }
-#node_state = model_grid.create_node_array_zeros()
-#node_state[6] = 1
-#myca = LinkCellularAutomaton(model_grid, ns_dict, xn_list, node_state)
-
     
 if __name__ == "__main__":
     import doctest
