@@ -83,10 +83,10 @@ Constants
         self.m_n_sq = self.m_n*self.m_n 
         
         if rainfall_intensity == None:
-            self.rainfall_mmhr = MPD.read_float( 'RAINFALL_RATE')
+            self.rainfall_mmhr = MPD.read_float( 'RAINFALL_INTENSITY')
         
         if rain_duration == None:
-            self.rain_duration = MPD.read_float( 'RAIN_DURATION' )
+            self.rain_duration = MPD.read_float( 'RAINFALL_DURATION' )
         
         if model_run_time == None:
             self.total_time = self.rain_duration
