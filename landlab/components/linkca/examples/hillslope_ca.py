@@ -1,10 +1,10 @@
 #!/usr/env/python
 
 """
-weathering_ca.py
+hillslope_ca.py
 
-Example of a pair-based cellular automaton model, which simulates weathering of
-rock into saprolite.
+Example of a pair-based cellular automaton model, which simulates the evolution
+of a hillslope by disturbance-driven soil creep.
 
 GT, August 2014
 """
@@ -22,22 +22,11 @@ def setup_transition_list():
     Creates and returns a list of Transition() objects to represent state
     transitions for a weathering model.
     
-    Parameters
-    ----------
-    (none)
-    
-    Returns
-    -------
-    xn_list : list of Transition objects
-        List of objects that encode information about the link-state transitions.
-    
-    Notes
-    -----
     The states and transitions are as follows (note: X-X means "horizontal"
-    pair; X/X means "vertical" pair with first item beneath second):
-
+    pair, X/X means "vertical" pair with first item beneath second):
+        
     Pair state      Transition to       Process     Rate
-    ==========      =============       =======     ====
+    ----------      -------------       -------     ----
     0 (0-0)         (none)              -           -
     1 (0-1)         3 (1-1)             weathering  1.0
     2 (1-0)         3 (1-1)             weathering  1.0
@@ -71,20 +60,17 @@ def main():
     # User-defined parameters
     nr = 128
     nc = 128
-    fracture_spacing = 10  # fracture spacing, cell widths
     plot_interval = 0.25
     run_duration = 4.0
     report_interval = 5.0  # report interval, in real-time seconds
     
-    # Remember the clock time, and calculate when we next want to report
-    # progress.
+    # Initialize real time
     current_real_time = time.time()
     next_report = current_real_time + report_interval
 
-    # Create grid
+    # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
     
-    # Set up the states and pair transitions.
     # Transition data here represent a body of fractured rock, with rock 
     # represented by nodes with state 0, and saprolite (weathered rock)
     # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
@@ -93,13 +79,9 @@ def main():
     ns_dict = { 0 : 'rock', 1 : 'saprolite' }
     xn_list = setup_transition_list()
 
-    # Create the node-state array and attach it to the grid
+    # The initial grid
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
-    
-    # Initialize the node-state array as a "fracture grid" in which randomly
-    # oriented fractures are represented as lines of saprolite embedded in
-    # bedrock.
-    node_state_grid[:] = make_frac_grid(fracture_spacing, model_grid=mg)    
+    node_state_grid[:] = make_frac_grid(10, model_grid=mg)    
     
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
@@ -113,12 +95,8 @@ def main():
                 print '{0:.0f}'.format(ca.node_state[n]),
             print
 
-    # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca)
     
-    # Plot the initial grid
-    ca_plotter.update_plot()
-
     # RUN
     current_time = 0.0
     while current_time < run_duration:
@@ -146,13 +124,13 @@ def main():
                     n -= 1
                     print '{0:.0f}'.format(ca.node_state[n]),
                 print
-
-
+        
+        
     # FINALIZE
-
+    
     # Plot
     ca_plotter.finalize()
-
+        
 
 if __name__ == "__main__":
     main()

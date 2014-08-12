@@ -80,10 +80,10 @@ class CAPlotter():
         
         plt.ion()
         plt.figure(1)
-        nsr=ca.grid.node_vector_to_raster(ca.node_state)
-        plt.imshow(nsr, interpolation='None')
-        plt.draw()
-        plt.pause(0.01)
+        #nsr=ca.grid.node_vector_to_raster(ca.node_state)
+        #plt.imshow(nsr, interpolation='None')
+        #plt.draw()
+        #plt.pause(0.01)
 
     def update_plot(self):
 
