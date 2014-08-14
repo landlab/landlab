@@ -260,6 +260,8 @@ class find_facets(object):
         profile_ft_node_id = []
         profile_ft_node_x = []
         profile_ft_node_y = []
+        profile_ft_node_z = []
+        profile_ft_node_dist = []
         profile_x_facet_pts = []
         profile_z_facet_pts = []
         profile_S_facet_pts = []
@@ -286,8 +288,8 @@ class find_facets(object):
                 #now make a multiplier to make sure the reference point for new distances is far from the actual pts:
                 multiplier = 10.*np.ptp(grid.node_y[grid.core_nodes[nodes_possible]])
                 #derive the position:
-                x_ref = grid.node_x[i] + multiplier*grad
-                y_ref = grid.node_y[i] - multiplier
+                x_ref = grid.node_x[i] + cmp(grid.node_x[i],np.mean(grid.node_x[grid.core_nodes[nodes_possible]]))*multiplier*abs(grad)
+                y_ref = grid.node_y[i] + cmp(grid.node_y[i],np.mean(grid.node_y[grid.core_nodes[nodes_possible]]))*multiplier
                 #get new absolute distances
                 dist_to_ft = self.grid.get_distances_of_nodes_to_point((x_ref,y_ref), node_subset=np.array([i]))
                 dists_along_profile = self.grid.get_distances_of_nodes_to_point((x_ref,y_ref), node_subset=grid.core_nodes[nodes_possible]) - dist_to_ft
@@ -303,7 +305,7 @@ class find_facets(object):
                     mod = np.sqrt(1.+grad**2.)
                 else:
                     mod = np.sqrt(1.+(1./grad)**2.)
-                max_diff = 3.*mod*grid.node_spacing
+                max_diff = 1.9*mod*grid.node_spacing
                 locs_of_large_diffs = np.where(dist_diffs>max_diff)[0]
                 #there should only be 1 place on the line where there's a cluster, i.e., a large pts_betw_of_max_diffs.
                 #This is what we're seeking.
@@ -311,13 +313,16 @@ class find_facets(object):
                 #need to be careful here in case the where call gives an empty array
                 if locs_of_large_diffs.size > 1:
                     biggest_interval_loc = np.argmax(pts_betw_large_diffs)
-                    override_size = False
                 elif locs_of_large_diffs.size == 1:
-                    locs_of_large_diffs = np.array([0,locs_of_large_diffs[0]])
+                    #one side or the other must be bigger:
+                    if 2.*locs_of_large_diffs[0]<dists_along_profile.size-1:
+                        locs_of_large_diffs = np.array([locs_of_large_diffs[0],(dists_along_profile.size-1)])
+                    else:
+                        locs_of_large_diffs = np.array([0,locs_of_large_diffs[0]])
                     biggest_interval_loc = np.array([0])
                     #here we assume that the single large diff must be further from the ft than the plane
                 else:
-                    locs_of_large_diffs = np.array([0,dists_along_profile.size])
+                    locs_of_large_diffs = np.array([0,(dists_along_profile.size-1)])
                     biggest_interval_loc = np.array([0])
                     #...all the pts in the line are one cluster
                 #apply a test to ensure we only save "big" patches; a threshold of 10 pts on the line
@@ -325,25 +330,85 @@ class find_facets(object):
                     patch_size = pts_betw_large_diffs[biggest_interval_loc]
                 except IndexError: #pts_betw_large_diffs is empty
                     patch_size = locs_of_large_diffs[1]-locs_of_large_diffs[0]
-                if patch_size > 10.: ####not internally consistent condition
-                    start_pt_of_cluster = locs_of_large_diffs[biggest_interval_loc]
-                    end_pt_of_cluster = locs_of_large_diffs[biggest_interval_loc+1] #both referring to the sorted list
+                if patch_size > 10.:
+                    start_pt_of_cluster = locs_of_large_diffs[biggest_interval_loc] + 1
+                    end_pt_of_cluster = locs_of_large_diffs[biggest_interval_loc+1] + 1 #both referring to the sorted list
+                    #both +1s are to account for required frame of ref changes - indices refer to where the big gaps start, not where they ends
                     #so:
                     dists_to_sorted_pts = dists_along_profile[dist_order][start_pt_of_cluster:end_pt_of_cluster]
                     elevs_of_sorted_pts = their_elevs[dist_order][start_pt_of_cluster:end_pt_of_cluster]
                     slopes_of_sorted_pts = self.slopes[nodes_possible][dist_order][start_pt_of_cluster:end_pt_of_cluster]
-                    profile_ft_node_id.append(i)
-                    profile_ft_node_x.append(grid.node_x[i])
-                    profile_ft_node_y.append(grid.node_y[i])
-                    profile_x_facet_pts.append(dists_to_sorted_pts)
-                    profile_z_facet_pts.append(elevs_of_sorted_pts)
-                    profile_S_facet_pts.append(slopes_of_sorted_pts)
+                    profile_ft_node_id.append(i.copy())
+                    profile_ft_node_x.append(grid.node_x[i].copy())
+                    profile_ft_node_y.append(grid.node_y[i].copy())
+                    profile_ft_node_z.append(self.elevs[i].copy())
+                    profile_ft_node_dist.append(dist_to_ft.copy())
+                    profile_x_facet_pts.append(dists_to_sorted_pts.copy())
+                    profile_z_facet_pts.append(elevs_of_sorted_pts.copy())
+                    profile_S_facet_pts.append(slopes_of_sorted_pts.copy())
                     figure(5)
                     plot(dists_to_sorted_pts, elevs_of_sorted_pts)
+                    #dirty, but effective code!
                 
         self.profile_ft_node_id = profile_ft_node_id
         self.profile_ft_node_x = profile_ft_node_x
         self.profile_ft_node_y = profile_ft_node_y
+        self.profile_ft_node_z = profile_ft_node_z
+        self.profile_ft_node_dist = profile_ft_node_dist
         self.profile_x_facet_pts = profile_x_facet_pts
         self.profile_z_facet_pts = profile_z_facet_pts
         self.profile_S_facet_pts = profile_S_facet_pts
+        
+    def fit_slopes_to_facet_lines(self,polynomial_degree=4, curvature_threshold=0.0004):
+        """
+        Fits (linear) lines of best fit to extracted profiles, already stored as 
+        class properties.
+        """
+        avg_slopes_linear = []
+        avg_slopes_poly = []
+        curv_of_flattest_part_list = []
+        slope_min_curv = []
+        rsqd_list = []
+        big_slope_small_curv = []
+        elev_at_bssc = []
+        for i in xrange(len(self.profile_x_facet_pts)):
+            x = self.profile_x_facet_pts[i]
+            z = self.profile_z_facet_pts[i]
+            (grad, offset) = np.polyfit(x,z,1)
+            coeffs, residuals = np.polyfit(x,z,polynomial_degree, full=True)[:2]
+            rsqd = 1. - residuals / (z.size * z.var())
+            #differentiate the coeffs to get slope:
+            diff_multiplier = np.arange(polynomial_degree+1)[::-1]
+            curv_multiplier = np.arange(polynomial_degree)[::-1]
+            z_equ = np.poly1d(coeffs)
+            S_equ = np.poly1d((coeffs*diff_multiplier)[:-1])
+            curv_equ = np.poly1d(((coeffs*diff_multiplier)[:-1]*curv_multiplier)[:-1])
+            S_at_each_pt = S_equ(x)
+            curv_at_each_pt = curv_equ(x)
+            avg_slopes_linear.append(abs(grad))
+            avg_slopes_poly.append(np.amax(np.fabs(S_at_each_pt)))
+            loc_of_flattest_part = np.argmin(np.fabs(curv_at_each_pt[2:-2]))+2
+            curv_of_flattest_part = curv_at_each_pt[loc_of_flattest_part]
+            S_at_min_curve_untested = abs(S_at_each_pt[loc_of_flattest_part])
+            small_curves = np.less(np.fabs(curv_at_each_pt[2:-2]), curvature_threshold)
+            try:
+                big_slope_small_curv.append(np.amax(S_at_each_pt[small_curves]))
+                elev_at_bssc.append(z[np.argmax(S_at_each_pt[small_curves])])
+            except ValueError:
+                big_slope_small_curv.append(np.nan)
+                elev_at_bssc.append(np.nan)
+            slope_min_curv.append(S_at_min_curve_untested)
+            curv_of_flattest_part_list.append(curv_of_flattest_part)
+            rsqd_list.append(rsqd)
+            #figure(8)
+            #synthetic_z = grad*x + offset
+            synthetic_z = z_equ(x)
+            plot(x,z,'x')
+            plot(x, synthetic_z,'-')
+        self.avg_slopes_linear = np.array(avg_slopes_linear)
+        self.avg_slopes_poly = np.array(avg_slopes_poly)
+        self.curv_of_flattest_part = np.array(curv_of_flattest_part_list)
+        self.slope_min_curv = np.array(slope_min_curv)
+        self.big_slope_small_curv = np.array(big_slope_small_curv)
+        self.elev_at_bssc = np.array(elev_at_bssc)
+        self.rsqd = np.array(rsqd_list)
