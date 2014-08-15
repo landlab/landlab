@@ -36,14 +36,14 @@ def setup_transition_list():
     Pair state      Transition to       Process     Rate
     ----------      -------------       -------     ----
     0 (0-0)         
-    1 (0-1)
+    1 (0-1)         4 (1-0)             leftward motion
     2 (0-2)
     3 (0-3)         4 (1-0)             left ejection
     4 (1-0)
     5 (1-1)      
     6 (1-2)
     7 (1-3)
-    8 (2-0)
+    8 (2-0)         2 (0-2)             rightward motion
     9 (2-1)
     10 (2-2)
     11 (2-3)        15 (3-3)            demobilization (right wall)
@@ -52,36 +52,43 @@ def setup_transition_list():
     14 (3-2)
     15 (3-3)
     16 (0/0)      
-    17 (0/1) 
-    18 (0/2)             -           
+    17 (0/1)        20 (1/0)            downward motion
+    18 (0/2)        24 (2/0)            downward motion         
     19 (0/3)        20 (1/0)            downward ejection, left
                     24 (2/0)            downward ejection, right
-    20 (1/0)
+    20 (1/0)        17 (0/1)            upward motion
     21 (1/1)          
     22 (1/2)
     23 (1/3)
-    24 (2/0)
+    24 (2/0)        18 (0/2)            upward motion
     25 (2/1)
     26 (2/2)
     27 (2/3)
     28 (3/0)        17 (0/1)            upward ejection, left
                     18 (0/2)            upward ejection, right
-    29 (3/1)
-    30 (3/2)
+    29 (3/1)        31 (3/3)            demobilization (friction)
+    30 (3/2)        31 (3/3)            demobilization (friction)
     31 (3/3)
     
     """
     xn_list = []
     
-    xn_list.append( Transition(3, 4, 1., 'left ejection') )
-    xn_list.append( Transition(12, 2, 1., 'right ejection') )
-    xn_list.append( Transition(19, 20, 1., 'downward ejection, left') )
-    xn_list.append( Transition(19, 24, 1., 'downward ejection, right') )
-    xn_list.append( Transition(28, 17, 1., 'upward ejection, left') )
-    xn_list.append( Transition(28, 18, 1., 'upward ejection, right') )
-    xn_list.append( Transition(11, 15, 10., 'demobilization (right wall)') )
-    xn_list.append( Transition(13, 15, 10., 'demobilization (left wall)') )
-    # still to add: motion l, r, u, d; demob for vertical pairs
+    xn_list.append( Transition(3, 4, 0.01, 'left ejection') )
+    xn_list.append( Transition(12, 2, 0.01, 'right ejection') )
+    xn_list.append( Transition(19, 20, 0.01, 'downward ejection, left') )
+    xn_list.append( Transition(19, 24, 0.01, 'downward ejection, right') )
+    xn_list.append( Transition(28, 17, 0.01, 'upward ejection, left') )
+    xn_list.append( Transition(28, 18, 0.01, 'upward ejection, right') )
+    xn_list.append( Transition(11, 15, 100., 'demobilization (right wall)') )
+    xn_list.append( Transition(13, 15, 100., 'demobilization (left wall)') )
+    xn_list.append( Transition(29, 31, 0.1, 'demobilization (friction)') )
+    xn_list.append( Transition(30, 31, 0.1, 'demobilization (friction)') )
+    xn_list.append( Transition(1, 4, 1.0, 'leftward motion') )
+    xn_list.append( Transition(8, 2, 1.0, 'rightward motion') )
+    xn_list.append( Transition(20, 17, 0.1, 'upward motion') )
+    xn_list.append( Transition(24, 18, 0.1, 'upward motion') )
+    xn_list.append( Transition(18, 24, 10.0, 'downward motion') )
+    xn_list.append( Transition(17, 20, 10.0, 'downward motion') )
         
     if _DEBUG:
         print
@@ -99,8 +106,8 @@ def main():
     # User-defined parameters
     nr = 128
     nc = 128
-    plot_interval = 0.25
-    run_duration = 8.0
+    plot_interval = 5.0
+    run_duration = 5000.0
     report_interval = 5.0  # report interval, in real-time seconds
     
     # Initialize real time
@@ -122,6 +129,10 @@ def main():
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 3
+    
+    # Set the left and right boundary conditions
+    node_state_grid[mg.left_edge_node_ids()] = 0
+    node_state_grid[mg.right_edge_node_ids()] = 0
     
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
