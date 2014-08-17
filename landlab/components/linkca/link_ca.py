@@ -2,7 +2,14 @@
 """
 Link-based cellular automaton modeling tools.
 
-Created GT Oct 2013
+In this updated version of the code, link states can either be encoded by
+integer IDs, e.g., 0,1,2..., or tuples actually decribing the state, e.g.,
+(x,y,0) to represent a horizontal link between x and y, 
+(w,z,1) a vertical link between w and z (w below).
+This change remains fully back compatible with GT's original version.
+
+Created GT Oct 2013, modified DEJH Aug 2014 to optionally use identifying pair 
+tuples, not just arbitrary IDs.
 """
 
 from heapq import heappush
@@ -29,6 +36,10 @@ class Transition():
     time until the transition event occurs is exponentional with mean 1/rate. 
     The optional name parameter allows the caller to assign a name to any given 
     transition.
+    Note that from_state and to_state can now be either integer IDs for the
+    standardised ordering of the link states (as before), or tuples explicitly
+    describing the node state at each end, and the orientation.
+    Orientation is 0: horizontal, L-R; 1: vertical, bottom-top.
     """
     def __init__(self, from_state, to_state, rate, name=None):
         
@@ -132,11 +143,32 @@ class LinkCellularAutomaton():
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
                'Transition list must contain at least one transition'
+        last_type = None
         for t in transition_list:
-            assert (t.from_state < self.num_link_states), \
-                   'Transition from_state out of range'
-            assert (t.to_state < self.num_link_states), \
-                   'Transition to_state out of range'
+            try:
+                assert (t.from_state < self.num_link_states), \
+                    'Transition from_state out of range'
+                assert (t.to_state < self.num_link_states), \
+                    'Transition to_state out of range'
+                this_type = int
+            except: #added to allow from and to states to be tuples, not just ids
+                assert type(t.from_state) == tuple, 'Transition from_state out of range'
+                assert type(t.to_state) == tuple, 'Transition to_state out of range'
+                for i in t.from_state[:-1]:
+                    assert (i < self.num_node_states), \
+                    'Transition from_state out of range'
+                for i in t.to_state[:-1]:
+                    assert (i < self.num_node_states), \
+                    'Transition to_state out of range'
+                assert t.from_state[-1] < 2, \
+                    'Encoding for horizontal/vertical in from_state must be 0 or 1.'
+                assert t.to_state[-1] < 2, \
+                    'Encoding for horizontal/vertical in to_state must be 0 or 1.'
+                this_type = tuple
+            assert last_type==this_type or last_type==None, \
+                'All transition types must be either int IDs, or all tuples.'
+            #this test to ensure all entries are either IDs, or tuples, not mixed
+            last_type=this_type
         
         # Create priority queue for events and next_update array for links
         self.event_queue = []
@@ -144,6 +176,16 @@ class LinkCellularAutomaton():
     
         # Assign link types from node types
         self.create_link_state_dict_and_pair_list()
+
+        #DEJH adds: convert transition_list to IDs if necessary
+        #This is the new part that allows Transition from_ and to_ types 
+        #to be specified either as ints, or as tuples.
+        transition_list_as_ID = transition_list[:]
+        if type(transition_list[0].from_state) == tuple:
+            #(then they all are..., because of the assertions in __init__)
+            for i in range(len(transition_list)):
+                transition_list_as_ID[i].from_state = self.link_state_dict[transition_list[i].from_state]
+                transition_list_as_ID[i].to_state = self.link_state_dict[transition_list[i].to_state]
     
         # Memorize the number of vertical links, so we can figure out
         # node-pair orientations
@@ -154,7 +196,7 @@ class LinkCellularAutomaton():
         self.assign_link_states_from_node_types()
     
         # Create transition data for links
-        self.setup_transition_data(transition_list)
+        self.setup_transition_data(transition_list_as_ID)
 
         # Put the various transitions on the event queue
         self.push_transitions_to_event_queue()

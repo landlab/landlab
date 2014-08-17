@@ -112,8 +112,8 @@ def setup_transition_list():
     xn_list.append( Transition(27, 35, 10.0, 'downward motion') )
     #DEJH adds rock-regolith properties:
     P_weath_bare = 0.002
-    P_weath_mobile = 0.002
-    P_weath_cover = 0.002
+    P_weath_mobile = 0.0005
+    P_weath_cover = 0.0005
     P_weath_down = 0.05 #to simulate "undermining"
     xn_list.append( Transition(4, 3, P_weath_bare, 'weathering front, right, bare') )
     xn_list.append( Transition(9, 8, P_weath_mobile, 'weathering front, right, covered mobile') )
@@ -123,7 +123,7 @@ def setup_transition_list():
     xn_list.append( Transition(21, 16, P_weath_mobile, 'weathering front, left, covered mobile') )
     xn_list.append( Transition(22, 17, P_weath_mobile, 'weathering front, left, covered mobile') )
     xn_list.append( Transition(23, 18, P_weath_cover, 'weathering front, left, covered') )
-    xn_list.append( Transition(29, 28, P_weath_down, 'weathering front, up, bare') )
+    xn_list.append( Transition(29, 28, P_weath_down, 'weathering front, up, bare') ) #here's our "undermined" transition
     xn_list.append( Transition(34, 33, P_weath_mobile, 'weathering front, up, covered mobile') )
     xn_list.append( Transition(39, 38, P_weath_mobile, 'weathering front, up, covered mobile') )
     xn_list.append( Transition(44, 43, P_weath_cover, 'weathering front, up, covered') )
