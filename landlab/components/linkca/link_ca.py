@@ -40,6 +40,7 @@ class Transition():
     standardised ordering of the link states (as before), or tuples explicitly
     describing the node state at each end, and the orientation.
     Orientation is 0: horizontal, L-R; 1: vertical, bottom-top.
+    For such a tuple, order is (left/bottom, right/top, orientation).
     """
     def __init__(self, from_state, to_state, rate, name=None):
         
