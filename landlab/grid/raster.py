@@ -2937,6 +2937,81 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
                                    u, flip_vertically=flip_vertically)
+                                   
+                                   
+    def roll_nodes_ud(self, data_name, shift, interior_only=False):
+        """Roll (shift) specified data on nodes up or down in a raster grid.
+        
+        Similar to the Numpy roll() function, in that it shifts node values up
+        by *shift* rows, wrapping the data in the top row(s) around to the
+        bottom. If the *interior_only* is set, data along the left and right
+        grid edges are not changed.
+        
+        Parameters
+        ----------
+        data_name : string
+            Name of node-data item attached to grid.
+        shift : int
+            Number of rows to shift upward.
+        interior_only : bool, optional
+            If True, data along left and right edges are not shifted
+            
+        Returns
+        -------
+        None, but contents of data *data_name* are changed.
+        
+        Examples
+        --------
+        >>> rmg = RasterModelGrid(4, 3, 1.)
+        >>> data = rmg.add_zeros('node', 'test_data')
+        >>> data[:] = np.arange(12)
+        >>> rmg.roll_nodes_ud('test_data', 1)
+        >>> data
+        array([  9.,  10.,  11.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,
+                 8.])
+        >>> rmg.roll_nodes_ud('test_data', 2)
+        >>> data
+        array([  3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   0.,   1.,
+                 2.])
+        >>> rmg.roll_nodes_ud('test_data', 1, interior_only=True)
+        >>> data
+        array([  3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
+                 2.])
+        """
+        # Get the data
+        data = self.at_node[data_name]
+        
+        # Get the IDs of the nodes in the top row, and number of rows and cols
+        top_ids = self.top_edge_node_ids()
+        ncols = self.number_of_node_columns
+        nrows = self.number_of_node_rows
+        
+        # To handle "interior only" option, we use the variable *offset*, which is
+        # zero if shifting everything, and 1 if shifting just the interior -- we
+        # use this to go from column 1 to column N-2 (instead of 0 to N-1) when
+        # interior_only is True.
+        if interior_only:
+            offset = 1
+            top_ids = top_ids[1:ncols-1]
+        else:
+            offset = 0
+        
+        # Remember the top N rows
+        top_rows_to_move = numpy.zeros((shift, ncols-2*offset))
+        for i in range(0, shift):
+            top_rows_to_move[shift-(i+1),:] = data[top_ids-i*ncols]
+        
+        # Go row by row, starting from top
+        for i in range(nrows-shift):
+            to_row = nrows-(i+1)
+            from_row = to_row-shift
+            data[ncols*to_row+offset:ncols*(to_row+1)-offset] = \
+                            data[ncols*from_row+offset:ncols*(from_row+1)-offset]
+            
+        # now replace the bottom *shift* rows
+        for i in range(0, shift):
+            data[ncols*i+offset:ncols*(i+1)-offset] = top_rows_to_move[i,:]
+
 
     def get_neighbor_list(self, *args):
         """get_neighbor_list([ids])
