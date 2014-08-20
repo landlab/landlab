@@ -216,8 +216,8 @@ class LinkCellularAutomaton():
                'initial_node_states must be a Numpy array'
         assert (len(node_states)==self.grid.number_of_nodes), \
                'length of initial_node_states must equal number of nodes in grid'
-        self.node_state = self.grid.create_node_array_zeros('node_state')
-        self.node_state[:] = node_states
+        self.grid.at_node['node_state'] = node_states
+        self.node_state = node_states
         
                  
     def create_link_state_dict_and_pair_list(self):

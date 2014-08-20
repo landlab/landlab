@@ -9,7 +9,7 @@ of a hillslope by disturbance-driven soil creep.
 GT, August 2014
 """
 
-_DEBUG = False
+_DEBUG = True
 
 import time
 import numpy
@@ -104,15 +104,19 @@ def main():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 128
-    nc = 128
-    plot_interval = 5.0
-    run_duration = 5000.0
+    nr = 9
+    nc = 9
+    plot_interval = 1.0
+    run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
+    uplift_interval = 1
     
     # Initialize real time
     current_real_time = time.time()
     next_report = current_real_time + report_interval
+    
+    # Initialize next uplift time
+    next_uplift = uplift_interval
 
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
@@ -126,7 +130,7 @@ def main():
     xn_list = setup_transition_list()
 
     # Create the node-state map and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_zeros('node', 'node_state', dtype=int)
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 3
     
@@ -166,6 +170,13 @@ def main():
         
         # Plot the current grid
         ca_plotter.update_plot()
+        
+        # Uplift
+        if current_time >= next_uplift:
+            print 'doing uplift at time', current_time
+            next_uplift += uplift_interval
+            ca.grid.roll_nodes_ud('node_state', 1, interior_only=True)
+            #print 'after roll:',ca.node_state
 
         # for debugging        
         if _DEBUG:
