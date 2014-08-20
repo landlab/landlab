@@ -581,7 +581,24 @@ class LinkCellularAutomaton():
         elif _DEBUG:
             print '  event time is',event.time,'but update time is', \
                   self.next_update[event.link],'so event will be ignored'
-                  
+    
+    def update_component_data(self, new_node_state_array):
+        """
+        Call this method to update all data held by the component, if, for
+        example, another component or boundary conditions modify the node 
+        statuses outside the component between run steps.
+        
+        This method updates all necessary properties, including both node and
+        link states.
+        
+        *new_node_state_array* is the updated list of node states, which must
+        still all be compatible with the state list originally supplied to
+        this component.
+        """
+        self.set_node_state_grid(new_node_state_array)
+        self.assign_link_states_from_node_types()
+        self.push_transitions_to_event_queue()
+        
                   
     def run(self, run_duration, node_state_grid=None, plot_each_transition=False,
             plotter=None):
