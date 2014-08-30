@@ -1,6 +1,7 @@
 import numpy as np
 
 
+from ...utils.jaggedarray import JaggedArray
 from .status import CORE_NODE, CLOSED_BOUNDARY
 
 
@@ -200,29 +201,19 @@ def in_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
-    >>> (links, offset) = in_link_ids_at_node(([0, 1, 2, 3, 4, 5],
-    ...                                        [3, 4, 5, 6, 7, 8]))
+    >>> (links, count) = in_link_ids_at_node(([0, 1, 2, 3, 4, 5],
+    ...                                       [3, 4, 5, 6, 7, 8]))
     >>> links
     array([0, 1, 2, 3, 4, 5])
-    >>> offset
-    array([0, 0, 0, 0, 1, 2, 3, 4, 5, 6])
-
-    Links entering node with id 0, 4 and 8
-
-    >>> for ind in (0, 4, 8): links[offset[ind]:offset[ind +1]]
-    array([], dtype=int64)
-    array([1])
-    array([5])
+    >>> count
+    array([0, 0, 0, 1, 1, 1, 1, 1, 1])
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
     link_ids = np.argsort(node_at_link_end)
     links_per_node = in_link_count_per_node(node_at_link_ends,
                                             number_of_nodes=number_of_nodes)
-    offset = np.empty(len(links_per_node) + 1, dtype=int)
-    np.cumsum(links_per_node, out=offset[1:])
-    offset[0] = 0
-    return link_ids, offset
+    return link_ids, links_per_node
 
 
 def out_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
@@ -243,29 +234,19 @@ def out_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
-    >>> (links, offset) = out_link_ids_at_node(
+    >>> (links, count) = out_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9)
     >>> links
     array([0, 1, 2, 3, 4, 5])
-    >>> offset
-    array([0, 1, 2, 3, 4, 5, 6, 6, 6, 6])
-
-    Links leaving node with id 0, 4 and 8
-
-    >>> for ind in (0, 4, 8): links[offset[ind]:offset[ind +1]]
-    array([0])
-    array([4])
-    array([], dtype=int64)
+    >>> count
+    array([1, 1, 1, 1, 1, 1, 0, 0, 0])
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
     link_ids = np.argsort(node_at_link_start)
     links_per_node = out_link_count_per_node(node_at_link_ends,
                                              number_of_nodes=number_of_nodes)
-    offset = np.empty(len(links_per_node) + 1, dtype=int)
-    np.cumsum(links_per_node, out=offset[1:])
-    offset[0] = 0
-    return link_ids, offset
+    return link_ids, links_per_node
 
 
 def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
@@ -286,46 +267,32 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
-    >>> (links, offset) = link_ids_at_node(
+    >>> (links, count) = link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9)
     >>> links
     array([0, 1, 2, 0, 3, 1, 4, 2, 5, 3, 4, 5])
-    >>> offset
-    array([ 0,  1,  2,  3,  5,  7,  9, 10, 11, 12])
-    >>> len(offset)
-    10
-
-    Links entering and leaving node with id 0, 4 and 8
-
-    >>> for ind in (0, 4, 8): links[offset[ind]:offset[ind +1]]
-    array([0])
-    array([1, 4])
-    array([5])
+    >>> count
+    array([1, 1, 1, 2, 2, 2, 1, 1, 1])
     """
     links_per_node = link_count_per_node(node_at_link_ends,
                                          number_of_nodes=number_of_nodes)
 
-    offset = np.empty(len(links_per_node) + 1, dtype=int)
-    np.cumsum(links_per_node, out=offset[1:])
-    offset[0] = 0
+    in_links = JaggedArray(
+        *in_link_ids_at_node(node_at_link_ends,
+                             number_of_nodes=number_of_nodes))
+    out_links = JaggedArray(
+        *out_link_ids_at_node(node_at_link_ends,
+                              number_of_nodes=number_of_nodes))
 
-    (in_link_ids, in_offset) = in_link_ids_at_node(
-        node_at_link_ends, number_of_nodes=number_of_nodes)
-    (out_link_ids, out_offset) = out_link_ids_at_node(
-        node_at_link_ends, number_of_nodes=number_of_nodes)
+    links = np.empty(in_links.size + out_links.size, dtype=int)
 
-    in_link_count = in_link_count_per_node(node_at_link_ends,
-                                           number_of_nodes=number_of_nodes)
+    offset = 0
+    for node, link_count in enumerate(links_per_node):
+        links[offset:offset + link_count] = np.concatenate(
+            (in_links.row(node), out_links.row(node)))
+        offset += link_count
 
-    link_ids = np.zeros(offset[-1], dtype=int)
-    for node in xrange(number_of_nodes):
-        low = offset[node]
-        middle = low + in_link_count[node]
-        high = offset[node + 1]
-        link_ids[low:middle] = in_link_ids[in_offset[node]:in_offset[node + 1]]
-        link_ids[middle:high] = out_link_ids[out_offset[node]:out_offset[node + 1]]
-
-    return link_ids, offset
+    return links, links_per_node
 
 
 class LinkGrid(object):
@@ -357,10 +324,16 @@ class LinkGrid(object):
         >>> lgrid.number_of_out_links_at_node(0)
         3
         """
-        self._in_link_at_node = in_link_ids_at_node(
-            link_ends, number_of_nodes=number_of_nodes)
-        self._out_link_at_node = out_link_ids_at_node(
-            link_ends, number_of_nodes=number_of_nodes)
+        self._in_link_at_node = JaggedArray(
+            *in_link_ids_at_node(link_ends,
+                                 number_of_nodes=number_of_nodes)
+
+        )
+        self._out_link_at_node = JaggedArray(
+            *out_link_ids_at_node(link_ends,
+                                  number_of_nodes=number_of_nodes)
+        )
+
         self._number_of_links = len(link_ends[0])
         self._number_of_nodes = number_of_nodes
 
@@ -395,8 +368,7 @@ class LinkGrid(object):
         >>> [lgrid.number_of_in_links_at_node(node) for node in xrange(4)]
         [0, 1, 1, 2]
         """
-        (_, offsets) = self._in_link_at_node
-        return offsets[node + 1] - offsets[node]
+        return self._in_link_at_node.length_of_row(node)
 
     def number_of_out_links_at_node(self, node):
         """Number of links leaving a node.
@@ -417,8 +389,7 @@ class LinkGrid(object):
         >>> [lgrid.number_of_out_links_at_node(node) for node in xrange(4)]
         [2, 1, 1, 0]
         """
-        (_, offsets) = self._out_link_at_node
-        return offsets[node + 1] - offsets[node]
+        return self._out_link_at_node.length_of_row(node)
 
     def number_of_links_at_node(self, node):
         """Number of links entering and leaving a node.
@@ -463,8 +434,7 @@ class LinkGrid(object):
         >>> lgrid.in_link_at_node(3)
         array([1, 3])
         """
-        (links, offset) = self._in_link_at_node
-        return links[offset[node]:offset[node + 1]]
+        return self._in_link_at_node.row(node)
 
     def out_link_at_node(self, node):
         """Links leaving a node.
@@ -487,8 +457,7 @@ class LinkGrid(object):
         >>> lgrid.out_link_at_node(3)
         array([], dtype=int64)
         """
-        (links, offset) = self._out_link_at_node
-        return links[offset[node]:offset[node + 1]]
+        return self._out_link_at_node.row(node)
 
     def iter_nodes(self):
         """Iterate of the nodes of the grid.
@@ -507,10 +476,8 @@ class LinkGrid(object):
         array([0, 3])
         array([1, 3])
         """
-        (in_links, in_offsets) = self._in_link_at_node
-        (out_links, out_offsets) = self._out_link_at_node
         for node in xrange(self.number_of_nodes):
             yield np.concatenate((
-                in_links[in_offsets[node]:in_offsets[node + 1]],
-                out_links[out_offsets[node]:out_offsets[node + 1]],
+                self.in_link_at_node(node),
+                self.out_link_at_node(node),
             ))
