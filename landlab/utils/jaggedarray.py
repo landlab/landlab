@@ -3,7 +3,7 @@ import numpy as np
 
 class JaggedArray(object):
     def __init__(self, values, values_per_row):
-        self._values = values
+        self._values = np.array(values)
         self._number_of_rows = len(values_per_row)
         self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
 
