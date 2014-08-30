@@ -2,8 +2,17 @@ import numpy as np
 
 
 class JaggedArray(object):
-    def __init__(self, values, values_per_row):
-        self._values = np.array(values)
+    def __init__(self, *args):
+        """JaggedArray([row0, row1, ...])
+        JaggedArray(values, values_per_row)
+        """
+        if len(args) == 1:
+            values, values_per_row = (np.concatenate(args[0]),
+                                      [len(row) for row in args[0]])
+        else:
+            values, values_per_row = (np.array(args[0]), args[1])
+
+        self._values = values
         self._number_of_rows = len(values_per_row)
         self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
 
