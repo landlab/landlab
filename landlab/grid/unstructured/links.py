@@ -326,3 +326,191 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
         link_ids[middle:high] = out_link_ids[out_offset[node]:out_offset[node + 1]]
 
     return link_ids, offset
+
+
+class LinkGrid(object):
+    def __init__(self, link_ends, number_of_nodes):
+        """Create a grid of links that enter and leave nodes.
+        __init__((node0, node1), number_of_nodes=None)
+
+        Parameters
+        ----------
+        node0, node1 : sequence of array-like
+            Node ID at link start and end.
+        number_of_nodes : int, optional
+            Number of nodes in the grid
+
+        Returns
+        -------
+        LinkGrid :
+            A newly-created grid
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2, 0), (2, 3, 1, 3, 3)], 4)
+        >>> lgrid.number_of_links
+        5
+        >>> lgrid.number_of_nodes
+        4
+        >>> lgrid.number_of_in_links_at_node(0)
+        0
+        >>> lgrid.number_of_out_links_at_node(0)
+        3
+        """
+        self._in_link_at_node = in_link_ids_at_node(
+            link_ends, number_of_nodes=number_of_nodes)
+        self._out_link_at_node = out_link_ids_at_node(
+            link_ends, number_of_nodes=number_of_nodes)
+        self._number_of_links = len(link_ends[0])
+        self._number_of_nodes = number_of_nodes
+
+    @property
+    def number_of_links(self):
+        """Number of links in the grid.
+        """
+        return self._number_of_links
+
+    @property
+    def number_of_nodes(self):
+        """Number of nodes in the grid.
+        """
+        return self._number_of_nodes
+
+    def number_of_in_links_at_node(self, node):
+        """Number of links entering a node.
+
+        Parameters
+        ----------
+        node : int
+            Node ID
+
+        Returns
+        -------
+        int :
+            Number of links entering the node.
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> [lgrid.number_of_in_links_at_node(node) for node in xrange(4)]
+        [0, 1, 1, 2]
+        """
+        (_, offsets) = self._in_link_at_node
+        return offsets[node + 1] - offsets[node]
+
+    def number_of_out_links_at_node(self, node):
+        """Number of links leaving a node.
+
+        Parameters
+        ----------
+        node : int
+            Node ID
+
+        Returns
+        -------
+        int :
+            Number of links leaving the node.
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> [lgrid.number_of_out_links_at_node(node) for node in xrange(4)]
+        [2, 1, 1, 0]
+        """
+        (_, offsets) = self._out_link_at_node
+        return offsets[node + 1] - offsets[node]
+
+    def number_of_links_at_node(self, node):
+        """Number of links entering and leaving a node.
+
+        Parameters
+        ----------
+        node : int
+            Node ID
+
+        Returns
+        -------
+        int :
+            Number of links entering and leaving the node.
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> [lgrid.number_of_links_at_node(node) for node in xrange(4)]
+        [2, 2, 2, 2]
+        """
+        return (self.number_of_in_links_at_node(node) +
+                self.number_of_out_links_at_node(node))
+
+    def in_link_at_node(self, node):
+        """Links entering a node.
+
+        Parameters
+        ----------
+        node : int
+            Node ID
+
+        Returns
+        -------
+        ndarray :
+            Links entering the node
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> lgrid.in_link_at_node(0)
+        array([], dtype=int64)
+        >>> lgrid.in_link_at_node(3)
+        array([1, 3])
+        """
+        (links, offset) = self._in_link_at_node
+        return links[offset[node]:offset[node + 1]]
+
+    def out_link_at_node(self, node):
+        """Links leaving a node.
+
+        Parameters
+        ----------
+        node : int
+            Node ID
+
+        Returns
+        -------
+        ndarray :
+            Links leaving the node
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> lgrid.out_link_at_node(0)
+        array([0, 2])
+        >>> lgrid.out_link_at_node(3)
+        array([], dtype=int64)
+        """
+        (links, offset) = self._out_link_at_node
+        return links[offset[node]:offset[node + 1]]
+
+    def iter_nodes(self):
+        """Iterate of the nodes of the grid.
+
+        Returns
+        -------
+        ndarray :
+            Links entering and leaving each node
+
+        Examples
+        --------
+        >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
+        >>> for link in lgrid.iter_nodes(): link
+        array([0, 2])
+        array([2, 1])
+        array([0, 3])
+        array([1, 3])
+        """
+        (in_links, in_offsets) = self._in_link_at_node
+        (out_links, out_offsets) = self._out_link_at_node
+        for node in xrange(self.number_of_nodes):
+            yield np.concatenate((
+                in_links[in_offsets[node]:in_offsets[node + 1]],
+                out_links[out_offsets[node]:out_offsets[node + 1]],
+            ))
