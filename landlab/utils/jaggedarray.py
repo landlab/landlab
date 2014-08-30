@@ -17,6 +17,14 @@ class JaggedArray(object):
         self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
 
     @property
+    def array(self):
+        return self._values
+
+    @property
+    def offset(self):
+        return self._offsets
+
+    @property
     def size(self):
         return len(self._values)
 
