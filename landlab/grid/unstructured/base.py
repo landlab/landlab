@@ -1,5 +1,10 @@
 import numpy as np
 
+from .status import StatusGrid
+from .links import link_is_active, LinkGrid
+from .cells import CellGrid
+from .nodes import NodeGrid
+
 
 def _default_axis_names(n_dims):
     """Returns a tuple of the default axis names."""
@@ -13,35 +18,118 @@ def _default_axis_units(n_dims):
 
 
 class BaseGrid(object):
-    def __init__(self, axis_name=None, axis_units=None, node_status=None):
-        self._axis_name = axis_name or _default_axis_names(self.ndim)
-        self._axis_units = axis_units or _default_axis_units(self.ndim)
+    def __init__(self, nodes, axis_name=None, axis_units=None, node_status=None,
+                 links=None, cells=None):
+        """__init__([coord0, coord1, ...])
 
-        self._num_nodes = 0
-        self._num_cells = 0
-        self._num_links = 0
-        self._num_faces = 0
+        Parameters
+        ----------
+        coord0, coord1, ... : sequence of array-like
+            Coordinates of grid nodes
 
-        self._node_id_at_cells = np.empty(self._num_nodes)
+        Returns
+        -------
+        BaseGrid :
+            A newly-created BaseGrid
 
-        StatusGrid.__init__(self, node_status)
-        super(BaseGrid, self).__init__(node_status)
+        Examples
+        --------
+        >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+        >>> ngrid.number_of_nodes
+        4
+        >>> ngrid.x_at_node
+        array([ 0.,  1.,  0.,  1.])
+        >>> ngrid.x_at_node[2]
+        0.0
+        >>> ngrid.point_at_node[2]
+        array([ 1.,  0.])
+        """
+        self._axis_name = tuple(axis_name or _default_axis_names(self.ndim))
+        self._axis_units = tuple(axis_units or _default_axis_units(self.ndim))
+
+        self._node_grid = NodeGrid(nodes)
+
+        if cells is not None:
+            self._cell_grid = CellGrid(cells)
+        if links is not None:
+            self._link_grid = LinkGrid(links, self.number_of_nodes)
+        if node_status is not None:
+            self._status_grid = StatusGrid(node_status)
 
     @property
     def ndim(self):
         return 2
 
     @property
+    def axis_units(self):
+        """Coordinate units of each axis.
+
+        Returns
+        -------
+        tuple of strings :
+            Coordinate units of each axis.
+
+        Examples
+        --------
+        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]))
+        >>> ngrid.axis_units
+        ('-', '-')
+
+        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]),
+        ...     axis_units=['degrees_north', 'degrees_east'])
+        >>> ngrid.axis_units
+        ('degrees_north', 'degrees_east')
+        """
+        return self._axis_units
+
+    @property
+    def axis_name(self):
+        """Name of each axis.
+
+        Returns
+        -------
+        tuple of strings :
+            Names of each axis.
+
+        Examples
+        --------
+        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]))
+        >>> ngrid.axis_name
+        ('y', 'x')
+
+        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]), axis_name=['lat', 'lon'])
+        >>> ngrid.axis_name
+        ('lat', 'lon')
+        """
+        return self._axis_name
+
+    @property
     def number_of_cells(self):
         """Number of cells.
         """
-        return self._num_cells
+        return self._cell_grid.number_of_cells
 
     @property
     def number_of_nodes(self):
         """Number of nodes.
         """
-        return self._num_nodes
+        return self._node_grid.number_of_nodes
+
+    @property
+    def coord_at_node(self):
+        return self._node_grid.coord
+
+    @property
+    def x_at_node(self):
+        return self._node_grid.x
+
+    @property
+    def y_at_node(self):
+        return self._node_grid.y
+
+    @property
+    def point_at_node(self):
+        return self._node_grid.point
 
     @property
     def node_id_at_cells(self):
@@ -55,11 +143,11 @@ class BaseGrid(object):
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        status_at_link_start = self.node_status[self._node_id_at_link_start]
-        status_at_link_end = self.node_status[self._node_id_at_link_end]
+        status_at_link_ends = (self.node_status[self._node_id_at_link_start],
+                               self.node_status[self._node_id_at_link_end])
 
         (self._active_link_ids, ) = np.where(
-            link_is_active(status_at_link_start, status_at_link_end))
+            link_is_active(status_at_link_ends))
 
         self._number_of_active_links = len(self._active_link_ids)
         self._number_of_active_faces = len(self._active_link_ids)
@@ -68,5 +156,3 @@ class BaseGrid(object):
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
-
-
