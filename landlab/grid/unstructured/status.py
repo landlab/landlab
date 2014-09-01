@@ -44,6 +44,10 @@ class StatusGrid(object):
         """
         return self._node_status
 
+    @node_status.setter
+    def node_status(self, node_status):
+        self._node_status = node_status
+
     @property
     def active_nodes(self):
         """
