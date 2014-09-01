@@ -106,11 +106,3 @@ class StatusGrid(object):
             self.node_status == FIXED_VALUE_BOUNDARY)
         return fixed_value_boundary_node_ids
 
-    @property
-    def active_links(self):
-        """Link IDs of all active links"""
-        try:
-            return self.active_link_ids
-        except AttributeError:
-            self._reset_list_of_active_links()
-            return self.active_link_ids
