@@ -183,7 +183,16 @@ def link_count_per_node(node_at_link_ends, number_of_nodes=None):
     return in_count + out_count
 
 
-def in_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
+def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
+    sorted_links = np.argsort(node_at_link_ends[sortby])
+
+    if link_ids:
+        return np.array(link_ids)[sorted_links]
+    else:
+        return sorted_links
+
+
+def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
     """in_link_ids_at_node((node0, node1), number_of_nodes=None)
     Links entering nodes.
 
@@ -207,16 +216,26 @@ def in_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
     array([0, 1, 2, 3, 4, 5])
     >>> count
     array([0, 0, 0, 1, 1, 1, 1, 1, 1])
-    """
-    node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
-    link_ids = np.argsort(node_at_link_end)
+
+    >>> (links, count) = in_link_ids_at_node(([0, 1, 2, 3, 4, 5],
+    ...                                       [3, 4, 5, 6, 7, 8]),
+    ...                                      link_ids=range(1, 7))
+    >>> links
+    array([1, 2, 3, 4, 5, 6])
+    >>> count
+    array([0, 0, 0, 1, 1, 1, 1, 1, 1])
+    """
+    node_at_link_ends = _split_link_ends(node_at_link_ends)
+
+    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids,
+                                   sortby=1)
     links_per_node = in_link_count_per_node(node_at_link_ends,
                                             number_of_nodes=number_of_nodes)
     return link_ids, links_per_node
 
 
-def out_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
+def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
     """out_link_ids_at_node((node0, node1), number_of_nodes=None)
     Links leaving nodes.
 
@@ -235,15 +254,25 @@ def out_link_ids_at_node(node_at_link_ends, number_of_nodes=None):
     Examples
     --------
     >>> (links, count) = out_link_ids_at_node(
+    ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), link_ids=range(-1, 5),
+    ...     number_of_nodes=9)
+    >>> links
+    array([-1,  0,  1,  2,  3,  4])
+    >>> count
+    array([1, 1, 1, 1, 1, 1, 0, 0, 0])
+
+
+    >>> (links, count) = out_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9)
     >>> links
     array([0, 1, 2, 3, 4, 5])
     >>> count
     array([1, 1, 1, 1, 1, 1, 0, 0, 0])
     """
-    node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
+    node_at_link_ends = _split_link_ends(node_at_link_ends)
 
-    link_ids = np.argsort(node_at_link_start)
+    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids,
+                                   sortby=0)
     links_per_node = out_link_count_per_node(node_at_link_ends,
                                              number_of_nodes=number_of_nodes)
     return link_ids, links_per_node
@@ -296,7 +325,8 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
 
 class LinkGrid(object):
-    def __init__(self, link_ends, number_of_nodes):
+    def __init__(self, link_ends, number_of_nodes, link_ids=None,
+                 node_status=None):
         """Create a grid of links that enter and leave nodes.
         __init__((node0, node1), number_of_nodes=None)
 
@@ -323,19 +353,41 @@ class LinkGrid(object):
         0
         >>> lgrid.number_of_out_links_at_node(0)
         3
+        >>> lgrid.out_link_at_node(0)
+        array([0, 2, 4])
+        >>> lgrid.nodes_at_link_id(1)
+        array([1, 3])
+
+        >>> lgrid = LinkGrid([(0, 1, 0, 2, 0), (2, 3, 1, 3, 3)], 4,
+        ...                  link_ids=range(1, 6))
+        >>> lgrid.nodes_at_link
+        array([[0, 2],
+               [1, 3],
+               [0, 1],
+               [2, 3],
+               [0, 3]])
+        >>> lgrid.out_link_at_node(0)
+        array([1, 3, 5])
+        >>> lgrid.nodes_at_link_id(1)
+        array([0, 2])
         """
         self._in_link_at_node = JaggedArray(
-            *in_link_ids_at_node(link_ends,
+            *in_link_ids_at_node(link_ends, link_ids=link_ids,
                                  number_of_nodes=number_of_nodes)
 
         )
         self._out_link_at_node = JaggedArray(
-            *out_link_ids_at_node(link_ends,
+            *out_link_ids_at_node(link_ends, link_ids=link_ids,
                                   number_of_nodes=number_of_nodes)
         )
+        self._link_ends = np.array(link_ends)
+        if link_ids:
+            self._link_id_map = dict(zip(link_ids, xrange(len(link_ids))))
 
         self._number_of_links = len(link_ends[0])
         self._number_of_nodes = number_of_nodes
+
+        self._node_status = node_status
 
     @property
     def number_of_links(self):
@@ -413,6 +465,25 @@ class LinkGrid(object):
         return (self.number_of_in_links_at_node(node) +
                 self.number_of_out_links_at_node(node))
 
+    @property
+    def node_at_link_start(self):
+        return self._link_ends[0]
+
+    @property
+    def node_at_link_end(self):
+        return self._link_ends[1]
+
+    @property
+    def nodes_at_link(self):
+        return self._link_ends.T
+
+    def nodes_at_link_id(self, link_id):
+        try:
+            return self.nodes_at_link[self._link_id_map[link_id]]
+        except AttributeError:
+            return self.nodes_at_link[link_id]
+
+
     def in_link_at_node(self, node):
         """Links entering a node.
 
@@ -481,3 +552,11 @@ class LinkGrid(object):
                 self.in_link_at_node(node),
                 self.out_link_at_node(node),
             ))
+
+    @property
+    def node_status_at_link_start(self):
+        return self._node_status[self.node_at_link_start]
+
+    @property
+    def node_status_at_link_end(self):
+        return self._node_status[self.node_at_link_end]
