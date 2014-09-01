@@ -31,9 +31,9 @@ class Radiation( Component ):
 
       Optional (**kwds):
         method : Currently, only default is available
-        CLOUDINESS: set cloudiness value. default value is 0.5
+        CLOUDINESS: set cloudiness value. default value is 0.0
         LATITUDE: set Latitude. default value is 34.0
-        ALBEDO: set albedo. default value is 0.8
+        ALBEDO: set albedo. default value is 0.2
         SOLARCONSTANT: default value is 1353.0
         CLRSKYTURBIDITY: set clear sky turbidity. default value is 2.
         OPTAIRMASS: set optical air mass. default value is 0.0
@@ -71,20 +71,22 @@ class Radiation( Component ):
     _output_var_names = set([
         'TotalShortWaveRadiation',
         'RadiationFactor',
+        'NetShortWaveRadiation',
     ])
 
     _var_units = {
         'Elevation' : 'm',
         'TotalShortWaveRadiation' : 'W/m^2',
         'RadiationFactor' : 'None',
+        'NetShortWaveRadiation' : 'W/m^2',
     }
 
     def __init__( self, grid, **kwds ):
         self._method = kwds.pop('method', 'Grid')
-        self._N = kwds.pop('CLOUDINESS', 0.5)
+        self._N = kwds.pop('CLOUDINESS', 0.2)
         self._latitude = kwds.pop('LATITUDE', 34.0)
         self._A = kwds.pop('ALBEDO', 0.2)
-        self._Io = kwds.pop('SOLARCONSTANT', 1353.0)
+        self._Io = kwds.pop('SOLARCONSTANT', 1366.67)
         self._n = kwds.pop('CLRSKYTURBIDITY', 2.0)
         self._m = kwds.pop('OPTAIRMASS', 0.0)
 
@@ -107,17 +109,17 @@ class Radiation( Component ):
 
         self._cell_values = self.grid['cell']
 
-    def update( self, current_time ):
+    def update( self, current_time, **kwds ):
 
+        self._t = kwds.pop('Hour', 12.)
         self._elev = self._nodal_values['Elevation']
         self._slope = self._cell_values['Slope']
         self._radf = self._cell_values['RadiationFactor']
         self._Rs = self._cell_values['TotalShortWaveRadiation']
+        self._Rnet = self._cell_values['NetShortWaveRadiation']
 
         self._julian = np.floor( ( current_time - np.floor( current_time ) )  \
                                   * 365 )                          # Julian day
-
-        self._t = 12                                            # Assuming noon
 
         self._phi = np.pi/180.0 * self._latitude        # Latitude in Radians
 
@@ -134,8 +136,7 @@ class Radiation( Component ):
         if self._alpha <= 0.25 * np.pi/180.0:         # If altitude is -ve,
             self._alpha = 0.25 * np.pi/180.0       # sun is beyond the horizon
 
-        self._Rgl = (1 - self._A) * (1 - 0.65 * (self._N**2)) *                \
-                 (self._Io*np.exp((-1) * self._n * (0.128 - 0.054 *            \
+        self._Rgl = (self._Io*np.exp((-1) * self._n * (0.128 - 0.054 *        \
                     np.log10(1/np.sin(self._alpha)))*(1/np.sin(self._alpha))))
                     # Counting for Albedo, Cloudiness and Atmospheric turbidity
 
@@ -155,7 +156,12 @@ class Radiation( Component ):
                        * np.cos(self._phisun - 0)
                                                        # flat surface reference
 
+        self._Rsflat = self._Rgl * self._flat
+                            # flat surface total incoming shortwave radiation
 
+        self._Rnetflat = (1 - self._A) * (1 - 0.65 * (self._N**2)) * \
+                                self._Rsflat
+                            # flat surface Net incoming shortwave radiation
 
         for i in range( 0, self.grid.number_of_cells ):
 
@@ -163,18 +169,21 @@ class Radiation( Component ):
             Slope, Aspect = self.grid.calculate_slope_aspect_at_nodes_bestFitPlane([self.grid.node_index_at_cells[i]],
                                             self._elev)
             self._slope[i] = Slope[0]
-            aspect = Aspect[0] * np.pi/180.
+            self._aspect = Aspect[0] * np.pi/180.
 
-            slope_in_radians = np.arctan(self._slope[i])
+            slope_in_radians = self._slope[i]*np.pi/180.#np.arctan(self._slope[i])
 
-            self._radf[i] = np.cos(slope_in_radians) *             \
-                        np.sin(self._alpha) + np.sin(np.arctan(0)) *        \
+            self._radf[i] = (np.cos(slope_in_radians) *             \
+                        np.sin(self._alpha) + np.sin(slope_in_radians) *    \
                         np.cos(self._alpha)                                 \
-                       * np.cos(self._phisun - aspect)/self._flat
+                       * np.cos(self._phisun - self._aspect))/self._flat
 
             if self._radf[i] <= 0:
                 self._radf[i] = 0.1
             if self._radf[i] > 6.0:
                 self._radf[i] = 6.0
 
-            self._Rs[i] = self._Rgl * self._radf[i]    # Incoming Shortwave Radn
+            self._Rs[i] = self._Rsflat * self._radf[i]
+                        # Sloped surface Toatl Incoming Shortwave Radn
+
+            self._Rnet[i] = self._Rnetflat * self._radf[i]

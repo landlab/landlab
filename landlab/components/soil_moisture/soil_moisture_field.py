@@ -61,6 +61,7 @@ class SoilMoisture( Component ):
 
     _var_units = {
         'VegetationCover' : 'None',
+        'LiveLeafAreaIndex': 'None',
         'PotentialEvapotranspiraton' : 'mm',
         'WaterStress' : 'Pa',
         'SaturationFraction' : 'None',
@@ -105,7 +106,7 @@ class SoilMoisture( Component ):
         self._cell_values = self.grid['cell']
 
     def update( self, current_time, **kwds ):
-        DEBUGG = 0
+        DEBUGG = 1
 
         P = kwds.pop('P', 5.)
         Tb = kwds.pop('Tb', 24.)
@@ -131,7 +132,7 @@ class SoilMoisture( Component ):
 
         for cell in range(0,self.grid.number_of_cells):
 
-            s = self._S[cell]
+            s = self._SO[cell]
 
             Inf_cap = self._soil_Ib*(1-self._vegcover[cell]) + self._soil_Iv*self._vegcover[cell] # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap, P)  # Interception capacity
@@ -139,7 +140,21 @@ class SoilMoisture( Component ):
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1-fc))-1))
             Ep = max((self._PET[cell]*self._fr[cell]+fbare*self._PET[cell]*(1-self._fr[cell])) - Int_cap, 0.001)  #
             nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
+            if DEBUGG == 1:
+                    if nu <= 0:
+                        nu = 0.001
+                        print 'nu is zero and is equal to', nu
+                        print 'Veg Cover', self._vegcover[cell]
+                        print 'Ep = ', Ep
+                        print 'pet = ', self._PET[cell]
             nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
+            if DEBUGG == 1:
+                    if nuw <= 0:
+                        nuw = 0.0009
+                        print 'nuw is zero and is equal to ', nuw
+                        print 'Veg Cover', self._vegcover[cell]
+                        print 'Ep = ', Ep
+                        print 'pet = ', self._PET[cell]
             sini = self._SO[cell] + (Peff/(pc*ZR*1000.0))+self._runon
 
             if sini>1:
@@ -152,12 +167,6 @@ class SoilMoisture( Component ):
             if sini>=fc:
                 tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+                \
                         np.log((nu-mu+mu*np.exp(beta*(sini-fc)))/nu))
-                if DEBUGG == 1:
-                    if nu == 0:
-                        print 'nu is zero', nu
-                        print 'Veg Cover', self._vegcover[cell]
-                        print 'Ep = ', Ep
-                        print 'pet = ', self._PET[cell]
                 tsc = ((fc-sc)/nu)+tfc
                 twp = ((sc-wp)/(nu-nuw))*np.log(nu/nuw)+tsc
 
@@ -228,7 +237,7 @@ class SoilMoisture( Component ):
                 self._D[cell] = 0
                 self._ETA[cell] = (1000*ZR*pc*(sini-s))
 
-            self._water_stress[cell] = min(max(pow(((sc - ((s+sini)/2)) / (sc - wp)),4),0.0),1.0)
+            self._water_stress[cell] = min(max((((sc - (s+sini)/2.) / (sc - wp))**4.),0.001),1.0)
             self._S[cell] = s
             self._SO[cell] = s
 
