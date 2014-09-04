@@ -1,15 +1,34 @@
 #! /usr/env/python
 """
-Link-based cellular automaton modeling tools.
+Landlab's cellular automata modeling package.
 
-In this updated version of the code, link states can either be encoded by
-integer IDs, e.g., 0,1,2..., or tuples actually decribing the state, e.g.,
-(x,y,0) to represent a horizontal link between x and y, 
-(w,z,1) a vertical link between w and z (w below).
-This change remains fully back compatible with GT's original version.
+A Landlab Cellular Automaton, or LCA, implements a particular type of cellular
+automaton (CA): a continuous-time stochastic CA. The approach is based on that
+of Narteau et al. (2002, 2009) and Rozier and Narteau (2014). Like a normal
+CA, the domain consists of a lattice of cells, each of which has a discrete
+state. Unlike a conventional CA, the updating process is stochastic, and takes
+place in continuous rather than discrete time. Any given pair (or "doublet")
+of adjacent cell states has a certain specified probability of transition to a 
+different pair of states. The transition probability is given in the form of an
+average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual time of 
+transition is a random variable drawn from an exponential probability 
+distribution with mean :math:1/\lambda
 
-Created GT Oct 2013, modified DEJH Aug 2014 to optionally use identifying pair 
-tuples, not just arbitrary IDs.
+Landlab provides for several different lattice and connection types:
+    - RasterLCA: regular raster grid with transitions between horizontal and
+        vertical cell pairs
+    - OrientedRasterLCA: like a RasterLCA, but different transition rates can
+        be assigned to vertical and horizontal pairs. This property of
+        orientation can be used, for example, to implement rules representing
+        gravitational attraction, or flow of a fluid with a particular direction.
+    - RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
+        and horizontal cell pairs.
+    - OrientedRasterD8LCA: as above but orientation also matters.
+    - HexLCA: hexagonal grid
+    - OrientedLCA: hexagonal grid, with transition rates allowed to vary
+        according to orientation.
+
+Created GT Sep 2014, starting from link_ca.py.
 """
 
 from heapq import heappush
@@ -17,7 +36,6 @@ from heapq import heappop
 from landlab import RasterModelGrid
 import landlab
 import numpy
-#from landlab.plot import imshow_grid
 import pylab as plt
 import time
 
@@ -108,15 +126,15 @@ class CAPlotter():
         plt.show()
         
         
-class LinkCellularAutomaton():
+class LandlabCellularAutomaton(object):
     """
-    The LinkCellularAutomaton implements a link-type (or doublet-type) cellular
+    A LandlabCellularAutomaton implements a link-type (or doublet-type) cellular
     automaton model. A link connects a pair of cells. Each cell has a state
     (represented by an integer code), and each link also has a state that is
     determined by the states of the cell pair.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, orientation_matters=False):
+                 initial_node_states):
                  
         # Keep a copy of the model grid
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
