@@ -15,7 +15,7 @@ import time
 import numpy
 from landlab import RasterModelGrid
 from landlab.components.linkca.link_ca import LinkCellularAutomaton, Transition, CAPlotter
-from landlab.components.fracture_grid.fracture_grid import make_frac_grid
+#from landlab.components.fracture_grid.fracture_grid import make_frac_grid
 
 
 def setup_transition_list():
@@ -244,5 +244,6 @@ def main():
     print 'PEAK ELEV = ',numpy.amax(z)
 
 if __name__ == "__main__":
-    import profile
-    profile.run('main()')
+    #import profile
+    #profile.run('main()')
+    main()
