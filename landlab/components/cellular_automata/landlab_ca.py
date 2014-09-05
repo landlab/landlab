@@ -135,10 +135,15 @@ class LandlabCellularAutomaton(object):
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states):
-                 
+        
+        # Are we calling this from a subclass __init__? If so, then the 
+        # variable self.number_of_orientations should already be defined.
+        try:
+            self.number_of_orientations == 1
+        except AttributeError:  # if self.number_of_orientations not already defined
+            self.number_of_orientations = 1
+        
         # Keep a copy of the model grid
-        assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
-               'model_grid must be a Landlab RasterModelGrid'
         self.grid = model_grid
         self.node_active_links = self.grid.active_node_links()
 
@@ -154,7 +159,7 @@ class LandlabCellularAutomaton(object):
         #   0-0 0-1 1-0 1-1  0 0 1 1
         #                    0 1 0 1
         self.num_node_states = len(node_state_dict)
-        self.num_link_states = 2*self.num_node_states*self.num_node_states  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+        self.num_link_states = self.number_of_orientations*self.num_node_states**2
         
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
@@ -167,6 +172,7 @@ class LandlabCellularAutomaton(object):
                 assert (t.to_state < self.num_link_states), \
                     'Transition to_state out of range'
                 this_type = int
+            # TODO: make orientation optional for cases where self.number_of_orientations = 1
             except: #added to allow from and to states to be tuples, not just ids
                 assert type(t.from_state) == tuple, 'Transition from_state out of range'
                 assert type(t.to_state) == tuple, 'Transition to_state out of range'
@@ -176,10 +182,10 @@ class LandlabCellularAutomaton(object):
                 for i in t.to_state[:-1]:
                     assert (i < self.num_node_states), \
                     'Transition to_state out of range'
-                assert t.from_state[-1] < 2, \
-                    'Encoding for horizontal/vertical in from_state must be 0 or 1.' # VARIES WITH LATTICE AND ORIENTATION CHOICE
-                assert t.to_state[-1] < 2, \
-                    'Encoding for horizontal/vertical in to_state must be 0 or 1.'
+                assert t.from_state[-1] < self.number_of_orientations, \
+                    'Encoding for orientation in from_state must be < number of orientations.'
+                assert t.to_state[-1] < self.number_of_orientations, \
+                    'Encoding for orientation in to_state must be < number of orientations.'
                 this_type = tuple
             assert last_type==this_type or last_type==None, \
                 'All transition types must be either int IDs, or all tuples.'
@@ -203,12 +209,12 @@ class LandlabCellularAutomaton(object):
                 transition_list_as_ID[i].from_state = self.link_state_dict[transition_list[i].from_state]
                 transition_list_as_ID[i].to_state = self.link_state_dict[transition_list[i].to_state]
     
-        # Memorize the number of vertical links, so we can figure out
-        # node-pair orientations
-        # VARIES WITH LATTICE AND ORIENTATION CHOICE
-        self.number_of_vertical_links = self.grid.number_of_node_columns * \
-                                        (self.grid.number_of_node_rows-1)
-
+        # Set up the information needed to determine the orientation of links
+        # in the lattice. The default method just creates an array of zeros (all
+        # orientations considered the same), but this will be overridden
+        # in subclasses that do use orientation.
+        self.setup_array_of_orientation_codes()
+        
         # Using the grid of node states, figure out all the link states
         self.assign_link_states_from_node_types()
     
@@ -247,7 +253,7 @@ class LandlabCellularAutomaton(object):
         self.link_state_dict = {}
         self.cell_pair = []
         k=0
-        for orientation in range(2):   # VARIES WITH LATTICE AND ORIENTATION CHOICE
+        for orientation in range(self.number_of_orientations):
             for fromstate in range(self.num_node_states):
                 for tostate in range(self.num_node_states):
                     self.link_state_dict[(fromstate,tostate,orientation)] = k
@@ -260,18 +266,33 @@ class LandlabCellularAutomaton(object):
             print self.link_state_dict
             print '  and the pair list is:'
             print self.cell_pair
-
-
-    def active_link_orientation(self, act_link_id):
+            
+            
+    def setup_array_of_orientation_codes(self):
         """
-        Returns 0 if active link *act_link_id* is horizontal (oriented along 
-        x-axis), and 1 if it is vertical (oriented along y-axis).
+        Creates and configures an array that contain the orientation code for 
+        each active link (and corresponding cell pair).
+        
+        Parameters
+        ----------
+        (none)
+        
+        Returns
+        -------
+        (none)
+        
+        Creates
+        -------
+        self.active_link_orientation : 1D numpy array
+        
+        Notes
+        -----
+        The setup varies depending on the type of LCA. The default is 
+        non-oriented, in which case we just have an array of zeros. Subclasses
+        will override this method to handle lattices in which orientation 
+        matters (for example, vertical vs. horizontal in an OrientedRasterLCA).
         """
-        # VARIES WITH LATTICE AND ORIENTATION CHOICE
-        if self.grid.active_links[act_link_id]<self.number_of_vertical_links:
-            return 1
-        else:
-            return 0
+        self.active_link_orientation = numpy.zeros(self.grid.number_of_active_links, dtype=int)
     
     
     def assign_link_states_from_node_types(self):
@@ -287,7 +308,7 @@ class LandlabCellularAutomaton(object):
                                       dtype=int)
     
         for i in range(self.grid.number_of_active_links):
-            orientation = self.active_link_orientation(i)  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+            orientation = self.active_link_orientation[i]
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]], \
                          orientation)
@@ -472,7 +493,7 @@ class LandlabCellularAutomaton(object):
            self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
             fns = self.node_state[self.grid.activelink_fromnode[link]]
             tns = self.node_state[self.grid.activelink_tonode[link]]
-            orientation = self.active_link_orientation(link)  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+            orientation = self.active_link_orientation[link]
             actual_pair = (fns,tns,orientation)
             new_link_state = self.link_state_dict[actual_pair]
             if _DEBUG:
@@ -559,7 +580,7 @@ class LandlabCellularAutomaton(object):
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
                         this_link_tonode = self.grid.activelink_tonode[link]
-                        orientation = self.active_link_orientation(link)# VARIES WITH LATTICE AND ORIENTATION CHOICE
+                        orientation = self.active_link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
@@ -578,7 +599,7 @@ class LandlabCellularAutomaton(object):
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
                         this_link_tonode = self.grid.activelink_tonode[link]
-                        orientation = self.active_link_orientation(link)# VARIES WITH LATTICE AND ORIENTATION CHOICE
+                        orientation = self.active_link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
