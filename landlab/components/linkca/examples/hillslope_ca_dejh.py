@@ -97,7 +97,7 @@ def setup_transition_list():
     down_fall = 10.
     hoz_motion = 5.
     up_motion = 0.5
-    down_ejection = 0.005 #gets doubled
+    down_ejection = 0.5 #gets doubled
     hoz_ejection = 0.01
     up_ejection = 0.005 #gets doubled
     demob_wall = 100.
@@ -119,7 +119,7 @@ def setup_transition_list():
     xn_list.append( Transition((0,1,1), (1,0,1), down_fall, 'downward motion') )
     xn_list.append( Transition((0,2,1), (2,0,1), down_fall, 'downward motion') )
     #DEJH adds rock-regolith properties:
-    P_weath_bare = 1. #0.004
+    P_weath_bare = 0.01 #0.004
     P_weath_mobile = 0.0004
     P_weath_cover = 0.0004
     P_weath_down = 1. #0.004 #to simulate "undermining" => preferred value = 0.05, same as downward ejection rate
@@ -139,45 +139,6 @@ def setup_transition_list():
     #xn_list.append( Transition((4,1,1), (3,1,1), P_weath_mobile, 'weathering front, down, covered mobile') )
     #xn_list.append( Transition((4,2,1), (3,2,1), P_weath_mobile, 'weathering front, down, covered mobile') )
     #xn_list.append( Transition((4,3,1), (3,3,1), P_weath_cover, 'weathering front, down, covered') )
-
-    #retaining a copy of id formatting:
-    #xn_list.append( Transition(3, 5, 0.01, 'left ejection') ) #0.01
-    #xn_list.append( Transition(15, 2, 0.01, 'right ejection') ) #0.01
-    #xn_list.append( Transition(28, 30, 0.05, 'downward ejection, left') ) #0.01
-    #xn_list.append( Transition(28, 35, 0.05, 'downward ejection, right') ) #0.01
-    #xn_list.append( Transition(40, 26, 0.005, 'upward ejection, left') ) #0.01
-    #xn_list.append( Transition(40, 27, 0.005, 'upward ejection, right') ) #0.01
-    #xn_list.append( Transition(13, 18, 100., 'demobilization (right wall)') )
-    #xn_list.append( Transition(16, 18, 100., 'demobilization (left wall)') )
-    #xn_list.append( Transition(41, 43, 0.1, 'demobilization (friction)') )
-    #xn_list.append( Transition(42, 43, 0.1, 'demobilization (friction)') )
-    #xn_list.append( Transition(1, 5, 1.0, 'leftward motion') )
-    #xn_list.append( Transition(10, 2, 1.0, 'rightward motion') )
-    #xn_list.append( Transition(30, 26, 0.1, 'upward motion') )
-    #xn_list.append( Transition(35, 27, 0.1, 'upward motion') )
-    #xn_list.append( Transition(26, 30, 10.0, 'downward motion') )
-    #xn_list.append( Transition(27, 35, 10.0, 'downward motion') )
-    ##DEJH adds rock-regolith properties:
-    #P_weath_bare = 0.002
-    #P_weath_mobile = 0.0005
-    #P_weath_cover = 0.0005
-    #P_weath_down = 0.05 #to simulate "undermining"
-    #xn_list.append( Transition(4, 3, P_weath_bare, 'weathering front, right, bare') )
-    #xn_list.append( Transition(9, 8, P_weath_mobile, 'weathering front, right, covered mobile') )
-    #xn_list.append( Transition(14, 13, P_weath_mobile, 'weathering front, right, covered mobile') )
-    #xn_list.append( Transition(19, 18, P_weath_cover, 'weathering front, right, covered') )
-    #xn_list.append( Transition(20, 15, P_weath_bare, 'weathering front, left, bare') )
-    #xn_list.append( Transition(21, 16, P_weath_mobile, 'weathering front, left, covered mobile') )
-    #xn_list.append( Transition(22, 17, P_weath_mobile, 'weathering front, left, covered mobile') )
-    #xn_list.append( Transition(23, 18, P_weath_cover, 'weathering front, left, covered') )
-    #xn_list.append( Transition(29, 28, P_weath_down, 'weathering front, up, bare') ) #here's our "undermined" transition
-    #xn_list.append( Transition(34, 33, P_weath_mobile, 'weathering front, up, covered mobile') )
-    #xn_list.append( Transition(39, 38, P_weath_mobile, 'weathering front, up, covered mobile') )
-    #xn_list.append( Transition(44, 43, P_weath_cover, 'weathering front, up, covered') )
-    #xn_list.append( Transition(45, 40, P_weath_bare, 'weathering front, down, bare') )
-    #xn_list.append( Transition(46, 41, P_weath_mobile, 'weathering front, down, covered mobile') )
-    #xn_list.append( Transition(47, 42, P_weath_mobile, 'weathering front, down, covered mobile') )
-    #xn_list.append( Transition(48, 43, P_weath_cover, 'weathering front, down, covered') )
 
     if _DEBUG:
         print
@@ -240,7 +201,7 @@ def main():
     ca_plotter = CAPlotter(ca)
     
     # RUN
-    BC_type = 1
+    BC_type = 2
 #0: Block decay, disabled
     if BC_type==0:
         current_time = 0.0
@@ -291,12 +252,44 @@ def main():
             for i in range(state_raster.shape[0])[::-1][:-2]:
                 state_raster[i,20:-20] = state_raster[i-1,20:-20]
             state_raster[:2,20:-20] = 3
-            ca.update_component_data(state_raster.ravel())
+            ca.update_component_data(state_raster.ravel(), (numpy.arange(mg.number_of_nodes).reshape(mg.shape))[1,20:-20], (0,1))
             
             # Run the model forward in time until the next output step
             ca.run(current_time+uplift_interval, ca.node_state, 
                 plot_each_transition=False) #, plotter=ca_plotter)
             current_time += uplift_interval
+            
+            # Plot the current grid
+            ca_plotter.update_plot()
+        
+    elif BC_type==2:
+        #2: BC condition lowering
+        #set all blocks as solid, except the top 3 rows:
+        ca.node_state[:] = 3
+        ca.node_state[-3*mg.shape[1]:] = 0
+        
+        current_time = 0.0
+        i = 0
+        while current_time < run_duration:
+            
+            # Once in a while, print out simulation and real time to let the user
+            # know that the sim is running ok
+            current_real_time = time.time()
+            if current_real_time >= next_report:
+                print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+                next_report = current_real_time + report_interval
+            
+            #drop the baselevel
+            ca.node_state[mg.left_edge_node_ids()[-(i+2):]] = 0
+            ca.node_state[mg.right_edge_node_ids()[-(i+2):]] = 0
+            ca.assign_link_states_from_node_types()
+            ca.push_transitions_to_event_queue()
+            
+            # Run the model forward in time until the next output step
+            ca.run(current_time+uplift_interval, ca.node_state, 
+                plot_each_transition=False) #, plotter=ca_plotter)
+            current_time += uplift_interval
+            i += 1
             
             # Plot the current grid
             ca_plotter.update_plot()
