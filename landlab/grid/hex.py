@@ -256,6 +256,72 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts, npts
 
 
+    def hexplot(self, data, data_label=None):
+        """
+        Creates a plot of the grid and one node-data field, showing hexagonal
+        cells colored by values in the field.
+        
+        Parameters
+        ----------
+        data : str OR node array (1d numpy array with number_of_nodes entries)
+            Data field to be colored
+        data_label : str, optional
+            Label for colorbar
+        
+        Returns
+        -------
+        (none)
+        """
+        from numpy import array, sqrt, zeros, amin, amax
+        import matplotlib
+        from matplotlib.patches import Polygon
+        from matplotlib.collections import PatchCollection
+        import matplotlib.pyplot as plt
+
+        # Handle *data*: if it's a numpy array, then we consider it the 
+        # data to be plotted. If it's a string, we consider it the name of the 
+        # node-field to plot, and we fetch it.
+        if type(data) is str:
+            data_label = data
+            data = self.at_node[data]
+            
+        # geometry
+        apothem = self._dx/2.0
+        radius = 2.0*apothem / sqrt(3.0)  # distance from node to each hexagon cell vertex
+        
+        # offsets from node x,y position
+        offsets = zeros((6,2))
+        poly_verts = zeros((6,2))
+        
+        # Figure out whether the orientation is horizontal or vertical
+        if self.node_y[0]==self.node_y[1]:   # horizontal
+            offsets[:,0] = array([0., apothem, apothem, 0., -apothem, -apothem])
+            offsets[:,1] = array([radius, radius/2.0, -radius/2.0, -radius, -radius/2.0, radius/2.0])
+        else:   # vertical
+            offsets[:,0] = array([radius/2.0, radius, radius/2.0, -radius/2.0, -radius, -radius/2.0])
+            offsets[:,1] = array([apothem, 0., -apothem, -apothem, 0., apothem])
+        
+        fig, ax = plt.subplots()
+        patches = []
+        for i in range(self.number_of_nodes):
+            poly_verts[:,0] = self.node_x[i]+offsets[:,0]
+            poly_verts[:,1] = self.node_y[i]+offsets[:,1]
+            p = Polygon(poly_verts, True)
+            patches.append(p)
+        
+        colors = data
+        pc = PatchCollection(patches, cmap=matplotlib.cm.jet)
+        pc.set_array(array(colors))
+        ax.add_collection(pc)
+        plt.xlim([amin(self.node_x)-self._dx, amax(self.node_x)+self._dx])
+        plt.ylim([amin(self.node_y)-self._dx, amax(self.node_y)+self._dx])
+        cb = plt.colorbar(pc)
+        if data_label is not None:
+            cb.set_label(data_label)
+        
+        plt.show()
+
+
 def from_dict(param_dict):
     """
     Create a HexModelGrid from the dictionary-like object, *param_dict*.

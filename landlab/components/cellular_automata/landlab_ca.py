@@ -145,7 +145,7 @@ class LandlabCellularAutomaton(object):
         
         # Keep a copy of the model grid
         self.grid = model_grid
-        self.node_active_links = self.grid.active_node_links()
+        self.node_active_links = self.grid.node_activelinks()
 
         self.set_node_state_grid(initial_node_states)
         
