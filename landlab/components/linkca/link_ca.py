@@ -131,6 +131,9 @@ class LinkCellularAutomaton():
         
         self.current_time = 0.0
         
+        #a flag for the creation of link arrays needed to handle grid updates:
+        self.translation_index = False
+        
         # Figure out how many states there are, and make sure the input data
         # are self consistent.
         #   There are 2 x (N^2) link states, where N is the number of node 
@@ -582,7 +585,7 @@ class LinkCellularAutomaton():
             print '  event time is',event.time,'but update time is', \
                   self.next_update[event.link],'so event will be ignored'
     
-    def update_component_data(self, new_node_state_array):
+    def update_component_data(self, new_node_state_array, nodes_added, translation_vector, changed_uplift=False):
         """
         Call this method to update all data held by the component, if, for
         example, another component or boundary conditions modify the node 
@@ -594,10 +597,91 @@ class LinkCellularAutomaton():
         *new_node_state_array* is the updated list of node states, which must
         still all be compatible with the state list originally supplied to
         this component.
+        *nodes_added* is a list or vector of nodes which have been added to the
+        grid to effect uplift or deformation. This might typically be, e.g.,
+        bottom_line_nodes[1:-1].
+        *translation_vector* is a len 2 tuple describing the node offsets 
+        associated with a single increment of deformation. e.g., (0,1) is unit
+        uplift. (1,2) could be uplift on a normal fault dipping 60 degrees to
+        the left.
+        *changed_uplift* is a flag which tells the method to refresh its 
+        stored parameters to reflect a step change in the uplift. Set as true
+        if you change *nodes_added* or *translation_vector* during a model run.
         """
         self.set_node_state_grid(new_node_state_array)
         self.assign_link_states_from_node_types()
         self.push_transitions_to_event_queue()
+        
+        #we also need to update next_update
+        if changed_uplift:
+            self.translation_index = False
+        #create the translation old & new lists if necessary (first time this is called)
+        if self.translation_index is False:
+            nrows = self.grid.number_of_node_rows
+            ncols = self.grid.number_of_node_columns
+            current_nodes = numpy.array(nodes_added[:])
+            next_nodes = numpy.array(nodes_added[:])
+            old_nodes = []
+            new_nodes = []
+            if translation_vector[0]>0:
+                hoz_iter = (nrows-1-nodes_added%ncols)//translation_vector[0]
+            elif translation_vector[0]<0:
+                hoz_iter = (nodes_added%ncols)//-translation_vector[0]
+            else:
+                hoz_iter = None
+            if translation_vector[1]>0:
+                vert_iter = (ncols-1-nodes_added//ncols)//translation_vector[1]
+            elif translation_vector[1]<0:
+                vert_iter = (nodes_added//ncols)//-translation_vector[1]
+            else:
+                vert_iter = None
+            try:
+                max_iter = int(max((hoz_iter.max(),vert_iter.max())))
+            except AttributeError:
+                if vert_iter is not None:
+                    max_iter = vert_iter.max()
+                    hoz_iter = numpy.ones_like(nodes_added)*numpy.iinfo(int).max
+                elif hoz_iter is not None:
+                    max_iter = hoz_iter.max()
+                    vert_iter = numpy.ones_like(nodes_added)*numpy.iinfo(int).max
+                else:
+                    raise ValueError('Is uplift vector (0,0)...???')
+            #print nodes_added
+            #print hoz_iter
+            #print vert_iter
+            #print max_iter
+            for i in xrange(max_iter):
+                print "Building the lists... ", i
+                on_grid_nodes = numpy.logical_and(
+                                            numpy.greater(hoz_iter,i),
+                                            numpy.greater(vert_iter,i))
+                #print on_grid_nodes
+                next_nodes = current_nodes+nrows*translation_vector[1]+translation_vector[0]
+                
+                if numpy.any(on_grid_nodes):
+                    old_nodes.extend(current_nodes[on_grid_nodes])
+                    new_nodes.extend(next_nodes[on_grid_nodes])
+                    current_nodes[on_grid_nodes] = next_nodes[on_grid_nodes]
+                else:
+                    break
+            #print old_nodes
+            old_links = self.grid.node_activelinks(old_nodes)
+            new_links = self.grid.node_activelinks(new_nodes)
+            print old_links.shape
+            print new_links.shape
+            self.old_links, unique_index = numpy.unique(old_links, return_index=True)
+            self.new_links = new_links.flat[unique_index]
+            self.translation_index = True
+            self.links_refreshed = numpy.unique(self.grid.node_links(nodes_added))
+            self.link_conversion_dict = dict(zip(self.old_links,self.new_links))
+        
+        self.next_update[self.new_links] = self.next_update[self.old_links]
+        self.next_update[self.links_refreshed] = 0.
+        for j in self.event_queue:
+            try:
+                j.link = self.link_conversion_dict[j.link]
+            except KeyError:
+                pass
         
                   
     def run(self, run_duration, node_state_grid=None, plot_each_transition=False,
