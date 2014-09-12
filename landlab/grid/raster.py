@@ -2978,6 +2978,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([  3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
                  2.])
         """
+        
         # Get the data
         data = self.at_node[data_name]
         

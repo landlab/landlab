@@ -1,15 +1,34 @@
 #! /usr/env/python
 """
-Link-based cellular automaton modeling tools.
+Landlab's cellular automata modeling package.
 
-In this updated version of the code, link states can either be encoded by
-integer IDs, e.g., 0,1,2..., or tuples actually decribing the state, e.g.,
-(x,y,0) to represent a horizontal link between x and y, 
-(w,z,1) a vertical link between w and z (w below).
-This change remains fully back compatible with GT's original version.
+A Landlab Cellular Automaton, or LCA, implements a particular type of cellular
+automaton (CA): a continuous-time stochastic CA. The approach is based on that
+of Narteau et al. (2002, 2009) and Rozier and Narteau (2014). Like a normal
+CA, the domain consists of a lattice of cells, each of which has a discrete
+state. Unlike a conventional CA, the updating process is stochastic, and takes
+place in continuous rather than discrete time. Any given pair (or "doublet")
+of adjacent cell states has a certain specified probability of transition to a 
+different pair of states. The transition probability is given in the form of an
+average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual time of 
+transition is a random variable drawn from an exponential probability 
+distribution with mean :math:1/\lambda
 
-Created GT Oct 2013, modified DEJH Aug 2014 to optionally use identifying pair 
-tuples, not just arbitrary IDs.
+Landlab provides for several different lattice and connection types:
+    - RasterLCA: regular raster grid with transitions between horizontal and
+        vertical cell pairs
+    - OrientedRasterLCA: like a RasterLCA, but different transition rates can
+        be assigned to vertical and horizontal pairs. This property of
+        orientation can be used, for example, to implement rules representing
+        gravitational attraction, or flow of a fluid with a particular direction.
+    - RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
+        and horizontal cell pairs.
+    - OrientedRasterD8LCA: as above but orientation also matters.
+    - HexLCA: hexagonal grid
+    - OrientedLCA: hexagonal grid, with transition rates allowed to vary
+        according to orientation.
+
+Created GT Sep 2014, starting from link_ca.py.
 """
 
 from heapq import heappush
@@ -17,7 +36,6 @@ from heapq import heappop
 from landlab import RasterModelGrid
 import landlab
 import numpy
-#from landlab.plot import imshow_grid
 import pylab as plt
 import time
 
@@ -108,28 +126,30 @@ class CAPlotter():
         plt.show()
         
         
-class LinkCellularAutomaton():
+class LandlabCellularAutomaton(object):
     """
-    The LinkCellularAutomaton implements a link-type (or doublet-type) cellular
+    A LandlabCellularAutomaton implements a link-type (or doublet-type) cellular
     automaton model. A link connects a pair of cells. Each cell has a state
     (represented by an integer code), and each link also has a state that is
     determined by the states of the cell pair.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, orientation_matters=False):
-                 
+                 initial_node_states):
+        
+        # Are we calling this from a subclass __init__? If so, then the 
+        # variable self.number_of_orientations should already be defined.
+        try:
+            self.number_of_orientations == 1
+        except AttributeError:  # if self.number_of_orientations not already defined
+            self.number_of_orientations = 1
+        
         # Keep a copy of the model grid
-        assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
-               'model_grid must be a Landlab RasterModelGrid'
         self.grid = model_grid
-        self.node_active_links = self.grid.active_node_links()
+        self.node_active_links = self.grid.node_activelinks()
 
         self.set_node_state_grid(initial_node_states)
         
         self.current_time = 0.0
-        
-        #a flag for the creation of link arrays needed to handle grid updates:
-        self.translation_index = False
         
         # Figure out how many states there are, and make sure the input data
         # are self consistent.
@@ -139,7 +159,7 @@ class LinkCellularAutomaton():
         #   0-0 0-1 1-0 1-1  0 0 1 1
         #                    0 1 0 1
         self.num_node_states = len(node_state_dict)
-        self.num_link_states = 2*self.num_node_states*self.num_node_states  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+        self.num_link_states = self.number_of_orientations*self.num_node_states**2
         
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
@@ -152,6 +172,7 @@ class LinkCellularAutomaton():
                 assert (t.to_state < self.num_link_states), \
                     'Transition to_state out of range'
                 this_type = int
+            # TODO: make orientation optional for cases where self.number_of_orientations = 1
             except: #added to allow from and to states to be tuples, not just ids
                 assert type(t.from_state) == tuple, 'Transition from_state out of range'
                 assert type(t.to_state) == tuple, 'Transition to_state out of range'
@@ -161,10 +182,10 @@ class LinkCellularAutomaton():
                 for i in t.to_state[:-1]:
                     assert (i < self.num_node_states), \
                     'Transition to_state out of range'
-                assert t.from_state[-1] < 2, \
-                    'Encoding for horizontal/vertical in from_state must be 0 or 1.' # VARIES WITH LATTICE AND ORIENTATION CHOICE
-                assert t.to_state[-1] < 2, \
-                    'Encoding for horizontal/vertical in to_state must be 0 or 1.'
+                assert t.from_state[-1] < self.number_of_orientations, \
+                    'Encoding for orientation in from_state must be < number of orientations.'
+                assert t.to_state[-1] < self.number_of_orientations, \
+                    'Encoding for orientation in to_state must be < number of orientations.'
                 this_type = tuple
             assert last_type==this_type or last_type==None, \
                 'All transition types must be either int IDs, or all tuples.'
@@ -188,12 +209,12 @@ class LinkCellularAutomaton():
                 transition_list_as_ID[i].from_state = self.link_state_dict[transition_list[i].from_state]
                 transition_list_as_ID[i].to_state = self.link_state_dict[transition_list[i].to_state]
     
-        # Memorize the number of vertical links, so we can figure out
-        # node-pair orientations
-        # VARIES WITH LATTICE AND ORIENTATION CHOICE
-        self.number_of_vertical_links = self.grid.number_of_node_columns * \
-                                        (self.grid.number_of_node_rows-1)
-
+        # Set up the information needed to determine the orientation of links
+        # in the lattice. The default method just creates an array of zeros (all
+        # orientations considered the same), but this will be overridden
+        # in subclasses that do use orientation.
+        self.setup_array_of_orientation_codes()
+        
         # Using the grid of node states, figure out all the link states
         self.assign_link_states_from_node_types()
     
@@ -232,7 +253,7 @@ class LinkCellularAutomaton():
         self.link_state_dict = {}
         self.cell_pair = []
         k=0
-        for orientation in range(2):   # VARIES WITH LATTICE AND ORIENTATION CHOICE
+        for orientation in range(self.number_of_orientations):
             for fromstate in range(self.num_node_states):
                 for tostate in range(self.num_node_states):
                     self.link_state_dict[(fromstate,tostate,orientation)] = k
@@ -245,18 +266,33 @@ class LinkCellularAutomaton():
             print self.link_state_dict
             print '  and the pair list is:'
             print self.cell_pair
-
-
-    def active_link_orientation(self, act_link_id):
+            
+            
+    def setup_array_of_orientation_codes(self):
         """
-        Returns 0 if active link *act_link_id* is horizontal (oriented along 
-        x-axis), and 1 if it is vertical (oriented along y-axis).
+        Creates and configures an array that contain the orientation code for 
+        each active link (and corresponding cell pair).
+        
+        Parameters
+        ----------
+        (none)
+        
+        Returns
+        -------
+        (none)
+        
+        Creates
+        -------
+        self.active_link_orientation : 1D numpy array
+        
+        Notes
+        -----
+        The setup varies depending on the type of LCA. The default is 
+        non-oriented, in which case we just have an array of zeros. Subclasses
+        will override this method to handle lattices in which orientation 
+        matters (for example, vertical vs. horizontal in an OrientedRasterLCA).
         """
-        # VARIES WITH LATTICE AND ORIENTATION CHOICE
-        if self.grid.active_links[act_link_id]<self.number_of_vertical_links:
-            return 1
-        else:
-            return 0
+        self.active_link_orientation = numpy.zeros(self.grid.number_of_active_links, dtype=int)
     
     
     def assign_link_states_from_node_types(self):
@@ -272,7 +308,7 @@ class LinkCellularAutomaton():
                                       dtype=int)
     
         for i in range(self.grid.number_of_active_links):
-            orientation = self.active_link_orientation(i)  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+            orientation = self.active_link_orientation[i]
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]], \
                          orientation)
@@ -457,7 +493,7 @@ class LinkCellularAutomaton():
            self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
             fns = self.node_state[self.grid.activelink_fromnode[link]]
             tns = self.node_state[self.grid.activelink_tonode[link]]
-            orientation = self.active_link_orientation(link)  # VARIES WITH LATTICE AND ORIENTATION CHOICE
+            orientation = self.active_link_orientation[link]
             actual_pair = (fns,tns,orientation)
             new_link_state = self.link_state_dict[actual_pair]
             if _DEBUG:
@@ -544,7 +580,7 @@ class LinkCellularAutomaton():
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
                         this_link_tonode = self.grid.activelink_tonode[link]
-                        orientation = self.active_link_orientation(link)# VARIES WITH LATTICE AND ORIENTATION CHOICE
+                        orientation = self.active_link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
@@ -563,7 +599,7 @@ class LinkCellularAutomaton():
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
                         this_link_tonode = self.grid.activelink_tonode[link]
-                        orientation = self.active_link_orientation(link)# VARIES WITH LATTICE AND ORIENTATION CHOICE
+                        orientation = self.active_link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
@@ -584,7 +620,7 @@ class LinkCellularAutomaton():
             print '  event time is',event.time,'but update time is', \
                   self.next_update[event.link],'so event will be ignored'
     
-    def update_component_data(self, new_node_state_array, nodes_added, translation_vector, changed_uplift=False):
+    def update_component_data(self, new_node_state_array):
         """
         Call this method to update all data held by the component, if, for
         example, another component or boundary conditions modify the node 
@@ -596,91 +632,10 @@ class LinkCellularAutomaton():
         *new_node_state_array* is the updated list of node states, which must
         still all be compatible with the state list originally supplied to
         this component.
-        *nodes_added* is a list or vector of nodes which have been added to the
-        grid to effect uplift or deformation. This might typically be, e.g.,
-        bottom_line_nodes[1:-1].
-        *translation_vector* is a len 2 tuple describing the node offsets 
-        associated with a single increment of deformation. e.g., (0,1) is unit
-        uplift. (1,2) could be uplift on a normal fault dipping 60 degrees to
-        the left.
-        *changed_uplift* is a flag which tells the method to refresh its 
-        stored parameters to reflect a step change in the uplift. Set as true
-        if you change *nodes_added* or *translation_vector* during a model run.
         """
         self.set_node_state_grid(new_node_state_array)
         self.assign_link_states_from_node_types()
         self.push_transitions_to_event_queue()
-        
-        #we also need to update next_update
-        if changed_uplift:
-            self.translation_index = False
-        #create the translation old & new lists if necessary (first time this is called)
-        if self.translation_index is False:
-            nrows = self.grid.number_of_node_rows
-            ncols = self.grid.number_of_node_columns
-            current_nodes = numpy.array(nodes_added[:])
-            next_nodes = numpy.array(nodes_added[:])
-            old_nodes = []
-            new_nodes = []
-            if translation_vector[0]>0:
-                hoz_iter = (nrows-1-nodes_added%ncols)//translation_vector[0]
-            elif translation_vector[0]<0:
-                hoz_iter = (nodes_added%ncols)//-translation_vector[0]
-            else:
-                hoz_iter = None
-            if translation_vector[1]>0:
-                vert_iter = (ncols-1-nodes_added//ncols)//translation_vector[1]
-            elif translation_vector[1]<0:
-                vert_iter = (nodes_added//ncols)//-translation_vector[1]
-            else:
-                vert_iter = None
-            try:
-                max_iter = int(max((hoz_iter.max(),vert_iter.max())))
-            except AttributeError:
-                if vert_iter is not None:
-                    max_iter = vert_iter.max()
-                    hoz_iter = numpy.ones_like(nodes_added)*numpy.iinfo(int).max
-                elif hoz_iter is not None:
-                    max_iter = hoz_iter.max()
-                    vert_iter = numpy.ones_like(nodes_added)*numpy.iinfo(int).max
-                else:
-                    raise ValueError('Is uplift vector (0,0)...???')
-            #print nodes_added
-            #print hoz_iter
-            #print vert_iter
-            #print max_iter
-            for i in xrange(max_iter):
-                print "Building the lists... ", i
-                on_grid_nodes = numpy.logical_and(
-                                            numpy.greater(hoz_iter,i),
-                                            numpy.greater(vert_iter,i))
-                #print on_grid_nodes
-                next_nodes = current_nodes+nrows*translation_vector[1]+translation_vector[0]
-                
-                if numpy.any(on_grid_nodes):
-                    old_nodes.extend(current_nodes[on_grid_nodes])
-                    new_nodes.extend(next_nodes[on_grid_nodes])
-                    current_nodes[on_grid_nodes] = next_nodes[on_grid_nodes]
-                else:
-                    break
-            #print old_nodes
-            old_links = self.grid.node_activelinks(old_nodes)
-            new_links = self.grid.node_activelinks(new_nodes)
-            print old_links.shape
-            print new_links.shape
-            self.old_links, unique_index = numpy.unique(old_links, return_index=True)
-            self.new_links = new_links.flat[unique_index]
-            self.translation_index = True
-            self.links_refreshed = numpy.unique(self.grid.node_links(nodes_added))
-            self.link_conversion_dict = dict(zip(self.old_links,self.new_links))
-        
-        self.next_update[self.new_links] = self.next_update[self.old_links]
-        self.next_update[self.links_refreshed] = 0.
-        for j in self.event_queue:
-            try:
-                j.link = self.link_conversion_dict[j.link]
-            except KeyError:
-                pass
         
                   
     def run(self, run_duration, node_state_grid=None, plot_each_transition=False,

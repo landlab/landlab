@@ -766,6 +766,70 @@ class ModelGrid(ModelDataFields):
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
 
+    def node_activelinks(self, *args):
+        """node_activelinks([node_ids])
+        Active links of a node.
+        
+        Parameters
+        ----------
+        node_ids : int or list of ints
+                   ID(s) of node(s) for which to find connected active links
+        
+        Returns
+        -------
+        (M, N) ndarray
+            The ids of active links attached to grid nodes with
+            *node_ids*. If *node_ids* is not given, return links for all of the
+            nodes in the grid. M is the number of rows in the grid's
+            node_active_inlink_matrix, which can vary depending on the type and
+            structure of the grid; in a hex grid, for example, it is 6.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(3, 2)
+        >>> hmg.node_activelinks(3)
+        array([[-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [ 0],
+               [ 1],
+               [ 2],
+               [ 3],
+               [ 4],
+               [ 5]])
+        >>> hmg.node_activelinks()
+        array([[ 3,  5,  2, -1,  4,  1,  0],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
+               [-1, -1, -1,  2, -1, -1, -1],
+               [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  4, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1]])
+
+        """
+        import numpy as np
+        if len(args) == 0:
+            return np.vstack((self.node_active_inlink_matrix,
+                              self.node_active_outlink_matrix))
+        elif len(args) == 1:
+            node_ids = np.broadcast_arrays(args[0])[0]
+            return (
+                np.vstack((self.node_active_inlink_matrix[:, node_ids],
+                           self.node_active_outlink_matrix[:, node_ids])
+                         ).reshape(2*np.size(self.node_active_inlink_matrix, 0), -1))
+        else:
+            raise ValueError('only zero or one arguments accepted')
+
+
     def create_node_array_zeros(self, name=None, **kwds):
         """Return a new array of the given type, filled with zeros.
 
@@ -2052,7 +2116,7 @@ class ModelGrid(ModelDataFields):
                      self._node_y[self.link_tonode[link]]], 'g-')
                      
         # If caller asked for a voronoi diagram, draw that too
-        if draw_voronoi!=None:
+        if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
             pts = numpy.zeros((self.number_of_nodes, 2))
             pts[:,0] = self._node_x
