@@ -107,16 +107,19 @@ class CAPlotter():
         
         plt.ion()
         plt.figure(1)
-        #nsr=ca.grid.node_vector_to_raster(ca.node_state)
-        #plt.imshow(nsr, interpolation='None')
-        #plt.draw()
-        #plt.pause(0.01)
+        if type(ca.grid) is landlab.grid.hex.HexModelGrid:
+            self.gridtype = 'rast'
+        else:
+            self.gridtype = 'hex'
 
     def update_plot(self):
 
         plt.clf()
-        nsr = self.ca.grid.node_vector_to_raster(self.ca.node_state)
-        plt.imshow(nsr, interpolation='None', origin='lower')
+        if self.gridtype=='rast':
+            nsr = self.ca.grid.node_vector_to_raster(self.ca.node_state)
+            plt.imshow(nsr, interpolation='None', origin='lower')
+        else:
+            self.ca.grid.hexplot(self.ca.node_state)
         plt.draw()
         plt.pause(0.01)
         
