@@ -301,7 +301,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             offsets[:,0] = array([radius/2.0, radius, radius/2.0, -radius/2.0, -radius, -radius/2.0])
             offsets[:,1] = array([apothem, 0., -apothem, -apothem, 0., apothem])
         
-        fig, ax = plt.subplots()
+        ax = plt.gca()
         patches = []
         for i in range(self.number_of_nodes):
             poly_verts[:,0] = self.node_x[i]+offsets[:,0]
@@ -319,7 +319,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         if data_label is not None:
             cb.set_label(data_label)
         
-        plt.show()
+        #plt.show()
 
 
 def from_dict(param_dict):

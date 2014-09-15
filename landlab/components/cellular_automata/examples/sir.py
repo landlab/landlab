@@ -52,14 +52,14 @@ def setup_transition_list():
     """
     xn_list = []
     
-    xn_list.append( Transition((0,1), (1,1), 10., 'infection') )
-    xn_list.append( Transition((0,1), (0,2), 1., 'recovery') )
-    xn_list.append( Transition((1,0), (1,1), 10., 'infection') )
-    xn_list.append( Transition((1,0), (2,0), 1., 'recovery') )
-    xn_list.append( Transition((1,1), (1,2), 1., 'recovery') )
-    xn_list.append( Transition((1,1), (2,1), 1., 'recovery') )
-    xn_list.append( Transition((1,2), (2,2), 1., 'recovery') )
-    xn_list.append( Transition((2,1), (2,2), 1., 'recovery') )
+    xn_list.append( Transition((0,1,0), (1,1,0), 8., 'infection') )
+    xn_list.append( Transition((0,1,0), (0,2,0), 1., 'recovery') )
+    xn_list.append( Transition((1,0,0), (1,1,0), 8., 'infection') )
+    xn_list.append( Transition((1,0,0), (2,0,0), 1., 'recovery') )
+    xn_list.append( Transition((1,1,0), (1,2,0), 1., 'recovery') )
+    xn_list.append( Transition((1,1,0), (2,1,0), 1., 'recovery') )
+    xn_list.append( Transition((1,2,0), (2,2,0), 1., 'recovery') )
+    xn_list.append( Transition((2,1,0), (2,2,0), 1., 'recovery') )
         
     if _DEBUG:
         print
@@ -75,10 +75,10 @@ def main():
     # INITIALIZE
     
     # User-defined parameters
-    nr = 10
-    nc = 10
-    plot_interval = 0.25
-    run_duration = 4.0
+    nr = 20
+    nc = 20
+    plot_interval = 2.0
+    run_duration = 2.0
     report_interval = 5.0  # report interval, in real-time seconds
     
     # Remember the clock time, and calculate when we next want to report
@@ -96,13 +96,13 @@ def main():
 
     # Create data and initialize values
     node_state_grid = hmg.add_zeros('node', 'node_state_grid')
-    is_middle_rows = logical_and(hmg.node_y>=0.4*nr, hmg.node_y<=0.6*nr)
-    is_middle_cols = logical_and(hmg.node_x>=0.4*nc, hmg.node_x<=0.6*nc)
-    print is_middle_rows
-    print is_middle_cols
+    wid = nc-1.0
+    ht = (nr-1.0)*0.866
+    is_middle_rows = logical_and(hmg.node_y>=0.4*ht, hmg.node_y<=0.5*ht)
+    is_middle_cols = logical_and(hmg.node_x>=0.4*wid, hmg.node_x<=0.6*wid)
     middle_area = where(logical_and(is_middle_rows, is_middle_cols))[0]
     node_state_grid[middle_area] = 1
-    print node_state_grid
+    node_state_grid[0] = 2  # to force full color range, set lower left to 'recovered'
     
     # Create the CA model
     ca = HexLCA(hmg, ns_dict, xn_list, node_state_grid)

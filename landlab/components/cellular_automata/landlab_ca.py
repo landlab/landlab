@@ -108,9 +108,9 @@ class CAPlotter():
         plt.ion()
         plt.figure(1)
         if type(ca.grid) is landlab.grid.hex.HexModelGrid:
-            self.gridtype = 'rast'
-        else:
             self.gridtype = 'hex'
+        else:
+            self.gridtype = 'rast'
 
     def update_plot(self):
 

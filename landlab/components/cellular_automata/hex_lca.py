@@ -20,8 +20,6 @@ class HexLCA(LandlabCellularAutomaton):
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states):
         
-        print 'HexLCA.__init__ here'
-
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
                'model_grid must be a Landlab HexModelGrid'
