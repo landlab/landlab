@@ -76,7 +76,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg.number_of_nodes
     25
     """
-    def __init__(self, x=None, y=None, **kwds):
+    def __init__(self, x=None, y=None, reorient_links=False, **kwds):
         """Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
@@ -103,10 +103,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         25
         """
         if (x is not None) and (y is not None):
-            self._initialize(x, y)
+            self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
         
-    def _initialize(self, x, y):
+    def _initialize(self, x, y, reorient_links=False):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -168,6 +168,11 @@ class VoronoiDelaunayGrid(ModelGrid):
          self.link_tonode,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+        
+        # Optionally re-orient links so that they all point within upper-right
+        # semicircle
+        if reorient_links:
+            self.reorient_links_upper_right()
 
         #[self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
         #        = self.create_links_and_faces_from_voronoi_diagram(vor)
@@ -469,5 +474,43 @@ class VoronoiDelaunayGrid(ModelGrid):
         #self._num_active_links = active_links.size
         
         return link_fromnode, link_tonode, active_links, face_width
+        
+    
+    def reorient_links_upper_right(self):
+        """
+        Reorients links so that all point within the upper-right semi-circle.
+        
+        Notes
+        -----
+        "Upper right semi-circle" means that the angle of the link with respect
+        to the vertical (measured clockwise) falls between -45 and +135. More
+        precisely, if :math:`\theta' is the angle, :math:`-45 \ge \theta < 135`.
+        For example, the link could point up and left as much as -45, but not -46.
+        It could point down and right as much as 134.9999, but not 135. It will
+        never point down and left, or up-but-mostly-left, or 
+        right-but-mostly-down.
+        """
 
+        # Calculate the horizontal (dx) and vertical (dy) link offsets
+        link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
+        link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        
+        print link_dx
+        print link_dy
+        
+        # Calculate the angle, clockwise, with respect to vertical, then rotate
+        # by 45 degrees counter-clockwise (by adding pi/4)
+        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
+        
+        print link_angle
+        
+        # The range of values should be -180 to +180 degrees (but in radians).
+        # It won't be after the above operation, because angles that were 
+        # > 135 degrees will now have values > 180. To correct this, we subtract
+        # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi radians).
+        link_angle -= 2*numpy.pi*(link_angle>=numpy.pi)
+        print link_angle
+        
+
+        
 

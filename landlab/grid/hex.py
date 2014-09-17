@@ -20,7 +20,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     """
     
     def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0, 
-                 orientation='horizontal', **kwds):
+                 orientation='horizontal', reorient_links=False, **kwds):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -56,10 +56,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Set number of nodes, and initialize if caller has given dimensions
         #self._num_nodes = num_rows * num_cols
         if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows, base_num_cols, dx, orientation)
+            self._initialize(base_num_rows, base_num_cols, dx, orientation,
+                             reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
 
-    def _initialize(self, base_num_rows, base_num_cols, dx, orientation):
+    def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
+                    reorient_links=False):
         """
         Sets up a hexagonal grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
@@ -95,9 +97,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         horizontal, whereas the other two are at 30 degree angles to the 
         horizontal, like:
             
-            \/
-           ----
-            /\
+            \ /
+           -----
+            / \
             
         'Vertical' means that one axis is vertical, with the other
         two at 30 degree angles to the vertical, more like:
@@ -121,12 +123,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation=='horizontal':
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal(base_num_rows, base_num_cols, dx)
+            self.orientation = 'horizontal'
         else:
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical(base_num_rows, base_num_cols, dx)
+            self.orientation = 'vertical'
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
-        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
+        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1], reorient_links)
         
         # Remember grid spacing
         self._dx = dx
