@@ -10,11 +10,11 @@ def _split_link_ends(link_ends):
     Examples
     --------
     >>> _split_link_ends(((0, 1, 2), (3, 4, 5)))
-    ((0, 1, 2), (3, 4, 5))
+    (array([0, 1, 2]), array([3, 4, 5]))
     >>> _split_link_ends([(0, 3), (1, 4), (2, 5)])
-    ((0, 1, 2), (3, 4, 5))
+    (array([0, 1, 2]), array([3, 4, 5]))
     >>> _split_link_ends((0, 3))
-    ((0,), (3,))
+    (array(0), array(3))
     """
     if len(link_ends) < 2:
         raise ValueError('Link array must be at least of length 2')
@@ -25,11 +25,11 @@ def _split_link_ends(link_ends):
 
     try:
         if len(start) == len(end):
-            return start, end
+            return np.array(start), np.array(end)
         else:
             raise ValueError('Link arrays must be the same length')
     except TypeError:
-        return (start, ), (end, )
+        return np.array(start), np.array(end)
 
 
 def link_is_active(status_at_link_ends):
@@ -73,6 +73,13 @@ def find_active_links(node_status, node_at_link_ends):
     -------
     ndarray :
         Links IDs of active links.
+
+    Examples
+    --------
+    >>> links = [(0, 2), (1, 3), (0, 1), (1, 2), (0, 3)]
+    >>> status = np.array([0, 0, 0, 0])
+    >>> find_active_links(status, links)
+    array([0, 1, 2, 3, 4])
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
@@ -186,7 +193,7 @@ def link_count_per_node(node_at_link_ends, number_of_nodes=None):
 def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
     sorted_links = np.argsort(node_at_link_ends[sortby])
 
-    if link_ids:
+    if link_ids is not None:
         return np.array(link_ids)[sorted_links]
     else:
         return sorted_links
@@ -381,8 +388,9 @@ class LinkGrid(object):
                                   number_of_nodes=number_of_nodes)
         )
         self._link_ends = np.array(link_ends)
-        if link_ids:
+        if link_ids is not None:
             self._link_id_map = dict(zip(link_ids, xrange(len(link_ids))))
+            self._link_ids = link_ids
 
         self._number_of_links = len(link_ends[0])
         self._number_of_nodes = number_of_nodes
@@ -476,6 +484,13 @@ class LinkGrid(object):
     @property
     def nodes_at_link(self):
         return self._link_ends.T
+
+    @property
+    def link_id(self):
+        try:
+            return self._link_ids
+        except AttributeError:
+            return np.arange(self.number_of_links)
 
     def nodes_at_link_id(self, link_id):
         try:
