@@ -28,7 +28,7 @@ BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
 class StatusGrid(object):
     def __init__(self, node_status):
-        self._node_status = node_status
+        self._node_status = np.array(node_status)
 
     @property
     def node_status(self):
@@ -48,7 +48,6 @@ class StatusGrid(object):
     def node_status(self, node_status):
         self._node_status = node_status
 
-    @property
     def active_nodes(self):
         """
         Node IDs of all active (core & open boundary) nodes.
@@ -57,27 +56,18 @@ class StatusGrid(object):
         (active_node_ids, ) = np.where(self.node_status != CLOSED_BOUNDARY)
         return active_node_ids
 
-    @property
     def core_nodes(self):
         """Node IDs of all core nodes.
         """
-        try:
-            return self._core_nodes
-        except AttributeError:
-            (core_node_ids, ) = np.where(self.node_status == CORE_NODE)
-            return core_node_ids
+        (core_node_ids, ) = np.where(self.node_status == CORE_NODE)
+        return core_node_ids
 
-    @property
     def boundary_nodes(self):
         """Node IDs of all boundary nodes.
         """
-        try:
-            return self._boundary_nodes
-        except AttributeError:
-            (boundary_node_ids, ) = np.where(self.node_status != CORE_NODE)
-            return boundary_node_ids
+        (boundary_node_ids, ) = np.where(self.node_status != CORE_NODE)
+        return boundary_node_ids
 
-    @property
     def open_boundary_nodes(self):
         """Node id of all open boundary nodes.
         """
@@ -86,7 +76,6 @@ class StatusGrid(object):
             (self.node_status != CORE_NODE))
         return open_boundary_node_ids
 
-    @property
     def closed_boundary_nodes(self):
         """Node id of all closed boundary nodes.
         """
@@ -94,7 +83,6 @@ class StatusGrid(object):
             self.node_status == CLOSED_BOUNDARY)
         return closed_boundary_node_ids
 
-    @property
     def fixed_gradient_boundary_nodes(self):
         """Node id of all fixed gradient boundary nodes
         """
@@ -102,11 +90,9 @@ class StatusGrid(object):
             self.node_status == FIXED_GRADIENT_BOUNDARY)
         return fixed_gradient_boundary_node_ids
 
-    @property
     def fixed_value_boundary_nodes(self):
         """Node id of all fixed value boundary nodes
         """
         (fixed_value_boundary_node_ids, ) = np.where(
             self.node_status == FIXED_VALUE_BOUNDARY)
         return fixed_value_boundary_node_ids
-
