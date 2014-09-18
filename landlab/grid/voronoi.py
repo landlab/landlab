@@ -489,28 +489,44 @@ class VoronoiDelaunayGrid(ModelGrid):
         It could point down and right as much as 134.9999, but not 135. It will
         never point down and left, or up-but-mostly-left, or 
         right-but-mostly-down.
+        
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
+        >>> hg.link_fromnode
+        array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
+        >>> hg.link_tonode
+        array([6, 5, 3, 3, 4, 3, 6, 6, 5, 2, 1, 4])
         """
-
+        
         # Calculate the horizontal (dx) and vertical (dy) link offsets
         link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
         link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
         
-        print link_dx
-        print link_dy
-        
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
         link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
-        
-        print link_angle
         
         # The range of values should be -180 to +180 degrees (but in radians).
         # It won't be after the above operation, because angles that were 
         # > 135 degrees will now have values > 180. To correct this, we subtract
         # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi radians).
         link_angle -= 2*numpy.pi*(link_angle>=numpy.pi)
-        print link_angle
         
-
+        # Find locations where the angle is negative; these are the ones we
+        # want to flip
+        (flip_locs, ) = numpy.where(link_angle<0.)
         
+        # If there are any flip locations, proceed to switch their fromnodes and
+        # tonodes; otherwise, we're done
+        if len(flip_locs)>0:
+            
+            # Temporarily story the fromnode for these
+            fromnode_temp = self.link_fromnode[flip_locs]
+            
+            # The fromnodes now become the tonodes, and vice versa
+            self.link_fromnode[flip_locs] = self.link_tonode[flip_locs]
+            self.link_tonode[flip_locs] = fromnode_temp
+            
 
