@@ -72,23 +72,28 @@ class OrientedHexLCA(LandlabCellularAutomaton):
             2 = horizontal (90 degrees clockwise from vertical)
         """
         self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
-        for i in self.grid.active_links:
+        for j in range(self.grid.number_of_active_links):
+            i = self.grid.active_links[j]
             dy = self.grid.node_y[self.grid.link_tonode[i]]-self.grid.node_y[self.grid.link_fromnode[i]]
             dx = self.grid.node_x[self.grid.link_tonode[i]]-self.grid.node_x[self.grid.link_fromnode[i]]
-            if dx < 0.:
-                self.active_link_orientation[i] = 0
-            elif dx>dy:
-                self.active_link_orientation[i] = 2
+            if dx <= 0.:
+                self.active_link_orientation[j] = 0
+            elif dy<=0.:
+                self.active_link_orientation[j] = 2
+            elif dx>0. and dy>0.:
+                self.active_link_orientation[j] = 1
             else:
-                self.active_link_orientation[i] = 1
-            
+                assert (False), 'Non-handled link orientation case'
+
 
 if __name__=='__main__':
+    print 'main here'
     from landlab import HexModelGrid
-    mg = HexModelGrid(3, 2, 1.0, reorient_links=True)
+    mg = HexModelGrid(2, 3, 1.0, orientation='vertical', reorient_links=True)
+    print mg.number_of_active_links
     nsd = {0 : 'yes', 1 : 'no'}
     xnlist = []
-    xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'hexxing' ) )
+    xnlist.append( Transition( (0,1,0), (1,0,0), 1.0, 'falling' ) )
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohlca = OrientedHexLCA(mg, nsd, xnlist, nsg)
     for i in range(mg.number_of_active_links):
