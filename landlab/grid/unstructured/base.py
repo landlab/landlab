@@ -50,8 +50,6 @@ class BaseGrid(object):
         >>> ngrid.coord_at_node[:, [2, 3]]
         array([[ 1.,  1.],
                [ 0.,  1.]])
-        >>> ngrid.distance_between_nodes([0, 1, 2, 3], 0)
-        array([ 0.        ,  1.        ,  1.        ,  1.41421356])
 
         >>> cells = ([0, 1, 2, 1, 3, 2], [3, 3], [0, 1])
         >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]), cells=cells)
@@ -247,11 +245,175 @@ class BaseGrid(object):
     def active_links(self):
         return self._active_link_grid.link_id
 
-    def link_length(self, link):
-        return self.distance_between_nodes(self.node_at_link_start[link],
-                                           self.node_at_link_end[link])
+    def link_length(self, link=None):
+        """Length of grid links.
 
-    def distance_between_nodes(self, node0, node1):
+        Parameters
+        ----------
+        link : array-like, optional
+            Link IDs
+
+        Examples
+        --------
+        >>> links = [(0, 2), (1, 3), (0, 1), (2, 3), (0, 3)]
+        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=zip(*links))
+        >>> grid.link_length()
+        array([ 4.,  4.,  3.,  3.,  5.])
+        >>> grid.link_length(0)
+        4.0
+
+        >>> grid.link_length().min()
+        3.0
+        >>> grid.link_length().max()
+        5.0
+        """
+        if link is None:
+            node0, node1 = (self.node_at_link_start, self.node_at_link_end)
+        else:
+            node0, node1 = (self.node_at_link_start[link],
+                            self.node_at_link_end[link])
+
+        return self.node_to_node_distance(node0, node1)
+
+    def node_to_node_distance(self, node0, node1):
+        """Distance between nodes.
+
+        Parameters
+        ----------
+        node0 : array-like
+            Node ID of start
+        node1 : array-like
+            Node ID of end
+
+        Returns
+        -------
+        array :
+            Distances between nodes.
+
+        Examples
+        --------
+        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
+        >>> grid.node_to_node_distance(0, 3)
+        5.0
+        >>> grid.node_to_node_distance(0, [0, 1, 2, 3])
+        array([ 0.,  3.,  4.,  5.])
+        """
         node0, node1 = np.broadcast_arrays(node0, node1)
         return np.sqrt(np.sum((self.coord_at_node[:, node1] -
                                self.coord_at_node[:, node0]) ** 2, axis=0))
+
+    def point_to_node_distance(self, point, node=None):
+        """Distance from a point to a node.
+
+        Parameters
+        ----------
+        point : tuple
+            Coordinates of point
+        node : array-like
+            Node IDs
+
+        Returns
+        -------
+        array :
+            Distances from point to node.
+
+        Examples
+        --------
+        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
+        >>> grid.point_to_node_distance((0., 0.), [1, 2, 3])
+        array([ 3.,  4.,  5.])
+        >>> grid.point_to_node_distance((0., 0.))
+        array([ 0.,  3.,  4.,  5.])
+        """
+        point = np.reshape(point, (-1, 1))
+        if node is None:
+            node_coords = self.coord_at_node
+        else:
+            node_coords = self.coord_at_node[:, node]
+        return np.sqrt(np.sum((point - node_coords) ** 2, axis=0))
+
+    def point_to_node_angle(self, point, node=None):
+        """Angle from a point to a node.
+
+        Parameters
+        ----------
+        point : tuple
+            Coordinates of point
+        node : array-like
+            Node IDs
+
+        Returns
+        -------
+        array :
+            Angles from point to node as radians.
+
+        Examples
+        --------
+        >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+        >>> grid.point_to_node_angle((0., 0.), [1, 2, 3]) / np.pi
+        array([ 0.  ,  0.5 ,  0.25])
+        >>> grid.point_to_node_angle((0., 0.)) / np.pi
+        array([ 0.  ,  0.  ,  0.5 ,  0.25])
+        """
+        diff = self.point_to_node_vector(point, node)
+        return np.arctan2(diff[0], diff[1])
+
+    def point_to_node_azimuth(self, point, node=None):
+        """Azimuth from a point to a node.
+
+        Parameters
+        ----------
+        point : tuple
+            Coordinates of point
+        node : array-like
+            Node IDs
+
+        Returns
+        -------
+        array :
+            Azimuths from point to node.
+
+        Examples
+        --------
+        >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+        >>> grid.point_to_node_azimuth((0., 0.), [1, 2, 3])
+        array([ 90.,   0.,  45.])
+        >>> grid.point_to_node_azimuth((0., 0.))
+        array([ 90.,  90.,   0.,  45.])
+        """
+        diff = self.point_to_node_vector(point, node)
+        return (np.pi * .5 - np.arctan2(diff[0], diff[1])) * 180. / np.pi
+
+    def point_to_node_vector(self, point, node=None):
+        """Azimuth from a point to a node.
+
+        Parameters
+        ----------
+        point : tuple
+            Coordinates of point
+        node : array-like
+            Node IDs
+
+        Returns
+        -------
+        array :
+            Vector from point to node.
+
+        Examples
+        --------
+        >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+        >>> grid.point_to_node_vector((0., 0.), [1, 2, 3])
+        array([[ 0.,  1.,  1.],
+               [ 1.,  0.,  1.]])
+        >>> grid.point_to_node_vector((0., 0.))
+        array([[ 0.,  0.,  1.,  1.],
+               [ 0.,  1.,  0.,  1.]])
+        >>> grid.point_to_node_vector((0., 0.), 1)
+        array([ 0.,  1.])
+        """
+        point = np.reshape(point, (-1, 1))
+        if node is None:
+            node_coords = self.coord_at_node
+        else:
+            node_coords = self.coord_at_node[:, node].reshape((2, -1))
+        return (node_coords - point).squeeze()
