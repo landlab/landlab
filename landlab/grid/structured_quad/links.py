@@ -3,6 +3,7 @@ import numpy as np
 
 from . import nodes
 from ..base import CORE_NODE, CLOSED_BOUNDARY
+from ..unstructured.links import import LinkGrid
 
 
 def shape_of_vertical_links(shape):
@@ -537,3 +538,10 @@ def active_link_ids(shape, node_status):
     array([ 1,  2,  5,  6, 11, 12, 13])
     """
     return np.where(is_active_link(shape, node_status))[0]
+
+
+class StructuredQuadLinkGrid(LinkGrid):
+    def __init__(self, shape):
+        link_ends = (node_id_at_link_start(shape), node_id_at_link_end(shape))
+        number_of_nodes = np.prod(shape)
+        LinkGrid.__init__(self, link_ends, number_of_nodes)
