@@ -1,3 +1,6 @@
+# Copy of original field concept radiation_field.py
+# 16 Sep 14 - SN & EI
+
 
 #################################################################
 ##
@@ -102,19 +105,18 @@ class Radiation( Component ):
             if not name in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
+        self._nodal_values = self.grid['node']
+
         if not 'Slope' in self.grid.at_cell:
             self.grid.add_zeros('cell', 'Slope', units='None' )
 
-        self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
-
-        self._slope = self._cell_values['Slope']
-        self.calculate_slope_and_aspect()
 
     def update( self, current_time, **kwds ):
 
         self._t = kwds.pop('Hour', 12.)
-        #self._elev = self._nodal_values['Elevation']
+        self._elev = self._nodal_values['Elevation']
+        self._slope = self._cell_values['Slope']
         self._radf = self._cell_values['RadiationFactor']
         self._Rs = self._cell_values['TotalShortWaveRadiation']
         self._Rnet = self._cell_values['NetShortWaveRadiation']
@@ -164,53 +166,28 @@ class Radiation( Component ):
                                 self._Rsflat
                             # flat surface Net incoming shortwave radiation
 
-        self._radf = (np.cos(self._slope) *                        \
-                    np.sin(self._alpha) + np.sin(self._slope) *    \
-                    np.cos(self._alpha) *                          \
-                    np.cos(self._phisun - self._aspect))/self._flat
-
-        self._radf[self._radf<=0.] = 0.
-        self._radf[self._radf>6.] = 6.
-
-        self._Rs = self._Rsflat * self._radf
-                    # Sloped surface Toatl Incoming Shortwave Radn
-        self._Rnet = self._Rnetflat * self._radf
-
-        self._cell_values['RadiationFactor'] = self._radf
-        self._cell_values['TotalShortWaveRadiation'] = self._Rs
-        self._cell_values['NetShortWaveRadiation'] = self._Rnet
+        for i in range( 0, self.grid.number_of_cells ):
 
 
-    def calculate_slope_and_aspect(self):
-        # Calculate Slope and Aspect
-        self._elev = self._nodal_values['Elevation']
-        orient = np.zeros(self.grid.number_of_cells,dtype = float)
-        slope_, steep_node_id = self.grid.calculate_steepest_descent_across_adjacent_cells \
-                                (self._elev,return_node = True, method = 'd8')
+            Slope, Aspect = self.grid.calculate_slope_aspect_at_nodes_horn([self.grid.node_index_at_cells[i]],
+                                            self._elev)
+            self._slope[i] = Slope[0]
+            self._aspect = Aspect[0] #* np.pi/180.
+            #if self._slope[i] > 90.:
+            #    self._slope[i] = 180. - self._slope[i]
+            slope_in_radians = self._slope[i]#*np.pi/180.
 
-        xa = self.grid.node_x[self.grid.node_index_at_cells]
-        ya = self.grid.node_y[self.grid.node_index_at_cells]
-        xs = self.grid.node_x[steep_node_id]
-        ys = self.grid.node_y[steep_node_id]
-        self._slope = np.arctan(np.abs(slope_))
-        xd = xa-xs
-        yd = ya-ys
-        xd_pos = np.greater_equal(xd,0)
-        xd_neg = np.less(xd,0)
-        yd_pos = np.greater_equal(yd,0)
-        yd_neg = np.less(yd,0)
-        yd_xd = np.abs(yd/xd)
+            self._radf[i] = (np.cos(slope_in_radians) *             \
+                        np.sin(self._alpha) + np.sin(slope_in_radians) *    \
+                        np.cos(self._alpha)                                 \
+                       * np.cos(self._phisun - self._aspect))/self._flat
 
-        orient[np.logical_and(xd_pos,yd_pos)] = np.radians(90.)\
-                        - np.arctan(yd_xd[np.logical_and(xd_pos,yd_pos)])
-        orient[np.logical_and(xd_neg,yd_pos)] = np.radians(270.)\
-                        + np.arctan(yd_xd[np.logical_and(xd_neg,yd_pos)])
-        orient[np.logical_and(xd_neg,yd_neg)] = np.radians(270.)\
-                        - np.arctan(yd_xd[np.logical_and(xd_neg,yd_neg)])
-        orient[np.logical_and(xd_pos,yd_neg)] = np.radians(90.)\
-                        + np.arctan(yd_xd[np.logical_and(xd_pos,yd_neg)])
+            if self._radf[i] <= 0:
+                self._radf[i] = 0.1
+            if self._radf[i] > 6.0:
+                self._radf[i] = 6.0
 
-        aspect = orient + np.pi
-        aspect[aspect>=2*np.pi] -= (2*np.pi)
-        self._aspect = aspect
-        self.grid['cell']['Slope'] = self._slope
+            self._Rs[i] = self._Rsflat * self._radf[i]
+                        # Sloped surface Toatl Incoming Shortwave Radn
+
+            self._Rnet[i] = self._Rnetflat * self._radf[i]

@@ -38,7 +38,8 @@ class PotentialEvapotranspiration( Component ):
 
     _output_var_names = set([
         'TotalShortWaveRadiation',
-        'TotalLongWaveRadiation',
+        'NetShortWaveRadiation',
+        'NetLongWaveRadiation',
         'NetRadiation',
         'PotentialEvapotranspiration',
     ])
@@ -46,7 +47,8 @@ class PotentialEvapotranspiration( Component ):
     _var_units = {
         'PotentialEvapotranspiration' : 'mm',
         'TotalShortWaveRadiation' : 'W/m^2',
-        'TotalLongWaveRadiation' : 'W/m^2',
+        'NetShortWaveRadiation' : 'W/m^2',
+        'NetLongWaveRadiation' : 'W/m^2',
         'NetRadiation' : 'W/m^2',
         'RadiationFactor' : 'None',
     }
@@ -87,9 +89,11 @@ class PotentialEvapotranspiration( Component ):
             Tmax = kwds.pop('Tmax',1.0)
             Tavg = kwds.pop('Tavg',0.5)
             PET_value = self.PriestlyTaylor( current_time,Tmax, Tmin, Tavg )
-            self._cell_values['TotalShortWaveRadiation'] = self._Rns * \
+            self._cell_values['TotalShortWaveRadiation'] = self._Rs * \
                                         self._cell_values['RadiationFactor']
-            self._cell_values['TotalLongWaveRadiation'] = self._Rnl * \
+            self._cell_values['NetShortWaveRadiation'] = self._Rns * \
+                                        self._cell_values['RadiationFactor']
+            self._cell_values['NetLongWaveRadiation'] = self._Rnl * \
                                         self._cell_values['RadiationFactor']
             self._cell_values['NetRadiation'] = self._Rn * \
                                         self._cell_values['RadiationFactor']

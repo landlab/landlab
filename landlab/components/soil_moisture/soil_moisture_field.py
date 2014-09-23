@@ -110,7 +110,7 @@ class SoilMoisture( Component ):
 
         P = kwds.pop('P', 5.)
         Tb = kwds.pop('Tb', 24.)
-        Tr = kwds.pop('Tr', 0.01)
+        Tr = kwds.pop('Tr', 0.0)
         self._PET = self._cell_values['PotentialEvapotranspiration']
         self._SO = self._cell_values['InitialSaturationFraction']
         self._vegcover = self._cell_values['VegetationCover']
