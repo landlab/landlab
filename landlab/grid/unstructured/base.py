@@ -358,7 +358,7 @@ class BaseGrid(object):
         diff = self.point_to_node_vector(point, node)
         return np.arctan2(diff[0], diff[1])
 
-    def point_to_node_azimuth(self, point, node=None):
+    def point_to_node_azimuth(self, point, node=None, out=None):
         """Azimuth from a point to a node.
 
         Parameters
@@ -380,9 +380,20 @@ class BaseGrid(object):
         array([ 90.,   0.,  45.])
         >>> grid.point_to_node_azimuth((0., 0.))
         array([ 90.,  90.,   0.,  45.])
+        >>> out = np.empty(4)
+        >>> out is grid.point_to_node_azimuth((0., 0.), out=out)
+        True
+        >>> out
+        array([ 90.,  90.,   0.,  45.])
         """
         diff = self.point_to_node_vector(point, node)
-        return (np.pi * .5 - np.arctan2(diff[0], diff[1])) * 180. / np.pi
+        azimuth_in_rads = np.arctan2(diff[0], diff[1])
+
+        if out is None:
+            return (np.pi * .5 - azimuth_in_rads) * 180. / np.pi
+        else:
+            np.subtract(np.pi * .5, azimuth_in_rads, out=out)
+            return np.multiply(out, 180. / np.pi, out=out)
 
     def point_to_node_vector(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -414,6 +425,9 @@ class BaseGrid(object):
         >>> out = np.empty((2, 1))
         >>> out is grid.point_to_node_vector((0., 0.), 1, out=out)
         True
+        >>> out
+        array([[ 0.],
+               [ 1.]])
         """
         point = np.reshape(point, (-1, 1))
         if node is None:
