@@ -384,7 +384,7 @@ class BaseGrid(object):
         diff = self.point_to_node_vector(point, node)
         return (np.pi * .5 - np.arctan2(diff[0], diff[1])) * 180. / np.pi
 
-    def point_to_node_vector(self, point, node=None):
+    def point_to_node_vector(self, point, node=None, out=None):
         """Azimuth from a point to a node.
 
         Parameters
@@ -409,11 +409,19 @@ class BaseGrid(object):
         array([[ 0.,  0.,  1.,  1.],
                [ 0.,  1.,  0.,  1.]])
         >>> grid.point_to_node_vector((0., 0.), 1)
-        array([ 0.,  1.])
+        array([[ 0.],
+               [ 1.]])
+        >>> out = np.empty((2, 1))
+        >>> out is grid.point_to_node_vector((0., 0.), 1, out=out)
+        True
         """
         point = np.reshape(point, (-1, 1))
         if node is None:
             node_coords = self.coord_at_node
         else:
             node_coords = self.coord_at_node[:, node].reshape((2, -1))
-        return (node_coords - point).squeeze()
+
+        if out is None:
+            return np.subtract(node_coords, point)
+        else:
+            return np.subtract(node_coords, point, out=out)
