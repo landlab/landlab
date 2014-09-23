@@ -302,7 +302,7 @@ class BaseGrid(object):
         return np.sqrt(np.sum((self.coord_at_node[:, node1] -
                                self.coord_at_node[:, node0]) ** 2, axis=0))
 
-    def point_to_node_distance(self, point, node=None):
+    def point_to_node_distance(self, point, node=None, out=None):
         """Distance from a point to a node.
 
         Parameters
@@ -324,13 +324,22 @@ class BaseGrid(object):
         array([ 3.,  4.,  5.])
         >>> grid.point_to_node_distance((0., 0.))
         array([ 0.,  3.,  4.,  5.])
+        >>> out = np.empty(4)
+        >>> out is grid.point_to_node_distance((0., 0.), out=out)
+        True
+        >>> out
+        array([ 0.,  3.,  4.,  5.])
         """
         point = np.reshape(point, (-1, 1))
         if node is None:
             node_coords = self.coord_at_node
         else:
             node_coords = self.coord_at_node[:, node]
-        return np.sqrt(np.sum((point - node_coords) ** 2, axis=0))
+
+        if out is None:
+            return np.sqrt(np.sum((point - node_coords) ** 2, axis=0))
+        else:
+            return np.sqrt(np.sum((point - node_coords) ** 2, axis=0), out=out)
 
     def point_to_node_angle(self, point, node=None, out=None):
         """Angle from a point to a node.
