@@ -87,3 +87,32 @@ def cell_ids(shape):
     """
     return np.arange(number_of_cells(shape)).reshape(shape_of_cells(shape))
 
+
+class StructuredQuadCellGrid(object):
+    def __init__(self, shape):
+        self._shape = shape_of_cells(shape)
+        self._number_of_cells = np.prod(self._shape)
+        self._node_at_cell = node_id_at_cells(shape)
+
+    @property
+    def number_of_cells(self):
+        return self._number_of_cells
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def number_of_cell_rows(self):
+        return self.shape[0]
+
+    @property
+    def number_of_cell_columns(self):
+        return self.shape[1]
+
+    @property
+    def node_at_cell(self):
+        return self._node_at_cell
+
+    def number_of_vertices_at_cell(self, cell):
+        return 4
