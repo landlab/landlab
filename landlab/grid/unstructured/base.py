@@ -332,7 +332,7 @@ class BaseGrid(object):
             node_coords = self.coord_at_node[:, node]
         return np.sqrt(np.sum((point - node_coords) ** 2, axis=0))
 
-    def point_to_node_angle(self, point, node=None):
+    def point_to_node_angle(self, point, node=None, out=None):
         """Angle from a point to a node.
 
         Parameters
@@ -354,9 +354,17 @@ class BaseGrid(object):
         array([ 0.  ,  0.5 ,  0.25])
         >>> grid.point_to_node_angle((0., 0.)) / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
+        >>> out = np.empty(4)
+        >>> out is grid.point_to_node_angle((0., 0.), out=out)
+        True
+        >>> out / np.pi
+        array([ 0.  ,  0.  ,  0.5 ,  0.25])
         """
         diff = self.point_to_node_vector(point, node)
-        return np.arctan2(diff[0], diff[1])
+        if out is None:
+            return np.arctan2(diff[0], diff[1])
+        else:
+            return np.arctan2(diff[0], diff[1], out=out)
 
     def point_to_node_azimuth(self, point, node=None, out=None):
         """Azimuth from a point to a node.
