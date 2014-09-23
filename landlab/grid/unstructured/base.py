@@ -260,7 +260,7 @@ class BaseGrid(object):
         >>> grid.link_length()
         array([ 4.,  4.,  3.,  3.,  5.])
         >>> grid.link_length(0)
-        4.0
+        array([ 4.])
 
         >>> grid.link_length().min()
         3.0
@@ -275,7 +275,7 @@ class BaseGrid(object):
 
         return self.node_to_node_distance(node0, node1)
 
-    def node_to_node_distance(self, node0, node1):
+    def node_to_node_distance(self, node0, node1, out=None):
         """Distance between nodes.
 
         Parameters
@@ -294,10 +294,13 @@ class BaseGrid(object):
         --------
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
         >>> grid.node_to_node_distance(0, 3)
-        5.0
+        array([ 5.])
         >>> grid.node_to_node_distance(0, [0, 1, 2, 3])
         array([ 0.,  3.,  4.,  5.])
         """
+        return point_to_point_distance(
+            self._get_coord_at_node(node0), self._get_coord_at_node(node1), out=out)
+
         node0, node1 = np.broadcast_arrays(node0, node1)
         return np.sqrt(np.sum((self.coord_at_node[:, node1] -
                                self.coord_at_node[:, node0]) ** 2, axis=0))
@@ -330,16 +333,7 @@ class BaseGrid(object):
         >>> out
         array([ 0.,  3.,  4.,  5.])
         """
-        point = np.reshape(point, (-1, 1))
-        if node is None:
-            node_coords = self.coord_at_node
-        else:
-            node_coords = self.coord_at_node[:, node]
-
-        if out is None:
-            return np.sqrt(np.sum((point - node_coords) ** 2, axis=0))
-        else:
-            return np.sqrt(np.sum((point - node_coords) ** 2, axis=0), out=out)
+        return point_to_point_distance(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_angle(self, point, node=None, out=None):
         """Angle from a point to a node.
@@ -369,11 +363,7 @@ class BaseGrid(object):
         >>> out / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
         """
-        diff = self.point_to_node_vector(point, node)
-        if out is None:
-            return np.arctan2(diff[0], diff[1])
-        else:
-            return np.arctan2(diff[0], diff[1], out=out)
+        return point_to_point_angle(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_azimuth(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -397,20 +387,15 @@ class BaseGrid(object):
         array([ 90.,   0.,  45.])
         >>> grid.point_to_node_azimuth((0., 0.))
         array([ 90.,  90.,   0.,  45.])
+        >>> grid.point_to_node_azimuth((0., 0.), 1)
+        array([ 90.])
         >>> out = np.empty(4)
         >>> out is grid.point_to_node_azimuth((0., 0.), out=out)
         True
         >>> out
         array([ 90.,  90.,   0.,  45.])
         """
-        diff = self.point_to_node_vector(point, node)
-        azimuth_in_rads = np.arctan2(diff[0], diff[1])
-
-        if out is None:
-            return (np.pi * .5 - azimuth_in_rads) * 180. / np.pi
-        else:
-            np.subtract(np.pi * .5, azimuth_in_rads, out=out)
-            return np.multiply(out, 180. / np.pi, out=out)
+        return point_to_point_azimuth(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_vector(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -446,13 +431,141 @@ class BaseGrid(object):
         array([[ 0.],
                [ 1.]])
         """
-        point = np.reshape(point, (-1, 1))
-        if node is None:
-            node_coords = self.coord_at_node
-        else:
-            node_coords = self.coord_at_node[:, node].reshape((2, -1))
+        return point_to_point_vector(point, self._get_coord_at_node(node), out=out)
 
-        if out is None:
-            return np.subtract(node_coords, point)
+    def _get_coord_at_node(self, node=None):
+        if node is None:
+            return self.coord_at_node
         else:
-            return np.subtract(node_coords, point, out=out)
+            return self.coord_at_node[:, node].reshape((2, -1))
+
+
+def point_to_point_distance(point0, point1, out=None):
+    """Length of vector that joins two points.
+
+    Parameters
+    ----------
+    (y0, x0) : tuple of array_like
+    (y1, x1) : tuple of array_like
+    out : array_like, optional
+        An array to store the output. Must be the same shape as the output would
+        have.
+
+    Returns
+    -------
+    l : array_like
+        Length of vector joining points; if *out* is provided, *v* will be equal
+        to *out*.
+
+    Examples
+    --------
+    >>> point_to_point_distance((0, 0), (3, 4))
+    array([ 5.])
+    >>> point_to_point_distance((0, 0), ([3, 6], [4, 8]))
+    array([  5.,  10.])
+    """
+    point0 = np.reshape(point0, (2, -1))
+    point1 = np.reshape(point1, (2, -1))
+    if out is None:
+        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0)
+        return np.sqrt(sum_of_squares)
+    else:
+        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0, out=out)
+        return np.sqrt(sum_of_squares, out=out)
+
+
+def point_to_point_angle(point0, point1, out=None):
+    """Angle of vector that joins two points.
+
+    Parameters
+    ----------
+    (y0, x0) : tuple of array_like
+    (y1, x1) : tuple of array_like
+    out : array_like, optional
+        An array to store the output. Must be the same shape as the output would
+        have.
+
+    Returns
+    -------
+    a : array_like
+        Angle of vector joining points; if *out* is provided, *v* will be equal
+        to *out*.
+    """
+    point0 = np.reshape(point0, (-1, 1))
+    diff = point_to_point_vector(point0, point1)
+    if out is None:
+        return np.arctan2(diff[0], diff[1])
+    else:
+        return np.arctan2(diff[0], diff[1], out=out)
+
+
+def point_to_point_azimuth(point0, point1, out=None):
+    """Azimuth of vector that joins two points.
+
+    Parameters
+    ----------
+    (y0, x0) : tuple of array_like
+    (y1, x1) : tuple of array_like
+    out : array_like, optional
+        An array to store the output. Must be the same shape as the output would
+        have.
+
+    Returns
+    -------
+    azimuth : array_like
+        Azimuth of vector joining points; if *out* is provided, *v* will be
+        equal to *out*.
+
+    Examples
+    --------
+    >>> point_to_point_azimuth((0, 0), (1, 0))
+    array([ 0.])
+    >>> point_to_point_azimuth([(0, 1), (0, 1)], (1, 0))
+    array([  0., -90.])
+    >>> point_to_point_azimuth([(0, 1, 0), (0, 1, 2)], [(1, 1, 2), (0, 0, 4)])
+    array([  0., -90.,  45.])
+    """
+    azimuth_in_rads = point_to_point_angle(point0, point1, out=out)
+    if out is None:
+        return (np.pi * .5 - azimuth_in_rads) * 180. / np.pi
+    else:
+        np.subtract(np.pi * .5, azimuth_in_rads, out=out)
+        return np.multiply(out, 180. / np.pi, out=out)
+
+
+def point_to_point_vector(point0, point1, out=None):
+    """Vector that joins two points.
+
+    Parameters
+    ----------
+    (y0, x0) : tuple of array_like
+    (y1, x1) : tuple of array_like
+    out : array_like, optional
+        An array to store the output. Must be the same shape as the output would
+        have.
+
+    Returns
+    -------
+    (dy, dx) : tuple of array_like
+        Vectors between points; if *out* is provided, *v* will be equal to
+        *out*.
+
+    Examples
+    --------
+    >>> point_to_point_vector((0, 0), (1, 2))
+    array([[1],
+           [2]])
+    >>> point_to_point_vector([(0, 1), (0, 1)], (1, 2))
+    array([[1, 0],
+           [2, 1]])
+    >>> point_to_point_vector([(0, 0, 0), (0, 1, 2)], [(1, 2, 2), (2, 4, 4)])
+    array([[1, 2, 2],
+           [2, 3, 2]])
+    """
+    point0 = np.reshape(point0, (2, -1))
+    point1 = np.reshape(point1, (2, -1))
+
+    if out is None:
+        return np.subtract(point1, point0)
+    else:
+        return np.subtract(point1, point0, out=out)
