@@ -222,7 +222,7 @@ def read_esri_ascii(asc_file, reshape=False):
             data = _read_asc_data(asc_file, header=header)
     else:
         header = read_asc_header(asc_file)
-        data = _read_asc_data(asc_file, header=header)[::-1,:] #ESRI ascii is from top left, LL is from bottom left
+        data = _read_asc_data(asc_file, header=header)
 
     shape = (header['nrows'], header['ncols'])
     spacing = (header['cellsize'], header['cellsize'])
@@ -233,10 +233,10 @@ def read_esri_ascii(asc_file, reshape=False):
     except AssertionError:
         raise DataSizeError(shape[0] * shape[1], data.size)
 
-    if reshape:
-        data.shape = shape
-    else:
-        data.shape = (shape[0] * shape[1], )
+    data.shape = shape
+    data = np.flipud(data)
+    if not reshape:
+        data = data.flatten()
 
     grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
                            dx=spacing[0])
