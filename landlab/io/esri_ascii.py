@@ -154,7 +154,6 @@ def _header_is_valid(header):
 
     return True
 
-
 def read_asc_header(asc_file):
     """
     Read header information from an ESRI ASCII raster file.
@@ -244,17 +243,17 @@ def read_esri_ascii(asc_file, reshape=False):
     return (grid, data)
 
 
-def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None, 
-                                                 data_array=None, xllc=0., 
+def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
+                                                 data_array=None, xllc=0.,
                                                  yllc=0., nodata_value=-9999,
                                                  filename='landlab_esri_ascii_grid.asc'):
     """
     Creates a new ESRI-Ascii-grid format file(s) containing data attached to a
     RasterModelGrid.
-    
+
     Parameters
     ----------
-    
+
     grid : RasterModelGrid
         Grid on which data are organized
     data_name : string
@@ -267,20 +266,21 @@ def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
         Code used to represent a grid cell containing invalid/no data
     filename : string
         Name of file to create
-        
+
+
     Returns
     -------
     None
     """
-    
+
     # Make sure we've been passed a RasterModelGrid
     assert (type(grid) is landlab.grid.raster.RasterModelGrid), \
            '<grid> must be a Landlab RasterModelGrid'
-    
+
     # Make sure user has specified either a data-item name or an array
     assert ((data_name is not None) or (data_array is not None)), \
             'Must pass a non-None value for either data_name or data_array'
-    
+
     # If data_name specified, find data with that name at nodes. If not, then
     # use data_array. If that's not specified either, throw an exception.
     if data_name is not None:
@@ -290,7 +290,7 @@ def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
 
     # Open a new text file
     output_file = open(filename, 'w')
-    
+
     # Write the header
     output_file.write('ncols        %d\n' % (grid.number_of_node_columns))
     output_file.write('nrows        %d\n' % (grid.number_of_node_rows))
@@ -298,7 +298,7 @@ def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
     output_file.write('yllcorner    %.3f\n' % (yllc))
     output_file.write('cellsize     %.3f\n' % (grid.dx))
     output_file.write('NODATA_value %.0f\n' % (nodata_value))
-    
+
     # Write the data, row by row
     n = 0
     for r in range(grid.number_of_node_rows):
@@ -306,7 +306,6 @@ def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
             output_file.write('%.3f ' % (data[n]))
             n+=1
         output_file.write('\n')
-        
+
     # Close the file
     output_file.close()
-    
