@@ -103,13 +103,17 @@ class Radiation( Component ):
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         if not 'Slope' in self.grid.at_cell:
-            self.grid.add_zeros('cell', 'Slope', units='None' )
+            self.grid.add_zeros('cell', 'Slope', units='radians' )
+
+        if not 'Aspect' in self.grid.at_cell:
+            self.grid.add_zeros('cell', 'Aspect', units='radians' )
 
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
-
-        self._slope = self._cell_values['Slope']
-        self.calculate_slope_and_aspect()
+        self._slope,self._aspect = \
+            grid.calculate_slope_aspect_at_nodes_Burrough(vals = 'Elevation')
+        self._cell_values['Slope'] = self._slope
+        self._cell_values['Aspect'] = self._aspect
 
     def update( self, current_time, **kwds ):
 
@@ -179,38 +183,3 @@ class Radiation( Component ):
         self._cell_values['RadiationFactor'] = self._radf
         self._cell_values['TotalShortWaveRadiation'] = self._Rs
         self._cell_values['NetShortWaveRadiation'] = self._Rnet
-
-
-    def calculate_slope_and_aspect(self):
-        # Calculate Slope and Aspect
-        self._elev = self._nodal_values['Elevation']
-        orient = np.zeros(self.grid.number_of_cells,dtype = float)
-        slope_, steep_node_id = self.grid.calculate_steepest_descent_across_adjacent_cells \
-                                (self._elev,return_node = True, method = 'd8')
-
-        xa = self.grid.node_x[self.grid.node_index_at_cells]
-        ya = self.grid.node_y[self.grid.node_index_at_cells]
-        xs = self.grid.node_x[steep_node_id]
-        ys = self.grid.node_y[steep_node_id]
-        self._slope = np.arctan(np.abs(slope_))
-        xd = xa-xs
-        yd = ya-ys
-        xd_pos = np.greater_equal(xd,0)
-        xd_neg = np.less(xd,0)
-        yd_pos = np.greater_equal(yd,0)
-        yd_neg = np.less(yd,0)
-        yd_xd = np.abs(yd/xd)
-
-        orient[np.logical_and(xd_pos,yd_pos)] = np.radians(90.)\
-                        - np.arctan(yd_xd[np.logical_and(xd_pos,yd_pos)])
-        orient[np.logical_and(xd_neg,yd_pos)] = np.radians(270.)\
-                        + np.arctan(yd_xd[np.logical_and(xd_neg,yd_pos)])
-        orient[np.logical_and(xd_neg,yd_neg)] = np.radians(270.)\
-                        - np.arctan(yd_xd[np.logical_and(xd_neg,yd_neg)])
-        orient[np.logical_and(xd_pos,yd_neg)] = np.radians(90.)\
-                        + np.arctan(yd_xd[np.logical_and(xd_pos,yd_neg)])
-
-        aspect = orient + np.pi
-        aspect[aspect>=2*np.pi] -= (2*np.pi)
-        self._aspect = aspect
-        self.grid['cell']['Slope'] = self._slope
