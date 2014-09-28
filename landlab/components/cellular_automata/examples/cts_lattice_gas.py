@@ -11,7 +11,6 @@ _DEBUG = False
 import time
 import random
 from landlab import HexModelGrid
-from numpy import where, logical_and, sqrt
 from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
 from landlab.components.cellular_automata.oriented_hex_lca import OrientedHexLCA
 
@@ -29,14 +28,6 @@ def setup_transition_list():
     -------
     xn_list : list of Transition objects
         List of objects that encode information about the link-state transitions.
-    
-    Notes
-    -----
-    The states and transitions are as follows:
-
-    Pair state        Transition to       Process
-    ==========        =============       =======
-    
     """
     xn_list = []
     
@@ -93,9 +84,33 @@ def setup_transition_list():
     xn_list.append( Transition((5,6,2), (6,5,2), 1.0, 'oblique') )
     
     # Transitions for direct-from-behind collisions
+    xn_list.append( Transition((1,1,0), (2,6,0), 0.5, 'behind') )
+    xn_list.append( Transition((1,1,0), (6,2,0), 0.5, 'behind') )
+    xn_list.append( Transition((4,4,0), (3,5,0), 0.5, 'behind') )
+    xn_list.append( Transition((4,4,0), (5,3,0), 0.5, 'behind') )
+    xn_list.append( Transition((2,2,1), (1,3,1), 0.5, 'behind') )
+    xn_list.append( Transition((2,2,1), (3,1,1), 0.5, 'behind') )
+    xn_list.append( Transition((5,5,1), (4,6,1), 0.5, 'behind') )
+    xn_list.append( Transition((5,5,1), (6,4,1), 0.5, 'behind') )
+    xn_list.append( Transition((3,3,2), (2,4,2), 0.5, 'behind') )
+    xn_list.append( Transition((3,3,2), (4,2,2), 0.5, 'behind') )
+    xn_list.append( Transition((6,6,2), (1,5,2), 0.5, 'behind') )
+    xn_list.append( Transition((6,6,2), (5,1,2), 0.5, 'behind') )
     
-    # Transitions for collision with stationary particle
-    
+    # Transitions for collision with stationary (resting) particle
+    xn_list.append( Transition((1,7,0), (7,2,0), 0.5, 'rest') )
+    xn_list.append( Transition((1,7,0), (7,6,0), 0.5, 'rest') )
+    xn_list.append( Transition((7,4,0), (3,7,0), 0.5, 'rest') )
+    xn_list.append( Transition((7,4,0), (5,7,0), 0.5, 'rest') )
+    xn_list.append( Transition((2,7,1), (7,1,1), 0.5, 'rest') )
+    xn_list.append( Transition((2,7,1), (7,3,1), 0.5, 'rest') )
+    xn_list.append( Transition((7,5,1), (4,7,1), 0.5, 'rest') )
+    xn_list.append( Transition((7,5,1), (6,7,1), 0.5, 'rest') )
+    xn_list.append( Transition((3,7,2), (7,2,2), 0.5, 'rest') )
+    xn_list.append( Transition((3,7,2), (7,4,2), 0.5, 'rest') )
+    xn_list.append( Transition((7,6,2), (1,7,2), 0.5, 'rest') )
+    xn_list.append( Transition((7,6,2), (5,7,2), 0.5, 'rest') )
+
     if _DEBUG:
         print
         print 'setup_transition_list(): list has',len(xn_list),'transitions:'
@@ -110,10 +125,10 @@ def main():
     # INITIALIZE
     
     # User-defined parameters
-    nr = 21
-    nc = 21
+    nr = 41
+    nc = 61
     plot_interval = 1.0
-    run_duration = 20.0
+    run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
     p_init = 0.1  # probability that a cell is occupied at start
     plot_every_transition = False
@@ -140,7 +155,7 @@ def main():
                 4 : 'moving down',
                 5 : 'moving left and down',
                 6 : 'moving left and up',
-                7 : 'stationary',
+                7 : 'rest',
                 8 : 'wall'}
     xn_list = setup_transition_list()
 
@@ -153,7 +168,7 @@ def main():
     # Seed the grid interior with randomly oriented particles
     for i in hmg.core_nodes:
         if random.random()<p_init:
-            node_state_grid[i] = random.randint(1, 6)
+            node_state_grid[i] = random.randint(1, 7)
     
     # Create the CA model
     ca = OrientedHexLCA(hmg, ns_dict, xn_list, node_state_grid)
