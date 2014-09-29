@@ -41,6 +41,7 @@ from .core.model_component import Component
 from .framework.collections import Palette, Arena, NoProvidersError
 from .framework.decorators import Implements, ImplementsOrRaise
 from .framework.framework import Framework
+from .field.scalar_data_fields import FieldError
 from .grid import *
 from .plot import *
 
