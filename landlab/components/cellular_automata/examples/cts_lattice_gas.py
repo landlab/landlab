@@ -10,6 +10,8 @@ _DEBUG = False
 
 import time
 import random
+from numpy import zeros, bincount, arange
+from pylab import subplots, plot, show, xlabel, ylabel, title, axis
 from landlab import HexModelGrid
 from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
 from landlab.components.cellular_automata.oriented_hex_lca import OrientedHexLCA
@@ -160,7 +162,7 @@ def main():
     xn_list = setup_transition_list()
 
     # Create data and initialize values.
-    node_state_grid = hmg.add_zeros('node', 'node_state_grid')
+    node_state_grid = hmg.add_zeros('node', 'node_state_grid', dtype=int)
     
     # Make the grid boundary all wall particles
     node_state_grid[hmg.boundary_nodes] = 8
@@ -178,6 +180,10 @@ def main():
     
     # Plot the initial grid
     ca_plotter.update_plot()
+    
+    # Create an array to store the numbers of states at each plot interval
+    nstates = zeros((9, int(run_duration/plot_interval)))
+    k = 0
 
     # RUN
     current_time = 0.0
@@ -197,12 +203,26 @@ def main():
         
         # Plot the current grid
         ca_plotter.update_plot()
-
+        
+        # Record numbers in each state
+        nstates[:,k] = bincount(node_state_grid)
+        k += 1
 
     # FINALIZE
 
     # Plot
     ca_plotter.finalize()
+    
+    # Display the numbers of each state
+    fig, ax = subplots()
+    for i in range(1, 8):
+        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i])
+    ax.legend()
+    xlabel('Time')
+    ylabel('Number of particles in state')
+    title('Particle distribution by state')
+    axis([0, run_duration, 0, 2*nstates[7,0]])
+    show()
 
 
 if __name__=='__main__':
