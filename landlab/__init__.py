@@ -35,6 +35,8 @@ if 'DISPLAY' not in os.environ:
         matplotlib.use('Agg')
 
 from .core.model_parameter_dictionary import ModelParameterDictionary
+from .core.model_parameter_dictionary import (MissingKeyError,
+                                              ParameterValueError)
 from .core.model_component import Component
 from .framework.collections import Palette, Arena, NoProvidersError
 from .framework.decorators import Implements, ImplementsOrRaise
