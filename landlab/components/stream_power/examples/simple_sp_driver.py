@@ -25,6 +25,7 @@ time_to_run = inputs.read_float('run_time')
 #nt needs defining
 uplift = inputs.read_float('uplift_rate')
 init_elev = inputs.read_float('init_elev')
+
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
