@@ -25,10 +25,7 @@ time_to_run = inputs.read_float('run_time')
 #nt needs defining
 uplift = inputs.read_float('uplift_rate')
 init_elev = inputs.read_float('init_elev')
-<<<<<<< HEAD
 
-=======
->>>>>>> sed-flux-dep
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
@@ -41,22 +38,13 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
-<<<<<<< HEAD
-=======
 #load the Fastscape module too, to allow direct comparison
 fsp = Fsc(mg, './drive_sp_params.txt')
->>>>>>> sed-flux-dep
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
     print elapsed_time
-<<<<<<< HEAD
-    if elapsed_time+dt<time_to_run:
-        dt = time_to_run - elapsed_time
-    mg = fr.route_flow(grid=mg)
-    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
-=======
     if elapsed_time+dt>time_to_run:
         print "Short step!"
         dt = time_to_run - elapsed_time
@@ -90,5 +78,4 @@ pylab.show()
 
 print('Done.')
 
->>>>>>> sed-flux-dep
     
