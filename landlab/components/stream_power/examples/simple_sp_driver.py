@@ -8,6 +8,7 @@ DEJH, 09/15/14
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
+from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
 
 import numpy
 from landlab import RasterModelGrid
@@ -24,7 +25,10 @@ time_to_run = inputs.read_float('run_time')
 #nt needs defining
 uplift = inputs.read_float('uplift_rate')
 init_elev = inputs.read_float('init_elev')
+<<<<<<< HEAD
 
+=======
+>>>>>>> sed-flux-dep
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
@@ -37,13 +41,54 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
+<<<<<<< HEAD
+=======
+#load the Fastscape module too, to allow direct comparison
+fsp = Fsc(mg, './drive_sp_params.txt')
+>>>>>>> sed-flux-dep
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
     print elapsed_time
+<<<<<<< HEAD
     if elapsed_time+dt<time_to_run:
         dt = time_to_run - elapsed_time
     mg = fr.route_flow(grid=mg)
     mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
+=======
+    if elapsed_time+dt>time_to_run:
+        print "Short step!"
+        dt = time_to_run - elapsed_time
+    mg = fr.route_flow(grid=mg)
+    #mg = fsp.erode(mg)
+    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
+    #add uplift
+    mg.at_node['planet_surface__elevation'][mg.core_nodes] += uplift*dt
+    elapsed_time += dt
+
+#Finalize and plot
+elev = mg['node']['planet_surface__elevation']
+elev_r = mg.node_vector_to_raster(elev)
+
+# Clear previous plots
+pylab.figure(1)
+pylab.close()
+
+# Plot topography
+pylab.figure(1)
+im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
+print elev_r
+pylab.colorbar(im)
+pylab.title('Topography')
+
+pylab.figure(2)
+im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a colored image
+pylab.title('Vertical cross section')
+
+pylab.show()
+
+print('Done.')
+
+>>>>>>> sed-flux-dep
     
