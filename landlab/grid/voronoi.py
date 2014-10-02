@@ -68,29 +68,45 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
     
-    Examples:
-        
+    Examples
+    --------
+    >>> from numpy.random import rand
+    >>> x, y = rand(25), rand(25)
+    >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
+    >>> vmg.number_of_nodes
+    25
+    """
+    def __init__(self, x=None, y=None, reorient_links=False, **kwds):
+        """Create a Voronoi Delaunay grid from a set of points.
+
+        Create an unstructured grid from points whose coordinates are given
+        by the arrays *x*, *y*.
+
+        Parameters
+        ----------
+        x : array_like
+            x-coordinate of points
+        y : array_like
+            y-coordinate of points
+
+        Returns
+        -------
+        VoronoiDelaunayGrid
+            A newly-created grid.
+
+        Examples
+        --------
         >>> from numpy.random import rand
-        >>> x = rand(25)
-        >>> y = rand(25)
+        >>> x, y = rand(25), rand(25)
         >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
         >>> vmg.number_of_nodes
         25
-    
-    """
-    #print 'VoronoiDelaunayGrid.__init__'
-    
-    def __init__(self, x=None, y=None, **kwds):
-        """
-        If x and y are provided, creates an unstructured grid using those 
-        coordinates as the node positions.
         """
         if (x is not None) and (y is not None):
-            self._initialize(x, y)
+            self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
         
-        
-    def _initialize(self, x, y):
+    def _initialize(self, x, y, reorient_links=False):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -152,6 +168,11 @@ class VoronoiDelaunayGrid(ModelGrid):
          self.link_tonode,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+        
+        # Optionally re-orient links so that they all point within upper-right
+        # semicircle
+        if reorient_links:
+            self.reorient_links_upper_right()
 
         #[self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
         #        = self.create_links_and_faces_from_voronoi_diagram(vor)
@@ -168,6 +189,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
         self._reset_list_of_active_links()
+
+        # LINKS: set up link unit vectors and node unit-vector sums
+        self._make_link_unit_vectors()
 
         # LINKS: ID of corresponding face, if any
         self.link_face = (numpy.zeros(self.number_of_links, dtype=int) +
@@ -239,8 +263,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # Return the results
         return node_status, core_nodes, boundary_nodes
-        
-    def setup_node_cell_connectivity(self, node_status, ncells):
+
+    @staticmethod
+    def setup_node_cell_connectivity(node_status, ncells):
         """
         Creates and returns the following arrays:
             1) for each node, the ID of the corresponding cell, or
@@ -277,13 +302,13 @@ class VoronoiDelaunayGrid(ModelGrid):
                 cell += 1
                 
         #save the arrays
-        self.node_cell = node_cell
-        self.cell_node = cell_node
+        #self.node_cell = node_cell
+        #self.cell_node = cell_node
         
         return node_cell, cell_node
         
-
-    def create_links_from_triangulation(self, tri):
+    @staticmethod
+    def create_links_from_triangulation(tri):
         """
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
@@ -291,14 +316,14 @@ class VoronoiDelaunayGrid(ModelGrid):
             2) a numpy array containing the ID of the "to" node for each link
             3) the number of links in the triangulation
         
-        Example:
-            
-            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
-            >>> from scipy.spatial import Delaunay
-            >>> dt = Delaunay(pts)
-            >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
-            >>> print myfrom, myto, nl
-            [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
+        Examples
+        --------
+        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from scipy.spatial import Delaunay
+        >>> dt = Delaunay(pts)
+        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
+        >>> print myfrom, myto, nl # doctest: +SKIP
+        [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
         
         """
     
@@ -338,9 +363,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
         
         #save the results
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self._num_links = num_links
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self._num_links = num_links
     
         # Return the results
         return link_fromnode, link_tonode, num_links
@@ -352,7 +377,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
                 and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
 
-    def create_links_and_faces_from_voronoi_diagram(self, vor):
+    @staticmethod
+    def create_links_and_faces_from_voronoi_diagram(vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
@@ -440,13 +466,67 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print 'vor ridge points:',vor.ridge_points
         
         #save the data
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self.active_link_ids = active_links
-        self._face_widths = face_width
-        self._num_faces = face_width.size
-        self._num_active_links = active_links.size
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self.active_link_ids = active_links
+        #self._face_widths = face_width
+        #self._num_faces = face_width.size
+        #self._num_active_links = active_links.size
         
         return link_fromnode, link_tonode, active_links, face_width
-
+        
+    
+    def reorient_links_upper_right(self):
+        """
+        Reorients links so that all point within the upper-right semi-circle.
+        
+        Notes
+        -----
+        "Upper right semi-circle" means that the angle of the link with respect
+        to the vertical (measured clockwise) falls between -45 and +135. More
+        precisely, if :math:`\theta' is the angle, :math:`-45 \ge \theta < 135`.
+        For example, the link could point up and left as much as -45, but not -46.
+        It could point down and right as much as 134.9999, but not 135. It will
+        never point down and left, or up-but-mostly-left, or 
+        right-but-mostly-down.
+        
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
+        >>> hg.link_fromnode
+        array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
+        >>> hg.link_tonode
+        array([6, 5, 3, 3, 4, 3, 6, 6, 5, 2, 1, 4])
+        """
+        
+        # Calculate the horizontal (dx) and vertical (dy) link offsets
+        link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
+        link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        
+        # Calculate the angle, clockwise, with respect to vertical, then rotate
+        # by 45 degrees counter-clockwise (by adding pi/4)
+        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
+        
+        # The range of values should be -180 to +180 degrees (but in radians).
+        # It won't be after the above operation, because angles that were 
+        # > 135 degrees will now have values > 180. To correct this, we subtract
+        # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi radians).
+        link_angle -= 2*numpy.pi*(link_angle>=numpy.pi)
+        
+        # Find locations where the angle is negative; these are the ones we
+        # want to flip
+        (flip_locs, ) = numpy.where(link_angle<0.)
+        
+        # If there are any flip locations, proceed to switch their fromnodes and
+        # tonodes; otherwise, we're done
+        if len(flip_locs)>0:
+            
+            # Temporarily story the fromnode for these
+            fromnode_temp = self.link_fromnode[flip_locs]
+            
+            # The fromnodes now become the tonodes, and vice versa
+            self.link_fromnode[flip_locs] = self.link_tonode[flip_locs]
+            self.link_tonode[flip_locs] = fromnode_temp
+            
 

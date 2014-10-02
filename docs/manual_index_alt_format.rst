@@ -28,17 +28,10 @@ Grid creation
 
 *These methods are used to create grids.*
 
-.. autoclass:: landlab.grid.raster.RasterModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.voronoi.VoronoiDelaunayGrid
-    :members: None
-
-.. autoclass:: landlab.grid.radial.RadialModelGrid
-    :members: None
-
-.. autoclass:: landlab.grid.hex.HexModelGrid
-    :members: None
+.. automethod:: landlab.grid.raster.RasterModelGrid.__init__
+.. automethod:: landlab.grid.voronoi.VoronoiDelaunayGrid.__init__
+.. automethod:: landlab.grid.radial.RadialModelGrid.__init__
+.. automethod:: landlab.grid.hex.HexModelGrid.__init__
 
 
 Create data in the grid fields
@@ -70,7 +63,6 @@ detailed here.*
 .. autofunction:: landlab.io.esri_ascii.read_esri_ascii
 .. autofunction:: landlab.io.netcdf.read.read_netcdf
 .. autofunction:: landlab.io.netcdf.write.write_netcdf
-
 
 Access data in the grid fields
 ==============================
@@ -152,6 +144,8 @@ Access the grid geometry
 cells, links, faces. This might include their statuses (active/inactive; core/boundary;
 open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 
+.. autoattribute:: landlab.grid.base.ModelGrid.node_inlink_matrix
+.. autoattribute:: landlab.grid.base.ModelGrid.node_outlink_matrix
 .. autoattribute:: landlab.grid.base.ModelGrid.active_links
 .. autoattribute:: landlab.grid.base.ModelGrid.active_link_length
 .. automethod:: landlab.grid.base.ModelGrid.calculate_numbers_of_node_neighbors

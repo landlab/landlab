@@ -25,7 +25,7 @@ def main():
 
     for i in range(nt):
         
-        g = mg.calculate_gradients_at_active_links_slow(s, g)
+        g = mg._calculate_gradients_at_active_links_slow(s, g)
         
     time2 = time.time()
 

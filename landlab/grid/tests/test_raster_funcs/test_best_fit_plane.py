@@ -9,12 +9,12 @@ def test_best_fit_with_bad_args():
     len_2 = np.array([0, 1])
     len_3 = np.array([0, 0, 1])
 
-    with assert_raises(ValueError):
-        rfuncs.calculate_slope_aspect_BFP(len_2, len_3, len_3)
-    with assert_raises(ValueError):
-        rfuncs.calculate_slope_aspect_BFP(len_3, len_2, len_3)
-    with assert_raises(ValueError):
-        rfuncs.calculate_slope_aspect_BFP(len_3, len_3, len_2)
+    assert_raises(ValueError,
+                  rfuncs.calculate_slope_aspect_BFP, len_2, len_3, len_3)
+    assert_raises(ValueError,
+                  rfuncs.calculate_slope_aspect_BFP, len_3, len_2, len_3)
+    assert_raises(ValueError,
+                  rfuncs.calculate_slope_aspect_BFP, len_3, len_3, len_2)
 
 
 def test_best_fit_plane_in_xy():

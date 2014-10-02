@@ -59,6 +59,7 @@ This returns a version of ``z`` that has been converted into a 2D Numpy array. T
 
 >>> import pylab
 >>> pylab.imshow(zr, cmap=pylab.cm.jet, extent=[0, 400, 0, 250], origin='lower')
+>>> pylab.show()
 
 The result looks like this:
 
@@ -112,6 +113,7 @@ The following commands show a contoured image of the terrain after 50,000 years 
 >>> pylab.xlabel('Distance (m)')
 >>> pylab.ylabel('Distance (m)')
 >>> pylab.title('Topography after 50,000 years of scarp degradation')
+>>> pylab.show()
 
 Here is the resulting image:
 

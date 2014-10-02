@@ -1,7 +1,7 @@
 # Sai Nudurupati and Erkan Istanbulluoglu- 16May2014 : 
 # Example to use potential_evapotranspiration_field.py
 
-import landlab
+#import landlab
 from landlab import RasterModelGrid
 from landlab.components.radiation.radiation_field import Radiation
 from landlab.components.PET.potential_evapotranspiration_field import PotentialEvapotranspiration
@@ -26,5 +26,5 @@ imshow_field(grid,'RadiationFactor',
 plt.figure(1)
 imshow_field(grid,'PotentialEvapotranspiration',
                 values_at = 'cell', grid_units = ('m','m'))
-
+plt.savefig('PET_test')
 plt.show()

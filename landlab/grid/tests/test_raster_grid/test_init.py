@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import (assert_is, assert_equal, assert_raises, raises,
-                        assert_true, assert_false)
+from nose.tools import (assert_equal, assert_raises, raises, assert_true,
+                        assert_false)
+try:
+    from nose.tools import assert_is 
+except ImportError:
+    from landlab.testing.tools import assert_is 
 
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE as X
@@ -121,23 +125,23 @@ class TestRasterModelGrid(object):
         assert_array_equal(self.rmg.get_diagonal_list(6),
                            np.array([12, 10, 0, 2]))
         assert_array_equal(self.rmg.get_diagonal_list(-1),
-                           np.array([-1, -1, -1, -1]))
+                           np.array([X, X, 13, X]))
         assert_array_equal(self.rmg.get_diagonal_list([6, -1]),
-                           np.array([[12, 10, 0, 2], [-1, -1, -1, -1]]))
+                           np.array([[12, 10, 0, 2], [X, X, 13, X]]))
         assert_array_equal(
             self.rmg.get_diagonal_list(),
-            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-                        [-1, -1, -1, -1], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [12, 10,  0,  2], [13, 11,  1,  3],
-                        [14, 12,  2,  4], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [17, 15,  5,  7], [18, 16,  6,  8],
-                        [19, 17,  7,  9], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-                        [-1, -1, -1, -1], [-1, -1, -1, -1]]))
+            np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
+                        [9, 7, X, X], [X, 8, X, X],
+                      [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],
+                        [14, 12,  2,  4], [X, 13, 3, X],
+                      [16, X, X, 6], [17, 15,  5,  7], [18, 16,  6,  8],
+                        [19, 17,  7,  9], [X, 18, 8, X],
+                      [X, X, X, 11], [X, X, 10, 12], [X, X, 11, 13],
+                        [X, X, 12, 14], [X, X, 13, X]]))
 
     def test_diagonal_list_boundary(self):
         assert_array_equal(self.rmg.get_diagonal_list(0),
-                           np.array([-1, -1, -1, -1]))
+                           np.array([6, X, X, X]))
 
     def test_is_interior(self):
         for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
@@ -330,10 +334,11 @@ class TestRasterModelGrid(object):
 
         assert_array_equal(
             self.rmg.get_diagonal_list(),
-            np.array([[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [-1, -1, -1, -1], [12, 10,  0,  2], [13, 11,  1,  3],
-                      [14, 12,  2,  4], [-1, -1, -1, -1], [-1, -1, -1, -1], [17, 15,  5,  7],
-                      [18, 16,  6,  8], [19, 17,  7,  9], [-1, -1, -1, -1], [-1, -1, -1, -1],
-                      [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]))
-
-
+            np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
+                        [9, 7, X, X], [X, 8, X, X],
+                      [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],
+                        [14, 12,  2,  4], [X, 13, 3, X],
+                      [16, X, X, 6], [17, 15,  5,  7], [18, 16,  6,  8],
+                        [19, 17,  7,  9], [X, 18, 8, X],
+                      [X, X, X, 11], [X, X, 10, 12], [X, X, 11, 13],
+                        [X, X, 12, 14], [X, X, 13, X]]))
