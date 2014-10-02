@@ -14,12 +14,12 @@ class StreamPowerEroder(object):
     run destabilizes, try reducing dt.
     See, e.g., ./examples/simple_sp_driver.py
     
-    DEJH Sept 2013.
+    DEJH Sept 2013, major modifications Sept 14.
     This component *should* run on any grid, but untested.
     """
     
-    def __init__(self, grid, tstep):
-        self.initialize(grid, tstep)
+    def __init__(self, grid, params):
+        self.initialize(grid, params)
             
 #This draws attention to a potential problem. It will be easy to have modules update z, but because noone "owns" the data, to forget to also update dz/dx...
 #How about a built in grid utility that updates "derived" data (i.e., using only grid fns, e.g., slope, curvature) at the end of any given tstep loop?
@@ -91,9 +91,11 @@ class StreamPowerEroder(object):
         self._K_unit_time = inputs.read_float('K_sp')
         try:
             self.sp_crit = inputs.read_float('threshold_sp')
+            self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
             print "Found a threshold to use: ", self.sp_crit
         except MissingKeyError:
             self.sp_crit = 0.
+            self.set_threshold = False
         try:
             self.tstep = inputs.read_float('dt')
         except MissingKeyError:
@@ -300,7 +302,9 @@ class StreamPowerEroder(object):
         else:
             elev_name = 'planet_surface__elevation'
 
-        grid.at_node[elev_name] -= erosion_increment
+        if not self.no_erode:
+            grid.at_node[elev_name] -= erosion_increment
+            
         self.grid = grid
         
         return grid, grid.at_node[elev_name], self.stream_power_erosion
