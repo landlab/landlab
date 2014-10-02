@@ -17,6 +17,7 @@ from . import grid_funcs as gfuncs
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
+from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 
 
@@ -578,6 +579,97 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
+    def node_patches(self, nodata=-1, *args):
+        """
+        This is a placeholder method until improved using jagged array 
+        operations.
+        Returns a (N,4) array of the patches associated with each node in the
+        grid.
+        The four possible faces are returned in id order, with any
+        null or nonexistent faces recorded after the ids of existing faces.
+        The nodata argument allows control of the array value used to indicate
+        nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
+        Note that this method returns a *masked* array, with the normal provisos
+        that integer indexing with a masked array removes the mask.
+        """
+        try:
+            return self.node_patch_matrix
+        except AttributeError:
+            if nodata=='nan':
+                nodata=np.nan
+            elif nodata=='bad_value':
+                nodata=BAD_INDEX_VALUE
+            self.node_patch_matrix = np.ma.empty((self.number_of_nodes,4),dtype=int)
+            self.node_patch_matrix.fill(BAD_INDEX_VALUE)
+            self.node_patch_matrix[:,0][
+                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)
+            self.node_patch_matrix[:,1][
+                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)
+            self.node_patch_matrix[:,2][
+                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)
+            self.node_patch_matrix[:,3][
+                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)
+            self.node_patch_matrix.sort(axis=1)
+            self.node_patch_matrix[self.node_patch_matrix==BAD_INDEX_VALUE] = nodata
+            self.node_patch_matrix = np.ma.masked_equal(self.node_patch_matrix, nodata)
+            return self.node_patch_matrix
+    
+    @property    
+    def patch_nodes(self):
+        """
+        Returns the four nodes at the corners of each patch in a regular grid.
+        """
+        base = numpy.arange(self.number_of_patches)
+        bottom_left_corner = base + base//(self._ncols-1)
+        return np.column_stack((bottom_left_corner,bottom_left_corner+1,bottom_left_corner+self._ncols,bottom_left_corner+self._ncols+1))
+            
+
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation'):
+        """
+        trial run to extract average local slopes at nodes by the average slope
+        of its surrounding patches. DEJH 10/1/14
+        elevs either a field name or an nnodes-array.
+        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        """
+        dummy_patch_nodes = np.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
+        dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
+        dummy_patch_nodes[-1,:] = -1
+        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3] #now any ref to a null node will be -1 in this new (N,4,4) array.
+        #note we truncate the array to be [N,4,3]; we only need 3 pts per patch
+        node_elevs = np.ones((nodes_on_patches.shape[0],4,3,3),dtype=float) #using the wrong values in -1 won't matter, as we'll mask with nodes_on_patches at the end
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        c = np.ma.array(np.linalg.det(node_elevs), mask=mask_from_nop)
+        try:
+            node_elevs[:,:,:,2] = self.at_node[elevs][nodes_on_patches]
+        except FieldError:
+            node_elevs[:,:,:,2] = elevs[nodes_on_patches]
+        node_elevs[:,:,:,1] = 1.
+        b = np.linalg.det(node_elevs)
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        node_elevs[:,:,:,0] = 1.
+        a = np.linalg.det(node_elevs)
+        
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        grad_x = -a/c
+        grad_y = -b/c #...still for each patch
+        mean_grad_x = np.mean(grad_x,axis=1)
+        mean_grad_y = np.mean(grad_y,axis=1)
+        
+        slope_mag = np.sqrt(mean_grad_x**2 + mean_grad_y**2)
+        
+        return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+        
+        
+        
+            
+        
+
 
     def _setup_inlink_and_outlink_matrices(self):
         """
@@ -1048,6 +1140,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         4
         """
         return self._nrows
+
+    @property
+    def number_of_patches(self):
+        """Number of patches.
+        
+        Returns the number of patches over the grid.
+        
+        Examples
+        --------
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.number_of_patches
+        12
+        """
+        return (self._nrows-1)*(self._ncols-1)
 
     @property
     def node_spacing(self):
