@@ -585,8 +585,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         operations.
         Returns a (N,4) array of the patches associated with each node in the
         grid.
-        The four possible faces are returned in id order, with any
-        null or nonexistent faces recorded after the ids of existing faces.
+        The four possible patches are returned in id order, with any
+        null or nonexistent patches recorded after the ids of existing faces.
         The nodata argument allows control of the array value used to indicate
         nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
         Note that this method returns a *masked* array, with the normal provisos
