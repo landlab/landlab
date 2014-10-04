@@ -174,6 +174,7 @@ from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from landlab.field import ModelDataFields, ScalarDataFields
+from landlab.field.scalar_data_fields import FieldError
 from . import grid_funcs as gfuncs
 
 
@@ -1063,6 +1064,45 @@ class ModelGrid(ModelDataFields):
         Returns values_along_x, values_along_y
         """
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
+
+
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation'):
+        """
+        trial run to extract average local slopes at nodes by the average slope
+        of its surrounding patches. DEJH 10/1/14
+        elevs either a field name or an nnodes-array.
+        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        """
+        dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
+        dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
+        dummy_patch_nodes[-1,:] = -1
+        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3] #now any ref to a null node will be -1 in this new (N,patch_max_dim,4or3) array.
+        #note we truncate the array to be [N,patch_max_dim,3]; we only need 3 pts per patch, if we're working on a raster
+        node_elevs = numpy.ones((nodes_on_patches.shape[0],nodes_on_patches.shape[1],3,3),dtype=float) #using the wrong values in -1 won't matter, as we'll mask with nodes_on_patches at the end
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        c = numpy.ma.array(numpy.linalg.det(node_elevs), mask=mask_from_nop)
+        try:
+            node_elevs[:,:,:,2] = self.at_node[elevs][nodes_on_patches]
+        except TypeError:
+            node_elevs[:,:,:,2] = elevs[nodes_on_patches]
+        node_elevs[:,:,:,1] = 1.
+        b = numpy.linalg.det(node_elevs)
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        node_elevs[:,:,:,0] = 1.
+        a = numpy.linalg.det(node_elevs)
+        
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        grad_x = -a/c
+        grad_y = -b/c #...still for each patch
+        mean_grad_x = numpy.mean(grad_x,axis=1)
+        mean_grad_y = numpy.mean(grad_y,axis=1)
+        
+        slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
+        
+        return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+        
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
@@ -2516,6 +2556,8 @@ class ModelGrid(ModelDataFields):
         assert numpy.all(self.all_node_distances_map >= 0.)
         
         return self.all_node_distances_map, self.all_node_azimuths_map
+    
+
         
 
 if __name__ == '__main__':

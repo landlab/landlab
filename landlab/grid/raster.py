@@ -628,49 +628,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.column_stack((bottom_left_corner,bottom_left_corner+1,bottom_left_corner+self._ncols,bottom_left_corner+self._ncols+1))
             
 
-    def node_slopes_using_patches(self, elevs='planet_surface__elevation'):
-        """
-        trial run to extract average local slopes at nodes by the average slope
-        of its surrounding patches. DEJH 10/1/14
-        elevs either a field name or an nnodes-array.
-        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
-        """
-        dummy_patch_nodes = np.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
-        dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
-        dummy_patch_nodes[-1,:] = -1
-        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3] #now any ref to a null node will be -1 in this new (N,4,4) array.
-        #note we truncate the array to be [N,4,3]; we only need 3 pts per patch
-        node_elevs = np.ones((nodes_on_patches.shape[0],4,3,3),dtype=float) #using the wrong values in -1 won't matter, as we'll mask with nodes_on_patches at the end
-        mask_from_nop = nodes_on_patches[:,:,0]==-1
-        node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
-        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
-        c = np.ma.array(np.linalg.det(node_elevs), mask=mask_from_nop)
-        try:
-            node_elevs[:,:,:,2] = self.at_node[elevs][nodes_on_patches]
-        except FieldError:
-            node_elevs[:,:,:,2] = elevs[nodes_on_patches]
-        node_elevs[:,:,:,1] = 1.
-        b = np.linalg.det(node_elevs)
-        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
-        node_elevs[:,:,:,0] = 1.
-        a = np.linalg.det(node_elevs)
-        
-        mask_from_nop = nodes_on_patches[:,:,0]==-1
-        grad_x = -a/c
-        grad_y = -b/c #...still for each patch
-        mean_grad_x = np.mean(grad_x,axis=1)
-        mean_grad_y = np.mean(grad_y,axis=1)
-        
-        slope_mag = np.sqrt(mean_grad_x**2 + mean_grad_y**2)
-        
-        return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
-        
-        
-        
-            
-        
-
-
     def _setup_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of inlinks and outlinks

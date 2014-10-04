@@ -76,7 +76,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg.number_of_nodes
     25
     """
-    def __init__(self, x=None, y=None, reorient_links=False, **kwds):
+    def __init__(self, x=None, y=None, reorient_links=True, **kwds):
         """Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
@@ -156,6 +156,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
         vor = Voronoi(pts)
+        self.vor = vor
         self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
         for node in self.activecell_node:
             xv = vor.vertices[vor.regions[vor.point_region[node]],0]
@@ -209,8 +210,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._number_of_patches
         except AttributeError:
-            vor = Voronoi(self.pts)
-            self.create_patches_from_delaunay_diagram(self.pts, vor)
+            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._number_of_patches
             
     @property
@@ -221,8 +221,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._patch_nodes
         except AttributeError:
-            vor = Voronoi(self.pts)
-            self.create_patches_from_delaunay_diagram(self.pts, vor)
+            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._patch_nodes
 
     def node_patches(self, nodata=-1):
@@ -242,15 +241,13 @@ class VoronoiDelaunayGrid(ModelGrid):
             try:
                 return self._node_patches
             except AttributeError:
-                vor = Voronoi(self.pts)
-                self.create_patches_from_delaunay_diagram(self.pts, vor, nodata)        
+                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)        
                 return self._node_patches
         else:
             try:
                 self.set_bad_value
             except:
-                vor = Voronoi(self.pts)
-                self.create_patches_from_delaunay_diagram(self.pts, vor, nodata)  
+                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)  
                 self.set_bad_value=True      
                 return self._node_patches
             else:
