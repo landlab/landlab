@@ -3546,10 +3546,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # determine the values for the x, y, and z coordinates of each node,
         # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
         # slope and aspect.
-
+        
+        indBool=(n!=BAD_INDEX_VALUE)        
+        
         for i in range(len(id)):
-            ns=list(n[i])
+            # make a list of the neighbor nodes and 
+            # check that none of the nodes are bad
+            
+            ns=list(n[0][indBool[0]])
             ns.append(id[i])
+                                    
             x=self.node_x[ns]
             y=self.node_y[ns]
             z=val[ns]
@@ -3596,9 +3602,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
         # slope and aspect.
 
+        indBool=(n!=BAD_INDEX_VALUE)        
+        
         for i in range(len(id)):
-            ns=list(n[i])
+            # make a list of the neighbor nodes and 
+            # check that none of the nodes are bad
+            
+            ns=list(n[0][indBool[0]])
             ns.append(id[i])
+
             x=self.node_x[ns]
             y=self.node_y[ns]
             z=val[ns]
@@ -3865,7 +3877,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         tuple of floats
             Tuple containing (*slope*, *aspect*)
         """
-
         # additional note, KRB has written three codes in raster.py
         # one to calculate slope, one to calculate aspect, and one
         # to calculate both
@@ -3882,9 +3893,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
         # slope and aspect.
 
+        indBool=(n!=BAD_INDEX_VALUE)        
+        
         for i in range(len(id)):
-            ns=list(n[i])
+            # make a list of the neighbor nodes and 
+            # check that none of the nodes are bad
+            
+            ns=list(n[0][indBool[0]])
             ns.append(id[i])
+            
             x=self.node_x[ns]
             y=self.node_y[ns]
             z=val[ns]
