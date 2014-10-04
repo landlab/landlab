@@ -1,11 +1,15 @@
 #! /usr/bin/env python
 
 import numpy as np
+import inspect
 try:
     import matplotlib.pyplot as plt
 except ImportError:
     import warnings
     warnings.warn('matplotlib not found', ImportWarning)
+
+from landlab.grid.raster import RasterModelGrid
+from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 
 def assert_array_size_matches(array, size, msg=None):
@@ -28,7 +32,9 @@ def imshow_node_grid(grid, values, **kwds):
             'number of values does not match number of nodes')
 
     data = values.view()
-    data.shape = grid.shape
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -66,7 +72,9 @@ def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
     else:
         data.fill(np.min(values_to_use))
     data[active_nodes] = values_to_use.flat
-    data.shape = grid.shape
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -103,7 +111,9 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     else:
         data.fill(np.min(values_to_use))
     data[active_nodes] = values_to_use.flat
-    data.shape = grid.shape
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -130,7 +140,8 @@ def imshow_cell_grid(grid, values, **kwds):
         values_to_use = values
         
     data = values_to_use.view()
-    data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -169,7 +180,8 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
         data.fill(np.min(values_to_use))
     data[active_cells] = values_to_use
     data = data[grid.node_index_at_cells]
-    data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     _imshow_grid_values(grid, data, **kwds)
 
@@ -177,36 +189,94 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
                         cmap='jet', limits=None):
-    if len(values.shape) != 2:
-        raise ValueError('dimension of values must be 2 (%s)' % values.shape)
+    
+    gridtypes = inspect.getmro(grid.__class__)
 
-    y = np.arange(values.shape[0] + 1) - grid.dx * .5
-    x = np.arange(values.shape[1] + 1) - grid.dx * .5
+    if RasterModelGrid in gridtypes:
+        if len(values.shape) != 2:
+            raise ValueError('dimension of values must be 2 (%s)' % values.shape)
+        y = np.arange(values.shape[0] + 1) - grid.dx * .5
+        x = np.arange(values.shape[1] + 1) - grid.dx * .5
+    
+        kwds = dict(cmap=cmap)
+        if limits is None:
+            if symmetric_cbar:
+                (var_min, var_max) = (values.min(), values.max())
+                limit = max(abs(var_min), abs(var_max))
+                (kwds['vmin'], kwds['vmax']) = (- limit, limit)
+        else:
+            (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
+    
+    
+        plt.pcolormesh(x, y, values, **kwds)
+    
+        plt.gca().set_aspect(1.)
+        plt.autoscale(tight=True)
+    
+        plt.colorbar()
+    
+        plt.xlabel('X (%s)' % grid_units[1])
+        plt.ylabel('Y (%s)' % grid_units[0])
+    
+        if var_name is not None:
+            plt.title('%s (%s)' % (var_name, var_units))
+    
+        #plt.show()
+        
+    elif VoronoiDelaunayGrid in gridtypes:
+        """
+        This is still very much ad-hoc, and needs prettifying.
+        We should save the modifications needed to plot color all the way
+        to the diagram edge *into* the grid, for faster plotting.
+        (see http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram)
+        (This technique is not implemented yet)
+        """
+        from scipy.spatial import voronoi_plot_2d
+        import matplotlib.colors as colors
+        import matplotlib.cm as cmx
+        cm = plt.get_cmap(cmap)
+        if limits is None:
+            if symmetric_cbar:
+                (var_min, var_max) = (values.min(), values.max())
+                limit = max(abs(var_min), abs(var_max))
+                (vmin, vmax) = (- limit, limit)
+            else:
+                (vmin, vmax) = (values.min(), values.max())
+        else:
+            (vmin, vmax) = (limits[0], limits[1])
+        cNorm = colors.Normalize(vmin,vmax)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+        colorVal = scalarMap.to_rgba(values)
+        
+        voronoi_plot_2d(grid.vor)
+        mycolors = (i for i in colorVal)
+        for order in grid.vor.point_region:
+            region = grid.vor.regions[order]
+            colortouse = next(mycolors)
+            if not -1 in region:
+                polygon = [grid.vor.vertices[i] for i in region]
+                #print "polygon:"
+                #print polygon
+                #print len(polygon)
+                #print "colortouse:"
+                #print next(colortouse)
+                #print len(colortouse)
+                plt.fill(*zip(*polygon),color=colortouse)
+                #must be TOTALLY sure the ordering is right
 
-    kwds = dict(cmap=cmap)
-    if limits is None:
-        if symmetric_cbar:
-            (var_min, var_max) = (values.min(), values.max())
-            limit = max(abs(var_min), abs(var_max))
-            (kwds['vmin'], kwds['vmax']) = (- limit, limit)
-    else:
-        (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
-
-
-    plt.pcolormesh(x, y, values, **kwds)
-
-    plt.gca().set_aspect(1.)
-    plt.autoscale(tight=True)
-
-    plt.colorbar()
-
-    plt.xlabel('X (%s)' % grid_units[1])
-    plt.ylabel('Y (%s)' % grid_units[0])
-
-    if var_name is not None:
-        plt.title('%s (%s)' % (var_name, var_units))
-
-    #plt.show()
+        plt.gca().set_aspect(1.)
+        #plt.autoscale(tight=True)
+        plt.xlim((np.min(grid.node_x), np.max(grid.node_x)))
+        plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
+    
+        scalarMap.set_array(values)
+        plt.colorbar(scalarMap)
+    
+        plt.xlabel('X (%s)' % grid_units[1])
+        plt.ylabel('Y (%s)' % grid_units[0])
+    
+        if var_name is not None:
+            plt.title('%s (%s)' % (var_name, var_units))        
 
 
 def imshow_grid(grid, values, **kwds):
