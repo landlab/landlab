@@ -7,6 +7,8 @@ Created DEJH, March 2014.
 
 import numpy
 from landlab import ModelParameterDictionary
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 class SPEroder(object):
@@ -122,10 +124,27 @@ class SPEroder(object):
         #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
         self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
-        for i in upstream_order_IDs:
-            j = self.grid['node']['flow_receiver'][i]
-            if i != j:
-                z[i] = (z[i] + self.alpha[i]*z[j])/(1.0+self.alpha[i])
+        flow_receivers = self.grid['node']['flow_receiver']
+        n_nodes = upstream_order_IDs.size
+        alpha = self.alpha
+        code = """
+            int current_node;
+            int j;
+            for (int i = 0; i < n_nodes; i++) {
+                current_node = upstream_order_IDs[i];
+                j = flow_receivers[current_node];
+                if (current_node != j) {
+                    z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+                }
+            }
+        """
+        try:
+            weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
+        except CompileError: 
+            for i in upstream_order_IDs:
+                j = flow_receivers[i]
+                if i != j:
+                    z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         
         self.grid['node'][self.value_field] = z
         
