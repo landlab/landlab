@@ -3,7 +3,7 @@
 import numpy
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
-
+from scipy.spatial import Voronoi
 
 def simple_poly_area(x, y):
     """
@@ -76,7 +76,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg.number_of_nodes
     25
     """
-    def __init__(self, x=None, y=None, **kwds):
+    def __init__(self, x=None, y=None, reorient_links=True, **kwds):
         """Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
@@ -103,10 +103,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         25
         """
         if (x is not None) and (y is not None):
-            self._initialize(x, y)
+            self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
         
-    def _initialize(self, x, y):
+    def _initialize(self, x, y, reorient_links=False):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -120,6 +120,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts = numpy.zeros((len(x), 2))
         pts[:,0] = x
         pts[:,1] = y
+        self.pts = pts
         
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -154,8 +155,8 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        from scipy.spatial import Voronoi
         vor = Voronoi(pts)
+        self.vor = vor
         self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
         for node in self.activecell_node:
             xv = vor.vertices[vor.regions[vor.point_region[node]],0]
@@ -168,6 +169,11 @@ class VoronoiDelaunayGrid(ModelGrid):
          self.link_tonode,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+        
+        # Optionally re-orient links so that they all point within upper-right
+        # semicircle
+        if reorient_links:
+            self.reorient_links_upper_right()
 
         #[self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
         #        = self.create_links_and_faces_from_voronoi_diagram(vor)
@@ -195,6 +201,57 @@ class VoronoiDelaunayGrid(ModelGrid):
         for link in self.active_links:
             self.link_face[link] = face_id
             face_id += 1
+            
+    @property
+    def number_of_patches(self):
+        """Number of patches.
+        Returns the number of patches over the grid.
+        """
+        try:
+            return self._number_of_patches
+        except AttributeError:
+            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._number_of_patches
+            
+    @property
+    def patch_nodes(self):
+        """patch_nodes
+        Returns the four nodes at the corners of each patch in a regular grid.
+        """
+        try:
+            return self._patch_nodes
+        except AttributeError:
+            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._patch_nodes
+
+    def node_patches(self, nodata=-1):
+        """node_patches()
+        (This is a placeholder method until improved using jagged array 
+        operations.)
+        Returns a (N,max_voronoi_polygon_sides) array of the patches associated 
+        with each node in the grid.
+        The patches are returned in id order, with any null or nonexistent 
+        patches recorded after the ids of existing faces.
+        The nodata argument allows control of the array value used to indicate
+        nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
+        Note that this method returns a *masked* array, with the normal provisos
+        that integer indexing with a masked array removes the mask.
+        """
+        if nodata==-1: #fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
+            try:
+                return self._node_patches
+            except AttributeError:
+                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)        
+                return self._node_patches
+        else:
+            try:
+                self.set_bad_value
+            except:
+                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)  
+                self.set_bad_value=True      
+                return self._node_patches
+            else:
+                return self._node_patches
             
 
     def find_perimeter_nodes(self, pts):
@@ -469,5 +526,96 @@ class VoronoiDelaunayGrid(ModelGrid):
         #self._num_active_links = active_links.size
         
         return link_fromnode, link_tonode, active_links, face_width
-
-
+        
+    
+    def reorient_links_upper_right(self):
+        """
+        Reorients links so that all point within the upper-right semi-circle.
+        
+        Notes
+        -----
+        "Upper right semi-circle" means that the angle of the link with respect
+        to the vertical (measured clockwise) falls between -45 and +135. More
+        precisely, if :math:`\theta' is the angle, :math:`-45 \ge \theta < 135`.
+        For example, the link could point up and left as much as -45, but not -46.
+        It could point down and right as much as 134.9999, but not 135. It will
+        never point down and left, or up-but-mostly-left, or 
+        right-but-mostly-down.
+        
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
+        >>> hg.link_fromnode
+        array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
+        >>> hg.link_tonode
+        array([6, 5, 3, 3, 4, 3, 6, 6, 5, 2, 1, 4])
+        """
+        
+        # Calculate the horizontal (dx) and vertical (dy) link offsets
+        link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
+        link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        
+        # Calculate the angle, clockwise, with respect to vertical, then rotate
+        # by 45 degrees counter-clockwise (by adding pi/4)
+        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
+        
+        # The range of values should be -180 to +180 degrees (but in radians).
+        # It won't be after the above operation, because angles that were 
+        # > 135 degrees will now have values > 180. To correct this, we subtract
+        # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi radians).
+        link_angle -= 2*numpy.pi*(link_angle>=numpy.pi)
+        
+        # Find locations where the angle is negative; these are the ones we
+        # want to flip
+        (flip_locs, ) = numpy.where(link_angle<0.)
+        
+        # If there are any flip locations, proceed to switch their fromnodes and
+        # tonodes; otherwise, we're done
+        if len(flip_locs)>0:
+            
+            # Temporarily story the fromnode for these
+            fromnode_temp = self.link_fromnode[flip_locs]
+            
+            # The fromnodes now become the tonodes, and vice versa
+            self.link_fromnode[flip_locs] = self.link_tonode[flip_locs]
+            self.link_tonode[flip_locs] = fromnode_temp
+            
+    def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
+        """
+        Uses a delaunay diagram drawn from the provided points to
+        generate an array of patches and patch-node-link connectivity.
+        Returns ...
+        DEJH, 10/3/14
+        """
+        from scipy.spatial import Delaunay
+        tri = Delaunay(pts)
+        assert numpy.array_equal(tri.points, vor.points)
+        
+        if nodata==-1:
+            pass
+        elif nodata=='bad_value':
+            nodata=BAD_INDEX_VALUE
+        elif nodata=='nan':
+            nodata=numpy.nan
+        else:
+            raise ValueError('Do not recognise nodata value!')
+        
+        self._patch_nodes = tri.simplices
+        self._number_of_patches = tri.simplices.shape[0]
+        max_dimension = 0
+        #need to build a squared off, masked array of the node_patches
+        #the max number of patches for a node in the grid is the max sides of
+        #the side-iest voronoi region.
+        for i in xrange(len(vor.regions)):
+            if len(vor.regions[i])>max_dimension:
+                max_dimension=len(vor.regions[i])
+        _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
+        _node_patches.fill(nodata)
+        for i in xrange(self.number_of_nodes):
+            patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
+            _node_patches[i,:patches_with_node.size] = patches_with_node[:]
+        #mask it
+        self._node_patches = numpy.ma.array(_node_patches, mask=numpy.equal(_node_patches, -1))
+        
+        

@@ -20,7 +20,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     """
     
     def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0, 
-                 orientation='horizontal', **kwds):
+                 orientation='horizontal', reorient_links=False, **kwds):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -56,10 +56,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Set number of nodes, and initialize if caller has given dimensions
         #self._num_nodes = num_rows * num_cols
         if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows, base_num_cols, dx, orientation)
+            self._initialize(base_num_rows, base_num_cols, dx, orientation,
+                             reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
 
-    def _initialize(self, base_num_rows, base_num_cols, dx, orientation):
+    def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
+                    reorient_links=False):
         """
         Sets up a hexagonal grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
@@ -95,9 +97,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         horizontal, whereas the other two are at 30 degree angles to the 
         horizontal, like:
             
-            \/
-           ----
-            /\
+            \ /
+           -----
+            / \
             
         'Vertical' means that one axis is vertical, with the other
         two at 30 degree angles to the vertical, more like:
@@ -121,12 +123,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation=='horizontal':
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal(base_num_rows, base_num_cols, dx)
+            self.orientation = 'horizontal'
         else:
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical(base_num_rows, base_num_cols, dx)
+            self.orientation = 'vertical'
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
-        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1])
+        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1], reorient_links)
         
         # Remember grid spacing
         self._dx = dx
@@ -254,6 +258,62 @@ class HexModelGrid(VoronoiDelaunayGrid):
             yshift = - half_dxv * extra_rows
         
         return pts, npts
+        
+        
+    def configure_hexplot(self, data, data_label=None):
+        """
+        Sets up necessary information for making plots of the hexagonal grid
+        colored by a given data element.
+        
+        Parameters
+        ----------
+        data : str OR node array (1d numpy array with number_of_nodes entries)
+            Data field to be colored
+        data_label : str, optional
+            Label for colorbar
+        
+        Returns
+        -------
+        (none)
+        
+        Notes
+        -----
+        Creates and stores a PatchCollection representing the hexagons. Also 
+        stores a handle to the current plotting axis. Both of these are then
+        used by hexplot().
+        """        
+        from numpy import array, sqrt, zeros
+        import matplotlib
+        from matplotlib.patches import Polygon
+        from matplotlib.collections import PatchCollection
+        import matplotlib.pyplot as plt
+
+        # geometry
+        apothem = self._dx/2.0
+        radius = 2.0*apothem / sqrt(3.0)  # distance from node to each hexagon cell vertex
+        
+        # offsets from node x,y position
+        offsets = zeros((6,2))
+        poly_verts = zeros((6,2))
+        
+        # Figure out whether the orientation is horizontal or vertical
+        if self.node_y[0]==self.node_y[1]:   # horizontal
+            offsets[:,0] = array([0., apothem, apothem, 0., -apothem, -apothem])
+            offsets[:,1] = array([radius, radius/2.0, -radius/2.0, -radius, -radius/2.0, radius/2.0])
+        else:   # vertical
+            offsets[:,0] = array([radius/2.0, radius, radius/2.0, -radius/2.0, -radius, -radius/2.0])
+            offsets[:,1] = array([apothem, 0., -apothem, -apothem, 0., apothem])
+        
+        patches = []
+        for i in range(self.number_of_nodes):
+            poly_verts[:,0] = self.node_x[i]+offsets[:,0]
+            poly_verts[:,1] = self.node_y[i]+offsets[:,1]
+            p = Polygon(poly_verts, True)
+            patches.append(p)
+        
+        self._hexplot_pc = PatchCollection(patches, cmap=matplotlib.cm.jet)
+        
+        self._hexplot_configured=True
 
 
     def hexplot(self, data, data_label=None):
@@ -272,11 +332,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
         -------
         (none)
         """
-        from numpy import array, sqrt, zeros, amin, amax
-        import matplotlib
-        from matplotlib.patches import Polygon
-        from matplotlib.collections import PatchCollection
+        from numpy import array, amin, amax
         import matplotlib.pyplot as plt
+        
+        try:
+            self._hexplot_configured is True
+        except:
+            self.configure_hexplot(data, data_label)
 
         # Handle *data*: if it's a numpy array, then we consider it the 
         # data to be plotted. If it's a string, we consider it the name of the 
@@ -285,39 +347,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
             data_label = data
             data = self.at_node[data]
             
-        # geometry
-        apothem = self._dx/2.0
-        radius = 2.0*apothem / sqrt(3.0)  # distance from node to each hexagon cell vertex
-        
-        # offsets from node x,y position
-        offsets = zeros((6,2))
-        poly_verts = zeros((6,2))
-        
-        # Figure out whether the orientation is horizontal or vertical
-        if self.node_y[0]==self.node_y[1]:   # horizontal
-            offsets[:,0] = array([0., apothem, apothem, 0., -apothem, -apothem])
-            offsets[:,1] = array([radius, radius/2.0, -radius/2.0, -radius, -radius/2.0, radius/2.0])
-        else:   # vertical
-            offsets[:,0] = array([radius/2.0, radius, radius/2.0, -radius/2.0, -radius, -radius/2.0])
-            offsets[:,1] = array([apothem, 0., -apothem, -apothem, 0., apothem])
-        
         ax = plt.gca()
-        patches = []
-        for i in range(self.number_of_nodes):
-            poly_verts[:,0] = self.node_x[i]+offsets[:,0]
-            poly_verts[:,1] = self.node_y[i]+offsets[:,1]
-            p = Polygon(poly_verts, True)
-            patches.append(p)
-        
-        colors = data
-        pc = PatchCollection(patches, cmap=matplotlib.cm.jet)
-        pc.set_array(array(colors))
-        ax.add_collection(pc)
+        self._hexplot_pc.set_array(array(data))
+        ax.add_collection(self._hexplot_pc)
         plt.xlim([amin(self.node_x)-self._dx, amax(self.node_x)+self._dx])
         plt.ylim([amin(self.node_y)-self._dx, amax(self.node_y)+self._dx])
-        cb = plt.colorbar(pc)
-        if data_label is not None:
-            cb.set_label(data_label)
+        #cb = plt.colorbar(self._hexplot_pc)
+        #if data_label is not None:
+        #    cb.set_label(data_label)
         
         #plt.show()
 

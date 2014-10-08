@@ -121,7 +121,7 @@ class CAPlotter():
         else:
             self.ca.grid.hexplot(self.ca.node_state)
         plt.draw()
-        plt.pause(0.01)
+        plt.pause(0.001)
         
     def finalize(self):
         
