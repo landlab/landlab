@@ -3912,51 +3912,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             del ns
         # return slope and aspect
         return s, a
-
-    def hillshade(self, alt, az, slp, asp):
-        """Calculate hillshade.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Parameters
-        ----------
-        az : float
-            Sun azimuth (degrees from north)
-        alt : float
-            Sun altitude (degrees up from horizon)
-        slp : float
-            slope of cells at surface (degrees)
-        asp : float
-            aspect of cells at surface (degrees from north)
-
-        Returns
-        -------
-        float
-            Hillshade at each cell.
-
-        Notes
-        -----
-        code taken from GeospatialPython.com example from December 14th, 2014
-
-        """
-
-        # krb note: I don't know where this code is best put, probably not in
-        # raster.py, but I'll set someone else (Dan, Greg, Eric) who knows the
-        # whole landlab structure better put it where you think it should go.
-        # it doesn't need self as an input, though if at some point, slope and
-        # aspect were properties of the nodes, then they wouldn't need to be
-        # passed around
-
-        (alt, az, slp, asp) = (np.radians(alt), np.radians(az),
-                               np.radians(slp), np.radians(asp))
-
-        shaded = (
-            np.sin(alt) * np.sin(slp) +
-            np.cos(alt) * np.cos(slp) * np.cos(az - asp)
-        )
-
-        return shaded
-
+        
 
 def _is_closed_boundary(boundary_string):
     '''

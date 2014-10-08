@@ -175,6 +175,7 @@ from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from landlab.field import ModelDataFields, ScalarDataFields
 from landlab.field.scalar_data_fields import FieldError
+from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
 
 
@@ -1066,11 +1067,12 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
 
-    def node_slopes_using_patches(self, elevs='planet_surface__elevation'):
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees'):
         """
         trial run to extract average local slopes at nodes by the average slope
         of its surrounding patches. DEJH 10/1/14
         elevs either a field name or an nnodes-array.
+        unit is 'degrees' or 'radians'.
         Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
         """
         dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
@@ -1101,7 +1103,131 @@ class ModelGrid(ModelDataFields):
         
         slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
         
-        return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+        if unit=='radians':
+            return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+        if unit=='degrees':
+            return 180./numpy.pi*slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+        else:
+            raise TypeError("unit must be 'degrees' or 'radians'")
+    
+    
+    def node_slopes(self, elevs='planet_surface__elevation', unit='degrees'):
+        """
+        This method is simply an alias for grid.node_slopes_using_patches()
+        """
+        self.node_slopes_using_patches(elevs, unit)
+        
+    
+    def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
+        """aspect
+        Calculates at returns the aspect of a surface. Aspect is returned as 
+        radians clockwise of north, unless input parameter units is set to
+        'degrees'.
+        
+        If slope_component_tuple is provided, i.e., (slope_x, slope_y), the
+        aspect will be calculated from these data.
+        
+        If it is not, it will be derived from elevation data at the nodes,
+        which can either be a string referring to a grid field (default:
+        'planet_surface__elevation'), or an nnodes-long numpy array of the
+        values themselves.
+        """
+        if slope_component_tuple:
+            assert type(slope_component_tuple) == tuple
+            assert len(slope_component_tuple) == 2
+        else:
+            try:
+                elev_array = self.at_node[elevs]
+            except MissingKeyError:
+                assert elevs.size == self.number_of_nodes
+                elev_array = elevs
+            _,slope_component_tuple = self.node_slopes_using_patches(elevs=elev_array)
+        angle_from_x_ccw = numpy.arctan2(slope_component_tuple[1], slope_component_tuple[0])
+        angle_from_N_cw = -(angle_from_x_ccw + numpy.pi/2.)%(2*numpy.pi)
+        if unit=='degrees':
+            return 180./numpy.pi*angle_from_N_cw
+        elif unit=='radians':
+            return angle_from_N_cw
+        else:
+            raise TypeError("unit must be 'degrees' or 'radians'")
+        
+    
+    def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees', elevs='planet_surface__elevation'):
+        """Calculate hillshade.
+
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+        
+        Promoted from raster to base by DEJH, 10/7/14.
+
+        Parameters
+        ----------
+        alt : float
+            Sun altitude (from horizon) - defaults to 45 degrees
+        az : float
+            Sun azimuth (from north) - defaults to 315 degrees
+        slp : float
+            slope of cells at surface - optional
+        asp : float
+            aspect of cells at surface (from north) - optional (with slp)
+        unit : string
+            'degrees' (default) or 'radians' - only needed if slp and asp
+                                                are not provided
+            
+        If slp and asp are both not specified, 'elevs' must be provided as
+        a grid field name (defaults to 'planet_surface__elevation') or an
+        nnodes-long array of elevation values. In this case, the method will
+        calculate local slopes and aspects internally as part of the hillshade
+        production.
+
+        Returns
+        -------
+        float
+            Hillshade at each cell.
+
+        Notes
+        -----
+        code taken from GeospatialPython.com example from December 14th, 2014
+        DEJH found what looked like minor sign problems, and adjusted to follow
+        the ArcGIS algorithm: http://help.arcgis.com/en/arcgisdesktop/10.0/
+        help/index.html#/How_Hillshade_works/009z000000z2000000/ .
+        
+        NB: grid.node_slopes_using_patches() returns slopes as RADIANS. Use
+        caution.
+        
+        Remember when plotting that bright areas have high values. cmap='Greys'
+        will give an apparently inverted color scheme. *cmap='gray'* has white
+        associated with the high values, so is recommended for plotting.
+
+        """
+        if slp!=None and asp!=None:
+            if unit=='degrees':
+                (alt, az, slp, asp) = (numpy.radians(alt), numpy.radians(az),
+                                numpy.radians(slp), numpy.radians(asp))
+            elif unit=='radians':
+                if alt>numpy.pi/2. or az>2.*numpy.pi:
+                    print 'Assuming your solar properties are in degrees, but your slopes and aspects are in radians...'
+                    (alt, az) = (numpy.radians(alt), numpy.radians(az))
+                    #...because it would be super easy to specify radians, but leave the default params alone...
+            else:
+                raise TypeError("unit must be 'degrees' or 'radians'")
+        elif slp==None and asp==None:
+            if unit=='degrees':
+                (alt, az) = (numpy.radians(alt), numpy.radians(az))
+            elif unit=='radians':
+                pass
+            else:
+                raise TypeError("unit must be 'degrees' or 'radians'")
+            slp,slp_comps = self.node_slopes_using_patches(elevs, unit='radians')
+            asp = self.aspect(slope_component_tuple=slp_comps, unit='radians')
+        else:
+            raise TypeError('Either both slp and asp must be set, or neither!')
+
+        shaded = (
+            numpy.sin(alt) * numpy.cos(slp) +
+            numpy.cos(alt) * numpy.sin(slp) * numpy.cos(az - asp)
+        )
+
+        return shaded
         
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
