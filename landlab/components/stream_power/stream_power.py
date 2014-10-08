@@ -238,22 +238,22 @@ class StreamPowerEroder(object):
                     
             #put the slopes onto the nodes
             try:
-                slopes = S_links[grid.at_node[link_node_mapping]]
+                self.slopes = S_links[grid.at_node[link_node_mapping]]
             except FieldError:
                 try:
-                    slopes = S_links[link_node_mapping]
+                    self.slopes = S_links[link_node_mapping]
                 except IndexError:
                     #need to do the mapping on the fly.
                     #we're going to use the max slope (i.e., + or -) of *all* adjacent nodes.
                     #This isn't ideal. It should probably just be the outs...
                     #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
-                    slopes = np.max(np.fabs(self.link_S_with_trailing_blank[grid.node_links]))
+                    self.slopes = np.max(np.fabs(self.link_S_with_trailing_blank[grid.node_links]))
         else:
             try:
-                slopes = grid.at_node[slopes_at_nodes]
+                self.slopes = grid.at_node[slopes_at_nodes]
             except FieldError:
-                slopes = slopes_at_nodes
+                self.slopes = slopes_at_nodes
         
         if type(node_drainage_areas)==str:
             node_A = grid.at_node[node_drainage_areas]
@@ -263,7 +263,7 @@ class StreamPowerEroder(object):
         #Operate the main function:
         active_nodes = grid.get_active_cell_node_ids()
         if not (self.use_W and self.use_Q): #normal case
-            stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * slopes[active_nodes]**self._n
+            stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * self.slopes[active_nodes]**self._n
         elif self.use_W:
             try:
                 W = grid.at_node[W_if_used]
@@ -274,15 +274,15 @@ class StreamPowerEroder(object):
                     Q_direct = grid.at_node[Q_if_used]
                 except FieldError:
                     Q_direct = Q_if_used
-                stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * slopes[active_nodes]**self._n / W
+                stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n / W
             else: #just W to be used
-                stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * slopes[active_nodes]**self._n / W
+                stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * self.slopes[active_nodes]**self._n / W
         else: #just use_Q
             try:
                 Q_direct = grid.at_node[Q_if_used]
             except FieldError:
                 Q_direct = Q_if_used
-            stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * slopes[active_nodes]**self._n
+            stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n
 
         #Note that we save "stream_power_erosion" incorporating both K and a. Most definitions would need this value /K then **(1/a) to give actual stream power (unit, total, whatever), and it does not yet include the threshold
         self.stream_power_erosion[active_nodes] = stream_power_active_nodes

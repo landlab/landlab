@@ -103,7 +103,7 @@ class SPEroder(object):
         *value_field*, as specified in component initialization.
         """
         
-        self.grid = grid_in #the variables must be stored internally to the grid, in fields
+        #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
         #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
@@ -146,7 +146,7 @@ class SPEroder(object):
                 if i != j:
                     z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         
-        self.grid['node'][self.value_field] = z
+        #self.grid['node'][self.value_field] = z
         
         return self.grid
 
