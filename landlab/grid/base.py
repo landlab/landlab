@@ -1111,11 +1111,15 @@ class ModelGrid(ModelDataFields):
             raise TypeError("unit must be 'degrees' or 'radians'")
     
     
-    def node_slopes(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes(self, **kwargs):
         """
         This method is simply an alias for grid.node_slopes_using_patches()
+        Takes
+        * elevs : field name or nnodes array, defaults to 'planet_surface__elevation'
+        * unit : 'degrees' (default) or 'radians'
+        as for node_slopes_using_patches
         """
-        self.node_slopes_using_patches(elevs, unit)
+        return self.node_slopes_using_patches(**kwargs)
         
     
     def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
