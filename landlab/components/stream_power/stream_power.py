@@ -63,7 +63,9 @@ class StreamPowerEroder(object):
             ... If 'Unit', m=a*c*(1-b), n=a.
             ... If 'Shear_stress', m=2*a*c*(1-b)/3, n = 2*a/3.
         OPTIONS:
-            threshold_sp -> +ve float; the threshold sp_crit. Defaults to 0.
+            threshold_sp -> +ve float; the threshold sp_crit. Defaults to 0. 
+                This threshold is assumed to be in "stream power" units, i.e.,
+                if 'Shear_stress', the value should be tau**a.
             dt -> +ve float. If set, this is the fixed timestep for this
                 component. Can be overridden easily as a parameter in erode(). 
                 If not set (default), this parameter MUST be set in erode().
@@ -157,7 +159,9 @@ class StreamPowerEroder(object):
         #    self.made_link_gradients = True
 
         
-    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
+    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', 
+            slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', 
+            slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
         """
         A simple, explicit implementation of a stream power algorithm.
         
