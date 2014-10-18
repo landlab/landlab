@@ -36,8 +36,10 @@ def imshow_node_grid(grid, values, **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
 
-    _imshow_grid_values(grid, data, **kwds)
-
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
+    
 
 def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
     """
@@ -76,8 +78,11 @@ def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
 
-    _imshow_grid_values(grid, data, **kwds)
-
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
+    
+    
 def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     """
     Prepares a map view of data over only the core nodes
@@ -115,8 +120,10 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
 
-    _imshow_grid_values(grid, data, **kwds)
-
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
+    
 
 def imshow_cell_grid(grid, values, **kwds):
     """
@@ -143,7 +150,9 @@ def imshow_cell_grid(grid, values, **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
-    _imshow_grid_values(grid, data, **kwds)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
 
 
 def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
@@ -183,12 +192,14 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
-    _imshow_grid_values(grid, data, **kwds)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
 
 
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
-                        cmap='jet', limits=None):
+                        cmap='jet', limits=None, allow_colorbar=True):
     
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -208,12 +219,13 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
             (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
     
     
-        plt.pcolormesh(x, y, values, **kwds)
+        myimage = plt.pcolormesh(x, y, values, **kwds)
     
         plt.gca().set_aspect(1.)
         plt.autoscale(tight=True)
-    
-        plt.colorbar()
+        
+        if allow_colorbar:
+            plt.colorbar()
     
         plt.xlabel('X (%s)' % grid_units[1])
         plt.ylabel('Y (%s)' % grid_units[0])
@@ -248,7 +260,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
         
-        voronoi_plot_2d(grid.vor)
+        myimage = voronoi_plot_2d(grid.vor)
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
@@ -276,7 +288,9 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         plt.ylabel('Y (%s)' % grid_units[0])
     
         if var_name is not None:
-            plt.title('%s (%s)' % (var_name, var_units))        
+            plt.title('%s (%s)' % (var_name, var_units))
+        
+    return myimage
 
 
 def imshow_grid(grid, values, **kwds):
@@ -308,13 +322,16 @@ def imshow_field(field, name, **kwds):
 # This function is exactly the same as imshow_grid but this function plots
 # arrays spread over cells rather than nodes
 ##DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
-""".. deprecated:: 0.6
+    """.. deprecated:: 0.6
     Use :meth:`imshow_active_cell_grid`, above, instead.
-"""
+    """
 
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
                 grid_units=(None, None), symmetric_cbar=False,
                 cmap='jet'):
+    """.. deprecated:: 0.6
+    Use :meth:`imshow_active_cell_grid`, above, instead.
+    """
     data = values.view()
     data.shape = (grid.shape[0]-2, grid.shape[1]-2)
 
