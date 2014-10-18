@@ -1033,13 +1033,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return sgrid.interior_node_count(self.shape)
 
-    @property
-    def number_of_core_nodes(self):
-        """
-        The number of core nodes on the grid (i.e., excluding all boundary
-        nodes).
-        """
-        return self._num_core_nodes
 
     @property
     def number_of_core_nodes(self):
