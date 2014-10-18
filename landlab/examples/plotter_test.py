@@ -54,7 +54,8 @@ for i in xrange(nt):
     mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
-    vid.add_frame(mg, 'planet_surface__elevation')
+    #vid.add_frame(mg, 'planet_surface__elevation')
+    vid.add_frame(mg, mg.hillshade(alt=15.), cmap='gray')
     
  
 print 'Completed the simulation. Plotting...'
@@ -71,4 +72,5 @@ print 'Time: ', time_off-time_on
 
 #pylab.show()
 
-vid.produce_video()
+vid.produce_video(override_min_max=(0,1))
+#vid.produce_video()
