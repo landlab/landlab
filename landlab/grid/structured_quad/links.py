@@ -3,7 +3,7 @@ import numpy as np
 
 from . import nodes
 from ..base import CORE_NODE, CLOSED_BOUNDARY
-from ..unstructured.links import import LinkGrid
+from ..unstructured.links import LinkGrid
 
 
 def shape_of_vertical_links(shape):
