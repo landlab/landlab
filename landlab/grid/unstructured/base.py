@@ -82,10 +82,16 @@ class BaseGrid(object):
         self._axis_units = tuple(axis_units or _default_axis_units(self.ndim))
 
         if cells is not None:
-            self._cell_grid = CellGrid(*cells)
+            try:
+                self._cell_grid = CellGrid(*cells)
+            except TypeError:
+                self._cell_grid = cells
 
         if links is not None:
-            self._link_grid = LinkGrid(links, self.number_of_nodes)
+            try:
+                self._link_grid = LinkGrid(links, self.number_of_nodes)
+            except TypeError:
+                self._link_grid = links
 
         if node_status is not None:
             self._status_grid = StatusGrid(node_status)
