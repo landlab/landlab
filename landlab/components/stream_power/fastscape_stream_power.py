@@ -7,7 +7,7 @@ Created DEJH, March 2014.
 
 import numpy
 from landlab import ModelParameterDictionary
-UNDEFINED_INDEX = numpy.iinfo(int).max
+UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 class SPEroder(object):
     '''
@@ -109,7 +109,8 @@ class SPEroder(object):
         #interior_nodes = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'], -1)
         #interior_nodes = (self.grid['node']['links_to_flow_receiver'][upstream_order_IDs])[nonboundaries]
         #flow_link_lengths = self.grid.link_length[interior_nodes]
-        defined_flow_receivers = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'],-1)
+        ##defined_flow_receivers = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'],-1)
+        defined_flow_receivers = numpy.not_equal(self.grid['node']['links_to_flow_receiver'],UNDEFINED_INDEX)
         #flow_link_lengths = numpy.zeros_like(self.alpha)
         flow_link_lengths = self.grid.link_length[self.grid['node']['links_to_flow_receiver'][defined_flow_receivers]]
         

@@ -16,7 +16,7 @@ Modified to save data to grid directly, DEJH March 2014
 import landlab
 #from landlab import RasterModelGrid
 from landlab.components.flow_routing import flow_direction_DN
-reload(flow_direction_DN)
+#reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
 
@@ -108,11 +108,11 @@ class FlowRouter():
         Example:
             >>> from landlab import RasterModelGrid
             >>> mg = RasterModelGrid(5, 4, 1.0)
-            >>> elev = numpy.array([0.,  0.,  0., 0., \
-                                 0., 21., 10., 0., \
-                                 0., 31., 20., 0., \
-                                 0., 32., 30., 0., \
-                                 0., 0., 0., 0.])
+            >>> elev = numpy.array([0.,  0.,  0., 0.,
+            ...                     0., 21., 10., 0.,
+            ...                     0., 31., 20., 0.,
+            ...                     0., 32., 30., 0.,
+            ...                     0.,  0.,  0., 0.])
             >>> mg.set_inactive_boundaries(False, True, True, True)
             >>> fr = FlowRouter(mg)
             >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
@@ -170,7 +170,9 @@ class FlowRouter():
         receiver, steepest_slope, sink, recvr_link  = \
             flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
                                          self._activelink_to, link_slope, 
-                                         baselevel_nodes)
+                                         grid=grid,
+                                         baselevel_nodes=baselevel_nodes)
+#############grid=None???
         
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.

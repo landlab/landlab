@@ -68,27 +68,43 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
     
-    Examples:
-        
+    Examples
+    --------
+    >>> from numpy.random import rand
+    >>> x, y = rand(25), rand(25)
+    >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
+    >>> vmg.number_of_nodes
+    25
+    """
+    def __init__(self, x=None, y=None, **kwds):
+        """Create a Voronoi Delaunay grid from a set of points.
+
+        Create an unstructured grid from points whose coordinates are given
+        by the arrays *x*, *y*.
+
+        Parameters
+        ----------
+        x : array_like
+            x-coordinate of points
+        y : array_like
+            y-coordinate of points
+
+        Returns
+        -------
+        VoronoiDelaunayGrid
+            A newly-created grid.
+
+        Examples
+        --------
         >>> from numpy.random import rand
-        >>> x = rand(25)
-        >>> y = rand(25)
+        >>> x, y = rand(25), rand(25)
         >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
         >>> vmg.number_of_nodes
         25
-    
-    """
-    #print 'VoronoiDelaunayGrid.__init__'
-    
-    def __init__(self, x=None, y=None, **kwds):
-        """
-        If x and y are provided, creates an unstructured grid using those 
-        coordinates as the node positions.
         """
         if (x is not None) and (y is not None):
             self._initialize(x, y)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
-        
         
     def _initialize(self, x, y):
         """
@@ -239,8 +255,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # Return the results
         return node_status, core_nodes, boundary_nodes
-        
-    def setup_node_cell_connectivity(self, node_status, ncells):
+
+    @staticmethod
+    def setup_node_cell_connectivity(node_status, ncells):
         """
         Creates and returns the following arrays:
             1) for each node, the ID of the corresponding cell, or
@@ -277,13 +294,13 @@ class VoronoiDelaunayGrid(ModelGrid):
                 cell += 1
                 
         #save the arrays
-        self.node_cell = node_cell
-        self.cell_node = cell_node
+        #self.node_cell = node_cell
+        #self.cell_node = cell_node
         
         return node_cell, cell_node
         
-
-    def create_links_from_triangulation(self, tri):
+    @staticmethod
+    def create_links_from_triangulation(tri):
         """
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
@@ -291,14 +308,14 @@ class VoronoiDelaunayGrid(ModelGrid):
             2) a numpy array containing the ID of the "to" node for each link
             3) the number of links in the triangulation
         
-        Example:
-            
-            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
-            >>> from scipy.spatial import Delaunay
-            >>> dt = Delaunay(pts)
-            >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
-            >>> print myfrom, myto, nl
-            [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
+        Examples
+        --------
+        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from scipy.spatial import Delaunay
+        >>> dt = Delaunay(pts)
+        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
+        >>> print myfrom, myto, nl # doctest: +SKIP
+        [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
         
         """
     
@@ -338,9 +355,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
         
         #save the results
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self._num_links = num_links
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self._num_links = num_links
     
         # Return the results
         return link_fromnode, link_tonode, num_links
@@ -352,7 +369,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
                 and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
 
-    def create_links_and_faces_from_voronoi_diagram(self, vor):
+    @staticmethod
+    def create_links_and_faces_from_voronoi_diagram(vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
@@ -440,12 +458,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         #print 'vor ridge points:',vor.ridge_points
         
         #save the data
-        self.link_fromnode = link_fromnode
-        self.link_tonode = link_tonode
-        self.active_link_ids = active_links
-        self._face_widths = face_width
-        self._num_faces = face_width.size
-        self._num_active_links = active_links.size
+        #self.link_fromnode = link_fromnode
+        #self.link_tonode = link_tonode
+        #self.active_link_ids = active_links
+        #self._face_widths = face_width
+        #self._num_faces = face_width.size
+        #self._num_active_links = active_links.size
         
         return link_fromnode, link_tonode, active_links, face_width
 
