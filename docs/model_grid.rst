@@ -4,7 +4,7 @@ Building Simple Models with Landlab's Gridding Library: A Tutorial Guide
 
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
-(or ``unstructured'') grids are especially tricky to implement. Landlab's **ModelGrid**
+(or "unstructured") grids are especially tricky to implement. Landlab's **ModelGrid**
 package makes this process much easier, by providing a set of library routines for
 creating and managing a 2D grid, attaching data to the grid, performing common input
 and output operations, and  providing library functions that handle common numerical 
@@ -23,7 +23,7 @@ Some of the things you can do with **ModelGrid** include:
 - Easily read in model parameters from a formatted text file
 - Write grid and data output to netCDF files for import into open-source visualization 
   packages such as ParaView and VisIt
-- Set up and run ``link-based'' cellular automaton models
+- Set up and run "link-based" cellular automaton models
 - Switch between structured and unstructured grids without needing to change the rest of
   the code
 - Develop complete, 2D numerical finite-volume or finite-difference models much more
@@ -66,7 +66,7 @@ or temperature.
 Each adjacent pair of nodes is connected by a line segment known as
 a *link*. A link has both a position in space, denoted
 by the coordinates of the two bounding nodes, and a direction: a link
-runs from one node (known as its ``from node'') to another (its ``to node''). 
+runs from one node (known as its *from-node*) to another (its *to-node*). 
 
 Every node in the grid interior is associated with a polygon known as a ``cell`` (illustrated,
 for example, by the shaded square region in :ref:`Figure 1a <grid>`). Each cell is 
@@ -103,9 +103,9 @@ overland flow.
 Other Grid Elements
 -------------------
 
-The cell vertices are called ``corners`` (:ref:`Figure 1, solid squares <grid>`).
+The cell vertices are called *corners* (:ref:`Figure 1, solid squares <grid>`).
 Each face is therefore a line segment connecting two corners. The intersection
-of a face and a link (or directed edge) is known as a ``junction``
+of a face and a link (or directed edge) is known as a *junction*
 (:ref:`Figure 1, open diamonds <grid>`). Often, it is useful to calculate scalar
 values (say, ice thickness in a glacier) at nodes, and vector values (say, ice
 velocity) at junctions. This approach is sometimes referred to as a
@@ -114,7 +114,7 @@ which one computes fluxes of mass, momentum, or energy across cell faces, and
 maintains conservation of mass within cells.
 
 Notice that the links also enclose a set of polygons that are offset from the
-cells. These secondary polygons are known as ``patches`` (:ref:`Figure 1,
+cells. These secondary polygons are known as *patches* (:ref:`Figure 1,
 dotted <grid>`). This means that any grid comprises two complementary tesselations: one
 made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
@@ -204,10 +204,9 @@ below. Line numbers are
 included to make it easier to refer to particular lines of code (of course, these numbers 
 are not part of the source code). After the listing, we will take a closer look at each 
 piece of the code in turn. Output from the the diffusion model is shown in 
-:ref:`Figure 4 <diff1>`.
+:ref:`Figure 3 <diff1>`.
 
 .. code-block:: python
-   :linenos:
 
 	#! /usr/env/python
 	"""
@@ -1310,5 +1309,5 @@ Where to go next?
 
 All of the codes in these exercises are available in the Landlab distribution, under the folder *docs/model_grid_guide*.
 
-
+ 
 .. [1] Bates, P., M. Horritt, and T. Fewtrell (2010), A simple inertial formulation of the shallow water equations for efficient two-dimensional flood inundation modelling, Journal of Hydrology, 387(1), 33–45.

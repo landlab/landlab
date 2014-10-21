@@ -19,8 +19,8 @@ Getting Started with Landlab
    dan_installs_on_linux
 
 
-User's Guide
-============
+User Guide
+==========
 
 Tutorials
 ---------
@@ -67,9 +67,9 @@ Developer Documentation
 Code Documentation
 =================
 
-These webpages are auto-generated from Landlab, and list all available functions, methods,
-and properties. All available documentation in the code is reproduced here in a tree
-reflecting Landlab's file structure.
+These webpages are auto-generated from Landlab, and list all available
+functions, methods, and properties. All available documentation in the code is
+reproduced here in a tree reflecting Landlab's file structure.
 
 .. toctree::
    :maxdepth: 2

@@ -1,3 +1,4 @@
+.DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -52,3 +53,12 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# Vim
+*~
+*.swp
+*.swo
+
+landlab/test.pdf
+test-results.xml
+
+landlab/examples/*.gif
