@@ -19,8 +19,6 @@ class RectilinearGrid(StructuredQuadGrid):
     >>> grid = RectilinearGrid((y, x))
     >>> grid.number_of_nodes
     20
-    >>> grid.number_of_core_nodes
-    6
     >>> grid.number_of_node_rows
     4
     >>> grid.number_of_node_columns
@@ -50,7 +48,7 @@ class RectilinearGrid(StructuredQuadGrid):
         )
         node_coord = np.meshgrid(*coord, indexing='ij')
 
-        super(RectilinearGrid, self).__init__(node_coord, shape)
+        super(RectilinearGrid, self).__init__(node_coord, shape, cells=True)
 
         self._coord = (coord[0], coord[1])
 
@@ -76,7 +74,8 @@ class UniformRectilinearGrid(RectilinearGrid):
     >>> grid = UniformRectilinearGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
     >>> grid.number_of_nodes
     20
-    >>> grid.number_of_core_nodes
+
+    #>>> grid.number_of_core_nodes
     6
     >>> grid.number_of_node_rows
     4
@@ -142,7 +141,8 @@ class RasterGrid(UniformRectilinearGrid):
     >>> grid = RasterGrid((4, 5), spacing=2, origin=(-1, 1))
     >>> grid.number_of_nodes
     20
-    >>> grid.number_of_core_nodes
+
+    #>>> grid.number_of_core_nodes
     6
     >>> grid.number_of_node_rows
     4
