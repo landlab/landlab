@@ -69,7 +69,7 @@ class SPEroder(object):
             print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
         else:
             try:
-                self.r_i = inputs.read_float('dt')
+                self.r_i = inputs.read_float('rainfall_intensity')
             except:
                 self.r_i = 1.
         try:
