@@ -197,3 +197,30 @@ that contains `setup.py`) run::
 
   nosetests
 
+
+Troubleshooting
+===============
+
+What do I do if my pull request cannot be automatically merged?
+---------------------------------------------------------------
+
+Get the latest upstream/master and go to the `master` branch. Remeber *do not develop here*.
+Always develop in a feature branch. Merge the lastest upstream master with your master::
+  > git fetch upstream
+  > git checkout master
+  > git merge upstream/master
+
+Go to the branch on which you are developing and merge the lastest upstream master with your
+branch::
+  > git checkout <branch_name>
+  > get merge upstream/master
+
+Fix the conflicts. Do this by hand or with a merge editor. This is where you decide how to
+integrate the conflicting changes. Since only you know what and why you made the changes
+you did, this can only be done by you::
+  > git mergetool
+
+After everything has been fixed, commit the changes and push the changes to the repository.
+The pull request will automatically be updated::
+  > git commit
+  > git push
