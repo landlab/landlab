@@ -49,10 +49,10 @@ Creating your own fork of landlab
 The following steps will create a fork of the landlab repository under your
 github account.
 
-# Sign in to your GitHub account.  
-# Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
-  GitHub.
-# Click the *fork* button in the upper-right corner of the page.
+1. Sign in to your GitHub account.  
+2. Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
+   GitHub.
+3. Click the *fork* button in the upper-right corner of the page.
 
 Once completed, you will be redirected to the home page for your own copy
 of the landlab.
@@ -63,13 +63,13 @@ Cloning your fork to your computer
 
 This is done from the GUI by:
 
-# Sign in to git on the GUI.
-# Hit on your account on the left side of the GUI.
-# This will show you your fork of landlab.  Hit the clone option next to the
-  fork.  This will download the landlab package to your local computer.  If
-  you are on a windows machine, this will put landlab in the Documents/GitHub
-  folder.  If you are on a mac, you are given the option of where to put the
-  downloaded landlab package.
+1. Sign in to git on the GUI.
+2. Hit on your account on the left side of the GUI.
+3. This will show you your fork of landlab.  Hit the clone option next to the
+   fork.  This will download the landlab package to your local computer.  If
+   you are on a windows machine, this will put landlab in the Documents/GitHub
+   folder.  If you are on a mac, you are given the option of where to put the
+   downloaded landlab package.
 
 This is done from the command line with the following commands::
 
