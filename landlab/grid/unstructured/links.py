@@ -14,7 +14,7 @@ def _split_link_ends(link_ends):
     >>> _split_link_ends([(0, 3), (1, 4), (2, 5)])
     (array([0, 1, 2]), array([3, 4, 5]))
     >>> _split_link_ends((0, 3))
-    (array(0), array(3))
+    (array([0]), array([3]))
     """
     if len(link_ends) < 2:
         raise ValueError('Link array must be at least of length 2')
@@ -25,11 +25,11 @@ def _split_link_ends(link_ends):
 
     try:
         if len(start) == len(end):
-            return np.array(start), np.array(end)
+            return np.array(start).ravel(), np.array(end).ravel()
         else:
             raise ValueError('Link arrays must be the same length')
     except TypeError:
-        return np.array(start), np.array(end)
+        return np.array(start).ravel(), np.array(end).ravel()
 
 
 def link_is_active(status_at_link_ends):
@@ -118,8 +118,8 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
-    if len(node_at_link_end) != len(node_at_link_start):
-        raise ValueError('Link arrays must be the same length')
+    #if len(node_at_link_end) != len(node_at_link_start):
+    #    raise ValueError('Link arrays must be the same length')
 
     return np.bincount(node_at_link_end, minlength=number_of_nodes)
 
