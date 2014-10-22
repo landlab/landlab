@@ -19,7 +19,9 @@ install:
     fi
   - python setup.py install
 
-script: nosetests --with-coverage --cover-package=landlab
+script: 
+  - (cd docs && make html)
+  - nosetests --with-coverage --cover-package=landlab
 
 virtualenv:
   system_site_packages: false
