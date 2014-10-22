@@ -147,7 +147,10 @@ class ModelDataFields(object):
         >>> fields.has_field('cell', 'planet_surface__elevation')
         False
         """
-        return group in self._groups
+        try:
+            return field in self[group]
+        except KeyError:
+            return False
 
     def keys(self, group):
         """List of field names in a group.

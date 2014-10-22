@@ -159,12 +159,16 @@ To add a previously created array to the grid, use the
 :meth:`~.ModelGrid.add_field` method but be aware that it must be of the
 correct size (if it's not a ``ValueError`` will be raised).
 
+>>> grid.has_field('node', 'air__temperature')
+False
 >>> import numpy as np
 >>> t = np.zeros(9.)
 >>> t is grid.add_field('node', 'air__temperature', t)
 True
 >>> grid.has_field('node', 'air__temperature')
 True
+>>> grid.has_field('cell', 'air__temperature')
+False
 >>> t is grid.at_node['air__temperature']
 True
 """
