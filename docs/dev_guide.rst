@@ -73,9 +73,9 @@ This is done from the GUI by:
 
 This is done from the command line with the following commands::
 
-  git clone git@github.com:your-user-name/landlab.git
-  cd landlab
-  git remote add upstream git://github.com/landlab/landlab.git
+  > git clone git@github.com:your-user-name/landlab.git
+  > cd landlab
+  > git remote add upstream git://github.com/landlab/landlab.git
 
 
 .. _developer-install:
@@ -87,7 +87,7 @@ Now that you have a working copy of landlab on you computer, you need to
 install it. To install landlab in developer mode run the following command
 from the root landlab folder (the one that contains `setup.py`)::
 
-  python setup.py develop
+  > python setup.py develop
 
 This installs landlab on your computer in such a way that Python always
 imports landlab from the working copy you just cloned. This ensures that any
@@ -97,7 +97,7 @@ you import landlab.
 To uninstall your development version of landlab (again from the root landlab
 folder) run the following command::
 
-  python setup.py develop -u
+  > python setup.py develop -u
 
 With landlab uninstalled, you will not longer be able to import landlab
 from outside to root folder of your working copy.
@@ -111,7 +111,7 @@ Fetching updates to the trunk
 From time to time you should fetch commits to the trunk that you don't have
 in your working copy. You do this with the following command::
 
-  git fetch upstream
+  > git fetch upstream
 
 
 Making a new branch
@@ -121,12 +121,12 @@ Before making any changes to your code, you should create a new branch.
 
 Update your mirror with any upstream changes you don't have::
 
-  git fetch upstream
+  > git fetch upstream
 
 Make the new branch::
 
-  git branch name-of-branch upstream/master
-  git checkout name-of-branch
+  > git branch name-of-branch upstream/master
+  > git checkout name-of-branch
 
 You will probably want to choose a descriptive name for your new branch so that
 you and others will remember what it is you are intending to do with your
@@ -137,7 +137,7 @@ If you want to keep your branches on you public GitHub page for landlab (you
 probably do) you need to tell git to push changes to your github repo. This
 is done with the following command::
 
-  git push --set-upstream origin name-of-branch
+  > git push --set-upstream origin name-of-branch
 
 On your landlab GitHub page you will now be able to toggle between your
 various branches to see the code you have committed.
@@ -195,7 +195,7 @@ You can also run unit tests locally with `nose
 <https://nose.readthedocs.org>`_. From the top-level landlab folder (the one
 that contains `setup.py`) run::
 
-  nosetests
+  > nosetests
 
 
 Troubleshooting
@@ -213,7 +213,7 @@ Always develop in a feature branch. Merge the lastest upstream master with your 
 Go to the branch on which you are developing and merge the lastest upstream master with your
 branch::
   > git checkout <branch_name>
-  > get merge upstream/master
+  > git merge upstream/master
 
 Fix the conflicts. Do this by hand or with a merge editor. This is where you decide how to
 integrate the conflicting changes. Since only you know what and why you made the changes
