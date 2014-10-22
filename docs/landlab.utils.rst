@@ -20,6 +20,30 @@ landlab.utils.decorators module
     :undoc-members:
     :show-inheritance:
 
+landlab.utils.fault_facet_finder module
+---------------------------------------
+
+.. automodule:: landlab.utils.fault_facet_finder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.utils.jaggedarray module
+--------------------------------
+
+.. automodule:: landlab.utils.jaggedarray
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.utils.jaggedarray_ma module
+-----------------------------------
+
+.. automodule:: landlab.utils.jaggedarray_ma
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.utils.structured_grid module
 ------------------------------------
 

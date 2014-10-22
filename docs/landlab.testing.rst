@@ -28,6 +28,14 @@ landlab.testing.numpy_mixins module
     :undoc-members:
     :show-inheritance:
 
+landlab.testing.tools module
+----------------------------
+
+.. automodule:: landlab.testing.tools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
