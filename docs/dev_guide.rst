@@ -37,10 +37,10 @@ Creating your own fork of landlab
 The following steps will create a fork of the landlab repository under your
 github account.
 
-  1. Sign in to your GitHub account.  
-  2. Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
-     GitHub.
-  3. Click the *fork* button in the upper-right corner of the page.
+1. Sign in to your GitHub account.  
+2. Go to the `landlab home page <https://github.com/landlab/landlab>`_ on
+   GitHub.
+3. Click the *fork* button in the upper-right corner of the page.
 
 Once completed, you will be redirected to the home page for your own copy
 of the landlab.
