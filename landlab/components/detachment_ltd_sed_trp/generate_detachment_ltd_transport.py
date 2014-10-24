@@ -52,8 +52,9 @@ this does not assume an erosion threshold (8/29/14).
         self.K = kwds.pop('K', 0.000005)
         self.f_qs = kwds.pop('f_qs', 1.0)
         self.U = kwds.pop('U', 0.0)
-        
-        self.dzdt = grid.zeros(centering='node') 
+        self.rg = grid
+        self.dzdt = self.rg.zeros(centering='node') 
+        self.summed_dzdt = self.rg.zeros(centering='node')
     
 
         
@@ -61,33 +62,35 @@ this does not assume an erosion threshold (8/29/14).
         self.z = z
         self.slope = S
         self.Q = q
-        self.interior_nodes = self.grid.get_active_cell_node_ids()
+        self.Q_to_m = self.Q**self.m
+        self.S_to_n = self.slope**self.n
+        self.interior_nodes = self.rg.get_active_cell_node_ids()
 
-        self.dzdt[self.interior_nodes] = self.U - (self.K*self.f_q*((self.Q[self.interior_nodes])**self.m)*((self.slope[self.interior_nodes])**self.n))
-        self.z[self.interior_nodes] += self.dzdt[self.interior_nodes]
+        self.dzdt = self.U - (self.K*self.f_qs*self.Q_to_m*self.S_to_n)
         
-        self.summed_dzdt = self.grid.zeros(centering='node')
-        self.summed_dzdt += self.dzdt
-        return self.z
+        
+        self.z += self.dzdt
+        #self.summed_dzdt += self.dzdt
+        return self.z, self.dzdt
         
     def plot_elev_changes(self):
         plt.figure('Elevation Changes')
         
         # This call selects the color map and interval which it will be blocked by
-        cmap=plt.get_cmap('seismic_r', 10)
+        cmap=plt.get_cmap('RdYlGn', 10)
         
             
         # This converts the new slope vector (in degrees) to a raster
-        fx = self.grid.node_vector_to_raster(self.summed_dzdt)
+        fx = self.rg.node_vector_to_raster(self.summed_dzdt)
         
         # All slopes beneath the minimum are shown in white.
-        #cmap.set_under('w', 0.01) 
+        cmap.set_over('white') 
         
         # Creating the grid image to show.
-        im2 = pylab.imshow(fx, cmap=cmap, extent=[0, self.grid.number_of_node_columns *self.grid.dx,0, self.grid.number_of_node_rows * self.grid.dx])
+        im2 = pylab.imshow(fx, cmap=cmap, extent=[0, self.rg.number_of_node_columns *self.rg.dx,0, self.rg.number_of_node_rows * self.rg.dx])
         
         # Setting minimum and maximum values for the colorbar
-        #pylab.clim(0.01, 50) 
+        #pylab.clim(vmax=-0.0000000001) 
         
         # Creating the colorbar instance
         cb = pylab.colorbar(im2)
