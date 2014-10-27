@@ -60,14 +60,18 @@ Constants
     '''   
  
     
-    def __init__(self, grid, input_file=None, rain_duration=None, rainfall_intensity=None, model_run_time=None):
+    def __init__(self, grid, input_file=None, **kwds):
+        self.h_init = kwds.pop('h_init', 0.001)
+        self.alpha = kwds.pop('alpha', 0.2)
+        self.rho = kwds.pop('rho', 1000)
+        self.m_n = kwds.pop('Mannings_n', 0.04)
+        self.rainfall_intensity = kwds.pop('rainfall_intensity', None)
+        self.rainfall_duration = kwds.pop('rainfall_duration', None)
+        self.model_duration = kwds.pop('model_duration', None)        
+         
+        self.h_thresh = 1*(10**-6)
 
-        self.h_init = 0.001           
-        self.g = 9.8               
-        self.alpha = 0.2           
-        self.rho = 1000   
-        self.ten_thirds = 10./3.   
-
+        super(OverlandFlow, self).__init__(grid, **kwds)
             
         # Create a ModelParameterDictionary instance for the inputs
         
@@ -82,21 +86,22 @@ Constants
         self.m_n = MPD.read_float('MANNINGS_N')
         self.m_n_sq = self.m_n*self.m_n 
         
-        if rainfall_intensity == None:
-            self.rainfall_mmhr = MPD.read_float( 'RAINFALL_INTENSITY')
-        
-        if rain_duration == None:
-            self.rain_duration = MPD.read_float( 'RAINFALL_DURATION' )
-        
-        if model_run_time == None:
-            self.total_time = self.rain_duration
+
+        if self.rainfall_duration == None:
+            self.rainfall_duration = MPD.read_float('RAINFALL_DURATION')
+        if self.rainfall_intensity == None:
+            self.rainfall_intensity = MPD.read_float('RAINFALL_INTENSITY')
+        if self.model_duration == None:
+            self.total_time = self.rainfall_duration
 
 
         #  Conversion to m/s from mm/hr
         
-        self.rainfall_rate = (self.rainfall_mmhr/1000.)/3600.  
+          
         
-        
+        self.g = 9.8               
+        self.ten_thirds = 10./3.   
+
         # Set up grid arrays for state variables
         
         # Water Depth
@@ -111,8 +116,7 @@ Constants
         self.tau = grid.zeros(centering='node') # shear stress (Pascals)
 
         
-    def flow_at_one_node(self, grid, z, study_node, total_t=None, rainrate=None, rainduration=None):
-        
+    def flow_at_one_node(self, grid, z, study_node, **kwds):        
         '''
         Outputs water depth, discharge and shear stress values through time at
         a user-selected point, defined as the "study_node" in function arguments.
@@ -140,42 +144,39 @@ Constants
         The study_node should NOT be a boundary node.
         '''
         
-        if total_t==None:
-            total_t = self.rain_duration
-        if rainrate==None:
-            rainrate = self.rainfall_rate
-        if rainduration==None:
-            rainduration = self.rain_duration
-            
-        self.h = self.hstart
+        self.rainfall_duration = kwds.pop('rainfall_duration', self.rainfall_duration)
+        self.rainfall_intensity = kwds.pop('rainfall_intensity',self.rainfall_intensity) #
+        self.interstorm_duration = kwds.pop('interstorm_duration', 0)
         
-        elapsed_time = 0
+        self.model_duration = kwds.pop('model_duration', self.rainfall_duration)      
+        self.z = z
+        self.elapsed_time = kwds.pop('elapsed_time', 0)
+        self.model_duration += self.interstorm_duration
         
-         # Get a list of the interior cells
-        self.interior_nodes = grid.get_active_cell_node_ids()
+        self.study_node = study_node
 
+         # Get a list of the interior cells and active links for our fields...
+        self.interior_nodes = grid.get_active_cell_node_ids()
+        self.active_links = grid.active_links
     
         # To track discharge at the study node through time, we create initially empty
         # lists for the node discharge, tau and depth. Time is also saved to help with
         # plotting later...
 
         ## Time array for x-axis        
-        self.time = []
+        self.time = [0]
         
         # Discharge at study node
-        self.q_study = []
+        self.q_study = [0]
 
         # Shear stress at study node
-        self.tau_study = []
+        self.tau_study = [0]
         
         # Water depth at study node
-        self.depth_study = []
+        self.depth_study = [0]
         
         # Initial value in each array is zero.
-        self.q_study.append(0.)
-        self.time.append(0.)
-        self.tau_study.append(0.)
-        self.depth_study.append(0.)
+
         
         # Some of the calculations (like discharge) take place at links. 
         # This next bit of code identifies the neighbor node of study_node
@@ -194,54 +195,61 @@ Constants
         self.dqds = grid.zeros(centering='node')
         
         # Main loop
-        while elapsed_time < total_t:
+        while self.elapsed_time < self.model_duration:
         
             # Calculate time-step size for this iteration (Bates et al., eq 14)
-            dtmax = self.alpha*grid.dx/np.sqrt(self.g*np.amax(self.h))
+            dtmax = self.alpha*grid.dx/np.sqrt(self.g*np.amax(self.h)) 
             
-            dt = min(dtmax, total_t)
+            dt = min(dtmax, self.model_duration) 
         
             # Calculate the effective flow depth at active links. Bates et al. 2010
             # recommend using the difference between the highest water-surface
             # and the highest bed elevation between each pair of cells.
             
-            zmax = grid.max_of_link_end_node_values(z)
-            self.w = self.h+z   
-            wmax = grid.max_of_link_end_node_values(self.w)
-            hflow = wmax - zmax
+            zmax = grid.max_of_link_end_node_values(z) 
+            w = self.h+self.z   
+            wmax = grid.max_of_link_end_node_values(w) 
+            hflow = wmax - zmax 
         
-            # Calculate water-surface slopes
-            water_surface_slope = grid.calculate_gradients_at_active_links(self.w)
+            # Calculate water-surface slopes across links
+            water_surface_slope = grid.calculate_gradients_at_active_links(w)
        
             # Calculate the unit discharges (Bates et al., eq 11)
-            self.q = (self.q-self.g*hflow*dtmax*water_surface_slope)/ \
-                (1.+self.g*hflow*dtmax*0.06*0.06*abs(self.q)/(hflow**self.ten_thirds))
+            
+            above_thresh = np.where(hflow >self.h_thresh)
+            below_thresh = np.where(hflow < self.h_thresh)
+            
+            self.q[above_thresh] = (self.q[above_thresh]-self.g*hflow[above_thresh]*dtmax*water_surface_slope[above_thresh])/ \
+                (1.+self.g*hflow[above_thresh]*dtmax*0.06*0.06*(abs(self.q[above_thresh])/(hflow[above_thresh]**self.ten_thirds)))
+                
+            self.q[below_thresh] = 0.0
+
                     
             # Calculate water-flux divergence at nodes
             self.dqds = grid.calculate_flux_divergence_at_nodes(self.q)
         
             # Update rainfall rate
-            if elapsed_time > rainduration:
-                rainrate = 0.
+            if self.elapsed_time > self.rainfall_duration:
+                self.rainfall_intensity = 0.
         
             # Calculate rate of change of water depth
-            self.dhdt = rainrate-self.dqds
+            self.dhdt = self.rainfall_intensity-self.dqds
         
-            # Second time-step limiter (experimental): make sure you don't allow
-            # water-depth to go negative
+             #Second time-step limiter (experimental): make sure you don't allow
+             #water-depth to go negative
             if np.amin(self.dhdt) < 0.:
                 shallowing_locations = np.where(self.dhdt<0.)
                 time_to_drain = -self.h[shallowing_locations]/self.dhdt[shallowing_locations]
                 dtmax2 = self.alpha*np.amin(time_to_drain)
-                dt = np.min([dtmax, dtmax2])
+                dt = np.min([dt, dtmax2]) ##CHANGED
             else:
-                dt = dtmax
+                dt = dt ##CHANGED
         
             # Update the water-depth field
-            self.h[self.interior_nodes] = self.h[self.interior_nodes] + self.dhdt[self.interior_nodes]*dt
-
+            self.h[self.interior_nodes] = self.h.take(self.interior_nodes)+self.dhdt.take(self.interior_nodes)*dt
+            
             # Get the water surface slope at across all nodes. 
-            self.slopes_at_node, garbage = grid.calculate_steepest_descent_on_nodes(self.w, water_surface_slope)
+            self.slopes_at_node, dwnstr_node = grid.calculate_steepest_descent_on_nodes(w, water_surface_slope)
             
             # Calculate shear stress using the study node values
             tau_temp=self.rho*self.g*self.slopes_at_node[study_node]*self.h[study_node]
@@ -256,14 +264,14 @@ Constants
             self.q_study.append(self.q[study_link])    
 
             # Append new model time to the time array.
-            self.time.append(elapsed_time)
+            self.time.append(self.elapsed_time)
             
             # Update model run time and print elapsed time.
-            elapsed_time += dt
-            print "elapsed time", elapsed_time
+            self.elapsed_time += dt
+            print "elapsed time", self.elapsed_time
         
         
-    def flow_across_grid(self, grid, z, total_t=None, rainrate=None, rainduration=None):  
+    def flow_across_grid(self, grid, z, **kwds):  
         '''
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
@@ -277,65 +285,73 @@ Constants
      
         total_t : total model run time. If not provided as an argument or in the input_file, it is set to the storm_duration
         
-        rainrate : rainfall intensity in m/s. If not provided as an argument, it must come from the input file.
+        rainfall_intensity : rainfall intensity in m/s. If not provided as an argument, it must come from the input file.
         
         rainduration : storm duration in seconds. If not provided as an argument, it must come from the input file.
         
         '''
         
-        self.h = self.hstart
+        #self.h = self.hstart
 
         # Interior_nodes are the nodes on which you will be calculating depth,
         # discharge and shear stress. 
-        self.interior_nodes = grid.get_active_cell_node_ids()
+        self.q_node = grid.zeros(centering='node')
 
-        if total_t==None:
-            total_t = self.rain_duration
-        if rainrate==None:
-            rainrate = self.rainfall_rate
-        if rainduration==None:
-            rainduration = total_t
+        self.interior_nodes = grid.get_active_cell_node_ids()
+        self.active_links = grid.active_links
+
        
-        # Start at time = 0 seconds for the model run...     
-        elapsed_time = 0
+        self.rainfall_duration = kwds.pop('rainfall_duration', self.rainfall_duration)
+        self.rainfall_intensity = kwds.pop('rainfall_intensity', self.rainfall_intensity)
+        self.interstorm_duration = kwds.pop('interstorm_duration', 0)
+        
+        self.model_duration = kwds.pop('model_duration', self.rainfall_duration)      
+        self.z = z
+        self.elapsed_time = kwds.pop('elapsed_time', 0)
+        self.model_duration += self.interstorm_duration
+        
         
         # And we create an array that keeps track of discharge changes through time.
         self.dqds= grid.zeros(centering='node')
         
         # Main loop...        
-        while elapsed_time < total_t:
+        while self.elapsed_time < self.model_duration:
             
             # Calculate time-step size for this iteration (Bates et al., eq 14)
             dtmax = self.alpha*grid.dx/np.sqrt(self.g*np.amax(self.h))     
         
             # Take the smaller of delt or calculated time-step
-            dt = min(dtmax, total_t)
+            dt = min(dtmax, self.model_duration)
         
             # Calculate the effective flow depth at active links. Bates et al. 2010
             # recommend using the difference between the highest water-surface
             # and the highest bed elevation between each pair of cells.
             
             zmax = grid.max_of_link_end_node_values(z) 
-            w = self.h+z   
+            w = self.h+self.z   
             wmax = grid.max_of_link_end_node_values(w) 
             hflow = wmax - zmax 
-        
             # Calculate water-surface slopes across links
             water_surface_slope = grid.calculate_gradients_at_active_links(w)
        
             # Calculate the unit discharges (Bates et al., eq 11)
-            self.q = (self.q-self.g*hflow*dtmax*water_surface_slope)/ \
-                (1.+self.g*hflow*dtmax*0.06*0.06*abs(self.q)/(hflow**self.ten_thirds))                
-
+            above_thresh = np.where(hflow >self.h_thresh)
+            below_thresh = np.where(hflow < self.h_thresh)
+            
+            self.q[above_thresh] = (self.q[above_thresh]-self.g*hflow[above_thresh]*dtmax*water_surface_slope[above_thresh])/ \
+                (1.+self.g*hflow[above_thresh]*dtmax*0.06*0.06*(abs(self.q[above_thresh])/(hflow[above_thresh]**self.ten_thirds)))
+                
+            self.q[below_thresh] = 0.0
+            
             # Calculate water-flux divergence at nodes
             self.dqds = grid.calculate_flux_divergence_at_nodes(self.q,self.dqds)
             
             # Update rainfall rate
-            if elapsed_time > rainduration:
-                rainrate = 0
+            if self.elapsed_time > self.rainfall_duration:
+                self.rainfall_intensity = 0
             
             # Calculate rate of change of water depth
-            self.dhdt = rainrate-self.dqds
+            self.dhdt = self.rainfall_intensity-self.dqds
             
             # Second time-step limiter (experimental): make sure you don't allow
             # water-depth to go negative
@@ -343,7 +359,7 @@ Constants
                 shallowing_locations = np.where(self.dhdt<0.)
                 time_to_drain = -self.h[shallowing_locations]/self.dhdt[shallowing_locations]
                 dtmax2 = self.alpha*np.amin(time_to_drain)
-                dt = np.min([dtmax, dtmax2, total_t])
+                dt = np.min([dtmax, dtmax2, self.model_duration])
             else:
                 dt = dtmax
         
@@ -353,22 +369,21 @@ Constants
             # Now we can calculate shear stress across the grid...
 
             # Get water surface elevation at each interior node.
-            w = self.h+z   
+            w = self.h+self.z   
         
             # Using water surface elevation, calculate water surface slope at each interior node.
-            self.slopes_at_node, garbage = grid.calculate_steepest_descent_on_nodes(w, water_surface_slope)
-            
-            #Below if is for limiting shear stress calculations to only times when q surpasses a threshold (in this case q should be in m^3/sec)
-            if self.q.any()*grid.dx> 0.2:
-                # Now calculate shear stress as tau == rho * g * S * h
-                self.tau = self.rho*self.g*self.slopes_at_node*self.h
+            self.slopes_at_node, dwnstr_nodes = grid.calculate_steepest_descent_on_nodes(w, water_surface_slope)
 
-            # Resetting negative shear stress values to zero..
-            self.tau[np.where(self.tau<0)] = 0       
+            #Below if is for limiting shear stress calculations to only times when q surpasses a threshold (in this case q should be in m^3/sec)
+            #if self.q.any()*grid.dx> 0.0:
+                # Now calculate shear stress as tau == rho * g * S * h
+            self.tau = self.rho*self.g*self.slopes_at_node*self.h
 
             # Update model run time.
-            elapsed_time += dt
-            print "elapsed time", elapsed_time
+            
+            self.elapsed_time += dt
+            print "elapsed time", self.elapsed_time
+    
 
     def plot_at_one_node(self):
         
