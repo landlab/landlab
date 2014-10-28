@@ -5,6 +5,7 @@ from landlab import ModelParameterDictionary
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
+from scipy.weave.build_tools import CompileError
 
 from landlab.components.stream_power.stream_power import StreamPowerEroder
 
@@ -48,6 +49,7 @@ class SedDepEroder(object):
         f(Qs,Qc) term:
         REQUIRED:
             *Set the stream power terms using a, b, and c NOT m, n.
+            *...remember, any threshold set is set as tau**a, not just tau.
             *k_Q, k_w, mannings_n -> floats. These are the prefactors on the 
                 basin hydrology and channel width-discharge relations, and n
                 from the Manning's equation, respectively. These are 
@@ -241,7 +243,8 @@ class SedDepEroder(object):
                 self.Dchar = inputs.read_float('Dchar')
             except MissingKeyError:
                 assert self.threshold > 0., "Can't automatically set characteristic grain size if threshold is 0 or unset!"
-                self.Dchar = self.threshold/self.g/(self.sed_density-self.fluid_density)/self.shields_crit
+                #remember the threshold getting set is already tau**a
+                self.Dchar = self.threshold**(1./self._a)/self.g/(self.sed_density-self.fluid_density)/self.shields_crit
                 print 'Setting characteristic grain size from the Shields criterion...'
                 print 'Characteristic grain size is: ', self.Dchar
             try:
@@ -254,9 +257,9 @@ class SedDepEroder(object):
         if override_threshold:
             assert self.simple_sp.set_threshold==False, 'Threshold cannot be manually set if you wish it to be generated from Dchar!'
             try:
-                self.threshold = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar
+                self.threshold = (self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar)**self._a
             except AttributeError:
-                self.threshold = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar')
+                self.threshold = (self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar'))**self._a
             self.simple_sp.sp_crit = self.threshold
         
         def sed_capacity_equation(self, grid, shields_stress, slopes_at_nodes=None):
@@ -283,7 +286,7 @@ class SedDepEroder(object):
                 raise TypeError('sed_flux_dep_incision does not know how to set sed transport capacity from the provided inputs...')
             return capacity
         
-        self.cell_areas = np.empty(num_pts)
+        self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
         self.cell_areas[grid.cell_nodes] = grid.cell_areas
         
@@ -291,11 +294,11 @@ class SedDepEroder(object):
         ##self.past_sed_flux = np.empty(grid.number_of_nodes) #this is where we're going to store the previous sed flux...
         ##self.first_iter = True #this will let us identify the "startup" condition, which we need to allow to become stable...
         
-    def weave_iter_sed_flux(self, grid, incision_iter):
+    def weave_iter_sed_flux(self, grid, incision_iter, r, s):
         '''
-        Needs to find at_node 'flow_receiver' and 'upstream_ID_order' (i.e., r 
-        and s) have already been set in the grid. i.e., you've already run
-        route_flow_dn.
+        Needs to be passed at node values for 'flow_receiver' and 
+        'upstream_ID_order' (i.e., r and s). These are most likely the output
+        values from route_flow_dn.
         fqsqc is used to force the result; it isn't dynamically adjusted here.
         '''
         code =  """
@@ -309,9 +312,6 @@ class SedDepEroder(object):
                     }
                 }
                 """
-        #get the ordering
-        r = grid.at_node['flow_receiver']
-        s = grid.at_node['upstream_ID_order']
         #others we need
         #K = self._K_unit_time
         #a = self.a
@@ -322,9 +322,26 @@ class SedDepEroder(object):
         weave.inline(code, ['num_pts', 's', 'r', 'sed_flux'])
         return sed_flux
         
-    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
+    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', 
+                slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', 
+                receiver='flow_reciever', upstream_order='upstream_ID_order', 
+                slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
         """
+        Note this method must be passed both 'receiver' and 'upstream_order',
+        either as strings for field access, or nnode- long arrays of the 
+        relevant IDs. These are most easily used as the
+        outputs from route_flow_dn.
         """
+        try:
+            r_in = grid.at_node[receiver]
+        except FieldError:
+            r_in = receiver
+            assert r_in.size == grid.number_of_nodes
+        try:
+            s_in = grid.at_node[upstream_order]
+        except FieldError:
+            s_in = upstream_order
+            assert s_in.size == grid.number_of_nodes
         #get the stream power part of the equation from the simple module:
         #_,_,simple_stream_power = self.simple_sp.erode(grid, dt, node_drainage_areas, slopes_at_nodes, link_slopes, link_node_mapping, slopes_from_elevs, W_if_used, Q_if_used, io)
         #slopes = self.simple_sp.slopes
@@ -373,20 +390,51 @@ class SedDepEroder(object):
         else:
             node_A = node_drainage_areas
 
+        #######need to handle cells where Qs > Qc!!!
+
         #calc shear stress
         shear_stress = self.depth_prefactor*node_A**self.shear_area_power*slopes**0.7
         #calc Shields
         shields_stress = self.shields_prefactor*shear_stress
         capacity = self.sed_capacity_equation(grid, shields_stress, slopes)
+        stability_ratio = 10. #initialize high, as if the exceptions trip, we will want the second loop to run first time
         try:
+            #this assumes both the sed flux is defined in the last step, and that the fractional difference between the sed flux functions is <0.05 everywhere
+            #if not, we bail and use pseudoimplicit convergence (slooooooooow)
+            #note the 0.05 is basically introducing some slop into the solutions (<5%), which we trade off for speed
+            #improve accuracy by turning down the timestep
             fqsqc = self.get_sed_flux_function(self.last_sed_flux/capacity)
-            incision_iter = self._K_unit_time*dt*fqsqc*shear_stress**self.a*self.cell_areas #a volume
-            sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter)
-            self.last_sed_flux = sed_flux_iter
-            fqsqc = self.get_sed_flux_function(sed_flux_iter/capacity)
-            incision_iter = self._K_unit_time*dt*fqsqc*shear_stress**self.a*self.cell_areas #a volume
-            sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter)
-            #.......
-            
-        except:
-            pass #alternative method for when the last timestep doesn't exist goes here
+            incision_iter = self._K_unit_time*dt*fqsqc*(shear_stress**self.a-self.threshold).clip(0.)*self.cell_areas #a volume
+            sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter, r_in, s_in)
+            self.last_sed_flux = (self.last_sed_flux, sed_flux_iter)/2.#moving window to pre-emptively smooth numerical oscillation
+            fqsqc2 = self.get_sed_flux_function(self.last_sed_flux/capacity)
+            if not np.allclose(fqsqc, fqsqc2, rtol=0.05):
+                stability_ratio = np.amax(np.fabs(fqsqc/fqsqc2 - 1.)) #zero is good. >0.05 is bad.
+                raise AssertionError
+            incision_iter = self._K_unit_time*dt*fqsqc2*(shear_stress**self.a-self.threshold).clip(0.)*self.cell_areas #a volume
+            sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter, r_in, s_in)
+            self.last_sed_flux = (self.last_sed_flux, sed_flux_iter)/2.
+        except (AttributeError, AssertionError):
+            print "Pseudoimplicit solution this loop..."
+            try:
+                fqsqc = self.get_sed_flux_function(self.last_sed_flux/capacity)
+            except AttributeError:
+                fqsqc = self.get_sed_flux_function(0.1) #arbitrary uniform starting relative sed flux to get us going
+            incision_iter = self._K_unit_time*dt*fqsqc*(shear_stress**self.a-self.threshold).clip(0.)*self.cell_areas #a volume
+            sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter, r_in, s_in)
+            try:
+                self.last_sed_flux = (self.last_sed_flux, sed_flux_iter)/2.#moving window to pre-emptively smooth numerical oscillation
+            except AttributeError:
+                self.last_sed_flux = sed_flux_iter
+            counter=0
+            while stability_ratio > 0.05:
+                fqsqc2 = self.get_sed_flux_function(self.last_sed_flux/capacity)
+                incision_iter = self._K_unit_time*dt*fqsqc2*(shear_stress**self.a-self.threshold).clip(0.)*self.cell_areas #a volume
+                sed_flux_iter = self.weave_iter_sed_flux(grid, incision_iter, r_in, s_in)
+                stability_ratio = np.amax(np.fabs(fqsqc/fqsqc2 - 1.))
+                fqsqc = fqsqc2[:]
+                if counter>100:
+                    print "Bailing pseudoimplicit loop after 100 iterations. stability ratio at stop is ", stability_ratio
+                    break
+                counter+=1
+        
