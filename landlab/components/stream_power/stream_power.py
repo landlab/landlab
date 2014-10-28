@@ -252,7 +252,7 @@ class StreamPowerEroder(object):
                     #This isn't ideal. It should probably just be the outs...
                     #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
-                    self.slopes = np.max(np.fabs(self.link_S_with_trailing_blank[grid.node_links]))
+                    self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.node_links]),axis=0)
         else:
             try:
                 self.slopes = grid.at_node[slopes_at_nodes]
@@ -291,7 +291,7 @@ class StreamPowerEroder(object):
         #Note that we save "stream_power_erosion" incorporating both K and a. Most definitions would need this value /K then **(1/a) to give actual stream power (unit, total, whatever), and it does not yet include the threshold
         self.stream_power_erosion[active_nodes] = stream_power_active_nodes
         grid.at_node['stream_power_erosion'] = self.stream_power_erosion
-        print self.stream_power_erosion.max()
+        print "max stream power: ", self.stream_power_erosion.max()
         erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
         if io:
             try:
