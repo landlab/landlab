@@ -336,6 +336,9 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     """
     
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+    #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't! 
+    #But as we don't have a copy of the grid accessible here, we'll solve this
+    #problem as part of route_flow_dn.
     
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
                                             runoff_rate, boundary_nodes)
