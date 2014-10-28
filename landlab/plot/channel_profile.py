@@ -25,8 +25,9 @@ except ImportError:
     import warnings
     warnings.warn('matplotlib not found', ImportWarning)
 
-def channel_nodes(grid, steepest_nodes, drainage_area, upstream_ID_order, flow_receiver, number_of_channels=1, threshold=2):
-    assert threshold > 1
+def channel_nodes(grid, steepest_nodes, drainage_area, upstream_ID_order, flow_receiver, number_of_channels=1, threshold=None):
+    if threshold==None:
+        threshold = 2.*numpy.amin(grid.cell_areas)
     boundary_nodes = grid.get_boundary_nodes()
     #top_two_pc = len(boundary_nodes)//50
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
