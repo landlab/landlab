@@ -4,7 +4,7 @@ from time import sleep
 from scipy import weave
 from scipy.weave.build_tools import CompileError
 
-from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
+from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 
 class TransportLimitedEroder(object):
@@ -21,6 +21,10 @@ class TransportLimitedEroder(object):
     See, e.g., ./examples/simple_sp_driver.py
     
     Assumes grid does not deform or change during run.
+    
+    Note it is vital to ensure all your units match. t is assumed to be in 
+    years. Any length value is assumed to be in meters (including both dx
+    and the uplift rate...!)
     
     DEJH Sept 14.
     This component *should* run on any grid, but untested.
@@ -65,12 +69,13 @@ class TransportLimitedEroder(object):
                 capacities from the local slope and drainage area alone.
                 The equation for depth used to derive shear stress and hence
                 carrying capacity contains a prefactor:
-                    mannings_n*(k_Q**(1-b)/K_w)**0.6
-                If tuning this equation to adjust sediment capacities, the 
-                parameter ***'depth_equation_prefactor'***, equal to this value,
-                can be set instead. 
+                    mannings_n*(k_Q**(1-b)/K_w)**0.6 
                 (so shear = fluid_density*g*depth_equation_prefactor*A**(0.6*c*(1-b)*S**0.7 !)
-            *Dchar -> float.  The characteristic grain diameter 
+                Don't know what to set these values to? k_w=0.002, k_Q=1.e-9,
+                mannings_n=0.03 give vaguely plausible numbers (e.g., for a
+                drainage area ~400km2, like Boulder Creek at Boulder,
+                => depth~2.5m, width~35m, shear stress ~O(1000Pa)).
+            *Dchar -> float.  The characteristic grain diameter in meters
                 (==D50 in most cases) used to calculate Shields numbers
                 in the channel. If you want to define Dchar values at each node,
                 don't set, and use the Dchar_if_used argument in erode() 
@@ -83,7 +88,7 @@ class TransportLimitedEroder(object):
             *g -> acceleration due to gravity, in m/s**2 (defaults to 9.81)
             
             *threshold_shields -> +ve float; the threshold taustar_crit. 
-                Defaults to 0.06, or if 'slope_sensitive_threshold' is set True,
+                Defaults to 0.047, or if 'slope_sensitive_threshold' is set True,
                 becomes a weak function of local slope following Lamb et al 
                 (2008):
                     threshold_shields=0.15*S**0.25
@@ -130,6 +135,7 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             self.fluid_density = 1000.
         self.relative_weight = (self.sed_density-self.fluid_density)/self.fluid_density*self.g #to accelerate MPM calcs
+        self.excess_SG = (self.sed_density-self.fluid_density)/self.fluid_density
         self.rho_g = self.fluid_density*self.g     
         
         try:
@@ -153,7 +159,7 @@ class TransportLimitedEroder(object):
             assert self.lamb_flag == False
         except MissingKeyError:
             if not self.lamb_flag:
-                self.shields_crit = 0.06
+                self.shields_crit = 0.047
             self.set_threshold = False
         try:
             self.tstep = inputs.read_float('dt')
@@ -188,19 +194,21 @@ class TransportLimitedEroder(object):
             self.Dchar_in = inputs.read_float('Dchar')
         except MissingKeyError:
             pass
-                
+            
+        #assume Manning's equation to set the power on A for shear stress:
+        self.shear_area_power = 0.6*self._c*(1.-self._b)
         
         try:
-            k_Q = inputs.read_float('k_Q')
+            self.k_Q = inputs.read_float('k_Q')
         except MissingKeyError:
             self.depth_prefactor = self.rho_g*inputs.read_float('depth_equation_prefactor')
         else:
-            k_w = inputs.read_float('k_w')
+            self.k_w = inputs.read_float('k_w')
             mannings_n = inputs.read_float('mannings_n')
             if mannings_n<0. or mannings_n>0.2:
                 print "***STOP. LOOK. THINK. You appear to have set Manning's n outside it's typical range. Did you mean it? Proceeding...***"
                 sleep(2)
-            self.depth_prefactor = self.rho_g*mannings_n*(k_Q**(1.-self._b)/k_w)**0.6
+            self.depth_prefactor = self.rho_g*mannings_n*(self.k_Q**(1.-self._b)/self.k_w)**0.6
             ##Note the depth_prefactor we store already holds rho*g   
 
         try:
@@ -208,33 +216,38 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             self.C_MPM = 1.
         try:
-            self.shields_prefactor = 1./((self.sed_sensity-self.fluid_density)*self.g*self.Dchar_in)
+            self.shields_prefactor = 1./((self.sed_density-self.fluid_density)*self.g*self.Dchar_in)
             self.MPM_prefactor = 8.*self.C_MPM*np.sqrt(self.relative_weight*self.Dchar_in*self.Dchar_in*self.Dchar_in)
+            self.MPM_prefactor_alt = 4.*self.g**(-2./3.)/self.excess_SG/self.fluid_density/self.sed_density
         except AttributeError:
             #have to set these manually as needed
             self.shields_prefactor_noD = 1./((self.sed_sensity-self.fluid_density)*self.g)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.cell_nodes] = grid.cell_areas
+        self.cell_areas[grid.cell_node] = grid.cell_areas
         
         
-    def sed_capacity_equation(self, grid, shields_stress, slopes_at_nodes=None):
+    def sed_capacity_equation(self, grid, shields_stress, slopes_at_nodes=None, areas_at_node=None):
         """
         slopes_at_nodes must be provided as nnodes array if slope_sensitive_threshold.
         This is a volume flux.
         At the moment, this only supports MPM for sed flux capacity calculation,
         but is set up to allow easy additions later if needed.
         """
-        if self.S_sensitive_thresh:
+        if self.lamb_flag:
             thresh = 0.15*slopes_at_nodes**0.25
         else:
             thresh = self.shields_crit
         if self.Qc == 'MPM':
+            print "in capacity:"
+            print 'prefactor ', self.MPM_prefactor
+            print 'max Shields ', np.amax(shields_stress[self.grid.core_nodes])
+            print 'thresh ', np.amax(thresh)
             try:
-                capacity = self.MPM_prefactor*(shields_stress-thresh)**1.5
+                capacity = self.MPM_prefactor*((shields_stress-thresh).clip(0.))**1.5
             except AttributeError:
-                capacity = 8.*self.C_MPM*np.sqrt(self.relative_weight*self.Dchar*self.Dchar*self.Dchar)*(shields_stress-thresh)**1.5
+                capacity = 8.*self.C_MPM*np.sqrt(self.relative_weight*self.Dchar*self.Dchar*self.Dchar)*((shields_stress-thresh).clip(0.))**1.5
         elif type(self.Qc)==str:
             try:
                 capacity = grid.at_node[self.Qc]
@@ -244,10 +257,36 @@ class TransportLimitedEroder(object):
             capacity=self.Qc
         else:
             raise TypeError('sed_flux_dep_incision does not know how to set sed transport capacity from the provided inputs...')
-        return capacity
+        capacity *= self.k_w*areas_at_node**self._b*31557600.
+        return capacity #returned capacity is volume flux/yr
+    
+    def sed_capacity_equation_alt_method(self, grid, shear_stress, slopes_at_nodes=None, areas_at_node=None):
+        """
+        slopes_at_nodes must be provided as nnodes array if slope_sensitive_threshold.
+        This is a volume flux.
+        At the moment, this only supports MPM for sed flux capacity calculation,
+        but is set up to allow easy additions later if needed.
+        """
+        if self.lamb_flag:
+            thresh = 0.15*slopes_at_nodes**0.25
+        else:
+            thresh = self.shields_crit
+        if self.Qc == 'MPM':
+            capacity = self.MPM_prefactor_alt*((shear_stress-self.excess_SG*self.Dchar*self.rho_g*thresh).clip(0.))
+        elif type(self.Qc)==str:
+            try:
+                capacity = grid.at_node[self.Qc]
+            except:
+                raise TypeError('sed_flux_dep_incision does not know how to set sed transport capacity from the provided input...')
+        elif type(self.Qc)==np.ndarray:
+            capacity=self.Qc
+        else:
+            raise TypeError('sed_flux_dep_incision does not know how to set sed transport capacity from the provided inputs...')
+        capacity *= self.k_w*areas_at_node**self._b*31557600.
+        return capacity #returned capacity is volume flux/yr
     
     
-    def weave_iter_sed_trp_balance(self, grid, capacity, r, s):
+    def weave_iter_sed_trp_balance(self, grid, capacity, r, s, dt):
         '''
         Needs to be passed at node values for 'flow_receiver' and 
         'upstream_ID_order' (i.e., r and s). These are most likely the output
@@ -260,7 +299,7 @@ class TransportLimitedEroder(object):
                 for (int i = num_pts-1; i > -1; i--) {
                     donor = s[i];
                     rcvr = r[donor];
-                    dzbydt[donor] = (sed_into_cell[donor] - capacity[donor])/cell_areas[donor];
+                    dz[donor] = (sed_into_cell[donor] - capacity[donor]*dt)/cell_areas[donor];
                     if (donor != rcvr) {
                         sed_into_cell[rcvr] += capacity[donor];
                     }
@@ -268,23 +307,31 @@ class TransportLimitedEroder(object):
                 """
         num_pts = len(s)
         cell_areas = self.cell_areas #nnodes long
-        sed_into_cell = np.zeros(num_pts, dtype=np.float64)
-        dzbydt = np.zeros_like(sed_into_cell)
+        sed_into_cell = np.zeros(capacity.size, dtype=np.float64) #this is, more accurately, a sed *flux* in
+        dz = np.zeros_like(sed_into_cell)
+        #print type(cell_areas), type(s), type(r), type(capacity), type(sed_into_cell)
         try:
-            weave.inline(code, ['num_pts', 'cell_areas', 's', 'r', 'capacity', 'sed_into_cell', 'dzbydt'])
+            raise CompileError #force the python loop for debug
+            weave.inline(code, ['num_pts', 'cell_areas', 's', 'r', 'capacity', 'sed_into_cell', 'dz', 'dt'])
         except CompileError:
             for donor in s[::-1]:
                 rcvr = r[donor]
                 #by the time we get to donor, no more sed will be added; it's "done":
-                dzbydt[donor] = (sed_into_cell[donor]-capacity[donor])/cell_areas[donor] #if capacity is greater than sed_in, it will erode (-ve value here)
+    ########where should the next line be? Can an internally drained node erode down/deposit?
+                dz[donor] = (sed_into_cell[donor]-capacity[rcvr]*dt)/cell_areas[donor] #if capacity is greater than sed_in, it will erode (-ve value here)
+                #we look downstream to ensure continuity with the BCs at grid margins
+                #print "dz: ", dz[donor]
                 #capacity's worth of sed leaves donor & goes to rcvr
                 if donor != rcvr:
+                    #print "saved", donor, rcvr
+                    #print "dz: ", dz[donor]
                     sed_into_cell[rcvr] += capacity[donor]
-        return dzbydt
+        #print dz
+        return dz
 
         
-    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', 
-                slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', 
+    def erode(self, grid, dt, node_drainage_areas='drainage_area', 
+                slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_receiver', 
                 receiver='flow_receiver', upstream_order='upstream_ID_order', 
                 slopes_from_elevs=None, W_if_used=None, Q_if_used=None,
                 Dchar_if_used=None, io=None):
@@ -362,7 +409,7 @@ class TransportLimitedEroder(object):
                 self.Dchar=Dchar_if_used
             
         #Perform check on whether we use grid or direct fed data:
-        if not slopes_at_nodes:
+        if slopes_at_nodes==None:
             if slopes_from_elevs:
                 if slopes_from_elevs == True:
                     node_z = grid.at_node['planet_surface__elevation']
@@ -390,20 +437,23 @@ class TransportLimitedEroder(object):
                     #need to do the mapping on the fly.
                     #we're going to use the max slope (i.e., + or -) of *all* adjacent nodes.
                     #This isn't ideal. It should probably just be the outs...
-                    #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
+                    #i.e., np.amax(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
-                    self.slopes = np.max(np.fabs(self.link_S_with_trailing_blank[grid.node_links]))
+                    self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.node_links]),axis=0)
         else:
             try:
                 self.slopes = grid.at_node[slopes_at_nodes]
             except FieldError:
                 self.slopes = slopes_at_nodes
         
+        #print 'Max slope ', np.amax(self.slopes[self.grid.core_nodes])
+        #print 'Mean slope ', np.mean(self.slopes[self.grid.core_nodes])
         if type(node_drainage_areas)==str:
             node_A = grid.at_node[node_drainage_areas]
         else:
             node_A = node_drainage_areas
 
+        #print 'Area ', np.amax(node_A)
         #calc Shields
 ######need to add ability to do this with W or Q scaling specified
         shear_stress = self.depth_prefactor*node_A**self.shear_area_power*self.slopes**0.7
@@ -411,22 +461,35 @@ class TransportLimitedEroder(object):
             shields_stress = self.shields_prefactor*shear_stress
         except AttributeError:
             shields_stress = self.shields_prefactor_noD/self.Dchar*shear_stress
-        capacity = self.sed_capacity_equation(grid, shields_stress, self.slopes, r_in, s_in)
-        dzbydt = self.weave_iter_sed_trp_balance(grid, capacity, r_in, s_in)
+        #print 'max_shear ', np.amax(shear_stress[self.grid.core_nodes])
+        #capacity = self.sed_capacity_equation(grid, shields_stress, self.slopes, node_A)
+        capacity = self.sed_capacity_equation_alt_method(grid, shear_stress, self.slopes, node_A)
+        #print capacity
+        #need to strip closed nodes from s:
+        #...but in fact we use the mask on capacity, not a BC check, as some open nodes can still have no slopes defined (so are functionally closed) - i.e., the corners
+        try:
+            s_in = np.delete(s_in, np.where(np.in1d(s_in,np.where(capacity.mask),assume_unique=True))) #yuck! #this isn't very memory efficient...
+        except AttributeError: #provided S array might not be masked...
+            s_in = np.delete(s_in, np.where(self.grid.is_boundary(s_in, boundary_flag=4)))
+        #print "r: ", r_in
+        #print "s: ", s_in
+        dz = self.weave_iter_sed_trp_balance(grid, capacity, r_in, s_in, dt)
+        #print 'max inc rate ', np.amax(np.fabs(dz[self.grid.core_nodes]))
         active_nodes = grid.get_active_cell_node_ids()
         if io:
             try:
-                io[active_nodes] += (dzbydt*dt)[active_nodes]
+                io[active_nodes] += dz[active_nodes]
             except TypeError:
                 if type(io)==str:
                     elev_name = io
             else:
                 return grid, io, capacity
-                
+            
         else:
             elev_name = 'planet_surface__elevation'
 
-        grid.at_node[elev_name][active_nodes] += (dzbydt*dt)[active_nodes]
+        grid.at_node[elev_name][active_nodes] += dz[active_nodes]
         grid.at_node['sediment_flux_capacity'] = capacity
         
         return grid, grid.at_node[elev_name], capacity
+        
