@@ -27,7 +27,8 @@ class SPEroder(object):
         *m_sp*
     
     ...which it will draw from the supplied input file. *n_sp* has to be 1 for 
-    the BW algorithm to work.
+    the BW algorithm to work. If you want n!=1., try calling the explicit
+    "stream_power" component.
     
     *dt*, *rainfall_intensity*, and *value_field* are optional variables.
     
@@ -71,7 +72,7 @@ class SPEroder(object):
             print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
         else:
             try:
-                self.r_i = inputs.read_float('dt')
+                self.r_i = inputs.read_float('rainfall_intensity')
             except:
                 self.r_i = 1.
         try:
@@ -86,9 +87,10 @@ class SPEroder(object):
         if self.n != 1.:
             raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
 
-    def gear_timestep(self, dt_in, rainfall_intensity_in):
+    def gear_timestep(self, dt_in, rainfall_intensity_in=None):
         self.dt = dt_in
-        self.r_i = rainfall_intensity_in
+        if rainfall_intensity_in is not None:
+            self.r_i = rainfall_intensity_in
         return self.dt, self.r_i
 
     def erode(self, grid_in):
