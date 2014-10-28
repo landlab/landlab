@@ -422,9 +422,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         '''
-        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
-        self.forced_cell_areas.fill(self._dx ** 2)
-        return self.forced_cell_areas
+        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self._forced_cell_areas.fill(self._dx ** 2)
+        return self._forced_cell_areas
 
     @property
     def shape(self):
@@ -1119,6 +1119,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         3.0
         """
         return self._dx
+    
+    @property
+    def node_spacing_horizontal(self):
+        """Horizontal spacing, between columns.
+        """
+        return self._dx
+    
+    @property
+    def node_spacing_vertical(self):
+        """Vertical spacing, between rows.
+        """
+        return self._dx
 
     @property
     def corner_nodes(self):
@@ -1297,6 +1309,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Overrides ModelGrid.max_active_link_length().
         """
         return self._dx
+        
+    def calculate_gradient_along_node_links(self, node_values, *args, **kwds):
+        """calculate_gradient_along_node_links(node_values [, node_ids], out=None):
+        Gradient of a quantity along neighboring active links at all nodes in 
+        the grid.
+        
+        Calculate the slopes of *node_values*, given at every node in the grid,
+        relative to the nodes centered at *node_ids*. Note that upward slopes
+        are reported as positive. That is, the gradient is positive if a neighbor
+        node's value is greater than that of the node as *node_ids*.
+
+        If *node_ids* is not provided, calculate the gradients for all
+        nodes in the grid. Nodes surrounded by inactive links will receive
+        four masked entries.
+
+        Use the *out* keyword if you have an array that you want to put the result
+        into. If not given, create and return a new array.
+
+        Returns the gradients of the neighboring links in the order (right, top,
+        left, bottom).
+        
+        Note the distinction from calculate_gradient_across_cell_faces() is that
+        this method returns an nnodes-long array. That method returns an ncells-
+        long array.
+        """
+        return rfuncs.calculate_gradient_along_node_links(
+            self, node_values, *args, **kwds)
 
     def calculate_gradient_across_cell_faces(self, node_values, *args, **kwds):
         """calculate_gradient_across_cell_faces(node_values [, cell_ids], out=None)
@@ -1926,16 +1965,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def set_closed_boundaries_at_grid_edges(self, bottom_is_closed,
-                                            right_is_closed,
+                                            left_is_closed,
                                             top_is_closed,
-                                            left_is_closed):
+                                            right_is_closed):
         """Set boundary not to be closed.
 
         Sets the status of nodes along the specified side(s) of a raster
         grid (bottom, right, top, and/or left) to ``CLOSED_BOUNDARY``.
 
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left are closed (``True``) or not (``False``).
+        Arguments are booleans indicating whether the bottom, left, top, and
+        right are closed (``True``) or not (``False``).
 
         For a closed boundary:
             - the nodes are flagged ``CLOSED_BOUNDARY`` (status type 4)
@@ -1962,12 +2001,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         bottom_is_closed : boolean
             If ``True`` bottom-edge nodes are closed boundaries.
-        right_is_closed : boolean
-            If ``True`` right-edge nodes are closed boundaries.
-        top_is_closed : boolean
-            If ``True`` top-edge nodes are closed boundaries.
         left_is_closed : boolean
             If ``True`` left-edge nodes are closed boundaries.
+        top_is_closed : boolean
+            If ``True`` top-edge nodes are closed boundaries.
+        right_is_closed : boolean
+            If ``True`` right-edge nodes are closed boundaries.
 
         Notes
         -----
@@ -2025,9 +2064,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def set_fixed_value_boundaries_at_grid_edges(self, bottom_is_fixed_val,
-                                                 right_is_fixed_val,
+                                                 left_is_fixed_val,
                                                  top_is_fixed_val,
-                                                 left_is_fixed_val):
+                                                 right_is_fixed_val, value=None,
+                                                 value_of='planet_surface__elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2036,8 +2076,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
 
+        *value* controls what values are held constant at these nodes. It can be
+        either a float, an array of length number_of_fixed_nodes or 
+        number_of_nodes (total), or left blank. If left blank, the values will
+        be set from the those already in the grid fields, according to 
+        'value_of'.
+        
+        *value_of* controls the name of the model field that contains the 
+        values. Remember, if you don't set value, the fixed values will be set
+        from the field values ***at the time you call this method***. If no
+        values are present in the field, the module will complain but accept
+        this, warning that it will be unable to automatically update boundary
+        conditions (and such methods, e.g., ``RasterModelGrid.update_boundary_nodes()``,
+        will raise exceptions if you try).
+
         The status of links (active or inactive) is automatically updated to
-        reflect the changes.
+        reflect the changes.        
 
         The following example sets the bottom and right boundaries as
         fixed-value in a four-row by five-column grid that initially has all
@@ -2047,18 +2101,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         bottom_is_fixed_val : boolean
             Set bottom edge as fixed boundary.
-        right_is_fixed_val : boolean
-            Set right edge as fixed boundary.
-        top_is_fixed_val : boolean
-            Set top edge as fixed boundary.
         left_is_fixed_val : boolean
             Set left edge as fixed boundary.
+        top_is_fixed_val : boolean
+            Set top edge as fixed boundary.
+        right_is_fixed_val : boolean
+            Set right edge as fixed boundary.
+        value : float, array or None (default).
+            Override value to be kept constant at nodes.
+        value_of : string.
+            The name of the grid field containing the values of interest.
 
         Examples
         --------
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
+        #put some arbitrary values in the grid fields
+        >>> import numpy as np
+        >>> rmg.at_node['planet_surface__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
         >>> rmg.node_status
         array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
@@ -2101,6 +2162,51 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
         self.update_links_nodes_cells_to_new_BCs()
+        
+        #save some internal data to speed updating:
+        self.fixed_value_node_properties = {}
+        self.fixed_value_node_properties['boundary_node_IDs'] = numpy.where(self.node_status==FIXED_VALUE_BOUNDARY)[0]
+        if value:
+            if type(value) == float or type(value) == int:
+                values_to_use = float(value)
+            elif type(value) == numpy.ndarray:
+                if value.size == self.fixed_value_node_properties['boundary_node_IDs'].size:
+                    values_to_use = value
+                elif value.size == self.number_of_nodes:
+                    values_to_use = value.take(self.fixed_value_node_properties['boundary_node_IDs'])
+                else:
+                    raise TypeError("'value' must be of size nnodes or number of nodes to set!")
+        else:
+            try:
+                values_to_use = self.at_node[value_of].take(self.fixed_value_node_properties['boundary_node_IDs'])
+            except FieldError:
+                pass #we catch this case below
+            else:
+                #set a flag to indicate successful setting of internal values
+                self.fixed_value_node_properties['internal_flag'] = True
+            
+        if not self.has_field('node', value_of):
+            print """
+                *************************************************
+                WARNING: set_fixed_value_boundaries_at_grid_edges
+                has not been provided with a grid field name to
+                allow internal boundary condition control. You 
+                will not be able to automate BC control with grid
+                methods like update_boundary_nodes()!
+                Not expecting this error? Try calling this method
+                after loading the starting conditions into the
+                grid fields.
+                *************************************************
+                """
+            #set a flag to indicate no internal values
+            self.fixed_value_node_properties['internal_flag'] = False
+        else:
+            self.fixed_value_node_properties['internal_flag'] = True
+            self.fixed_value_node_properties['fixed_value_of'] = value_of
+        try:
+            self.fixed_value_node_properties['values'] = values_to_use
+        except NameError:
+            pass #the flag will catch this case
 
 
     def set_looped_boundaries(self, top_bottom_are_looped,sides_are_looped):
@@ -2197,7 +2303,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def set_fixed_gradient_boundaries(
-        self, bottom_is_fixed, right_is_fixed, top_is_fixed, left_is_fixed,
+        self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
         gradient_in=numpy.nan, gradient_of='planet_surface__elevation'):
         """Create fixed gradient boundaries.
 
@@ -2213,12 +2319,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         bottom_is_fixed : boolean
             Make bottom edge a fix-gradient boundary.
-        right_is_fixed : boolean
-            Make right edge a fix-gradient boundary.
-        top_is_fixed : boolean
-            Make top edge a fix-gradient boundary.
         left_is_fixed : boolean
             Make left edge a fix-gradient boundary.
+        top_is_fixed : boolean
+            Make top edge a fix-gradient boundary.
+        right_is_fixed : boolean
+            Make right edge a fix-gradient boundary.
 
         Notes
         -----
@@ -2239,7 +2345,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
               and this is assumed to be named "planet_surface__elevation" in the
               grid. If the gradient is in another surface, or the elevation
               surface is named differently, you need to set 'gradient_of' equal
-              to the relevant string. self.fixed_gradient_of stores this string
+              to the relevant string. self.fixed_gradient_node_properties['fixed_gradient_of'] stores this string
               for access elsewhere.
 
             - The critical IDs and values relevant to the boundary conditions
@@ -2313,7 +2419,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Fixed gradients will be set according to existing data in the grid...
         >>> rmg.node_status
         array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2], dtype=int8)
-        >>> rmg.fixed_gradient_of
+        >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
         'planet_surface__elevation'
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
         array([ 0,  1,  2,  3,  4,  9, 14, 15, 16, 17, 18, 19,  5, 10])
@@ -2491,9 +2597,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.fixed_gradient_node_properties['boundary_node_IDs']
         except AttributeError:
             #easy case; there's nothing there already
-            self.fixed_gradient_of = gradient_of
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
+            self.fixed_gradient_node_properties['fixed_gradient_of'] = gradient_of
             self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(int)
             self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(int)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
@@ -2504,7 +2610,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             #there's something in there, which we need to merge with, and
             #overwrite some entries of if appropriate.
-            if self.fixed_gradient_of != gradient_of:
+            if self.fixed_gradient_node_properties['fixed_gradient_of'] != gradient_of:
                 raise ValueError('At the moment, you have to define all your boundaries on the same set of values!') #need to sort this ASAP...
                 #...We probably want the syntax to be rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT, to which we can pin these properties
             #The fixed_gradient_nodes should be uniquely defined...
@@ -2591,7 +2697,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self['node'][value][(fromnodes[corner_links])[fromnode_is_corner]] = self['node'][value][(tonodes[corner_links])[fromnode_is_corner]] - (link_gradients[corner_links])[fromnode_is_corner]*self.dx
 
 
-    def set_noflux_boundaries( self, bottom, right, top, left,
+    def set_noflux_boundaries( self, bottom, left, top, right,
                                bc = None ):
         """*Deprecated*.
 
@@ -2674,6 +2780,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if self._DEBUG_VERBOSE:
             print 'tracks_cell:',bc.tracks_cell
+            
+            
+    def update_boundary_nodes(self):
+        """
+        This method updates all the boundary nodes in the grid field on which
+        they are set (i.e., it updates the field 
+            rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
+        It currently works only with fixed value (type 1) and fixed gradient
+        (type 2) conditions. Looping must be handled internally to a component,
+        and is not dealt with here.
+        """
+        try:
+            fixed_nodes = self.fixed_value_node_properties['boundary_node_IDs']
+        except AttributeError:
+            #no fixed value boundaries have been set
+            pass
+        else:
+            assert self.fixed_value_node_properties['internal_flag'], 'Values were not supplied to the method that set the boundary conditions! You cant update automatically!'
+            values_val = self.at_node[self.fixed_value_node_properties['fixed_value_of']]
+            values_val[self.fixed_value_node_properties['boundary_node_IDs']] = self.fixed_value_node_properties['values']
+            
+        try:
+            values_grad = self.at_node[self.fixed_gradient_node_properties['fixed_gradient_of']]
+            values_grad[self.fixed_gradient_node_properties['boundary_node_IDs']] = values_grad[self.fixed_gradient_node_properties['anchor_node_IDs']] + self.fixed_gradient_node_properties['values_to_add']
+        except AttributeError:
+            #no fixed grad boundaries have been set
+            pass
 
     def calculate_gradients_at_links(self, node_values, out=None):
         """*Deprecated*.
@@ -3070,7 +3203,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             data[ncols*i+offset:ncols*(i+1)-offset] = top_rows_to_move[i,:]
 
 
-    def get_neighbor_list(self, *args):
+    def get_neighbor_list(self, *args, **kwds):
         """get_neighbor_list([ids])
         Get list of neighbor node IDs.
 
@@ -3081,6 +3214,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         below); references to positions which are off the grid from boundary
         nodes receive BAD_INDEX_VALUE. Only nodes which can be reached along an
         active link are returned, otherwise again we get BAD_INDEX_VALUE.
+        
+        Parameter *bad_index* can be used to override the grid default for the
+        BAD_INDEX_VALUE.
 
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> mg = RasterModelGrid(4, 5)
@@ -3091,17 +3227,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         ..todo: could use inlink_matrix, outlink_matrix
         """
+        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
+        
         if self.neighbor_list_created == False:
-            self.create_neighbor_list()
+            self.neighbor_node_dict = {}
+            self.neighbor_node_dict[bad_index] = self.create_neighbor_list(bad_index=bad_index)
+
+        try:
+            neighbor_nodes = self.neighbor_node_dict[bad_index]
+        except KeyError:
+            neighbor_nodes = self.create_neighbor_list(bad_index=bad_index)
+            self.neighbor_node_dict[bad_index] = neighbor_nodes
 
         if len(args) == 0:
-            return self.neighbor_nodes
+            return neighbor_nodes
         elif len(args) == 1:
-            return self.neighbor_nodes[args[0], :]
+            return neighbor_nodes[args[0], :]
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def create_neighbor_list( self ):
+    def create_neighbor_list( self, bad_index=BAD_INDEX_VALUE ):
         """Create list of neighbor node IDs.
 
         Creates a list of IDs of neighbor nodes for each node, as a
@@ -3111,14 +3256,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
         """
-        assert(self.neighbor_list_created == False)
+        #assert(self.neighbor_list_created == False)
+        #this method can now be called to create multiple neighbor lists with 
+        #different BAD_INDEX_VALUES
+        #note self.nieghbor_nodes is no longer created... but nobody should be
+        #calling it direct anyway.
 
-        self.neighbor_nodes = sgrid.neighbor_node_array(self.shape,
+        neighbor_nodes = sgrid.neighbor_node_array(self.shape,
             closed_boundary_nodes=self.closed_boundary_nodes,
             open_boundary_nodes=self.open_boundary_nodes,
-            inactive=BAD_INDEX_VALUE).T
+            inactive=bad_index).T
 
         self.neighbor_list_created = True
+        return neighbor_nodes
 
     def has_boundary_neighbor(self, ids):
         """
