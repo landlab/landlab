@@ -13,8 +13,9 @@ import time
 import os
 import pylab
 import numpy as np
+from landlab.plot import imshow_grid
 
-
+    
 def main():
     """
     In this simple tutorial example, the main function does all the work: 
@@ -26,9 +27,9 @@ def main():
     
     # User-defined parameter values
     dem_name = 'ExampleDEM/west_bijou_gully.asc'
-    outlet_row = 82
+    outlet_row = 6
     outlet_column = 38
-    next_to_outlet_row = 81
+    next_to_outlet_row = 7
     next_to_outlet_column = 38
     n = 0.06              # roughness coefficient (Manning's n)
     h_init = 0.001        # initial thin layer of water (m)
@@ -50,7 +51,7 @@ def main():
     print('Reading data from "'+str(DATA_FILE)+'"')
     (mg, z) = read_esri_ascii(DATA_FILE)
     print('DEM has ' + str(mg.number_of_node_rows) + ' rows, ' +
-          str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx)) + ' m'
+            str(mg.number_of_node_columns) + ' columns, and cell size ' + str(mg.dx)) + ' m'
     
     # Modify the grid DEM to set all nodata nodes to inactive boundaries
     mg.set_nodata_nodes_to_closed(z, 0) # set nodata nodes to inactive bounds
@@ -62,7 +63,7 @@ def main():
     node_next_to_outlet = mg.grid_coords_to_node_id(next_to_outlet_row, 
                                                     next_to_outlet_column)
     mg.set_fixed_value_boundaries(outlet_node)
-
+    
     # Set up state variables
     h = mg.add_zeros('node', 'Water_depth') + h_init     # water depth (m)
     q = mg.create_active_link_array_zeros()       # unit discharge (m2/s)
@@ -76,13 +77,12 @@ def main():
     t = []
     q_outlet.append(0.)
     t.append(0.)
-    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
-                                                          node_next_to_outlet)
-    
+    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
+        
     # Display a message
     print( 'Running ...' )
     start_time = time.time()
-
+    
     # RUN
     
     # Main loop
@@ -91,7 +91,7 @@ def main():
         # Report progress
         if time.time()>=next_report:
             print('Time = '+str(elapsed_time)+' ('
-                  +str(100.*elapsed_time/run_time)+'%)')
+                    +str(100.*elapsed_time/run_time)+'%)')
             next_report += report_interval
         
         # Calculate time-step size for this iteration (Bates et al., eq 14)
@@ -107,7 +107,7 @@ def main():
         
         # Calculate water-surface slopes
         water_surface_slope = mg.calculate_gradients_at_active_links(w)
-       
+        
         # Calculate the unit discharges (Bates et al., eq 11)
         q = (q-g*hflow*dtmax*water_surface_slope)/ \
             (1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
@@ -141,9 +141,9 @@ def main():
         
         # Remember discharge and time
         t.append(elapsed_time)
-        q_outlet.append(q[outlet_link])
+        q_outlet.append(abs(q[outlet_link]))
         
-      
+        
     # FINALIZE
     
     # Set the elevations of the nodata cells to the minimum active cell
@@ -151,11 +151,9 @@ def main():
     z[np.where(z<=0.)] = 9999            # temporarily change their elevs ...
     zmin = np.amin(z)                    # ... so we can find the minimum ...
     z[np.where(z==9999)] = zmin          # ... and assign them this value.
-
-    # Get a 2D array version of the water depths and elevations
-    hr = mg.node_vector_to_raster(h)
-    zr = mg.node_vector_to_raster(z)
     
+    # Get a 2D array version of the water depths and elevations
+
     # Clear previous plots
     pylab.figure(1)
     pylab.close()
@@ -172,24 +170,24 @@ def main():
     # Plot topography
     pylab.figure(2)
     pylab.subplot(121)
-    im = pylab.imshow(zr, cmap=pylab.cm.RdBu,
-                      extent=[0, mg.number_of_node_columns * mg.dx,
-                              0, mg.number_of_node_rows * mg.dx])
+    imshow_grid(mg, z, allow_colorbar=False)
+    pylab.xlabel(None)
+    pylab.ylabel(None)
+    im = pylab.set_cmap('RdBu')
     cb = pylab.colorbar(im)
     cb.set_label('Elevation (m)', fontsize=12)
     pylab.title('Topography')
     
     # Plot water depth
     pylab.subplot(122)
-    im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu,
-                       extent=[0, mg.number_of_node_columns * mg.dx,
-                               0, mg.number_of_node_rows * mg.dx])
+    imshow_grid(mg, h, allow_colorbar=False)
+    im2 = pylab.set_cmap('RdBu')
     pylab.clim(0, 0.25)
     cb = pylab.colorbar(im2)
     cb.set_label('Water depth (m)', fontsize=12)
     pylab.title('Water depth')
-    
-    # Display the plots
+    #
+    ## Display the plots
     pylab.show()
     print('Done.')
     print('Total run time = '+str(time.time()-start_time)+' seconds.')
