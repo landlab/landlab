@@ -90,6 +90,8 @@ fields:
     ~landlab.field.grouped.ModelDataFields.has_group
     ~landlab.field.grouped.ModelDataFields.has_field
     ~landlab.field.grouped.ModelDataFields.groups
+    
+    i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
 Notes
 -----
@@ -181,7 +183,7 @@ from . import grid_funcs as gfuncs
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
-
+#DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
@@ -1535,9 +1537,9 @@ class ModelGrid(ModelDataFields):
         For a voronoi...?
         """
         try:
-            return self.forced_cell_areas
+            return self._forced_cell_areas
         except AttributeError:
-            return self._setup_cell_areas_array_force_inactive()    
+            return self._setup_cell_areas_array_force_inactive()
             
     @property
     def face_widths(self):
