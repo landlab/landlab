@@ -615,13 +615,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.top_edge_node_ids()))] = np.arange(self.number_of_patches)
             self.node_patch_matrix.sort(axis=1)
             self.node_patch_matrix[self.node_patch_matrix==BAD_INDEX_VALUE] = nodata
+            #now we blank out any patches that have a closed node as any vertex:
+            patch_nodes = self.patch_nodes
+            dead_nodes_in_patches = self.is_boundary(patch_nodes, boundary_flag=4)
+            dead_patches = np.where(np.any(dead_nodes_in_patches, axis=1)) #IDs of patches with dead nodes
+            self.node_patch_matrix.ravel()[np.in1d(self.node_patch_matrix, dead_patches)] = nodata #in1d would remove any mask
             self.node_patch_matrix = np.ma.masked_equal(self.node_patch_matrix, nodata)
             return self.node_patch_matrix
+    
     
     @property    
     def patch_nodes(self):
         """
         Returns the four nodes at the corners of each patch in a regular grid.
+        Shape of the returned array is (nnodes, 4).
         """
         base = numpy.arange(self.number_of_patches)
         bottom_left_corner = base + base//(self._ncols-1)
