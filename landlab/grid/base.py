@@ -92,6 +92,8 @@ fields:
     ~landlab.field.grouped.ModelDataFields.has_group
     ~landlab.field.grouped.ModelDataFields.has_field
     ~landlab.field.grouped.ModelDataFields.groups
+    
+    i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
 Notes
 -----
@@ -187,7 +189,7 @@ from . import grid_funcs as gfuncs
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
-
+#DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
@@ -1116,11 +1118,15 @@ class ModelGrid(ModelDataFields):
             raise TypeError("unit must be 'degrees' or 'radians'")
     
     
-    def node_slopes(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes(self, **kwargs):
         """
         This method is simply an alias for grid.node_slopes_using_patches()
+        Takes
+        * elevs : field name or nnodes array, defaults to 'planet_surface__elevation'
+        * unit : 'degrees' (default) or 'radians'
+        as for node_slopes_using_patches
         """
-        self.node_slopes_using_patches(elevs, unit)
+        return self.node_slopes_using_patches(**kwargs)
         
     
     def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
@@ -1536,9 +1542,9 @@ class ModelGrid(ModelDataFields):
         For a voronoi...?
         """
         try:
-            return self.forced_cell_areas
+            return self._forced_cell_areas
         except AttributeError:
-            return self._setup_cell_areas_array_force_inactive()    
+            return self._setup_cell_areas_array_force_inactive()
             
     @property
     def face_widths(self):

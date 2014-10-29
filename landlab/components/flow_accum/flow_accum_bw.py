@@ -27,7 +27,8 @@ Created: GT Nov 2013
 
 
 import numpy
-
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 
 class _DrainageStack():
     """
@@ -59,10 +60,30 @@ class _DrainageStack():
         """
         self.s[self.j] = l
         self.j += 1
-        for n in range(self.delta[l], self.delta[l+1]):
-            m = self.D[n]
-            if m != l:
-                self.add_to_stack(m)
+        #make some aliases to make the weave faster & better
+        delta = self.delta
+        D = self.D
+        add_it = self.add_to_stack
+        delta_l = numpy.take(delta,l)
+        delta_lplus1 = numpy.take(delta,l+1)
+        code = """
+            int m;
+            py::tuple arg(1);
+            for (int n = delta_l; n < delta_lplus1; n++) {
+                m = D[n];
+                arg[0] = m;
+                if (m != l) {
+                    (void) add_it.call(arg);
+                }
+            }
+        """
+        try:
+            weave.inline(code, ['delta_l', 'delta_lplus1', 'l', 'D', 'add_it'])
+        except CompileError:
+            for n in xrange(delta_l, delta_lplus1):
+                m = self.D[n]
+                if m != l:
+                    self.add_to_stack(m)
                 
                 
 def _make_number_of_donors_array(r):
@@ -96,7 +117,7 @@ def _make_number_of_donors_array(r):
 #    for i in xrange(np):
 #        nd[r[i]] += 1
 
-    nd = numpy.zeros(r.size, dtype=numpy.int)
+    nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
     nd[:(max_index + 1)] = numpy.bincount(r)
     return nd
@@ -156,10 +177,21 @@ def _make_array_of_donors(r, delta):
     np = len(r)
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
-    for i in xrange(np):
-        ri = r[i]
-        D[delta[ri]+w[ri]] = i
-        w[ri] += 1
+    code = """
+        int ri;
+        for (int i = 0; i < np; i++) {
+            ri = r[i];
+            D[delta[ri] + w[ri]] = i;
+            w[ri] += 1;
+        }
+    """
+    try:
+        weave.inline(code, ['np', 'r', 'D', 'delta', 'w'])
+    except CompileError:
+        for i in xrange(np):
+            ri = r[i]
+            D[delta[ri]+w[ri]] = i
+            w[ri] += 1
     return D
     
     #DEJH notes that for reasons he's not clear on, this looped version is
@@ -195,9 +227,11 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
+    len_bl_nodes = baselevel_nodes.size
+    s = numpy.zeros(D.size, dtype=int)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
-        add_it(k)
+        add_it(k) #don't think this is a bottleneck, so no C++
     return dstack.s
     
     
@@ -247,8 +281,8 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
     # rate times the cell's surface area.
-    drainage_area = numpy.zeros(np) + node_cell_area
-    discharge = numpy.zeros(np) + node_cell_area*runoff
+    drainage_area = numpy.zeros(np, dtype=int) + node_cell_area
+    discharge = numpy.zeros(np, dtype=int) + node_cell_area*runoff
     
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -257,14 +291,29 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(np-1, -1, -1):
-        donor = s[i]
-        recvr = r[donor]
-        #DEJH: this loop may not be removable... Could use weave?
-        if donor != recvr:
-            drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += discharge[donor]
-      
+    num_pts = len(s)
+    code = """
+        int donor;
+        int rcvr;
+        for (int i = num_pts-1; i > -1; i--) {
+            donor = s[i];
+            rcvr = r[donor];
+            if (donor != rcvr) {
+                drainage_area[rcvr] += drainage_area[donor];
+                discharge[rcvr] += discharge[donor];
+            }
+        }
+    """
+    try:
+        weave.inline(code, ['num_pts', 's', 'r', 'drainage_area', 'discharge'])
+    except CompileError:
+        for i in xrange(np-1, -1, -1):
+            donor = s[i]
+            recvr = r[donor]
+            #DEJH: this loop may not be removable... Could use weave?
+            if donor != recvr:
+                drainage_area[recvr] += drainage_area[donor]
+                discharge[recvr] += discharge[donor]
     return drainage_area, discharge
     
 
@@ -287,6 +336,9 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     """
     
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+    #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't! 
+    #But as we don't have a copy of the grid accessible here, we'll solve this
+    #problem as part of route_flow_dn.
     
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
                                             runoff_rate, boundary_nodes)

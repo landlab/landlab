@@ -32,18 +32,24 @@ from landlab.plot import imshow
 
 class VideoPlotter(object):
     
-    def __init__(self, grid, data_centering='node'):
+    def __init__(self, grid, data_centering='node', start=None, stop=None, step=None):
+        self.initialize(grid, data_centering, start, stop, step)
+    
+    def initialize(self, grid, data_centering, start, stop, step):
         """
         A copy of the grid is required.
         
         *data_centering* controls the type of data the video will be plotting.
         
         It can be set to:
-            'node'
+            'node' (default)
             'active_node'
             'core_node'
             'cell'
             'active_cell'
+        
+        Start, stop, and step control when a frame is added. They are absolute
+        times in the model run. All are optional.
         """
         options_for_data_centering = ['node',
                                       'active_node',
@@ -57,31 +63,35 @@ class VideoPlotter(object):
         #self.image_list = []
         self.data_list = []
         
+        self.last_remainder = float('inf') #this controls the intervals at which to plot
+        self.last_t = float('-inf')
+        if start==None:
+            start = float('-inf')
+        if stop==None:
+            stop = float('inf')
+        self.step_control_tuple = (start,stop,step)
+        
         #initialize the plots for the vid
         if data_centering=='node':
             self.centering = 'n'
-            array_length = grid.number_of_nodes
             self.plotfunc = imshow.imshow_node_grid
         elif data_centering=='active_node':
             self.centering = 'n'
-            array_length = grid.active_nodes.size
             self.plotfunc = imshow.imshow_active_node_grid
         elif data_centering=='core_node':
             self.centering = 'n'
-            array_length = grid.number_of_core_nodes
             self.plotfunc = imshow.imshow_core_node_grid
         elif data_centering=='cell':
             self.centering = 'c'
-            array_length = grid.number_of_cells
             self.plotfunc = imshow.imshow_cell_grid
         else:
             self.centering = 'c'
-            array_length = grid.number_of_active_cells #we might still have problems with the "right" definitions of these lurking in the grid - need thorough unit testing
             self.plotfunc = imshow.imshow_active_cell_grid
-
-        self.fig = plt.figure()
         
-    def add_frame(self, grid, data, **kwds):
+        self.randomized_name = "my_animation_"+str(int(np.random.random()*10000))
+        self.fig = plt.figure(self.randomized_name) #randomized name 
+        
+    def add_frame(self, grid, data, elapsed_t, **kwds):
         """
         data can be either the data to plot (nnodes, or appropriately lengthed
         numpy array), or a string for grid field access.
@@ -97,7 +107,30 @@ class VideoPlotter(object):
             
         self.kwds = kwds
         
-        self.data_list.append(data_in.copy())
+        if self.last_t<elapsed_t:
+            try:
+                normalized_elapsed_t = elapsed_t - self.start_t
+            except AttributeError:
+                self.start_t = elapsed_t
+                normalized_elapsed_t = 0.
+        else: #time has apparently gone "backwards"; reset the module
+            #...note a *forward* jump in time wouldn't register
+            self.clear_module()
+            self.start_t = elapsed_t
+            normalized_elapsed_t = 0.
+        
+        if self.step_control_tuple[0]<=elapsed_t<self.step_control_tuple[1]: #we're between start & stop
+            if not self.step_control_tuple[2]: #no step provided
+                print 'Adding frame to video at elapsed time ', elapsed_t
+                self.data_list.append(data_in.copy())
+            else:
+                excess_fraction = normalized_elapsed_t%self.step_control_tuple[2]
+                #print "excess_fraction", excess_fraction
+                if excess_fraction<self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]): #problems with rounding errors make this double check necessary
+                    print 'Adding frame to video at elapsed time ', elapsed_t
+                    self.data_list.append(data_in.copy())
+                self.last_remainder = excess_fraction
+        self.last_t = elapsed_t
         
     
     def produce_video(self, interval=200, repeat_delay=2000, filename='video_output.gif', override_min_max=None):
@@ -112,6 +145,8 @@ class VideoPlotter(object):
         override_min_max allows the user to set their own maximum and minimum
             for the scale on the plot. Use a len-2 tuple, (min, max).
         """
+        print "Assembling video output, may take a while..."
+        plt.figure(self.randomized_name)
         #find the limits for the plot:
         if not override_min_max:
             self.min_limit = np.amin(self.data_list[0])
@@ -127,6 +162,7 @@ class VideoPlotter(object):
         self.fig.colorbar(self.plotfunc(self.grid, self.data_list[0],limits=(self.min_limit,self.max_limit),allow_colorbar=False, **self.kwds))
         ani = animation.FuncAnimation(self.fig, _make_image, frames=self._yield_image, interval=interval, blit=True, repeat_delay=repeat_delay)
         ani.save(filename, fps=1000./interval)
+        plt.close()
         
         
     def _yield_image(self):
@@ -138,6 +174,15 @@ class VideoPlotter(object):
         for i in self.data_list:
             #yield self.grid.node_vector_to_raster(i)
             yield (i, self.plotfunc, (self.min_limit, self.max_limit), self.grid, self.kwds)
+            
+    
+    def clear_module(self):
+        """
+        Wipe all internally held data that would cause trouble if module
+        were to be rerun without being reinstantiated.
+        """
+        self.data_list = []
+        
     
 def _make_image(yielded_tuple):
     yielded_raster_data = yielded_tuple[0]
