@@ -1081,6 +1081,8 @@ class ModelGrid(ModelDataFields):
         elevs either a field name or an nnodes-array.
         unit is 'degrees' or 'radians'.
         Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        If closed nodes were present in the original array, their values will
+        be masked.
         """
         dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
         dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
@@ -1111,9 +1113,9 @@ class ModelGrid(ModelDataFields):
         slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
         
         if unit=='radians':
-            return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            return slope_mag, (mean_grad_x, mean_grad_y)
         if unit=='degrees':
-            return 180./numpy.pi*slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
     
@@ -1126,7 +1128,7 @@ class ModelGrid(ModelDataFields):
         * unit : 'degrees' (default) or 'radians'
         as for node_slopes_using_patches
         """
-        return self.node_slopes_using_patches(**kwargs)
+        return self.node_slopes_using_patches(elevs, unit)
         
     
     def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
