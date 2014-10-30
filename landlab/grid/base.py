@@ -1128,7 +1128,7 @@ class ModelGrid(ModelDataFields):
         * unit : 'degrees' (default) or 'radians'
         as for node_slopes_using_patches
         """
-        return self.node_slopes_using_patches(elevs, unit)
+        return self.node_slopes_using_patches(**kwargs)
         
     
     def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
