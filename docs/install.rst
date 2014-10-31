@@ -9,7 +9,7 @@ Dependencies
 
 Landlab has the following dependencies:
 - Python 2.7
-- Numpy 1.7 or greater
+- Numpy 1.8 or greater
 - Scipy 0.12 or greater
 
 If you don't already have these packages installed on your computer, simply
