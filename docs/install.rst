@@ -8,9 +8,10 @@ Dependencies
 ============
 
 Landlab has the following dependencies:
-- Python 2.7
-- Numpy 1.8 or greater
-- Scipy 0.12 or greater
+
+    - Python 2.7
+    - Numpy 1.8 or greater
+    - Scipy 0.12 or greater
 
 If you don't already have these packages installed on your computer, simply
 install one of the preassembled scientific Python collections described below
@@ -77,7 +78,7 @@ Installing Landlab
 The recommended way to install landlab is from source, as it will make it
 easiest to keep up with the latest bug fixes.
 
-It is also possible to install a "classroom version" of Landlab, which will give you
+It is also possible to install a **"classroom version"** of Landlab, which will give you
 (or more likely, your putative undergraduate class) a single, quick and easy, but
 non-updateable snapshot of Landlab. For details on installing the classroom version,
 click :ref:`here <classroom_install>`.
@@ -90,7 +91,7 @@ click :ref:`here <classroom_install>`.
     system. For an introduction to Git and DVCS, see the official
     `git documentation <http://git-scm.com/documentation>`_. Installing the
     Github graphical user interface (see below) will give you the necessary
-     git tools.
+    git tools.
 
 
 .. _source-install:
