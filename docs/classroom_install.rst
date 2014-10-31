@@ -45,7 +45,7 @@ of existing packages on that machine from a command prompt::
 Step 2: Download the code
 >>>>>>>>>>>>>>>>>>>>>>>>>
 
-Go to `the Github Landlab page<https://github.com/landlab/landlab>`_. There's no need
+Go to `the Github Landlab page <https://github.com/landlab/landlab>`_. There's no need
 to register for an account. On the right hand side of the page, click the **Download
 ZIP** button. This should start an automatic download of the zipped version of the
 Landlab code files.
