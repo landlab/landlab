@@ -36,7 +36,7 @@ Installing Python
     on machines. Common symptoms are running the python setup commands at the end of this
     file, but then not being able to load landlab.
     If you suspect this might be happening to you after you've installed one
-    of the distributions described below, click `here <correcting_python_version>`.
+    of the distributions described below, click :ref:`here <correcting_python_version>`.
 
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution, such as `Continuum IO's Anaconda
@@ -67,7 +67,7 @@ operating system. For instance, Dan's Macbook Pro gives:
 
     /Users/danhobley/Library/Enthought/Canopy_64bit/User/bin/python
 
-If you *don't* see reference to your newly installed distribution, click `here 
+If you *don't* see reference to your newly installed distribution, click :ref:`here 
 <correcting_python_version>` to resolve the problem.
 
 
@@ -80,7 +80,7 @@ easiest to keep up with the latest bug fixes.
 It is also possible to install a "classroom version" of Landlab, which will give you
 (or more likely, your putative undergraduate class) a single, quick and easy, but
 non-updateable snapshot of Landlab. For details on installing the classroom version,
-click `here <classroom_install>`.
+click :ref:`here <classroom_install>`.
 
 .. note::
 
@@ -130,45 +130,46 @@ With GitHub GUI
    cause your machine to switch back to the Github app and begin the download process. 
    Pick a location to store the Landlab files on your hard drive, and click through.
    Download will begin.
-#. Now, leave the Github app and open a command prompt(PC) or Terminal(Mac/Unix). 
+#. Now, leave the Github app and open a command prompt (PC) or Terminal (Mac/Unix). 
    Navigate to the root directory of your Landlab download (reminder: change directory
    in a prompt/terminal using the command ``cd``, then the name of the subfolder; 
    ``cd ..`` takes you up one folder level). This root directory will contain a file
    called `setup.py` (check with ``dir`` (PC) or ``ls`` (Mac/Linux)).
    From this directory, type at the prompt::
 
-    python setup.py develop
+        python setup.py develop
 
-    .. note::
+.. note::
     
-        This command tells your install of Python that `landlab` is a Python module that 
-        you have now installed on your system, and where to look for the files it needs
-        to run. Using the keyword `develop` warns Python that the code you have saved 
-        on your disc might change from time to time. This
-        means that should you so desire, you can make changes to the code, add 
-        functionality, add your own modules, or otherwise tinker with the .py files you
-        will find in the directories that Github has placed on your system. Importantly,
-        however, it also allows to you quickly and easily use Github to download more
-        up-to-date versions of Landlab - which may contain bug fixes, etc. For more on
-        updating your installation of Landlab, click `here <updating_landlab>`.
+    This command tells your install of Python that `landlab` is a Python module that 
+    you have now installed on your system, and where to look for the files it needs
+    to run. Using the keyword `develop` warns Python that the code you have saved 
+    on your disc might change from time to time. This
+    means that should you so desire, you can make changes to the code, add 
+    functionality, add your own modules, or otherwise tinker with the .py files you
+    will find in the directories that Github has placed on your system. Importantly,
+    however, it also allows to you quickly and easily use Github to download more
+    up-to-date versions of Landlab - which may contain bug fixes, etc. For more on
+    updating your installation of Landlab, click :ref:`here <updating_landlab>`.
         
     
-    Finally, test everything worked. From the same command line, type::
+#. Finally, test everything worked. From the same command line, type::
     
-      python
+        python
     
-    An interactive Python window will open in the command line; the prompt will look like
-    ``>>>``. From here, enter::
+   An interactive Python window will open in the command line; the prompt will look like
+   ``>>>``. From here, enter::
     
-      import landlab
+        import landlab
     
-    If you are returned to the >>> prompt after a few moments, everything is fine. If you
-    see an error message, you might have some problems with your install. See the `install
-    FAQ page <install_FAQ>` for a list of known install issues, and their solutions. 
-    
-    Leave the Python shell by typing::
+   If you are returned to the >>> prompt after a few moments, everything is fine. If you
+   see an error message, you might have some problems with your install. See the 
+   :ref:`install FAQ page <install_FAQ>` for a list of known install issues, and their 
+   solutions. 
    
-      exit()
+   Leave the Python shell by typing::
+   
+        exit()
       
 
 .. _command-line-install:
@@ -204,8 +205,9 @@ With Git
       import landlab
     
    If you are returned to the >>> prompt after a few moments, everything is fine. If you
-   see an error message, you might have some problems with your install. See the `install
-   FAQ page <install_FAQ>` for a list of known install issues, and their solutions. 
+   see an error message, you might have some problems with your install. See the 
+   :ref:`install FAQ page <install_FAQ>` for a list of known install issues, and their 
+   solutions. 
    
    Leave the Python shell by typing::
    
