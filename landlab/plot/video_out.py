@@ -95,7 +95,8 @@ class VideoPlotter(object):
         """
         data can be either the data to plot (nnodes, or appropriately lengthed
         numpy array), or a string for grid field access.
-        
+
+        kwds can be any of the usual plotting keywords, e.g., cmap. 
         """
         if type(data)==str:
             if self.centering=='n':
@@ -104,6 +105,8 @@ class VideoPlotter(object):
                 data_in = grid.at_cell[data]
         else:
             data_in = data
+            
+        self.kwds = kwds
         
         if self.last_t<elapsed_t:
             try:
@@ -131,20 +134,33 @@ class VideoPlotter(object):
         self.last_t = elapsed_t
         
     
-    def produce_video(self, interval=200, repeat_delay=2000, filename='video_output.gif'):
+    def produce_video(self, interval=200, repeat_delay=2000, filename='video_output.gif', override_min_max=None):
         """
+        Finalize and save the video of the data.
+        
+        interval and repeat_delay are the interval between frames and the repeat
+            delay before restart, both in milliseconds.
+        filename is the name of the file to save in the present working 
+            directory. At present, only .gifs will implement reliably without
+            tweaking Python's PATHs.
+        override_min_max allows the user to set their own maximum and minimum
+            for the scale on the plot. Use a len-2 tuple, (min, max).
         """
         print "Assembling video output, may take a while..."
         plt.figure(self.randomized_name)
         #find the limits for the plot:
-        self.min_limit = np.amin(self.data_list[0])
-        self.max_limit = np.amax(self.data_list[0])
-        assert len(self.data_list) > 1, 'You must include at least two frames to make an animation!'
-        for i in self.data_list[1:]: #assumes there is more than one frame in the loop
-            self.min_limit = min((self.min_limit, np.amin(i)))
-            self.max_limit = max((self.max_limit, np.amax(i)))
+        if not override_min_max:
+            self.min_limit = np.amin(self.data_list[0])
+            self.max_limit = np.amax(self.data_list[0])
+            assert len(self.data_list) > 1, 'You must include at least two frames to make an animation!'
+            for i in self.data_list[1:]: #assumes there is more than one frame in the loop
+                self.min_limit = min((self.min_limit, np.amin(i)))
+                self.max_limit = max((self.max_limit, np.amax(i)))
+        else:
+            self.min_limit=override_min_max[0]
+            self.max_limit=override_min_max[1]
             
-        self.fig.colorbar(self.plotfunc(self.grid, self.data_list[0],limits=(self.min_limit,self.max_limit),allow_colorbar=False))
+        self.fig.colorbar(self.plotfunc(self.grid, self.data_list[0],limits=(self.min_limit,self.max_limit),allow_colorbar=False, **self.kwds))
         ani = animation.FuncAnimation(self.fig, _make_image, frames=self._yield_image, interval=interval, blit=True, repeat_delay=repeat_delay)
         ani.save(filename, fps=1000./interval)
         plt.close()
@@ -158,7 +174,7 @@ class VideoPlotter(object):
         
         for i in self.data_list:
             #yield self.grid.node_vector_to_raster(i)
-            yield (i, self.plotfunc, (self.min_limit, self.max_limit), self.grid)
+            yield (i, self.plotfunc, (self.min_limit, self.max_limit), self.grid, self.kwds)
             
     
     def clear_module(self):
@@ -168,11 +184,12 @@ class VideoPlotter(object):
         """
         self.data_list = []
 
-    
+
 def _make_image(yielded_tuple):
     yielded_raster_data = yielded_tuple[0]
     plotfunc = yielded_tuple[1]
     limits_in = yielded_tuple[2]
     grid = yielded_tuple[3]
-    im = plotfunc(grid, yielded_raster_data, limits=limits_in, allow_colorbar=False)
+    kwds = yielded_tuple[4]
+    im = plotfunc(grid, yielded_raster_data, limits=limits_in, allow_colorbar=False, **kwds)
     return im

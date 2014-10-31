@@ -61,5 +61,4 @@ docs/_build/
 landlab/test.pdf
 test-results.xml
 
-landlab/examples/*.gif
 *.gif

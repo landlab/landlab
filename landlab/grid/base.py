@@ -17,16 +17,18 @@ To access these groups, use the same methods as accessing groups with
 `~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
 itself that provide access to the values groups:
 
-==================================  ==============================
-:attr:`~.ModelGrid.at_node`         Value defined at nodes.
-:attr:`~.ModelGrid.at_cell`         Value defined at cells.
-:attr:`~.ModelGrid.at_link`         Value defined at links.
-:attr:`~.ModelGrid.at_face`         Value defined at faces.
-:attr:`~.ModelGrid.at_core_node`    Value defined at core nodes.
-:attr:`~.ModelGrid.at_core_cell`    Value defined at core cells.
-:attr:`~.ModelGrid.at_active_link`  Value defined at active links.
-:attr:`~.ModelGrid.at_active_face`  Value defined at active faces.
-==================================  ==============================
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.grid.base.ModelGrid.at_node
+    ~landlab.grid.base.ModelGrid.at_cell
+    ~landlab.grid.base.ModelGrid.at_link
+    ~landlab.grid.base.ModelGrid.at_face
+    ~landlab.grid.base.ModelGrid.at_core_node
+    ~landlab.grid.base.ModelGrid.at_core_cell
+    ~landlab.grid.base.ModelGrid.at_active_link
+    ~landlab.grid.base.ModelGrid.at_active_face
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -159,12 +161,16 @@ To add a previously created array to the grid, use the
 :meth:`~.ModelGrid.add_field` method but be aware that it must be of the
 correct size (if it's not a ``ValueError`` will be raised).
 
+>>> grid.has_field('node', 'air__temperature')
+False
 >>> import numpy as np
 >>> t = np.zeros(9.)
 >>> t is grid.add_field('node', 'air__temperature', t)
 True
 >>> grid.has_field('node', 'air__temperature')
 True
+>>> grid.has_field('cell', 'air__temperature')
+False
 >>> t is grid.at_node['air__temperature']
 True
 """
@@ -400,7 +406,6 @@ class ModelGrid(ModelDataFields):
     axis_units : tuple, optional
         Units of coordinates
     """
-
     # Debugging flags (if True, activates some output statements)
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
@@ -408,7 +413,7 @@ class ModelGrid(ModelDataFields):
     at_node = {} #: Values defined at nodes
     at_cell = {} #: Values defined at cells
     at_link = {} #: Values defined at links
-    at_face = {}  #: Values defined at faces
+    at_face = {} #: Values defined at faces
     at_core_node = {} #: Values defined at core nodes
     at_core_cell = {} #: Values defined at core cells
     at_active_link = {} #: Values defined at active links
@@ -1069,13 +1074,17 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
 
-    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees', return_components=False):
         """
         trial run to extract average local slopes at nodes by the average slope
         of its surrounding patches. DEJH 10/1/14
         elevs either a field name or an nnodes-array.
         unit is 'degrees' or 'radians'.
-        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        If return_components=False (the default), returns the slope magnitude.
+        If return_components=True, returns the slope magnitude, then the vector
+        (a tuple) of the slope components in the x, y directions.
+        If closed nodes were present in the original array, their values will
+        be masked.
         """
         dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
         dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
@@ -1103,12 +1112,18 @@ class ModelGrid(ModelDataFields):
         mean_grad_x = numpy.mean(grad_x,axis=1)
         mean_grad_y = numpy.mean(grad_y,axis=1)
         
-        slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
+        slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
         
         if unit=='radians':
-            return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            if not return_components:
+                return slope_mag
+            else:
+                return slope_mag, (mean_grad_x, mean_grad_y)
         if unit=='degrees':
-            return 180./numpy.pi*slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            if not return_components:
+                return 180./numpy.pi*slope_mag
+            else:
+                return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
     

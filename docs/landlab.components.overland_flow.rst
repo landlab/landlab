@@ -4,14 +4,6 @@ landlab.components.overland_flow package
 Submodules
 ----------
 
-landlab.components.overland_flow.functionality_test module
-----------------------------------------------------------
-
-.. automodule:: landlab.components.overland_flow.functionality_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 landlab.components.overland_flow.generate_overland_flow module
 --------------------------------------------------------------
 
@@ -28,10 +20,34 @@ landlab.components.overland_flow.generate_overland_flow_DEM module
     :undoc-members:
     :show-inheritance:
 
+landlab.components.overland_flow.generate_overland_flow_DEM_fields module
+-------------------------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_DEM_fields
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.overland_flow.overland_flow_driver module
 ------------------------------------------------------------
 
 .. automodule:: landlab.components.overland_flow.overland_flow_driver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.overland_flow.overland_flow_driver_chiri module
+------------------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.overland_flow_driver_chiri
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.overland_flow.overland_flow_driver_fields_trial module
+-------------------------------------------------------------------------
+
+.. automodule:: landlab.components.overland_flow.overland_flow_driver_fields_trial
     :members:
     :undoc-members:
     :show-inheritance:
