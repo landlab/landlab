@@ -1074,13 +1074,15 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
 
-    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees', return_components=False):
         """
         trial run to extract average local slopes at nodes by the average slope
         of its surrounding patches. DEJH 10/1/14
         elevs either a field name or an nnodes-array.
         unit is 'degrees' or 'radians'.
-        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        If return_components=False (the default), returns the slope magnitude.
+        If return_components=True, returns the slope magnitude, then the vector
+        (a tuple) of the slope components in the x, y directions.
         If closed nodes were present in the original array, their values will
         be masked.
         """
@@ -1110,12 +1112,18 @@ class ModelGrid(ModelDataFields):
         mean_grad_x = numpy.mean(grad_x,axis=1)
         mean_grad_y = numpy.mean(grad_y,axis=1)
         
-        slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
+        slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
         
         if unit=='radians':
-            return slope_mag, (mean_grad_x, mean_grad_y)
+            if not return_components:
+                return slope_mag
+            else:
+                return slope_mag, (mean_grad_x, mean_grad_y)
         if unit=='degrees':
-            return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
+            if not return_components:
+                return 180./numpy.pi*slope_mag
+            else:
+                return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
     
