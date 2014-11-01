@@ -22,6 +22,7 @@ install:
 script: 
   - (cd docs && make html)
   - nosetests --with-coverage --cover-package=landlab
+  - python -c 'import landlab; landlab.test()'
 
 virtualenv:
   system_site_packages: false
