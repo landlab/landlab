@@ -89,8 +89,8 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
-    out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
-    out *= 1. / grid.node_spacing
+    out = np.subtract(values_at_neighbors, values_at_nodes, **kwds)
+    out = np.multiply(out, 1. / grid.node_spacing, out=out)
 
     return out
 
@@ -989,13 +989,10 @@ def find_nearest_node(rmg, coords, mode='raise'):
 
 
 def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
-    column_indices, row_indices = (np.empty(coords[0].shape, dtype=np.int),
-                                   np.empty(coords[1].shape, dtype=np.int))
-
-    np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing,
-              out=column_indices)
-    np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing,
-              out=row_indices)
+    column_indices = np.int_(
+        np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing))
+    row_indices = np.int_(
+        np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 
