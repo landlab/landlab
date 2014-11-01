@@ -16,13 +16,13 @@ _VALUES_AT_NODES = None
 def setup_unit_grid():
     global _GRID, _VALUES_AT_NODES
     _GRID = RasterModelGrid(4, 5)
-    _VALUES_AT_NODES = np.arange(20)
+    _VALUES_AT_NODES = np.arange(20.)
 
 
 def setup_non_unit_grid():
     global _GRID, _VALUES_AT_NODES
     _GRID = RasterModelGrid(4, 5, 2.)
-    _VALUES_AT_NODES = np.arange(20)
+    _VALUES_AT_NODES = np.arange(20.)
 
 
 @with_setup(setup_unit_grid)

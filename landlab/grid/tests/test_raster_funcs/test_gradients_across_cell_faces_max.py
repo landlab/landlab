@@ -18,7 +18,7 @@ def setup_unit_grid():
     from landlab import RasterModelGrid
     global _GRID, _VALUES_AT_NODES
     _GRID = RasterModelGrid(4, 5)
-    _VALUES_AT_NODES = np.arange(20)
+    _VALUES_AT_NODES = np.arange(20.)
 
 
 def setup_3x3_grid():
@@ -53,7 +53,7 @@ def test_scalar_arg_with_return_node():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,])
+                       0, 1, -3, 6, 10,], dtype=float)
     (grad, node) = _GRID.calculate_steepest_descent_across_cell_faces(
         values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])
