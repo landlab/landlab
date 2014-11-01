@@ -725,7 +725,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if len(args) == 0:
             cell_ids = np.arange(self.number_of_cells)
         elif len(args) == 1:
-            cell_ids = np.broadcast_arrays(args[0])[0]
+            cell_ids = np.broadcast_arrays(args[0])[0].ravel()
         else:
             raise ValueError()
 
