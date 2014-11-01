@@ -1,3 +1,41 @@
+"""Arrays of variable-length arrays.
+
+Examples
+========
+
+Create a JaggedArray that stores link IDs for the links attached to the
+nodes of a 3x3 grid.
+
+>>> links_at_node = JaggedArray([
+...     [0, 6],
+...     [1, 7, 0],
+...     [8, 1],
+...     [2, 9, 6],
+...     [3, 10, 2, 7],
+...     [11, 3, 8],
+...     [4, 7],
+...     [5, 10, 4],
+...     [5, 11]])
+
+Make up some data that provides values at each of the links.
+
+>>> value_at_link = np.arange(12, dtype=float)
+
+Create another JaggedArray. Here we store the values at each of the links
+attached to nodes of the grid.
+
+>>> values_at_node = JaggedArray.empty_like(links_at_node, dtype=float)
+>>> values_at_node.array[:] = value_at_link[links_at_node.array]
+
+Now operate on the link values for each node.
+
+>>> values_at_node.foreach_row(sum)
+array([  6.,   8.,   9.,  17.,  22.,  22.,  11.,  19.,  16.])
+>>> values_at_node.foreach_row(min)
+array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
+>>> values_at_node.foreach_row(np.ptp)
+array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
+"""
 import numpy as np
 
 
@@ -121,6 +159,11 @@ class JaggedArray(object):
         offset[0] = 0
         return offset
 
+    @staticmethod
+    def empty_like(jagged, dtype=None):
+        return JaggedArray(np.empty_like(jagged.array, dtype=dtype),
+                           np.diff(jagged.offset))
+
     def length_of_row(self, row):
         """Number of values in a given row.
 
@@ -185,3 +228,25 @@ class JaggedArray(object):
         for n in xrange(self._number_of_rows):
             yield self.row(n)
 
+    def foreach_row(self, func, out=None):
+        """Apply an operator row-by-row
+
+        Examples
+        --------
+        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> x.foreach_row(sum)
+        array([3, 7])
+
+        >>> out = np.empty(2, dtype=int)
+        >>> x.foreach_row(sum, out=out) is out
+        True
+        >>> out
+        array([3, 7])
+        """
+        if out is None:
+            out = np.empty(self.number_of_rows, dtype=self._values.dtype)
+
+        for (m, row) in enumerate(self):
+            out[m] = func(row)
+
+        return out

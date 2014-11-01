@@ -5,6 +5,7 @@ Unit tests for landlab.io.esri_ascii module.
 import os
 import numpy as np
 from StringIO import StringIO
+from numpy.testing import assert_array_equal
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
     from nose.tools import assert_is_instance, assert_list_equal
@@ -55,12 +56,11 @@ def test_4x3_read_file_name():
     assert_is_instance(grid, RasterModelGrid)
 
     assert_is_instance(field, np.ndarray)
-    assert_equal(field.shape, (4 * 3, ))
-    assert_list_equal(list(field.flat), [0., 1., 2.,
-                                         3., 4., 5.,
-                                         6., 7., 8.,
-                                         9., 10., 11.,
-                                        ])
+    assert_array_equal(field,
+                       np.array([9., 10., 11.,
+                                 6.,  7.,  8.,
+                                 3.,  4.,  5.,
+                                 0.,  1.,  2.]))
 
 def test_4x3_read_file_like():
     with open(os.path.join(_TEST_DATA_DIR, '4_x_3.asc')) as asc_file:
@@ -68,13 +68,11 @@ def test_4x3_read_file_like():
 
     assert_is_instance(grid, RasterModelGrid)
 
-    assert_is_instance(field, np.ndarray)
-    assert_equal(field.shape, (4 * 3, ))
-    assert_list_equal(list(field.flat), [0., 1., 2.,
-                                         3., 4., 5.,
-                                         6., 7., 8.,
-                                         9., 10., 11.,
-                                        ])
+    assert_array_equal(field,
+                       np.array([9., 10., 11.,
+                                 6.,  7.,  8.,
+                                 3.,  4.,  5.,
+                                 0.,  1.,  2.]))
 
 
 def test_4x3_shape_mismatch():

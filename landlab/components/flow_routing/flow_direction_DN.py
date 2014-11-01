@@ -10,12 +10,104 @@ Modified Feb 2014
 
 
 import numpy
-from landlab import RasterModelGrid
+import numpy as np
 
-UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
+from landlab import RasterModelGrid, BAD_INDEX_VALUE
+from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
+
+UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
-def flow_directions(elev, active_links, fromnode, tonode, link_slope, grid=None, baselevel_nodes=None):
+def grid_flow_directions(grid, elevations):
+    """Flow directions on raster grid.
+
+    Calculate flow directions for node elevations on a raster grid. 
+    Each node is assigned a single direction, toward one of its neighboring
+    nodes (or itself, if none of its neighbors are lower). There is only
+    flow from one node to another if there is a negative gradient. If a
+    node's steepest gradient is >= 0., then its slope is set to zero and
+    its receiver node is listed as itself.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        a raster grid.
+    elevations: ndarray
+        Node elevations.
+
+    Returns
+    -------
+    receiver : (ncells, ) ndarray
+        For each cell, the node in the direction of steepest descent, or
+        itself if no downstream nodes.
+    steepest_slope : (ncells, ) ndarray
+        The slope value in the steepest direction of flow.
+
+    Notes
+    -----
+    This function considers only nodes that have four neighbors. Thus, only
+    calculate flow directions and slopes for nodes that have associated
+    cells.
+
+    Examples
+    --------
+    This example calculates flow routing on a (4,5) raster grid with the
+    following node elevations::
+
+        5 - 5 - 5 - 5 - 5
+        |   |   |   |   |
+        5 - 3 - 4 - 3 - 5
+        |   |   |   |   |
+        5 - 1 - 2 - 2 - 5
+        |   |   |   |   |
+        5 - 0 - 5 - 5 - 5
+        
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid(4,5)
+    >>> z = numpy.array([5., 0., 5., 5., 5.,
+    ...                  5., 1., 2., 2., 5.,
+    ...                  5., 3., 4., 3., 5.,
+    ...                  5., 5., 5., 5., 5.])
+    >>> recv_nodes, slope = grid_flow_directions(mg, z)
+
+    Each node with a cell has a receiving node (although that node may be
+    itself).
+
+    >>> recv_nodes
+    array([1, 6, 8, 6, 7, 8])
+
+    All positive gradients are clipped to zero.
+
+    >>> slope
+    array([-1., -1.,  0., -2., -2., -1.])
+
+    If a cell has no surrounding neighbors lower than itself, it is a sink.
+    Use :attr:`~landlab.grid.base.ModelGrid.node_index_at_cells` to get the
+    nodes associated with the cells.
+
+    >>> sink_cells = np.where(slope >= 0)[0]
+    >>> sink_cells
+    array([2])
+    >>> mg.node_index_at_cells[sink_cells] # Sink nodes
+    array([8])
+
+    The source/destination node pairs for the flow.
+
+    >>> zip(mg.node_index_at_cells, recv_nodes)
+    [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
+    """
+    slope, receiver = calculate_steepest_descent_across_cell_faces(
+        grid, elevations, return_node=True)
+
+    (sink_cell, ) = numpy.where(slope >= 0.)
+    receiver[sink_cell] = grid.node_index_at_cells[sink_cell]
+    slope[sink_cell] = 0.
+
+    return receiver, slope
+
+
+def flow_directions(elev, active_links, fromnode, tonode, link_slope,
+                    grid=None, baselevel_nodes=None):
     """Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
@@ -49,7 +141,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, grid=None,
         IDs of nodes that are flow sinks (they are their own receivers)
     receiver_link : ndarray
         ID of link that leads from each node to its receiver, or
-        UNDEFINED_INDEX if none (UNDEFINED_INDEX is the smallest integer).
+        UNDEFINED_INDEX if none.
     
     Examples
     --------
@@ -70,38 +162,42 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope, grid=None,
     >>> snk
     array([4])
     >>> rl[3:8]
-    array([                  15, -9223372036854775808,                    1,
-                              6,                    2])
+    array([        15, 2147483647,          1,          6,          2])
 
     Example 2
     ---------
-    This example implements a simple routing on a (4,5) raster grid:
+    This example implements a simple routing on a (4,5) raster grid with the
+    following node elevations::
+
+        5 - 5 - 5 - 5 - 5
+        |   |   |   |   |
+        5 - 3 - 4 - 3 - 5
+        |   |   |   |   |
+        5 - 1 - 2 - 2 - 5
+        |   |   |   |   |
+        5 - 0 - 5 - 5 - 5
         
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid(4,5)
-    >>> z = numpy.array([5., 0., 5., 5., 5., 5., 1., 2., 2., 5., 5., 3., 4., 3., 5., 5., 5., 5., 5., 5.])
-    >>> fn = None
-    >>> tn = None
-    >>> s = None
+    >>> z = numpy.array([5., 0., 5., 5., 5.,
+    ...                  5., 1., 2., 2., 5.,
+    ...                  5., 3., 4., 3., 5.,
+    ...                  5., 5., 5., 5., 5.])
+    >>> fn = tn = s = None
     >>> active_links = None #these can all be dummy variables
-    >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s, grid=mg)
-    >>> r
-    array([ 1,  1,  1,  8,  4,  6,  1,  6,  6,  8, 11, 10,  7, 18, 14, 15, 16,
-           12, 18, 19])
-    >>> ss
-    array([ 1.4,  0. ,  1.2,  3. ,  0. ,  3. ,  1. ,  0.3,  1.1,  3. ,  3. ,
-            2. ,  4. ,  1. ,  0. ,  0. ,  0. ,  5. ,  0. ,  0. ])
-    >>> snk
-    array([ 1,  4, 14, 15, 16, 18, 19])
-    >>> rl
-    array([                   3, -9223372036854775808,                    4,
-                              2, -9223372036854775808,                    9,
-                              0,                    9,                   13,
-                             12,                   13,                   13,
-                              4,                    8, -9223372036854775808,
-           -9223372036854775808, -9223372036854775808,                    7,
-           -9223372036854775808, -9223372036854775808])
-    
+
+    #>>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s, grid=mg)
+    #>>> r
+    #array([ 1,  1,  1,  8,  4,  6,  1,  6,  8,  8, 11,  6,  7,  8,  13, 15, 11, 12, 13, 19])
+    #>>> ss
+    #array([ 5.0, 0.0, 5.0, 3.0, 0.0, 4.0, 1.0, 1.0, 0.0, 3.0, 2.0, 2.0, 2.0, 1.0, 0.0, 0.0, 2.0, 1.0, 2.0, 0.0])
+    #>>> snk
+    #array([ 1,  4,  8,  14, 15, 19])
+    #>>> rl
+    #array([         0, 2147483647,  1,         19, 2147483647,
+    #                4,         17,  5, 2147483647,          7,
+    #                8,         22, 23,         24,         11,
+    #       2147483647,         27, 18,         29, 2147483647])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:

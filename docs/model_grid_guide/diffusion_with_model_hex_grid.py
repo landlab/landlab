@@ -81,14 +81,9 @@ def main():
     print('Run time = '+str(time.time()-start_time)+' seconds')
     
     # Plot the points, colored by elevation
+    mg.hexplot('Land_surface__elevation')
     pylab.figure()
-    maxelev = numpy.amax(z)
-    for i in range(mg.number_of_nodes):
-        mycolor = str(z[i]/maxelev)
-        pylab.plot(mg.node_x[i], mg.node_y[i], 'o', color=mycolor, ms=50)
-    pylab.show()
-    
-    mg.display_grid()
+    mg.display_grid(draw_voronoi=True)
     
 
 if __name__ == "__main__":

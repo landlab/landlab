@@ -99,7 +99,7 @@ class FlowRouter():
             - Node array containing downstream-to-upstream ordered list of node
               IDs: *'upstream_ID_order'*
             - Node array containing ID of link that leads from each node to its
-              receiver (or UNDEFINED_INDEX if there is no receiver):
+              receiver (or ITS OWN ID if there is no receiver):
               *'links_to_flow_receiver'*
         
         Returns, if *grid* was provided:

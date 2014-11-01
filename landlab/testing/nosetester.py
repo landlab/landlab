@@ -1,11 +1,12 @@
 import os
 import sys
-import nose
 from numpy.testing import Tester
 
 
 def show_system_info():
     import landlab
+    import nose
+
     print('landlab version %s' % landlab.__version__)
     landlab_dir = os.path.dirname(landlab.__file__)
     print('landlab is installed in %s' % landlab_dir)

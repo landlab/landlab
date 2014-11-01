@@ -201,7 +201,8 @@ class WatershedBoundaryConditions(object):
                     
         #set outlet boundary condition
         mg.set_fixed_value_boundaries(outlet_loc)
-        x,y=mg.get_node_coords(outlet_loc)
+        #x=mg.node_x[outlet_loc]
+        #y=node_y[outlet_loc]
         #print "outlet_loc ", outlet_loc," x ",x," y ",y 
         return outlet_loc
         

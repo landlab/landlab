@@ -24,7 +24,7 @@ class AccumFlow(object):
         self.initialize(grid, data)
 
     def initialize(self, grid, data):
-        self.flow_accum_by_area = np.zeros(grid._array_length('node')+1) #prefilled with zeros, size of WHOLE grid+1, to allow -1 ids
+        self.flow_accum_by_area = np.zeros(grid.number_of_nodes+1) #prefilled with zeros, size of WHOLE grid+1, to allow -1 ids
         #Test if this module is to produce the flowacc data. It should be!
         try:
             data.flowacc

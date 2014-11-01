@@ -20,6 +20,14 @@ landlab.plot.imshow module
     :undoc-members:
     :show-inheritance:
 
+landlab.plot.video_out module
+-----------------------------
+
+.. automodule:: landlab.plot.video_out
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

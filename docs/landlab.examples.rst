@@ -76,6 +76,22 @@ landlab.examples.germany_test_driver module
     :undoc-members:
     :show-inheritance:
 
+landlab.examples.plotter_test module
+------------------------------------
+
+.. automodule:: landlab.examples.plotter_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.examples.slope_aspect_routines_comparison module
+--------------------------------------------------------
+
+.. automodule:: landlab.examples.slope_aspect_routines_comparison
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.examples.stream_power_driver module
 -------------------------------------------
 
