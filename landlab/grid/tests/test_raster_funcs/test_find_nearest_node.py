@@ -23,7 +23,7 @@ def test_with_iterable():
     rmg = RasterModelGrid(4, 5)
     id = rfuncs.find_nearest_node(rmg, ([0.2], [0.6]))
     assert_array_equal(id, np.array([5], dtype=int))
-    assert_is_instance(id, np.ndarray)
+    assert_is_instance(id, np.int64)
 
 
 def test_with_ndarray_with_length_0():
