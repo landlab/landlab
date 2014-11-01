@@ -16,7 +16,7 @@ def show_system_info():
 
 
 class LandlabTester(Tester):
-    excludes = []
+    excludes = ['examples']
 
     def __init__(self, package=None, raise_warnings='develop'):
         package_name = None
@@ -47,5 +47,6 @@ class LandlabTester(Tester):
 
 
     def test(self, **kwds):
+        kwds['verbose'] = 10
         show_system_info()
         super(LandlabTester, self).test(**kwds)
