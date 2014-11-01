@@ -84,9 +84,6 @@ class TestRasterModelGrid(object):
             [11,  X,  X,  X], [12, 16, 10,  6], [13, 17, 11,  7], [14, 18, 12,  8], [ X,  X, 13,  X],
             [ X,  X,  X,  X], [ X,  X,  X, 11], [ X,  X,  X, 12], [ X,  X,  X, 13], [ X,  X,  X,  X]])
 
-        print expected
-        print self.rmg.get_neighbor_list() 
-
         assert_array_equal(self.rmg.get_neighbor_list(), expected)
 
     def test_node_x(self):
