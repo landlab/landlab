@@ -1574,10 +1574,13 @@ class ModelGrid(ModelDataFields):
         and is overridden in raster.py. It is unlikely this parent method will
         ever need to be called.
         '''
-        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
-        self.forced_cell_areas.fill(numpy.nan)
+        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self._forced_cell_areas.fill(numpy.nan)
         cell_node_ids = self.get_active_cell_node_ids()
-        self.forced_cell_areas[cell_node_ids] = self.cell_areas
+        try:
+            self._forced_cell_areas[cell_node_ids] = self.cell_areas
+        except AttributeError:
+            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas #in the case of the Voronoi
 
     def get_active_cell_node_ids( self ):
         """Nodes of active cells.

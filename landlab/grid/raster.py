@@ -1535,7 +1535,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
         >>> rmg.calculate_steepest_descent_across_cell_faces(node_values, 0)
-        array([-1.])
+        masked_array(data = [-1.],
+                     mask = False,
+               fill_value = 1e+20)
+        <BLANKLINE>
 
         Get both the maximum gradient and the node to which the gradient is
         measured.
@@ -1656,8 +1659,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
         >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0)
-        array([-1.])
-
+        masked_array(data = [-1.],
+                     mask = False,
+               fill_value = 1e+20)
+        <BLANKLINE>
+                       
         Get both the maximum gradient and the node to which the gradient is
         measured.
 
@@ -2039,7 +2045,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.number_of_active_links
         12
         >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
         """
 
         if self._DEBUG_TRACK_METHODS:
@@ -2124,7 +2130,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        #put some arbitrary values in the grid fields
+        
+        Put some arbitrary values in the grid fields:
+        
         >>> import numpy as np
         >>> rmg.at_node['planet_surface__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -2134,7 +2142,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.number_of_active_links
         12
         >>> rmg.node_status
-        array([4, 4, 4, 4, 4, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 1, 1, 1, 1, 1], dtype=int8)
+        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
 
         Note that the four corners are treated as follows:
             bottom left = BOTTOM
@@ -2634,6 +2642,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
+            self.fixed_gradient_node_properties['fixed_gradient_of'] = gradient_of
             self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(int)
             self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(int)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
