@@ -124,12 +124,12 @@ class Radiation( Component ):
         self._Rnet = self._cell_values['NetShortWaveRadiation']
 
         self._julian = np.floor( ( current_time - np.floor( current_time ) )  \
-                                  * 365 )                          # Julian day
+                                  * 365.25 )                          # Julian day
 
-        self._phi = np.pi/180.0 * self._latitude        # Latitude in Radians
+        self._phi = np.radians(self._latitude)        # Latitude in Radians
 
-        self._delta = 23.45 * np.pi/180.0 * np.cos(2*np.pi/365                 \
-                        * (172 - self._julian))             # Declination angle
+        self._delta = 23.45 * np.radians(np.cos(2*np.pi/365                 \
+                        * (172 - self._julian)))             # Declination angle
 
 
         self._tau = (self._t + 12.0) * np.pi/12.0                # Hour angle
@@ -168,10 +168,12 @@ class Radiation( Component ):
                                 self._Rsflat
                             # flat surface Net incoming shortwave radiation
 
-        self._radf = (np.cos(self._slope) *                        \
+        self._sloped = (np.cos(self._slope) *                        \
                     np.sin(self._alpha) + np.sin(self._slope) *    \
                     np.cos(self._alpha) *                          \
-                    np.cos(self._phisun - self._aspect))/self._flat
+                    np.cos(self._phisun - self._aspect))
+
+        self._radf = self._sloped/self._flat
 
         self._radf[self._radf<=0.] = 0.
         self._radf[self._radf>6.] = 6.

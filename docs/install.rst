@@ -9,19 +9,20 @@ Dependencies
 
 Landlab has the following dependencies:
 
-    - Python 2.7
-    - Numpy 1.8 or greater
-    - Scipy 0.12 or greater
+- Python 2.7
+- Numpy 1.8 or greater
+- Scipy 0.12 or greater
 
 If you don't already have these packages installed on your computer, simply
 install one of the preassembled scientific Python collections described below
-under *Installing Python*.
+under :ref:`Installing Python <python-install>`.
 
 .. note::
 
   Although not supported, Landlab can be used with Python 3.X by simply
   running `2to3 <http://docs.python.org/2/library/2to3.html>`_ on the source.
 
+.. _python-install:
 
 Installing Python
 =================
@@ -42,7 +43,7 @@ Installing Python
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution, such as `Continuum IO's Anaconda
 <https://store.continuum.io/cshop/anaconda/>`_ or `Enthought's Canopy
-<https://www.enthought.com/products/canopy/>`_ (we prefer to use Canopy but
+<https://www.enthought.com/products/canopy/>`_ (we prefer to use Anaconda but
 any of these should be fine). Download and follow the appropriate instructions 
 for your operating system/distribution. These collections already include compatible
 (and in some cases accelerated) versions of all of landlab's dependencies. When the
@@ -64,7 +65,7 @@ it has been successfully set as the default copy of Python on your system. Open 
 prompt (Terminal on a Mac, or Command Prompt on a PC) and type ``which python``, then
 ``which ipython``. In each case, path should be the same (except the (i)python at the 
 end), and it should clearly refer to Canopy or Anaconda. Details will depend on your
-operating system. For instance, Dan's Macbook Pro gives:
+operating system. For instance, Dan's Macbook Pro gives::
 
     /Users/danhobley/Library/Enthought/Canopy_64bit/User/bin/python
 

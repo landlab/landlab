@@ -213,7 +213,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True  True]],
            fill_value = 1e+20)
     <BLANKLINE>
-    
+
     """
     padded_node_values = np.empty(node_values.size+1,dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE

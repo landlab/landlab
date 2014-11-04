@@ -119,7 +119,7 @@ class VideoPlotter(object):
             self.clear_module()
             self.start_t = elapsed_t
             normalized_elapsed_t = 0.
-        
+
         if self.step_control_tuple[0]<=elapsed_t<self.step_control_tuple[1]: #we're between start & stop
             if not self.step_control_tuple[2]: #no step provided
                 print 'Adding frame to video at elapsed time ', elapsed_t
@@ -175,7 +175,7 @@ class VideoPlotter(object):
         for i in self.data_list:
             #yield self.grid.node_vector_to_raster(i)
             yield (i, self.plotfunc, (self.min_limit, self.max_limit), self.grid, self.kwds)
-            
+
     
     def clear_module(self):
         """

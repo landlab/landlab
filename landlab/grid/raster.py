@@ -2132,6 +2132,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         17
         
         Put some arbitrary values in the grid fields:
+        
         >>> import numpy as np
         >>> rmg.at_node['planet_surface__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
