@@ -159,7 +159,7 @@ class StreamPowerEroder(object):
         #    self.made_link_gradients = True
 
         
-    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', 
+    def erode(self, grid, dt, node_drainage_areas='drainage_area', 
             slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', 
             slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
         """
@@ -243,7 +243,7 @@ class StreamPowerEroder(object):
             #put the slopes onto the nodes
             try:
                 self.slopes = S_links[grid.at_node[link_node_mapping]]
-            except FieldError:
+            except TypeError:
                 try:
                     self.slopes = S_links[link_node_mapping]
                 except IndexError:
@@ -256,7 +256,7 @@ class StreamPowerEroder(object):
         else:
             try:
                 self.slopes = grid.at_node[slopes_at_nodes]
-            except FieldError:
+            except TypeError:
                 self.slopes = slopes_at_nodes
         
         if type(node_drainage_areas)==str:
@@ -271,12 +271,12 @@ class StreamPowerEroder(object):
         elif self.use_W:
             try:
                 W = grid.at_node[W_if_used]
-            except FieldError:
+            except TypeError:
                 W = W_if_used
             if self.use_Q: #use both Q and W direct
                 try:
                     Q_direct = grid.at_node[Q_if_used]
-                except FieldError:
+                except TypeError:
                     Q_direct = Q_if_used
                 stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n / W
             else: #just W to be used
@@ -284,7 +284,7 @@ class StreamPowerEroder(object):
         else: #just use_Q
             try:
                 Q_direct = grid.at_node[Q_if_used]
-            except FieldError:
+            except TypeError:
                 Q_direct = Q_if_used
             stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n
 
