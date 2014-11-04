@@ -3220,7 +3220,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def get_neighbor_list(self, *args, **kwds):
-        """get_neighbor_list([ids])
+        """get_neighbor_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of neighbor node IDs.
 
         Return lists of neighbor nodes for nodes with given *ids*. If *ids*
