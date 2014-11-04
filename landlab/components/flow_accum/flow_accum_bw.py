@@ -78,6 +78,7 @@ class _DrainageStack():
             }
         """
         try:
+            raise CompileError
             weave.inline(code, ['delta_l', 'delta_lplus1', 'l', 'D', 'add_it'])
         except CompileError:
             for n in xrange(delta_l, delta_lplus1):
@@ -186,6 +187,7 @@ def _make_array_of_donors(r, delta):
         }
     """
     try:
+        raise CompileError
         weave.inline(code, ['np', 'r', 'D', 'delta', 'w'])
     except CompileError:
         for i in xrange(np):
@@ -305,6 +307,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
         }
     """
     try:
+        raise CompileError
         weave.inline(code, ['num_pts', 's', 'r', 'drainage_area', 'discharge'])
     except CompileError:
         for i in xrange(np-1, -1, -1):

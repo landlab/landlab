@@ -141,6 +141,7 @@ class SPEroder(object):
             }
         """
         try:
+            raise CompileError
             weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
         except CompileError: 
             for i in upstream_order_IDs:
