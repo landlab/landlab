@@ -3833,19 +3833,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         aspect = np.zeros([ids.shape[0]],dtype = float)
         slope = np.arctan(np.sqrt(dZ_dX**2 + dZ_dY**2))
         aspect = np.arctan2(dZ_dY,-dZ_dX)
-        #aspect[aspect<= np.pi/2.] = np.pi/2. - aspect[aspect<= np.pi/2.]
-        #aspect[aspect>np.pi/2.] = 2*np.pi + np.pi/2 - aspect[aspect>np.pi/2.]
-        #aspect[slope==0.] = np.radians(-1.)
-        for i in range(0,aspect.shape[0]):
-            if aspect[i]<0:
-                aspect[i] = (np.pi/2.) - aspect[i]
-            elif aspect[i]>(np.pi/2.):
-                aspect[i] = (2*np.pi) - aspect[i] + (np.pi/2.)
-            else:
-                aspect[i] = (np.pi/2.) - aspect[i]
-            if slope[i] == 0.:
-                aspect[i] = np.radians(-1.)
-
+        aspect = np.pi * .5 - aspect
+        aspect[aspect < 0.] = aspect[aspect < 0.] + 2. * np.pi
+        aspect[slope == 0.] = -1.
         return slope,aspect
 
 
