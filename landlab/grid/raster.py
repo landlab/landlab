@@ -578,6 +578,59 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                          ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
+            
+    def node_diagonal_links(self, *args):
+        """node_diagonal_links([node_ids])
+        Diagonal links attached to nodes.
+
+        Returns the ids of diagonal links attached to grid nodes with 
+        *node_ids*. If *node_ids* is not given, return links for all of the
+        nodes in the grid. Link ids are listed in clockwise order starting 
+        from south (i.e., [SW,NW,NE,SE]). 
+        This method only returns diagonal links.
+        Call node_links() for the cardinal links.
+
+        Parameters
+        ----------
+        node_ids : array_like, optional
+            IDs of nodes on a grid.
+
+        Returns
+        -------
+        (4, N) ndarray
+            Neighbor node IDs for the source nodes.
+        """
+        
+        if not self.diagonal_list_created:
+            self._setup_diagonal_links()
+            self.diagonal_list_created=True
+        
+        try: 
+            self._node_diagonal_links
+        except AttributeError:
+            self._node_diagonal_links = numpy.empty((4,self.number_of_nodes), dtype=int)
+            self._node_diagonal_links.fill(-1)
+            self._node_diagonal_links[0,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.left_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links #number of patches is number_of_diagonal_nodes/2
+            self._node_diagonal_links[1,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.left_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links+self.number_of_patches
+            self._node_diagonal_links[2,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.right_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links
+            self._node_diagonal_links[3,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.right_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links+self.number_of_patches
+
+        if len(args) == 0:
+            return self._node_diagonal_links
+        elif len(args) == 1:
+            node_ids = np.broadcast_arrays(args[0])[0]
+            return self._node_diagonal_links[:,node_ids]
+        else:
+            raise ValueError('only zero or one arguments accepted')
+        
 
     def node_patches(self, nodata=-1, *args):
         """
@@ -1111,6 +1164,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         12
         """
         return (self._nrows-1)*(self._ncols-1)
+    
+    @property
+    def number_of_diagonal_links(self):
+        """Number of diagonal links.
+        
+        Returns the number of diagonal links (only) over the grid.
+        If the diagonal links have not yet been invoked, returns an 
+        AssertionError.
+        
+        Examples
+        --------
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.number_of_diagonal_links
+        Traceback (most recent call last):
+            ...
+        AssertionError: No diagonal links have been created in the grid yet!
+        >>> _ = grid.node_diagonal_links()
+        >>> grid.number_of_diagonal_links
+        24
+        """
+        assert self.diagonal_list_created, "No diagonal links have been created in the grid yet!"
+        return 2*self.number_of_patches
 
     @property
     def node_spacing(self):
@@ -1415,7 +1490,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not self._diagonal_links_created:
                 return self._calculate_link_length()
             else:
-                self._link_length = numpy.empty(self.number_of_links + 2*(self._nrows-1)*(self._ncols-1))
+                self._link_length = numpy.empty(self.number_of_links + self.number_of_diagonal_links)
                 self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = numpy.sqrt(2.*self._dx*self._dx)
                 return self._link_length
@@ -3220,7 +3295,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def get_neighbor_list(self, *args, **kwds):
-        """get_neighbor_list([ids])
+        """get_neighbor_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of neighbor node IDs.
 
         Return lists of neighbor nodes for nodes with given *ids*. If *ids*
@@ -3311,8 +3386,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             return ans
 
-    def get_diagonal_list(self, *args):
-        """get_diagonal_list([ids])
+    def get_diagonal_list(self, *args, **kwds):
+        """get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of diagonal node IDs.
 
         Return lists of diagonals nodes for nodes with given *ids*. If *ids*
@@ -3330,18 +3405,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ..todo: could use inlink_matrix, outlink_matrix
         """
         #Added DEJH 051513
+        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
 
-        if self.diagonal_list_created==False:
-            self.create_diagonal_list()
+        try:
+            self.diagonal_node_dict
+        except AttributeError:
+            self.diagonal_node_dict = {}
+            self.diagonal_node_dict[bad_index] = self.create_diagonal_list(bad_index=bad_index)
+        
+        try:
+            diagonal_nodes = self.diagonal_node_dict[bad_index]
+        except (KeyError):
+            diagonal_nodes = self.create_diagonal_list(bad_index=bad_index)
+            self.diagonal_node_dict[bad_index] = diagonal_nodes
 
         if len(args) == 0:
-            return self.diagonal_cells
+            return diagonal_nodes
         elif len(args) == 1:
-            return self.diagonal_cells[args[0], :]
+            return diagonal_nodes[args[0], :]
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def create_diagonal_list(self):
+    def create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of diagonal node IDs.
 
         Creates a list of IDs of the diagonal nodes to each node, as a 2D
@@ -3357,21 +3442,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and
             boundary nodes now have neighbors, where they are found at the ends
-            of active links. Note however, that only core node neighbors are
-            returned.
+            of active links.
         """
-        assert(self.diagonal_list_created == False)
 
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
-            self.shape, out_of_bounds=BAD_INDEX_VALUE) #, boundary_node_mask=-1)
+            self.shape, out_of_bounds=bad_index)
 
         closed_boundaries = np.empty(4, dtype=np.int)
-        closed_boundaries.fill(BAD_INDEX_VALUE)
+        closed_boundaries.fill(bad_index)
         self.diagonal_cells[self.closed_boundary_nodes,:] = closed_boundaries
         self.diagonal_cells.ravel()[
             numpy.in1d(self.diagonal_cells.ravel(),
-                self.closed_boundary_nodes)] = BAD_INDEX_VALUE
+                self.closed_boundary_nodes)] = bad_index
+        return self.diagonal_cells
 
 
     def is_interior(self, *args):

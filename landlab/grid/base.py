@@ -1674,7 +1674,7 @@ class ModelGrid(ModelDataFields):
         dy = (self.node_y[self.node_index_at_link_head] -
               self.node_y[self.node_index_at_link_tail])
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
-        return self.link_length
+        return self._link_length
 
     def assign_upslope_vals_to_active_links(self, u, v=[0]):
         """Assign upslope node value to link.
