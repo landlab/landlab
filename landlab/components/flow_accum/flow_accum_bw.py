@@ -64,8 +64,8 @@ class _DrainageStack():
         delta = self.delta
         D = self.D
         add_it = self.add_to_stack
-        delta_l = numpy.take(delta,l)
-        delta_lplus1 = numpy.take(delta,l+1)
+        delta_l = int(numpy.take(delta,l))
+        delta_lplus1 = int(numpy.take(delta,l+1))
         code = """
             int m;
             py::tuple arg(1);
@@ -187,7 +187,6 @@ def _make_array_of_donors(r, delta):
         }
     """
     try:
-        raise CompileError
         weave.inline(code, ['np', 'r', 'D', 'delta', 'w'])
     except CompileError:
         for i in xrange(np):
@@ -307,7 +306,6 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
         }
     """
     try:
-        raise CompileError
         weave.inline(code, ['num_pts', 's', 'r', 'drainage_area', 'discharge'])
     except CompileError:
         for i in xrange(np-1, -1, -1):

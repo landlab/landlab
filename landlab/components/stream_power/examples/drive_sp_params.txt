@@ -4,13 +4,13 @@ nrows:
 ncols:
 100
 dx:
-0.2
+1.
 dt:
 1.
 uplift_rate: #per time, not per timestep
 0.0001
 run_time:
-300.
+5.
 init_elev:
 0.
 
