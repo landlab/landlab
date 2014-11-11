@@ -69,11 +69,10 @@ for i in xrange(nt):
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes=max_slope)
     mg_copy = deepcopy(mg)
-    mg,_,diffusivity = tl.erode(mg,dt)
+    mg,_ = tl.erode(mg,dt,stability_condition='loose')
     if i%20 == 0:
         print 'loop ', i
-        #print 'capacity ', np.amax(capacity_out[mg.core_nodes])
-        print 'diffusivity ', np.amax(diffusivity[mg.core_nodes])
+        print 'subdivisions of dt used: ', tl.iterations_in_dt
         print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
