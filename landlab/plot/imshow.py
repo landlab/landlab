@@ -2,6 +2,8 @@
 
 import numpy as np
 import inspect
+from pylab import show, figure
+from landlab.field.grouped import FieldError
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -26,8 +28,12 @@ def imshow_node_grid(grid, values, **kwds):
     
     requires:
     grid: the grid
-    values: the values on the nodes (length nnodes)
+    values: the values on the nodes (length nnodes), or a field name (string)
+    from which t draw the data.
     """
+    if type(values) == str:
+        values=grid.at_node[values]
+    
     assert_array_size_matches(values, grid.number_of_nodes,
             'number of values does not match number of nodes')
 
@@ -93,13 +99,21 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     grid: the grid
     values: the values on the core nodes OR the values on all nodes in
     the grid. If the latter is provided, this method will only plot the core
-    subset.
+    subset. Alternatively, can be a string giving the name of a grid field,
+    defined either on core nodes or all nodes.
     
     If *other_node_val* is set, this is the value that will be displayed for
     all nodes that are not core. It defaults to 'min', which is the minimum
     value found on any core node in the grid.
     """
     active_nodes = grid.core_nodes
+    
+    if type(values) == str:
+        try:
+            values=grid.at_core_node[values]
+        except FieldError:
+            values=grid.at_node[values][active_nodes]
+        
     try:
         assert_array_size_matches(values, active_nodes.size,
             'number of values does not match number of active nodes')
@@ -133,9 +147,17 @@ def imshow_cell_grid(grid, values, **kwds):
     requires:
     grid: the grid
     values: the values on the cells OR the values on all nodes in the grid, from
-    which the cell values will be extracted.
+    which the cell values will be extracted. Alternatively, can be a field
+    name (string) from which to draw the data from the grid.
     """
     cells = grid.node_index_at_cells
+
+    if type(values) == str:
+        try:
+            values=grid.at_cell[values]
+        except FieldError:
+            values=grid.at_node[values][cells]
+    
     try:
         assert_array_size_matches(values, cells.size,
             'number of values does not match number of cells')
@@ -172,6 +194,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     """
 
     active_cells = grid.node_index_at_active_cells
+    
     try:
         assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')

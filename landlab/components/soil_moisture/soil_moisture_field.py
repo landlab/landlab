@@ -73,18 +73,18 @@ class SoilMoisture( Component ):
     def __init__( self, grid, **kwds ):
         self._method = kwds.pop('method', 'Grid')
         self._interception_cap = kwds.pop('INTERCEPT_CAP', 1.)
-        self._zr = kwds.pop('ZR', 0.5)
+        self._zr = kwds.pop('ZR', 0.3)
         self._runon = kwds.pop('RUNON', 0.)
         self._fbare = kwds.pop('F_BARE', 0.7)
-        self._soil_Ib = kwds.pop('I_B', 625)
-        self._soil_Iv = kwds.pop('I_V', 625)
+        self._soil_Ib = kwds.pop('I_B', 12)
+        self._soil_Iv = kwds.pop('I_V', 36)
         self._soil_Ew = kwds.pop('EW', 0.1)
-        self._soil_pc = kwds.pop('PC', 0.35)
-        self._soil_fc = kwds.pop('FC', 0.35)
-        self._soil_sc = kwds.pop('SC', 0.33)
-        self._soil_wp = kwds.pop('WP', 0.09)
-        self._soil_hgw = kwds.pop('HGW', 0.08)
-        self._soil_beta = kwds.pop('BETA', 12.1)
+        self._soil_pc = kwds.pop('PC', 0.43)
+        self._soil_fc = kwds.pop('FC', 0.56)
+        self._soil_sc = kwds.pop('SC', 0.31)
+        self._soil_wp = kwds.pop('WP', 0.17)
+        self._soil_hgw = kwds.pop('HGW', 0.1)
+        self._soil_beta = kwds.pop('BETA', 12.7)
 
         assert_method_is_valid(self._method)
 
@@ -106,7 +106,7 @@ class SoilMoisture( Component ):
         self._cell_values = self.grid['cell']
 
     def update( self, current_time, **kwds ):
-        DEBUGG = 1
+        #DEBUGG = 0
 
         P = kwds.pop('P', 5.)
         Tb = kwds.pop('Tb', 24.)
@@ -140,29 +140,19 @@ class SoilMoisture( Component ):
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1-fc))-1))
             Ep = max((self._PET[cell]*self._fr[cell]+fbare*self._PET[cell]*(1-self._fr[cell])) - Int_cap, 0.001)  #
             nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
-            if DEBUGG == 1:
-                    if nu <= 0:
-                        nu = 0.001
-                        print 'nu is zero and is equal to', nu
-                        print 'Veg Cover', self._vegcover[cell]
-                        print 'Ep = ', Ep
-                        print 'pet = ', self._PET[cell]
             nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
-            if DEBUGG == 1:
-                    if nuw <= 0:
-                        nuw = 0.0009
-                        print 'nuw is zero and is equal to ', nuw
-                        print 'Veg Cover', self._vegcover[cell]
-                        print 'Ep = ', Ep
-                        print 'pet = ', self._PET[cell]
-            sini = self._SO[cell] + (Peff/(pc*ZR*1000.0))+self._runon
+            sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.0))
 
             if sini>1:
-                runoff = (sini-1)*pc*ZR*1000
-                print 'Runoff =', runoff
+                self._runoff = (sini-1)*pc*ZR*1000
+                #print 'Runoff =', self._runoff
                 sini = 1
+
             else:
-                runoff = 0
+                self._runoff = 0
+
+
+            #self._runon = runoff
 
             if sini>=fc:
                 tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+                \

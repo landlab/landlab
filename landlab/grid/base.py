@@ -92,6 +92,8 @@ fields:
     ~landlab.field.grouped.ModelDataFields.has_group
     ~landlab.field.grouped.ModelDataFields.has_field
     ~landlab.field.grouped.ModelDataFields.groups
+    
+    i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
 Notes
 -----
@@ -187,7 +189,7 @@ from . import grid_funcs as gfuncs
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
-
+#DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
@@ -1072,13 +1074,17 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
 
-    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes_using_patches(self, elevs='planet_surface__elevation', unit='degrees', return_components=False):
         """
         trial run to extract average local slopes at nodes by the average slope
         of its surrounding patches. DEJH 10/1/14
         elevs either a field name or an nnodes-array.
         unit is 'degrees' or 'radians'.
-        Returns the slope magnitude, then the vector (a tuple) in the x, y directions.
+        If return_components=False (the default), returns the slope magnitude.
+        If return_components=True, returns the slope magnitude, then the vector
+        (a tuple) of the slope components in the x, y directions.
+        If closed nodes were present in the original array, their values will
+        be masked.
         """
         dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
         dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
@@ -1106,21 +1112,31 @@ class ModelGrid(ModelDataFields):
         mean_grad_x = numpy.mean(grad_x,axis=1)
         mean_grad_y = numpy.mean(grad_y,axis=1)
         
-        slope_mag = numpy.sqrt(mean_grad_x**2 + mean_grad_y**2)
+        slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
         
         if unit=='radians':
-            return slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            if not return_components:
+                return slope_mag
+            else:
+                return slope_mag, (mean_grad_x, mean_grad_y)
         if unit=='degrees':
-            return 180./numpy.pi*slope_mag.compressed(), (mean_grad_x.compressed(), mean_grad_y.compressed())
+            if not return_components:
+                return 180./numpy.pi*slope_mag
+            else:
+                return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
     
     
-    def node_slopes(self, elevs='planet_surface__elevation', unit='degrees'):
+    def node_slopes(self, **kwargs):
         """
         This method is simply an alias for grid.node_slopes_using_patches()
+        Takes
+        * elevs : field name or nnodes array, defaults to 'planet_surface__elevation'
+        * unit : 'degrees' (default) or 'radians'
+        as for node_slopes_using_patches
         """
-        self.node_slopes_using_patches(elevs, unit)
+        return self.node_slopes_using_patches(**kwargs)
         
     
     def aspect(self, slope_component_tuple=None, elevs='planet_surface__elevation', unit='degrees'):
@@ -1536,9 +1552,9 @@ class ModelGrid(ModelDataFields):
         For a voronoi...?
         """
         try:
-            return self.forced_cell_areas
+            return self._forced_cell_areas
         except AttributeError:
-            return self._setup_cell_areas_array_force_inactive()    
+            return self._setup_cell_areas_array_force_inactive()
             
     @property
     def face_widths(self):
@@ -1558,10 +1574,13 @@ class ModelGrid(ModelDataFields):
         and is overridden in raster.py. It is unlikely this parent method will
         ever need to be called.
         '''
-        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
-        self.forced_cell_areas.fill(numpy.nan)
+        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self._forced_cell_areas.fill(numpy.nan)
         cell_node_ids = self.get_active_cell_node_ids()
-        self.forced_cell_areas[cell_node_ids] = self.cell_areas
+        try:
+            self._forced_cell_areas[cell_node_ids] = self.cell_areas
+        except AttributeError:
+            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas #in the case of the Voronoi
 
     def get_active_cell_node_ids( self ):
         """Nodes of active cells.
@@ -1655,7 +1674,7 @@ class ModelGrid(ModelDataFields):
         dy = (self.node_y[self.node_index_at_link_head] -
               self.node_y[self.node_index_at_link_tail])
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
-        return self.link_length
+        return self._link_length
 
     def assign_upslope_vals_to_active_links(self, u, v=[0]):
         """Assign upslope node value to link.

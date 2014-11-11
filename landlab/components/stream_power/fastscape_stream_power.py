@@ -7,6 +7,8 @@ Created DEJH, March 2014.
 
 import numpy
 from landlab import ModelParameterDictionary
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 class SPEroder(object):
@@ -25,7 +27,8 @@ class SPEroder(object):
         *m_sp*
     
     ...which it will draw from the supplied input file. *n_sp* has to be 1 for 
-    the BW algorithm to work.
+    the BW algorithm to work. If you want n!=1., try calling the explicit
+    "stream_power" component.
     
     *dt*, *rainfall_intensity*, and *value_field* are optional variables.
     
@@ -84,9 +87,10 @@ class SPEroder(object):
         if self.n != 1.:
             raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
 
-    def gear_timestep(self, dt_in, rainfall_intensity_in):
+    def gear_timestep(self, dt_in, rainfall_intensity_in=None):
         self.dt = dt_in
-        self.r_i = rainfall_intensity_in
+        if rainfall_intensity_in is not None:
+            self.r_i = rainfall_intensity_in
         return self.dt, self.r_i
 
     def erode(self, grid_in):
@@ -101,7 +105,7 @@ class SPEroder(object):
         *value_field*, as specified in component initialization.
         """
         
-        self.grid = grid_in #the variables must be stored internally to the grid, in fields
+        #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
         #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
@@ -122,12 +126,30 @@ class SPEroder(object):
         #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
         self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
-        for i in upstream_order_IDs:
-            j = self.grid['node']['flow_receiver'][i]
-            if i != j:
-                z[i] = (z[i] + self.alpha[i]*z[j])/(1.0+self.alpha[i])
+        flow_receivers = self.grid['node']['flow_receiver']
+        n_nodes = upstream_order_IDs.size
+        alpha = self.alpha
+        code = """
+            int current_node;
+            int j;
+            for (int i = 0; i < n_nodes; i++) {
+                current_node = upstream_order_IDs[i];
+                j = flow_receivers[current_node];
+                if (current_node != j) {
+                    z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+                }
+            }
+        """
+        try:
+            #raise CompileError
+            weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
+        except CompileError: 
+            for i in upstream_order_IDs:
+                j = flow_receivers[i]
+                if i != j:
+                    z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         
-        self.grid['node'][self.value_field] = z
+        #self.grid['node'][self.value_field] = z
         
         return self.grid
 

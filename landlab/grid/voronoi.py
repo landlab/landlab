@@ -613,8 +613,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
         _node_patches.fill(nodata)
         for i in xrange(self.number_of_nodes):
-            patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
-            _node_patches[i,:patches_with_node.size] = patches_with_node[:]
+            if not self.is_boundary(i, boundary_flag=4): #don't include closed nodes
+                patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
+                _node_patches[i,:patches_with_node.size] = patches_with_node[:]
         #mask it
         self._node_patches = numpy.ma.array(_node_patches, mask=numpy.equal(_node_patches, -1))
         
