@@ -15,6 +15,7 @@ from landlab.io import read_esri_ascii
 from matplotlib import pyplot as plt
 import os
 import time
+from landlab.plot import imshow_grid
 
 
 """
@@ -33,7 +34,7 @@ and across the grid for spatial patterns.
 start_time = time.time()
 
 # This is the DEM of the subwatershed from Spring Creek, Colorado
-dem_name = 'SpringCreek.asc'
+dem_name = 'examples/SpringCreek.asc'
 
 # Now we can create and initialize a raster model grid by reading a DEM
 
@@ -77,12 +78,15 @@ of=OverlandFlow(rg)
 
 # When using the flow_at_one_node() method, a study node is needed to sample at.
 # This should not be a boundary node!    
-study_row = 217
-study_column = 213
+# To use the flow_at_one_node() method, uncomment out every line with ('##')
+
+##study_row = 217
+##study_column = 213
 
 # This takes the study row and study column grid coordinates and converts it 
 # to a node ID that the raster grid will recognize.  
-study_node = rg.grid_coords_to_node_id(study_row, study_column)
+
+##study_node = rg.grid_coords_to_node_id(study_row, study_column)
 
 # Because this function reads in data using the Model Parameter Dictionary
 # from the default input file, the only arguments needed to run the flow_at_one_node()
@@ -90,11 +94,13 @@ study_node = rg.grid_coords_to_node_id(study_row, study_column)
 # coordinates.
 
 # This is the standard way to call the flow_at_one_node method using the input file.
-of.flow_at_one_node(rg, z, study_node)
-of.update_across_grid(rg, rainfall_duration=900, model_duration=3000,rainfall_intensity=0.0000093133)
+
+##of.flow_at_one_node(rg, z, study_node)
+##of.update_at_one_point(rg, rainfall_duration=900, model_duration=3000,rainfall_intensity=0.0000093133)
 
 # Once run, we can plot the output
-of.plot_at_one_node()
+
+##of.plot_at_one_node()
 
 # Now the flow_across_grid() method will be discussed. The commands needed to
 # run this method are triple-commented ('###') for convenience. All flow_at_one_node()
@@ -105,22 +111,11 @@ of.plot_at_one_node()
 # and the the initial elevations.
 
 # This is the standard call to the flow_across_grid() method
-###of.flow_across_grid(rg,z)
+of.flow_across_grid(rg,z)
+of.update_across_grid(rg, rainfall_duration=900, model_duration=3000,rainfall_intensity=0.0000093133)
 
-# And these are the calls to plot the rasters
-###of.plot_water_depths(rg)
-###of.plot_discharge(rg)
-###of.plot_shear_stress_grid(rg)
-###of.plot_slopes(rg)
-
-# To forgo the call to the input file and define model run time, rainfall
-# intensity and storm duration in the function call itself, the following command 
-# can be used with the following parameters:
-    # Total model run time: 6000 seconds
-    # Storm intensity: (9.2177*(10**-6)) meters per second.
-    # Storm duration: 5868 seconds
-###of.flow_across_grid(rg, z, 6000, (9.2177*(10**-6)), 5868)
-
+plt.figure('Total Erosion, m')
+imshow_grid(rg, of.total_dzdt, show=True)
 
 endtime = time.time()
 print endtime - start_time, "seconds"
