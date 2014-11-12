@@ -183,6 +183,9 @@ class FlowRouter():
         self._grid['node']['water_discharges'] = q
         self._grid['node']['upstream_ID_order'] = s
         self._grid['node']['links_to_flow_receiver'] = recvr_link
+        self._grid['node']['flow_sinks'] = numpy.zeros_like(receiver, dtype=bool)
+        self._grid['node']['flow_sinks'][sink] = True
+        
 
         if grid:
             return self._grid
