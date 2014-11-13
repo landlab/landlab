@@ -15,7 +15,7 @@ from landlab.plot.imshow import imshow_field, imshow_grid
 # Aspect is supposed to be 0 deg for North facing and 180 deg for South facing
 
 grid = RasterModelGrid(53,67,10.)
-elev = np.load('elevation_NS.npy')
+elev = np.load('C:\Users\Jordan\Documents\GitHub\landlab\landlab\examples\elevation_NS.npy')
 grid['node']['Elevation'] = elev
 
 ids = grid.node_index_at_cells
@@ -27,6 +27,10 @@ slope_horn,aspect_horn = \
     grid.calculate_slope_aspect_at_nodes_horn(ids,vals = 'Elevation')
 ## BestFitPlane
 slope_BFP,aspect_BFP = grid.calculate_slope_aspect_at_nodes_bestFitPlane(ids,elev)
+
+
+## node_slopes_using_patches 
+slope_NSP = grid.node_slopes_using_patches(elevs = 'Elevation', unit ='degrees')
 
 pic = 0
 plt.figure(pic)
@@ -70,5 +74,10 @@ imshow_grid(grid,np.degrees(aspect_BFP),values_at = 'cell', grid_units = ('m','m
 plt.title('Aspect in degrees - bestFitPlane')
 #plt.savefig('aspect_BFP_NS')
 
+pic += 1
+plt.figure(pic)
+imshow_grid(grid,slope_NSP,values_at = 'node', grid_units = ('m','m'))
+plt.title('Slope in degrees - Node Slopes using Patches')
+#plt.savefig('aspect_BFP_NS')
 
 plt.show()
