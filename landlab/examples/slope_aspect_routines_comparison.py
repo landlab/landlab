@@ -15,7 +15,7 @@ from landlab.plot.imshow import imshow_field, imshow_grid
 # Aspect is supposed to be 0 deg for North facing and 180 deg for South facing
 
 grid = RasterModelGrid(53,67,10.)
-elev = np.load('C:\Users\Jordan\Documents\GitHub\landlab\landlab\examples\elevation_NS.npy')
+elev = np.load('elevation_NS.npy')
 grid['node']['Elevation'] = elev
 
 ids = grid.node_index_at_cells
