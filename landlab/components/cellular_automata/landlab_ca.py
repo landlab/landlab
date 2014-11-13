@@ -81,12 +81,19 @@ cell_pair : list (x number of possible link states)
     you to look up the node states and orientation corresponding to a particular 
     link-state ID.
     
-event_queue : heap
+event_queue : heap of Event objects
     Queue containing all future transition events, sorted by time of occurrence
     (from soonest to latest).
     
 next_update : 1d array (x number of active links)
     Time (in the future) at which the link will undergo its next transition.
+    You might notice that the update time for every scheduled transition is also
+    stored in each Event object in the event queue. Why store it twice? Because
+    a scheduled event might be invalidated after the event has been scheduled
+    (because another transition has changed one of a link's two nodes, for
+    example). The way to tell whether a scheduled event is still valid is to
+    compare its time with the corresponding transition time in the *next_update*
+    array. If they are different, the event is discarded.
 
 active_link_orientation : 1d array of ints (x number of active links)
     Orientation code for each link.
@@ -94,6 +101,20 @@ active_link_orientation : 1d array of ints (x number of active links)
 link_state : 1d array of ints (x number of active links)
     State code for each link.
 
+n_xn : 1d array of ints (x number of possible link states)
+    Number of transitions ("xn" stands for "transition") from a given link
+    state.
+
+xn_to : 2d array of ints (# possible link states x max. # transitions)
+    Stores the link-state code(s) to which a particular link state can 
+    transition. "max. # transitions" means the maximum number of transitions
+    from a single state. For example, if each link state is associated with one
+    and only one transition, then the maximum is 1, but if there is at least
+    one link state that can have either of two different transitions, then the
+    maximum would be two.
+
+xn_rate : 2d array of floats (# possible link states x max. # transitions)
+    Rate associated with each link-state transition.
 
 Created GT Sep 2014, starting from link_ca.py.
 """
@@ -437,12 +458,21 @@ class LandlabCellularAutomaton(object):
             print '  rate:',self.xn_rate
             
             
-    def link_state_changed(link_id):
+    def link_state_changed(self, link_id):
         """
         Determines whether the link state at link *link_id* has changed due to
         an independent change in the node-state grid.
         """
-        expected_from = 
+        
+        # Find out the states of the two nodes, and the orientation
+        fromnode_state = self.node_state[self.grid.activelink_fromnode[link_id]]
+        tonode_state = self.node_state[self.grid.activelink_tonode[link_id]]
+        orientation = self.activelink_orientation[link_id]
+        
+        # Link state has changed if the recorded link_state code does not match
+        # the actual code implied by the (from,to,orientation) tuple.
+        return self.link_state[link_id]!=self.link_state_dict[(fromnode_state,tonode_state,orientation)]
+        
         
     def update_link_states_and_transitions(self):
         """
@@ -458,7 +488,7 @@ class LandlabCellularAutomaton(object):
                     schedule an event
         """
         for i in self.grid.active_links:
-            if link_type_changed(i):
+            if self.link_type_changed(i):
                 pass
         
     
