@@ -116,6 +116,7 @@ xn_to : 2d array of ints (# possible link states x max. # transitions)
 xn_rate : 2d array of floats (# possible link states x max. # transitions)
     Rate associated with each link-state transition.
 
+
 Created GT Sep 2014, starting from link_ca.py.
 """
 
@@ -458,23 +459,41 @@ class LandlabCellularAutomaton(object):
             print '  rate:',self.xn_rate
             
             
-    def link_state_changed(self, link_id):
+    def current_link_state(self, link_id):
         """
-        Determines whether the link state at link *link_id* has changed due to
-        an independent change in the node-state grid.
+        Used to determines whether the link state at link *link_id* has changed 
+        due to an independent change in the node-state grid. Returns the 
+        current state of the link based on the states of its two end nodes; this
+        can be compared to the entry in self.link_state to determine whether the
+        state has changed.
+        
+        Parameters
+        ----------
+        link_id : int
+            ID of the active link to test
+            
+        Returns
+        -------
+        New link state code
+        
+        Notes
+        -----
+        Vectorizing this might yield some speed.
         """
         
         # Find out the states of the two nodes, and the orientation
+        #print self.grid.number_of_nodes, self.grid.number_of_links, self.grid.number_of_active_links
+        #print link_id
+        #print self.grid.activelink_fromnode[link_id]
         fromnode_state = self.node_state[self.grid.activelink_fromnode[link_id]]
         tonode_state = self.node_state[self.grid.activelink_tonode[link_id]]
-        orientation = self.activelink_orientation[link_id]
+        orientation = self.active_link_orientation[link_id]
         
-        # Link state has changed if the recorded link_state code does not match
-        # the actual code implied by the (from,to,orientation) tuple.
-        return self.link_state[link_id]!=self.link_state_dict[(fromnode_state,tonode_state,orientation)]
+        # Return the corresponding state code.
+        return self.link_state_dict[(fromnode_state,tonode_state,orientation)]
         
         
-    def update_link_states_and_transitions(self):
+    def update_link_states_and_transitions(self, current_time):
         """
         Following an "external" change to the node state grid, updates link
         states where necessary and creates any needed events.
@@ -487,11 +506,11 @@ class LandlabCellularAutomaton(object):
                     change the link state to be correct
                     schedule an event
         """
-        for i in self.grid.active_links:
-            if self.link_type_changed(i):
-                pass
-        
-    
+        for i in range(self.grid.number_of_active_links):
+            current_state = self.current_link_state(i)
+            if current_state!=self.link_state[i]:
+                self.update_link_state(i, current_state, current_time)
+                
     
     def get_next_event(self, link, current_state, current_time):
         """
@@ -831,7 +850,7 @@ def example_test2():
     node_state_grid[mg.right_edge_node_ids()] = 0
     
     # Create the CA model
-    ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
+    ca = LandlabCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
     
     print 'INITIALIZING'
     n = ca.grid.number_of_nodes

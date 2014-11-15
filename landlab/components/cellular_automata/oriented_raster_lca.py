@@ -15,7 +15,7 @@ from numpy import zeros
 from landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
-_DEBUG = True
+_DEBUG = False
 
 class OrientedRasterLCA(LandlabCellularAutomaton):
     
@@ -37,6 +37,12 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         # the initialization
         super(OrientedRasterLCA, self).__init__(model_grid, node_state_dict, 
             transition_list, initial_node_states)
+            
+        if _DEBUG:
+            print 'ORLCA:'
+            print self.n_xn
+            print self.xn_to
+            print self.xn_rate
         
 
     def setup_array_of_orientation_codes(self):
@@ -60,12 +66,24 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         -----
         This overrides the method of the same name in landlab_ca.py.
         """
+        # Create array for the orientation of each active link
         self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
-        number_of_vertical_links = self.grid.number_of_node_columns * \
-                                        (self.grid.number_of_node_rows-1)
-        self.active_link_orientation[:number_of_vertical_links] = 1
     
-    
+        # Set its value according to the different in y coordinate between each
+        # link's TO and FROM nodes (the numpy "astype" method turns the
+        # resulting array into integer format)
+        dy = self.grid.node_y[self.grid.link_tonode[self.grid.active_links]] \
+             - self.grid.node_y[self.grid.link_fromnode[self.grid.active_links]]
+        self.active_link_orientation = dy.astype(int)
+        #print 'i  from  to  dy'
+        #for i in range(self.grid.number_of_active_links):
+        #    print i, self.grid.activelink_fromnode[i], self.grid.activelink_tonode[i], dy[i], self.active_link_orientation[i]
+        #print
+        
+        if _DEBUG:
+            print self.active_link_orientation
+            
+            
 if __name__=='__main__':
     mg = landlab.RasterModelGrid(3, 4, 1.0)
     nsd = {0 : 'yes', 1 : 'no'}
