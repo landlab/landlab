@@ -222,7 +222,7 @@ class StreamPowerEroder(object):
         """
         
         #Perform check on whether we use grid or direct fed data:
-        if not slopes_at_nodes:
+        if slopes_at_nodes==None:
             if slopes_from_elevs:
                 if slopes_from_elevs == True:
                     node_z = grid.at_node['planet_surface__elevation']
@@ -266,7 +266,7 @@ class StreamPowerEroder(object):
         
         #Operate the main function:
         active_nodes = grid.get_active_cell_node_ids()
-        if not (self.use_W and self.use_Q): #normal case
+        if self.use_W==None and self.use_Q==None: #normal case
             stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * self.slopes[active_nodes]**self._n
         elif self.use_W:
             try:
