@@ -239,13 +239,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 2, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
             >>> npt
-            7
+            9
             >>> p[1,:]
             array([ 1.,  0.])
             >>> p[:3,0]
-            array([ 0. ,  1. , -0.5])
+            array([ 0.,  1.,  2.])
         """
 
         dxv = dxh * numpy.sqrt(3.) / 2.
@@ -283,7 +283,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical(2, 3, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
             >>> npt
             7
             >>> p[1,:]
@@ -337,13 +337,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical(3, 3, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
             >>> npt
-            7
+            9
             >>> p[1,:]
             array([ 0.,  1.])
             >>> p[:3,1]
-            array([ 0. ,  1. , -0.5])
+            array([ 0.,  1.,  2.])
         """
 
         dxh = dxv * numpy.sqrt(3.) / 2.
