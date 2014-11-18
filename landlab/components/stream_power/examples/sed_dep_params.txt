@@ -11,9 +11,9 @@ initial_slope:
 dt:
 5000.
 total_time:
-50000000.
+30000000.
 uplift_rate:
-0.0003
+0.001
 #time is years, ALL linear dimensions are meters!
 
 #these are the parameters for the stream power module:
@@ -37,3 +37,5 @@ threshold_Shields:
 0.06
 sed_dependency_type:
 almost_parabolic
+set_threshold_from_Dchar:
+True
