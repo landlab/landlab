@@ -593,7 +593,7 @@ class SedDepEroder(object):
         active_nodes = grid.get_active_cell_node_ids()
         if io:
             try:
-                io[active_nodes] += node_z[active_nodes]
+                io[active_nodes] = node_z[active_nodes]
             except TypeError:
                 if type(io)==str:
                     elev_name = io

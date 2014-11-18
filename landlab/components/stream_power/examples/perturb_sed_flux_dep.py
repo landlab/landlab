@@ -43,6 +43,14 @@ print 'Running ...'
 #instantiate the components:
 fr = FlowRouter(mg)
 sde = SedDepEroder(mg, input_file)
+#don't allow overwriting of these, just in case
+try:
+    x_profiles
+except NameError:
+    x_profiles = []
+    z_profiles = []
+    S_profiles = []
+    A_profiles = []
 
 time_on = time()
 #perform the loops:
@@ -61,7 +69,7 @@ for i in xrange(nt):
     #print sde.iterations_in_dt
     #print 'capacity ', np.amax(capacity_out[mg.core_nodes])
     #print 'rel sed ', np.nanmax(sed_in[mg.core_nodes]/capacity_out[mg.core_nodes])
-    if i%50 == 0:
+    if i%100 == 0:
         print 'loop ', i
         print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
@@ -71,6 +79,11 @@ for i in xrange(nt):
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
                                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['planet_surface__elevation'])
+    if i%1000 == 0:
+        x_profiles.append(dists_upstr)
+        z_profiles.append(mg.at_node['planet_surface__elevation'][profile_IDs])
+        S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+        A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
 #mg.update_boundary_nodes()
 #vid.add_frame(mg, 'planet_surface__elevation')
 
