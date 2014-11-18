@@ -155,10 +155,11 @@ class StreamPowerEroder(object):
     def erode(self, grid, dt, node_elevs='planet_surface__elevation',
             node_drainage_areas='drainage_area', 
             flow_receiver='flow_receiver',
-            link_node_mapping='links_to_flow_receiver', 
             node_order_upstream='upstream_ID_order',
-            slopes_at_nodes=None, link_slopes=None, 
-            slopes_from_elevs=None, W_if_used=None, Q_if_used=None):
+            slopes_at_nodes='steepest_slope',
+            link_node_mapping='links_to_flow_receiver', 
+            link_slopes=None, slopes_from_elevs=None, 
+            W_if_used=None, Q_if_used=None):
         """
         A simple, explicit implementation of a stream power algorithm.
         
@@ -224,7 +225,14 @@ class StreamPowerEroder(object):
             node_z = node_elevs
         
         #Perform check on whether we use grid or direct fed data:
-        if slopes_at_nodes==None:
+        try:
+            self.slopes = grid.at_node[slopes_at_nodes]
+        except TypeError:
+            if type(slopes_at_nodes)==np.ndarray:
+                self.slopes = slopes_at_nodes
+            else:
+                raise TypeError('slopes_at_nodes input not recognised')
+        except FieldError:
             if slopes_from_elevs==True:
                 S_links = (node_z[grid.node_index_at_link_head]-node_z[grid.node_index_at_link_tail])/grid.link_length
             else:
@@ -249,11 +257,6 @@ class StreamPowerEroder(object):
                     #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
                     self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.node_links]),axis=0)
-        else:
-            try:
-                self.slopes = grid.at_node[slopes_at_nodes]
-            except TypeError:
-                self.slopes = slopes_at_nodes
         
         if type(node_drainage_areas)==str:
             node_A = grid.at_node[node_drainage_areas]
