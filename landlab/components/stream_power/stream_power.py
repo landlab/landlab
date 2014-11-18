@@ -212,12 +212,22 @@ class StreamPowerEroder(object):
         respectively in the component initialization. They can be either field
         names or nnodes arrays as in the other cases.
         
+        NB: If you want spatially or temporally variable runoff, pass the 
+        runoff values at each pixel to the flow router, then pass discharges
+        at each node using *Q_if_used* to this component.
+        
         RETURNS (grid, modified_elevs, stream_power_erosion); modifies grid elevation
         fields to reflect updates; creates and maintains
         grid.at_node['stream_power_erosion']. Note the value stream_power_erosion
         is not an excess stream power; any specified erosion threshold is not
         incorporated into it.
         """
+        
+        if W_if_used!=None:
+            assert self.use_W, "Widths were provided, but you didn't set the use_W flag in your input file! Aborting..." 
+            
+        if Q_if_used!=None:
+            assert self.use_Q, "Discharges were provided, but you didn't set the use_Q flag in your input file! Aborting..." 
         
         if type(node_elevs)==str:
             node_z = grid.at_node[node_elevs]
@@ -290,6 +300,7 @@ class StreamPowerEroder(object):
             try:
                 Q_direct = grid.at_node[Q_if_used]
             except TypeError:
+                assert type(Q_if_used) in (np.ndarray, list)
                 Q_direct = Q_if_used
             stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n
 

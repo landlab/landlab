@@ -13,6 +13,7 @@ from landlab.components.stream_power.fastscape_stream_power import SPEroder as F
 import numpy
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
+from landlab.plot.imshow import imshow_node_grid
 import pylab
 import time
 
@@ -66,10 +67,8 @@ pylab.close()
 
 # Plot topography
 pylab.figure(1)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
+im = imshow_node_grid(mg, 'planet_surface__elevation')  # display a colored image
 print elev_r
-pylab.colorbar(im)
-pylab.title('Topography')
 
 pylab.figure(2)
 im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a colored image
