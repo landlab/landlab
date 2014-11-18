@@ -222,7 +222,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
 
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
-                        cmap='jet', limits=None, allow_colorbar=True):
+                        cmap='pink', limits=None, allow_colorbar=True):
     
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -351,7 +351,7 @@ def imshow_field(field, name, **kwds):
 
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
                 grid_units=(None, None), symmetric_cbar=False,
-                cmap='jet'):
+                cmap='pink'):
     """.. deprecated:: 0.6
     Use :meth:`imshow_active_cell_grid`, above, instead.
     """
