@@ -2,6 +2,7 @@ from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
+from landlab.plot.imshow import imshow_node_grid
 
 from landlab import RasterModelGrid
 import numpy as np
@@ -25,8 +26,6 @@ uplift_per_step = uplift_rate * dt
 
 #instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
-#set up its boundary conditions (bottom, right, top, left is inactive)
-mg.set_inactive_boundaries(False, True, False, True)
 
 ##create the elevation field in the grid:
 #create the field
@@ -35,6 +34,9 @@ z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
 mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/100000.
+
+#set up its boundary conditions (bottom, left, top, right is inactive)
+mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
 # Display a message
 print 'Running ...' 
@@ -45,7 +47,7 @@ sp = SPEroder(mg, input_file)
 
 time_on = time()
 #perform the loops:
-for i in xrange(10):
+for i in xrange(nt):
     mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
@@ -65,23 +67,17 @@ print 'Completed the simulation. Plotting...'
 time_off = time()
 
 #Finalize and plot
-elev = fr.node_water_discharge
-elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-pylab.colorbar(im)
-pylab.title('Water discharge')
+im = imshow_node_grid(mg, 'water_discharges', cmap='Blues')  # display a colored image
+
+pylab.figure(2)
+im = imshow_node_grid(mg, 'planet_surface__elevation')  # display a colored image
 
 elev = mg['node']['planet_surface__elevation']
 elev_r = mg.node_vector_to_raster(elev)
-pylab.figure(2)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-pylab.colorbar(im)
-pylab.title('Topography')
-
 pylab.figure(3)
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 pylab.title('N-S cross_section')

@@ -3,6 +3,7 @@ from landlab.components.diffusion.diffusion import DiffusionComponent #...the tw
 from landlab import ModelParameterDictionary #handles input from the input file
 
 from landlab import RasterModelGrid #the grid object
+from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 import pylab
 
@@ -25,16 +26,16 @@ uplift_per_step = uplift_rate * dt
 #We know which parameters are needed for input by inspecting the function where it lives, in landlab.grid.raster
 #We could also look at the documentation for landlab found online (http://the-landlab.readthedocs.org)
 mg = RasterModelGrid(nrows, ncols, dx)
-#set up its boundary conditions (bottom, right, top, left)
-#The mechanisms for this are all automated within the grid object
-mg.set_inactive_boundaries(False, False, False, False)
-
 ##create the elevation field in the grid:
 #create the field
 mg.create_node_array_zeros('planet_surface__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev #in our case, slope is zero, so the leftmost_elev is the mean elev
 #put these values plus roughness into that field
 mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/100000.
+
+#set up its boundary conditions (bottom, left, top, right)
+#The mechanisms for this are all automated within the grid object
+mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
 # Display a message
 print 'Running ...' 
@@ -72,11 +73,7 @@ pylab.xlabel('Distance')
 pylab.ylabel('Elevation')
 
 #figure 2 is the map of the final elevations
-elev = mg['node']['planet_surface__elevation']
-elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(2)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-pylab.colorbar(im) #add a colorbar
-pylab.title('Topography at end of run') #add a title
+im = imshow_node_grid(mg, 'planet_surface__elevation')
 
 pylab.show() #this line displays all of the figures you've issued plot commands for, since you last called show()
