@@ -2,7 +2,6 @@
 
 import numpy as np
 import inspect
-from pylab import show, figure
 from landlab.field.grouped import FieldError
 try:
     import matplotlib.pyplot as plt
@@ -32,6 +31,7 @@ def imshow_node_grid(grid, values, **kwds):
     from which t draw the data.
     """
     if type(values) == str:
+        value_str = values
         values=grid.at_node[values]
     
     assert_array_size_matches(values, grid.number_of_nodes,
@@ -43,6 +43,11 @@ def imshow_node_grid(grid, values, **kwds):
         data.shape = grid.shape
 
     myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
     
     return myimage
     
@@ -86,6 +91,9 @@ def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
 
     myimage = _imshow_grid_values(grid, data, **kwds)
     
+    if type(values) == str:
+        plt.title(values)
+    
     return myimage
     
     
@@ -109,6 +117,7 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     active_nodes = grid.core_nodes
     
     if type(values) == str:
+        value_str = values
         try:
             values=grid.at_core_node[values]
         except FieldError:
@@ -136,6 +145,11 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
 
     myimage = _imshow_grid_values(grid, data, **kwds)
     
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
+    
     return myimage
     
 
@@ -153,6 +167,7 @@ def imshow_cell_grid(grid, values, **kwds):
     cells = grid.node_index_at_cells
 
     if type(values) == str:
+        value_str = values
         try:
             values=grid.at_cell[values]
         except FieldError:
@@ -173,6 +188,11 @@ def imshow_cell_grid(grid, values, **kwds):
         data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
     
     return myimage
 
