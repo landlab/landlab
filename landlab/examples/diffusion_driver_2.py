@@ -28,10 +28,10 @@ uplift_per_step = uplift_rate * dt
 mg = RasterModelGrid(nrows, ncols, dx)
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + leftmost_elev #in our case, slope is zero, so the leftmost_elev is the mean elev
 #put these values plus roughness into that field
-mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up its boundary conditions (bottom, left, top, right)
 #The mechanisms for this are all automated within the grid object
@@ -58,7 +58,7 @@ for i in xrange(nt):
 
     #Plot a Xsection north-south through the middle of the data, once per loop
     pylab.figure(1)
-    elev_r = mg.node_vector_to_raster(mg['node']['planet_surface__elevation'])
+    elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation'])
     im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 
     print 'Completed loop ', i
@@ -74,6 +74,6 @@ pylab.ylabel('Elevation')
 
 #figure 2 is the map of the final elevations
 pylab.figure(2)
-im = imshow_node_grid(mg, 'planet_surface__elevation')
+im = imshow_node_grid(mg, 'topographic_elevation')
 
 pylab.show() #this line displays all of the figures you've issued plot commands for, since you last called show()

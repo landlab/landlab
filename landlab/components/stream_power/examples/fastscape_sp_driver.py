@@ -29,9 +29,9 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
+mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
 
 print( 'Running ...' )
 
@@ -53,11 +53,11 @@ while elapsed_time < time_to_run:
     mg = fsp.erode(mg)
     #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
     #add uplift
-    mg.at_node['planet_surface__elevation'][mg.core_nodes] += uplift*dt
+    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
     elapsed_time += dt
 
 #Finalize and plot
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic_elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 # Clear previous plots

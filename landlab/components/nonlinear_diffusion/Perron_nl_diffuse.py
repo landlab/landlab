@@ -42,7 +42,7 @@ class PerronNLDiffuse(object):
     part of your run loop. This allows you to set a dynamic timestep for this
     class.
     If 'values_to_diffuse' is not provided, defaults to 
-    'planet_surface__elevation'.
+    'topographic_elevation'.
     
     No particular units are necessary where they are not specified, as long as
     all units are internally consistent.
@@ -71,7 +71,7 @@ class PerronNLDiffuse(object):
         try:
             self.values_to_diffuse = inputs.read_str('values_to_diffuse')
         except:
-            self.values_to_diffuse = 'planet_surface__elevation'
+            self.values_to_diffuse = 'topographic_elevation'
         try:
             self.timestep_in = inputs.read_float('dt')  
         except:
@@ -708,7 +708,7 @@ class PerronNLDiffuse(object):
         total model time elapsed so far.
         
         *grid_in* must contain the field to diffuse, which defaults to
-        'planet_surface__elevation'. This can be overridden with the 
+        'topographic_elevation'. This can be overridden with the 
         values_to_diffuse property in the input file.
         
         See the class docstring for a list of the other properties necessary

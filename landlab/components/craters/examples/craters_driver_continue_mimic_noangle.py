@@ -21,8 +21,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('planet_surface__elevation')
-mg['node'][ 'planet_surface__elevation'] = np.load('init.npy')
+mg.create_node_array_zeros('topographic_elevation')
+mg['node'][ 'topographic_elevation'] = np.load('init.npy')
 
 # Display a message
 print( 'Running ...' )
@@ -56,14 +56,14 @@ for i in xrange(loops):
         redug_crater[j] = craters_component.impact_property_dict['redug_crater']
         print 'Completed loop ', j
     mystring = 'craterssave'+str((i+1)*nt)
-    np.save(mystring,mg['node']['planet_surface__elevation'])
+    np.save(mystring,mg['node']['topographic_elevation'])
     #Save the properties
     np.save(('slope_'+str((i+1)*nt)),slope)
     np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
     np.save(('redug_crater_'+str((i+1)*nt)),redug_crater)
 
 #Finalize and plot
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic_elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 #pylab.figure(1)

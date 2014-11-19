@@ -152,7 +152,7 @@ class StreamPowerEroder(object):
         #    self.made_link_gradients = True
 
         
-    def erode(self, grid, dt, node_elevs='planet_surface__elevation',
+    def erode(self, grid, dt, node_elevs='topographic_elevation',
             node_drainage_areas='drainage_area', 
             flow_receiver='flow_receiver',
             node_order_upstream='upstream_ID_order',

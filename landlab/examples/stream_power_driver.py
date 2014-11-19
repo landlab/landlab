@@ -29,11 +29,11 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up its boundary conditions (bottom, left, top, right is inactive)
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -48,7 +48,7 @@ sp = SPEroder(mg, input_file)
 time_on = time()
 #perform the loops:
 for i in xrange(nt):
-    mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
+    mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
 
@@ -59,7 +59,7 @@ for i in xrange(nt):
             mg.at_node['flow_receiver'])
     dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
-    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['planet_surface__elevation'])
+    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
     print 'Completed loop ', i
  
 print 'Completed the simulation. Plotting...'
@@ -74,9 +74,9 @@ pylab.figure(1)
 im = imshow_node_grid(mg, 'water_discharges', cmap='Blues')  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'planet_surface__elevation')  # display a colored image
+im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
 
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic_elevation']
 elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])

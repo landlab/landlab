@@ -30,12 +30,12 @@ class FlowRouter():
     It initializes with a reference to a ModelGrid of any kind. Optionally, it
     can also take *value_field*, the string which is the name of the elvation 
     field in the model grid to use to route flow. If *value_field* is not
-    provided, it defaults to 'planet_surface__elevation'.
+    provided, it defaults to 'topographic_elevation'.
     
     The primary method of this class is :func:`route_flow`.
     """
     
-    def __init__(self, model_grid, value_field='planet_surface__elevation'):
+    def __init__(self, model_grid, value_field='topographic_elevation'):
         
         # We keep a local reference to the grid
         self._grid = model_grid
