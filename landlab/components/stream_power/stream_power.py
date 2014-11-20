@@ -1,7 +1,7 @@
 import numpy as np
 from landlab import ModelParameterDictionary
 
-from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
@@ -45,7 +45,9 @@ class StreamPowerEroder(object):
         ***Parameters for input file***
         OBLIGATORY:
             K_sp -> positive float, the prefactor. This is defined per unit 
-                time, not per tstep.
+                time, not per tstep. Type the string 'array' to cause the
+                component's erode method to look for an array of values of K
+                (see documentation for 'erode').
         ALTERNATIVES:
         *either*
             m_sp -> positive float, the power on A
@@ -87,7 +89,12 @@ class StreamPowerEroder(object):
         self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
         inputs = ModelParameterDictionary(params_file)
-        self._K_unit_time = inputs.read_float('K_sp')
+        try:
+            self._K_unit_time = inputs.read_float('K_sp')
+        except ParameterValueError: #it was a string
+            self.use_K = True
+        else:
+            self.use_K = False
         try:
             self.sp_crit = inputs.read_float('threshold_sp')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
@@ -159,7 +166,7 @@ class StreamPowerEroder(object):
             slopes_at_nodes='steepest_slope',
             link_node_mapping='links_to_flow_receiver', 
             link_slopes=None, slopes_from_elevs=None, 
-            W_if_used=None, Q_if_used=None):
+            W_if_used=None, Q_if_used=None, K_if_used=None):
         """
         A simple, explicit implementation of a stream power algorithm.
         
@@ -222,12 +229,20 @@ class StreamPowerEroder(object):
         is not an excess stream power; any specified erosion threshold is not
         incorporated into it.
         """
+        active_nodes = grid.get_active_cell_node_ids()
         
         if W_if_used!=None:
             assert self.use_W, "Widths were provided, but you didn't set the use_W flag in your input file! Aborting..." 
             
         if Q_if_used!=None:
             assert self.use_Q, "Discharges were provided, but you didn't set the use_Q flag in your input file! Aborting..." 
+        
+        if K_if_used!=None:
+            assert self.use_K, "An array of erodabilities was provided, but you didn't set K_sp to 'array' in your input file! Aborting..."
+            try:
+                self._K_unit_time = grid.at_node[K_if_used][active_nodes]
+            except TypeError:
+                self._K_unit_time = K_if_used[active_nodes]
         
         if type(node_elevs)==str:
             node_z = grid.at_node[node_elevs]
@@ -280,7 +295,6 @@ class StreamPowerEroder(object):
             node_order_upstream = grid.at_node[node_order_upstream]
         
         #Operate the main function:
-        active_nodes = grid.get_active_cell_node_ids()
         if self.use_W==False and self.use_Q==False: #normal case
             stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * self.slopes[active_nodes]**self._n
         elif self.use_W:
