@@ -28,6 +28,10 @@ slope_horn,aspect_horn = \
 ## BestFitPlane
 slope_BFP,aspect_BFP = grid.calculate_slope_aspect_at_nodes_bestFitPlane(ids,elev)
 
+
+## node_slopes_using_patches 
+slope_NSP = grid.node_slopes_using_patches(elevs = 'Elevation', unit ='degrees')
+
 pic = 0
 plt.figure(pic)
 imshow_field(grid,'Elevation',values_at = 'node',grid_units = ('m','m'))
@@ -70,5 +74,10 @@ imshow_grid(grid,np.degrees(aspect_BFP),values_at = 'cell', grid_units = ('m','m
 plt.title('Aspect in degrees - bestFitPlane')
 #plt.savefig('aspect_BFP_NS')
 
+pic += 1
+plt.figure(pic)
+imshow_grid(grid,slope_NSP,values_at = 'node', grid_units = ('m','m'))
+plt.title('Slope in degrees - Node Slopes using Patches')
+#plt.savefig('aspect_BFP_NS')
 
 plt.show()

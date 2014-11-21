@@ -18,7 +18,7 @@ from landlab.utils import structured_grid as sgrid
 
 class find_facets(object):
     
-    def __init__(self, grid, elev_field='planet_surface__elevation', 
+    def __init__(self, grid, elev_field='topographic_elevation', 
                 fault_azimuth=None):
         """
         Note that this class assumes the grid does not change during the model

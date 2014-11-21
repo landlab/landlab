@@ -350,7 +350,7 @@ class SedDepEroder(object):
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
        
         
-    def erode(self, grid, dt=None, node_elevs='planet_surface__elevation', 
+    def erode(self, grid, dt=None, node_elevs='topographic_elevation', 
                 node_drainage_areas='drainage_area', 
                 node_receiving_flow='flow_receiver',
                 node_order_upstream='upstream_ID_order',
