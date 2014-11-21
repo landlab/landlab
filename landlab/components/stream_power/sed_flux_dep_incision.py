@@ -52,6 +52,22 @@ class SedDepEroder(object):
         stream_power.py. However, we now require additional input terms for the
         f(Qs,Qc) term:
         REQUIRED:
+            *sed_dependency_type -> 'None', 'linear_decline', 'parabolic', 
+                'almost_parabolic', 'generalized_humped'. For definitions, see Gasparini
+                et al., 2006; Hobley et al., 2011.
+            *Qc -> 'MPM', 'power_law', 'array'.
+                This input controls the sediment capacity used by the component.
+                It can calculate sediment carrying capacity for itself if this
+                parameter is a string 'MPM' or 'power_law', which will cause 
+                the component to use a slightly modified version of the 
+                Meyer-Peter Muller equation (again, see Hobley et al., 2011),
+                or a power law, Qc=K_t*A**m_t*S**n_t (see, e.g., Gasparini et
+                al., 2006).
+                Alternatively, it can be 'array', denoting that the capacity
+                will be provided as an array to the erode method, using the 
+                input argument 'Qc_if_used'.
+                
+        If Qc == 'MPM':
             *Set the stream power terms using a, b, and c NOT m, n.
             *...remember, any threshold set is set as tau**a, not just tau.
             *k_Q, k_w, mannings_n -> floats. These are the prefactors on the 
@@ -66,15 +82,15 @@ class SedDepEroder(object):
                 for an "annual-ish" flood). [If you want to continue playing
                 with calibration, the ?50yr return time 2013 floods produced
                 depths ~2.3m with Q~200m3/s]
-            *sed_dependency_type -> 'None', 'linear_decline', 'parabolic', 
-                'almost_parabolic', 'generalized_humped'. For definitions, see Gasparini
-                et al., 2006; Hobley et al., 2011.
-            *Qc -> This input controls the sediment capacity used by the component.
-                It can calculate sediment carrying capacity for itself if this
-                parameter is a string 'MPM', which will cause the component to use a
-                slightly modified version of the Meyer-Peter Muller equation (again, see
-                Hobley et al., 2011). Alternatively, it can be another string denoting
-                the grid field name in which a precalculated capacity is stored.
+            
+        If Qc == 'power_law':
+            *K_sp, m_sp, n_sp -> the prefactor and powers on A and S in the
+                derivation for the incision equation, E = K*f(Qs)*A**m*S**n.
+            *K_t, m_t, n_t -> the prefactor and powers on A and S in the
+                derivation of transport capacity, Qc = K_t*A**m_t*S**n_t.
+            *Note at the present time, no thresholding is permitted with the
+                power_law model, nor is a variable runoff rate.
+                
                 
         Depending on which options are specified above, further parameters may be
         required:
@@ -141,35 +157,8 @@ class SedDepEroder(object):
         self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1        
         inputs = ModelParameterDictionary(params_file)
-        try:
-            self.thresh = inputs.read_float('threshold_shear_stress')
-            self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a shear stress threshold to use: ", self.thresh
-        except MissingKeyError:
-            print "Found no incision threshold to use."
-            self.thresh = 0.
-            self.set_threshold = False
-        try:
-            self._a = inputs.read_float('a_sp')
-        except:
-            print "a not supplied. Setting power on shear stress to 1..."
-            self._a = 1.
-        try:
-            self._b = inputs.read_float('b_sp')
-        except MissingKeyError:
-            #if self.use_W:
-            #    self._b = 0.
-            #else:
-            raise NameError('b was not set')
-        try:
-            self._c = inputs.read_float('c_sp')
-        except MissingKeyError:
-            #if self.use_Q:
-            #    self._c = 1.
-            #else:
-            raise NameError('c was not set') #we need to restore this functionality later
-        #'To use the sed flux dependent model, you must set a,b,c not m,n. Try a=1,b=0.5,c=1...?'
         
+        self.type = inputs.read_string('sed_dependency_type')
         self._K_unit_time = inputs.read_float('K_sp')/31557600. #...because we work with dt in seconds
         #set gravity
         try:
@@ -191,37 +180,79 @@ class SedDepEroder(object):
         self.relative_weight = (self.sed_density-self.fluid_density)/self.fluid_density*self.g #to accelerate MPM calcs
         self.rho_g = self.fluid_density*self.g
         
-        self.k_Q = inputs.read_float('k_Q')
-        self.k_w = inputs.read_float('k_w')
-        mannings_n = inputs.read_float('mannings_n')
-        self.mannings_n = mannings_n
-        if mannings_n<0. or mannings_n>0.2:
-            print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
-            sleep(2)
-
-        self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
-        
-        self.type = inputs.read_string('sed_dependency_type')
         try:
             self.Qc = inputs.read_string('Qc')
         except MissingKeyError:
             self.Qc = None
         else:
-            if self.Qc=='MPM':
+            if self.Qc in ('MPM', 'power_law'):
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
-        try:
-            self.override_threshold = inputs.read_bool('set_threshold_from_Dchar')
-        except MissingKeyError:
-            self.override_threshold = False
-        try:
-            self.shields_crit = inputs.read_float('threshold_Shields')
-        except MissingKeyError:
-            self.shields_crit = 0.05
-        try:
-            self.return_ch_props = inputs.read_bool('return_stream_properties')
-        except MissingKeyError:
+        if self.Qc == 'MPM':
+            try:
+                self.thresh = inputs.read_float('threshold_shear_stress')
+                self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
+                print "Found a shear stress threshold to use: ", self.thresh
+            except MissingKeyError:
+                print "Found no incision threshold to use."
+                self.thresh = 0.
+                self.set_threshold = False
+            try:
+                self._a = inputs.read_float('a_sp')
+            except:
+                print "a not supplied. Setting power on shear stress to 1..."
+                self._a = 1.
+            try:
+                self._b = inputs.read_float('b_sp')
+            except MissingKeyError:
+                #if self.use_W:
+                #    self._b = 0.
+                #else:
+                raise NameError('b was not set')
+            try:
+                self._c = inputs.read_float('c_sp')
+            except MissingKeyError:
+                #if self.use_Q:
+                #    self._c = 1.
+                #else:
+                raise NameError('c was not set') #we need to restore this functionality later
+            #'To use the sed flux dependent model, you must set a,b,c not m,n. Try a=1,b=0.5,c=1...?'        
+        
+            self.k_Q = inputs.read_float('k_Q')
+            self.k_w = inputs.read_float('k_w')
+            mannings_n = inputs.read_float('mannings_n')
+            self.mannings_n = mannings_n
+            if mannings_n<0. or mannings_n>0.2:
+                print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
+                sleep(2)
+    
+            self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
+            
+            try:
+                self.override_threshold = inputs.read_bool('set_threshold_from_Dchar')
+            except MissingKeyError:
+                self.override_threshold = False
+            try:
+                self.shields_crit = inputs.read_float('threshold_Shields')
+            except MissingKeyError:
+                self.shields_crit = 0.05
+            try:
+                self.return_ch_props = inputs.read_bool('return_stream_properties')
+            except MissingKeyError:
+                self.return_ch_props = False 
+            try:
+                self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
+                #this is going to be a nightmare to implement...
+            except:
+                self.lamb_flag = False
+        
+        elif self.Qc == 'power_law':
+            self._m = inputs.read_float('m_sp')
+            self._n = inputs.read_float('n_sp')
+            self._Kt = inputs.read_float('K_t')
+            self._mt = inputs.read_float('m_t')
+            self._nt = inputs.read_float('n_t')
             self.return_ch_props = False
             
         #now conditional inputs
@@ -237,12 +268,6 @@ class SedDepEroder(object):
                 self.phi = 4.24
                 self.c = 0.00181
                 print 'Adopting inbuilt parameters for the humped function form...'
-                
-        try:
-            self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
-            #this is going to be a nightmare to implement...
-        except:
-            self.lamb_flag = False
             
         if self.Qc == 'MPM':
             try:
@@ -258,35 +283,34 @@ class SedDepEroder(object):
             except MissingKeyError:
                 self.C_MPM = 1.
         
-        if self.override_threshold:
-            print "Overriding any supplied threshold..."
-            try:
-                self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar_in
-            except AttributeError:
-                self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar')
-            print "Threshold derived from grain size and Shields number is: ", self.thresh
+            if self.override_threshold:
+                print "Overriding any supplied threshold..."
+                try:
+                    self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar_in
+                except AttributeError:
+                    self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar')
+                print "Threshold derived from grain size and Shields number is: ", self.thresh
         
+            #new 11/12/14
+            self.point6onelessb = 0.6*(1.-self._b)
+            self.shear_stress_prefactor = self.fluid_density*self.g*(self.mannings_n/self.k_w)**0.6
+    
+            if self.set_threshold is False or self.override_threshold:
+                try:
+                    self.shields_prefactor_to_shear = (self.sed_density-self.fluid_density)*self.g*self.Dchar_in
+                except AttributeError: #no Dchar
+                    self.shields_prefactor_to_shear_noDchar = (self.sed_density-self.fluid_density)*self.g
+            
+            twothirds = 2./3.
+            self.Qs_prefactor = 4.*self.C_MPM**twothirds*self.fluid_density**twothirds/(self.sed_density-self.fluid_density)**twothirds*self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.)*self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds
+            self.Qs_thresh_prefactor = 4.*(self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density**0.5/(self.sed_density-self.fluid_density)/self.g/self.sed_density)**twothirds
+            #both these are divided by sed density to give a vol flux
+            self.Qs_power_onA = self._c*(0.6+self._b/15.)
+            self.Qs_power_onAthresh = twothirds*self._b*self._c
+
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.cell_node] = grid.cell_areas
-        #new 11/12/14
-        self.point6onelessb = 0.6*(1.-self._b)
-        self.shear_stress_prefactor = self.fluid_density*self.g*(self.mannings_n/self.k_w)**0.6
-
-        if self.set_threshold is False or self.override_threshold:
-            try:
-                self.shields_prefactor_to_shear = (self.sed_density-self.fluid_density)*self.g*self.Dchar_in
-            except AttributeError: #no Dchar
-                self.shields_prefactor_to_shear_noDchar = (self.sed_density-self.fluid_density)*self.g
-        
-        twothirds = 2./3.
-        self.Qs_prefactor = 4.*self.C_MPM**twothirds*self.fluid_density**twothirds/(self.sed_density-self.fluid_density)**twothirds*self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.)*self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds
-        self.Qs_thresh_prefactor = 4.*(self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density**0.5/(self.sed_density-self.fluid_density)/self.g/self.sed_density)**twothirds
-        #both these are divided by sed density to give a vol flux
-        self.Qs_power_onA = self._c*(0.6+self._b/15.)
-        self.Qs_power_onAthresh = twothirds*self._b*self._c
-
-        
+        self.cell_areas[grid.cell_node] = grid.cell_areas        
         
     
     def get_sed_flux_function(self, rel_sed_flux):
@@ -359,7 +383,8 @@ class SedDepEroder(object):
                 runoff_rate_if_used=None,
                 #W_if_used=None, Q_if_used=None,
                 stability_condition='loose',
-                Dchar_if_used=None, io=None):
+                Dchar_if_used=None, Qc_if_used=None,
+                io=None):
                     
         """
         Note this method must be passed both 'receiver' and 'upstream_order',
@@ -376,20 +401,6 @@ class SedDepEroder(object):
         
         if dt==None:
             dt = self.tstep        
-        try:
-            self.Dchar=self.Dchar_in
-        except AttributeError:
-            try:
-                self.Dchar=grid.at_node[Dchar_if_used]
-            except FieldError:
-                assert type(Dchar_if_used)==np.ndarray
-                self.Dchar=Dchar_if_used
-            if not self.set_threshold:
-                assert self.override_threshold, "You need to confirm to the module you intend it to internally calculate a shear stress threshold, with set_threshold_from_Dchar in the input file."
-                #we need to adjust the thresholds for the Shields number & gs dynamically:
-                variable_thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar
-        else:
-            assert Dchar_if_used is None, "Trouble ahead... you can't provide Dchar both in the input file and as an array!"
             
         if type(node_elevs)==str:
             node_z = grid.at_node[node_elevs]
@@ -416,15 +427,7 @@ class SedDepEroder(object):
             node_S = grid.at_node[node_slope]
         else:
             node_S = node_slope
-            
-        if self.lamb_flag:
-            variable_shields_crit = 0.15*node_S**0.25
-            try:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear
-            except AttributeError:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear_noDchar*self.Dchar
         
-
         if type(steepest_link)==str:
             link_length = np.empty(grid.number_of_nodes,dtype=float)
             link_length.fill(np.nan)
@@ -434,50 +437,209 @@ class SedDepEroder(object):
             #link_length=grid.node_spacing_horizontal
         else:
             link_length = grid.link_length[steepest_link]
-
-        node_Q = self.k_Q*runoff_rate*node_A**self._c
-        shear_stress_prefactor_timesAparts = self.shear_stress_prefactor*node_Q**self.point6onelessb
-        try:
-            transport_capacities_thresh = self.thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
-        except AttributeError:
-            transport_capacities_thresh = variable_thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh    
         
-        transport_capacity_prefactor_withA = self.Qs_prefactor*runoff_rate**(0.6+self._b/15.)*node_A**self.Qs_power_onA
-        
-        internal_t = 0.
-        break_flag = False
-        dt_secs = dt*31557600.
-        counter = 0
-        rel_sed_flux = np.empty_like(node_Q)
-        #excess_vol_overhead = 0.
-        
-        while 1: #use the break flag, to improve computational efficiency for runs which are very stable
-            #we assume the drainage structure is forbidden to change during the whole dt
-            #print "loop..."
-            #note slopes will be *negative* at pits
-            #track how many loops we perform:
-            counter += 1
-            #print counter
-            downward_slopes = node_S.clip(0.)
-            #positive_slopes = np.greater(downward_slopes, 0.)
-            slopes_tothe07 = downward_slopes**0.7
-            transport_capacities_S = transport_capacity_prefactor_withA*slopes_tothe07
-            trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(0.)
-            transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
-            shear_stress = shear_stress_prefactor_timesAparts*slopes_tothe07
-            shear_tothe_a = shear_stress**self._a
-            
-            dt_this_step = dt_secs-internal_t #timestep adjustment is made AFTER the dz calc
-            node_vol_capacities = transport_capacities*dt_this_step
-            
-            sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
-            dz = np.zeros(grid.number_of_nodes, dtype=float)
-            len_s_in = s_in.size
-            cell_areas = self.cell_areas
+        if self.Qc == 'MPM':
             try:
-                raise CompileError#tripped out deliberately for now; doesn't appear to accelerate much
-                weave.inline(self.routing_code, ['len_s_in', 'sed_into_node', 'transport_capacities', 'dz', 'cell_areas', 'dt_this_step', 'flow_receiver'])
-            except CompileError:
+                self.Dchar=self.Dchar_in
+            except AttributeError:
+                try:
+                    self.Dchar=grid.at_node[Dchar_if_used]
+                except FieldError:
+                    assert type(Dchar_if_used)==np.ndarray
+                    self.Dchar=Dchar_if_used
+                if not self.set_threshold:
+                    assert self.override_threshold, "You need to confirm to the module you intend it to internally calculate a shear stress threshold, with set_threshold_from_Dchar in the input file."
+                    #we need to adjust the thresholds for the Shields number & gs dynamically:
+                    variable_thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar
+            else:
+                assert Dchar_if_used is None, "Trouble ahead... you can't provide Dchar both in the input file and as an array!"
+            
+            if self.lamb_flag:
+                variable_shields_crit = 0.15*node_S**0.25
+                try:
+                    variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear
+                except AttributeError:
+                    variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear_noDchar*self.Dchar
+    
+            node_Q = self.k_Q*runoff_rate*node_A**self._c
+            shear_stress_prefactor_timesAparts = self.shear_stress_prefactor*node_Q**self.point6onelessb
+            try:
+                transport_capacities_thresh = self.thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
+            except AttributeError:
+                transport_capacities_thresh = variable_thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh    
+            
+            transport_capacity_prefactor_withA = self.Qs_prefactor*runoff_rate**(0.6+self._b/15.)*node_A**self.Qs_power_onA
+            
+            internal_t = 0.
+            break_flag = False
+            dt_secs = dt*31557600.
+            counter = 0
+            rel_sed_flux = np.empty_like(node_Q)
+            #excess_vol_overhead = 0.
+            
+            while 1: #use the break flag, to improve computational efficiency for runs which are very stable
+                #we assume the drainage structure is forbidden to change during the whole dt
+                #print "loop..."
+                #note slopes will be *negative* at pits
+                #track how many loops we perform:
+                counter += 1
+                #print counter
+                downward_slopes = node_S.clip(0.)
+                #positive_slopes = np.greater(downward_slopes, 0.)
+                slopes_tothe07 = downward_slopes**0.7
+                transport_capacities_S = transport_capacity_prefactor_withA*slopes_tothe07
+                trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(0.)
+                transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
+                shear_stress = shear_stress_prefactor_timesAparts*slopes_tothe07
+                shear_tothe_a = shear_stress**self._a
+                
+                dt_this_step = dt_secs-internal_t #timestep adjustment is made AFTER the dz calc
+                node_vol_capacities = transport_capacities*dt_this_step
+                
+                sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
+                dz = np.zeros(grid.number_of_nodes, dtype=float)
+                len_s_in = s_in.size
+                cell_areas = self.cell_areas
+                try:
+                    raise CompileError#tripped out deliberately for now; doesn't appear to accelerate much
+                    weave.inline(self.routing_code, ['len_s_in', 'sed_into_node', 'transport_capacities', 'dz', 'cell_areas', 'dt_this_step', 'flow_receiver'])
+                except CompileError:
+                    for i in s_in[::-1]: #work downstream
+                        try:
+                            cell_area = cell_areas[i]
+                        except TypeError: #it's a float, not an array
+                            cell_area = cell_areas
+                        sed_flux_into_this_node = sed_into_node[i]
+                        node_capacity = transport_capacities[i] #we work in volume flux, not volume per se here
+                        node_vol_capacity = node_vol_capacities[i]
+                        if sed_flux_into_this_node < node_vol_capacity: #note incision is forbidden at capacity
+    #                        sed_flux_ratio = sed_flux_into_this_node/node_capacity
+    #                        fqsqc=self.get_sed_flux_function(sed_flux_ratio)
+    #                        try:
+    #                            thresh = variable_thresh
+    #                        except: #it doesn't exist
+    #                            thresh = self.thresh
+    #                        dz_here = self._K_unit_time*dt_this_step*fqsqc*(shear_tothe_a[i]-thresh).clip(0.) #let's define down as +ve
+    #                        vol_pass_attempted = dz_here*cell_area + sed_flux_into_this_node
+    #                        if vol_pass_attempted > node_vol_capacity:
+    #                            #it's vital we don't allow the final node to erode more than it can remove from the node!!
+    #                            #=>must modify dz_here, not just drop that sed
+    #                            excess_volume = vol_pass_attempted-node_vol_capacity
+    #                            dz_reduction = excess_volume/cell_area
+    #                            dz_here -= dz_reduction
+    #                            #add a "sneak" to stop the transition point developing into a sed deposition shock:
+    #                            if dz_here < 0.:
+    #                                #excess_vol_overhead += (dz_reduction-dz_here)*cell_area
+    #                                #node_vol_capacities[flow_receiver[i]] += excess_vol_overhead
+    #                                dz_here = 0. #this sed packet gets to be "excess overhead" -> it gets freely transported downstream.
+    #                                #...but problems will arise if the system terminates before a boundary cell! (Mass leak)
+    #                                #also, upstream node is still incising freely; it can't feel this.
+    #                                #slopes can still reverse, if the initial gradient was small
+    #                                #=>no node may incise more than the next node down in the previous tstep?
+    #                                #could use this to set dt_internal... 
+    #                                #do the "incising" part as normal, then pause once depo occurs,...
+    #                                #then reduce dt_int so it can't dig further than the next node anywhere...
+    #                                #then RERUN, don't scale dz
+    #                            vol_pass = node_vol_capacity
+    #                        else:
+    #                            vol_pass = vol_pass_attempted
+    ##implementing the pseudoimplicit method instead:
+                            try:
+                                thresh = variable_thresh
+                            except: #it doesn't exist
+                                thresh = self.thresh
+                            dz_prefactor = self._K_unit_time*dt_this_step*(shear_tothe_a[i]-thresh).clip(0.)
+                            vol_prefactor = dz_prefactor*cell_area
+                            dz_here, sed_flux_out, rel_sed_flux_here, error_in_sed_flux = self.get_sed_flux_function_pseudoimplicit(sed_flux_into_this_node, node_vol_capacity, vol_prefactor, dz_prefactor)
+                            #note now dz_here may never create more sed than the out can transport...
+                            assert sed_flux_out <= node_vol_capacity, 'failed at node '+str(s_in.size-i)+' with rel sed flux '+str(sed_flux_out/node_capacity)
+                            rel_sed_flux[i] = rel_sed_flux_here
+                            vol_pass = sed_flux_out#*dt_this_step
+                        else:
+                            rel_sed_flux[i] = 1.
+                            vol_dropped = sed_flux_into_this_node - node_vol_capacity
+                            dz_here = -vol_dropped/cell_area
+                            vol_pass = node_vol_capacity
+                        
+                        dz[i] -= dz_here
+                        sed_into_node[flow_receiver[i]] += vol_pass
+                
+    #            #perform the fractional-slope-change stability analysis
+    #            elev_diff = node_z - node_z[flow_receiver]
+    #            delta_dz = dz - dz[flow_receiver] #remember, here dz is DOWN (unlike the TL case)
+    #            ###delta_dz = np.fabs(delta_dz)
+    #            ##excess_fraction = delta_dz/elev_diff
+    #            ##most_flattened_nodes = np.argmax(np.fabs(excess_fraction[grid.core_nodes]))
+    #            node_flattening = self.fraction_gradient_change*elev_diff - delta_dz #note the condition is that gradient may not change by >X%, not must be >0
+    #            #note all these things are zero for a pit node
+    #            most_flattened_nodes = np.argmin(node_flattening[grid.core_nodes])
+    #            most_flattened_nodes = np.take(grid.core_nodes, most_flattened_nodes) #get it back to node number, not core_node number
+    #            ##most_flattened_val = np.take(excess_fraction, most_flattened_nodes)
+    #            ##abs_most_flattened_val = np.fabs(most_flattened_val)
+    #            most_flattened_val = np.take(node_flattening, most_flattened_nodes)
+    #            print 'most flattened val: ', most_flattened_val            
+    #            if most_flattened_val>=0.:
+    #            ##if abs_most_flattened_val<self.fraction_gradient_change:
+    #                break_flag = True #all nodes are stable
+    #            else: # a fraction > the critical fraction
+    #            ###need to think about if we can assume dz and dt behave linearly in these cases...
+    #            #first impression is that it's OK. Still assume everything works linearly *within any given tstep*
+    #                most_extreme_elev_diff = np.take(elev_diff, most_flattened_nodes)
+    #                most_extreme_delta_dz = np.take(delta_dz, most_flattened_nodes)
+    #                print 'elev_diff: ', most_extreme_elev_diff
+    #                print 'delta dz: ', most_extreme_delta_dz
+    #                print '***'
+    #                dt_fraction = 0.5*self.fraction_gradient_change*most_extreme_elev_diff/most_extreme_delta_dz
+    #                ##dt_fraction = self.fraction_gradient_change/abs_most_flattened_val
+    ###persistent failure here happens when elev diff manages to reverse itself, which should be forbidden
+    ###this might be showing that a linear model *isn't* adequate
+    ###how about doing all the stability *before* the analysis? Once we have slope, capacity & fldir for all nodes,
+    ###worst case scenario is that all the potential sed gets dumped in this node 
+    ###(better case - deduct the transport capacity out). ...isn't this just the TL stability condition??
+    #
+    #                #print 'dt_fraction: ', dt_fraction
+    #                #correct those elevs
+    #                dz *= dt_fraction
+    #                dt_this_step *= dt_fraction
+                break_flag = True
+                
+                node_z[grid.core_nodes] += dz[grid.core_nodes]
+                
+                if break_flag:
+                    break
+                #do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
+                #BUT could be important not for the stability, but for the actual calc. So YES.
+                node_S = np.zeros_like(node_S)
+                #print link_length[core_draining_nodes]
+                node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[core_draining_nodes]/link_length[core_draining_nodes]
+                internal_t += dt_this_step #still in seconds, remember
+    
+        elif self.Qc == 'power_law':
+            transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
+            erosion_prefactor_withA = self._K_unit_time * node_A**self._m #doesn't include S**n*f(Qc/Qc)
+            internal_t = 0.
+            break_flag = False
+            dt_secs = dt*31557600.
+            counter = 0
+            rel_sed_flux = np.empty_like(node_A)
+            
+            while 1:
+                counter += 1
+                #print counter
+                downward_slopes = node_S.clip(0.)
+                #positive_slopes = np.greater(downward_slopes, 0.)
+                slopes_tothen = downward_slopes**self._n
+                slopes_tothent = downward_slopes**self._nt
+                transport_capacities = transport_capacity_prefactor_withA*slopes_tothent
+                erosion_prefactor_withS = erosion_prefactor_withA * slopes_tothen #no time, no fqs
+                #shear_tothe_a = shear_stress**self._a
+                
+                dt_this_step = dt_secs-internal_t #timestep adjustment is made AFTER the dz calc
+                node_vol_capacities = transport_capacities*dt_this_step
+                
+                sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
+                dz = np.zeros(grid.number_of_nodes, dtype=float)
+                cell_areas = self.cell_areas
                 for i in s_in[::-1]: #work downstream
                     try:
                         cell_area = cell_areas[i]
@@ -487,42 +649,7 @@ class SedDepEroder(object):
                     node_capacity = transport_capacities[i] #we work in volume flux, not volume per se here
                     node_vol_capacity = node_vol_capacities[i]
                     if sed_flux_into_this_node < node_vol_capacity: #note incision is forbidden at capacity
-#                        sed_flux_ratio = sed_flux_into_this_node/node_capacity
-#                        fqsqc=self.get_sed_flux_function(sed_flux_ratio)
-#                        try:
-#                            thresh = variable_thresh
-#                        except: #it doesn't exist
-#                            thresh = self.thresh
-#                        dz_here = self._K_unit_time*dt_this_step*fqsqc*(shear_tothe_a[i]-thresh).clip(0.) #let's define down as +ve
-#                        vol_pass_attempted = dz_here*cell_area + sed_flux_into_this_node
-#                        if vol_pass_attempted > node_vol_capacity:
-#                            #it's vital we don't allow the final node to erode more than it can remove from the node!!
-#                            #=>must modify dz_here, not just drop that sed
-#                            excess_volume = vol_pass_attempted-node_vol_capacity
-#                            dz_reduction = excess_volume/cell_area
-#                            dz_here -= dz_reduction
-#                            #add a "sneak" to stop the transition point developing into a sed deposition shock:
-#                            if dz_here < 0.:
-#                                #excess_vol_overhead += (dz_reduction-dz_here)*cell_area
-#                                #node_vol_capacities[flow_receiver[i]] += excess_vol_overhead
-#                                dz_here = 0. #this sed packet gets to be "excess overhead" -> it gets freely transported downstream.
-#                                #...but problems will arise if the system terminates before a boundary cell! (Mass leak)
-#                                #also, upstream node is still incising freely; it can't feel this.
-#                                #slopes can still reverse, if the initial gradient was small
-#                                #=>no node may incise more than the next node down in the previous tstep?
-#                                #could use this to set dt_internal... 
-#                                #do the "incising" part as normal, then pause once depo occurs,...
-#                                #then reduce dt_int so it can't dig further than the next node anywhere...
-#                                #then RERUN, don't scale dz
-#                            vol_pass = node_vol_capacity
-#                        else:
-#                            vol_pass = vol_pass_attempted
-##implementing the pseudoimplicit method instead:
-                        try:
-                            thresh = variable_thresh
-                        except: #it doesn't exist
-                            thresh = self.thresh
-                        dz_prefactor = self._K_unit_time*dt_this_step*(shear_tothe_a[i]-thresh).clip(0.)
+                        dz_prefactor = dt_this_step*erosion_prefactor_withS[i]
                         vol_prefactor = dz_prefactor*cell_area
                         dz_here, sed_flux_out, rel_sed_flux_here, error_in_sed_flux = self.get_sed_flux_function_pseudoimplicit(sed_flux_into_this_node, node_vol_capacity, vol_prefactor, dz_prefactor)
                         #note now dz_here may never create more sed than the out can transport...
@@ -537,56 +664,21 @@ class SedDepEroder(object):
                     
                     dz[i] -= dz_here
                     sed_into_node[flow_receiver[i]] += vol_pass
-            
-#            #perform the fractional-slope-change stability analysis
-#            elev_diff = node_z - node_z[flow_receiver]
-#            delta_dz = dz - dz[flow_receiver] #remember, here dz is DOWN (unlike the TL case)
-#            ###delta_dz = np.fabs(delta_dz)
-#            ##excess_fraction = delta_dz/elev_diff
-#            ##most_flattened_nodes = np.argmax(np.fabs(excess_fraction[grid.core_nodes]))
-#            node_flattening = self.fraction_gradient_change*elev_diff - delta_dz #note the condition is that gradient may not change by >X%, not must be >0
-#            #note all these things are zero for a pit node
-#            most_flattened_nodes = np.argmin(node_flattening[grid.core_nodes])
-#            most_flattened_nodes = np.take(grid.core_nodes, most_flattened_nodes) #get it back to node number, not core_node number
-#            ##most_flattened_val = np.take(excess_fraction, most_flattened_nodes)
-#            ##abs_most_flattened_val = np.fabs(most_flattened_val)
-#            most_flattened_val = np.take(node_flattening, most_flattened_nodes)
-#            print 'most flattened val: ', most_flattened_val            
-#            if most_flattened_val>=0.:
-#            ##if abs_most_flattened_val<self.fraction_gradient_change:
-#                break_flag = True #all nodes are stable
-#            else: # a fraction > the critical fraction
-#            ###need to think about if we can assume dz and dt behave linearly in these cases...
-#            #first impression is that it's OK. Still assume everything works linearly *within any given tstep*
-#                most_extreme_elev_diff = np.take(elev_diff, most_flattened_nodes)
-#                most_extreme_delta_dz = np.take(delta_dz, most_flattened_nodes)
-#                print 'elev_diff: ', most_extreme_elev_diff
-#                print 'delta dz: ', most_extreme_delta_dz
-#                print '***'
-#                dt_fraction = 0.5*self.fraction_gradient_change*most_extreme_elev_diff/most_extreme_delta_dz
-#                ##dt_fraction = self.fraction_gradient_change/abs_most_flattened_val
-###persistent failure here happens when elev diff manages to reverse itself, which should be forbidden
-###this might be showing that a linear model *isn't* adequate
-###how about doing all the stability *before* the analysis? Once we have slope, capacity & fldir for all nodes,
-###worst case scenario is that all the potential sed gets dumped in this node 
-###(better case - deduct the transport capacity out). ...isn't this just the TL stability condition??
-#
-#                #print 'dt_fraction: ', dt_fraction
-#                #correct those elevs
-#                dz *= dt_fraction
-#                dt_this_step *= dt_fraction
-            break_flag = True
-            
-            node_z[grid.core_nodes] += dz[grid.core_nodes]
-            
-            if break_flag:
-                break
-            #do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
-            #BUT could be important not for the stability, but for the actual calc. So YES.
-            node_S = np.zeros_like(node_S)
-            #print link_length[core_draining_nodes]
-            node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[core_draining_nodes]/link_length[core_draining_nodes]
-            internal_t += dt_this_step #still in seconds, remember
+                break_flag = True
+                
+                node_z[grid.core_nodes] += dz[grid.core_nodes]
+                
+                if break_flag:
+                    break
+                #do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
+                #BUT could be important not for the stability, but for the actual calc. So YES.
+                node_S = np.zeros_like(node_S)
+                #print link_length[core_draining_nodes]
+                node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[core_draining_nodes]/link_length[core_draining_nodes]
+                internal_t += dt_this_step #still in seconds, remember
+
+
+
                 
         self.grid=grid
 
@@ -610,9 +702,9 @@ class SedDepEroder(object):
             H = shear_stress/self.rho_g/node_S #...sneaky!
             grid.at_node['channel_width'] = W
             grid.at_node['channel_depth'] = H
+            grid.at_node['channel_discharge'] = node_Q
+            grid.at_node['channel_bed_shear_stress'] = shear_stress
             
-        grid.at_node['channel_discharge'] = node_Q
-        grid.at_node['channel_bed_shear_stress'] = shear_stress
         grid.at_node['fluvial_sediment_transport_capacity'] = transport_capacities
         grid.at_node['fluvial_sediment_flux_into_node'] = sed_into_node
         grid.at_node['relative_sediment_flux'] = rel_sed_flux
