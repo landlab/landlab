@@ -18,7 +18,7 @@ from copy import copy, deepcopy
 from time import time
 
 #get the needed properties to build the grid:
-input_file = './sed_dep_params.txt'
+input_file = './sed_dep_NMGparams.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -69,7 +69,7 @@ for i in xrange(nt):
     #print sde.iterations_in_dt
     #print 'capacity ', np.amax(capacity_out[mg.core_nodes])
     #print 'rel sed ', np.nanmax(sed_in[mg.core_nodes]/capacity_out[mg.core_nodes])
-    if i%100 == 0:
+    if i%15 == 0:
         print 'loop ', i
         print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
@@ -79,7 +79,9 @@ for i in xrange(nt):
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
                                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
-    if i%1000 == 0:
+        pylab.figure("slope_area")
+        loglog(mg.at_node['drainage_area'][profile_IDs], mg.at_node['steepest_slope'][profile_IDs], '-x')
+    if i%15 == 0:
         x_profiles.append(dists_upstr)
         z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
         S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])

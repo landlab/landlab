@@ -250,7 +250,7 @@ class SedDepEroder(object):
         elif self.Qc == 'power_law':
             self._m = inputs.read_float('m_sp')
             self._n = inputs.read_float('n_sp')
-            self._Kt = inputs.read_float('K_t')
+            self._Kt = inputs.read_float('K_t')/31557600. #in sec
             self._mt = inputs.read_float('m_t')
             self._nt = inputs.read_float('n_t')
             self.return_ch_props = False
