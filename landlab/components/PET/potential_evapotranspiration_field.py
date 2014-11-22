@@ -108,7 +108,7 @@ class PotentialEvapotranspiration( Component ):
         elif self._method == 'Cosine':
             DeltaD= kwds.pop('DeltaD', 5.)            
             self._J = np.floor( (current_time - np.floor( current_time)) * 365.)
-            self._PET = self._TmaxF_mean + DeltaD/2. * np.cos((2*np.pi) *                           \
+            PET_value = self._TmaxF_mean + DeltaD/2. * np.cos((2*np.pi) *     \
                               (self._J - self._LT - self._ND/2)/self._ND)            
             
         self._PET = PET_value * self._cell_values['RadiationFactor']
