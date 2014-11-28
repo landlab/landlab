@@ -6,6 +6,7 @@ Unit tests for landlab.io.netcdf module.
 import os
 import numpy as np
 from StringIO import StringIO
+from unittest import skipIf
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
     from nose import assert_list_equal
@@ -13,13 +14,14 @@ except ImportError:
     from landlab.testing.tools import assert_list_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import write_netcdf, NotRasterGridError
+from landlab.io.netcdf import write_netcdf, NotRasterGridError, WITH_NETCDF4
 from landlab.io.netcdf.read import _get_raster_spacing
 
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write():
     field = RasterModelGrid(4, 3)
     #field.new_field_location('node', 12.)
