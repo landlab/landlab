@@ -2,6 +2,9 @@
 """
 Landlab's cellular automata modeling package.
 
+Overview
+--------
+
 A Landlab Cellular Automaton, or LCA, implements a particular type of cellular
 automaton (CA): a continuous-time stochastic CA. The approach is based on that
 of Narteau et al. (2002, 2009) and Rozier and Narteau (2014). Like a normal
@@ -13,6 +16,9 @@ different pair of states. The transition probability is given in the form of an
 average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual time of 
 transition is a random variable drawn from an exponential probability 
 distribution with mean :math:1/\lambda
+
+Subclasses
+----------
 
 Landlab provides for several different lattice and connection types:
     - RasterLCA: regular raster grid with transitions between horizontal and
@@ -27,6 +33,89 @@ Landlab provides for several different lattice and connection types:
     - HexLCA: hexagonal grid
     - OrientedLCA: hexagonal grid, with transition rates allowed to vary
         according to orientation.
+        
+Encoding of "states"
+--------------------
+As in any traditional cellular automaton model, a LandlabCellularAutomaton
+contains a grid of cells ("nodes" in Landlab parlance), each of which is has a
+discrete state. States are represented by integers (0, 1, ... N). 
+
+In addition, every active link has an *orientation code* and a *link state code*. 
+The orientation code represents the orientation of the link in space: is it
+"vertical" (aligned with the y axis), "horizontal" (aligned with x), or in some
+other orientation? The number of possible orientations depends on the subclass.
+The base class has only one orientation code (0) (meaning "orientation doesn't
+matter), but this is overridden in some of the subclasses. For example, the
+OrientedRasterLCA has two orientation codes (0 and 1, for vertical and
+horizontal), while the OrientedHexLCA has three (representing the three axes
+in a hex-cell / triagonal grid).
+
+Each active link also has a *link state code*. The *state* of a link refers to
+its particular combination of nodes and its orientation. For example, link 
+state 1 refers to a link in which the from-node has state 0, the to-node has
+state 1, and the orientation code is 0. The number of possible link states is
+equal to R N^2, where R is the number of orientations (1 to 3, depending on the 
+subclass) and N is the number of possible node states. The simplest possible
+Landlab CA model would have just one orientation code and two possible cell
+states, so that there are four unique link states. These would be represented by
+the tuples of (from-node state, to-node state, orientation) as follows:
+    
+    link state 0 = (0, 0, 0)
+    link state 1 = (0, 1, 0)
+    link state 2 = (1, 0, 0)
+    link state 3 = (1, 1, 0)
+        
+Main data structures
+--------------------
+node_state : 1d array (x number of nodes in grid)
+    Node-based grid of node-state codes. This is the grid of cell (sic) states.
+    
+link_state_dict : dictionary 
+    Keys are 3-element tuples that represent the cell-state pairs and 
+    orientation code for each possible link type; values are the corresponding
+    link-state codes. Allows you to look up the link-state code corresponding
+    to a particular pair of adjacent nodes with a particular orientation.
+    
+cell_pair : list (x number of possible link states)
+    List of 3-element tuples representing all the various link states. Allows
+    you to look up the node states and orientation corresponding to a particular 
+    link-state ID.
+    
+event_queue : heap of Event objects
+    Queue containing all future transition events, sorted by time of occurrence
+    (from soonest to latest).
+    
+next_update : 1d array (x number of active links)
+    Time (in the future) at which the link will undergo its next transition.
+    You might notice that the update time for every scheduled transition is also
+    stored in each Event object in the event queue. Why store it twice? Because
+    a scheduled event might be invalidated after the event has been scheduled
+    (because another transition has changed one of a link's two nodes, for
+    example). The way to tell whether a scheduled event is still valid is to
+    compare its time with the corresponding transition time in the *next_update*
+    array. If they are different, the event is discarded.
+
+active_link_orientation : 1d array of ints (x number of active links)
+    Orientation code for each link.
+    
+link_state : 1d array of ints (x number of active links)
+    State code for each link.
+
+n_xn : 1d array of ints (x number of possible link states)
+    Number of transitions ("xn" stands for "transition") from a given link
+    state.
+
+xn_to : 2d array of ints (# possible link states x max. # transitions)
+    Stores the link-state code(s) to which a particular link state can 
+    transition. "max. # transitions" means the maximum number of transitions
+    from a single state. For example, if each link state is associated with one
+    and only one transition, then the maximum is 1, but if there is at least
+    one link state that can have either of two different transitions, then the
+    maximum would be two.
+
+xn_rate : 2d array of floats (# possible link states x max. # transitions)
+    Rate associated with each link-state transition.
+
 
 Created GT Sep 2014, starting from link_ca.py.
 """
@@ -368,7 +457,60 @@ class LandlabCellularAutomaton(object):
             print '  n_xn',self.n_xn
             print '  to:',self.xn_to
             print '  rate:',self.xn_rate
-    
+            
+            
+    def current_link_state(self, link_id):
+        """
+        Used to determines whether the link state at link *link_id* has changed 
+        due to an independent change in the node-state grid. Returns the 
+        current state of the link based on the states of its two end nodes; this
+        can be compared to the entry in self.link_state to determine whether the
+        state has changed.
+        
+        Parameters
+        ----------
+        link_id : int
+            ID of the active link to test
+            
+        Returns
+        -------
+        New link state code
+        
+        Notes
+        -----
+        Vectorizing this might yield some speed.
+        """
+        
+        # Find out the states of the two nodes, and the orientation
+        #print self.grid.number_of_nodes, self.grid.number_of_links, self.grid.number_of_active_links
+        #print link_id
+        #print self.grid.activelink_fromnode[link_id]
+        fromnode_state = self.node_state[self.grid.activelink_fromnode[link_id]]
+        tonode_state = self.node_state[self.grid.activelink_tonode[link_id]]
+        orientation = self.active_link_orientation[link_id]
+        
+        # Return the corresponding state code.
+        return self.link_state_dict[(fromnode_state,tonode_state,orientation)]
+        
+        
+    def update_link_states_and_transitions(self, current_time):
+        """
+        Following an "external" change to the node state grid, updates link
+        states where necessary and creates any needed events.
+        
+        Notes
+        -----
+        Algorithm:
+            FOR each active link:
+                if the actual node pair is different from the link's code:
+                    change the link state to be correct
+                    schedule an event
+        """
+        for i in range(self.grid.number_of_active_links):
+            current_state = self.current_link_state(i)
+            if current_state!=self.link_state[i]:
+                self.update_link_state(i, current_state, current_time)
+                
     
     def get_next_event(self, link, current_state, current_time):
         """
@@ -708,7 +850,7 @@ def example_test2():
     node_state_grid[mg.right_edge_node_ids()] = 0
     
     # Create the CA model
-    ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
+    ca = LandlabCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
     
     print 'INITIALIZING'
     n = ca.grid.number_of_nodes

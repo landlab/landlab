@@ -13,7 +13,8 @@ from landlab import Component
 
 import numpy as np
 
-_VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT'])
+_VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+                            'Cosine'])
 
 def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
@@ -57,7 +58,7 @@ class PotentialEvapotranspiration( Component ):
         self._method = kwds.pop('method', 'Constant')
         # For Priestly Taylor
         self._alpha = kwds.pop('PriestlyTaylorConstant', 1.26)
-        self._a = kwds.pop('Albedo', 0.2)
+        self._a = kwds.pop('Albedo', 0.6)
         self._pwhv = kwds.pop('LatentHeatofVaporization', 28.34)
         self._y = kwds.pop('PsychometricConstant', 0.066)
         self._sigma = kwds.pop('StefanBoltzmannConstant', 0.0000000567)
@@ -65,6 +66,10 @@ class PotentialEvapotranspiration( Component ):
         self._phi = (3.14/180)*(kwds.pop('Latitude', 34.0))
         self._z = kwds.pop('ElevationofMeasurement', 300)
         self._Krs = kwds.pop('AdjustmentCoefficient', 0.18)
+        self._LT = kwds.pop('LT', 0.)
+        self._ND = kwds.pop('ND', 365.)
+        self._TmaxF_mean = kwds.pop('MeanTmaxF', 12.)
+        self._DeltaD= kwds.pop('DeltaD', 5.)
 
         assert_method_is_valid(self._method)
 
@@ -83,7 +88,7 @@ class PotentialEvapotranspiration( Component ):
     def update(self, current_time, **kwds):
 
         if self._method == 'Constant':
-            PET_value = kwds.pop('ConstantPotentialEvapotranspiration', 6.)
+            PET_value = kwds.pop('ConstantPotentialEvapotranspiration', 12.)
         elif self._method == 'PriestlyTaylor':
             Tmin = kwds.pop('Tmin',0.0)
             Tmax = kwds.pop('Tmax',1.0)
@@ -101,6 +106,11 @@ class PotentialEvapotranspiration( Component ):
             Tavg = kwds.pop('Tavg',0.5)
             Robs = kwds.pop('Radiation', 350.)
             PET_value = self.MeasuredRadPT( Tavg, (1-self._a)*Robs )
+        elif self._method == 'Cosine':
+            self._J = np.floor( (current_time - np.floor( current_time)) * 365.)
+            PET_value = max((self._TmaxF_mean + self._DeltaD/2. * np.cos((2*np.pi) *
+                            (self._J - self._LT - self._ND/2)/self._ND)), 0.0)
+
         self._PET = PET_value * self._cell_values['RadiationFactor']
         self._cell_values['PotentialEvapotranspiration'] = self._PET
 

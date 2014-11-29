@@ -24,7 +24,7 @@ def test_netcdf_write():
     field = RasterModelGrid(4, 3)
     #field.new_field_location('node', 12.)
     values = np.arange(12.)
-    field.add_field('node', 'planet_surface__elevation', values)
+    field.add_field('node', 'topographic_elevation', values)
 
     write_netcdf('test.nc', field)
 
@@ -38,7 +38,7 @@ def test_netcdf_write():
     assert_true(root.dimensions['nt'].isunlimited())
 
     assert_equal(set(root.variables),
-                 set(['x', 'y', 'planet_surface__elevation']))
+                 set(['x', 'y', 'topographic_elevation']))
 
     assert_list_equal(list(root.variables['x'][:].flat),
                       [0., 1., 2.,
@@ -51,7 +51,7 @@ def test_netcdf_write():
                        2., 2., 2.,
                        3., 3., 3., ])
     assert_list_equal(
-        list(root.variables['planet_surface__elevation'][:].flat),
+        list(root.variables['topographic_elevation'][:].flat),
         range(12))
     root.close()
 

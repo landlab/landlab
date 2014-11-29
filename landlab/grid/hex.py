@@ -20,7 +20,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
     """
     
     def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0, 
-                 orientation='horizontal', reorient_links=False, **kwds):
+                 orientation='horizontal', shape='hex', reorient_links=False, 
+                 **kwds):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -57,11 +58,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         #self._num_nodes = num_rows * num_cols
         if base_num_rows * base_num_cols > 0:
             self._initialize(base_num_rows, base_num_cols, dx, orientation,
-                             reorient_links)
+                             shape, reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
-                    reorient_links=False):
+                    shape, reorient_links=False):
         """
         Sets up a hexagonal grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
@@ -77,6 +78,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Distance between nodes
         orientation : string
             Either 'horizontal' (default in __init__) or 'vertical'
+        shape : string
+            Either 'hex' (default in __init__) or 'rect'
+        reorient_links : bool
+            Whether or not to re-orient all links to point between -45 deg
+            and +135 deg clockwise from "north" (i.e., along y axis)
 
         Returns
         -------
@@ -120,12 +126,22 @@ class HexModelGrid(VoronoiDelaunayGrid):
         assert (orientation[0].lower()=='h' or orientation[0].lower()=='v'), \
                'orientation must be either "horizontal" (default) or "vertical"'
         
+        # Make sure the parameter *shape* is correct
+        assert (shape[0].lower()=='h' or shape[0].lower()=='r'), \
+               'shape must be either "hex" (default) or "rect"'
+        
         # Create a set of hexagonally arranged points. These will be our nodes.
-        if orientation=='horizontal':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal(base_num_rows, base_num_cols, dx)
+        if orientation=='horizontal' and shape=='hex':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
+        elif orientation=='horizontal' and shape=='rect':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(base_num_rows, base_num_cols, dx)
+            self.orientation = 'horizontal'
+        elif orientation=='vertical' and shape=='hex':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(base_num_rows, base_num_cols, dx)
+            self.orientation = 'vertical'
         else:
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical(base_num_rows, base_num_cols, dx)
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
@@ -150,13 +166,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._cell_areas = 0.8660254*self._dx**2 + numpy.zeros(self.number_of_cells)
         return self._cell_areas
                            
+                           
     @staticmethod
-    def make_hex_points_horizontal(num_rows, base_num_cols, dxh):
+    def make_hex_points_horizontal_hex(num_rows, base_num_cols, dxh):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which the 
         points represent the centers of regular hexagonal cells, and the points
         could be connected to form equilateral triangles. The overall shape of the
-        lattice is hexagonal.
+        lattice is hexagonal, and one of the 3 axes is horizontal.
         
         Inputs: num_rows = number of rows in lattice
                 base_num_cols = number of columns in the bottom and top rows
@@ -168,7 +185,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal(3, 2, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
             >>> npt
             7
             >>> p[1,:]
@@ -206,7 +223,50 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
 
     @staticmethod
-    def make_hex_points_vertical(base_num_rows, num_cols, dxv):
+    def make_hex_points_horizontal_rect(num_rows, num_cols, dxh):
+        """
+        Creates and returns a set of (x,y) points in a staggered grid in which the 
+        points represent the centers of regular hexagonal cells, and the points
+        could be connected to form equilateral triangles. The overall shape of the
+        lattice is rectangular, and one of the 3 axes is horizontal.
+        
+        Inputs: num_rows = number of rows in lattice
+                num_cols = number of columns in lattice
+                dxh = horizontal and diagonal spacing between points
+                
+        Return: 2D numpy array containing point (x,y) coordinates, and total number
+                of points.
+                
+        Example:
+            
+            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
+            >>> npt
+            9
+            >>> p[1,:]
+            array([ 1.,  0.])
+            >>> p[:3,0]
+            array([ 0.,  1.,  2.])
+        """
+
+        dxv = dxh * numpy.sqrt(3.) / 2.
+        half_dxh = dxh / 2.
+
+        npts = num_rows * num_cols
+        pts = numpy.zeros((npts, 2))
+        xshift = 0.
+        i = 0
+        for r in range(num_rows):
+            for c in range(num_cols):
+                xshift = half_dxh * (r%2)
+                pts[i,0] = c * dxh + xshift
+                pts[i,1] = r * dxv
+                i += 1
+        
+        return pts, npts
+
+
+    @staticmethod
+    def make_hex_points_vertical_hex(base_num_rows, num_cols, dxv):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which the 
         points represent the centers of regular hexagonal cells, and the points
@@ -223,7 +283,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 
         Example:
             
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical(2, 3, 1.0)
+            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
             >>> npt
             7
             >>> p[1,:]
@@ -260,6 +320,49 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts, npts
         
         
+    @staticmethod
+    def make_hex_points_vertical_rect(num_rows, num_cols, dxv):
+        """
+        Creates and returns a set of (x,y) points in a staggered grid in which the 
+        points represent the centers of regular hexagonal cells, and the points
+        could be connected to form equilateral triangles. The overall shape of the
+        lattice is rectangular.
+        
+        Inputs: num_rows = number of columns in lattice
+                num_cols = number of columns in lattice
+                dxv = vertical and diagonal spacing between points
+                
+        Return: 2D numpy array containing point (x,y) coordinates, and total number
+                of points.
+                
+        Example:
+            
+            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
+            >>> npt
+            9
+            >>> p[1,:]
+            array([ 0.,  1.])
+            >>> p[:3,1]
+            array([ 0.,  1.,  2.])
+        """
+
+        dxh = dxv * numpy.sqrt(3.) / 2.
+        half_dxv = dxv / 2.
+
+        npts = num_rows * num_cols
+        pts = numpy.zeros((npts, 2))
+        yshift = 0.
+        i = 0
+        for c in range(num_cols):
+            for r in range(num_rows):
+                yshift = half_dxv * (c%2)
+                pts[i,1] = r * dxv + yshift
+                pts[i,0] = c * dxh
+                i += 1
+        
+        return pts, npts
+        
+        
     def configure_hexplot(self, data, data_label=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
@@ -286,7 +389,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         import matplotlib
         from matplotlib.patches import Polygon
         from matplotlib.collections import PatchCollection
-        import matplotlib.pyplot as plt
+        #import matplotlib.pyplot as plt
 
         # geometry
         apothem = self._dx/2.0

@@ -8,7 +8,7 @@ import landlab.components.flexure as flexure
 
 
 def create_planet_surface_with_bulge(grid):
-    z = grid.field_values('node', 'planet_surface__elevation').view()
+    z = grid.field_values('node', 'topographic_elevation').view()
     z.shape = grid.shape
 
     (y, x) = np.meshgrid(np.linspace(0, np.pi * .5, grid.shape[0]),
@@ -53,9 +53,9 @@ def main():
         map_vars={
             'node': {
                 'lithosphere__elevation':
-                    'planet_surface__elevation',
+                    'topographic_elevation',
                 'planet_surface_sediment__deposition_increment':
-                    'planet_surface__elevation_increment'
+                    'topographic_elevation_increment'
             }
         }
     )
@@ -66,7 +66,7 @@ def main():
         craters_comp.update()
         flexure_comp.update()
 
-    grid.imshow('node', 'planet_surface__elevation', grid_units=('km', 'km'),
+    grid.imshow('node', 'topographic_elevation', grid_units=('km', 'km'),
                 symmetric_cbar=True, cmap='Paired')
 
 

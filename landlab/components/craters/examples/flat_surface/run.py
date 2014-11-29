@@ -23,10 +23,10 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
-mg['node'][ 'planet_surface__elevation'] = z #+ np.random.rand(len(z))/10000.
+mg['node'][ 'topographic_elevation'] = z #+ np.random.rand(len(z))/10000.
 
 # Display a message
 print( 'Running ...' )
@@ -54,10 +54,10 @@ for i in xrange(loops):
         angle[j] = craters_component.impact_angle_to_normal
         az[j] = craters_component.impactor_travel_azimuth
         mass_balance[j] = craters_component.mass_balance
-        arbitrary_pt_z[j] = mg.at_node['planet_surface__elevation'][arbitrary_node]
+        arbitrary_pt_z[j] = mg.at_node['topographic_elevation'][arbitrary_node]
         print 'Completed loop ', j
     mystring = 'craterssave'+str((i+1)*nt)
-    np.save(mystring,mg['node']['planet_surface__elevation'])
+    np.save(mystring,mg['node']['topographic_elevation'])
     #Save the properties
     np.save(('x_'+str((i+1)*nt)),x)
     np.save(('y_'+str((i+1)*nt)),y)
@@ -69,7 +69,7 @@ for i in xrange(loops):
     np.save(('arbitrary_pt_z_'+str((i+1)*nt)),arbitrary_pt_z)
 
 #Finalize and plot
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic_elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 pylab.figure(1)

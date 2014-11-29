@@ -14,7 +14,7 @@ import numpy as np
 class SurfaceFlowTransport(object):
     
     def __init__(self, grid, input_stream):
-        #grid here is a true model field. i.e., we should be able to do grid.at_node['planet_surface__elevation']
+        #grid here is a true model field. i.e., we should be able to do grid.at_node['topographic_elevation']
         #input_stream is a text file, entered in format './my_file.txt'
         self.grid = grid
         
@@ -29,7 +29,7 @@ class SurfaceFlowTransport(object):
         
         #test the necessary fields are all already present:
         try:
-            self.z = grid.at_node['planet_surface__elevation']
+            self.z = grid.at_node['topographic_elevation']
         except:
             print 'elevations not found in grid!'
         try:
@@ -154,7 +154,7 @@ class SurfaceFlowTransport(object):
         self.qs = qs
         self.tau = tau
         self.zm = zm
-        self.grid['node']['planet_surface__elevation'] = zm
+        self.grid['node']['topographic_elevation'] = zm
         self.grid['node']['planet_surface__water_depth'] = h
         
         return self.grid
