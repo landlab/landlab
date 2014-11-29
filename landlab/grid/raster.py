@@ -578,6 +578,59 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                          ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
+            
+    def node_diagonal_links(self, *args):
+        """node_diagonal_links([node_ids])
+        Diagonal links attached to nodes.
+
+        Returns the ids of diagonal links attached to grid nodes with 
+        *node_ids*. If *node_ids* is not given, return links for all of the
+        nodes in the grid. Link ids are listed in clockwise order starting 
+        from south (i.e., [SW,NW,NE,SE]). 
+        This method only returns diagonal links.
+        Call node_links() for the cardinal links.
+
+        Parameters
+        ----------
+        node_ids : array_like, optional
+            IDs of nodes on a grid.
+
+        Returns
+        -------
+        (4, N) ndarray
+            Neighbor node IDs for the source nodes.
+        """
+        
+        if not self.diagonal_list_created:
+            self._setup_diagonal_links()
+            self.diagonal_list_created=True
+        
+        try: 
+            self._node_diagonal_links
+        except AttributeError:
+            self._node_diagonal_links = numpy.empty((4,self.number_of_nodes), dtype=int)
+            self._node_diagonal_links.fill(-1)
+            self._node_diagonal_links[0,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.left_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links #number of patches is number_of_diagonal_nodes/2
+            self._node_diagonal_links[1,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.left_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links+self.number_of_patches
+            self._node_diagonal_links[2,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.right_edge_node_ids(),
+                self.top_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links
+            self._node_diagonal_links[3,:][
+                np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.right_edge_node_ids(),
+                self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)+self.number_of_links+self.number_of_patches
+
+        if len(args) == 0:
+            return self._node_diagonal_links
+        elif len(args) == 1:
+            node_ids = np.broadcast_arrays(args[0])[0]
+            return self._node_diagonal_links[:,node_ids]
+        else:
+            raise ValueError('only zero or one arguments accepted')
+        
 
     def node_patches(self, nodata=-1, *args):
         """
@@ -1111,6 +1164,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         12
         """
         return (self._nrows-1)*(self._ncols-1)
+    
+    @property
+    def number_of_diagonal_links(self):
+        """Number of diagonal links.
+        
+        Returns the number of diagonal links (only) over the grid.
+        If the diagonal links have not yet been invoked, returns an 
+        AssertionError.
+        
+        Examples
+        --------
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.number_of_diagonal_links
+        Traceback (most recent call last):
+            ...
+        AssertionError: No diagonal links have been created in the grid yet!
+        >>> _ = grid.node_diagonal_links()
+        >>> grid.number_of_diagonal_links
+        24
+        """
+        assert self.diagonal_list_created, "No diagonal links have been created in the grid yet!"
+        return 2*self.number_of_patches
 
     @property
     def node_spacing(self):
@@ -1415,7 +1490,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not self._diagonal_links_created:
                 return self._calculate_link_length()
             else:
-                self._link_length = numpy.empty(self.number_of_links + 2*(self._nrows-1)*(self._ncols-1))
+                self._link_length = numpy.empty(self.number_of_links + self.number_of_diagonal_links)
                 self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = numpy.sqrt(2.*self._dx*self._dx)
                 return self._link_length
@@ -2080,7 +2155,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                  left_is_fixed_val,
                                                  top_is_fixed_val,
                                                  right_is_fixed_val, value=None,
-                                                 value_of='planet_surface__elevation'):
+                                                 value_of='topographic_elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2134,7 +2209,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Put some arbitrary values in the grid fields:
         
         >>> import numpy as np
-        >>> rmg.at_node['planet_surface__elevation'] = np.random.rand(20)
+        >>> rmg.at_node['topographic_elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
         >>> rmg.node_status
         array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
@@ -2252,7 +2327,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        >>> rmg.create_node_array_zeros('topographic_elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg.set_looped_boundaries(True, True)
@@ -2319,7 +2394,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def set_fixed_gradient_boundaries(
         self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
-        gradient_in=numpy.nan, gradient_of='planet_surface__elevation'):
+        gradient_in=numpy.nan, gradient_of='topographic_elevation'):
         """Create fixed gradient boundaries.
 
         Handles boundary conditions by setting each of the four sides of the
@@ -2357,7 +2432,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
               update (see examples below).
 
             - the gradient is assumed by default to be the surface elevation,
-              and this is assumed to be named "planet_surface__elevation" in the
+              and this is assumed to be named "topographic_elevation" in the
               grid. If the gradient is in another surface, or the elevation
               surface is named differently, you need to set 'gradient_of' equal
               to the relevant string. self.fixed_gradient_node_properties['fixed_gradient_of'] stores this string
@@ -2425,17 +2500,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        >>> rmg.create_node_array_zeros('topographic_elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg['node']['planet_surface__elevation'] += 1.
-        >>> rmg['node']['planet_surface__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
+        >>> rmg['node']['topographic_elevation'] += 1.
+        >>> rmg['node']['topographic_elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
         >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
         Fixed gradients will be set according to existing data in the grid...
         >>> rmg.node_status
         array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2], dtype=int8)
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
-        'planet_surface__elevation'
+        'topographic_elevation'
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
         array([ 0,  1,  2,  3,  4,  9, 14, 15, 16, 17, 18, 19,  5, 10])
         >>> rmg.fixed_gradient_link_properties['boundary_link_IDs']
@@ -2443,11 +2518,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([ 0. ,  0.2,  0.2,  0.2,  0. , -0.2, -0.2,  0. , -0.2, -0.2, -0.2,
                 0. ,  0.2,  0.2])
-        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, -0.1, gradient_of='planet_surface__elevation') #second case
+        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, -0.1, gradient_of='topographic_elevation') #second case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([ 0. ,  0.1,  0.1,  0.1,  0. , -0.1, -0.1,  0. , -0.1, -0.1, -0.1,
                 0. ,  0.1,  0.1])
-        >>> rmg['node']['planet_surface__elevation']
+        >>> rmg['node']['topographic_elevation']
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  0.9,  1. ,  1. ,  1. ,  0.9,  0.9,
                 1. ,  1. ,  1. ,  0.9,  0.9,  0.9,  0.9,  0.9,  0.9])
 
@@ -2468,7 +2543,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.fixed_gradient_node_properties['values_to_add']
         array([-0.5, -0.5,  0.5,  0.5, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1,
                -0.1, -0.1, -0.1])
-        >>> rmg['node']['planet_surface__elevation']
+        >>> rmg['node']['topographic_elevation']
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  1.5,  1. ,  1. ,  1. ,  0.5,  1.5,
                 1. ,  1. ,  1. ,  0.5,  0.9,  0.9,  0.9,  0.9,  0.9])
 
@@ -2479,7 +2554,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Now note we can easily update these boundary conditions much faster:
 
-        >>> elevs = rmg['node']['planet_surface__elevation']
+        >>> elevs = rmg['node']['topographic_elevation']
         >>> updated_elevs = elevs
         >>> updated_elevs[rmg.fixed_gradient_node_properties['boundary_node_IDs']] = updated_elevs[rmg.fixed_gradient_node_properties['anchor_node_IDs']] + rmg.fixed_gradient_node_properties['values_to_add']
         >>> numpy.all(numpy.equal(elevs, updated_elevs))
@@ -2652,7 +2727,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def force_boundaries_from_gradients(self, link_IDs, link_gradients,
-                value='planet_surface__elevation'):
+                value='topographic_elevation'):
         """Set values of fixed-gradient boundaries.
 
         Calculates and updates new values at the boundary nodes of a grid, when
@@ -2674,14 +2749,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Some examples:
 
         >>> rmg = RasterModelGrid(3, 4, 1.0) # rows, columns, spacing
-        >>> rmg.create_node_array_zeros('planet_surface__elevation')
+        >>> rmg.create_node_array_zeros('topographic_elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg['node']['planet_surface__elevation'] += 2.
+        >>> rmg['node']['topographic_elevation'] += 2.
         >>> rmg.force_boundaries_from_gradients(numpy.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]),numpy.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
-        >>> rmg['node']['planet_surface__elevation']
+        >>> rmg['node']['topographic_elevation']
         array([ 1.,  1.,  1.,  1.,  1.,  2.,  2.,  1.,  1.,  1.,  1.,  1.])
         >>> rmg.force_boundaries_from_gradients(numpy.array([ 11, 13]),numpy.array([-2.,-2.]))
-        >>> rmg['node']['planet_surface__elevation']
+        >>> rmg['node']['topographic_elevation']
         array([ 1.,  1.,  1.,  1.,  4.,  2.,  2.,  0.,  1.,  1.,  1.,  1.])
 
         ...and now we demonstrate an exception if an interior link is included:
@@ -3220,7 +3295,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def get_neighbor_list(self, *args, **kwds):
-        """get_neighbor_list([ids])
+        """get_neighbor_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of neighbor node IDs.
 
         Return lists of neighbor nodes for nodes with given *ids*. If *ids*
@@ -3311,8 +3386,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             return ans
 
-    def get_diagonal_list(self, *args):
-        """get_diagonal_list([ids])
+    def get_diagonal_list(self, *args, **kwds):
+        """get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of diagonal node IDs.
 
         Return lists of diagonals nodes for nodes with given *ids*. If *ids*
@@ -3330,18 +3405,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ..todo: could use inlink_matrix, outlink_matrix
         """
         #Added DEJH 051513
+        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
 
-        if self.diagonal_list_created==False:
-            self.create_diagonal_list()
+        try:
+            self.diagonal_node_dict
+        except AttributeError:
+            self.diagonal_node_dict = {}
+            self.diagonal_node_dict[bad_index] = self.create_diagonal_list(bad_index=bad_index)
+        
+        try:
+            diagonal_nodes = self.diagonal_node_dict[bad_index]
+        except (KeyError):
+            diagonal_nodes = self.create_diagonal_list(bad_index=bad_index)
+            self.diagonal_node_dict[bad_index] = diagonal_nodes
 
         if len(args) == 0:
-            return self.diagonal_cells
+            return diagonal_nodes
         elif len(args) == 1:
-            return self.diagonal_cells[args[0], :]
+            return diagonal_nodes[args[0], :]
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def create_diagonal_list(self):
+    def create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of diagonal node IDs.
 
         Creates a list of IDs of the diagonal nodes to each node, as a 2D
@@ -3357,21 +3442,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and
             boundary nodes now have neighbors, where they are found at the ends
-            of active links. Note however, that only core node neighbors are
-            returned.
+            of active links.
         """
-        assert(self.diagonal_list_created == False)
 
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
-            self.shape, out_of_bounds=BAD_INDEX_VALUE) #, boundary_node_mask=-1)
+            self.shape, out_of_bounds=bad_index)
 
         closed_boundaries = np.empty(4, dtype=np.int)
-        closed_boundaries.fill(BAD_INDEX_VALUE)
+        closed_boundaries.fill(bad_index)
         self.diagonal_cells[self.closed_boundary_nodes,:] = closed_boundaries
         self.diagonal_cells.ravel()[
             numpy.in1d(self.diagonal_cells.ravel(),
-                self.closed_boundary_nodes)] = BAD_INDEX_VALUE
+                self.closed_boundary_nodes)] = bad_index
+        return self.diagonal_cells
 
 
     def is_interior(self, *args):
@@ -3833,23 +3917,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         aspect = np.zeros([ids.shape[0]],dtype = float)
         slope = np.arctan(np.sqrt(dZ_dX**2 + dZ_dY**2))
         aspect = np.arctan2(dZ_dY,-dZ_dX)
-        #aspect[aspect<= np.pi/2.] = np.pi/2. - aspect[aspect<= np.pi/2.]
-        #aspect[aspect>np.pi/2.] = 2*np.pi + np.pi/2 - aspect[aspect>np.pi/2.]
-        #aspect[slope==0.] = np.radians(-1.)
-        for i in range(0,aspect.shape[0]):
-            if aspect[i]<0:
-                aspect[i] = (np.pi/2.) - aspect[i]
-            elif aspect[i]>(np.pi/2.):
-                aspect[i] = (2*np.pi) - aspect[i] + (np.pi/2.)
-            else:
-                aspect[i] = (np.pi/2.) - aspect[i]
-            if slope[i] == 0.:
-                aspect[i] = np.radians(-1.)
-
+        aspect = np.pi * .5 - aspect
+        aspect[aspect < 0.] = aspect[aspect < 0.] + 2. * np.pi
+        aspect[slope == 0.] = -1.
         return slope,aspect
 
 
-    def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='planet_surface__elevation'):
+    def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='topographic_elevation'):
         """
         THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
         elevation profile. Please check slope_aspect_routines_comparison.py
@@ -3872,7 +3946,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         topographic data, or an array of values to use. If an array of values is
         passed, it must be nnodes long.
         If *vals* is not provided, this method will default to trying to use the
-        field "planet_surface__elevation".
+        field "topographic_elevation".
 
         Returns:
             s, a len(ids) array of slopes at each node provided.

@@ -1,8 +1,9 @@
 import numpy as np
 from landlab import ModelParameterDictionary
 
-from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
+from landlab.grid.base import BAD_INDEX_VALUE
 
 class StreamPowerEroder(object):
     """
@@ -44,7 +45,9 @@ class StreamPowerEroder(object):
         ***Parameters for input file***
         OBLIGATORY:
             K_sp -> positive float, the prefactor. This is defined per unit 
-                time, not per tstep.
+                time, not per tstep. Type the string 'array' to cause the
+                component's erode method to look for an array of values of K
+                (see documentation for 'erode').
         ALTERNATIVES:
         *either*
             m_sp -> positive float, the power on A
@@ -78,19 +81,20 @@ class StreamPowerEroder(object):
             use_Q -> Bool. If true, the equation becomes E=K*Q**m*S**n. 
                 Effectively sets c=1 in Wh&T's 1999 derivation, if you are 
                 setting m and n through a, b, and c.
-            prevent_erosion -> Bool. If True, stream powers are calculated and
-                stored in the grid, but incision is NOT IMPLEMENTED. i.e., values of
-                elevation are NOT updated. Use if you wish to derive stream power
-                values for some other purpose, but do not wish to actually model
-                stream power dependent incision. Defaults to False.
             
         '''
         self.grid = grid
+        self.fraction_gradient_change = 1.
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
         self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
         inputs = ModelParameterDictionary(params_file)
-        self._K_unit_time = inputs.read_float('K_sp')
+        try:
+            self._K_unit_time = inputs.read_float('K_sp')
+        except ParameterValueError: #it was a string
+            self.use_K = True
+        else:
+            self.use_K = False
         try:
             self.sp_crit = inputs.read_float('threshold_sp')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
@@ -110,10 +114,6 @@ class StreamPowerEroder(object):
             self.use_Q = inputs.read_bool('use_Q')
         except MissingKeyError:
             self.use_Q = False
-        try:
-            self.no_erode = inputs.read_bool('prevent_erosion')
-        except MissingKeyError:
-            self.no_erode = False
         try:
             self._m = inputs.read_float('m_sp')
         except MissingKeyError:
@@ -159,18 +159,31 @@ class StreamPowerEroder(object):
         #    self.made_link_gradients = True
 
         
-    def erode(self, grid, dt, node_drainage_areas='planet_surface__drainage_area', 
-            slopes_at_nodes=None, link_slopes=None, link_node_mapping='links_to_flow_reciever', 
-            slopes_from_elevs=None, W_if_used=None, Q_if_used=None, io=None):
+    def erode(self, grid, dt, node_elevs='topographic_elevation',
+            node_drainage_areas='drainage_area', 
+            flow_receiver='flow_receiver',
+            node_order_upstream='upstream_ID_order',
+            slopes_at_nodes='steepest_slope',
+            link_node_mapping='links_to_flow_receiver', 
+            link_slopes=None, slopes_from_elevs=None, 
+            W_if_used=None, Q_if_used=None, K_if_used=None):
         """
         A simple, explicit implementation of a stream power algorithm.
         
         *grid* & *dt* are the grid object and timestep (float) respectively.
         
+        *node_elevs* is the elevations on the grid, either a field string or
+        nnodes-long array.
+        
         *Node_drainage_areas* tells the component where to look for the drainage
         area values. Change to another string to override which grid field the
         component looks at, or pass a nnodes-long array of drainage areas values
         directly instead.
+        
+        *flow_receiver* and *node_order_upstream*, the downstream node to which 
+        each node flows and the ordering of the nodes in the network starting
+        at the outlet, respectively, 
+        are both necessary as inputs to allow stability testing.
         
         If you already have slopes defined at nodes on the grid, pass them to
         the component with *slopes_at_nodes*. The same syntax is expected: 
@@ -192,9 +205,8 @@ class StreamPowerEroder(object):
         
         *slopes_from_elevs* allows the module to create gradients internally
         from elevations rather than have them provided. Set to True to force 
-        the component to look for the data in grid.at_node['planet_surface__elevation'];
-        set to 'name_of_field' to override this name, or pass an nnode-array
-        to use those values as elevations instead. Using this option is 
+        the component to look for the data in the location specified by 
+        node_elevs. Using this option is 
         considerably slower than any of the alternatives, as it also has to 
         calculate the link_node_mapping from stratch each time.
         
@@ -207,12 +219,9 @@ class StreamPowerEroder(object):
         respectively in the component initialization. They can be either field
         names or nnodes arrays as in the other cases.
         
-        *io* can be used to input and output the elevations direct. 
-        Pass the elevs either as a string, in which case this controls the name of
-        which grid field the elevs are stored in, or a nnodes array, which will be
-        interpreted (& modified in place!!) as the elevs. If *io* is not set,
-        component will assume the standard naming convention 
-        planet_surface__elevation for the elevation grid field.
+        NB: If you want spatially or temporally variable runoff, pass the 
+        runoff values at each pixel to the flow router, then pass discharges
+        at each node using *Q_if_used* to this component.
         
         RETURNS (grid, modified_elevs, stream_power_erosion); modifies grid elevation
         fields to reflect updates; creates and maintains
@@ -220,16 +229,36 @@ class StreamPowerEroder(object):
         is not an excess stream power; any specified erosion threshold is not
         incorporated into it.
         """
+        active_nodes = grid.get_active_cell_node_ids()
+        
+        if W_if_used!=None:
+            assert self.use_W, "Widths were provided, but you didn't set the use_W flag in your input file! Aborting..." 
+            
+        if Q_if_used!=None:
+            assert self.use_Q, "Discharges were provided, but you didn't set the use_Q flag in your input file! Aborting..." 
+        
+        if K_if_used!=None:
+            assert self.use_K, "An array of erodabilities was provided, but you didn't set K_sp to 'array' in your input file! Aborting..."
+            try:
+                self._K_unit_time = grid.at_node[K_if_used][active_nodes]
+            except TypeError:
+                self._K_unit_time = K_if_used[active_nodes]
+        
+        if type(node_elevs)==str:
+            node_z = grid.at_node[node_elevs]
+        else:
+            node_z = node_elevs
         
         #Perform check on whether we use grid or direct fed data:
-        if not slopes_at_nodes:
-            if slopes_from_elevs:
-                if slopes_from_elevs == True:
-                    node_z = grid.at_node['planet_surface__elevation']
-                elif type(slopes_from_elevs) == str:
-                    node_z = grid.at_node[slopes_from_elevs]
-                else:
-                    node_z = slopes_from_elevs
+        try:
+            self.slopes = grid.at_node[slopes_at_nodes]
+        except TypeError:
+            if type(slopes_at_nodes)==np.ndarray:
+                self.slopes = slopes_at_nodes
+            else:
+                raise TypeError('slopes_at_nodes input not recognised')
+        except FieldError:
+            if slopes_from_elevs==True:
                 S_links = (node_z[grid.node_index_at_link_head]-node_z[grid.node_index_at_link_tail])/grid.link_length
             else:
                 if link_slopes:
@@ -243,7 +272,7 @@ class StreamPowerEroder(object):
             #put the slopes onto the nodes
             try:
                 self.slopes = S_links[grid.at_node[link_node_mapping]]
-            except FieldError:
+            except TypeError:
                 try:
                     self.slopes = S_links[link_node_mapping]
                 except IndexError:
@@ -253,30 +282,30 @@ class StreamPowerEroder(object):
                     #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
                     self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.node_links]),axis=0)
-        else:
-            try:
-                self.slopes = grid.at_node[slopes_at_nodes]
-            except FieldError:
-                self.slopes = slopes_at_nodes
         
         if type(node_drainage_areas)==str:
             node_A = grid.at_node[node_drainage_areas]
         else:
             node_A = node_drainage_areas
+            
+        if type(flow_receiver)==str:
+            flow_receiver = grid.at_node[flow_receiver]
+            
+        if type(node_order_upstream)==str:
+            node_order_upstream = grid.at_node[node_order_upstream]
         
         #Operate the main function:
-        active_nodes = grid.get_active_cell_node_ids()
-        if not (self.use_W and self.use_Q): #normal case
+        if self.use_W==False and self.use_Q==False: #normal case
             stream_power_active_nodes = self._K_unit_time * dt * node_A[active_nodes]**self._m * self.slopes[active_nodes]**self._n
         elif self.use_W:
             try:
                 W = grid.at_node[W_if_used]
-            except FieldError:
+            except TypeError:
                 W = W_if_used
             if self.use_Q: #use both Q and W direct
                 try:
                     Q_direct = grid.at_node[Q_if_used]
-                except FieldError:
+                except TypeError:
                     Q_direct = Q_if_used
                 stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n / W
             else: #just W to be used
@@ -284,31 +313,31 @@ class StreamPowerEroder(object):
         else: #just use_Q
             try:
                 Q_direct = grid.at_node[Q_if_used]
-            except FieldError:
+            except TypeError:
+                assert type(Q_if_used) in (np.ndarray, list)
                 Q_direct = Q_if_used
             stream_power_active_nodes = self._K_unit_time * dt * Q_direct[active_nodes]**self._m * self.slopes[active_nodes]**self._n
 
         #Note that we save "stream_power_erosion" incorporating both K and a. Most definitions would need this value /K then **(1/a) to give actual stream power (unit, total, whatever), and it does not yet include the threshold
         self.stream_power_erosion[active_nodes] = stream_power_active_nodes
         grid.at_node['stream_power_erosion'] = self.stream_power_erosion
-        print "max stream power: ", self.stream_power_erosion.max()
+        #print "max stream power: ", self.stream_power_erosion.max()
         erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
-        if io:
-            try:
-                io -= erosion_increment
-            except TypeError:
-                if type(io)==str:
-                    elev_name = io
-            else:
-                self.grid = grid
-                return grid, io, self.stream_power_erosion
-                
-        else:
-            elev_name = 'planet_surface__elevation'
+                    
+        #this prevents any node from incising below any node downstream of it
+        #we have to go in upstream order in case our rate is so big we impinge on baselevels > 1 node away
 
-        if not self.no_erode:
-            grid.at_node[elev_name] -= erosion_increment
+        elev_dstr = node_z[flow_receiver]# we substract erosion_increment[flow_receiver] in the loop, as it can update
+        for i in node_order_upstream:
+            elev_this_node_before = node_z[i]
+            elev_this_node_after = elev_this_node_before - erosion_increment[i]
+            elev_dstr_node_after = elev_dstr[i] - erosion_increment[flow_receiver[i]]
+            if elev_this_node_after<elev_dstr_node_after:
+                erosion_increment[i] = elev_this_node_before - elev_dstr_node_after
+                
+        node_z -= erosion_increment
+            
             
         self.grid = grid
         
-        return grid, grid.at_node[elev_name], self.stream_power_erosion
+        return grid, node_z, self.stream_power_erosion

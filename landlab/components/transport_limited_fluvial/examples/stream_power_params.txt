@@ -11,9 +11,9 @@ initial_slope:
 dt:
 10000.
 total_time:
-50000000.
+10000000.
 uplift_rate:
-0.0001
+0.0005
 #time is years, ALL linear dimensions are meters!
 
 #these are the parameters for the stream power module:
@@ -24,10 +24,14 @@ c_sp:
 Qc:
 MPM
 k_Q:
-1.e-9
+2.5e-7
 k_w:
-0.002
+2.5
 mannings_n:
-0.04
+0.05
 Dchar:
-0.02
+0.1
+threshold_shields:
+0.06
+return_stream_properties:
+True

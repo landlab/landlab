@@ -61,7 +61,7 @@ It's also worth taking a look at the plotting routines seen from lines 59 onward
         
             #Plot a Xsection north-south through the middle of the data, once per loop
             pylab.figure(1)
-            elev_r = mg.node_vector_to_raster(mg['node']['planet_surface__elevation'])
+            elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation'])
             im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 
             print 'Completed loop ', i
@@ -76,7 +76,7 @@ It's also worth taking a look at the plotting routines seen from lines 59 onward
         pylab.ylabel('Elevation')
         
         #figure 2 is the map of the final elevations
-        elev = mg['node']['planet_surface__elevation']
+        elev = mg['node']['topographic_elevation']
         elev_r = mg.node_vector_to_raster(elev)
         pylab.figure(2)
         im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
@@ -112,7 +112,7 @@ Note that in this case, neither the flow router nor stream power components impl
 include uplift, so we need to manually include the uplift in the loop::
 
     for i in xrange(10):
-        mg['node']['planet_surface__elevation'][mg.core_nodes] += uplift_per_step
+        mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow(grid=mg)
         mg = sp.erode(mg)
 

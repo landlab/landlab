@@ -64,8 +64,8 @@ class _DrainageStack():
         delta = self.delta
         D = self.D
         add_it = self.add_to_stack
-        delta_l = numpy.take(delta,l)
-        delta_lplus1 = numpy.take(delta,l+1)
+        delta_l = int(numpy.take(delta,l))
+        delta_lplus1 = int(numpy.take(delta,l+1))
         code = """
             int m;
             py::tuple arg(1);
@@ -78,6 +78,7 @@ class _DrainageStack():
             }
         """
         try:
+            raise CompileError
             weave.inline(code, ['delta_l', 'delta_lplus1', 'l', 'D', 'add_it'])
         except CompileError:
             for n in xrange(delta_l, delta_lplus1):

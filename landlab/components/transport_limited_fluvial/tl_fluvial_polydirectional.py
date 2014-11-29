@@ -251,7 +251,7 @@ class TransportLimitedEroder(object):
         self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
         
     def erode(self, grid, dt, node_drainage_areas='drainage_area', 
-                node_elevs='planet_surface__elevation', 
+                node_elevs='topographic_elevation', 
                 W_if_used=None, Q_if_used=None,
                 Dchar_if_used=None, io=None):
         
@@ -286,7 +286,7 @@ class TransportLimitedEroder(object):
         
         *slopes_from_elevs* allows the module to create gradients internally
         from elevations rather than have them provided. Set to True to force 
-        the component to look for the data in grid.at_node['planet_surface__elevation'];
+        the component to look for the data in grid.at_node['topographic_elevation'];
         set to 'name_of_field' to override this name, or pass an nnode-array
         to use those values as elevations instead. Using this option is 
         considerably slower than any of the alternatives, as it also has to 
@@ -439,7 +439,7 @@ class TransportLimitedEroder(object):
                 return grid, io
             
         else:
-            elev_name = 'planet_surface__elevation'
+            elev_name = 'topographic_elevation'
         
         return grid, grid.at_node[elev_name], all_nodes_diffusivity
         

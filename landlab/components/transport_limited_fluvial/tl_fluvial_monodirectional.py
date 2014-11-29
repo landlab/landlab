@@ -367,7 +367,7 @@ class TransportLimitedEroder(object):
         
         *slopes_from_elevs* allows the module to create gradients internally
         from elevations rather than have them provided. Set to True to force 
-        the component to look for the data in grid.at_node['planet_surface__elevation'];
+        the component to look for the data in grid.at_node['topographic_elevation'];
         set to 'name_of_field' to override this name, or pass an nnode-array
         to use those values as elevations instead. Using this option is 
         considerably slower than any of the alternatives, as it also has to 
@@ -412,7 +412,7 @@ class TransportLimitedEroder(object):
         if slopes_at_nodes==None:
             if slopes_from_elevs:
                 if slopes_from_elevs == True:
-                    node_z = grid.at_node['planet_surface__elevation']
+                    node_z = grid.at_node['topographic_elevation']
                 elif type(slopes_from_elevs) == str:
                     node_z = grid.at_node[slopes_from_elevs]
                 else:
@@ -486,7 +486,7 @@ class TransportLimitedEroder(object):
                 return grid, io, capacity
             
         else:
-            elev_name = 'planet_surface__elevation'
+            elev_name = 'topographic_elevation'
 
         grid.at_node[elev_name][active_nodes] += dz[active_nodes]
         grid.at_node['sediment_flux_capacity'] = capacity
