@@ -117,6 +117,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
            
         (of course, these keyboard characters don't represent the angles quite
         right)
+        
+        Numbers of rows and columns: a hex grid with a rectangular shape will
+        have a fixed number of rows and columns, and so for rectangular shaped
+        grids we record this information in self._nrows and self._ncols. With
+        a hex-shaped grid, either the number of columns (if 'horizontal') or
+        the number of rows (if 'vertical') will vary across the grid. Therefore,
+        for hex-shaped grids we record only self._nrows for 'horizontal' grids,
+        and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
             print 'HexModelGrid._initialize('+str(base_num_rows)+', ' \
@@ -129,20 +137,26 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Make sure the parameter *shape* is correct
         assert (shape[0].lower()=='h' or shape[0].lower()=='r'), \
                'shape must be either "hex" (default) or "rect"'
-        
+               
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation=='horizontal' and shape=='hex':
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
+            self._nrows = base_num_rows
         elif orientation=='horizontal' and shape=='rect':
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
+            self._nrows = base_num_rows
+            self._ncols = base_num_cols
         elif orientation=='vertical' and shape=='hex':
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
+            self._ncols = base_num_cols
         else:
             [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
+            self._nrows = base_num_rows
+            self._ncols = base_num_cols
         
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -363,6 +377,48 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts, npts
         
         
+    @property
+    def number_of_node_columns(self):
+        """Number of node columns in a rectangular-shaped and/or
+        vertically oriented hex grid.
+
+        Returns the number of columns, including boundaries.
+        
+        Notes
+        -----
+        Will generate an error if called with a hex-shaped, horizontally
+        aligned grid.
+
+        Examples
+        --------
+        >>> grid = HexModelGrid(5, 5, shape='rect')
+        >>> grid.number_of_node_columns
+        5
+        """
+        return self._ncols
+
+
+    @property
+    def number_of_node_rows(self):
+        """Number of node rows in a rectangular-shaped and/or
+        horizontally oriented hex grid.
+
+        Returns the number of rows, including boundaries.
+        
+        Notes
+        -----
+        Will generate an error if called with a hex-shaped, vertically
+        aligned grid.
+
+        Examples
+        --------
+        >>> grid = HexModelGrid(5, 5, shape='rect')
+        >>> grid.number_of_node_rows
+        5
+        """
+        return self._nrows
+
+
     def configure_hexplot(self, data, data_label=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
