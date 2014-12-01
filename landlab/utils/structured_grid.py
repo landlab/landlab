@@ -136,6 +136,11 @@ def boundary_cell_count(shape):
     boundary nodes are not really cells. If they were, though, this is how
     many there would be.
 
+    **** Shouldn't be deprecated. This routine returns the cells on the
+    boundary. Not the cells surrounding boundary nodes because there aren't
+    cells around boundary nodes by definition as previously understood.
+      - SN  30Nov14  ****
+
     >>> boundary_cell_count((3, 4))
     10
     """
@@ -311,7 +316,7 @@ def perimeter_nodes(shape):
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
-        
+
 def corners(shape):
     """
     An array of the indices of the grid corner nodes.
@@ -381,7 +386,7 @@ def node_coords(shape, *args):
 
     node_count = np.prod(shape)
 
-    row_y = np.arange(shape[0]) * spacing[0] + origin[0] 
+    row_y = np.arange(shape[0]) * spacing[0] + origin[0]
     col_x = np.arange(shape[1]) * spacing[1] + origin[1]
 
     (node_x, node_y) = np.meshgrid(col_x, row_y)
@@ -395,7 +400,7 @@ def node_coords(shape, *args):
 def active_cell_index(shape):
     """
     For many instances, core_cell_index() may be preferred.
-    Ordered indices of the active (core+open boundary) cells of a structured 
+    Ordered indices of the active (core+open boundary) cells of a structured
     grid.
     """
     return np.arange(active_cell_count(shape))
@@ -412,7 +417,7 @@ def active_cell_node(shape):
     """
     For many instances, core_cell_node() may be preferred.
     Indices of the nodes belonging to each active (core + open boundary) cell.
-    Since all cells are active in the default case, this is the same as 
+    Since all cells are active in the default case, this is the same as
     node_index_at_cells.
 
     >>> node_index_at_cells((4,3))
@@ -424,7 +429,7 @@ def active_cell_node(shape):
 def core_cell_node(shape):
     """
     Indices of the nodes belonging to each core cell.
-    Since all cells are core in the default case, this is the same as 
+    Since all cells are core in the default case, this is the same as
     node_index_at_cells.
 
     >>> core_cell_node((4,3))
@@ -487,7 +492,7 @@ def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     For nodes that don't have a cell (that is, boundary nodes) set indices
     to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
-    
+
     Note that all three functions [X_]cell_index_at_nodes are equivalent.
 
     >>> core_cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
@@ -563,7 +568,7 @@ def face_index_at_links(shape, actives=None,
     >>> faces # doctest: +NORMALIZE_WHITESPACE
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
-    
+
     """
     if actives is None:
         actives = active_links(shape)
@@ -1043,7 +1048,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     ids = np.empty(shape_with_halo, dtype=np.int)
 
     (interiors, boundaries) = (interior_nodes(shape_with_halo),
-                               boundary_nodes(shape_with_halo)) 
+                               boundary_nodes(shape_with_halo))
 
     ids.flat[interiors] = xrange(interior_node_count(shape_with_halo))
     ids.flat[boundaries] = halo_indices
@@ -1142,7 +1147,7 @@ def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
     nodes = np.choose(is_open_boundary_neighbor, (open_boundary_neighbors,
                                                   value))
     neighbors[:, open_boundary_nodes] = nodes
-    
+
 
 def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
@@ -1204,7 +1209,7 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         if contiguous:
             return neighbors.copy()
         else:
-            return neighbors 
+            return neighbors
     else:
         return np.array([], dtype=np.int)
 
@@ -1212,11 +1217,11 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
 def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
                         boundary_node_mask=None):
     """
-    Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
+    Creates a list of IDs of the diagonal cells to each cell, as a 2D array.
     Only interior cells are assigned neighbors; boundary cells get -1 for
     each neighbor.  The order of the diagonal cells is [topright, topleft,
     bottomleft, bottomright].
-    
+
     NG didn't touch this, but she thinks this should be nodes, not cells.
 
     >>> diags = diagonal_node_array((2, 3), out_of_bounds=-1)
@@ -1323,18 +1328,18 @@ def has_boundary_neighbor(neighbors, diagonals,
 def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
         #nbr_nodes=self.get_neighbor_list(id)
         #diag_nbrs=self.get_diagonal_list(id)
-        
+
         i=0
         while i < 4 and neighbors[i] != out_of_bounds:
             i += 1
-        
+
         if i < 4:
             return True
         else:
             r = 0
             while r < 4 and diagonals[r] != out_of_bounds:
                 r += 1
-        
+
         if r < 4 :
             return True
         else:
@@ -1443,7 +1448,7 @@ def nodes_around_point(shape, coords, spacing=(1., 1.)):
 
     return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
                      node_id + 1])
-                     
+
 def interior_node_id_to_node_id(shape, core_node_ids):
     """
     Converts the id of an interior node ID (i.e., if just the interior nodes
@@ -1453,10 +1458,10 @@ def interior_node_id_to_node_id(shape, core_node_ids):
     real_ID = (core_node_ids//IGW + 1) * shape[1] + (core_node_ids%IGW) + 1
     assert np.all(real_ID < shape[0]*shape[1])
     return real_ID.astype(int)
-    
+
 def node_id_to_interior_node_id(shape, node_ids):
     """
-    Converts a node ID to the id of an interior node ID (i.e., if just the 
+    Converts a node ID to the id of an interior node ID (i.e., if just the
     interior nodes were numbered)
     """
     ncols = shape[1]
