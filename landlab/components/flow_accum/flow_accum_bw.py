@@ -50,13 +50,16 @@ class _DrainageStack():
         """
         Adds node l to the stack and increments the current index (j).
         
-        Example:
-            >>> delta = numpy.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
-            >>> D = numpy.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
-            >>> ds = _DrainageStack(delta, D)
-            >>> ds.add_to_stack(4)
-            >>> ds.s
-            array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
+        >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+        >>> D = np.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+        >>> ds = _DrainageStack(delta, D)
+        >>> ds.add_to_stack(4)
+        >>> ds.s
+        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
         self.s[self.j] = l
         self.j += 1
@@ -107,7 +110,9 @@ def _make_number_of_donors_array(r):
     The example below is from Braun and Willett (2012); nd corresponds to their
     d_i in Table 1.
     
-    >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
@@ -136,11 +141,14 @@ def _make_delta_array(nd):
     \delta_i in their Table 1. Here, the numbers are all one less than in their
     table because here we number indices from 0 rather than 1.
     
-    Example:
-        >>> nd = numpy.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
-        >>> delta = _make_delta_array(nd)
-        >>> delta
-        array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
+    >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
+    >>> delta = _make_delta_array(nd)
+    >>> delta
+    array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
     #np = len(nd)
     #delta = numpy.zeros(np+1, dtype=int)
@@ -168,12 +176,15 @@ def _make_array_of_donors(r, delta):
     
     Vectorized - inefficiently! - DEJH, 5/20/14
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> delta = numpy.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
-        >>> D = _make_array_of_donors(r, delta)
-        >>> D
-        array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    >>> D = _make_array_of_donors(r, delta)
+    >>> D
+    array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
     np = len(r)
     w = numpy.zeros(np, dtype=int)
@@ -217,12 +228,15 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     The lack of a leading underscore is meant to signal that this operation
     could be useful outside of this module!
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> b = numpy.array([4])
-        >>> s = make_ordered_node_array(r, b)
-        >>> s
-        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import make_ordered_node_array
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> b = np.array([4])
+    >>> s = make_ordered_node_array(r, b)
+    >>> s
+    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     nd = _make_number_of_donors_array(receiver_nodes)
     delta = _make_delta_array(nd)
@@ -264,14 +278,17 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
           just at each CELL. This means you need to include entries for the
           perimeter nodes too. They can be zeros.
           
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> s = numpy.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
-        >>> a, q = find_drainage_area_and_discharge(s, r)
-        >>> a
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> q
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import find_drainage_area_and_discharge
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    >>> a, q = find_drainage_area_and_discharge(s, r)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
         
     """
     
@@ -324,16 +341,19 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> b = numpy.array([4])
-        >>> a, q, s = flow_accumulation(r, b)
-        >>> a
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> q
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> s
-        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import flow_accumulation
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> b = np.array([4])
+    >>> a, q, s = flow_accumulation(r, b)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> s
+    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)

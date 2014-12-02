@@ -63,12 +63,14 @@ def grid_flow_directions(grid, elevations):
         |   |   |   |   |
         5 - 0 - 5 - 5 - 5
         
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
     >>> mg = RasterModelGrid(4,5)
-    >>> z = numpy.array([5., 0., 5., 5., 5.,
-    ...                  5., 1., 2., 2., 5.,
-    ...                  5., 3., 4., 3., 5.,
-    ...                  5., 5., 5., 5., 5.])
+    >>> z = np.array([5., 0., 5., 5., 5.,
+    ...               5., 1., 2., 2., 5.,
+    ...               5., 3., 4., 3., 5.,
+    ...               5., 5., 5., 5., 5.])
     >>> recv_nodes, slope = grid_flow_directions(mg, z)
 
     Each node with a cell has a receiving node (although that node may be
@@ -150,11 +152,13 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     Braun and Willett (2012), so that their original flow pattern should be
     re-created.
     
-    >>> z = numpy.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
-    >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
-    >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
+    >>> import numpy as np
+    >>> from landlab.components.flow_routing.flow_direction_DN import flow_directions
+    >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
+    >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
+    >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
     >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-    >>> active_links = numpy.arange(len(fn))
+    >>> active_links = np.arange(len(fn))
     >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s)
     >>> r
     array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
@@ -165,8 +169,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> rl[3:8]
     array([        15, 2147483647,          1,          6,          2])
 
-    Example 2
-    ---------
+    *Example 2*
+
     This example implements a simple routing on a (4,5) raster grid with the
     following node elevations::
 
@@ -178,8 +182,9 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         |   |   |   |   |
         5 - 0 - 5 - 5 - 5
         
+    #>>> import numpy as np
     #>>> from landlab import RasterModelGrid
-    #>>> z = numpy.array([0., 0., 0., 0., 0.,
+    #>>> z = np.array([0., 0., 0., 0., 0.,
     #>>> mg = RasterModelGrid(4,5)
     #...                  0., 1., 2., 5., 5.,
     #...                  2., 2., 3., 5., 0.,

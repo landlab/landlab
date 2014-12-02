@@ -123,6 +123,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     Examples
     --------
+    >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
     >>> rmg.number_of_nodes
     20
@@ -183,11 +184,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         methods, and the diagonal links can readily be created after
         initialization.
 
-        =======
         Examples
         --------
-
-        >>> import landlab as ll
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> numrows = 20          # number of rows in the grid
         >>> numcols = 30          # number of columns in the grid
         >>> dx = 10.0             # grid cell spacing
@@ -199,7 +198,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (20, 6, 31, 17)
         >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.node_corecell[3] == ll.BAD_INDEX_VALUE
+        >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
         True
         >>> rmg.node_corecell[8]
         2
@@ -242,7 +241,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.active_links
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
         """
-
         if self._DEBUG_TRACK_METHODS:
             print 'RasterModelGrid._initialize('+str(num_rows)+', ' \
                    +str(num_cols)+', '+str(dx)+')'
@@ -437,6 +435,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.shape
         (3, 4)
@@ -454,6 +453,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.dx
         1.0
@@ -485,6 +485,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.node_links(5)
         array([[ 1],
@@ -550,6 +551,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 4)
         >>> rmg.node_links(5)
         array([[ 1],
@@ -728,9 +730,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If you want to use this trick, you'll have to seach for BAD_INDEX_VALUE
         manually now.
 
-        Example:
-
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
         """
 
         (self.node_inlink_matrix,
@@ -847,8 +850,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         left and right columns (only one horizontal link) and top and bottom
         rows (only one vertical link).
 
-        >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid(3, 4, 2.0)
         >>> mg.link_unit_vec_x
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
                 1.,  1.,  1.,  1.,  0.])
@@ -913,6 +916,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.cell_faces(0)
         array([ 0,  9,  3, 10])
@@ -958,6 +962,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.face_links(0)
         array([1])
@@ -1010,6 +1015,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.link_faces(2)
         1
@@ -1042,6 +1048,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.get_grid_xdimension()
         4.0
@@ -1067,6 +1074,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.get_grid_ydimension()
         3.0
@@ -1087,6 +1095,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_interior_nodes
         6
@@ -1103,6 +1112,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_core_nodes
         6
@@ -1117,6 +1127,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_nodes
         20
@@ -1131,6 +1142,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_node_columns
         5
@@ -1145,6 +1157,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_node_rows
         4
@@ -1159,6 +1172,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_patches
         12
@@ -1175,6 +1189,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_diagonal_links
         Traceback (most recent call last):
@@ -1193,6 +1208,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.node_spacing
         1.0
@@ -1227,6 +1243,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.corner_nodes
         array([ 0,  4, 15, 19])
@@ -1281,6 +1298,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.get_nodes_around_point(.4, 1.2)
         array([4, 8, 9, 5])
@@ -1366,6 +1384,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.find_nearest_node([0.2, 0.2])
         0
@@ -1479,6 +1498,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.link_length
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
@@ -1543,6 +1563,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 3)
         >>> (links, from_nodes, to_nodes) = grid.d8_active_links()
         >>> links
@@ -1606,6 +1627,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 3)
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
@@ -1667,6 +1689,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 3)
         >>> node_values = rmg.zeros()
         >>> node_values[0] = -1
@@ -1730,6 +1753,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 4)
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
@@ -1995,6 +2019,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         four-row by five-column grid that initially has all boundaries active
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
@@ -2111,6 +2136,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         four-row by five-column grid that initially has all boundaries open
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
@@ -2202,6 +2228,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
@@ -2322,6 +2349,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
@@ -2495,6 +2523,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         this is overridden by setting *gradient* in the function call as a
         constant. The third time, values are specified in an array:
 
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> import landlab.utils.structured_grid as sgrid
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
@@ -2531,7 +2562,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         mimic their edge neighbor. This is almost always what you want to
         happen.
 
-        >>> my_gradients = numpy.array([-0.5,-0.5,-0.5,-0.5,]) #remember these are in edge, then ID order, with the corners attached to the other edges
+        >>> import numpy as np
+        >>> my_gradients = np.array([-0.5,-0.5,-0.5,-0.5,]) #remember these are in edge, then ID order, with the corners attached to the other edges
         >>> rmg.set_fixed_gradient_boundaries(False, True, False, True, my_gradients) #third case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([-0.5, -0.5, -0.5, -0.5,  0.6,  0.1,  0.1,  0.1, -0.4, -0.6, -0.1,
@@ -2557,7 +2589,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> elevs = rmg['node']['topographic_elevation']
         >>> updated_elevs = elevs
         >>> updated_elevs[rmg.fixed_gradient_node_properties['boundary_node_IDs']] = updated_elevs[rmg.fixed_gradient_node_properties['anchor_node_IDs']] + rmg.fixed_gradient_node_properties['values_to_add']
-        >>> numpy.all(numpy.equal(elevs, updated_elevs))
+        >>> np.all(np.equal(elevs, updated_elevs))
         True
         """
         # Added DEJH Jan 2014
@@ -2746,21 +2778,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         values of the corner nodes are updated *last*, such that the edge nodes
         they refer to have already been updated.
 
-        Some examples:
-
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 4, 1.0) # rows, columns, spacing
         >>> rmg.create_node_array_zeros('topographic_elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg['node']['topographic_elevation'] += 2.
-        >>> rmg.force_boundaries_from_gradients(numpy.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]),numpy.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
+        >>> rmg.force_boundaries_from_gradients(np.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]), np.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
         >>> rmg['node']['topographic_elevation']
         array([ 1.,  1.,  1.,  1.,  1.,  2.,  2.,  1.,  1.,  1.,  1.,  1.])
-        >>> rmg.force_boundaries_from_gradients(numpy.array([ 11, 13]),numpy.array([-2.,-2.]))
+        >>> rmg.force_boundaries_from_gradients(np.array([ 11, 13]), np.array([-2.,-2.]))
         >>> rmg['node']['topographic_elevation']
         array([ 1.,  1.,  1.,  1.,  4.,  2.,  2.,  0.,  1.,  1.,  1.,  1.])
 
         ...and now we demonstrate an exception if an interior link is included:
-        >>> rmg.force_boundaries_from_gradients(numpy.array([ 12, 13]),numpy.array([-2.,-2.]))
+        >>> rmg.force_boundaries_from_gradients(np.array([ 12, 13]), np.array([-2.,-2.]))
         Traceback (most recent call last):
             ...
         ValueError: One or more of the supplied links was neither an edge link, nor a link to a corner!
@@ -2925,31 +2959,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Note that a negative gradient corresponds to a lower node in the direction
         of the link.
 
-        Example:
-
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...     1., 2., 3., 2., 3.,
-            ...     0., 1., 2., 1., 2.,
-            ...     0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> u
-            array([ 0.,  1.,  2.,  3.,  0.,  1.,  2.,  3.,  2.,  3.,  0.,  1.,  2.,
-                    1.,  2.,  0.,  0.,  2.,  2.,  0.])
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = [0., 1., 2., 3., 0.,
+        ...     1., 2., 3., 2., 3.,
+        ...     0., 1., 2., 1., 2.,
+        ...     0., 0., 2., 2., 0.]
+        >>> u = np.array(u)
+        >>> u
+        array([ 0.,  1.,  2.,  3.,  0.,  1.,  2.,  3.,  2.,  3.,  0.,  1.,  2.,
+                1.,  2.,  0.,  0.,  2.,  2.,  0.])
+        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad
+        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
 
         For greater speed, sending a pre-created numpy array as an argument
         avoids having to create a new one with each call:
 
-            >>> grad = numpy.zeros(rmg.number_of_active_links)
-            >>> u = u*10
-            >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
-            >>> grad
-            array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
-                   -10.,  10.,  10.,  10., -10.,  10.])
+        >>> grad = np.zeros(rmg.number_of_active_links)
+        >>> u = u*10
+        >>> grad = rmg.calculate_gradients_at_active_links(u, grad)
+        >>> grad
+        array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
+               -10.,  10.,  10.,  10., -10.,  10.])
         """
         diffs = gfuncs.calculate_diff_at_active_links(self, node_values,
                                                       out=out)
@@ -3074,13 +3110,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = [0., 1., 2., 3., 0.,
         ...      1., 2., 3., 2., 3.,
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
-        >>> u = numpy.array(u)
+        >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
         array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
@@ -3163,8 +3200,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         The returned array is a view of *u*, not a copy.
 
-        Example:
-
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = rmg.zeros(centering='node')
         >>> u = u + range(0, len(u))
@@ -3200,7 +3238,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = rmg.zeros(centering='cell')
         >>> u = u + range(0, len(u))
@@ -3242,6 +3280,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 3, 1.)
         >>> data = rmg.add_zeros('node', 'test_data')
         >>> data[:] = np.arange(12)
@@ -3309,7 +3348,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Parameter *bad_index* can be used to override the grid default for the
         BAD_INDEX_VALUE.
 
+        Examples
+        --------
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> np.all(mg.get_neighbor_list([-1, 6, 2]) == np.array([[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]]))
         True
@@ -3367,6 +3409,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         *id* has a boundary node.  Returns True if a node has a boundary node,
         False if all neighbors are interior.
 
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(5, 5)
         >>> mg.has_boundary_neighbor(6)
         True
@@ -3395,6 +3440,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         For each node, the list gives diagonal ids as [topright, topleft,
         bottomleft, bottomright]. Set all diagonals for boundary nodes to -1.
 
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.get_diagonal_list([-1, 6])
         array([[2147483647, 2147483647,         13, 2147483647],
@@ -3567,7 +3615,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
 
     def get_active_link_connecting_node_pair(self, node_a, node_b):
-        '''Returns an array of active link indices that *node_a* and *node_b*
+        """Returns an array of active link indices that *node_a* and *node_b*
         share.
 
         Parameters
@@ -3580,13 +3628,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         1D numpy array
             IDs of active link(s) connecting given node pair(s), or BAD_INDEX_VALUE if none found.
 
-        Example
-        -------
-
-            >>> rmg = RasterModelGrid(3, 4)
-            >>> rmg.get_active_link_connecting_node_pair(5, 6)
-            array([5])
-        '''
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(3, 4)
+        >>> rmg.get_active_link_connecting_node_pair(5, 6)
+        array([5])
+        """
 
         # Get arrays containing active links attached to each of the two nodes.
         # The method node_activelinks() returns a 2D array, with each column containing
@@ -3622,6 +3670,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> rmg.top_edge_node_ids()
         array([15, 16, 17, 18, 19])
@@ -3636,6 +3685,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> rmg.bottom_edge_node_ids()
         array([0, 1, 2, 3, 4])
@@ -3650,6 +3700,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> rmg.left_edge_node_ids()
         array([ 0,  5, 10, 15])
@@ -3664,6 +3715,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> rmg.right_edge_node_ids()
         array([ 4,  9, 14, 19])
@@ -3702,6 +3754,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.grid_coords_to_node_id(2, 3)
         13

@@ -164,7 +164,7 @@ correct size (if it's not a ``ValueError`` will be raised).
 >>> grid.has_field('node', 'air__temperature')
 False
 >>> import numpy as np
->>> t = np.zeros(9.)
+>>> t = np.zeros(9)
 >>> t is grid.add_field('node', 'air__temperature', t)
 True
 >>> grid.has_field('node', 'air__temperature')
@@ -236,9 +236,11 @@ def _sort_points_into_quadrants(x, y, nodes):
     south, east, and west quadrants. Returns nodes contained in quadrants
     (west, east, north, south).
 
-    >>> x = numpy.array([0, 1, 0, -1])
-    >>> y = numpy.array([1, 0, -1, 0])
-    >>> nodes = numpy.array([1, 2, 3, 4])
+    >>> import numpy as np
+    >>> from landlab.grid.base import _sort_points_into_quadrants
+    >>> x = np.array([0, 1, 0, -1])
+    >>> y = np.array([1, 0, -1, 0])
+    >>> nodes = np.array([1, 2, 3, 4])
     >>> _sort_points_into_quadrants(x, y, nodes)
     (array([4]), array([2]), array([1]), array([3]))
     """
@@ -344,9 +346,11 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     vectors. The algorithm should recover the correct vector component values of 
     4 and 3. The FOR loop examines each pair of links in turn.
     
-    >>> bx = numpy.array([0.5, -0.5, -1., -0.5, 1., 0.5])
-    >>> by = numpy.array([0.866, 0.866, 0., -0.866, 0., -0.866])
-    >>> L = numpy.array([4.6, 0.6, -4., -4.6, 4., -0.6])
+    >>> import numpy as np
+    >>> from landlab.grid.base import find_true_vector_from_link_vector_pair
+    >>> bx = np.array([0.5, -0.5, -1., -0.5, 1., 0.5])
+    >>> by = np.array([0.866, 0.866, 0., -0.866, 0., -0.866])
+    >>> L = np.array([4.6, 0.6, -4., -4.6, 4., -0.6])
     >>> for i in range(5):
     ...     ax, ay = find_true_vector_from_link_vector_pair(L[i], L[i+1], bx[i], by[i], bx[i+1], by[i+1])
     ...     round(ax,1), round(ay,1)
@@ -863,9 +867,10 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4,5)
-        >>> mydata = numpy.arange(20, dtype=float)
+        >>> mydata = np.arange(20, dtype=float)
         >>> rmg.create_node_array_zeros('topographic_elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -1300,13 +1305,14 @@ class ModelGrid(ModelDataFields):
             
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = [0., 1., 2., 3., 0.,
         ...      1., 2., 3., 2., 3.,
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
-        >>> u = numpy.array(u)
+        >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
         array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
@@ -1397,13 +1403,14 @@ class ModelGrid(ModelDataFields):
             
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = [0., 1., 2., 3., 0.,
         ...      1., 2., 3., 2., 3.,
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
-        >>> u = numpy.array(u)
+        >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
         array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
@@ -1822,11 +1829,12 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(3, 4, 1.0)
         >>> mg.node_status
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-        >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> h = np.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
         >>> mg.set_nodata_nodes_to_inactive(h, -9999)
         >>> mg.node_status
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
@@ -1849,12 +1857,12 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
-            
+        >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)
         >>> mg.node_status
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-        >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> h = np.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
         >>> mg.set_nodata_nodes_to_closed(h, -9999)
         >>> mg.node_status
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
@@ -1888,9 +1896,10 @@ class ModelGrid(ModelDataFields):
         
         Examples
         --------
+        >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-        >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+        >>> h = np.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
         >>> mg.max_of_link_end_node_values(h)
         array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
         """
@@ -2211,13 +2220,13 @@ class ModelGrid(ModelDataFields):
         Example 1: q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
         :math:`(1,1)`.   
         
+        >>> import numpy as np
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid(3, 4, 2.0)
         >>> rmg.node_unit_vector_sum_x
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
         >>> rmg.node_unit_vector_sum_y
         array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
-        >>> import numpy as np
         >>> q = np.ones(rmg.number_of_links)
         >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
         >>> nvx

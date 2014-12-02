@@ -18,6 +18,7 @@ def number_of_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import number_of_cells
     >>> number_of_cells((3, 4))
     2
     """
@@ -39,6 +40,7 @@ def shape_of_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import shape_of_cells
     >>> shape_of_cells((3, 4))
     (1, 2)
     """
@@ -60,6 +62,7 @@ def node_id_at_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import node_id_at_cells
     >>> node_id_at_cells((3, 4))
     array([[5, 6]])
     """
@@ -82,6 +85,7 @@ def cell_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import cell_ids
     >>> cell_ids((3, 4))
     array([[0, 1]])
     """

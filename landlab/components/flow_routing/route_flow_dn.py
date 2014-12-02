@@ -107,36 +107,39 @@ class FlowRouter():
         Returns, if *grid* was provided:
             - the modified grid object
         
-        Example:
-            >>> from landlab import RasterModelGrid
-            >>> mg = RasterModelGrid(5, 4, 1.0)
-            >>> elev = numpy.array([0.,  0.,  0., 0.,
-            ...                     0., 21., 10., 0.,
-            ...                     0., 31., 20., 0.,
-            ...                     0., 32., 30., 0.,
-            ...                     0.,  0.,  0., 0.])
-            >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-            >>> fr = FlowRouter(mg)
-            >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
-            >>> r
-            array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
-                   17, 18, 19])
-            >>> a
-            array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
-                    1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing.route_flow_dn import FlowRouter
+        >>> mg = RasterModelGrid(5, 4, 1.0)
+        >>> elev = np.array([0.,  0.,  0., 0.,
+        ...                  0., 21., 10., 0.,
+        ...                  0., 31., 20., 0.,
+        ...                  0., 32., 30., 0.,
+        ...                  0.,  0.,  0., 0.])
+        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> fr = FlowRouter(mg)
+        >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
+        >>> r
+        array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
+               17, 18, 19])
+        >>> a
+        array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-            Now let's change the cell area and the runoff rates:
-            
-            >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
-            >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-            >>> fr = FlowRouter(mg)
-            >>> runoff_rate = numpy.arange(mg.number_of_nodes)
-            >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev, runoff_rate=runoff_rate)
-            >>> q
-            array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
-                     800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
-                    1600.,  1700.,  1800.,  1900.])
-            
+        Now let's change the cell area and the runoff rates:
+        
+        >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
+        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> fr = FlowRouter(mg)
+        >>> runoff_rate = np.arange(mg.number_of_nodes)
+        >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev, runoff_rate=runoff_rate)
+        >>> q
+        array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
+                 800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
+                1600.,  1700.,  1800.,  1900.])
+        
         """
         
         #if elevs is not provided, default to stored grid values, which must be provided as grid

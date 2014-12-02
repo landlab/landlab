@@ -27,6 +27,7 @@ The format of the input file looks like::
 Example code that reads these parameters from a file called
 *myinputs.txt*:
 
+    >>> from landlab import ModelParameterDictionary
     >>> my_param_dict = ModelParameterDictionary()
     >>> my_param_dict.read_from_file(param_file)
     >>> pi = my_param_dict.read_float('PI')
@@ -176,6 +177,7 @@ class ModelParameterDictionary(dict):
     parameter dictionary, and try to convert each value string to its
     intended type.
 
+    >>> from landlab import ModelParameterDictionary
     >>> params = ModelParameterDictionary(auto_type=True, from_file=test_file)
 
     The returned ModelParameterDictionary can now be used just like a
@@ -329,6 +331,7 @@ class ModelParameterDictionary(dict):
         is not contained in the ModelParameterDictionary.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_INT:
@@ -420,6 +423,7 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as an integer.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_INT:
@@ -438,6 +442,7 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as a float.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_FLOAT:
@@ -463,6 +468,7 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as a string.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_STRING:
@@ -482,6 +488,7 @@ class ModelParameterDictionary(dict):
     def read_bool(self, key):
         """
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_BOOL:
