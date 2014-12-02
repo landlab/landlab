@@ -93,7 +93,7 @@ class PrecipitationDistribution(Component):
         if delta_t== None:
             if input_file != _DEFAULT_INPUT_FILE:
                 try:
-                    self.delta_t = MPD.read_int( 'DELTA_T')
+                    self.delta_t = MPD.read_float( 'DELTA_T')
                 except MissingKeyError:
                     self.delta_t = None
             else:

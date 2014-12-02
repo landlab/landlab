@@ -15,6 +15,8 @@ from landlab.components.stream_power.fastscape_stream_power import SPEroder as F
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
+from landlab.plot.imshow import imshow_node_grid
+from pylab import figure, plot, xlabel, ylabel, title, show
 
 import numpy
 from landlab import RasterModelGrid
@@ -44,7 +46,8 @@ mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
 #make some K values in a field to test 
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 mg.at_node['K_values'] = numpy.empty(nrows*ncols, dtype=float)
-mg.at_node['K_values'].fill(0.1+numpy.random.rand()/10.)
+#mg.at_node['K_values'].fill(0.1+numpy.random.rand()/10.)
+mg.at_node['K_values'].fill(0.001)
 
 print( 'Running ...' )
 
@@ -58,6 +61,7 @@ precip = PrecipitationDistribution(input_file=input_file_string)
 fsp = Fsc(mg, input_file_string)
 
 try:
+    #raise NameError
     mg = copy.deepcopy(mg_mature)
 except NameError:
     print 'building a new grid...'
@@ -84,11 +88,11 @@ else:
     fr = FlowRouter(mg)
     sp = StreamPowerEroder(mg, input_file_string)
 
-if False:
+if True:
     #perturb:
-    time_to_run = 1000000.
+    time_to_run = 500000.
     precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
-    out_interval = 50000.
+    out_interval = 10000.
     last_trunc = time_to_run #we use this to trigger taking an output plot
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:

@@ -6,11 +6,11 @@ ncols:
 dx:
 1000.
 dt:
-50.
+500.
 uplift_rate: #per time, not per timestep
-0.001
+0.0001
 run_time:
-500000.
+3000000.
 init_elev:
 0.
 
@@ -21,13 +21,13 @@ sed_density:
 2.7
 K_sp:
 array
-#0.5
+#0.0001
 m_sp:
 0.5
 n_sp:
 1.
 threshold_sp:
-0.
+1.
 use_Q:
 True
 
@@ -38,6 +38,6 @@ MEAN_DEPTH:
 MEAN_INTERSTORM:
 400.
 RUN_TIME:
-500000.
+3000000.
 DELTA_T:
-50
+500.
