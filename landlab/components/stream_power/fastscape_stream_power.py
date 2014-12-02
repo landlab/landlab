@@ -168,11 +168,9 @@ class SPEroder(object):
                         z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
                     }
                 }
-        """
-        try:
-            raise CompileError
+            """
             weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
-        except CompileError:
+        else:
             for i in upstream_order_IDs:
                 j = flow_receivers[i]
                 if i != j:
