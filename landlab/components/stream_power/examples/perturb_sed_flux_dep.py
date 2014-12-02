@@ -82,7 +82,7 @@ for i in xrange(nt):
         pylab.figure("slope_area")
         loglog(mg.at_node['drainage_area'][profile_IDs], mg.at_node['steepest_slope'][profile_IDs], '-x')
     if i%15 == 0:
-        x_profiles.append(dists_upstr)
+        x_profiles.append(dists_upstr[:])
         z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
         S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
         A_profiles.append(mg.at_node['drainage_area'][profile_IDs])

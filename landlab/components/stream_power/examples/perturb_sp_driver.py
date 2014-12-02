@@ -40,6 +40,11 @@ mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
 
+#make some K values in a field to test 
+mg.at_node['K_values'] = 1.e-6+numpy.random.rand(nrows*ncols)*1.e-8
+
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+
 print( 'Running ...' )
 
 #instantiate the components:
@@ -49,7 +54,7 @@ fsp = Fsc(mg, './drive_sp_params.txt')
 
 #load the Fastscape module too, to allow direct comparison
 fsp = Fsc(mg, './drive_sp_params.txt')
-vid = VideoPlotter(mg, data_centering='node', step=2.5)
+#vid = VideoPlotter(mg, data_centering='node', step=2.5)
 
 try:
     mg = copy.deepcopy(mg_mature)
@@ -64,8 +69,8 @@ except NameError:
             dt = time_to_run - elapsed_time
         mg = fr.route_flow(grid=mg)
         #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-        mg = fsp.erode(mg)
-        #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
+        #mg = fsp.erode(mg)
+        mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
         #add uplift
         mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
         elapsed_time += dt
@@ -80,25 +85,31 @@ else:
 
     #load the Fastscape module too, to allow direct comparison
     fsp = Fsc(mg, './drive_sp_params.txt')
-    vid = VideoPlotter(mg, data_centering='node', step=2.5)
+    #vid = VideoPlotter(mg, data_centering='node', step=2.5)
+
+x_profiles = []
+z_profiles = []
+S_profiles = []
+A_profiles = []
 
 #perturb:
-time_to_run = 50.
-dt=0.5
+time_to_run = 5000000.
+dt=10000.
+out_tstep = 50000.
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
     print elapsed_time
-    vid.add_frame(mg, 'topographic_elevation', elapsed_time)
+    #vid.add_frame(mg, 'topographic_elevation', elapsed_time)
     if elapsed_time+dt>time_to_run:
         print "Short step!"
         dt = time_to_run - elapsed_time
     mg = fr.route_flow(grid=mg)
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-    mg = fsp.erode(mg)
-    #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
+    #mg = fsp.erode(mg)
+    mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
 
     #plot long profiles along channels
-    if numpy.allclose(elapsed_time%1.,0.) or numpy.allclose(elapsed_time%1.,1.):
+    if numpy.allclose(elapsed_time%out_tstep,0.) or numpy.allclose(elapsed_time%out_tstep,1.):
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
                         mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
@@ -106,6 +117,10 @@ while elapsed_time < time_to_run:
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+        x_profiles.append(dists_upstr[:])
+        z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
+        S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+        A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
 
     #add uplift
     mg.at_node['topographic_elevation'][mg.core_nodes] += 5.*uplift*dt
@@ -116,7 +131,7 @@ while elapsed_time < time_to_run:
 elev = mg['node']['topographic_elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
-vid.produce_video()
+#vid.produce_video()
 
 # Clear previous plots
 pylab.figure("topo")

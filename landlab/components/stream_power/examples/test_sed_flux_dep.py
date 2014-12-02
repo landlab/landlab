@@ -47,8 +47,8 @@ z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up grid's boundary conditions (bottom, left, top, right is inactive)
-mg.set_inactive_boundaries(False, True, False, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic_elevation')
+mg.set_inactive_boundaries(False, True, True, True)
+mg.set_fixed_value_boundaries_at_grid_edges(True, False, False, False, value_of='topographic_elevation')
 print 'fixed vals in grid: ', mg.fixed_value_node_properties['values']
 
 # Display a message

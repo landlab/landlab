@@ -10,12 +10,13 @@ leftmost_elevation:
 initial_slope:
 0.
 dt:
-500.
+100. 
+#for U~0.0001
 total_time:
-#10000000.
+#3750000.
 100000.
 uplift_rate:
-0.001
+0.0005
 #time is years, ALL linear dimensions are meters!
 
 #these are the parameters for the stream power module:
