@@ -14,6 +14,7 @@ import os
 import numpy as np 
 import random
 from landlab import Component,ModelParameterDictionary
+from landlab.core.model_parameter_dictionary import MissingKeyError
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'preciptest.in')
@@ -37,7 +38,8 @@ class PrecipitationDistribution(Component):
             - MEAN_DEPTH: (type : float) the mean storm depth if not provided in initizalization
             - MEAN_INTERSTORM: (type : float) the mean interstorm duration if not provided in initialization
             - RUN_TIME: (type : float) total model run time if not provided in initialization
-            - DELTA_T: (type : int) time step increment if not provided in initialization 
+            - DELTA_T: (type : int) external time step increment if not provided in initialization 
+                (it is not obligtory to provide a DELTA_T)
             
     So, without an input file (selecting the default), we can call this component like...
     
@@ -89,9 +91,15 @@ class PrecipitationDistribution(Component):
             self.run_time =total_t
             
         if delta_t== None:
-            self.delta_t = MPD.read_int( 'DELTA_T')
+            if input_file != _DEFAULT_INPUT_FILE:
+                try:
+                    self.delta_t = MPD.read_float( 'DELTA_T')
+                except MissingKeyError:
+                    self.delta_t = None
+            else:
+                self.delta_t = None
         else:
-            self.detla_t =delta_t
+            self.delta_t =delta_t
             
         # Mean_intensity is not set by the MPD, but can be drawn from 
         # the mean storm depth and mean storm duration.
@@ -108,6 +116,7 @@ class PrecipitationDistribution(Component):
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
+        self._elapsed_time = 0.
 
 
     def update(self):
@@ -279,3 +288,72 @@ class PrecipitationDistribution(Component):
             storm_iterator = storm_helper
         return self.storm_time_series
             
+    def yield_storm_interstorm_duration_intensity(self, subdivide_interstorms=False):
+        """
+        This method is intended to be equivalent to get_storm_time_series,
+        but instead offers a generator functionality. This will be useful in
+        cases where the whole sequence of storms and interstorms doesn't need
+        to be stored, where we can save memory this way.
+        
+        The method keeps track of the DELTA_T such that if a storm needs to be
+        generated longer than this supplied model timestep, the generator will
+        return the storm in "chunks", until there is no more storm duration.
+        e.g.,
+        storm of intensity 1. is 4.5 long, the DELTA_T is 2., the generator 
+        yields (2.,1.) -> (2.,1.) -> (0.5,1.) -> ...
+        
+        If DELTA_T is None or not supplied, no subdivision occurs.
+        
+        Once a storm has been generated, this method will follow it with the
+        next interstorm, yielded as (interstorm_duration, 0.). Note that the
+        interstorm will NOT be subdivided according to DELTA_T unless you set
+        the flag *subdivide_interstorms* to True.
+        
+        The method will keep yielding until it reaches the RUN_TIME, where it
+        will terminate.
+        
+        YIELDS:
+            - a tuple, (interval_duration, rainfall_rate_in_interval)
+            
+        One recommended procedure is to instantiate the generator, then call
+        instance.next() repeatedly to get the sequence.
+            
+        Added DEJH, Dec 2014
+        """
+        delta_t = self.delta_t
+        if delta_t == None:
+            assert subdivide_interstorms == False, 'You specified you wanted storm subdivision, but did not provide a DELTA_T to allow this!'
+        self._elapsed_time = 0.
+        while self._elapsed_time<self.run_time:
+            storm_duration = self.get_precipitation_event_duration()
+            step_time=0.
+            self.get_storm_depth()
+            intensity = self.get_storm_intensity() #this is a VELOCITY, i.e., a rainfall rate
+            if self._elapsed_time+storm_duration>self.run_time:
+                storm_duration = self.run_time-self._elapsed_time
+            while delta_t!=None and storm_duration-step_time>delta_t:
+                yield (delta_t, intensity)
+                step_time+=delta_t
+            yield (storm_duration-step_time, intensity)
+            self._elapsed_time += storm_duration
+            
+            interstorm_duration = self.get_interstorm_event_duration()
+            if self._elapsed_time+interstorm_duration>self.run_time:
+                interstorm_duration = self.run_time-self._elapsed_time
+            if subdivide_interstorms:
+                step_time=0.
+                while interstorm_duration-step_time>delta_t:
+                    yield (delta_t, 0.)
+                    step_time += delta_t
+                yield (interstorm_duration-step_time, 0.)
+            else:
+                yield (interstorm_duration, 0.)
+            self._elapsed_time += interstorm_duration
+    
+    @property
+    def elapsed_time(self):
+        """
+        Return the elapsed time recorded by the module.
+        This will be particularly useful in the midst of a yield loop.
+        """
+        return self._elapsed_time

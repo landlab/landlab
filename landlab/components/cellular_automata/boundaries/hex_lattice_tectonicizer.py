@@ -48,6 +48,9 @@ class HexLatticeTectonicizer(object):
         # If needed, create node-state grid
         if node_state is None:
             self.node_state = self.grid.add_zeros('node', 'node_state_map')
+        else:
+            print 'setting node state'
+            self.node_state = node_state
             
         # Remember the # of rows and cols
         self.nr = self.grid.number_of_node_rows
@@ -119,6 +122,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         self.base_row_nodes = arange(self.nr, self.nr*(self.nc-1), self.nr)
     
     def uplift_interior_nodes(self, rock_state=1):
+
+        print 'in uin, ns is'
+        print self.node_state        
         
         for r in range(self.nr-1, 0, -1):
             self.node_state[self.base_row_nodes+r] = \

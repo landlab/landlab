@@ -82,11 +82,10 @@ class SPEroder(object):
             self.dt = inputs.read_float('dt')
         except: #if dt isn't supplied, it must be set by another module, so look in the grid
             print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
-        else:
-            try:
-                self.r_i = inputs.read_float('rainfall_intensity')
-            except:
-                self.r_i = 1.
+        try:
+            self.r_i = inputs.read_float('rainfall_intensity')
+        except:
+            self.r_i = 1.
         try:
             self.value_field = inputs.read_str('value_field')
         except:
@@ -98,6 +97,14 @@ class SPEroder(object):
         
         if self.n != 1.:
             raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
+        
+        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
+        try:
+            weave.inline('',[])
+        except CompileError:
+            self.weave_flag = False
+        else:
+            self.weave_flag = True
 
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
         self.dt = dt_in
@@ -150,21 +157,22 @@ class SPEroder(object):
         flow_receivers = self.grid['node']['flow_receiver']
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
-        code = """
-            int current_node;
-            int j;
-            for (int i = 0; i < n_nodes; i++) {
-                current_node = upstream_order_IDs[i];
-                j = flow_receivers[current_node];
-                if (current_node != j) {
-                    z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+        if self.weave_flag:
+            code = """
+                int current_node;
+                int j;
+                for (int i = 0; i < n_nodes; i++) {
+                    current_node = upstream_order_IDs[i];
+                    j = flow_receivers[current_node];
+                    if (current_node != j) {
+                        z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+                    }
                 }
-            }
         """
         try:
             raise CompileError
             weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
-        except CompileError: 
+        except CompileError:
             for i in upstream_order_IDs:
                 j = flow_receivers[i]
                 if i != j:

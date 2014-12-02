@@ -333,7 +333,7 @@ class StreamPowerEroder(object):
             elev_this_node_after = elev_this_node_before - erosion_increment[i]
             elev_dstr_node_after = elev_dstr[i] - erosion_increment[flow_receiver[i]]
             if elev_this_node_after<elev_dstr_node_after:
-                erosion_increment[i] = elev_this_node_before - elev_dstr_node_after
+                erosion_increment[i] = (elev_this_node_before - elev_dstr_node_after)*0.999999 #we add a tiny elevation excess to prevent the module from ever totally severing its own flow paths
                 
         node_z -= erosion_increment
             

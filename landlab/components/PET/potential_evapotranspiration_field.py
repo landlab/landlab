@@ -13,7 +13,7 @@ from landlab import Component
 
 import numpy as np
 
-_VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT', 
+_VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
                             'Cosine'])
 
 def assert_method_is_valid(method):
@@ -69,6 +69,7 @@ class PotentialEvapotranspiration( Component ):
         self._LT = kwds.pop('LT', 0.)
         self._ND = kwds.pop('ND', 365.)
         self._TmaxF_mean = kwds.pop('MeanTmaxF', 12.)
+        self._DeltaD= kwds.pop('DeltaD', 5.)
 
         assert_method_is_valid(self._method)
 
@@ -106,11 +107,10 @@ class PotentialEvapotranspiration( Component ):
             Robs = kwds.pop('Radiation', 350.)
             PET_value = self.MeasuredRadPT( Tavg, (1-self._a)*Robs )
         elif self._method == 'Cosine':
-            DeltaD= kwds.pop('DeltaD', 5.)            
             self._J = np.floor( (current_time - np.floor( current_time)) * 365.)
-            self._PET = self._TmaxF_mean + DeltaD/2. * np.cos((2*np.pi) *                           \
-                              (self._J - self._LT - self._ND/2)/self._ND)            
-            
+            PET_value = max((self._TmaxF_mean + self._DeltaD/2. * np.cos((2*np.pi) *
+                            (self._J - self._LT - self._ND/2)/self._ND)), 0.0)
+
         self._PET = PET_value * self._cell_values['RadiationFactor']
         self._cell_values['PotentialEvapotranspiration'] = self._PET
 
