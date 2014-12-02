@@ -444,6 +444,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return (self.number_of_node_rows, self.number_of_node_columns)
 
     @property
+    def cell_shape(self):
+        """Return the shape of the cellular grid (grid with only cells).
+
+        Returns
+        -------
+        shape : tuple of ints
+            The shape of the cellular grid as number of cell rows and cell
+            columns.
+
+        Examples
+        --------
+        >>> grid = RasterModelGrid(3, 4)
+        >>> grid.cell_shape
+        (1, 2)
+        """
+        return (self.number_of_cell_rows, self.number_of_cell_columns)
+
+    @property
     def dx(self):
         """Return node spacing in the column direction.
 
@@ -1261,6 +1279,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return sgrid.corners((self._nrows, self._ncols))
 
+    @property
+    def corner_cells(self):
+        """Cells in cellular grid (grid with only cells) corners.
+
+        Return the IDs to the corner cells of the cellular grid, sorted by ID.
+
+        Returns
+        -------
+        (4, ) ndarray
+            Array of corner node IDs.
+
+        Examples
+        --------
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.corner_cells
+        array([ 0,  2, 3, 5])
+        """
+        return sgrid.corners(self.cell_shape)
+        
     def is_point_on_grid(self, xcoord, ycoord):
         """Check if a point is on a grid.
 
