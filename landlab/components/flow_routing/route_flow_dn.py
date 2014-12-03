@@ -20,7 +20,7 @@ from landlab.components.flow_routing import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
 from scipy import weave
-from scipy.weave.build_tools import CompileError
+#from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
 
@@ -65,14 +65,7 @@ class FlowRouter():
         self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
         
-        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
-        try:
-            weave.inline('',[])
-        except CompileError:
-            self.weave_flag = False
-        else:
-            print "Weave functionality successfully tested and implemented in route_flow_dn component!"
-            self.weave_flag = True
+        self.weave_flag = model_grid.weave_flag
         
         
     def route_flow(self, elevs=None, grid=None, runoff_rate=1.0,
