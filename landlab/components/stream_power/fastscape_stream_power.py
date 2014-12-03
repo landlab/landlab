@@ -104,6 +104,7 @@ class SPEroder(object):
         except CompileError:
             self.weave_flag = False
         else:
+            print "Weave functionality successfully tested and implemented in Fastscape stream power component!"
             self.weave_flag = True
 
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
