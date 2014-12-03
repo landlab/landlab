@@ -19,6 +19,8 @@ from landlab.components.flow_routing import flow_direction_DN
 #reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
 
@@ -62,6 +64,15 @@ class FlowRouter():
         self.discharges = model_grid.create_node_array_zeros('water_discharges')
         self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
+        
+        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
+        try:
+            weave.inline('',[])
+        except CompileError:
+            self.weave_flag = False
+        else:
+            print "Weave functionality successfully tested and implemented in route_flow_dn component!"
+            self.weave_flag = True
         
         
     def route_flow(self, elevs=None, grid=None, runoff_rate=1.0,
@@ -159,10 +170,12 @@ class FlowRouter():
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link  = \
-            flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
+            flow_direction_DN.flow_directions(elevs, self._active_links, 
+                                         self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          grid=grid,
-                                         baselevel_nodes=baselevel_nodes)
+                                         baselevel_nodes=baselevel_nodes, 
+                                         use_weave=self.weave_flag)
 #############grid=None???
         
         # TODO: either need a way to calculate and return the *length* of the
@@ -173,7 +186,7 @@ class FlowRouter():
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area, runoff_rate,
-                                                  boundary_nodes)
+                                                  boundary_nodes, self.weave_flag)
                                                   
         #added DEJH March 2014:
         #store the generated data in the grid

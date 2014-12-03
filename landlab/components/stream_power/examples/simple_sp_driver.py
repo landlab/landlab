@@ -38,6 +38,7 @@ mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
 mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 
 print( 'Running ...' )
+time_on = time.time()
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -60,6 +61,9 @@ while elapsed_time < time_to_run:
     #add uplift
     mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
     elapsed_time += dt
+
+time_off = time.time()
+print 'Elapsed time: ', time_off-time_on
 
 #Finalize and plot
 elev = mg['node']['topographic_elevation']
