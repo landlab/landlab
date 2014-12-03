@@ -444,7 +444,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return (self.number_of_node_rows, self.number_of_node_columns)
 
     @property
-    def cell_shape(self):
+    def cell_grid_shape(self):
         """Return the shape of the cellular grid (grid with only cells).
 
         Returns
@@ -456,7 +456,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> grid = RasterModelGrid(3, 4)
-        >>> grid.cell_shape
+        >>> grid.cell_grid_shape
         (1, 2)
         """
         return (self.number_of_cell_rows, self.number_of_cell_columns)
@@ -1296,7 +1296,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.corner_cells
         array([ 0,  2, 3, 5])
         """
-        return sgrid.corners(self.cell_shape)
+        return sgrid.corners(self.cell_grid_shape)
         
     def is_point_on_grid(self, xcoord, ycoord):
         """Check if a point is on a grid.
