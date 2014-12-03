@@ -1,7 +1,7 @@
 import numpy as np
 from landlab import ModelParameterDictionary
 from scipy import weave
-from scipy.weave.build_tools import CompileError
+#from scipy.weave.build_tools import CompileError
 
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
@@ -160,14 +160,7 @@ class StreamPowerEroder(object):
         #except FieldError:
         #    self.made_link_gradients = True
         
-        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
-        try:
-            weave.inline('',[])
-        except CompileError:
-            self.weave_flag = False
-        else:
-            print "Weave functionality successfully tested and implemented in stream_power component!"
-            self.weave_flag = True
+        self.weave_flag = grid.weave_flag
 
         
     def erode(self, grid, dt, node_elevs='topographic_elevation',
