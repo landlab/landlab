@@ -402,6 +402,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
         self.diagonal_list_created = False
+        
+        # List of looped neighbor cells (all 8 neighbors) for 
+        # given *cell ids* can be created if requested by the user. 
+        self.looped_cell_neighbor_list_created = False
+
+        # List of second ring looped neighbor cells (all 16 neighbors) for 
+        # given *cell ids* can be created if requested by the user.
+        self.looped_second_ring_cell_neighbor_list_created = False
 
 
     def _setup_cell_areas_array(self):
@@ -4211,6 +4219,141 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return slope and aspect
         return s, a
 
+    def get_looped_cell_neighbor_list( self, *args ):
+        """
+        Get list of looped neighbor cell IDs (all 8 neighbors).
+        
+        Returns lists of looped neighbor cell IDs of given *cell ids*.
+        If *cell ids* are not given, it returns a 2D array of size
+        ( self.number_of_cells, 8 ). 
+        Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
+        """    
+        if self.looped_cell_neighbor_list_created:
+            if len(args) == 0:
+                return self.looped_cell_neighbor_list
+            elif len(args) == 1:
+                return self.looped_cell_neighbor_list[args[0],:]
+            else:
+                raise ValueError('only zero or one arguments accepted')
+        else:
+            self.looped_cell_neighbor_list =                                 \
+                                    self.create_looped_cell_neighbor_list()
+            return(self.get_looped_cell_neighbor_list( *args ))
+                
+    
+    def create_looped_cell_neighbor_list( self ):
+        """
+        Creates list of looped immediate cell neighbors (8 adjacent cells). 
+        
+        Creates a list of looped immediate cell neighbors (*cell ids*) for each 
+        cell as a 2D array of size ( self.number_of_cells, 8 ).
+        Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]        
+        """
+        
+        # CAUTION: Some terminology concerning cells in this module
+        # is asynchronous to general understanding. This is intentionally 
+        # left as is until further discussion among dev group. 
+        # Any such instances are marked with (*TC - Terminoly Caution)
+        r, c = self.cell_grid_shape
+        interior_cells = sgrid.interior_nodes(self.cell_grid_shape)   # *TC
+        corner_cells = self.corner_cells                              # *TC
+        bottom_edge_cells = [x for x in sgrid.bottom_edge_node_ids(
+                              self.cell_grid_shape) if x not in corner_cells ]
+                                                                      # *TC
+        right_edge_cells = [x for x in sgrid.right_edge_node_ids(
+                              self.cell_grid_shape) if x not in corner_cells ]
+                                                                      # *TC
+        top_edge_cells = [x for x in sgrid.top_edge_node_ids(
+                              self.cell_grid_shape) if x not in corner_cells ]
+                                                                      # *TC
+        left_edge_cells = [x for x in sgrid.left_edge_node_ids(
+                              self.cell_grid_shape) if x not in corner_cells ]
+                                                                      # *TC
+            
+        looped_cell_neighbors = np.empty([self.number_of_cells,8], dtype = int)
+
+        # order = [E,NE,N,NW,W,SW,S,SE]
+        for cell in range(0,self.number_of_cells):
+            if cell in interior_cells:
+                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1, 
+                                cell-c-1, cell-c, cell-c+1]
+            elif cell in bottom_edge_cells:
+                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1, 
+                                cell+(r-1)*c-1, cell+(r-1)*c, cell+(r-1)*c+1]
+            elif cell in top_edge_cells:
+                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c, 
+                                cell-(r-1)*c-1, cell-1, cell-c-1,
+                                    cell-c, cell-c+1]
+            elif cell in right_edge_cells:
+                neighbor_ = [cell-c+1, cell+1, cell+c, cell+c-1, cell-1,
+                                cell-c-1, cell-c, cell-2*c+1]
+            elif cell in left_edge_cells:
+                neighbor_ = [cell+1, cell+c+1, cell+c, cell+2*c-1, cell+c-1,
+                                cell-1, cell-c, cell-c+1]
+            elif cell == corner_cells[0]:  # SW corner
+                neighbor_ = [cell+1, cell+c+1, cell+c, cell+2*c-1, cell+c-1, 
+                                cell+r*c-1, cell+(r-1)*c, cell+(r-1)*c+1]
+            elif cell == corner_cells[1]:  # SE corner
+                neighbor_ = [cell-c+1, cell+1, cell+c, cell+c-1, cell-1, 
+                                cell+(r-1)*c-1, cell+(r-1)*c, cell+(r-2)*c+1]
+            elif cell == corner_cells[2]:  # NW corner
+                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c, 
+                                cell-(r-2)*c-1, cell+c-1, cell-1, 
+                                    cell-c, cell-c+1]
+            elif cell == corner_cells[3]:  # NE corner
+                neighbor_ = [cell-c+1, cell-r*c+1, cell-(r-1)*c, cell-(r-1)*c-1,
+                                cell-1, cell-c-1, cell-c, cell-2*c+1]
+            looped_cell_neighbors[cell] = neighbor_
+        
+        self.looped_cell_neighbor_list_created = True
+        return looped_cell_neighbors
+
+
+    def get_second_ring_looped_cell_neighbor_list( self, *args ):
+        """
+        Get list of second ring looped neighbor cell IDs (all 16 neighbors).
+        
+        Returns lists of looped second ring neighbor cell IDs of 
+        given *cell ids*. If *cell ids* are not given, it returns 
+        a 2D array of size ( self.number_of_cells, 16 ). 
+        Order or neighbors: Starts with E and goes counter clockwise
+        """
+        if self.looped_second_ring_cell_neighbor_list_created:
+            if len(args) == 0:
+                return self.second_ring_looped_cell_neighbor_list
+            elif len(args) == 1:
+                return self.second_ring_looped_cell_neighbor_list[args[0],:]
+            else:
+                raise ValueError('only zero or one arguments accepted')
+        else:
+            self.second_ring_looped_cell_neighbor_list =                                 \
+                            self.create_second_ring_looped_cell_neighbor_list()
+            return(self.get_second_ring_looped_cell_neighbor_list( *args ))
+                
+
+    def create_second_ring_looped_cell_neighbor_list( self ):
+        """
+        Creates list of looped second ring cell neighbors (16 cells). 
+        
+        Creates a list of looped immediate cell neighbors for each cell as a 
+        2D array of size ( self.number_of_cells, 16 ).
+        Order or neighbors: Starts with E and goes counter clockwise
+        """
+        inf = self.get_looped_cell_neighbor_list()        
+        second_ring = np.empty([self.number_of_cells,16], dtype = int)
+        order = np.arange(-1,15)
+        order[0] = 15
+        for cell in range(0,self.number_of_cells):
+            cell1, cell2, cell3, cell4 = (inf[cell][1], inf[cell][3], 
+                                            inf[cell][5], inf[cell][7])
+            ring_tw = np.concatenate((inf[cell1][0:4],inf[cell2][2:6],
+                                        inf[cell3][4:8],inf[cell4][6:8],
+                                            inf[cell4][0:2]))[order]
+            second_ring[cell] = ring_tw
+        
+        self.looped_second_ring_cell_neighbor_list_created = True
+        return second_ring
+    
 
 def _is_closed_boundary(boundary_string):
     '''
