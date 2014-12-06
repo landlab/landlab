@@ -23,6 +23,8 @@ parser.add_option('-m', '--mode', action='store', dest='mode', default='fast',
 import landlab
 
 
+landlab.RasterModelGrid(4, 5)
+
 result = landlab.test(label=options.mode, verbose=options.verbose,
                       doctests=options.doctests, coverage=options.coverage,
                       extra_argv=args)
