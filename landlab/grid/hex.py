@@ -397,6 +397,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_columns
         5
@@ -418,6 +419,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_rows
         5
