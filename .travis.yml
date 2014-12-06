@@ -17,6 +17,7 @@ install:
   - python setup.py install
 
 script: 
+  - python -c 'import landlab; landlab.RasterModelGrid(4, 5)'
   - scripts/test-installed-landlab.py --doctest
 
 virtualenv:
