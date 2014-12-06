@@ -1172,6 +1172,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_cell_columns
         3
@@ -1186,6 +1187,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_cell_rows
         2
