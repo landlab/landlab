@@ -75,6 +75,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
                  mask =
      False,
            fill_value = 1e+20)
+    <BLANKLINE>
     """
     padded_node_values = np.empty(node_values.size+1,dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -89,7 +90,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
-    out = np.subtract(values_at_neighbors, values_at_nodes, **kwds)
+    out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
     out = np.multiply(out, 1. / grid.node_spacing, out=out)
 
     return out
@@ -214,6 +215,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True False]
      [ True  True  True  True]],
            fill_value = 1e+20)
+    <BLANKLINE> 
     """
     padded_node_values = np.empty(node_values.size+1,dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -296,12 +298,14 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     masked_array(data = [-2.],
                  mask = False,
            fill_value = 1e+20)
+    <BLANKLINE> 
     >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
     ...     method='d8') * sqrt(2.)
     masked_array(data = [-4.],
                  mask = False,
            fill_value = 1e+20)
-    
+    <BLANKLINE> 
+
     With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
 
     >>> (_, ind) = calculate_steepest_descent_across_adjacent_cells(rmg,
