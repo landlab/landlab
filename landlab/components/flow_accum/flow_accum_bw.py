@@ -46,7 +46,7 @@ class _DrainageStack():
         self.delta = delta
         self.D = D
 
-    def add_to_stack(self, l):
+    def add_to_stack(self, l, use_weave=False):
         """
         Adds node l to the stack and increments the current index (j).
         
@@ -69,21 +69,23 @@ class _DrainageStack():
         add_it = self.add_to_stack
         delta_l = int(numpy.take(delta,l))
         delta_lplus1 = int(numpy.take(delta,l+1))
-        code = """
-            int m;
-            py::tuple arg(1);
-            for (int n = delta_l; n < delta_lplus1; n++) {
-                m = D[n];
-                arg[0] = m;
-                if (m != l) {
-                    (void) add_it.call(arg);
+        use_weave=False #trip out!
+        if use_weave:
+            #This weave is NOT YET FUNCTIONAL. The recursive function call is still confusing DEJH. Note the hardcoded trip out above.
+            code = """
+                int m;
+                py::tuple arg(2);
+                for (int n = delta_l; n < delta_lplus1; n++) {
+                    m = D[n];
+                    arg[0] = m;
+                    arg[1] = use_weave;
+                    if (m != l) {
+                        (void) add_it.call(arg);
+                    }
                 }
-            }
-        """
-        try:
-            raise CompileError
-            weave.inline(code, ['delta_l', 'delta_lplus1', 'l', 'D', 'add_it'])
-        except CompileError:
+            """
+            weave.inline(code, ['delta_l', 'delta_lplus1', 'l', 'D', 'add_it', 'use_weave'])
+        else:
             for n in xrange(delta_l, delta_lplus1):
                 m = self.D[n]
                 if m != l:
@@ -164,7 +166,7 @@ def _make_delta_array(nd):
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
     return delta
     
-def _make_array_of_donors(r, delta):
+def _make_array_of_donors(r, delta, use_weave=False):
     """
     Creates and returns an array containing the IDs of donors for each node.
     Essentially, the array is a series of lists (not in the Python list object
@@ -189,17 +191,17 @@ def _make_array_of_donors(r, delta):
     np = len(r)
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
-    code = """
-        int ri;
-        for (int i = 0; i < np; i++) {
-            ri = r[i];
-            D[delta[ri] + w[ri]] = i;
-            w[ri] += 1;
-        }
-    """
-    try:
+    if use_weave:
+        code = """
+            int ri;
+            for (int i = 0; i < np; i++) {
+                ri = r[i];
+                D[delta[ri] + w[ri]] = i;
+                w[ri] += 1;
+            }
+        """
         weave.inline(code, ['np', 'r', 'D', 'delta', 'w'])
-    except CompileError:
+    else:
         for i in xrange(np):
             ri = r[i]
             D[delta[ri]+w[ri]] = i
@@ -220,7 +222,7 @@ def _make_array_of_donors(r, delta):
     #return D
 
 
-def make_ordered_node_array(receiver_nodes, baselevel_nodes):
+def make_ordered_node_array(receiver_nodes, baselevel_nodes, use_weave=False):
     """
     Creates and returns an array of node IDs that is arranged in order from
     downstream to upstream. 
@@ -246,12 +248,12 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     s = numpy.zeros(D.size, dtype=int)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
-        add_it(k) #don't think this is a bottleneck, so no C++
+        add_it(k, use_weave)#=False) #don't think this is a bottleneck, so no C++
     return dstack.s
     
     
 def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
-                                     boundary_nodes=None):
+                                     boundary_nodes=None, use_weave=False):
     """
     Calculates and returns the drainage area and water discharge at each node.
     
@@ -310,25 +312,24 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
     num_pts = len(s)
-    code = """
-        int donor;
-        int rcvr;
-        for (int i = num_pts-1; i > -1; i--) {
-            donor = s[i];
-            rcvr = r[donor];
-            if (donor != rcvr) {
-                drainage_area[rcvr] += drainage_area[donor];
-                discharge[rcvr] += discharge[donor];
+    if use_weave:
+        code = """
+            int donor;
+            int rcvr;
+            for (int i = num_pts-1; i > -1; i--) {
+                donor = s[i];
+                rcvr = r[donor];
+                if (donor != rcvr) {
+                    drainage_area[rcvr] += drainage_area[donor];
+                    discharge[rcvr] += discharge[donor];
+                }
             }
-        }
-    """
-    try:
+        """
         weave.inline(code, ['num_pts', 's', 'r', 'drainage_area', 'discharge'])
-    except CompileError:
+    else:
         for i in xrange(np-1, -1, -1):
             donor = s[i]
             recvr = r[donor]
-            #DEJH: this loop may not be removable... Could use weave?
             if donor != recvr:
                 drainage_area[recvr] += drainage_area[donor]
                 discharge[recvr] += discharge[donor]
@@ -336,7 +337,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     
 
 def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
-                      runoff_rate=1.0, boundary_nodes=None):
+                      runoff_rate=1.0, boundary_nodes=None, use_weave=False):
     """
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
@@ -356,13 +357,14 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     
-    s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+    s = make_ordered_node_array(receiver_nodes, baselevel_nodes, use_weave)
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't! 
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
     
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
-                                            runoff_rate, boundary_nodes)
+                                            runoff_rate, boundary_nodes, 
+                                            use_weave)
     
     return a, q, s
     
