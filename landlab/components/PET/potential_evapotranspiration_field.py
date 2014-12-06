@@ -29,10 +29,11 @@ class PotentialEvapotranspiration( Component ):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.PET.potential_evapotranspiration_field import PotentialEvapotranspiration
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
-    >>> PET = PotentialEvapotranspiration(grid)
-    >>> PET.name
-    'Potential Evapotranspiration'
+
+    #>>> grid = RasterModelGrid(5, 4, 1.e4)
+    #>>> PET = PotentialEvapotranspiration(grid)
+    #>>> PET.name
+    #'Potential Evapotranspiration'
     """
     _name = 'Potential Evapotranspiration'
 
