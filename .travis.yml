@@ -20,10 +20,7 @@ install:
   - python setup.py install
 
 script: 
-  - scripts/test-installed-landlab.py --doctest --coverage
+  - scripts/test-installed-landlab.py --doctest
 
 virtualenv:
   system_site_packages: false
-
-after_success:
-  coveralls
