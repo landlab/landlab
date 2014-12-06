@@ -96,9 +96,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         for i in numpy.arange(0, num_shells):
             theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
                      dtheta[i] / (i + 1))
-            pts[startpt:(startpt + n_pts_in_shell[i]), 0] = r[i] * numpy.cos(theta)
-            pts[startpt:(startpt + n_pts_in_shell[i]), 1] = r[i] * numpy.sin(theta)
-            startpt += n_pts_in_shell[i]
+            pts[startpt:(startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(theta)
+            pts[startpt:(startpt + int(n_pts_in_shell[i])), 1] = r[i] * numpy.sin(theta)
+            startpt += int(n_pts_in_shell[i])
         pts[:,0] += origin_x
         pts[:,1] += origin_y
         
