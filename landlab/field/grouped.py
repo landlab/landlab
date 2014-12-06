@@ -47,6 +47,7 @@ class ModelDataFields(object):
     Create two groups of data fields defined at *node* and *cell*. Each set can
     have a differenct number of values.
 
+    >>> from landlab.field import ModelDataFields
     >>> fields = ModelDataFields()
     >>> fields.new_field_location('node', 12)
     >>> fields.new_field_location('cell', 2)
@@ -110,6 +111,7 @@ class ModelDataFields(object):
         --------
         Check if the field has the groups named *node* or *cell*.
 
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
         >>> fields.has_group('node')
@@ -139,6 +141,7 @@ class ModelDataFields(object):
         Check if the field named ``topographic_elevation`` is contained
         in a group.
 
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
         >>> _ = fields.add_ones('node', 'topographic_elevation')
@@ -169,6 +172,7 @@ class ModelDataFields(object):
 
         Examples
         --------
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
         >>> fields.keys('node')
@@ -194,6 +198,7 @@ class ModelDataFields(object):
 
         Examples
         --------
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
         >>> fields.size('node')
@@ -225,6 +230,7 @@ class ModelDataFields(object):
         Create a collection of fields and add two groups, *node* and *cell*,
         to it.
 
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
         >>> fields.new_field_location('cell', 2)
@@ -277,6 +283,7 @@ class ModelDataFields(object):
         --------
         Create a group of fields called *node*.
 
+        >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
 
@@ -350,6 +357,7 @@ class ModelDataFields(object):
 
         Examples
         --------
+        >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> field.empty('node') # doctest: +SKIP
@@ -384,6 +392,7 @@ class ModelDataFields(object):
 
         Examples
         --------
+        >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> field.ones('node')
@@ -419,6 +428,7 @@ class ModelDataFields(object):
 
         Examples
         --------
+        >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> field.zeros('node')
@@ -500,6 +510,7 @@ class ModelDataFields(object):
         --------
         Add a new, named field to a collection of fields.
 
+        >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> field.add_ones('node', 'topographic_elevation')
@@ -590,6 +601,7 @@ class ModelDataFields(object):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> values = np.ones(4, dtype=int)

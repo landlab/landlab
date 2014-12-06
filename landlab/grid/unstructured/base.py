@@ -38,6 +38,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
         >>> ngrid.number_of_nodes
         4
@@ -122,6 +123,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]))
         >>> ngrid.axis_units
         ('-', '-')
@@ -144,6 +146,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]))
         >>> ngrid.axis_name
         ('y', 'x')
@@ -261,6 +264,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> links = [(0, 2), (1, 3), (0, 1), (2, 3), (0, 3)]
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=zip(*links))
         >>> grid.link_length()
@@ -298,6 +302,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
         >>> grid.node_to_node_distance(0, 3)
         array([ 5.])
@@ -328,6 +333,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
         >>> grid.point_to_node_distance((0., 0.), [1, 2, 3])
         array([ 3.,  4.,  5.])
@@ -358,6 +364,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
         >>> grid.point_to_node_angle((0., 0.), [1, 2, 3]) / np.pi
         array([ 0.  ,  0.5 ,  0.25])
@@ -388,6 +395,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
         >>> grid.point_to_node_azimuth((0., 0.), [1, 2, 3])
         array([ 90.,   0.,  45.])
@@ -420,6 +428,7 @@ class BaseGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
         >>> grid.point_to_node_vector((0., 0.), [1, 2, 3])
         array([[ 0.,  1.,  1.],
@@ -465,6 +474,7 @@ def point_to_point_distance(point0, point1, out=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.base import point_to_point_distance
     >>> point_to_point_distance((0, 0), (3, 4))
     array([ 5.])
     >>> point_to_point_distance((0, 0), ([3, 6], [4, 8]))
@@ -524,6 +534,7 @@ def point_to_point_azimuth(point0, point1, out=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.base import point_to_point_azimuth
     >>> point_to_point_azimuth((0, 0), (1, 0))
     array([ 0.])
     >>> point_to_point_azimuth([(0, 1), (0, 1)], (1, 0))
@@ -558,6 +569,7 @@ def point_to_point_vector(point0, point1, out=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.base import point_to_point_vector
     >>> point_to_point_vector((0, 0), (1, 2))
     array([[1],
            [2]])

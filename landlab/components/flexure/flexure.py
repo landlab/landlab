@@ -19,6 +19,10 @@ class FlexureComponent(Component):
     Landlab component that implements a 1 and 2D lithospheric flexure
     model.
 
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flexure import FlexureComponent
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> flex = FlexureComponent(grid)
     >>> flex.name

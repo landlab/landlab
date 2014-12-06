@@ -24,6 +24,7 @@ def shape_of_vertical_links(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import shape_of_vertical_links
     >>> shape_of_vertical_links((3, 4))
     (2, 4)
     """
@@ -48,6 +49,7 @@ def shape_of_horizontal_links(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import shape_of_horizontal_links
     >>> shape_of_horizontal_links((3, 4))
     (3, 3)
     """
@@ -69,6 +71,7 @@ def number_of_vertical_links(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import number_of_vertical_links
     >>> number_of_vertical_links((3, 4))
     8
     """
@@ -90,6 +93,7 @@ def number_of_horizontal_links(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import number_of_horizontal_links
     >>> number_of_horizontal_links((3, 4))
     9
     """
@@ -111,6 +115,7 @@ def number_of_links(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import number_of_links
     >>> number_of_links((3, 4))
     17
     """
@@ -132,6 +137,7 @@ def vertical_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import vertical_link_ids
     >>> vertical_link_ids((3, 4))
     array([[0, 1, 2, 3],
            [4, 5, 6, 7]])
@@ -155,6 +161,7 @@ def horizontal_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import horizontal_link_ids
     >>> horizontal_link_ids((3, 4))
     array([[ 8,  9, 10],
            [11, 12, 13],
@@ -180,6 +187,9 @@ def number_of_links_per_node(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import (number_of_links_per_node,
+    ...                                            number_of_in_links_per_node,
+    ...                                            number_of_out_links_per_node)
     >>> number_of_links_per_node((3, 4))
     array([[2, 3, 3, 2],
            [3, 4, 4, 3],
@@ -213,6 +223,7 @@ def number_of_in_links_per_node(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import number_of_in_links_per_node
     >>> number_of_in_links_per_node((3, 4))
     array([[0, 1, 1, 1],
            [1, 2, 2, 2],
@@ -241,6 +252,7 @@ def number_of_out_links_per_node(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import number_of_out_links_per_node
     >>> number_of_out_links_per_node((3, 4))
     array([[2, 2, 2, 1],
            [2, 2, 2, 1],
@@ -269,6 +281,7 @@ def _node_out_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import _node_out_link_ids
     >>> (vert, horiz) = _node_out_link_ids((3, 4))
     >>> vert
     array([[ 0,  1,  2,  3],
@@ -305,6 +318,7 @@ def _node_in_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import _node_in_link_ids
     >>> (vert, horiz) = _node_in_link_ids((3, 4))
     >>> vert
     array([[-1, -1, -1, -1],
@@ -341,6 +355,7 @@ def node_in_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import node_in_link_ids
     >>> (links, offset) = node_in_link_ids((3, 4))
     >>> links
     array([ 8,  9, 10,  0,  1, 11,  2, 12,  3, 13,  4,  5, 14,  6, 15,  7, 16])
@@ -379,6 +394,7 @@ def node_out_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import node_out_link_ids
     >>> (links, offset) = node_out_link_ids((3, 4))
     >>> links
     array([ 0,  8,  1,  9,  2, 10,  3,  4, 11,  5, 12,  6, 13,  7, 14, 15, 16])
@@ -415,6 +431,7 @@ def node_link_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import node_link_ids
     >>> (links, offset) = node_link_ids((3, 4))
     >>> links
     array([ 0,  8,  8,  1,  9,  9,  2, 10, 10,  3,  0,  4, 11,  1, 11,  5, 12,
@@ -458,6 +475,7 @@ def node_id_at_link_start(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import node_id_at_link_start
     >>> node_id_at_link_start((3, 4))
     array([ 0,  1,  2,  3,  4,  5,  6,  7,  0,  1,  2,  4,  5,  6,  8,  9, 10])
     """
@@ -480,6 +498,7 @@ def node_id_at_link_end(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.links import node_id_at_link_end
     >>> node_id_at_link_end((3, 4))
     array([ 4,  5,  6,  7,  8,  9, 10, 11,  1,  2,  3,  5,  6,  7,  9, 10, 11])
     """
@@ -503,6 +522,7 @@ def is_active_link(shape, node_status):
     Examples
     --------
     >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> from landlab.grid.structured_quad.links import is_active_link
     >>> status = status_with_perimeter_as_boundary((3, 4))
     >>> is_active_link((3, 4), status)
     array([False,  True,  True, False, False,  True,  True, False, False,
@@ -533,6 +553,7 @@ def active_link_ids(shape, node_status):
     Examples
     --------
     >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> from landlab.grid.structured_quad.links import active_link_ids
     >>> status = status_with_perimeter_as_boundary((3, 4))
     >>> active_link_ids((3, 4), status)
     array([ 1,  2,  5,  6, 11, 12, 13])
