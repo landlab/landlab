@@ -356,6 +356,18 @@ class ModelParameterDictionary(dict):
 
         If you would like to get a boolean, use *ptype='bool'*.
 
+        .. note:: Use *ptype='bool'* not *ptype=bool*.
+            If you use *bool* to convert a string the returned boolean will
+            be `True` for *any* non-empty string. This is just how the
+            Python built-in *bool* works,
+
+            >>> bool('0')
+            True
+            >>> bool('1')
+            True
+            >>> bool('')
+            False
+
         >>> from StringIO import StringIO
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -364,8 +376,6 @@ class ModelParameterDictionary(dict):
         ... '''))
         >>> params.get('MY_BOOL')
         'false'
-        >>> params.get('MY_BOOL', ptype=bool)
-        True
         >>> params.get('MY_BOOL', ptype='bool')
         False
         """
