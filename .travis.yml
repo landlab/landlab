@@ -19,6 +19,8 @@ install:
 
 script: 
   - scripts/test-installed-landlab.py --doctest --coverage
+  - cd docs
+  - make html
 
 virtualenv:
   system_site_packages: false
