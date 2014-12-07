@@ -63,7 +63,7 @@ This returns a version of ``z`` that has been converted into a 2D Numpy array. T
 
 The result looks like this:
 
-.. image:: coseismic_scarp.png
+.. image:: images/coseismic_scarp.png
    :align: center
 
 Now we'll apply a diffusion model to calculate the degradation of the fault scarp. Start by defining a diffusion coefficient, ``kd``, and a time-step size:
@@ -117,7 +117,7 @@ The following commands show a contoured image of the terrain after 50,000 years 
 
 Here is the resulting image:
 
-.. image:: degraded_scarp.png
+.. image:: images/degraded_scarp.png
    :align: center
 
 For more information about using the ModelGrid module, see *The ModelGrid Guide* (:download:`download pdf <model_grid_guide/model_grid_description_and_guide.pdf>`).
@@ -182,7 +182,7 @@ Landlab also has the ability to read digital elevation models (DEMs) in the asci
 
 The function ``read_esri_ascii`` creates a ``RasterModelGrid`` of the correct dimensions and cell spacing, and also creates an array of node elevation values. Both are returned (as a two-element Python tuple). The Half Fork DEM is shown below:
 
-.. image:: half_fork_dem.png
+.. image:: images/half_fork_dem.png
    :align: center
 
 

@@ -46,7 +46,7 @@ Basic Grid Elements
 
 .. _grid:
 
-.. figure:: grid_schematic_ab.png
+.. figure:: images/grid_schematic_ab.png
     :figwidth: 80%
     :align: center
 	
@@ -133,7 +133,7 @@ Managing Grid Boundaries
 
 .. _raster4x5:
 
-.. figure:: example_raster_grid.png
+.. figure:: images/example_raster_grid.png
     :figwidth: 80%
     :align: center
 
@@ -145,7 +145,7 @@ Managing Grid Boundaries
 
 .. _raster4x5openclosed:
 
-.. figure:: example_raster_grid_with_closed_boundaries.png
+.. figure:: images/example_raster_grid_with_closed_boundaries.png
     :figwidth: 80 %
     :align: center
 
@@ -310,7 +310,7 @@ piece of the code in turn. Output from the the diffusion model is shown in
 
 .. _diff1:
 
-.. figure:: basic_diffusion_example.png
+.. figure:: images/basic_diffusion_example.png
     :figwidth: 80 %
     :align: center
 
@@ -520,7 +520,7 @@ where :math:`L` is the half-length of the domain and :math:`x'` is a transformed
 
 .. _diffan:
 
-.. figure:: diffusion_raster_with_analytical.png
+.. figure:: images/diffusion_raster_with_analytical.png
     :scale: 50 %
     :align: center
 
@@ -535,7 +535,7 @@ In this second example, we look at an implementation of the storage-cell algorit
 
 .. _inundation:
 
-.. figure:: inundation.png
+.. figure:: images/inundation.png
     :scale: 50%
     :align: center
     
@@ -886,7 +886,7 @@ In the next example, we create a version of the storage-cell overland-flow model
 
 .. _olflowdem:
 
-.. figure:: overland_flow_dem.png
+.. figure:: images/overland_flow_dem.png
     :scale: 40%
     :align: center
     
@@ -1297,7 +1297,7 @@ with the following:
 
 The result of our run is shown below.
 
-.. figure:: radial_example.png
+.. figure:: images/radial_example.png
     :figwidth: 80 %
     :scale: 50 %
     :align: center
