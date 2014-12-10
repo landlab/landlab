@@ -45,13 +45,13 @@ class TransportLimitedEroder(object):
         ***Parameters for input file***
         OBLIGATORY:
             * Qc -> String. Controls how to set the carrying capacity.
-                Either 'MPM', or a string giving the name of the model field
-                where capacity values are stored on nodes.
-                At the moment, only 'MPM' is permitted as a way to set the 
-                capacity automatically, but expansion would be trivial.
+                Either 'MPM', 'power_law', or a string giving the name of the 
+                model field where capacity values are stored on nodes.
+                At the moment, only 'MPM' and power_law' are permitted as a way
+                to set the capacity automatically, but expansion would be 
+                trivial.
                 If 'from_array', the module will attempt to set the capacity
                 Note capacities must be specified as volume flux.
-            * 
             
             ...Then, assuming you set Qc=='MPM':
             * b_sp, c_sp -> Floats. These are the powers on discharge and 
@@ -78,6 +78,12 @@ class TransportLimitedEroder(object):
                 in the channel. If you want to define Dchar values at each node,
                 don't set, and use the Dchar_if_used argument in erode() 
                 instead.
+            
+            ...or if you set power_law, Qc = K_t*A**m_t*S**n_t,
+            * m_t, n_t -> Floats. The powers on A and S repectively in this 
+                equation.
+            * K_t -> float. The prefactor (note time units are years).
+            Note that Qc is total capacity, not per unit width.
             
         OPTIONS:
             *rock_density -> in kg/m3 (defaults to 2700)
@@ -118,7 +124,8 @@ class TransportLimitedEroder(object):
             
         '''
         #this is the fraction we allow any given slope in the grid to evolve by in one go (suppresses numerical instabilities)
-        self.fraction_gradient_change = 0.25
+        self.capacity_options = ['MPM', 'power_law']
+        self.fraction_gradient_change = 0.5
         self.grid = grid
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
         self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
@@ -147,7 +154,7 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             raise MissingKeyError("Qc must be 'MPM' or a grid field name!")
         else:
-            if self.Qc=='MPM':
+            if self.Qc in self.capacity_options:
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
@@ -155,90 +162,98 @@ class TransportLimitedEroder(object):
             self.return_ch_props = inputs.read_bool('return_stream_properties')
         except MissingKeyError:
             self.return_ch_props = False
-                
-        try:
-            self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
-        except:
-            self.lamb_flag = False
-        try:
-            self.shields_crit = inputs.read_float('threshold_shields')
-            self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a threshold to use: ", self.shields_crit
-            assert self.lamb_flag == False
-        except MissingKeyError:
-            if not self.lamb_flag:
-                self.shields_crit = 0.047
-            self.set_threshold = False
         try:
             self.tstep = inputs.read_float('dt')
         except MissingKeyError:
             pass
         try:
-            self.use_W = inputs.read_bool('use_W')
-        except MissingKeyError:
-            self.use_W = False
-        try:
-            self.use_Q = inputs.read_bool('use_Q')
-        except MissingKeyError:
-            self.use_Q = False
-        try:
             self.return_capacity = inputs.read_bool('return_capacity')
         except MissingKeyError:
             self.return_capacity = False
-            
-        try:
-            self._b = inputs.read_float('b_sp')
-        except MissingKeyError:
-            if self.use_W:
-                self._b = 0.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('b was not set')
-        try:
-            self._c = inputs.read_float('c_sp')
-        except MissingKeyError:
-            if self.use_Q:
-                self._c = 1.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('c was not set')
-        try:
-            self.Dchar_in = inputs.read_float('Dchar')
-        except MissingKeyError:
-            pass
-            
-        #assume Manning's equation to set the power on A for shear stress:
-        self.shear_area_power = 0.6*self._c*(1.-self._b)
-        
-        self.k_Q = inputs.read_float('k_Q')
-        self.k_w = inputs.read_float('k_w')
-        mannings_n = inputs.read_float('mannings_n')
-        self.mannings_n = mannings_n
-        if mannings_n<0. or mannings_n>0.2:
-            print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
-            sleep(2)
-
-        try:
-            self.C_MPM = inputs.read_float('C_MPM')
-        except MissingKeyError:
-            self.C_MPM = 1.
-        self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
-        
-        #new for v3:
-        #set thresh in shear stress if poss at this stage:
-        try: #fails if no Dchar provided, or shields crit is being set dynamically from slope
-            self.thresh = self.shields_crit*(self.sed_density-self.fluid_density)*self.g*self.Dchar_in
-        except AttributeError:
+                
+        if self.Qc == 'MPM':
             try:
-                self.shields_prefactor_to_shear = (self.sed_density-self.fluid_density)*self.g*self.Dchar_in
-            except AttributeError: #no Dchar
-                self.shields_prefactor_to_shear_noDchar = (self.sed_density-self.fluid_density)*self.g
-        twothirds = 2./3.
-        self.Qs_prefactor = 4.*self.C_MPM**twothirds*self.fluid_density**twothirds/(self.sed_density-self.fluid_density)**twothirds*self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.)*self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds
-        self.Qs_thresh_prefactor = 4.*(self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density**0.5/(self.sed_density-self.fluid_density)/self.g/self.sed_density)**twothirds
-        #both these are divided by sed density to give a vol flux
-        self.Qs_power_onA = self._c*(0.6+self._b/15.)
-        self.Qs_power_onAthresh = twothirds*self._b*self._c
+                self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
+            except:
+                self.lamb_flag = False
+            try:
+                self.shields_crit = inputs.read_float('threshold_shields')
+                self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
+                print "Found a threshold to use: ", self.shields_crit
+                assert self.lamb_flag == False
+            except MissingKeyError:
+                if not self.lamb_flag:
+                    self.shields_crit = 0.047
+                self.set_threshold = False
+                
+            try:
+                self.use_W = inputs.read_bool('use_W')
+            except MissingKeyError:
+                self.use_W = False
+            try:
+                self.use_Q = inputs.read_bool('use_Q')
+            except MissingKeyError:
+                self.use_Q = False
+                
+            try:
+                self._b = inputs.read_float('b_sp')
+            except MissingKeyError:
+                if self.use_W:
+                    self._b = 0.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('b was not set')
+            try:
+                self._c = inputs.read_float('c_sp')
+            except MissingKeyError:
+                if self.use_Q:
+                    self._c = 1.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('c was not set')
+            try:
+                self.Dchar_in = inputs.read_float('Dchar')
+            except MissingKeyError:
+                pass
+                
+            #assume Manning's equation to set the power on A for shear stress:
+            self.shear_area_power = 0.6*self._c*(1.-self._b)
+            
+            self.k_Q = inputs.read_float('k_Q')
+            self.k_w = inputs.read_float('k_w')
+            mannings_n = inputs.read_float('mannings_n')
+            self.mannings_n = mannings_n
+            if mannings_n<0. or mannings_n>0.2:
+                print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
+                sleep(2)
+    
+            try:
+                self.C_MPM = inputs.read_float('C_MPM')
+            except MissingKeyError:
+                self.C_MPM = 1.
+            self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
+            
+            #new for v3:
+            #set thresh in shear stress if poss at this stage:
+            try: #fails if no Dchar provided, or shields crit is being set dynamically from slope
+                self.thresh = self.shields_crit*(self.sed_density-self.fluid_density)*self.g*self.Dchar_in
+            except AttributeError:
+                try:
+                    self.shields_prefactor_to_shear = (self.sed_density-self.fluid_density)*self.g*self.Dchar_in
+                except AttributeError: #no Dchar
+                    self.shields_prefactor_to_shear_noDchar = (self.sed_density-self.fluid_density)*self.g
+            twothirds = 2./3.
+            self.Qs_prefactor = 4.*self.C_MPM**twothirds*self.fluid_density**twothirds/(self.sed_density-self.fluid_density)**twothirds*self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.)*self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds
+            self.Qs_thresh_prefactor = 4.*(self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density**0.5/(self.sed_density-self.fluid_density)/self.g/self.sed_density)**twothirds
+            #both these are divided by sed density to give a vol flux
+            self.Qs_power_onA = self._c*(0.6+self._b/15.)
+            self.Qs_power_onAthresh = twothirds*self._b*self._c
+        
+        elif self.Qc == 'power_law':
+            self._Kt = inputs.read_float('K_t')/31557600. #in sec
+            self._mt = inputs.read_float('m_t')
+            self._nt = inputs.read_float('n_t')
+            self.return_ch_props = False
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
             self.cell_areas = grid.node_spacing_horizontal*grid.node_spacing_vertical
@@ -329,6 +344,7 @@ class TransportLimitedEroder(object):
         Ensure you adjust the precipitation time series so that the 
         flood series you get makes sense! If not set, the precip rate
         is assumed to be rolled into the k_Q term already.
+        Note runoff rates can't be used if Qc is 'power_law'.
         
         *W_if_used* and *Q_if_used* must be provided if you set use_W and use_Q
         respectively in the component initialization. They can be either field
@@ -377,14 +393,6 @@ class TransportLimitedEroder(object):
         
         if dt==None:
             dt = self.tstep        
-        try:
-            self.Dchar=self.Dchar_in
-        except AttributeError:
-            try:
-                self.Dchar=grid.at_node[Dchar_if_used]
-            except FieldError:
-                assert type(Dchar_if_used)==np.ndarray
-                self.Dchar=Dchar_if_used
             
         if type(node_elevs)==str:
             node_z = grid.at_node[node_elevs]
@@ -412,12 +420,29 @@ class TransportLimitedEroder(object):
         else:
             node_S = node_slope
             
-        if self.lamb_flag:
-            variable_shields_crit = 0.15*node_S**0.25
+        if self.Qc == 'MPM':
             try:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear
+                self.Dchar=self.Dchar_in
             except AttributeError:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear_noDchar*self.Dchar
+                try:
+                    self.Dchar=grid.at_node[Dchar_if_used]
+                except FieldError:
+                    assert type(Dchar_if_used)==np.ndarray
+                    self.Dchar=Dchar_if_used
+            if self.lamb_flag:
+                variable_shields_crit = 0.15*node_S**0.25
+                try:
+                    variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear
+                except AttributeError:
+                    variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear_noDchar*self.Dchar
+            try:
+                transport_capacities_thresh = self.thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
+            except AttributeError:
+                transport_capacities_thresh = variable_thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh    
+            
+            transport_capacity_prefactor_withA = self.Qs_prefactor*runoff_rate**(0.6+self._b/15.)*node_A**self.Qs_power_onA
+        elif self.Qc=='power_law':
+            transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
         
 
         if type(steepest_link)==str:
@@ -430,13 +455,6 @@ class TransportLimitedEroder(object):
         else:
             link_length = grid.link_length[steepest_link]
         square_link_length = np.square(link_length) #nans propagate forward
-
-        try:
-            transport_capacities_thresh = self.thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
-        except AttributeError:
-            transport_capacities_thresh = variable_thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh    
-        
-        transport_capacity_prefactor_withA = self.Qs_prefactor*runoff_rate**(0.6+self._b/15.)*node_A**self.Qs_power_onA
         
         internal_t = 0.
         break_flag = False
@@ -449,11 +467,18 @@ class TransportLimitedEroder(object):
             #note slopes will be *negative* at pits
             #track how many loops we perform:
             counter += 1
+            #print counter
             downward_slopes = node_S.clip(0.)
-            #positive_slopes = np.greater(downward_slopes, 0.)
-            transport_capacities_S = transport_capacity_prefactor_withA*(downward_slopes)**0.7
-            trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(0.)
-            transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
+            if self.Qc=='MPM':
+                transport_capacities_S = transport_capacity_prefactor_withA*(downward_slopes)**0.7
+                trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(0.)
+                transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
+                #print np.amax(transport_capacities)
+            elif self.Qc=='power_law':
+                transport_capacities = transport_capacity_prefactor_withA * downward_slopes**self._nt
+                #print np.amax(transport_capacities)
+            else:
+                raise NameError #shouldn't ever get this far
             
             if stability_condition == 'tight':
                 mock_diffusivities = np.zeros_like(transport_capacities, dtype=float)
@@ -487,22 +512,27 @@ class TransportLimitedEroder(object):
                     sed_into_node[flow_receiver[i]] += sed_flux_out_of_this_node
             
             if stability_condition == 'loose':
-                elev_diff = node_z - node_z[flow_receiver]
-                delta_dz = dz[flow_receiver] - dz
+                ###dz CAN NOW BE POSITIVE OR NEGATIVE. This is why things go weird (negative dt_fractions, etc)
+                elev_diff = node_z - node_z[flow_receiver] #always >=0.
+                #assert np.all(np.greater_equal(elev_diff[grid.core_nodes],0.)), elev_diff[np.where(elev_diff<0.)] #...so check it -> after 1 iter, SOME CAN GO NEGATIVE... because there's no constraints on aggradation!?
+                delta_dz = dz[flow_receiver] - dz #can be +/- ... if +ve, it means the upstream node lowers relative to dstr node (i.e., BAD in all cases)
                 node_flattening = self.fraction_gradient_change*elev_diff - delta_dz #note the condition is that gradient may not change by >X%, not must be >0
                 #note all these things are zero for a pit node
-                most_flattened_nodes = np.argmin(node_flattening[grid.core_nodes])
-                most_flattened_nodes = np.take(grid.core_nodes, most_flattened_nodes) #get it back to node number, not core_node number
+                positive_elev_diff = elev_diff[grid.core_nodes]>0.001 #i.e., 1 mm! #this prevents attempted convergence limiting in nodes that are legitimately seeking to become horizontal
+                most_flattened_nodes = np.argmin(node_flattening[grid.core_nodes][positive_elev_diff])
+                most_flattened_nodes = np.take(grid.core_nodes[positive_elev_diff], most_flattened_nodes) #get it back to node number, not core_node number
                 most_flattened_val = np.take(node_flattening, most_flattened_nodes)
                 if most_flattened_val>=0.:
                     break_flag = True #all nodes are stable
                 else: # a fraction < 1
+                    assert np.take(delta_dz, most_flattened_nodes) > 0. #this only gets violated after we have apparent uphill slopes
                     dt_fraction = self.fraction_gradient_change*np.take(elev_diff, most_flattened_nodes)/np.take(delta_dz, most_flattened_nodes)
                     #print dt_fraction
                     #correct those elevs
                     dz *= dt_fraction
                     dt_this_step *= dt_fraction
             
+            #print dt_this_step/dt_secs
             #print np.amax(dz), np.amin(dz)
             
             node_z[grid.core_nodes] += dz[grid.core_nodes]
