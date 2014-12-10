@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+#this driver runs 0.001->0.01 perturbation of NMG2 for both simple SP & simple transport limited response
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
-#from landlab.components.transport_limited_fluvial.tl_fluvial_polydirectional import TransportLimitedEroder
+from landlab.components.stream_power.stream_power import SreamPowerEroder
+from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3 import TransportLimitedEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -18,9 +19,9 @@ from copy import copy, deepcopy
 from time import time
 
 #get the needed properties to build the grid:
-input_file = './sed_dep_NMGparams4.txt'
+input_file = './sed_dep_NMGparams2.txt'
 #####remember to change the fixed y-axis dimension in the plots!!
-y_max = 200
+y_max = 1000
 make_output_plots=True
 out_interval=15 #was 15
 inputs = ModelParameterDictionary(input_file)

@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
-
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
+from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3 import TransportLimitedEroder
 #from landlab.components.transport_limited_fluvial.tl_fluvial_polydirectional import TransportLimitedEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
-from landlab.plot.imshow import imshow_node_grid
-from pylab import colorbar, show, plot, loglog, figure
 
 from landlab import RasterModelGrid
 import numpy as np
@@ -19,7 +15,7 @@ from copy import copy, deepcopy
 from time import time
 
 #get the needed properties to build the grid:
-input_file = './sed_dep_NMGparams5.txt'
+input_file = './stream_power_params_powerlaw.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -47,8 +43,8 @@ z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up grid's boundary conditions (bottom, left, top, right is inactive)
-mg.set_inactive_boundaries(False, True, True, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, False, False, value_of='topographic_elevation')
+mg.set_inactive_boundaries(False, True, False, True)
+mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic_elevation')
 print 'fixed vals in grid: ', mg.fixed_value_node_properties['values']
 
 # Display a message
@@ -56,7 +52,8 @@ print 'Running ...'
 
 #instantiate the components:
 fr = FlowRouter(mg)
-sde = SedDepEroder(mg, input_file)
+tl = TransportLimitedEroder(mg, input_file)
+tl = TransportLimitedEroder(mg, input_file)
 vid = VideoPlotter(mg, data_centering='node')
 
 time_on = time()
@@ -72,12 +69,10 @@ for i in xrange(nt):
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes=max_slope)
     mg_copy = deepcopy(mg)
-    mg,_ = sde.erode(mg,dt)
-    #print sde.iterations_in_dt
-    #print 'capacity ', np.amax(capacity_out[mg.core_nodes])
-    #print 'rel sed ', np.nanmax(sed_in[mg.core_nodes]/capacity_out[mg.core_nodes])
-    if i%100 == 0:
+    mg,_ = tl.erode(mg,dt,stability_condition='loose')
+    if i%20 == 0:
         print 'loop ', i
+        print 'subdivisions of dt used: ', tl.iterations_in_dt
         print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
