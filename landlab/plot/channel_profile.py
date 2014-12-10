@@ -128,4 +128,4 @@ def analyze_channel_network_and_plot(grid, elevations='topographic_elevation',
     dists_upstr = get_distances_upstream(grid, internal_list[1].size, profile_IDs, internal_list[4])
     plot_profiles(dists_upstr, profile_IDs, internal_list[0])
     
-    return (profile_IDs, dists_upstr)
+    return (profile_IDs[0], dists_upstr[0])
