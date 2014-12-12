@@ -95,7 +95,7 @@ class SPEroder(object):
         self.A_to_the_m = grid.create_node_array_zeros()
         self.alpha = grid.empty(centering='node')
         
-        _ = self.grid.node_diagonal_links() #calculates the number of diagonal links
+        self.grid.node_diagonal_links() #calculates the number of diagonal links
         
         if self.n != 1.:
             raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
