@@ -15,6 +15,7 @@ class RectilinearGrid(StructuredQuadGrid):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.rectilinear import RectilinearGrid
     >>> (y, x) = np.arange(4.), np.arange(5.)
     >>> grid = RectilinearGrid((y, x))
     >>> grid.number_of_nodes
@@ -71,6 +72,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     """
     Examples
     --------
+    >>> from landlab.grid.structured_quad.rectilinear import UniformRectilinearGrid
     >>> grid = UniformRectilinearGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
     >>> grid.number_of_nodes
     20
@@ -138,6 +140,7 @@ class RasterGrid(UniformRectilinearGrid):
     """
     Examples
     --------
+    >>> from landlab.grid.structured_quad.rectilinear import RasterGrid
     >>> grid = RasterGrid((4, 5), spacing=2, origin=(-1, 1))
     >>> grid.number_of_nodes
     20

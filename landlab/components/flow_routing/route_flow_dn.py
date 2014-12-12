@@ -19,6 +19,8 @@ from landlab.components.flow_routing import flow_direction_DN
 #reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 import numpy
+from scipy import weave
+#from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
 
@@ -62,6 +64,8 @@ class FlowRouter():
         self.discharges = model_grid.create_node_array_zeros('water_discharges')
         self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
+        
+        self.weave_flag = model_grid.weave_flag
         
         
     def route_flow(self, elevs=None, grid=None, runoff_rate=1.0,
@@ -107,36 +111,39 @@ class FlowRouter():
         Returns, if *grid* was provided:
             - the modified grid object
         
-        Example:
-            >>> from landlab import RasterModelGrid
-            >>> mg = RasterModelGrid(5, 4, 1.0)
-            >>> elev = numpy.array([0.,  0.,  0., 0.,
-            ...                     0., 21., 10., 0.,
-            ...                     0., 31., 20., 0.,
-            ...                     0., 32., 30., 0.,
-            ...                     0.,  0.,  0., 0.])
-            >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-            >>> fr = FlowRouter(mg)
-            >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
-            >>> r
-            array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
-                   17, 18, 19])
-            >>> a
-            array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
-                    1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing.route_flow_dn import FlowRouter
+        >>> mg = RasterModelGrid(5, 4, 1.0)
+        >>> elev = np.array([0.,  0.,  0., 0.,
+        ...                  0., 21., 10., 0.,
+        ...                  0., 31., 20., 0.,
+        ...                  0., 32., 30., 0.,
+        ...                  0.,  0.,  0., 0.])
+        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> fr = FlowRouter(mg)
+        >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev)
+        >>> r
+        array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
+               17, 18, 19])
+        >>> a
+        array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-            Now let's change the cell area and the runoff rates:
-            
-            >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
-            >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-            >>> fr = FlowRouter(mg)
-            >>> runoff_rate = numpy.arange(mg.number_of_nodes)
-            >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev, runoff_rate=runoff_rate)
-            >>> q
-            array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
-                     800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
-                    1600.,  1700.,  1800.,  1900.])
-            
+        Now let's change the cell area and the runoff rates:
+        
+        >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
+        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> fr = FlowRouter(mg)
+        >>> runoff_rate = np.arange(mg.number_of_nodes)
+        >>> r, a, q, ss, s, rl = fr.route_flow(elevs=elev, runoff_rate=runoff_rate)
+        >>> q
+        array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
+                 800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
+                1600.,  1700.,  1800.,  1900.])
+        
         """
         
         #if elevs is not provided, default to stored grid values, which must be provided as grid
@@ -159,10 +166,12 @@ class FlowRouter():
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link  = \
-            flow_direction_DN.flow_directions(elevs, self._active_links, self._activelink_from,
+            flow_direction_DN.flow_directions(elevs, self._active_links, 
+                                         self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          grid=grid,
-                                         baselevel_nodes=baselevel_nodes)
+                                         baselevel_nodes=baselevel_nodes, 
+                                         use_weave=self.weave_flag)
 #############grid=None???
         
         # TODO: either need a way to calculate and return the *length* of the
@@ -173,7 +182,7 @@ class FlowRouter():
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area, runoff_rate,
-                                                  boundary_nodes)
+                                                  boundary_nodes, self.weave_flag)
                                                   
         #added DEJH March 2014:
         #store the generated data in the grid

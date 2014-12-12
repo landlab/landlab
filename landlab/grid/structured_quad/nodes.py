@@ -20,6 +20,7 @@ def number_of_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import number_of_nodes
     >>> number_of_nodes((3, 4))
     12
     """
@@ -41,6 +42,7 @@ def number_of_core_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import number_of_core_nodes
     >>> number_of_core_nodes((3, 4))
     2
     """
@@ -62,6 +64,7 @@ def corners(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import corners
     >>> corners((3, 4))
     array([ 0,  3,  8, 11])
     """
@@ -84,6 +87,7 @@ def node_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import node_ids
     >>> node_ids((3, 4))
     array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
@@ -107,6 +111,7 @@ def interior_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import interior_nodes
     >>> interior_nodes((3, 4))
     array([[5, 6]])
     >>> interior_nodes((4, 5))
@@ -147,6 +152,7 @@ def left_right_iter(shape, *args):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import left_right_iter
     >>> np.fromiter(left_right_iter((4, 3)), dtype=np.int)
     array([ 0,  2,  3,  5,  6,  8,  9, 11])
     >>> np.fromiter(left_right_iter((4, 3), 2), dtype=np.int)
@@ -176,6 +182,7 @@ def bottom_top_iter(shape):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import bottom_top_iter
     >>> np.fromiter(bottom_top_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  9, 10, 11])
     """
@@ -188,6 +195,7 @@ def perimeter_iter(shape):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import perimeter_iter
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
@@ -211,6 +219,7 @@ def perimeter(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import perimeter
     >>> perimeter((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
 
@@ -233,6 +242,7 @@ def status_with_perimeter_as_boundary(shape, status_on_perimeter=FIXED_VALUE_BOU
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
     >>> status_with_perimeter_as_boundary((3, 4))
     array([[1, 1, 1, 1],
            [1, 0, 0, 1],

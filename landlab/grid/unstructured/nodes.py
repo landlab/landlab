@@ -18,6 +18,7 @@ class NodeGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
         >>> ngrid.ndim
         2
@@ -57,6 +58,7 @@ class NodeGrid(object):
         """
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.number_of_nodes
         3
@@ -69,6 +71,7 @@ class NodeGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.x
         array([ 0.,  1.,  0.])
@@ -81,6 +84,7 @@ class NodeGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.y
         array([ 0.,  0.,  1.])
@@ -96,6 +100,7 @@ class NodeGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.y
         array([ 0.,  0.,  1.])
@@ -110,6 +115,7 @@ class NodeGrid(object):
         """
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.coord[0]
         array([ 0.,  0.,  1.])
@@ -123,6 +129,7 @@ class NodeGrid(object):
         """
         Examples
         --------
+        >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1], [0, 1, 0]))
         >>> ngrid.point
         array([[ 0.,  0.],

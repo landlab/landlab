@@ -72,7 +72,7 @@ setup(name='TheLandlab',
               'landlab_ex_3 = landlab.examples.diffusion2Dtest3:main',
           ]
       },
-      package_data={'': ['data/*asc']},
+      package_data={'': ['data/*asc', 'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
           'install': install_and_register,

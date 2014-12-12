@@ -16,7 +16,7 @@ def show_system_info():
 
 
 class LandlabTester(Tester):
-    excludes = []
+    excludes = ['examples']
 
     def __init__(self, package=None, raise_warnings='develop'):
         package_name = None
@@ -33,7 +33,7 @@ class LandlabTester(Tester):
         else:
             package_path = str(package)
 
-        self.package_path = package_path
+        self.package_path = os.path.abspath(package_path)
         
         # Find the package name under test; this name is used to limit coverage
         # reporting (if enabled).
@@ -47,5 +47,9 @@ class LandlabTester(Tester):
 
 
     def test(self, **kwds):
+        kwds.setdefault('verbose', 2)
+        kwds.setdefault('doctests', 1)
+        kwds.setdefault('coverage', 1)
+        kwds.setdefault('extra_argv', ['-x', 'where=landlab'])
         show_system_info()
-        super(LandlabTester, self).test(**kwds)
+        return super(LandlabTester, self).test(**kwds)

@@ -12,6 +12,7 @@ def camel_case(text, sep=None):
     Convert *text* to camel case. Use the *sep* keyword to specify the word
     separator. The default is to split on whitespace.
 
+    >>> from landlab.framework.decorators import camel_case
     >>> camel_case('camel case')
     'CamelCase'
     >>> camel_case('camel_case', sep='_')

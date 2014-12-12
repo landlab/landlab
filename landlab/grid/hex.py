@@ -14,6 +14,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     
     Examples
     --------
+    >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(3, 2, 1.0)
     >>> hmg.number_of_nodes
     7
@@ -50,6 +51,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Create a hex grid with 2 rows of nodes. The first and third rows will
         have 2 nodes, and the second nodes.
 
+        >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2, 1.0)
         >>> hmg.number_of_nodes
         7
@@ -197,15 +199,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
-            >>> npt
-            7
-            >>> p[1,:]
-            array([ 1.,  0.])
-            >>> p[:3,0]
-            array([ 0. ,  1. , -0.5])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
+        >>> npt
+        7
+        >>> p[1,:]
+        array([ 1.,  0.])
+        >>> p[:3,0]
+        array([ 0. ,  1. , -0.5])
         """
 
         dxv = dxh * numpy.sqrt(3.) / 2.
@@ -251,15 +254,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
-            >>> npt
-            9
-            >>> p[1,:]
-            array([ 1.,  0.])
-            >>> p[:3,0]
-            array([ 0.,  1.,  2.])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
+        >>> npt
+        9
+        >>> p[1,:]
+        array([ 1.,  0.])
+        >>> p[:3,0]
+        array([ 0.,  1.,  2.])
         """
 
         dxv = dxh * numpy.sqrt(3.) / 2.
@@ -295,15 +299,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
-            >>> npt
-            7
-            >>> p[1,:]
-            array([ 0.,  1.])
-            >>> p[:3,1]
-            array([ 0. ,  1. , -0.5])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
+        >>> npt
+        7
+        >>> p[1,:]
+        array([ 0.,  1.])
+        >>> p[:3,1]
+        array([ 0. ,  1. , -0.5])
         """
 
         dxh = dxv * numpy.sqrt(3.) / 2.
@@ -349,15 +354,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
-            >>> npt
-            9
-            >>> p[1,:]
-            array([ 0.,  1.])
-            >>> p[:3,1]
-            array([ 0.,  1.,  2.])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
+        >>> npt
+        9
+        >>> p[1,:]
+        array([ 0.,  1.])
+        >>> p[:3,1]
+        array([ 0.,  1.,  2.])
         """
 
         dxh = dxv * numpy.sqrt(3.) / 2.
@@ -391,6 +397,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_columns
         5
@@ -412,6 +419,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_rows
         5

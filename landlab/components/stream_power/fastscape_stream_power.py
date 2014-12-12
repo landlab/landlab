@@ -10,7 +10,7 @@ from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from scipy import weave
-from scipy.weave.build_tools import CompileError
+#from scipy.weave.build_tools import CompileError
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 class SPEroder(object):
@@ -95,16 +95,12 @@ class SPEroder(object):
         self.A_to_the_m = grid.create_node_array_zeros()
         self.alpha = grid.empty(centering='node')
         
+        self.grid.node_diagonal_links() #calculates the number of diagonal links
+        
         if self.n != 1.:
             raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
         
-        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
-        try:
-            weave.inline('',[])
-        except CompileError:
-            self.weave_flag = False
-        else:
-            self.weave_flag = True
+        self.weave_flag = grid.weave_flag
 
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
         self.dt = dt_in

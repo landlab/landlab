@@ -12,6 +12,8 @@ Modified Feb 2014
 import numpy
 import numpy as np
 import inspect
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE
 from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
@@ -63,12 +65,14 @@ def grid_flow_directions(grid, elevations):
         |   |   |   |   |
         5 - 0 - 5 - 5 - 5
         
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
     >>> mg = RasterModelGrid(4,5)
-    >>> z = numpy.array([5., 0., 5., 5., 5.,
-    ...                  5., 1., 2., 2., 5.,
-    ...                  5., 3., 4., 3., 5.,
-    ...                  5., 5., 5., 5., 5.])
+    >>> z = np.array([5., 0., 5., 5., 5.,
+    ...               5., 1., 2., 2., 5.,
+    ...               5., 3., 4., 3., 5.,
+    ...               5., 5., 5., 5., 5.])
     >>> recv_nodes, slope = grid_flow_directions(mg, z)
 
     Each node with a cell has a receiving node (although that node may be
@@ -108,7 +112,7 @@ def grid_flow_directions(grid, elevations):
 
 
 def flow_directions(elev, active_links, fromnode, tonode, link_slope,
-                    grid=None, baselevel_nodes=None):
+                    grid=None, baselevel_nodes=None, use_weave=False):
     """Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
@@ -150,11 +154,13 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     Braun and Willett (2012), so that their original flow pattern should be
     re-created.
     
-    >>> z = numpy.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
-    >>> fn = numpy.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
-    >>> tn = numpy.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
+    >>> import numpy as np
+    >>> from landlab.components.flow_routing.flow_direction_DN import flow_directions
+    >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
+    >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
+    >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
     >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-    >>> active_links = numpy.arange(len(fn))
+    >>> active_links = np.arange(len(fn))
     >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s)
     >>> r
     array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
@@ -165,8 +171,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> rl[3:8]
     array([        15, 2147483647,          1,          6,          2])
 
-    Example 2
-    ---------
+    *Example 2*
+
     This example implements a simple routing on a (4,5) raster grid with the
     following node elevations::
 
@@ -178,8 +184,9 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         |   |   |   |   |
         5 - 0 - 5 - 5 - 5
         
+    #>>> import numpy as np
     #>>> from landlab import RasterModelGrid
-    #>>> z = numpy.array([0., 0., 0., 0., 0.,
+    #>>> z = np.array([0., 0., 0., 0., 0.,
     #>>> mg = RasterModelGrid(4,5)
     #...                  0., 1., 2., 5., 5.,
     #...                  2., 2., 3., 5., 0.,
@@ -225,50 +232,70 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
 
     #DEJH attempting to replace the node-by-node loop, 5/28/14:
     #This is actually about the same speed on a 100*100 grid!
-    try:
-        #raise AttributeError #hardcoded for now, until raster method works
+    #as of Dec 2014, we prioritise the weave if a weave is viable, and only do 
+    #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
+    #presumably better if the grid is bigger)
+    if use_weave:
+        n_nodes = len(fromnode)
+        code="""
+            int f;
+            int t;
+            for (int i=0; i<n_nodes; i++) {
+                f = fromnode[i];
+                t = tonode[i];
+                if (elev[f]>elev[t] && link_slope[i]>steepest_slope[f]) {
+                    receiver[f] = t;
+                    steepest_slope[f] = link_slope[i];
+                    receiver_link[f] = active_links[i];
+                }
+                else if (elev[t]>elev[f] && -link_slope[i]>steepest_slope[t]) {
+                    receiver[t] = f;
+                    steepest_slope[t] = -link_slope[i];
+                    receiver_link[t] = active_links[i];
+                }
+            }
+        """
+        weave.inline(code, ['n_nodes', 'fromnode', 'tonode', 'elev', 
+                            'link_slope', 'steepest_slope', 'receiver', 
+                            'receiver_link', 'active_links'])
+    else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            raise AttributeError
-    except AttributeError:
-        #print "looped method"
-        for i in xrange(len(fromnode)):
-            f = fromnode[i]
-            t = tonode[i]
-            #print 'link from',f,'to',t,'with slope',link_slope[i]
-            if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
-                receiver[f] = t
-                steepest_slope[f] = link_slope[i]
-                receiver_link[f] = active_links[i]
-                #print ' flows from',f,'to',t
-            elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
-                receiver[t] = f
-                steepest_slope[t] = -link_slope[i]
-                receiver_link[t] = active_links[i]
-                #print ' flows from',t,'to',f
-            #else:
-                #print ' is flat'
-    else:    
-        #alternative, assuming grid structure doesn't change between steps
-        #global neighbor_nodes
-        #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
-        try:
-            elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max)
-        except NameError:
-            neighbor_nodes = numpy.empty((grid.active_nodes.size, 8), dtype=int)
-            #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
-            neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
-            neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
-            links_list = numpy.empty_like(neighbor_nodes)
-            links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)
-            links_list[:,4:] = grid.node_diagonal_links().T[grid.active_nodes,:] #SW,NW,NE,NE
-            elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max/1000.)
-        slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.link_length[links_list]
-        axis_indices = numpy.argmax(slope_array, axis=1)
-        steepest_slope[grid.active_nodes] = slope_array[numpy.indices(axis_indices.shape),axis_indices]
-        downslope = numpy.greater(steepest_slope, 0.)
-        downslope_active = downslope[grid.active_nodes]
-        receiver[downslope] = neighbor_nodes[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
-        receiver_link[downslope] = links_list[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
+            #print "looped method"
+            for i in xrange(len(fromnode)):
+                f = fromnode[i]
+                t = tonode[i]
+                #print 'link from',f,'to',t,'with slope',link_slope[i]
+                if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
+                    receiver[f] = t
+                    steepest_slope[f] = link_slope[i]
+                    receiver_link[f] = active_links[i]
+                    #print ' flows from',f,'to',t
+                elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
+                    receiver[t] = f
+                    steepest_slope[t] = -link_slope[i]
+                    receiver_link[t] = active_links[i]
+        else:    
+            #alternative, assuming grid structure doesn't change between steps
+            #global neighbor_nodes
+            #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
+            try:
+                elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max)
+            except NameError:
+                neighbor_nodes = numpy.empty((grid.active_nodes.size, 8), dtype=int)
+                #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
+                neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
+                neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
+                links_list = numpy.empty_like(neighbor_nodes)
+                links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)
+                links_list[:,4:] = grid.node_diagonal_links().T[grid.active_nodes,:] #SW,NW,NE,NE
+                elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max/1000.)
+            slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.link_length[links_list]
+            axis_indices = numpy.argmax(slope_array, axis=1)
+            steepest_slope[grid.active_nodes] = slope_array[numpy.indices(axis_indices.shape),axis_indices]
+            downslope = numpy.greater(steepest_slope, 0.)
+            downslope_active = downslope[grid.active_nodes]
+            receiver[downslope] = neighbor_nodes[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
+            receiver_link[downslope] = links_list[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
             
     node_id = numpy.arange(num_nodes)
 

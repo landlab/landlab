@@ -1,5 +1,7 @@
 import numpy as np
 from landlab import ModelParameterDictionary
+from scipy import weave
+#from scipy.weave.build_tools import CompileError
 
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
@@ -157,6 +159,8 @@ class StreamPowerEroder(object):
         #    _ = self.grid.at_link['planet_surface__derivative_of_elevation']
         #except FieldError:
         #    self.made_link_gradients = True
+        
+        self.weave_flag = grid.weave_flag
 
         
     def erode(self, grid, dt, node_elevs='topographic_elevation',
@@ -328,12 +332,31 @@ class StreamPowerEroder(object):
         #we have to go in upstream order in case our rate is so big we impinge on baselevels > 1 node away
 
         elev_dstr = node_z[flow_receiver]# we substract erosion_increment[flow_receiver] in the loop, as it can update
-        for i in node_order_upstream:
-            elev_this_node_before = node_z[i]
-            elev_this_node_after = elev_this_node_before - erosion_increment[i]
-            elev_dstr_node_after = elev_dstr[i] - erosion_increment[flow_receiver[i]]
-            if elev_this_node_after<elev_dstr_node_after:
-                erosion_increment[i] = (elev_this_node_before - elev_dstr_node_after)*0.999999 #we add a tiny elevation excess to prevent the module from ever totally severing its own flow paths
+        if self.weave_flag:
+            n_nodes = node_order_upstream.size
+            code="""
+                int current_node;
+                double elev_this_node_before;
+                double elev_this_node_after;
+                double elev_dstr_node_after;
+                for (int i = 0; i < n_nodes; i++) {
+                    current_node = node_order_upstream[i];
+                    elev_this_node_before = node_z[current_node];
+                    elev_this_node_after = elev_this_node_before - erosion_increment[current_node];
+                    elev_dstr_node_after = elev_dstr[current_node] - erosion_increment[flow_receiver[current_node]];
+                    if (elev_this_node_after<elev_dstr_node_after) {
+                        erosion_increment[current_node] = (elev_this_node_before-elev_dstr_node_after)*0.999999;
+                        }
+                    }
+            """
+            weave.inline(code, ['n_nodes', 'node_order_upstream', 'node_z', 'erosion_increment', 'elev_dstr', 'flow_receiver'])
+        else:           
+            for i in node_order_upstream:
+                elev_this_node_before = node_z[i]
+                elev_this_node_after = elev_this_node_before - erosion_increment[i]
+                elev_dstr_node_after = elev_dstr[i] - erosion_increment[flow_receiver[i]]
+                if elev_this_node_after<elev_dstr_node_after:
+                    erosion_increment[i] = (elev_this_node_before - elev_dstr_node_after)*0.999999 #we add a tiny elevation excess to prevent the module from ever totally severing its own flow paths
                 
         node_z -= erosion_increment
             

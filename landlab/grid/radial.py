@@ -16,6 +16,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     
     Examples
     --------
+    >>> from landlab import RadialModelGrid
     >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
     >>> omg.number_of_nodes
     7
@@ -52,6 +53,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         A grid with just one ring will have a node at the origin surrounded
         by six other nodes.
 
+        >>> from landlab import RadialModelGrid
         >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
         >>> omg.number_of_nodes
         7
@@ -94,9 +96,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         for i in numpy.arange(0, num_shells):
             theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
                      dtheta[i] / (i + 1))
-            pts[startpt:(startpt + n_pts_in_shell[i]), 0] = r[i] * numpy.cos(theta)
-            pts[startpt:(startpt + n_pts_in_shell[i]), 1] = r[i] * numpy.sin(theta)
-            startpt += n_pts_in_shell[i]
+            pts[startpt:(startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(theta)
+            pts[startpt:(startpt + int(n_pts_in_shell[i])), 1] = r[i] * numpy.sin(theta)
+            startpt += int(n_pts_in_shell[i])
         pts[:,0] += origin_x
         pts[:,1] += origin_y
         

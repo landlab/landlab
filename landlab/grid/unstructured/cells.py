@@ -23,6 +23,7 @@ class CellGrid(object):
         Create a grid of two cells where the first cell has four vertices and
         the second has three.
 
+        >>> from landlab.grid.unstructured.cells import CellGrid
         >>> cgrid = CellGrid([0, 1, 3, 2, 1, 4, 3], [4, 3])
         >>> cgrid.number_of_cells
         2
