@@ -419,7 +419,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return self._nrows
 
 
-    def configure_hexplot(self, data, data_label=None):
+    def configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
         colored by a given data element.
@@ -430,6 +430,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Data field to be colored
         data_label : str, optional
             Label for colorbar
+        color_map : matplotlib colormap object, None
+            Color map to apply (defaults to "jet")
         
         Returns
         -------
@@ -446,6 +448,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         from matplotlib.patches import Polygon
         from matplotlib.collections import PatchCollection
         #import matplotlib.pyplot as plt
+        
+        # color
+        if color_map is None:
+            color_map = matplotlib.cm.jet
 
         # geometry
         apothem = self._dx/2.0
@@ -470,12 +476,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
             p = Polygon(poly_verts, True)
             patches.append(p)
         
-        self._hexplot_pc = PatchCollection(patches, cmap=matplotlib.cm.jet)
+        self._hexplot_pc = PatchCollection(patches, cmap=color_map, edgecolor='none', linewidth=0.0)
         
         self._hexplot_configured=True
 
 
-    def hexplot(self, data, data_label=None):
+    def hexplot(self, data, data_label=None, color_map=None):
         """
         Creates a plot of the grid and one node-data field, showing hexagonal
         cells colored by values in the field.
@@ -497,7 +503,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         try:
             self._hexplot_configured is True
         except:
-            self.configure_hexplot(data, data_label)
+            self.configure_hexplot(data, data_label, color_map)
 
         # Handle *data*: if it's a numpy array, then we consider it the 
         # data to be plotted. If it's a string, we consider it the name of the 
