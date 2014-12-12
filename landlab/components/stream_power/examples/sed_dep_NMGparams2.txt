@@ -15,8 +15,9 @@ dt:
 total_time:
 #3750000.
 200000.
+#37500
 uplift_rate:
-0.005
+0.001
 #acceleration is 0.001->0.005
 #time is years, ALL linear dimensions are meters!
 

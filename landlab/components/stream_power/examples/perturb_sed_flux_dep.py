@@ -18,7 +18,7 @@ from copy import copy, deepcopy
 from time import time
 
 #get the needed properties to build the grid:
-input_file = './sed_dep_NMGparams4.txt'
+input_file = './sed_dep_NMGparams2.txt'
 #####remember to change the fixed y-axis dimension in the plots!!
 y_max = 200
 make_output_plots=True

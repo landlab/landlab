@@ -19,7 +19,7 @@ from copy import copy, deepcopy
 from time import time
 
 #get the needed properties to build the grid:
-input_file = './sed_dep_NMGparams5.txt'
+input_file = './sed_dep_NMGparams2.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
