@@ -35,12 +35,15 @@ class VegCA( Component ):
     ])
 
     _output_var_names = set([
-        
+        'PlantLiveIndex',
+        'PlantAge', 
     ])
 
     _var_units = {
         'CumulativeWaterStress' : 'Pa',
         'VegetationType'  : 'None',
+        'PlantLiveIndex'  : 'Pa',
+        'PlantAge'        : 'Years',
     }
 
     def __init__(self, grid, **kwds):
@@ -49,6 +52,21 @@ class VegCA( Component ):
         self._Pemaxsh = kwds.pop('Pemaxsh', 0.2)    # Pe-max-shrub
         self._Pemaxtr = kwds.pop('Pemaxtr', 0.25)   # Pe-max-tree
         self._INg = kwds.pop('ING', 2)  # Allelopathic effect on grass from creosotebush
+        self._th_g = kwds.pop('ThetaGrass', 0.62)  # grass
+        self._th_sh = kwds.pop('ThetaShrub', 0.8) # shrub - Creosote
+        self._th_tr = kwds.pop('ThetaTree', 0.72) # Juniper pine
+        self._th_sh_s = kwds.pop('ThetaShrubSeedling', 0.64) # shrub seedling
+        self._th_tr_s = kwds.pop('ThetaTreeSeedling', 0.57) # Juniper pine seedling
+        self._Pmb_g = kwds.pop('PmbGrass', 0.05) # Background mortality probability - grass
+        self._Pmb_sh = kwds.pop('PmbShrub', 0.01) # shrub
+        self._Pmb_tr = kwds.pop('PmbTree', 0.01) # tree
+        self._Pmb_sh_s = kwds.pop('PmbShrubSeedling', 0.03) # shrub seedling
+        self._Pmb_tr_s = kwds.pop('PmbTreeSeedling', 0.03) # tree seedling
+        self._tpmax_sh = kwds.pop('tpmaxShrub', 600) # Maximum age - shrub
+        self._tpmax_tr = kwds.pop('tpmaxTree', 350) # Maximum age - tree
+        self._tpmax_sh_s = kwds.pop('tpmaxShrubSeedling', 18) # Maximum age - shrub seedling
+        self._tpmax_tr_s = kwds.pop('tpmaxTreeSeedling', 20) # Maximum age - tree seedling
+        
         
         assert_method_is_valid(self._method)
 
@@ -63,6 +81,22 @@ class VegCA( Component ):
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
+        
+        if grid['cell']['VegetationType'] == np.zeros(grid.number_of_cells):
+            grid['cell']['VegetationType'] =                        \
+                                    np.random.randint(0,6,grid.number_of_cells)
+                                    
+        VegType = grid['cell']['VegetationType']
+        tp = np.zeros(grid.number_of_cells, dtype = int)
+        tp[VegType == 5] = np.random.randint(0,self._tpmax_tr,      
+                                    np.where(VegType==5)[0].shape)
+        tp[VegType == 4] = np.random.randint(0,self._tpmax_sh,      
+                                    np.where(VegType==4)[0].shape)
+        tp[VegType == 2] = np.random.randint(0,self._tpmax_tr_s,      
+                                    np.where(VegType==2)[0].shape)
+        tp[VegType == 1] = np.random.randint(0,self._tpmax_sh_s,      
+                                    np.where(VegType==1)[0].shape)
+        grid['cell']['PlantAge'] = tp                                                                                                
 
 
     def update(self, **kwds): 
@@ -71,7 +105,11 @@ class VegCA( Component ):
         
         self._VegType = self._cell_values['VegetationType']
         self._CumWS   = self._cell_values['CumulativeWaterStress']
-        
+        self._live_index = self._cell_values['PlantLiveIndex']
+        self._tp = self._cell_values['PlantAge']
+
+        # Establishment
+        self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS  
         bare_cells = np.where(self._VegType == 0)[0]
         n_bare = len(bare_cells)
         first_ring = self.grid.get_looped_cell_neighbor_list(bare_cells)
@@ -79,14 +117,14 @@ class VegCA( Component ):
             self.grid.get_second_ring_looped_cell_neighbor_list(bare_cells)
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
-        Sh_WS_fr = WS_PFT( veg_type_fr, 4, self._CumWS[first_ring] )
-        Tr_WS_fr = WS_PFT( veg_type_fr, 5, self._CumWS[first_ring] )
-        Tr_WS_sr = WS_PFT( veg_type_sr, 5, self._CumWS[second_ring] )
+        Sh_WS_fr = WS_PFT( veg_type_fr, 4, self._live_index[first_ring] )
+        Tr_WS_fr = WS_PFT( veg_type_fr, 5, self._live_index[first_ring] )
+        Tr_WS_sr = WS_PFT( veg_type_sr, 5, self._live_index[second_ring] )
                 
         n = count(veg_type_fr, 4)
         Phi_sh = Sh_WS_fr/8.
         Phi_tr = (Tr_WS_fr + Tr_WS_sr/2.)/8.
-        Phi_g = np.mean(self._CumWS[np.where(self._VegType == 3)])
+        Phi_g = np.mean(self._live_index[np.where(self._VegType == 3)])
         Pemaxg = self._Pemaxg * np.ones(n_bare)
         Pemaxsh = self._Pemaxsh * np.ones(n_bare)
         Pemaxtr = self._Pemaxtr * np.ones(n_bare)
@@ -98,8 +136,25 @@ class VegCA( Component ):
         R_Est = np.random.rand(n_bare)  # Random number for comparison to establish
         Establish = np.int32(np.where(np.greater_equal(Pest, R_Est)==True)[0])
         self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish] + 3
+        self._tp[bare_cells[Establish]] = 0
         
+        # Mortality
+        plant_cells = np.where(self._VegType != 0)[0]
+        n_plant = len(plant_cells)
+        Theta = np.choose(self._VegType[plant_cells], 
+                    [self._th_sh_s, self._th_tr_s, self._th_g,
+                        self._th_sh, self._th_tr])
+        PMd = self._CumWS[plant_cells] - Theta
+        PMd[PMd < 0.] = 0.
+        tpmax = np.choose(self._VegType[plant_cells], 
+                    [self._tpmax_sh_s, self._tpmax_tr_s, self._tpmax_sh,
+                        self._tpmax_tr])
+        PMa = np.zeros(plant_cells.shape)
+        tp_plant = self._tp[plant_cells]
+        tp_greater = np.where(tp_plant>0.5*tpmax)[0]
+        PMa[tp_greater] = tp[tp_greater]-0.5
         
+                                
         
         
 def count( Arr, value ):
