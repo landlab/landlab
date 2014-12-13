@@ -82,7 +82,7 @@ class VegCA( Component ):
 
         self._cell_values = self.grid['cell']
         
-        if grid['cell']['VegetationType'] == np.zeros(grid.number_of_cells):
+        if grid['cell']['VegetationType'].all == 0:
             grid['cell']['VegetationType'] =                        \
                                     np.random.randint(0,6,grid.number_of_cells)
                                     
@@ -142,18 +142,29 @@ class VegCA( Component ):
         plant_cells = np.where(self._VegType != 0)[0]
         n_plant = len(plant_cells)
         Theta = np.choose(self._VegType[plant_cells], 
-                    [self._th_sh_s, self._th_tr_s, self._th_g,
+                    [0, self._th_sh_s, self._th_tr_s, self._th_g,
                         self._th_sh, self._th_tr])
         PMd = self._CumWS[plant_cells] - Theta
         PMd[PMd < 0.] = 0.
         tpmax = np.choose(self._VegType[plant_cells], 
-                    [self._tpmax_sh_s, self._tpmax_tr_s, self._tpmax_sh,
+                    [0, self._tpmax_sh_s, self._tpmax_tr_s, 0, self._tpmax_sh, 
                         self._tpmax_tr])
-        PMa = np.zeros(plant_cells.shape)
+        PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
-        PMa[tp_greater] = tp[tp_greater]-0.5
-        
+        PMa[tp_greater] = (tp_plant[tp_greater]/(0.5*tpmax[tp_greater])) - 1
+        PM = PMd + PMa
+        PM[PM>1.] = 1.
+        R_Mor = np.random.rand(n_plant) # Random number for comparison to kill
+        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
+        self._VegType[plant_cells[Mortality]] = 0
+        self._tp[plant_cells[Mortality]] = 0        
+
+        # For debugging purposes
+        self._bare_cells = bare_cells
+        self._Established = bare_cells[Establish]
+        self._plant_cells = plant_cells
+        self._Mortified = plant_cells[Mortality]
                                 
         
         
