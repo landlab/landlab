@@ -10,6 +10,12 @@ from landlab import Component
 import numpy as np
 
 _VALID_METHODS = set(['Grid'])
+GRASS = 0
+SHRUB = 1
+TREE = 2
+BARE = 3
+SHRUBSEEDLING = 4
+TREESEEDLING = 5
 
 def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
@@ -88,21 +94,19 @@ class VegCA( Component ):
                                     
         VegType = grid['cell']['VegetationType']
         tp = np.zeros(grid.number_of_cells, dtype = int)
-        tp[VegType == 5] = np.random.randint(0,self._tpmax_tr,      
-                                    np.where(VegType==5)[0].shape)
-        tp[VegType == 4] = np.random.randint(0,self._tpmax_sh,      
-                                    np.where(VegType==4)[0].shape)
-        tp[VegType == 2] = np.random.randint(0,self._tpmax_tr_s,      
-                                    np.where(VegType==2)[0].shape)
-        tp[VegType == 1] = np.random.randint(0,self._tpmax_sh_s,      
-                                    np.where(VegType==1)[0].shape)
+        tp[VegType == TREE] = np.random.randint(0,self._tpmax_tr,      
+                                    np.where(VegType==TREE)[0].shape)
+        tp[VegType == SHRUB] = np.random.randint(0,self._tpmax_sh,      
+                                    np.where(VegType==SHRUB)[0].shape)
+        tp[VegType == TREESEEDLING] = np.random.randint(0,self._tpmax_tr_s,      
+                                    np.where(VegType==TREESEEDLING)[0].shape)
+        tp[VegType == SHRUBSEEDLING] = np.random.randint(0,self._tpmax_sh_s,      
+                                    np.where(VegType==SHRUBSEEDLING)[0].shape)
         grid['cell']['PlantAge'] = tp                                                                                                
 
 
-    def update(self, **kwds): 
-        # 0 - Bare Soil ; 1 - Shrub Seedling ; 2 - Tree Seedling ;
-        # 3 - Grass ; 4 - Shrub ; 5 - Tree
-        
+    def update(self, Edit_VegCov = True): 
+                
         self._VegType = self._cell_values['VegetationType']
         self._CumWS   = self._cell_values['CumulativeWaterStress']
         self._live_index = self._cell_values['PlantLiveIndex']
@@ -110,21 +114,21 @@ class VegCA( Component ):
 
         # Establishment
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS  
-        bare_cells = np.where(self._VegType == 0)[0]
+        bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
         first_ring = self.grid.get_looped_cell_neighbor_list(bare_cells)
         second_ring =                                                   \
             self.grid.get_second_ring_looped_cell_neighbor_list(bare_cells)
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
-        Sh_WS_fr = WS_PFT( veg_type_fr, 4, self._live_index[first_ring] )
-        Tr_WS_fr = WS_PFT( veg_type_fr, 5, self._live_index[first_ring] )
-        Tr_WS_sr = WS_PFT( veg_type_sr, 5, self._live_index[second_ring] )
+        Sh_WS_fr = WS_PFT( veg_type_fr, SHRUB, self._live_index[first_ring] )
+        Tr_WS_fr = WS_PFT( veg_type_fr, TREE, self._live_index[first_ring] )
+        Tr_WS_sr = WS_PFT( veg_type_sr, TREE, self._live_index[second_ring] )
                 
-        n = count(veg_type_fr, 4)
+        n = count(veg_type_fr, SHRUB)
         Phi_sh = Sh_WS_fr/8.
         Phi_tr = (Tr_WS_fr + Tr_WS_sr/2.)/8.
-        Phi_g = np.mean(self._live_index[np.where(self._VegType == 3)])
+        Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])
         Pemaxg = self._Pemaxg * np.ones(n_bare)
         Pemaxsh = self._Pemaxsh * np.ones(n_bare)
         Pemaxtr = self._Pemaxtr * np.ones(n_bare)
@@ -135,20 +139,20 @@ class VegCA( Component ):
         Pest = np.choose(Select_PFT_E, [Peg, Pesh, Petr])   # Probability of establishment
         R_Est = np.random.rand(n_bare)  # Random number for comparison to establish
         Establish = np.int32(np.where(np.greater_equal(Pest, R_Est)==True)[0])
-        self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish] + 3
+        self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish] 
         self._tp[bare_cells[Establish]] = 0
         
         # Mortality
-        plant_cells = np.where(self._VegType != 0)[0]
+        plant_cells = np.where(self._VegType != BARE)[0]
         n_plant = len(plant_cells)
         Theta = np.choose(self._VegType[plant_cells], 
-                    [0, self._th_sh_s, self._th_tr_s, self._th_g,
-                        self._th_sh, self._th_tr])
+                    [ self._th_g, self._th_sh, self._th_tr,
+                            0, self._th_sh_s, self._th_tr_s])
         PMd = self._CumWS[plant_cells] - Theta
         PMd[PMd < 0.] = 0.
         tpmax = np.choose(self._VegType[plant_cells], 
-                    [0, self._tpmax_sh_s, self._tpmax_tr_s, 0, self._tpmax_sh, 
-                        self._tpmax_tr])
+                    [ 0, self._tpmax_sh, self._tpmax_tr, 
+                            0, self._tpmax_sh_s, self._tpmax_tr_s])
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
@@ -157,8 +161,13 @@ class VegCA( Component ):
         PM[PM>1.] = 1.
         R_Mor = np.random.rand(n_plant) # Random number for comparison to kill
         Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
-        self._VegType[plant_cells[Mortality]] = 0
-        self._tp[plant_cells[Mortality]] = 0        
+        self._VegType[plant_cells[Mortality]] = BARE
+        self._tp[plant_cells[Mortality]] = 0 
+
+        if Edit_VegCov:
+            self.grid['cell']['VegetationCover'] =             \
+                                    np.zeros(self.grid.number_of_cells)
+            self.grid['cell']['VegetationCover'][self._VegType != BARE] = 1.       
 
         # For debugging purposes
         self._bare_cells = bare_cells

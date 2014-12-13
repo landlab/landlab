@@ -74,24 +74,35 @@ class SoilMoisture( Component ):
 
 
     def initialize( self, **kwds ):
-        
+        # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
+        # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
           kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))       
         self._runon = kwds.pop('RUNON', 0.)
         self._fbare = kwds.pop('F_BARE', 0.7)
         
         self._interception_cap = \
-                np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP', [1.]))
-        self._zr = np.choose(self._vegtype, kwds.pop('ZR', [0.3]))
-        self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B', [12]))
-        self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V', [36]))
-        self._soil_Ew = np.choose(self._vegtype, kwds.pop('EW', [0.1]))
-        self._soil_pc = np.choose(self._vegtype, kwds.pop('PC', [0.43]))
-        self._soil_fc = np.choose(self._vegtype, kwds.pop('FC', [0.56]))
-        self._soil_sc = np.choose(self._vegtype, kwds.pop('SC', [0.31]))
-        self._soil_wp = np.choose(self._vegtype, kwds.pop('WP', [0.17]))
-        self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW', [0.1]))
-        self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA', [12.7])) 
+                np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP', 
+                                            [ 1., 1.5, 2., 1., 1.5, 2 ]))
+        self._zr = np.choose(self._vegtype, kwds.pop('ZR', 
+                                            [ 0.3, 1., 2., 0.3, 1., 2. ]))
+        self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B', 
+                                            [ 12, 10000, 42, 12, 10000, 42 ]))
+        self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V', 
+                                            [ 36, 10000, 42, 36, 10000, 42 ]))
+        self._soil_Ew = kwds.pop('EW', [0.1])
+        self._soil_pc = np.choose(self._vegtype, kwds.pop('PC', 
+                                        [ 0.43, 0.43, 0.43, 0.43, 0.43, 0.43 ]))
+        self._soil_fc = np.choose(self._vegtype, kwds.pop('FC', 
+                                        [ 0.56, 0.56, 0.5, 0.56, 0.56, 0.5 ]))
+        self._soil_sc = np.choose(self._vegtype, kwds.pop('SC', 
+                                        [ 0.46, 0.46, 0.19, 0.46, 0.46, 0.19 ]))
+        self._soil_wp = np.choose(self._vegtype, kwds.pop('WP', 
+                                        [ 0.19, 0.16, 0.13, 0.19, 0.16, 0.13 ]))
+        self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW', 
+                                        [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))
+        self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA', 
+                                        [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) 
 
 
     def update( self, current_time, **kwds ):
