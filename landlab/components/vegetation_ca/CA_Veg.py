@@ -88,7 +88,7 @@ class VegCA( Component ):
 
         self._cell_values = self.grid['cell']
         
-        if grid['cell']['VegetationType'].all == 0:
+        if (np.where(grid['cell']['VegetationType'] != 0)[0].shape[0] == 0):
             grid['cell']['VegetationType'] =                        \
                                     np.random.randint(0,6,grid.number_of_cells)
                                     
@@ -105,12 +105,12 @@ class VegCA( Component ):
         grid['cell']['PlantAge'] = tp                                                                                                
 
 
-    def update(self, Edit_VegCov = True): 
+    def update(self, Edit_VegCov = True, time_elapsed = 1): 
                 
         self._VegType = self._cell_values['VegetationType']
         self._CumWS   = self._cell_values['CumulativeWaterStress']
         self._live_index = self._cell_values['PlantLiveIndex']
-        self._tp = self._cell_values['PlantAge']
+        self._tp = self._cell_values['PlantAge'] + time_elapsed
 
         # Establishment
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS  
@@ -163,7 +163,9 @@ class VegCA( Component ):
         Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
         self._VegType[plant_cells[Mortality]] = BARE
         self._tp[plant_cells[Mortality]] = 0 
-
+        
+        self._cell_values['PlantAge'] = self._tp
+        
         if Edit_VegCov:
             self.grid['cell']['VegetationCover'] =             \
                                     np.zeros(self.grid.number_of_cells)
