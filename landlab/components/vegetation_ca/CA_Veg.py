@@ -111,7 +111,19 @@ class VegCA( Component ):
         self._CumWS   = self._cell_values['CumulativeWaterStress']
         self._live_index = self._cell_values['PlantLiveIndex']
         self._tp = self._cell_values['PlantAge'] + time_elapsed
-
+        
+        # Check if shrub and tree seedlings have matured
+        shrub_seedlings = np.where(self._VegType == 4)[0]
+        tree_seedlings = np.where(self._VegType == 5)[0]
+        matured_shrubs = np.where(self._tp[shrub_seedlings] >
+                                    self._tpmax_sh_s)[0]
+        matured_trees = np.where(self._tp[tree_seedlings] >
+                                    self._tpmax_tr_s)[0]
+        self._VegType[shrub_seedlings[matured_shrubs]] = 1
+        self._VegType[tree_seedlings[matured_trees]] = 2
+        self._tb[shrub_seedlings[matured_shrubs]] = 0
+        self._tb[tree_seedlings[matured_trees]] = 0   
+        
         # Establishment
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS  
         bare_cells = np.where(self._VegType == BARE)[0]
@@ -157,7 +169,9 @@ class VegCA( Component ):
         tp_plant = self._tp[plant_cells]
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
         PMa[tp_greater] = (tp_plant[tp_greater]/(0.5*tpmax[tp_greater])) - 1
-        PM = PMd + PMa
+        PMb = np.choose( self._VegType[plant_cells], 
+                    [ 0.05, 0.01, 0.01, 0, 0.03, 0.03] )
+        PM = PMd + PMa + PMb
         PM[PM>1.] = 1.
         R_Mor = np.random.rand(n_plant) # Random number for comparison to kill
         Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
