@@ -28,8 +28,7 @@ class BmiStreamPower(object):
     >>> sp.get_output_var_names()
     ('land_surface__elevation',)
 
-    >>> from StringIO import StringIO
-    >>> config = StringIO('''
+    >>> config = '''
     ... nrows:
     ... 100
     ... ncols:
@@ -56,11 +55,16 @@ class BmiStreamPower(object):
     ... 1.
     ... threshold_sp:
     ... 0.
-    ... ''')
+    ... '''
+
+    >>> from tempfile import NamedTemporaryFile
+    >>> with NamedTemporaryFile() as fp:
+    ...     fp.write(config)
+    ...     fp.seek(0)
+    ...     sp.initialize(fp.name)
 
     After initialization, the model instance now has all of its data set.
 
-    >>> sp.initialize('examples/drive_sp_params.txt')
     >>> sp.get_current_time(), sp.get_time_units()
     (0.0, 'd')
     >>> sp.get_time_step()
