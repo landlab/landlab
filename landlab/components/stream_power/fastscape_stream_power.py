@@ -10,6 +10,7 @@ from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from scipy import weave
+from scipy.optimize import newton, fsolve
 #from scipy.weave.build_tools import CompileError
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
@@ -28,9 +29,9 @@ class SPEroder(object):
         
         *m_sp*
     
-    ...which it will draw from the supplied input file. *n_sp* has to be 1 for 
-    the BW algorithm to work. If you want n!=1., try calling the explicit
-    "stream_power" component.
+    ...which it will draw from the supplied input file. *n_sp*  can be any 
+    value ~ 0.5<n_sp<4., but note that performance will be EXTREMELY degraded
+    if n<1.
     
     If you want to supply a spatial variation in K, set K_sp to the string
     'array', and pass a field name or array to the erode method's K_if_used
@@ -94,19 +95,37 @@ class SPEroder(object):
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
         self.alpha = grid.empty(centering='node')
+        self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
         
         self.grid.node_diagonal_links() #calculates the number of diagonal links
         
         if self.n != 1.:
-            raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
+            #raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
+            self.nonlinear_flag = True
+            if self.n<1.:
+                print "***WARNING: With n<1 performance of the Fastscape algorithm is slow!***"
+        else:
+            self.nonlinear_flag = False
         
         self.weave_flag = grid.weave_flag
+        
+        def func_for_newton(x, last_step_elev, receiver_elev, alpha_by_flow_link_lengthtothenless1, n):
+            y = x - last_step_elev + alpha_by_flow_link_lengthtothenless1*(x-receiver_elev)**n
+            return y
+        
+        def func_for_newton_diff(x, last_step_elev, receiver_elev, alpha_by_flow_link_lengthtothenless1, n):
+            y = 1. + n*alpha_by_flow_link_lengthtothenless1*(x-receiver_elev)**(n-1.)
+            return y
+        
+        self.func_for_newton = func_for_newton
+        self.func_for_newton_diff = func_for_newton_diff
 
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
         self.dt = dt_in
         if rainfall_intensity_in is not None:
             self.r_i = rainfall_intensity_in
         return self.dt, self.r_i
+        
 
     def erode(self, grid_in, K_if_used=None):
         """
@@ -153,25 +172,73 @@ class SPEroder(object):
         flow_receivers = self.grid['node']['flow_receiver']
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
-        if self.weave_flag:
-            code = """
-                int current_node;
-                int j;
-                for (int i = 0; i < n_nodes; i++) {
-                    current_node = upstream_order_IDs[i];
-                    j = flow_receivers[current_node];
-                    if (current_node != j) {
-                        z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+        if self.nonlinear_flag==False: #n==1
+            if self.weave_flag:
+                code = """
+                    int current_node;
+                    int j;
+                    for (int i = 0; i < n_nodes; i++) {
+                        current_node = upstream_order_IDs[i];
+                        j = flow_receivers[current_node];
+                        if (current_node != j) {
+                            z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
+                        }
                     }
-                }
-            """
-            weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
-        else:
-            for i in upstream_order_IDs:
-                j = flow_receivers[i]
-                if i != j:
-                    z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
-        
+                """
+                weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
+            else:
+                for i in upstream_order_IDs:
+                    j = flow_receivers[i]
+                    if i != j:
+                        z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
+        else: #general, nonlinear n case
+            self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
+            alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
+            n = float(self.n)
+            if self.weave_flag:
+                if n<1.:
+                    #this is SLOOOOOOOOOOOW...
+                    for i in upstream_order_IDs:
+                        j = flow_receivers[i]
+                        func_for_newton = self.func_for_newton
+                        func_for_newton_diff = self.func_for_newton_diff
+                        if i != j:
+                            z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
+                else:
+                    code = """
+                        int current_node;
+                        int j;
+                        double current_z;
+                        double previous_z;
+                        double elev_diff;
+                        double elev_diff_tothenless1;
+                        for (int i = 0; i < n_nodes; i++) {
+                            current_node = upstream_order_IDs[i];
+                            j = flow_receivers[current_node];
+                            previous_z = z[current_node];
+                            if (current_node != j) {
+                                while (1) {
+                                    elev_diff = previous_z-z[j];
+                                    elev_diff_tothenless1 = pow(elev_diff, n-1.); //this isn't defined if in some iterations the elev_diff goes -ve
+                                    current_z = previous_z - (previous_z - z[current_node] + alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1*elev_diff)/(1.+n*alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1);
+                                    if (abs((current_z - previous_z)/current_z) < 1.48e-08) break;
+                                    previous_z = current_z;
+                                }
+                                z[current_node] = current_z;
+                            }
+                        }
+                    """
+                    weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha_by_flow_link_lengthtothenless1', 'n'], headers=["<math.h>"])
+            else:
+                for i in upstream_order_IDs:
+                    j = flow_receivers[i]
+                    func_for_newton = self.func_for_newton
+                    func_for_newton_diff = self.func_for_newton_diff
+                    if i != j:
+                        if n>=1.:
+                            z[i] = newton(func_for_newton, z[i], fprime=func_for_newton_diff, args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n), maxiter=10)
+                        else:
+                            z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
         #self.grid['node'][self.value_field] = z
         
         return self.grid
