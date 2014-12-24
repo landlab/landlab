@@ -147,9 +147,12 @@ class VegCA( Component ):
         Peg = np.amin(np.vstack((Phi_g/(n*self._INg),Pemaxg)),axis = 0)
         Pesh = np.amin(np.vstack((Phi_sh, Pemaxsh)), axis = 0)
         Petr = np.amin(np.vstack((Phi_tr, Pemaxtr)), axis = 0)
-        Select_PFT_E = np.random.randint(0,3,n_bare) # Grass - 0; Shrub - 1; Tree - 2
-        Pest = np.choose(Select_PFT_E, [Peg, Pesh, Petr])   # Probability of establishment
-        R_Est = np.random.rand(n_bare)  # Random number for comparison to establish
+        Select_PFT_E = np.random.choice([0,4,5],n_bare)
+                        # Grass - 0; Shrub Seedling - 4; Tree Seedling - 5
+        Pest = np.choose(Select_PFT_E, [Peg, Pesh, Petr])
+                        # Probability of establishment
+        R_Est = np.random.rand(n_bare)
+                        # Random number for comparison to establish
         Establish = np.int32(np.where(np.greater_equal(Pest, R_Est)==True)[0])
         self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish]
         self._tp[bare_cells[Establish]] = 0
