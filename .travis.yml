@@ -19,7 +19,6 @@ install:
 
 script: 
   - bash .travis/run_travis_test.sh
-  - cd docs && make html
 
 virtualenv:
   system_site_packages: false
