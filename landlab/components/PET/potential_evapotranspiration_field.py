@@ -25,7 +25,11 @@ class PotentialEvapotranspiration( Component ):
     """
     Landlab component that calculates Potential Evapotranspiration.
 
+    Examples
+    --------
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components.PET.potential_evapotranspiration_field import PotentialEvapotranspiration
+
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name

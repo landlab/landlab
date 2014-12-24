@@ -14,6 +14,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     
     Examples
     --------
+    >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(3, 2, 1.0)
     >>> hmg.number_of_nodes
     7
@@ -50,6 +51,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Create a hex grid with 2 rows of nodes. The first and third rows will
         have 2 nodes, and the second nodes.
 
+        >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2, 1.0)
         >>> hmg.number_of_nodes
         7
@@ -197,15 +199,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
-            >>> npt
-            7
-            >>> p[1,:]
-            array([ 1.,  0.])
-            >>> p[:3,0]
-            array([ 0. ,  1. , -0.5])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
+        >>> npt
+        7
+        >>> p[1,:]
+        array([ 1.,  0.])
+        >>> p[:3,0]
+        array([ 0. ,  1. , -0.5])
         """
 
         dxv = dxh * numpy.sqrt(3.) / 2.
@@ -251,15 +254,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
-            >>> npt
-            9
-            >>> p[1,:]
-            array([ 1.,  0.])
-            >>> p[:3,0]
-            array([ 0.,  1.,  2.])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
+        >>> npt
+        9
+        >>> p[1,:]
+        array([ 1.,  0.])
+        >>> p[:3,0]
+        array([ 0.,  1.,  2.])
         """
 
         dxv = dxh * numpy.sqrt(3.) / 2.
@@ -295,15 +299,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
-            >>> npt
-            7
-            >>> p[1,:]
-            array([ 0.,  1.])
-            >>> p[:3,1]
-            array([ 0. ,  1. , -0.5])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
+        >>> npt
+        7
+        >>> p[1,:]
+        array([ 0.,  1.])
+        >>> p[:3,1]
+        array([ 0. ,  1. , -0.5])
         """
 
         dxh = dxv * numpy.sqrt(3.) / 2.
@@ -349,15 +354,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Return: 2D numpy array containing point (x,y) coordinates, and total number
                 of points.
                 
-        Example:
-            
-            >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
-            >>> npt
-            9
-            >>> p[1,:]
-            array([ 0.,  1.])
-            >>> p[:3,1]
-            array([ 0.,  1.,  2.])
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
+        >>> npt
+        9
+        >>> p[1,:]
+        array([ 0.,  1.])
+        >>> p[:3,1]
+        array([ 0.,  1.,  2.])
         """
 
         dxh = dxv * numpy.sqrt(3.) / 2.
@@ -391,6 +397,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_columns
         5
@@ -412,6 +419,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_rows
         5
@@ -419,7 +427,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return self._nrows
 
 
-    def configure_hexplot(self, data, data_label=None):
+    def configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
         colored by a given data element.
@@ -430,6 +438,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Data field to be colored
         data_label : str, optional
             Label for colorbar
+        color_map : matplotlib colormap object, None
+            Color map to apply (defaults to "jet")
         
         Returns
         -------
@@ -446,6 +456,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         from matplotlib.patches import Polygon
         from matplotlib.collections import PatchCollection
         #import matplotlib.pyplot as plt
+        
+        # color
+        if color_map is None:
+            color_map = matplotlib.cm.jet
 
         # geometry
         apothem = self._dx/2.0
@@ -470,12 +484,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
             p = Polygon(poly_verts, True)
             patches.append(p)
         
-        self._hexplot_pc = PatchCollection(patches, cmap=matplotlib.cm.jet)
+        self._hexplot_pc = PatchCollection(patches, cmap=color_map, edgecolor='none', linewidth=0.0)
         
         self._hexplot_configured=True
 
 
-    def hexplot(self, data, data_label=None):
+    def hexplot(self, data, data_label=None, color_map=None):
         """
         Creates a plot of the grid and one node-data field, showing hexagonal
         cells colored by values in the field.
@@ -497,7 +511,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         try:
             self._hexplot_configured is True
         except:
-            self.configure_hexplot(data, data_label)
+            self.configure_hexplot(data, data_label, color_map)
 
         # Handle *data*: if it's a numpy array, then we consider it the 
         # data to be plotted. If it's a string, we consider it the name of the 

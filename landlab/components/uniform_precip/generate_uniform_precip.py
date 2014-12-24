@@ -20,7 +20,7 @@ _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'preciptest.in')
 
 class PrecipitationDistribution(Component):
-    '''Landlab component that generates precipitation events
+    """Landlab component that generates precipitation events
     using the rectangular Poisson pulse model described in
     Eagleson (1978).
     
@@ -43,15 +43,16 @@ class PrecipitationDistribution(Component):
             
     So, without an input file (selecting the default), we can call this component like...
     
-        >>> precip = PrecipitationDistribution()
+    >>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+    >>> precip = PrecipitationDistribution()
         
     To use hard-coded values for mean storm, mean interstorm, mean depth, model run time and delta t...
     Say we use 1.5 for mean storm, 15 for mean interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
     
-        >>> precip = PrecipitationDistribution(input_file=None,
-        ...     mean_storm=1.5, mean_interstorm=15.0, mean_storm_depth=0.5,
-        ...     total_t=100.0, delta_t=1)
-    '''
+    >>> precip = PrecipitationDistribution(input_file=None,
+    ...     mean_storm=1.5, mean_interstorm=15.0, mean_storm_depth=0.5,
+    ...     total_t=100.0, delta_t=1)
+    """
 
     def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None, mean_storm_depth=None, total_t=None, delta_t=None):
         """ This reads in information from the input_file (either default or user
@@ -120,26 +121,26 @@ class PrecipitationDistribution(Component):
 
 
     def update(self):
-        
         """If new values for storm duration, interstorm duration, storm depth
         and intensity are needed, this method can be used to update those values
         one time. 
         
-            >>> PD = PrecipitationDistribution()
-            >>> PD.update()
+        >>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+        >>> PD = PrecipitationDistribution()
+        >>> PD.update()
             
         Additionally, if we wanted to update several times, a loop could be
         utilized to accomplish this. Say we want 5 storm_durations; this
         pseudo-code represents a way to accomplish this...
         
-            >>> PD = PrecipitationDistribution()
-            >>> storm_duration_list=[]
-            >>> i = 0
-            >>> while i < 4:
-            ...     storm_duration_list.append(PD.storm_duration)
-            ...     PD.update()
-            ...     i+=1        
-         """
+        >>> PD = PrecipitationDistribution()
+        >>> storm_duration_list=[]
+        >>> i = 0
+        >>> while i < 4:
+        ...     storm_duration_list.append(PD.storm_duration)
+        ...     PD.update()
+        ...     i+=1        
+        """
         
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()

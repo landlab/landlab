@@ -168,14 +168,15 @@ class Event():
     Event() objects are placed in a PriorityQueue, the earliest event is
     given the highest priority (i.e., placed at the top of the queue).
     
-    Example:
-        
-        >>> e1 = Event( 10.0, 1, 2)
-        >>> e2 = Event( 2.0, 3, 1)
-        >>> e1 < e2
-        False
-        >>> e2 < e1
-        True
+    Examples
+    --------
+    >>> from landlab.components.cellular_automata.landlab_ca import Event
+    >>> e1 = Event( 10.0, 1, 2)
+    >>> e2 = Event( 2.0, 3, 1)
+    >>> e1 < e2
+    False
+    >>> e2 < e1
+    True
     """
     def __init__(self, time, link, xn_to):
 

@@ -16,6 +16,7 @@ def number_of_faces(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.faces import number_of_faces
     >>> number_of_faces((3, 4))
     17
     """

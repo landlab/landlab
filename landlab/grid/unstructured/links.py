@@ -9,6 +9,7 @@ def _split_link_ends(link_ends):
     """
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import _split_link_ends
     >>> _split_link_ends(((0, 1, 2), (3, 4, 5)))
     (array([0, 1, 2]), array([3, 4, 5]))
     >>> _split_link_ends([(0, 3), (1, 4), (2, 5)])
@@ -76,6 +77,7 @@ def find_active_links(node_status, node_at_link_ends):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import find_active_links
     >>> links = [(0, 2), (1, 3), (0, 1), (1, 2), (0, 3)]
     >>> status = np.array([0, 0, 0, 0])
     >>> find_active_links(status, links)
@@ -112,6 +114,7 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import in_link_count_per_node
     >>> link_ends = [(0, 3), (1, 4), (2, 5), (3, 6), (4, 7), (5, 8)]
     >>> in_link_count_per_node(zip(*link_ends))
     array([0, 0, 0, 1, 1, 1, 1, 1, 1])
@@ -142,6 +145,7 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import out_link_count_per_node
     >>> out_link_count_per_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]))
     array([1, 1, 1, 1, 1, 1])
     >>> out_link_count_per_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]),
@@ -172,6 +176,7 @@ def link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import link_count_per_node
     >>> link_count_per_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]))
     array([1, 1, 1, 2, 2, 2, 1, 1, 1])
     """
@@ -217,6 +222,7 @@ def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import in_link_ids_at_node
     >>> (links, count) = in_link_ids_at_node(([0, 1, 2, 3, 4, 5],
     ...                                       [3, 4, 5, 6, 7, 8]))
     >>> links
@@ -260,6 +266,7 @@ def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None)
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import out_link_ids_at_node
     >>> (links, count) = out_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), link_ids=range(-1, 5),
     ...     number_of_nodes=9)
@@ -303,6 +310,7 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
     Examples
     --------
+    >>> from landlab.grid.unstructured.links import link_ids_at_node
     >>> (links, count) = link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9)
     >>> links
@@ -351,6 +359,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2, 0), (2, 3, 1, 3, 3)], 4)
         >>> lgrid.number_of_links
         5
@@ -424,6 +433,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> [lgrid.number_of_in_links_at_node(node) for node in xrange(4)]
         [0, 1, 1, 2]
@@ -445,6 +455,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> [lgrid.number_of_out_links_at_node(node) for node in xrange(4)]
         [2, 1, 1, 0]
@@ -466,6 +477,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> [lgrid.number_of_links_at_node(node) for node in xrange(4)]
         [2, 2, 2, 2]
@@ -514,6 +526,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> lgrid.in_link_at_node(0)
         array([], dtype=int64)
@@ -537,6 +550,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> lgrid.out_link_at_node(0)
         array([0, 2])
@@ -555,6 +569,7 @@ class LinkGrid(object):
 
         Examples
         --------
+        >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> for link in lgrid.iter_nodes(): link
         array([0, 2])

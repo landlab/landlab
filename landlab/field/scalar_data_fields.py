@@ -88,6 +88,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.empty() # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
@@ -116,6 +117,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.ones()
         array([ 1.,  1.,  1.,  1.])
@@ -145,6 +147,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.zeros()
         array([ 0.,  0.,  0.,  0.])
@@ -218,6 +221,7 @@ class ScalarDataFields(dict):
         --------
         Add a new, named field to a collection of fields.
 
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.add_ones('topographic_elevation')
         array([ 1.,  1.,  1.,  1.])
@@ -295,6 +299,7 @@ class ScalarDataFields(dict):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> values = np.ones(4, dtype=int)
         >>> field.add_field('topographic_elevation', values)

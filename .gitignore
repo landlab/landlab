@@ -66,3 +66,4 @@ test-results.xml
 *.p
 
 *.png
+!docs/**/*.png
