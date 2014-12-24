@@ -144,7 +144,7 @@ quantity name must be unique within a group but the same quantity can appear
 in multiple goups.
 
 >>> grid.at_node.keys() # There a no values defined at grid nodes
-[]
+]
 >>> z = grid.add_ones('node', 'topographic_elevation')
 
 We now see that the array has been added to the grid as a reference to the
