@@ -121,26 +121,32 @@ class SPEroder(object):
         self.func_for_newton_diff = func_for_newton_diff
 
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
+        """
+        With the new inputs for erode, this is redundant.
+        """
         self.dt = dt_in
         if rainfall_intensity_in is not None:
             self.r_i = rainfall_intensity_in
         return self.dt, self.r_i
         
 
-    def erode(self, grid_in, K_if_used=None):
+    #def erode(self, grid_in, K_if_used=None):
+    def erode(self, dt, K_if_used=None, rainfall_intensity_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
         be stable against larger timesteps than an explicit stream power scheme.
         
-        The method takes *grid*, a reference to the model grid.
+        The method takes *dt*, the timestep.
         Set 'K_if_used' as a field name or nnodes-long array if you set K_sp as
         'array' during initialization.
+        Set 'rainfall_intensity_if_used' as a field name or nnodes-long array
+        if you want spatially variable rainfall (leave as None if you specified
+        a float in the input file or just want stream power determined by A).
         
         It returns the grid, in which it will have modified the value of 
         *value_field*, as specified in component initialization.
         """
-        
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
@@ -160,6 +166,13 @@ class SPEroder(object):
                 self.K = self.grid.at_node[K_if_used][defined_flow_receivers]
             except TypeError:
                 self.K = K_if_used[defined_flow_receivers]
+        
+        if rainfall_intensity_if_used!=None:
+            try:
+                self.r_i = self.grid.at_node[rainfall_intensity_if_used][defined_flow_receivers]
+            except TypeError:
+                self.r_i = rainfall_intensity_if_used[defined_flow_receivers]
+            
         
         #regular_links = numpy.less(self.grid['node']['links_to_flow_receiver'][defined_flow_receivers],self.grid.number_of_links)
         #flow_link_lengths[defined_flow_receivers][regular_links] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
