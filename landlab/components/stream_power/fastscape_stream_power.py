@@ -26,8 +26,8 @@ class SPEroder(object):
     It needs to be supplied with the key variables:
     
         *K_sp*
-        
         *m_sp*
+        *n_sp*
     
     ...which it will draw from the supplied input file. *n_sp*  can be any 
     value ~ 0.5<n_sp<4., but note that performance will be EXTREMELY degraded
@@ -37,27 +37,18 @@ class SPEroder(object):
     'array', and pass a field name or array to the erode method's K_if_used
     argument.
     
-    *dt*, *rainfall_intensity*, and *value_field* are optional variables.
-    
-    *dt* is a fixed timestep, and *rainfall_intensity* is a parameter which 
+    *rainfall_intensity* is an optional variable; a parameter which 
     modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
-    rainfall intensity on erosivity. *value_field* is a string giving the name
-    of the field containing the elevation data in the grid. It defaults to
-    'topographic_elevation' if not supplied.
+    rainfall intensity on erosivity.
     
     This module assumes you have already run 
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
     in the same timestep. It looks for 'upstream_ID_order', 
     'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
-    'topographic_elevation' at the nodes in the grid. 'drainage_area' should
+    'topographic_elevation' at the nodes in the grid, or needs to be supplied
+    with them directly when running. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
-    
-    If dt is not supplied, you must call gear_timestep(dt_in, rain_intensity_in)
-    each iteration to set these variables on-the-fly (rainfall_intensity will be
-    overridden if supplied in the input file).
-    If dt is supplied but rainfall_intensity is not, the module will assume you
-    mean r_i = 1.
     
     The primary method of this class is :func:`erode`.
     '''
@@ -79,10 +70,6 @@ class SPEroder(object):
             self.n = inputs.read_float('n_sp')
         except:
             self.n = 1.
-        try:
-            self.dt = inputs.read_float('dt')
-        except: #if dt isn't supplied, it must be set by another module, so look in the grid
-            print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
         try:
             self.r_i = inputs.read_float('rainfall_intensity')
         except:
@@ -119,47 +106,60 @@ class SPEroder(object):
         
         self.func_for_newton = func_for_newton
         self.func_for_newton_diff = func_for_newton_diff
-
-    def gear_timestep(self, dt_in, rainfall_intensity_in=None):
-        """
-        With the new inputs for erode, this is redundant.
-        """
-        self.dt = dt_in
-        if rainfall_intensity_in is not None:
-            self.r_i = rainfall_intensity_in
-        return self.dt, self.r_i
         
-
-    #def erode(self, grid_in, K_if_used=None):
-    def erode(self, dt, K_if_used=None, rainfall_intensity_if_used=None):
+        
+    def erode(self, dt, 
+              topographic_elevation='topographic_elevation',
+              drainage_area='drainage_area',
+              upstream_ID_order='upstream_ID_order',
+              links_to_flow_receiver='links_to_flow_receiver',
+              flow_receiver='flow_receiver',
+              K_if_used=None, rainfall_intensity_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
         be stable against larger timesteps than an explicit stream power scheme.
         
         The method takes *dt*, the timestep.
+        
+        It needs access to *topographic_elevation*, *drainage_area*,
+        *upstream_ID_order*, *links_to_flow_receiver*, & *flow_receiver*. These
+        can be supplied either through the grid fields as strings 
+        (recommended), or can be supplied direct as numpy arrays. The default
+        strings reflect Landlab standard naming conventions, and the latter
+        three will be set to these names by route_flow_dn.FlowRouter by
+        default.
+        
         Set 'K_if_used' as a field name or nnodes-long array if you set K_sp as
         'array' during initialization.
         Set 'rainfall_intensity_if_used' as a field name or nnodes-long array
         if you want spatially variable rainfall (leave as None if you specified
         a float in the input file or just want stream power determined by A).
         
-        It returns the grid, in which it will have modified the value of 
-        *value_field*, as specified in component initialization.
+        This method updates the topographic elevation in the grid field (if 
+        supplied), and also returns a length-1 tuple containing the array of 
+        topographic elevations.
         """
         self.dt=dt
-        #self.grid = grid_in #the variables must be stored internally to the grid, in fields
-        upstream_order_IDs = self.grid['node']['upstream_ID_order']
-        #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
-        #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
-        z = self.grid['node'][self.value_field]
-        #interior_nodes = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'], -1)
-        #interior_nodes = (self.grid['node']['links_to_flow_receiver'][upstream_order_IDs])[nonboundaries]
-        #flow_link_lengths = self.grid.link_length[interior_nodes]
-        ##defined_flow_receivers = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'],-1)
-        defined_flow_receivers = numpy.not_equal(self.grid['node']['links_to_flow_receiver'],UNDEFINED_INDEX)
+        try:
+            upstream_order_IDs = self.grid['node'][upstream_ID_order]
+        except TypeError:
+            upstream_order_IDs = upstream_ID_order
+        try:
+            z = self.grid['node'][topographic_elevation]
+        except TypeError:
+            z = topographic_elevation
+        try:
+            A = self.grid.at_node[drainage_area]
+        except TypeError:
+            A = drainage_area
+        try:
+            links_to_flow_receiver_in = self.grid['node'][links_to_flow_receiver]
+        except:
+            links_to_flow_receiver_in = links_to_flow_receiver
+        defined_flow_receivers = numpy.not_equal(links_to_flow_receiver_in,UNDEFINED_INDEX)
         #flow_link_lengths = numpy.zeros_like(self.alpha)
-        flow_link_lengths = self.grid.link_length[self.grid['node']['links_to_flow_receiver'][defined_flow_receivers]]
+        flow_link_lengths = self.grid.link_length[links_to_flow_receiver_in[defined_flow_receivers]]
         
         if K_if_used!=None:
             assert self.use_K, "An array of erodabilities was provided, but you didn't set K_sp to 'array' in your input file! Aborting..."
@@ -179,11 +179,14 @@ class SPEroder(object):
         #flow_link_lengths[defined_flow_receivers][regular_links] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
         #diagonal_links = numpy.logical_not(regular_links)
         #flow_link_lengths[defined_flow_receivers][diagonal_links] = numpy.sqrt(self.grid.node_spacing*self.grid.node_spacing)
-        numpy.power(self.grid['node']['drainage_area'], self.m, out=self.A_to_the_m)
+        numpy.power(A, self.m, out=self.A_to_the_m)
         #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
         self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
-        flow_receivers = self.grid['node']['flow_receiver']
+        try:        
+            flow_receivers = self.grid['node'][flow_receiver]
+        except TypeError:
+            flow_receivers = flow_receiver
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
         if self.nonlinear_flag==False: #n==1
@@ -255,5 +258,5 @@ class SPEroder(object):
                             z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
         #self.grid['node'][self.value_field] = z
         
-        return self.grid
+        return (z,)
 

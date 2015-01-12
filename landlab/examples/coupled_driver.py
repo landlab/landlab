@@ -53,7 +53,7 @@ for i in xrange(nt):
     #mg = diffuse.diffuse(mg, i*dt)
     mg = lin_diffuse.diffuse(mg, dt)
     mg = fr.route_flow(grid=mg)
-    mg = sp.erode(mg)
+    sp.erode(dt)
     
     ##plot long profiles along channels
     pylab.figure(6)

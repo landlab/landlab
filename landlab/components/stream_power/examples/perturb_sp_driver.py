@@ -23,7 +23,7 @@ import pylab
 import time
 import copy
 
-inputs = ModelParameterDictionary('./drive_sp_params.txt')
+inputs = ModelParameterDictionary('./drive_sp_params_perturb.txt')
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
 dx = inputs.read_float('dx')
@@ -44,11 +44,11 @@ print( 'Running ...' )
 
 #instantiate the components:
 fr = FlowRouter(mg)
-sp = StreamPowerEroder(mg, './drive_sp_params.txt')
-fsp = Fsc(mg, './drive_sp_params.txt')
+sp = StreamPowerEroder(mg, './drive_sp_params_perturb.txt')
+fsp = Fsc(mg, './drive_sp_params_perturb.txt')
 
 #load the Fastscape module too, to allow direct comparison
-fsp = Fsc(mg, './drive_sp_params.txt')
+fsp = Fsc(mg, './drive_sp_params_perturb.txt')
 vid = VideoPlotter(mg, data_centering='node', step=2.5)
 
 try:
@@ -64,7 +64,7 @@ except NameError:
             dt = time_to_run - elapsed_time
         mg = fr.route_flow(grid=mg)
         #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-        mg = fsp.erode(mg)
+        fsp.erode(dt)
         #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
         #add uplift
         mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
@@ -75,11 +75,11 @@ except NameError:
 else:
     #reinstantiate the components with the new grid
     fr = FlowRouter(mg)
-    sp = StreamPowerEroder(mg, './drive_sp_params.txt')
-    fsp = Fsc(mg, './drive_sp_params.txt')
+    sp = StreamPowerEroder(mg, './drive_sp_params_perturb.txt')
+    fsp = Fsc(mg, './drive_sp_params_perturb.txt')
 
     #load the Fastscape module too, to allow direct comparison
-    fsp = Fsc(mg, './drive_sp_params.txt')
+    fsp = Fsc(mg, './drive_sp_params_perturb.txt')
     vid = VideoPlotter(mg, data_centering='node', step=2.5)
 
 #perturb:
@@ -94,7 +94,7 @@ while elapsed_time < time_to_run:
         dt = time_to_run - elapsed_time
     mg = fr.route_flow(grid=mg)
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-    mg = fsp.erode(mg)
+    fsp.erode(dt)
     #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
 
     #plot long profiles along channels

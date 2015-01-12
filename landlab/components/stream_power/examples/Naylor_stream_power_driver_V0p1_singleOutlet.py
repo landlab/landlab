@@ -69,7 +69,7 @@ for t in xrange(5):
     for i in xrange(nt):
         mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow(grid=mg)
-        mg = sp.erode(mg)
+        sp.erode(dt)
     
         #plot long profiles along channels
         pylab.figure(6)

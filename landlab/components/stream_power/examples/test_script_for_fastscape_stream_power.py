@@ -4,6 +4,8 @@
 test_script_for_fastscape_stream_power.py: 
     
 Tests and illustrates use of route_flow_dn component.
+
+THIS IS AN OLD SCRIPT, DON'T USE IT. DEJH, Jan 15.
 """
 
 from landlab import RasterModelGrid
