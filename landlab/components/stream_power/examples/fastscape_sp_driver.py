@@ -36,6 +36,7 @@ mg['node']['topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
 
 #make some K values in a field to test 
 mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
+mg.at_node['K_values'].fill(0.15)
 
 print( 'Running ...' )
 
@@ -55,7 +56,7 @@ while elapsed_time < time_to_run:
     mg = fr.route_flow(grid=mg)
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
-    mg = fsp.erode(mg, K_if_used='K_values')
+    mg = fsp.erode(dt, K_if_used='K_values')
     #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
     #add uplift
     mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
