@@ -147,6 +147,7 @@ class SPEroder(object):
         It returns the grid, in which it will have modified the value of 
         *value_field*, as specified in component initialization.
         """
+        self.dt=dt
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
