@@ -88,7 +88,7 @@ class Vegetation( Component ):
 
     def update(self, **kwds):
 
-        PETthreshold = kwds.pop('PotentialEvapotranspirationThreshold', 0)
+        PETthreshold_ = kwds.pop('PotentialEvapotranspirationThreshold', 0)
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.01)
         PET = self._cell_values['PotentialEvapotranspiration']
@@ -101,6 +101,10 @@ class Vegetation( Component ):
         self._Bdead = self._cell_values['DeadBiomass']
         self._VegCov = self._cell_values['VegetationCover']
 
+        if PETthreshold_ == 1:
+            PETthreshold = self._ETthresholdup
+        else:
+            PETthreshold = self._ETthresholddown
 
         for cell in range(0, self.grid.number_of_cells):
 
