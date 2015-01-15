@@ -113,14 +113,14 @@ class VegCA( Component ):
         self._tp = self._cell_values['PlantAge'] + time_elapsed
 
         # Check if shrub and tree seedlings have matured
-        shrub_seedlings = np.where(self._VegType == 4)[0]
-        tree_seedlings = np.where(self._VegType == 5)[0]
+        shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
+        tree_seedlings = np.where(self._VegType == TREESEEDLING)[0]
         matured_shrubs = np.where(self._tp[shrub_seedlings] >
                                     self._tpmax_sh_s)[0]
         matured_trees = np.where(self._tp[tree_seedlings] >
                                     self._tpmax_tr_s)[0]
-        self._VegType[shrub_seedlings[matured_shrubs]] = 1
-        self._VegType[tree_seedlings[matured_trees]] = 2
+        self._VegType[shrub_seedlings[matured_shrubs]] = SHRUB
+        self._VegType[tree_seedlings[matured_trees]] = TREE
         self._tp[shrub_seedlings[matured_shrubs]] = 0
         self._tp[tree_seedlings[matured_trees]] = 0
 
@@ -147,7 +147,8 @@ class VegCA( Component ):
         Peg = np.amin(np.vstack((Phi_g/(n*self._INg),Pemaxg)),axis = 0)
         Pesh = np.amin(np.vstack((Phi_sh, Pemaxsh)), axis = 0)
         Petr = np.amin(np.vstack((Phi_tr, Pemaxtr)), axis = 0)
-        Select_PFT_E = np.random.choice([0,4,5],n_bare)
+        Select_PFT_E = np.random.choice([GRASS,SHRUBSEEDLING,TREESEEDLING],
+                                            n_bare)
                         # Grass - 0; Shrub Seedling - 4; Tree Seedling - 5
         Pest = np.choose(Select_PFT_E, [Peg, 0, 0, 0, Pesh, Petr])
                         # Probability of establishment
@@ -173,7 +174,8 @@ class VegCA( Component ):
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
         PMa[tp_greater] = (tp_plant[tp_greater]/(0.5*tpmax[tp_greater])) - 1
         PMb = np.choose( self._VegType[plant_cells],
-                    [ 0.05, 0.01, 0.01, 0, 0.03, 0.03] )
+                            [self._Pmb_g, self._Pmb_sh, self._Pmb_tr, 0,
+                                self._Pmb_sh_s, self._Pmb_tr_s] )
         PM = PMd + PMa + PMb
         PM[PM>1.] = 1.
         R_Mor = np.random.rand(n_plant) # Random number for comparison to kill
