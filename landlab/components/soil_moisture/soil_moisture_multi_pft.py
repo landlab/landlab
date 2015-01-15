@@ -54,7 +54,7 @@ class SoilMoisture( Component ):
         
         super(SoilMoisture, self).__init__(grid)
         
-        self.initialize( **kwds )       
+        self.initialize( VEGTYPE = grid['cell']['VegetationType'], **kwds )       
 
         for name in self._input_var_names:
             if not name in self.grid.at_cell:
