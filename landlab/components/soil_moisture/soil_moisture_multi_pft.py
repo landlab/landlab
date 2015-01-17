@@ -102,7 +102,8 @@ class SoilMoisture( Component ):
         self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW', 
                                         [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))
         self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA', 
-                                        [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) 
+                                        [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ]))
+ 
 
 
     def update( self, current_time, **kwds ):
@@ -119,6 +120,7 @@ class SoilMoisture( Component ):
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
         self._fr = self._cell_values['LiveLeafAreaIndex']/1.44
+        self._Sini = self._cell_values['InitialSaturationFraction']
         
         for cell in range(0,self.grid.number_of_cells):
             
@@ -242,6 +244,7 @@ class SoilMoisture( Component ):
                                         / (sc - wp))**4.),0.001),1.0)
             self._S[cell] = s
             self._SO[cell] = s
+            self._Sini[cell] = sini
 
         current_time += (Tb+Tr)/(24.*365.25)
         return( current_time )
