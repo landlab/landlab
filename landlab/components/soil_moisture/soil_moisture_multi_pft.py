@@ -1,6 +1,6 @@
 #################################################################
 ##
-##  Modification of soil_moisture_field.py to accomodate 
+##  Modification of soil_moisture_field.py to accomodate
 ##  multiple Plant Functional Types (PFTs)
 ##
 ##  Sai Nudurupati and Erkan Istanbulluoglu - 31Oct2014
@@ -15,9 +15,9 @@ _VALID_METHODS = set(['Grid', 'Multi'])
 def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
-        
+
 class SoilMoisture( Component ):
-    
+
     _name = 'Soil Moisture'
 
     _input_var_names = set([
@@ -47,14 +47,14 @@ class SoilMoisture( Component ):
 
 
     def __init__( self, grid, **kwds ):
-                
+
         self._method = kwds.pop('method', 'Grid')
 
         assert_method_is_valid(self._method)
-        
+
         super(SoilMoisture, self).__init__(grid)
-        
-        self.initialize( VEGTYPE = grid['cell']['VegetationType'], **kwds )       
+
+        self.initialize( VEGTYPE = grid['cell']['VegetationType'], **kwds )
 
         for name in self._input_var_names:
             if not name in self.grid.at_cell:
@@ -77,33 +77,33 @@ class SoilMoisture( Component ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
-          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))       
+          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
         self._runon = kwds.pop('RUNON', 0.)
         self._fbare = kwds.pop('F_BARE', 0.7)
-        
+
         self._interception_cap = \
-                np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP', 
+                np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',
                                             [ 1., 1.5, 2., 1., 1.5, 2 ]))
-        self._zr = np.choose(self._vegtype, kwds.pop('ZR', 
+        self._zr = np.choose(self._vegtype, kwds.pop('ZR',
                                             [ 0.3, 1., 2., 0.3, 1., 2. ]))
-        self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B', 
+        self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B',
                                             [ 12, 10000, 42, 12, 10000, 42 ]))
-        self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V', 
+        self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
                                             [ 36, 10000, 42, 36, 10000, 42 ]))
         self._soil_Ew = kwds.pop('EW', [0.1])
-        self._soil_pc = np.choose(self._vegtype, kwds.pop('PC', 
+        self._soil_pc = np.choose(self._vegtype, kwds.pop('PC',
                                         [ 0.43, 0.43, 0.43, 0.43, 0.43, 0.43 ]))
-        self._soil_fc = np.choose(self._vegtype, kwds.pop('FC', 
+        self._soil_fc = np.choose(self._vegtype, kwds.pop('FC',
                                         [ 0.56, 0.56, 0.5, 0.56, 0.56, 0.5 ]))
-        self._soil_sc = np.choose(self._vegtype, kwds.pop('SC', 
+        self._soil_sc = np.choose(self._vegtype, kwds.pop('SC',
                                         [ 0.46, 0.46, 0.19, 0.46, 0.46, 0.19 ]))
-        self._soil_wp = np.choose(self._vegtype, kwds.pop('WP', 
+        self._soil_wp = np.choose(self._vegtype, kwds.pop('WP',
                                         [ 0.19, 0.16, 0.13, 0.19, 0.16, 0.13 ]))
-        self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW', 
+        self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW',
                                         [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))
-        self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA', 
+        self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA',
                                         [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ]))
- 
+
 
 
     def update( self, current_time, **kwds ):
@@ -121,12 +121,12 @@ class SoilMoisture( Component ):
         self._ETA = self._cell_values['ActualEvapotranspiration']
         self._fr = self._cell_values['LiveLeafAreaIndex']/1.44
         self._Sini = self._cell_values['InitialSaturationFraction']
-        
+
         for cell in range(0,self.grid.number_of_cells):
-            
+
             #print cell
             s = self._SO[cell]
-            
+
             fbare = self._fbare
             ZR = self._zr[cell]
             pc = self._soil_pc[cell]
@@ -138,14 +138,14 @@ class SoilMoisture( Component ):
 
 
             Inf_cap = self._soil_Ib[cell]*(1-self._vegcover[cell]) +         \
-                                    self._soil_Iv[cell]*self._vegcover[cell] 
+                                    self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
                                     P)  # Interception capacity
             Peff = max(P-Int_cap, 0.0)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1-fc))-1))
             Ep = max((self._PET[cell]*self._fr[cell]
-                                +fbare*self._PET[cell]*(1-self._fr[cell])) 
+                                +fbare*self._PET[cell]*(1-self._fr[cell]))
                                     - Int_cap, 0.001)  #
             nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
             nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
@@ -237,11 +237,11 @@ class SoilMoisture( Component ):
                 twp = 0
 
                 s = hgw+(sini-hgw)*np.exp((-1)*(nuw/(wp-hgw))*Tb)
-                self._D[cell] = 0                
+                self._D[cell] = 0
                 self._ETA[cell] = (1000*ZR*pc*(sini-s))
 
-            self._water_stress[cell] = min(max((((sc - (s+sini)/2.) 
-                                        / (sc - wp))**4.),0.001),1.0)
+            self._water_stress[cell] = min(((max(((sc - (s+sini)/2.)
+                                          /(sc - wp)),0.))**4.),1.0)
             self._S[cell] = s
             self._SO[cell] = s
             self._Sini[cell] = sini
