@@ -172,7 +172,8 @@ class VegCA( Component ):
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
-        PMa[tp_greater] = (tp_plant[tp_greater]/(0.5*tpmax[tp_greater])) - 1
+        PMa[tp_greater] = ((tp_plant[tp_greater] - 0.5*tpmax[tp_greater])
+                                /(0.5*tpmax[tp_greater])) - 1
         PMb = np.choose( self._VegType[plant_cells],
                             [self._Pmb_g, self._Pmb_sh, self._Pmb_tr, 0,
                                 self._Pmb_sh_s, self._Pmb_tr_s] )
