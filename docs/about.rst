@@ -18,7 +18,7 @@ Acknowledgements
 Citing Landlab::
 
   @MISC{Landlab2013,
-    author = "Tucker, G. and Gasparini, N. and Istanbulluoglu, E. and Hobley, D. and Nudurupati, S. and Adams, D. and Hutton, E.",
+    author = "Tucker, G. and Gasparini, N. and Istanbulluoglu, E. and Hobley, D. and Nudurupati, S. and Adams, J. and Hutton, E.",
     title = "{Landlab} v0.1",
     year = "2013",
     url = "http://csdms.colorado.edu/wiki/Model:Landlab",

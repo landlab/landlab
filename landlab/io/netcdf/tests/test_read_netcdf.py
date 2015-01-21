@@ -3,26 +3,24 @@
 Unit tests for landlab.io.netcdf module.
 """
 
-import unittest
 import os
 import numpy as np
 from StringIO import StringIO
+from unittest import skipIf
+from nose.tools import assert_equal
 
-from landlab.io.netcdf import read_netcdf
+from landlab.io.netcdf import read_netcdf, WITH_NETCDF4
 
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
-class TestReadNetcdf(unittest.TestCase):
-    def test_read_netcdf3_64bit(self):
-        grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf3-64bit.nc'))
-        self.assertEqual(grid.shape, (4, 3))
-
-    def test_read_netcdf4(self):
-        grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf4.nc'))
-        self.assertEqual(grid.shape, (4, 3))
+def test_read_netcdf3_64bit():
+    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf3-64bit.nc'))
+    assert_equal(grid.shape, (4, 3))
 
 
-if __name__ == '__main__':
-    unittest.main()
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+def test_read_netcdf4():
+    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf4.nc'))
+    assert_equal(grid.shape, (4, 3))

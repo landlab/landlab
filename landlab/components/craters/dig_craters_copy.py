@@ -21,7 +21,6 @@ import numpy
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
-import memory_profiler
 
 from landlab import ModelParameterDictionary
 
@@ -39,7 +38,7 @@ class impactor(object):
         
         #test the necessary fields are all already present:
         try:
-            self.elev = grid.at_node['planet_surface__elevation']
+            self.elev = grid.at_node['topographic_elevation']
         except:
             print 'elevations not found in grid!'
 
@@ -996,7 +995,7 @@ class impactor(object):
         an impact within its ejecta footprint.
         '''
         self.grid = grid
-        self.elev = grid.at_node['planet_surface__elevation']
+        self.elev = grid.at_node['topographic_elevation']
         self.draw_new_parameters()
         self.set_depth_from_size()
         self.set_crater_volume()

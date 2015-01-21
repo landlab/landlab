@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_is, assert_equal
+try:
+    from nose.tools import assert_is
+except ImportError:
+    from landlab.testing.tools import assert_is
+from nose.tools import assert_equal
 
 from landlab.grid import raster_funcs as rfuncs
 
@@ -55,7 +59,7 @@ def test_scalar_arg_with_links():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,])
+                       0, 1, -3, 6, 10,], dtype=float)
     (grad, node) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])
@@ -80,7 +84,6 @@ def test_node_id_in_direction_of_max():
 
     (grads, node_ids) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), method='d8', return_node=True)
-    print(grads)
     assert_array_equal(node_ids, [0, 17])
 
 

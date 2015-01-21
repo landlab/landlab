@@ -49,7 +49,7 @@ def main():
     for _ in xrange(impact_count):
         craters_comp.update()
 
-    grid.imshow('node', 'planet_surface__elevation', grid_units=('km', 'km'),
+    grid.imshow('node', 'topographic_elevation', grid_units=('km', 'km'),
                 symmetric_cbar=True)
 
 

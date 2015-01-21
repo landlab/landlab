@@ -1,11 +1,16 @@
 #! /usr/bin/env python
 
 import numpy as np
+import inspect
+from landlab.field.grouped import FieldError
 try:
     import matplotlib.pyplot as plt
 except ImportError:
     import warnings
     warnings.warn('matplotlib not found', ImportWarning)
+
+from landlab.grid.raster import RasterModelGrid
+from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 
 def assert_array_size_matches(array, size, msg=None):
@@ -16,82 +21,319 @@ def assert_array_size_matches(array, size, msg=None):
 
 
 def imshow_node_grid(grid, values, **kwds):
+    """
+    Prepares a map view of data over all nodes in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the nodes (length nnodes), or a field name (string)
+    from which t draw the data.
+    """
+    if type(values) == str:
+        value_str = values
+        values=grid.at_node[values]
+    
     assert_array_size_matches(values, grid.number_of_nodes,
             'number of values does not match number of nodes')
 
     data = values.view()
-    data.shape = grid.shape
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
-    _imshow_grid_values(grid, data, **kwds)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
+    
+    return myimage
+    
 
-
-def imshow_active_node_grid(grid, values, **kwds):
+def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over only the active (i.e., not closed) nodes
+    in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the open, active nodes OR the values on all nodes in
+    the grid. If the latter is provided, this method will only plot the active
+    subset.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all nodes that are not active. It defaults to 'min', which is the minimum
+    value found on any active node in the grid.
+    """
     active_nodes = grid.active_nodes
-    assert_array_size_matches(values, active_nodes.size,
+    try:
+        assert_array_size_matches(values, active_nodes.size,
             'number of values does not match number of active nodes')
+    except ValueError:
+        assert_array_size_matches(values[active_nodes], active_nodes.size,
+            'number of values does not match number of active nodes')
+        values_to_use = values[active_nodes]
+    else:
+        values_to_use = values
     
     data = np.zeros(grid.number_of_nodes)
-    data[active_nodes] = values.flat
-    data.shape = grid.shape
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_nodes] = values_to_use.flat
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
-    _imshow_grid_values(grid, data, **kwds)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    if type(values) == str:
+        plt.title(values)
+    
+    return myimage
+    
+    
+def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over only the core nodes
+    in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the core nodes OR the values on all nodes in
+    the grid. If the latter is provided, this method will only plot the core
+    subset. Alternatively, can be a string giving the name of a grid field,
+    defined either on core nodes or all nodes.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all nodes that are not core. It defaults to 'min', which is the minimum
+    value found on any core node in the grid.
+    """
+    active_nodes = grid.core_nodes
+    
+    if type(values) == str:
+        value_str = values
+        try:
+            values=grid.at_core_node[values]
+        except FieldError:
+            values=grid.at_node[values][active_nodes]
+        
+    try:
+        assert_array_size_matches(values, active_nodes.size,
+            'number of values does not match number of active nodes')
+    except ValueError:
+        assert_array_size_matches(values[active_nodes], active_nodes.size,
+            'number of values does not match number of active nodes')
+        values_to_use = values[active_nodes]
+    else:
+        values_to_use = values
+    
+    data = np.zeros(grid.number_of_nodes)
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_nodes] = values_to_use.flat
+    
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = grid.shape
 
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
+    
+    return myimage
+    
 
 def imshow_cell_grid(grid, values, **kwds):
-    assert_array_size_matches(values, grid.number_of_cells,
+    """
+    Prepares a map view of data over all cells in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the cells OR the values on all nodes in the grid, from
+    which the cell values will be extracted. Alternatively, can be a field
+    name (string) from which to draw the data from the grid.
+    """
+    cells = grid.node_index_at_cells
+
+    if type(values) == str:
+        value_str = values
+        try:
+            values=grid.at_cell[values]
+        except FieldError:
+            values=grid.at_node[values][cells]
+    
+    try:
+        assert_array_size_matches(values, cells.size,
             'number of values does not match number of cells')
+    except ValueError:
+        assert_array_size_matches(values[cells], cells.size,
+            'number of values does not match number of cells')
+        values_to_use = values[cells]
+    else:
+        values_to_use = values
+        
+    data = values_to_use.view()
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
-    data = values.view()
-    data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    try:
+        plt.title(value_str)
+    except NameError:
+        pass
+    
+    return myimage
 
-    _imshow_grid_values(grid, data, **kwds)
 
+def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
+    """
+    Prepares a map view of data over all active (i.e., core and open boundary)
+    cells in the grid.
+    Method can take any of the same **kwds as imshow().
+    
+    requires:
+    grid: the grid
+    values: the values on the active cells OR the values on all nodes in the 
+    grid, from which the active cell values will be extracted.
+    
+    If *other_node_val* is set, this is the value that will be displayed for
+    all cells that are not active. It defaults to 'min', which is the minimum
+    value found on any active cell in the grid.
+    """
 
-def imshow_active_cell_grid(grid, values, **kwds):
     active_cells = grid.node_index_at_active_cells
-    assert_array_size_matches(values, active_cells.size,
+    
+    try:
+        assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')
+    except ValueError:
+        assert_array_size_matches(values[active_cells], active_cells.size,
+            'number of values does not match number of active cells')
+        values_to_use = values[active_cells]
+    else:
+        values_to_use = values
 
     data = np.zeros(grid.number_of_nodes)
-    data[active_cells] = values
-    data.shape = grid.shape
+    if other_node_val!='min':
+        data.fill(other_node_val)
+    else:
+        data.fill(np.min(values_to_use))
+    data[active_cells] = values_to_use
+    data = data[grid.node_index_at_cells]
+    if RasterModelGrid in inspect.getmro(grid.__class__):
+        data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
-    _imshow_grid_values(grid, data, **kwds)
+    myimage = _imshow_grid_values(grid, data, **kwds)
+    
+    return myimage
 
 
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
-                        cmap='jet', limits=None):
-    if len(values.shape) != 2:
-        raise ValueError('dimension of values must be 2 (%s)' % values.shape)
+                        cmap='pink', limits=None, allow_colorbar=True):
+    
+    gridtypes = inspect.getmro(grid.__class__)
 
-    y = np.arange(values.shape[0] + 1) - grid.dx * .5
-    x = np.arange(values.shape[1] + 1) - grid.dx * .5
+    if RasterModelGrid in gridtypes:
+        if len(values.shape) != 2:
+            raise ValueError('dimension of values must be 2 (%s)' % values.shape)
+        y = np.arange(values.shape[0] + 1) - grid.dx * .5
+        x = np.arange(values.shape[1] + 1) - grid.dx * .5
+    
+        kwds = dict(cmap=cmap)
+        if limits is None:
+            if symmetric_cbar:
+                (var_min, var_max) = (values.min(), values.max())
+                limit = max(abs(var_min), abs(var_max))
+                (kwds['vmin'], kwds['vmax']) = (- limit, limit)
+        else:
+            (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
+    
+    
+        myimage = plt.pcolormesh(x, y, values, **kwds)
+    
+        plt.gca().set_aspect(1.)
+        plt.autoscale(tight=True)
+        
+        if allow_colorbar:
+            plt.colorbar()
+    
+        plt.xlabel('X (%s)' % grid_units[1])
+        plt.ylabel('Y (%s)' % grid_units[0])
+    
+        if var_name is not None:
+            plt.title('%s (%s)' % (var_name, var_units))
+    
+        #plt.show()
+        
+    elif VoronoiDelaunayGrid in gridtypes:
+        """
+        This is still very much ad-hoc, and needs prettifying.
+        We should save the modifications needed to plot color all the way
+        to the diagram edge *into* the grid, for faster plotting.
+        (see http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram)
+        (This technique is not implemented yet)
+        """
+        from scipy.spatial import voronoi_plot_2d
+        import matplotlib.colors as colors
+        import matplotlib.cm as cmx
+        cm = plt.get_cmap(cmap)
+        if limits is None:
+            if symmetric_cbar:
+                (var_min, var_max) = (values.min(), values.max())
+                limit = max(abs(var_min), abs(var_max))
+                (vmin, vmax) = (- limit, limit)
+            else:
+                (vmin, vmax) = (values.min(), values.max())
+        else:
+            (vmin, vmax) = (limits[0], limits[1])
+        cNorm = colors.Normalize(vmin,vmax)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+        colorVal = scalarMap.to_rgba(values)
+        
+        myimage = voronoi_plot_2d(grid.vor)
+        mycolors = (i for i in colorVal)
+        for order in grid.vor.point_region:
+            region = grid.vor.regions[order]
+            colortouse = next(mycolors)
+            if not -1 in region:
+                polygon = [grid.vor.vertices[i] for i in region]
+                #print "polygon:"
+                #print polygon
+                #print len(polygon)
+                #print "colortouse:"
+                #print next(colortouse)
+                #print len(colortouse)
+                plt.fill(*zip(*polygon),color=colortouse)
+                #must be TOTALLY sure the ordering is right
 
-    kwds = dict(cmap=cmap)
-    if limits is None:
-        if symmetric_cbar:
-            (var_min, var_max) = (values.min(), values.max())
-            limit = max(abs(var_min), abs(var_max))
-            (kwds['vmin'], kwds['vmax']) = (- limit, limit)
-    else:
-        (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
-
-
-    plt.pcolormesh(x, y, values, **kwds)
-
-    plt.gca().set_aspect(1.)
-    plt.autoscale(tight=True)
-
-    plt.colorbar()
-
-    plt.xlabel('X (%s)' % grid_units[1])
-    plt.ylabel('Y (%s)' % grid_units[0])
-
-    if var_name is not None:
-        plt.title('%s (%s)' % (var_name, var_units))
-
-    #plt.show()
+        plt.gca().set_aspect(1.)
+        #plt.autoscale(tight=True)
+        plt.xlim((np.min(grid.node_x), np.max(grid.node_x)))
+        plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
+    
+        scalarMap.set_array(values)
+        plt.colorbar(scalarMap)
+    
+        plt.xlabel('X (%s)' % grid_units[1])
+        plt.ylabel('Y (%s)' % grid_units[0])
+    
+        if var_name is not None:
+            plt.title('%s (%s)' % (var_name, var_units))
+        
+    return myimage
 
 
 def imshow_grid(grid, values, **kwds):
@@ -122,10 +364,17 @@ def imshow_field(field, name, **kwds):
 # Added by Sai Nudurupati 29Oct2013 
 # This function is exactly the same as imshow_grid but this function plots
 # arrays spread over cells rather than nodes
+##DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
+    """.. deprecated:: 0.6
+    Use :meth:`imshow_active_cell_grid`, above, instead.
+    """
 
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
                 grid_units=(None, None), symmetric_cbar=False,
-                cmap='jet'):
+                cmap='pink'):
+    """.. deprecated:: 0.6
+    Use :meth:`imshow_active_cell_grid`, above, instead.
+    """
     data = values.view()
     data.shape = (grid.shape[0]-2, grid.shape[1]-2)
 

@@ -10,8 +10,8 @@ MEAN_FIRE_RECURRENCE:
 MEAN_STORM: mean storm duration, [ T ] units may vary, depend on intensity units
 0.612083
 
-MEAN_INTENSITY: mean storm intensity, [L/T] units may vary
-2.5
+MEAN_DEPTH: mean storm depth, [L] units may vary
+1.53
 
 MEAN_INTERSTORM: mean storm intensity, [ T ] units may vary, see mean_storm
 11.90

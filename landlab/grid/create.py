@@ -35,7 +35,7 @@ def create_and_initialize_grid(input_source):
     Example:
         
     >>> from StringIO import StringIO
-    >>> test_file = StringIO(\"\"\"
+    >>> test_file = StringIO('''
     ... GRID_TYPE:
     ... raster
     ... NUM_ROWS:
@@ -44,7 +44,7 @@ def create_and_initialize_grid(input_source):
     ... 5
     ... GRID_SPACING: 
     ... 2.5
-    ... \"\"\")
+    ... ''')
     >>> from landlab import create_and_initialize_grid
     >>> mg = create_and_initialize_grid(test_file)
     >>> mg.number_of_nodes

@@ -11,7 +11,7 @@ particular parameters by key name.
 The format of the input file looks like::
 
     >>> from StringIO import StringIO
-    >>> param_file = StringIO(\"\"\"
+    >>> param_file = StringIO('''
     ... PI: the text "PI" is an example of a KEY
     ... 3.1416
     ... AVOGADROS_NUMBER: this is another
@@ -22,11 +22,12 @@ The format of the input file looks like::
     ... 4
     ... ALSO_LIKES_APPLES: this is a boolean
     ... true
-    ... \"\"\")
+    ... ''')
 
 Example code that reads these parameters from a file called
 *myinputs.txt*:
 
+    >>> from landlab import ModelParameterDictionary
     >>> my_param_dict = ModelParameterDictionary()
     >>> my_param_dict.read_from_file(param_file)
     >>> pi = my_param_dict.read_float('PI')
@@ -79,6 +80,7 @@ import types
  
 import scipy.io
 from numpy import *  
+import numpy as np
 #------------------------------------------------------------
 
 
@@ -156,7 +158,7 @@ class ModelParameterDictionary(dict):
     Create a file-like object that contains a model parameter dictionary.
 
     >>> from StringIO import StringIO
-    >>> test_file = StringIO(\"\"\"
+    >>> test_file = StringIO('''
     ... INT_VAL:
     ... 1
     ... DBL_VAL:
@@ -169,12 +171,13 @@ class ModelParameterDictionary(dict):
     ... 1.,2.,3.
     ... STR_VAL:
     ... landlab is awesome!
-    ... \"\"\")
+    ... ''')
 
     Create a ModelParameterDictionary, fill it with values from the
     parameter dictionary, and try to convert each value string to its
     intended type.
 
+    >>> from landlab import ModelParameterDictionary
     >>> params = ModelParameterDictionary(auto_type=True, from_file=test_file)
 
     The returned ModelParameterDictionary can now be used just like a
@@ -195,8 +198,8 @@ class ModelParameterDictionary(dict):
     Lines containing commas are converted to numpy arrays. The type of the
     array is determined by the values.
 
-    >>> type(params['DBL_ARRAY'])
-    <type 'numpy.ndarray'>
+    >>> isinstance(params['DBL_ARRAY'], np.ndarray)
+    True
     >>> print params['INT_ARRAY']
     [1 2 3]
     >>> print params['DBL_ARRAY']
@@ -328,11 +331,12 @@ class ModelParameterDictionary(dict):
         is not contained in the ModelParameterDictionary.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_INT:
         ... 1
-        ... \"\"\"))
+        ... '''))
         >>> params.get('MY_INT')
         '1'
         >>> params.get('MY_INT', ptype=int)
@@ -352,16 +356,26 @@ class ModelParameterDictionary(dict):
 
         If you would like to get a boolean, use *ptype='bool'*.
 
+        .. note:: Use *ptype='bool'* not *ptype=bool*.
+            If you use *bool* to convert a string the returned boolean will
+            be `True` for *any* non-empty string. This is just how the
+            Python built-in *bool* works,
+
+            >>> bool('0')
+            True
+            >>> bool('1')
+            True
+            >>> bool('')
+            False
+
         >>> from StringIO import StringIO
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_BOOL:
         ... false
-        ... \"\"\"))
+        ... '''))
         >>> params.get('MY_BOOL')
         'false'
-        >>> params.get('MY_BOOL', ptype=bool)
-        True
         >>> params.get('MY_BOOL', ptype='bool')
         False
         """
@@ -419,11 +433,12 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as an integer.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_INT:
         ... 1
-        ... \"\"\"))
+        ... '''))
         >>> params.read_int('MY_INT')
         1
 
@@ -437,12 +452,13 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as a float.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_FLOAT:
         ... 3.14
-        ... \"\"\"))
-        >>> params.read_float('MY_FLOAT')
+        ... '''))
+        >>> print round(params.read_float('MY_FLOAT'), 6)
         3.14
 
         An error is generated if *key* isn't in the dictionary or
@@ -462,11 +478,12 @@ class ModelParameterDictionary(dict):
         Locate *key* in the input file and return it as a string.
 
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_STRING:
         ... landlab
-        ... \"\"\"))
+        ... '''))
         >>> params.read_string('MY_STRING')
         'landlab'
 
@@ -481,11 +498,12 @@ class ModelParameterDictionary(dict):
     def read_bool(self, key):
         """
         >>> from StringIO import StringIO
+        >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
-        ... \"\"\"
+        ... '''
         ... MY_BOOL:
         ... true
-        ... \"\"\"))
+        ... '''))
         >>> params.read_bool('MY_BOOL')
         True
 

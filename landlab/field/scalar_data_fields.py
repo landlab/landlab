@@ -72,7 +72,7 @@ class ScalarDataFields(dict):
         return self._size
 
     def empty(self, **kwds):
-        """Return an uninitialized array whose size is that of the field.
+        """Uninitialized array whose size is that of the field.
 
         Return a new array of the data field size, without initializing
         entries. Keyword arguments are the same as that for the equivalent
@@ -88,6 +88,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.empty() # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
@@ -101,7 +102,7 @@ class ScalarDataFields(dict):
         return np.empty(self.size, **kwds)
 
     def ones(self, **kwds):
-        """Return an array, initialized to 1, whose size is that of the field.
+        """Array, initialized to 1, whose size is that of the field.
 
         Return a new array of the data field size, filled with ones. Keyword
         arguments are the same as that for the equivalent numpy function.
@@ -116,6 +117,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.ones()
         array([ 1.,  1.,  1.,  1.])
@@ -130,7 +132,7 @@ class ScalarDataFields(dict):
         return np.ones(self.size, **kwds)
 
     def zeros(self, **kwds):
-        """Return an array, initialized to 0, whose size is that of the field.
+        """Array, initialized to 0, whose size is that of the field.
 
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
@@ -145,6 +147,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.zeros()
         array([ 0.,  0.,  0.,  0.])
@@ -218,12 +221,13 @@ class ScalarDataFields(dict):
         --------
         Add a new, named field to a collection of fields.
 
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
-        >>> field.add_ones('planet_surface__elevation')
+        >>> field.add_ones('topographic_elevation')
         array([ 1.,  1.,  1.,  1.])
         >>> field.keys()
-        ['planet_surface__elevation']
-        >>> field['planet_surface__elevation']
+        ['topographic_elevation']
+        >>> field['topographic_elevation']
         array([ 1.,  1.,  1.,  1.])
         """
         return self.add_field(name, self.ones(**kwds), units=units)
@@ -295,15 +299,16 @@ class ScalarDataFields(dict):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('planet_surface__elevation', values)
+        >>> field.add_field('topographic_elevation', values)
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field['planet_surface__elevation'] is values
+        >>> field['topographic_elevation'] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -311,14 +316,13 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('planet_surface__elevation', values, copy=True)
+        >>> field.add_field('topographic_elevation', values, copy=True)
         array([1, 1, 1, 1])
-        >>> field['planet_surface__elevation'] is values
+        >>> field['topographic_elevation'] is values
         False
-        >>> field.add_field('planet_surface__elevation', values, noclobber=True)
+        >>> field.add_field('topographic_elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
-        FieldError: planet_surface__elevation
+        FieldError: topographic_elevation
         """
         if noclobber and name in self:
             raise FieldError(name)

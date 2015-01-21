@@ -101,6 +101,12 @@ def _get_raster_spacing(coords):
 
 
 def read_netcdf(nc_file, reshape=False, just_grid=False):
+    """
+    Reads the NetCDF file *nc_file*, and writes it to the fields of a new
+    RasterModelGrid, which it then returns.
+    Check the names of the fields in the returned grid with
+    grid.at_nodes.keys().
+    """
     try:
         root = nc.netcdf_file(nc_file, 'r', version=2)
     except TypeError:

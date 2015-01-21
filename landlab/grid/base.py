@@ -1,10 +1,178 @@
 #! /usr/env/python
 """
-Python implementation of ModelGrid, a class used to
-create and manage grids for 2D numerical models.
+Python implementation of ModelGrid, a base class used to create and manage
+grids for 2D numerical models.
 
-First version GT, July 2010
-Last modified May 2014
+Data Fields in ModelGrid
+------------------------
+:class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
+provides `~.ModelGrid`, and its subclasses, with the ability to, optionally,
+store data values that are associated with the different types grid elements
+(nodes, cells, etc.). In particular, as part of ``ModelGrid.__init__()``,
+data field *groups* are added to the `ModelGrid` that provide containers to
+put data fields into. There is one group for each of the eight grid elements
+(node, cell, link, face, core_node, core_cell, active_link, and active_face).
+
+To access these groups, use the same methods as accessing groups with
+`~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
+itself that provide access to the values groups:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.grid.base.ModelGrid.at_node
+    ~landlab.grid.base.ModelGrid.at_cell
+    ~landlab.grid.base.ModelGrid.at_link
+    ~landlab.grid.base.ModelGrid.at_face
+    ~landlab.grid.base.ModelGrid.at_core_node
+    ~landlab.grid.base.ModelGrid.at_core_cell
+    ~landlab.grid.base.ModelGrid.at_active_link
+    ~landlab.grid.base.ModelGrid.at_active_face
+
+Each of these attributes returns a ``dict``-like object whose keys are value
+names as strings and values are numpy arrays that gives quantities at
+grid elements.
+
+
+Create Field Arrays
++++++++++++++++++++
+:class:`~.ModelGrid` inherits several useful methods for creating new data
+fields and adding new data fields to a ModelGrid instance. Methods to add or
+create a new data array follow the ``numpy`` syntax for creating arrays. The
+folowing methods create and, optionally, initialize new arrays. These arrays
+are of the correct size but a new field will not be added to the field:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.empty
+    ~landlab.field.grouped.ModelDataFields.ones
+    ~landlab.field.grouped.ModelDataFields.zeros
+
+Add Fields to a ModelGrid
++++++++++++++++++++++++++
+Unlike with the equivalent numpy functions, these do not take a size argument
+as the size of the returned arrays is determined from the size of the
+ModelGrid. However, the keyword arguments are the same as those of the numpy
+equivalents.
+
+The following methods will create a new array and add a reference to that
+array to the ModelGrid:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.add_empty
+    ~landlab.field.grouped.ModelDataFields.add_ones
+    ~landlab.field.grouped.ModelDataFields.add_zeros
+    ~landlab.field.grouped.ModelDataFields.add_field
+
+These methods operate in the same way as the previous set except that, in
+addition to creating a new array, the newly-created array is added to the
+ModelGrid. The calling signature is the same but with the addition of an
+argument that gives the name of the new field as a string. The additional
+method, :meth:`~.ModelDataFields.add_field`, adds a previously allocation
+array to the ModelGrid. If the array is of the incorrect size it will raise
+``ValueError``.
+
+Query Fields
+++++++++++++
+Use the following methods/attributes get information about the stored data
+fields:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.size
+    ~landlab.field.grouped.ModelDataFields.keys
+    ~landlab.field.grouped.ModelDataFields.has_group
+    ~landlab.field.grouped.ModelDataFields.has_field
+    ~landlab.field.grouped.ModelDataFields.groups
+    
+    i.e., call, e.g. mg.has_field('node', 'my_field_name')
+
+Notes
+-----
+It is important that when creating a new grid class that inherits from
+``ModelGrid``, to call ``ModelGrid.__init__()`` in the new grid's
+``__init__()``. For example, the new class's __init__ should contain the
+following code,
+
+.. code-block:: python
+
+    class NewGrid(ModelGrid):
+        def __init__(self, *args, **kwds):
+            ModelGrid.__init__(self, **kwds)
+            # Code that initializes the NewGrid
+
+Without this, the new grid class will not have the ``at_*`` attributes.
+
+Examples
+--------
+Although the following examples use a :class:`~.RasterModelGrid`, they apply
+equally to any grid that inherits from :class:`~.ModelGrid`.  The new grid
+comes with a set of pre-defined value groups. One group for each grid element.
+Use the groups attribute to see the group names.
+
+>>> from landlab import RasterModelGrid
+>>> grid = RasterModelGrid(3, 3)
+>>> groups = list(grid.groups)
+>>> groups.sort()
+>>> groups
+['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'face', 'link', 'node']
+
+Create Field Arrays
++++++++++++++++++++
+If you just want to create an array but not add it to the grid, you can use
+the :meth:`~.ModelGrid.ones` method.
+
+>>> grid.ones(centering='node')
+array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+>>> grid.at_node.keys() # Nothing has been added to the grid
+[]
+
+Add Field Arrays
+++++++++++++++++
+Use the ``add_*`` methods to add value arrays attached to grid elements. Each
+of these methods accepts two arguments. The first is name of the grid element
+where values are associated and the second the name of the quantity. The
+quantity name must be unique within a group but the same quantity can appear
+in multiple goups.
+
+>>> grid.at_node.keys() # There a no values defined at grid nodes
+[]
+>>> z = grid.add_ones('node', 'topographic_elevation')
+
+We now see that the array has been added to the grid as a reference to the
+array returned by ``add_ones``.
+
+>>> grid.at_node.keys()
+['topographic_elevation']
+>>> grid.at_node['topographic_elevation']
+array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+>>> z is grid.at_node['topographic_elevation']
+True
+
+To add a previously created array to the grid, use the
+:meth:`~.ModelGrid.add_field` method but be aware that it must be of the
+correct size (if it's not a ``ValueError`` will be raised).
+
+>>> grid.has_field('node', 'air__temperature')
+False
+>>> import numpy as np
+>>> t = np.zeros(9)
+>>> t is grid.add_field('node', 'air__temperature', t)
+True
+>>> grid.has_field('node', 'air__temperature')
+True
+>>> grid.has_field('cell', 'air__temperature')
+False
+>>> t is grid.at_node['air__temperature']
+True
 """
 
 import numpy
@@ -13,13 +181,16 @@ import warnings
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
-from landlab.field import ModelDataFields
+from landlab.field import ModelDataFields, ScalarDataFields
+from landlab.field.scalar_data_fields import FieldError
+from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
+from scipy import weave
+from scipy.weave.build_tools import CompileError
 
-
-#: Indicates that an index is, in some way, *bad*.
-BAD_INDEX_VALUE = numpy.iinfo(numpy.int).max
-
+#: Indicates an index is, in some way, *bad*.
+BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
+#DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
@@ -35,12 +206,20 @@ _ARRAY_LENGTH_ATTRIBUTES = {
 }
 
 # Define the boundary-type codes
+
+#: Indicates a node is *core*.
 CORE_NODE = 0
+
+#: Indicates a boundary node is has a fixed values.
 FIXED_VALUE_BOUNDARY = 1
+
+#: Indicates a boundary node is has a fixed gradient.
 FIXED_GRADIENT_BOUNDARY = 2
+
+#: Indicates a boundary node is wrap-around.
 TRACKS_CELL_BOUNDARY = 3
 
-#: Indicates that a boundary node is *closed*
+#: Indicates a boundary node is closed
 CLOSED_BOUNDARY = 4
 
 BOUNDARY_STATUS_FLAGS_LIST = [
@@ -52,22 +231,17 @@ BOUNDARY_STATUS_FLAGS_LIST = [
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
 
-class Error(Exception):
-    """
-    Base class for exceptions from this module.
-    """
-    pass
-
-
 def _sort_points_into_quadrants(x, y, nodes):
     """
     Divide points with locations given in the *x*, and *y* arrays into north,
     south, east, and west quadrants. Returns nodes contained in quadrants
     (west, east, north, south).
 
-    >>> x = numpy.array([0, 1, 0, -1])
-    >>> y = numpy.array([1, 0, -1, 0])
-    >>> nodes = numpy.array([1, 2, 3, 4])
+    >>> import numpy as np
+    >>> from landlab.grid.base import _sort_points_into_quadrants
+    >>> x = np.array([0, 1, 0, -1])
+    >>> y = np.array([1, 0, -1, 0])
+    >>> nodes = np.array([1, 2, 3, 4])
     >>> _sort_points_into_quadrants(x, y, nodes)
     (array([4]), array([2]), array([1]), array([3]))
     """
@@ -83,42 +257,177 @@ def _sort_points_into_quadrants(x, y, nodes):
     return (west_nodes, east_nodes, north_nodes, south_nodes)
 
 
-def default_axis_names(n_dims):
-    '''
-    Returns a tuple of the default axis names.
-    (Helper function)
-    '''
+def _default_axis_names(n_dims):
+    """Returns a tuple of the default axis names."""
     _DEFAULT_NAMES = ('z', 'y', 'x')
     return _DEFAULT_NAMES[- n_dims:]
 
 
-def default_axis_units(n_dims):
-    '''
-    Returns a tuple of the default axis units.
-    (Helper function)
-    '''
+def _default_axis_units(n_dims):
+    """Returns a tuple of the default axis units."""
     return ('-', ) * n_dims
 
 
-class ModelGrid(ModelDataFields):
+def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
+    """Separates a pair of links with vector values into x and y components.
+    
+    The concept here is that a pair of adjacent links attached to a node are 
+    projections of a 'true' but unknown vector. This function finds and returns 
+    the x and y components of this true vector. The trivial case is the 
+    situation in which the two links are orthogonal and aligned with the grid 
+    axes, in which case the vectors of these two links *are* the x and y 
+    components.
+    
+    Parameters
+    ----------
+    L1, L2 : float
+        Values (magnitudes) associated with the two links
+    b1x, b1y, b2x, b2y : float
+        Unit vectors of the two links
+        
+    Returns
+    -------
+    ax, ay : float
+        x and y components of the 'true' vector
+    
+    Notes
+    -----
+    The function does an inverse vector projection. Suppose we have a given
+    'true' vector :math:`a`, and we want to project it onto two other lines with unit
+    vectors (b1x,b1y) and (b2x,b2y). In the context of Landlab, the 'true' vector
+    is some unknown vector quantity, which might for example represent the local
+    water flow velocity. The lines represent two adjacent links in the grid.
+    
+    Let :math:`\mathbf{a}` be the true vector, :math:`\mathbf{B}` be a different vector
+    with unit vector :math:`\mathbf{b}`, and :math:`L` be the scalar projection
+    of *a* onto *B*. Then,
+    
+    ..math::
+        L = \mathbf{a} \dot \mathbf{b} = a_x b_x + a_y b_y,
+        
+    where :math:`(a_x,a_y)` are the components of **a** and :math:`(b_x,b_y)`
+    are the components of the unit vector **b**.
+    
+    In this case, we know *b* (the link unit vector), and we want to know the
+    *x* and *y* components of **a**. The problem is that we have one equation
+    and two unknowns (:math:`a_x` and :math:`a_y`). But we can solve this if we
+    have *two* vectors, both of which are projections of **a**. Using the 
+    subscripts 1 and 2 to denote the two vectors, we can obtain equations for 
+    both :math:`a_x` and :math:`a_y`:
+        
+    ..math::
+    
+        a_x = L_1 / b_{1x} - a_y b_{1y} / b_{1x}
+
+        a_y = L_2 / b_{2y} - a_x b_{2x} / b_{2y}
+        
+    Substituting the second into the first,
+    
+    ..math::
+    
+        a_x = [L_1/b_{1x}-L_2 b_{1y}/(b_{1x} b_{2y})] / [1-b_{1y} b_{2x}/(b_{1x} b_{2y})]
+        
+    Hence, we find the original vector :math:`(a_x,a_y)` from two links with 
+    unit vectors :math:`(b_{1x},b_{1y})` and :math:`(b_{2x},b_{2y})` and
+    associated values :math:`L_1` and :math:`L_2`.  
+   
+    Note that the above equations require that :math:`b_{1x}>0` and 
+    :math:`b_{2y}>0`. If this isn't the case, we invert the order of the two
+    links, which requires :math:`b_{2x}>0` and :math:`b_{1y}>0`. If none of 
+    these conditions is met, then we have a degenerate case.
+    
+    Examples
+    --------
+    The following example represents the active links in a 7-node hexagonal
+    grid, with just one core node. The 'true' vector has a magnitude of 5 units
+    and an orientation of 30 degrees, pointing up and to the right (i.e., the
+    postive-x and postive-y quadrant), so that its vector components are 4 (x)
+    and 3 (y) (in other words, it is a 3-4-5 triangle). The values assigned to
+    L below are the projection of that true vector onto the six link
+    vectors. The algorithm should recover the correct vector component values of 
+    4 and 3. The FOR loop examines each pair of links in turn.
+    
+    >>> import numpy as np
+    >>> from landlab.grid.base import find_true_vector_from_link_vector_pair
+    >>> bx = np.array([0.5, -0.5, -1., -0.5, 1., 0.5])
+    >>> by = np.array([0.866, 0.866, 0., -0.866, 0., -0.866])
+    >>> L = np.array([4.6, 0.6, -4., -4.6, 4., -0.6])
+    >>> for i in range(5):
+    ...     ax, ay = find_true_vector_from_link_vector_pair(L[i], L[i+1], bx[i], by[i], bx[i+1], by[i+1])
+    ...     round(ax,1), round(ay,1)
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
+    (4.0, 3.0)
     """
-    Base class for creating and manipulating 2D structured or
-    unstructured grids for numerical models.
+    assert ((b1x!=0 and b2y!=0) or (b2x!=0 and b1y!=0)), \
+            'Improper unit vectors'
+    
+    if b1x!=0. and b2y!=0.:
+        ax = (L1/b1x - L2*(b1y/(b1x*b2y)))/(1.-(b1y*b2x)/(b1x*b2y))
+        ay = L2/b2y - ax*(b2x/b2y)
+    elif b2x!=0. and b1y!=0.: 
+        ax = (L2/b2x - L1*(b2y/(b2x*b1y)))/(1.-(b2y*b1x)/(b2x*b1y))
+        ay = L1/b1y - ax*(b1x/b1y)
+        
+    return ax, ay
+
+
+class ModelGrid(ModelDataFields):
+    """Base class for creating and manipulating 2D structured or unstructured
+    grids for numerical models.
     
     The idea is to have at least two inherited
     classes, RasterModelGrid and DelaunayModelGrid, that can create and
     manage grids. To this might be added a GenericModelGrid, which would
     be an unstructured polygonal grid that doesn't necessarily obey or
     understand the Delaunay triangulation, but rather simply accepts
-    an input grid from the user. Also a HexModelGrid for hexagonal.
+    an input grid from the user. Also a :class:`~.HexModelGrid` for hexagonal.
+
+    Attributes
+    ----------
+    at_node : dict-like
+        Values at nodes.
+    at_cell : dict-like
+        Values at cells.
+    at_link : dict-like
+        Values at links.
+    at_face : dict-like
+        Values at faces.
+    at_core_node : dict-like
+        Values at core nodes.
+    at_core_cell : dict-like
+        Values at core cells.
+    at_active_link : dict-like
+        Values at active links.
+    at_active_face : dict-like
+        Values at active faces.
+
+    Other Parameters
+    ----------------
+    axis_name : tuple, optional
+        Name of axes
+    axis_units : tuple, optional
+        Units of coordinates
     """
-
     # Debugging flags (if True, activates some output statements)
-    DEBUG_VERBOSE = False
-    DEBUG_TRACK_METHODS = False
+    _DEBUG_VERBOSE = False
+    _DEBUG_TRACK_METHODS = False
 
+    at_node = {} #: Values defined at nodes
+    at_cell = {} #: Values defined at cells
+    at_link = {} #: Values defined at links
+    at_face = {} #: Values defined at faces
+    at_core_node = {} #: Values defined at core nodes
+    at_core_cell = {} #: Values defined at core cells
+    at_active_link = {} #: Values defined at active links
+    at_active_face = {} #: Values defined at active faces
+
+    node_inlink_matrix = numpy.array([], dtype=numpy.int32) #: Nodes on the other end of links pointing into a node.
+    node_outlink_matrix = numpy.array([], dtype=numpy.int32) #: Nodes on the other end of links pointing out of a node.
+    
     def __init__(self, **kwds):
-        #print 'ModelGrid.__init__'
         super(ModelGrid, self).__init__()
         for element_name in _ARRAY_LENGTH_ATTRIBUTES:
             array_length = self.number_of_elements(element_name)
@@ -126,9 +435,17 @@ class ModelGrid(ModelDataFields):
                 self.new_field_location(element_name, array_length)
             except AttributeError:
                 pass
+        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
+        try:
+            weave.inline('',[])
+        except CompileError:
+            self.weave_flag = False
+            print "***Warnings which appear directly above this line relate to an attempt by Landlab to implement C++ acceleration. However, regardless of whether warnings appear, your installation of Python lacks the necessary C++ compiler to allow this. Everything will still work fine, but Landlab may run more slowly for you on large (>>10**4 nodes) grids. See the readthedocs documentation, or contact the developers, for more information.***"
+        else:
+            self.weave_flag = True
 
-        self.axis_name = kwds.get('axis_name', default_axis_names(self.ndim))
-        self.axis_units = kwds.get('axis_units', default_axis_units(self.ndim))
+        self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
+        self.axis_units = kwds.get('axis_units', _default_axis_units(self.ndim))
 
     def _initialize( self ):
         pass
@@ -176,21 +493,24 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_boundary_status(self):
-        """
-        Node BC status codes for all nodes:
-            0: core (nonboundary) node
-            1: fixed value open boundary
-            2: fixed gradient open boundary
-            3: looped open boundary
-            4: closed boundary
+        """Boundary status of nodes.
+
+        Return an array of the status of a grid's nodes. The node status can
+        be one of the following:
+        - `CORE_NODE`
+        - `FIXED_VALUE_BOUNDARY`
+        - `FIXED_GRADIENT_BOUNDARY `
+        - `TRACKS_CELL_BOUNDARY`
+        - `CLOSED_BOUNDARY `
         """
         return self.node_status
 
     @property
     def open_nodes(self):
         """
-        .. deprecated:: 0.6
-            This terminology is no longer preferred, "active_nodes" is a synonym.
+        .. note:: Deprecated since version 0.6.
+            This terminology is no longer preferred, "active_nodes" is a
+            synonym.
             
         Node id for all nodes not marked as a closed boundary
         """
@@ -199,9 +519,7 @@ class ModelGrid(ModelDataFields):
     
     @property
     def open_boundary_nodes(self):
-        """
-        Node id of all open boundary nodes.
-        """
+        """Node id of all open boundary nodes."""
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
@@ -216,6 +534,22 @@ class ModelGrid(ModelDataFields):
         return closed_boundary_node_ids
     
     @property
+    def fixed_gradient_boundary_nodes(self):
+        """Node id of all fixed gradient boundary nodes
+        """
+        (fixed_gradient_boundary_node_ids, ) = numpy.where(
+            self.node_status == FIXED_GRADIENT_BOUNDARY)
+        return fixed_gradient_boundary_node_ids
+    
+    @property
+    def fixed_value_boundary_nodes(self):
+        """Node id of all fixed value boundary nodes
+        """
+        (fixed_value_boundary_node_ids, ) = numpy.where(
+            self.node_status == FIXED_VALUE_BOUNDARY)
+        return fixed_value_boundary_node_ids
+    
+    @property
     def active_links(self):
         """Link IDs of all active links"""
         try:
@@ -226,56 +560,49 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_index_at_active_cells(self):
-        """
-        .. deprecated:: 0.6
-            Deprecated due to out-of-date terminology; 
+        """Node ID associated with active grid cells.
+
+        .. note:: Deprecated since version 0.6.
+            Uses out-of-date terminology; 
             use :func:`node_index_at_core_cells` for an exact equivalent.
-        Node ID associated with active grid cells
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return active_cell_ids
 
     @property
     def node_index_at_core_cells(self):
-        """
-        Node ID associated with core grid cells
-        """
+        """Node ID associated with core grid cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return core_cell_ids
 
     @property
     def active_cell_index_at_nodes(self):
-        """
-        .. deprecated:: 0.6
+        """Active cell ID associated with grid nodes.
+
+        .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
-            
-        Active cell ID associated with grid nodes.
         """
         return self.node_activecell
 
     @property
     def active_cell_index(self):
-        """
-        .. deprecated:: 0.6
+        """IDs of active cells.
+
+        .. note:: Deprecated since version 0.6.
             "active" terminology now superceded by "core", unless explicitly
             referring to the open boundaries as well as core cells.
-        IDs of active cells
         """
         return self.active_cells
     
     @property
     def core_cell_index_at_nodes(self):
-        """
-        Core cell ID associated with grid nodes.
-        """
+        """Core cell ID associated with grid nodes."""
         return self.node_corecell
         
     @property
     def core_cell_index(self):
-        """
-        IDs of core cells
-        """
+        """IDs of core cells."""
         return self.core_cells
 
     @property
@@ -333,11 +660,8 @@ class ModelGrid(ModelDataFields):
     
     @property
     def number_of_core_cells(self):
-        """
-        Number of core cells in the grid (excludes all boundary cells).
-        """
+        """Number of core cells in the grid (excludes all boundary cells)."""
         return self._num_core_cells
-        
 
     @property
     def number_of_active_links(self):
@@ -350,16 +674,21 @@ class ModelGrid(ModelDataFields):
         return self._num_active_faces
 
     def number_of_elements(self, element_name):
-        """Return the number of elements, given by the *element_name* string
-        in a grid. *element_name* must be one of:
-            * node
-            * cell
-            * link
-            * face
-            * core_node
-            * core_cell
-            * active_link
-            * active_face
+        """Number of instances of an element.
+        
+        Get the number of instances of a grid element in a grid.
+
+        Parameters
+        ----------
+        element_name : {'node', 'cell', 'link', 'face', 'core_node',
+            'core_cell', 'active_link', 'active_face'}
+            Name of the grid element.
+        }
+
+        Returns
+        -------
+        int :
+            Number of elements in the grid.
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
@@ -367,26 +696,33 @@ class ModelGrid(ModelDataFields):
             raise TypeError('element name not understood')
 
     def get_interior_nodes(self):
-        """
-        .. deprecated:: 0.6
-            Deprecated due to outdated terminology;
-            use :func:`core_nodes` instead.
-            
-        Return node IDs of all of a grid's interior nodes. Interior nodes
+        """Return node IDs of all of a grid's interior nodes. Interior nodes
         are active nodes that are not on a boundary.
+
+        .. note:: Deprecated since version 0.6.
+            Deprecated due to outdated terminology;
+            use :func:`get_core_nodes` instead.
         """
         return numpy.where(self.node_status == CORE_NODE)[0]
 
     def get_core_nodes(self):
-        """
-        Return node IDs of all of a grid's core nodes.
+        """Node IDs of core nodes.
+
+        Returns
+        -------
+        ndarray
+            Node IDs of all of a grid's core nodes.
         """
         return self.core_nodes
 
     @make_return_array_immutable
     def get_node_status(self):
-        """
-        Returns an array of node boundary-status codes.
+        """Status of grid nodes.
+
+        Returns
+        -------
+        ndarray
+            Node status of all a grid's nodes.
         """
         return self.node_status
 
@@ -404,10 +740,21 @@ class ModelGrid(ModelDataFields):
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
-        """
+        """Coordinates of nodes along a particular axis.
+
         Return node coordinates from a given *axis* (defaulting to 0). Axis
         numbering is the same as that for numpy arrays. That is, the zeroth
         axis is along the rows, and the first along the columns.
+
+        Parameters
+        ----------
+        axis : int, optional
+            Coordinate axis.
+
+        Returns
+        -------
+        ndarray
+            Coordinates of nodes for a given axis.
         """
         AXES = ('node_y', 'node_x')
         try:
@@ -418,7 +765,8 @@ class ModelGrid(ModelDataFields):
     @property
     def axis_units(self):
         """A tuple of the units (as a string) for each of a grid's
-        coordinates."""
+        coordinates.
+        """
         return self._axis_units
 
     @axis_units.setter
@@ -440,39 +788,140 @@ class ModelGrid(ModelDataFields):
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
 
-    def create_node_array_zeros( self, name=None ):
-        """
-        Returns a 1D numpy array the same length as the number of nodes. If
-        user gives optional argument 'name', we add this data to the grid with
-        the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array. This is the primary method for
-        loading your data into the grid fields.
+    def node_activelinks(self, *args):
+        """node_activelinks([node_ids])
+        Active links of a node.
         
-        Example of loading data:
-            >>> rmg = RasterModelGrid(4,5)
-            >>> mydata = numpy.arange(20, dtype=float)
-            >>> rmg.create_node_array_zeros('planet_surface__elevation')
-            array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                    0.,  0.,  0.,  0.,  0.,  0.,  0.])
-            >>> rmg.at_node['planet_surface__elevation'] = mydata
-            >>> rmg.at_node['planet_surface__elevation']
-            array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-                    11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
-            
-            
+        Parameters
+        ----------
+        node_ids : int or list of ints
+                   ID(s) of node(s) for which to find connected active links
+        
+        Returns
+        -------
+        (M, N) ndarray
+            The ids of active links attached to grid nodes with
+            *node_ids*. If *node_ids* is not given, return links for all of the
+            nodes in the grid. M is the number of rows in the grid's
+            node_active_inlink_matrix, which can vary depending on the type and
+            structure of the grid; in a hex grid, for example, it is 6.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(3, 2)
+        >>> hmg.node_activelinks(3)
+        array([[-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [ 0],
+               [ 1],
+               [ 2],
+               [ 3],
+               [ 4],
+               [ 5]])
+        >>> hmg.node_activelinks()
+        array([[ 3,  5,  2, -1,  4,  1,  0],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
+               [-1, -1, -1,  2, -1, -1, -1],
+               [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  4, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1]])
+
+        """
+        import numpy as np
+        if len(args) == 0:
+            return np.vstack((self.node_active_inlink_matrix,
+                              self.node_active_outlink_matrix))
+        elif len(args) == 1:
+            node_ids = np.broadcast_arrays(args[0])[0]
+            return (
+                np.vstack((self.node_active_inlink_matrix[:, node_ids],
+                           self.node_active_outlink_matrix[:, node_ids])
+                         ).reshape(2*np.size(self.node_active_inlink_matrix, 0), -1))
+        else:
+            raise ValueError('only zero or one arguments accepted')
+
+
+    def create_node_array_zeros(self, name=None, **kwds):
+        """Return a new array of the given type, filled with zeros.
+
+        Returns a 1D numpy array the same length as the number of nodes. If
+        user gives optional argument *name*, we add this data to the grid with
+        the specified name and return a reference to it; otherwise, we just
+        create and return a 1D numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the quantity.
+
+        Returns
+        -------
+        ndarray
+            The newly created array.
+
+        See Also
+        --------
+        zeros
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4,5)
+        >>> mydata = np.arange(20, dtype=float)
+        >>> rmg.create_node_array_zeros('topographic_elevation')
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        >>> rmg.at_node['topographic_elevation'] = mydata
+        >>> rmg.at_node['topographic_elevation']
+        array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         """
         if name is None:
-            return numpy.zeros(self.number_of_nodes)
+            return numpy.zeros(self.number_of_nodes, **kwds)
         else: 
-            self.add_zeros('node', name)
+            self.add_zeros('node', name, **kwds)
             return self.at_node[name]
-        
-    def create_active_link_array_zeros( self, name=None ):
-        """
+
+    def create_active_link_array_zeros(self, name=None):
+        """Array, filled with zeros, for a given element.
+
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
         the specified name and return a reference to it; otherwise, we just
         create and return a 1D numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the quantity.
+
+        Returns
+        -------
+        ndarray
+            The newly created array.
+
+        See Also
+        --------
+        zeros
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid(3, 3)
+        >>> grid.create_active_link_array_zeros()
+        array([ 0.,  0.,  0.,  0.])
         """
         if name is None:
             return numpy.zeros(self.number_of_active_links)
@@ -526,28 +975,48 @@ class ModelGrid(ModelDataFields):
             raise TypeError(centering)
 
     def set_fixed_value_boundaries(self, node_ids):
-        """
+        """Make nodes fixed value boundaries.
+
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
-        """
+        """Differences at links.
+
         Calculates the difference in quantity *node_values* at every link
-        in the grid.
-        Note that this is tonode-fromnode along links, and is thus equivalent to
-        positive gradient up.
+        in the grid. Note that this is tonode-fromnode along links, and is
+        thus equivalent to positive gradient up.
+
+        Parameters
+        ----------
+        node_values : ndarary
+            Values at grid nodes.
+
+        Returns
+        -------
+        ndarray
+            Differences over links.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(3, 3)
+        >>> z = np.zeros(9.)
+        >>> z[4] = 1.
+        >>> rmg.calculate_diff_at_links(z)
+        array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
         """
         return gfuncs.calculate_diff_at_links(self, node_values, out=out)
         
     @track_this_method
     def calculate_diff_at_active_links(self, node_values, out=None):
-        """
+        """Differences at active links.
+
         Calculates the difference in quantity *node_values* at each active link
         in the grid.
         Note that this is tonode-fromnode along links, and is thus equivalent to
@@ -558,7 +1027,8 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_links(self, node_values, out=None):
-        """
+        """Gradients at links.
+
         Calculates the gradient in quantity *node_values* at every link
         in the grid.
         This method follows the convention POSITIVE UP.
@@ -567,7 +1037,8 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_active_links(self, node_values, out=None):
-        """
+        """Gradients at active links.
+
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
         This method follows the convention POSITIVE UP.
@@ -577,11 +1048,12 @@ class ModelGrid(ModelDataFields):
         
     @track_this_method
     def calculate_gradients_at_active_links_slow(self, s, gradient=None):
-        """
-        .. deprecated:: 0.1
+        """*Deprecated*.
+        Calculates the gradient in quantity s at each active link in the
+        grid.
+
+        .. note:: Deprecated since version 0.1.
             Use :func:`calculate_gradients_at_active_links`
-        
-        Calculates the gradient in quantity s at each active link in the grid.
         """
         if gradient==None:
             gradient = numpy.zeros(self.number_of_active_links)
@@ -599,24 +1071,205 @@ class ModelGrid(ModelDataFields):
         return gradient
         
     def resolve_values_on_links(self, link_values, out=None):
-        """
+        """xy-components of links.
+
         Resolves values provided defined on links into the x and y directions.
         Returns values_along_x, values_along_y
         """
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
     def resolve_values_on_active_links(self, link_values, out=None):
-        """
+        """xy-components of active links.
+
         Resolves values provided defined on active links into the x and y 
         directions.
         Returns values_along_x, values_along_y
         """
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
+
+
+    def node_slopes_using_patches(self, elevs='topographic_elevation', unit='degrees', return_components=False):
+        """
+        trial run to extract average local slopes at nodes by the average slope
+        of its surrounding patches. DEJH 10/1/14
+        elevs either a field name or an nnodes-array.
+        unit is 'degrees' or 'radians'.
+        If return_components=False (the default), returns the slope magnitude.
+        If return_components=True, returns the slope magnitude, then the vector
+        (a tuple) of the slope components in the x, y directions.
+        If closed nodes were present in the original array, their values will
+        be masked.
+        """
+        dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
+        dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
+        dummy_patch_nodes[-1,:] = -1
+        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3] #now any ref to a null node will be -1 in this new (N,patch_max_dim,4or3) array.
+        #note we truncate the array to be [N,patch_max_dim,3]; we only need 3 pts per patch, if we're working on a raster
+        node_elevs = numpy.ones((nodes_on_patches.shape[0],nodes_on_patches.shape[1],3,3),dtype=float) #using the wrong values in -1 won't matter, as we'll mask with nodes_on_patches at the end
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        c = numpy.ma.array(numpy.linalg.det(node_elevs), mask=mask_from_nop)
+        try:
+            node_elevs[:,:,:,2] = self.at_node[elevs][nodes_on_patches]
+        except TypeError:
+            node_elevs[:,:,:,2] = elevs[nodes_on_patches]
+        node_elevs[:,:,:,1] = 1.
+        b = numpy.linalg.det(node_elevs)
+        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        node_elevs[:,:,:,0] = 1.
+        a = numpy.linalg.det(node_elevs)
+        
+        mask_from_nop = nodes_on_patches[:,:,0]==-1
+        grad_x = -a/c
+        grad_y = -b/c #...still for each patch
+        mean_grad_x = numpy.mean(grad_x,axis=1)
+        mean_grad_y = numpy.mean(grad_y,axis=1)
+        
+        slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
+        
+        if unit=='radians':
+            if not return_components:
+                return slope_mag
+            else:
+                return slope_mag, (mean_grad_x, mean_grad_y)
+        if unit=='degrees':
+            if not return_components:
+                return 180./numpy.pi*slope_mag
+            else:
+                return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
+        else:
+            raise TypeError("unit must be 'degrees' or 'radians'")
+    
+    
+    def node_slopes(self, **kwargs):
+        """
+        This method is simply an alias for grid.node_slopes_using_patches()
+        Takes
+        * elevs : field name or nnodes array, defaults to 'topographic_elevation'
+        * unit : 'degrees' (default) or 'radians'
+        as for node_slopes_using_patches
+        """
+        return self.node_slopes_using_patches(**kwargs)
+        
+    
+    def aspect(self, slope_component_tuple=None, elevs='topographic_elevation', unit='degrees'):
+        """aspect
+        Calculates at returns the aspect of a surface. Aspect is returned as 
+        radians clockwise of north, unless input parameter units is set to
+        'degrees'.
+        
+        If slope_component_tuple is provided, i.e., (slope_x, slope_y), the
+        aspect will be calculated from these data.
+        
+        If it is not, it will be derived from elevation data at the nodes,
+        which can either be a string referring to a grid field (default:
+        'topographic_elevation'), or an nnodes-long numpy array of the
+        values themselves.
+        """
+        if slope_component_tuple:
+            assert type(slope_component_tuple) == tuple
+            assert len(slope_component_tuple) == 2
+        else:
+            try:
+                elev_array = self.at_node[elevs]
+            except MissingKeyError:
+                assert elevs.size == self.number_of_nodes
+                elev_array = elevs
+            _,slope_component_tuple = self.node_slopes_using_patches(elevs=elev_array)
+        angle_from_x_ccw = numpy.arctan2(slope_component_tuple[1], slope_component_tuple[0])
+        angle_from_N_cw = -(angle_from_x_ccw + numpy.pi/2.)%(2*numpy.pi)
+        if unit=='degrees':
+            return 180./numpy.pi*angle_from_N_cw
+        elif unit=='radians':
+            return angle_from_N_cw
+        else:
+            raise TypeError("unit must be 'degrees' or 'radians'")
+        
+    
+    def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees', elevs='topographic_elevation'):
+        """Calculate hillshade.
+
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+        
+        Promoted from raster to base by DEJH, 10/7/14.
+
+        Parameters
+        ----------
+        alt : float
+            Sun altitude (from horizon) - defaults to 45 degrees
+        az : float
+            Sun azimuth (from north) - defaults to 315 degrees
+        slp : float
+            slope of cells at surface - optional
+        asp : float
+            aspect of cells at surface (from north) - optional (with slp)
+        unit : string
+            'degrees' (default) or 'radians' - only needed if slp and asp
+                                                are not provided
+            
+        If slp and asp are both not specified, 'elevs' must be provided as
+        a grid field name (defaults to 'topographic_elevation') or an
+        nnodes-long array of elevation values. In this case, the method will
+        calculate local slopes and aspects internally as part of the hillshade
+        production.
+
+        Returns
+        -------
+        float
+            Hillshade at each cell.
+
+        Notes
+        -----
+        code taken from GeospatialPython.com example from December 14th, 2014
+        DEJH found what looked like minor sign problems, and adjusted to follow
+        the ArcGIS algorithm: http://help.arcgis.com/en/arcgisdesktop/10.0/
+        help/index.html#/How_Hillshade_works/009z000000z2000000/ .
+        
+        NB: grid.node_slopes_using_patches() returns slopes as RADIANS. Use
+        caution.
+        
+        Remember when plotting that bright areas have high values. cmap='Greys'
+        will give an apparently inverted color scheme. *cmap='gray'* has white
+        associated with the high values, so is recommended for plotting.
+
+        """
+        if slp!=None and asp!=None:
+            if unit=='degrees':
+                (alt, az, slp, asp) = (numpy.radians(alt), numpy.radians(az),
+                                numpy.radians(slp), numpy.radians(asp))
+            elif unit=='radians':
+                if alt>numpy.pi/2. or az>2.*numpy.pi:
+                    print 'Assuming your solar properties are in degrees, but your slopes and aspects are in radians...'
+                    (alt, az) = (numpy.radians(alt), numpy.radians(az))
+                    #...because it would be super easy to specify radians, but leave the default params alone...
+            else:
+                raise TypeError("unit must be 'degrees' or 'radians'")
+        elif slp==None and asp==None:
+            if unit=='degrees':
+                (alt, az) = (numpy.radians(alt), numpy.radians(az))
+            elif unit=='radians':
+                pass
+            else:
+                raise TypeError("unit must be 'degrees' or 'radians'")
+            slp,slp_comps = self.node_slopes_using_patches(elevs, unit='radians')
+            asp = self.aspect(slope_component_tuple=slp_comps, unit='radians')
+        else:
+            raise TypeError('Either both slp and asp must be set, or neither!')
+
+        shaded = (
+            numpy.sin(alt) * numpy.cos(slp) +
+            numpy.cos(alt) * numpy.sin(slp) * numpy.cos(az - asp)
+        )
+
+        return shaded
+        
         
     def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
                                                   net_unit_flux=None):
-        """
-        .. deprecated:: 0.6
+        """Flux divergence for active cells.
+
+        .. note:: Deprecated since version 0.6
             Uses outdated terminology; use the exact equivalent
             :func:`calculate_flux_divergence_at_core_nodes` instead.
             
@@ -659,40 +1312,41 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-        Example:
-            
-            >>> from landlab import RasterModelGrid
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
-            >>> divflux
-            array([ 2.,  4., -2.,  0.,  1., -4.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = [0., 1., 2., 3., 0.,
+        ...      1., 2., 3., 2., 3.,
+        ...      0., 1., 2., 1., 2.,
+        ...      0., 0., 2., 2., 0.]
+        >>> u = np.array(u)
+        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad
+        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
+        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
+        >>> divflux
+        array([ 2.,  4., -2.,  0.,  1., -4.])
             
         If calculate_gradients_at_active_links is called inside a loop, you can
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
             
         Then do this inside the loop:
             
-            >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
+        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
             
         In this case, the function will not have to create the divflux array.
         
         Note this method is untested with looped boundary conditions.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -715,7 +1369,8 @@ class ModelGrid(ModelDataFields):
         
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux, 
                                                   net_unit_flux=None):
-        """
+        """Flux divergence for core nodes.
+
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
         net_unit_flux.
@@ -755,40 +1410,41 @@ class ModelGrid(ModelDataFields):
                     {du \over dt} = \\text{source} - \\text{fd}
             where fd is "flux divergence".
             
-        Example:
-            
-            >>> from landlab import RasterModelGrid
-            >>> rmg = RasterModelGrid(4, 5, 1.0)
-            >>> u = [0., 1., 2., 3., 0.,
-            ...      1., 2., 3., 2., 3.,
-            ...      0., 1., 2., 1., 2.,
-            ...      0., 0., 2., 2., 0.]
-            >>> u = numpy.array(u)
-            >>> grad = rmg.calculate_gradients_at_active_links(u)
-            >>> grad
-            array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                    1.,  1., -1.,  1.])
-            >>> flux = -grad    # downhill flux proportional to gradient
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
-            >>> divflux
-            array([ 2.,  4., -2.,  0.,  1., -4.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> u = [0., 1., 2., 3., 0.,
+        ...      1., 2., 3., 2., 3.,
+        ...      0., 1., 2., 1., 2.,
+        ...      0., 0., 2., 2., 0.]
+        >>> u = np.array(u)
+        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad
+        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
+                1.,  1., -1.,  1.])
+        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
+        >>> divflux
+        array([ 2.,  4., -2.,  0.,  1., -4.])
             
         If calculate_gradients_at_core_nodes is called inside a loop, you can
         improve speed slightly by creating an array outside the loop. For 
         example, do this once, before the loop:
             
-            >>> divflux = rmg.zeros(centering='active_cell') # outside loop
+        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
             
         Then do this inside the loop:
             
-            >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
+        >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux, divflux)
             
         In this case, the function will not have to create the divflux array.
         
         Note this method is untested with looped boundary conditions.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -809,10 +1465,11 @@ class ModelGrid(ModelDataFields):
         return net_unit_flux
 
 
-    def calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
-                                                  net_unit_flux=False):
-        """
-        .. deprecated:: 0.1
+    def _calculate_flux_divergence_at_active_cells_slow(self, active_link_flux, 
+                                                        net_unit_flux=False):
+        """Flux divergence for active cells.
+
+        .. note:: Deprecated since version 0.1.
             Use :func:`calculate_flux_divergence_at_active_cells`
             
         Original, slower version of calculate_flux_divergence_at_active_cells, 
@@ -821,7 +1478,7 @@ class ModelGrid(ModelDataFields):
         to do.
         """
         
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.calculate_flux_divergence_at_active_cells'
             
         assert (len(active_link_flux) == self.number_of_active_links), \
@@ -860,7 +1517,8 @@ class ModelGrid(ModelDataFields):
 
     @track_this_method
     def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
-        """
+        """Flux divergence at nodes.
+
         Same as calculate_flux_divergence_at_active_cells, but works with and
         returns a list of net unit fluxes that corresponds to all nodes, rather
         than just active cells. 
@@ -881,7 +1539,8 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable
     def cell_areas(self):
-        """
+        """Cell areas.
+
         Returns an array of grid-cell areas.
 
         .. note::
@@ -899,21 +1558,23 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable    
     def forced_cell_areas(self):
-        """
+        """Cell areas.
+
         Returns an array of grid cell areas. In the cases of inactive nodes,
         this method forces the area of those nodes so it can return an nnodes-
-        long array. For a raster, it assumes areas are equal to the normal case.
+        long array. For a raster, it assumes areas are equal to the normal
+        case.
+
         For a voronoi...?
         """
         try:
-            return self.forced_cell_areas
+            return self._forced_cell_areas
         except AttributeError:
-            return self._setup_cell_areas_array_force_inactive()    
+            return self._setup_cell_areas_array_force_inactive()
             
     @property
     def face_widths(self):
-        """
-        Returns an array of face widths.
+        """Width of grid faces.
         """
         try:
             return self._face_widths
@@ -929,23 +1590,31 @@ class ModelGrid(ModelDataFields):
         and is overridden in raster.py. It is unlikely this parent method will
         ever need to be called.
         '''
-        self.forced_cell_areas = numpy.empty(self.number_of_nodes)
-        self.forced_cell_areas.fill(numpy.nan)
+        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self._forced_cell_areas.fill(numpy.nan)
         cell_node_ids = self.get_active_cell_node_ids()
-        self.forced_cell_areas[cell_node_ids] = self.cell_areas
+        try:
+            self._forced_cell_areas[cell_node_ids] = self.cell_areas
+        except AttributeError:
+            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas #in the case of the Voronoi
 
     def get_active_cell_node_ids( self ):
-        """
-        Returns an integer vector of the node IDs of all active (i.e., core +
+        """Nodes of active cells.
+
+        Return an integer vector of the node IDs of all active (i.e., core +
         open boundary) cells.
-        get_core_cell_node_ids may be preferable.
+
+        See Also
+        --------
+        get_core_cell_node_ids : may be preferable.
         """
         return self.activecell_node
         
         
-    def get_core_cell_node_ids( self ):
-        """
-        Returns an integer vector of the node IDs of all core cells.
+    def get_core_cell_node_ids(self):
+        """Nodes of core cells.
+
+        Return an integer vector of the node IDs of all core cells.
         """
         return self.corecell_node
 
@@ -958,12 +1627,12 @@ class ModelGrid(ModelDataFields):
         *node2*. It should ideally be overridden for optimal functionality in
         more specialized grid modules (e.g., raster).
         
-        Example:
-            
-            >>> import landlab as ll
-            >>> rmg = ll.RasterModelGrid(4, 5)
-            >>> rmg.get_active_link_connecting_node_pair(8, 3)
-            array([2])
+        Examples
+        --------
+        >>> import landlab as ll
+        >>> rmg = ll.RasterModelGrid(4, 5)
+        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        array([2])
         """
         active_link = BAD_INDEX_VALUE
         for alink in xrange(0, self.number_of_active_links):
@@ -985,26 +1654,32 @@ class ModelGrid(ModelDataFields):
 
     @property
     def link_length(self):
-        """Returns the lengths of all links, in ID order"""
+        """Lengths of grid links.
+
+        Lengths of all links, in ID order.
+        """
         try:
             return self._link_length
         except AttributeError:
-            return self.calculate_link_length()
+            return self._calculate_link_length()
 
     def min_active_link_length(self):
-        """
+        """Shortest active link.
+
         Returns the horizontal length of the shortest active link in the grid.
         """
         return numpy.amin(self.link_length[self.active_link_ids])
 
     def max_active_link_length(self):
-        """
+        """Longest active link.
+
         Returns the horizontal length of the longest active link in the grid.
         """
         return numpy.amax(self.link_length[self.active_link_ids])
 
-    def calculate_link_length(self):
-        """
+    def _calculate_link_length(self):
+        """Lengths of links.
+
         Calculates, returns, and stores as a property of the grid the lengths
         of all the links in the grid.
         """
@@ -1015,13 +1690,35 @@ class ModelGrid(ModelDataFields):
         dy = (self.node_y[self.node_index_at_link_head] -
               self.node_y[self.node_index_at_link_tail])
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
-        return self.link_length
+        return self._link_length
 
-    def assign_upslope_vals_to_active_links( self, u, v=[0] ):
-        """
-        Assigns to each active link the value of u at whichever of its
-        neighbors has a higher value of v. If v is omitted, uses u for
-        both.
+    def assign_upslope_vals_to_active_links(self, u, v=[0]):
+        """Assign upslope node value to link.
+
+        Assigns to each active link the value of *u* at whichever of its
+        neighbors has a higher value of *v*. If *v* is omitted, uses *u* for
+        both. The order of the link values is by link ID.
+
+        Parameters
+        ----------
+        u : array-like
+            Node values to assign to links.
+        v : array-like, optional
+            Node values to test for upslope-ness.
+
+        Returns
+        -------
+        ndarray
+            Values at active links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> grid = RasterModelGrid(3, 3)
+        >>> u = np.arange(9.)
+        >>> grid.assign_upslope_vals_to_active_links(u)
+        array([ 4.,  7.,  4.,  5.])
         """
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
@@ -1044,7 +1741,7 @@ class ModelGrid(ModelDataFields):
         nodes are active interior points, or if one is an active interior and
         the other is an active boundary.
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid._reset_list_of_active_links'
             
         fromnode_status = self.node_status[self.link_fromnode]
@@ -1064,85 +1761,163 @@ class ModelGrid(ModelDataFields):
         
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+    
+    def _reset_lists_of_nodes_cells(self):
+        """
+        Creates or resets various lists of nodes and cells based on their 
+        statuses. Call this function whenever you make changes to the
+        boundary conditions in the grid.
+        The updated attributes and arrays are:
+            _num_active_nodes
+            _num_active_cells
+            _num_core_nodes
+            _num_core_cells
+            activecell_node *
+            corecell_node *
+            active_cells
+            core_cells
+            node_corecell
+            _boundary_nodes
+        """
+        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)[0]
+        self.corecell_node = numpy.where(self.node_status == CORE_NODE)[0]
+        self._num_core_cells = self.corecell_node.size
+        self._num_core_nodes = self._num_core_cells
+        self._num_active_nodes = self.activecell_node.size
+        self._num_active_cells = self._num_core_cells
+        self.active_cells = numpy.arange(self._num_active_cells)
+        self.core_cells = numpy.arange(self._num_core_cells)
+        self.node_corecell = numpy.empty(self.number_of_nodes)
+        self.node_corecell.fill(BAD_INDEX_VALUE)
+        self.node_corecell[self.corecell_node] = self.core_cells
+        self.node_activecell = numpy.empty(self.number_of_nodes)
+        self.node_activecell.fill(BAD_INDEX_VALUE)
+        self.node_activecell.flat[self.activecell_node] = self.active_cells
+        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0]
+    
+    
+    def update_links_nodes_cells_to_new_BCs(self):
+        """Update grid element connectivity, status.
+
+        This method updates all of the various lists and attributes governed
+        by node status (e.g., core nodes, active links, etc) when you change
+        node statuses. Call it if your method or driver makes changes to the
+        boundary conditions of nodes in the grid.
+        """
+        self._reset_list_of_active_links()
+        self._reset_lists_of_nodes_cells()
+        try:
+            if self.diagonal_list_created == True:
+                self.diagonal_list_created = False
+        except AttributeError:
+            pass
+        try:
+            if self.neighbor_list_created == True:
+                self.neighbor_list_created = False
+        except AttributeError:
+            pass
+
+        
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
-        """
-        .. deprecated:: 0.6
+        """Make no-data nodes inactive.
+
+        Set the status to CLOSED_BOUNDARY for all nodes whose value
+        of node_data is equal to the nodata_value.
+
+        .. note:: Deprecated since version 0.6.
             Deprecated due to out of date terminology;
             use :func:`set_nodata_nodes_to_closed` instead.
-            
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
-        
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> mg.node_status
-            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.set_nodata_nodes_to_inactive(h, -9999)
-            >>> mg.node_status
-            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid(3, 4, 1.0)
+        >>> mg.node_status
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        >>> h = np.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> mg.set_nodata_nodes_to_inactive(h, -9999)
+        >>> mg.node_status
+        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
     
     
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
-        """
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value of
-        node_data is equal to the nodata_value.
+        """Make no-data nodes closed boundaries.
+
+        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
+        of node_data is equal to the nodata_value.
         
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> mg.node_status
-            array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-            >>> h = numpy.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
-            >>> mg.set_nodata_nodes_to_closed(h, -9999)
-            >>> mg.node_status
-            array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+        >>> mg.node_status
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        >>> h = np.array([-9999,-9999,-9999,-9999,-9999,-9999,12345.,0.,-9999,0.,0.,0.])
+        >>> mg.set_nodata_nodes_to_closed(h, -9999)
+        >>> mg.node_status
+        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
-        
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
         
         # Recreate the list of active cell IDs
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        
-        # Recreate the list of active links
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
         
         
     def max_of_link_end_node_values(self, node_data):
-        """
+        """Maximum value at the end of links.
+
         For each active link, finds and returns the maximum value of node_data
         at either of the two ends. Use this, for example, if you want to find
         the maximum value of water depth at linked pairs of nodes (by passing
         in an array of water depth values at nodes).
         
-        node_data: a 1D numpy array with length = number of nodes
-        returns: a 1D numpy array of maximum values, with length = number of
-            active links.
+        Parameters
+        ----------
+        node_data : ndarray
+            Values at grid nodes.
+
+        Returns
+        -------
+        ndarray :
+            Maximum values whose length is the number of active links.
         
-        Example:
-            
-            >>> import landlab as ll
-            >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-            >>> h = numpy.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
-            >>> mg.max_of_link_end_node_values(h)
-            array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import landlab as ll
+        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+        >>> h = np.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+        >>> mg.max_of_link_end_node_values(h)
+        array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
         
     def calculate_numbers_of_node_neighbors(self):
-        """
+        """Number of neighbor nodes.
+
         Calculates the number of neighboring nodes for each node, and returns
         the result as a 1D numpy array. Used to find the maximum number of
         neighbors, so that inlink and outlink matrices can be dimensioned
@@ -1187,9 +1962,6 @@ class ModelGrid(ModelDataFields):
         which is zero. By doing it this way, we maintain the efficiency that 
         comes with the use of numpy. Again, more info can be found in the 
         description of the flux divergence functions.
-        
-        Example:
-            
         """
         
         # Find the maximum number of neighbors for any node
@@ -1249,12 +2021,286 @@ class ModelGrid(ModelDataFields):
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+            
+    def _make_link_unit_vectors(self):
+        """Makes arrays to store the unit vectors associated with each link.
+        
+        Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
+        for each link, the x and y components of the link's unit vector (that is,
+        the link's x and y dimensions if it were shrunk to unit length but 
+        retained its orientation). The length of these arrays is the number of
+        links plus one. The last entry in each array is set to zero, and is used
+        to handle references to "link -1" (meaning, a non-existent link, whose
+        unit vector is (0,0)).
+            Also builds arrays to store the unit-vector component sums for each 
+        node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are 
+        designed to be used when mapping link vector values to nodes (one takes 
+        the average of the x- and y-components of all connected links).
+        
+        Parameters
+        ----------
+        
+        (none)
+        
+        Returns
+        -------
+        
+        (none)
+        
+        Creates
+        -------
+        
+        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
+            x and y components of unit vectors at each link (extra 0 entries @ end)
+        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+            Sums of x & y unit vector components for each node. Sum is over all
+            links connected to a given node.
+            
+        Example
+        -------
+        The example below is a seven-node hexagonal grid, with six nodes around
+        the perimeter and one node (#3) in the interior. There are four 
+        horizontal links with unit vector (1,0), and 8 diagonal links with
+        unit vector (+/-0.5, +/-sqrt(3)/2) (note: sqrt(3)/2 ~ 0.866).
+            Note: this example assumes that the triangulation places links in a
+        certain order. Because the order is arbitrary, this might break on
+        different platforms. If that happens, the example needs to be 
+        made generic somehow ... 
+        
+        >>> import landlab as ll
+        >>> hmg = ll.HexModelGrid(3, 2, 2.0)
+        >>> hmg.link_unit_vec_x
+        array([ 0.5, -0.5, -1. , -0.5,  1. ,  0.5,  0.5, -1. , -0.5,  0.5,  1. ,
+               -0.5,  0. ])
+        >>> hmg.link_unit_vec_y
+        array([ 0.8660254,  0.8660254,  0.       , -0.8660254,  0.       ,
+               -0.8660254, -0.8660254,  0.       , -0.8660254, -0.8660254,
+                0.       , -0.8660254,  0.       ])
+        >>> hmg.node_unit_vector_sum_x
+        array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
+        >>> hmg.node_unit_vector_sum_y
+        array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
+                1.73205081,  1.73205081])
+        """
+        # Create the arrays for unit vectors for each link. These each get an
+        # additional array element at the end with the value zero. This allows
+        # any references to "link ID -1" in the node_inlink_matrix and
+        # node_outlink_matrix to refer to the zero value in this extra element,
+        # so that when we're summing up link unit vectors, or multiplying by a
+        # nonexistent unit vector, we end up just treating these as zero.
+        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
+    
+        # Calculate the unit vectors using triangle similarity and the Pythagorean
+        # Theorem.
+        dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
+        dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        self.link_unit_vec_x[:self.number_of_links] = dx / self.link_length
+        self.link_unit_vec_y[:self.number_of_links] = dy / self.link_length
+                
+        # While we're at it, calculate the unit vector sums for each node.
+        # These will be useful in averaging link-based vectors at the nodes.
+        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
+        for i in range(max_num_inlinks_per_node):
+            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_inlink_matrix[i,:]])
+            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_inlink_matrix[i,:]])
+            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_outlink_matrix[i,:]])
+            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
+        
+    def map_link_vector_to_nodes(self, q):
+        """Maps data defined on links to nodes.
+        
+        Given a variable defined on links, breaks it into x and y components
+        and assigns values to nodes by averaging each node's attached links.
+        
+        Parameters
+        ----------        
+        q : ndarray of floats (1D, length = number of links in grid)
+            Variable defined on links
+            
+        Returns
+        -------        
+        ndarray, ndarray
+            x and y components of variable mapped to nodes (1D, length = # nodes)
+            
+        See Also
+        --------
+        _make_link_unit_vectors : sets up unit vectors at links and unit-vector
+                                  sums at nodes
+            
+        Notes
+        -----        
+        THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
+        
+        The concept here is that q contains a vector variable that is defined
+        at each link. The magnitude is given by the value of q, and the direction
+        is given by the orientation of the link, as described by its unit vector.
+        
+        To map the link-vector values to the nodes, we break the values into
+        x- and y-components according to each link's unit vector. The 
+        x-component of q at a node is a weighted sum of the x-components of the
+        links that are attached to that node. A good way to appreciate this
+        is by example. Consider a 3x4 raster grid:
+            
+            8--14---9--15--10--16--11
+            |       |       |       |
+            4       5       6       7
+            |       |       |       |
+            4--11---5---12--6---13--7
+            |       |       |       |
+            0       1       2       3
+            |       |       |       |
+            0---8---1---9---2--10---3
+        
+        Imagine that for each node, we were to add up the unit vector components for
+        each connected link; in other words, add up all the x components of the 
+        unit vectors associated with each link, and add up all the y components.
+        Here's what that would look like for the above grid ("vsx" and "vsy" stand
+        for "vector sum x" and "vector sum y"):
+        
+            Corner nodes (0, 3, 8, 11): vsx = 1, vsy = 1
+            Bottom and top nodes (1-2, 9-10): vsx = 2, vsy = 1
+            Left and right nodes (4, 7): vsx = 1, vsy = 2
+            All others: vsx = 2, vsy = 2
+        
+        The process of creating unit-vector sums at nodes is handled by
+        ModelGrid._make_link_unit_vectors() (and, for raster grids, by the
+        overriding method RasterModelGrid._make_link_unit_vectors()). The node
+        unit-vector sums are then stored in self.node_unit_vector_sum_x and
+        self.node_unit_vector_sum_y.
+        
+        How would you use this? Suppose you have a vector variable q defined at
+        links. What's the average at the nodes? We'll define the average as follows.
+        The terminology here is: :math:`q = (u,v)` represents the vector quantity
+        defined at links, :math:`Q = (U,V)` represents its definition at nodes, 
+        :math:`(m,n)` represents the unit vector components at a link, 
+        and :math:`(S_x,S_y)` represents the unit-vector sum at a given node.
+            
+        ..math::
+        
+            U_i = \sum_{j=1}^{L_i} q_j m_j / S_{xi}
+            V_i = \sum_{j=1}^{L_i} q_j n_j / S_{yi}
+            
+        Suppose that the vector q is uniform and equal to one.
+        Then, at node 0 in the above grid, this works out to:
+            
+        ..math::
+        
+            U_0 = (q_0 m_0) / 1 + (q_8 m_8) / 1 = (1 0)/ 1 + (1 1)/1 = 1
+            V_0 = (q_0 n_0) / 1 + (q_8 n_8) / 1 = (1 1) / 1 + (1 0) / 1 = 1
+            
+        At node 1, in the bottom row but not a corner, we add up the values of **q**
+        associated with THREE links. The x-vector sum of these links is 2 because
+        there are two horizontal links, each with an x- unit vector value of unity.
+        The y-vector sum is 1 because only one of the three (link #1) has a non-zero
+        y component (equal to one). Here is how the numbers work out:
+            
+        ..math::
+        
+            U_1 = (q_1 m_1) / 2 + (q_8 m_8) / 2 + (q_9 m_9) / 2 
+                = (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
+            V_1 = (q_1 n_1) / 1 + (q_8 n_8) / 1 + (q_9 n_9) / 1 
+                = (1 1) / 1 + (1 0) / 1 + (1 0) / 1 = 1
+                
+        At node 5, in the interior, there are four connected links (two in-links
+        and two out-links; two horizontal and two vertical). So, we add up the 
+        q values associated with all four:
+            
+            U_5 = (q_1 m_1) / 2 + (q_5 m_5) / 2 + (q_11 m_11) / 2 + (q_12 m_12) / 2 
+                = (1 0) / 2 + (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
+            V_5 = (q_1 n_1) / 2 + (q_5 n_5) / 2 + (q_11 n_11) / 2 + (q_12 n_12) / 2 
+                = (1 1) / 2 + (1 1) / 2 + (1 0) / 2 + (1 0) / 2 = 1
+            
+        To do this calculation efficiently, we use the following algorithm:
+            
+            FOR each row in node_inlink_matrix (representing one inlink @ each node)
+                Multiply the link's q value by its unit x component ...
+                ... divide by node's unit vector sum in x ...
+                ... and add it to the node's total q_x
+                Multiply the link's q value by its unit y component ...
+                ... divide by node's unit vector sum in y ...
+                ... and add it to the node's total q_y
+        
+        Examples
+        --------
+             
+        Example 1: q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
+        :math:`(1,1)`.   
+        
+        >>> import numpy as np
+        >>> import landlab as ll
+        >>> rmg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> rmg.node_unit_vector_sum_x
+        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
+        >>> rmg.node_unit_vector_sum_y
+        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        >>> q = np.ones(rmg.number_of_links)
+        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
+        >>> nvx
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> nvy
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        Example 2: Vector magnitude is 5, angle is 30 degrees from horizontal,
+        forming a 3-4-5 triangle.
+        >>> q[:8] = 3.
+        >>> q[8:] = 4.
+        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
+        >>> nvx
+        array([ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.])
+        >>> nvy
+        array([ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        
+        ..todo:: 
+        
+            Fix and finish example 3 below.
+            
+        Example 3: Hexagonal grid with vector as above. Here, q is pre-calculated
+        to have the right values to represent a uniform vector with magnitude 5
+        and orientation 30 degrees counter-clockwise from horizontal.
+        #>>> hmg = ll.HexModelGrid(3, 2, 2.0)
+        #>>> q = np.array([4.598, 0.598, -4., -4.598, 4., -0.598, -0.598, -4., -4.598, -0.598, 4., -4.598])
+
+        """
+        
+        # Create the arrays to hold the node-based values of the x and y components
+        # of the vector (q)
+        node_vec_x = numpy.zeros(self.number_of_nodes)
+        node_vec_y = numpy.zeros(self.number_of_nodes)
+        
+        # Break the link-based vector input variable, q, into x- and y-components.
+        # Notes:
+        #   1) We make the arrays 1 element longer than the number of links, so that
+        #       references to -1 in the node-link matrices will refer to the last
+        #       element of these two arrays, which will contain zeros. (Same trick
+        #       as in the flux divergence functions)
+        #   2) This requires memory allocation. Because this function might be
+        #       called repeatedly, it would be good to find a way to pre-allocate
+        #       to improve speed.
+        qx = numpy.zeros(self.number_of_links+1)
+        qy = numpy.zeros(self.number_of_links+1)
+        qx[:self.number_of_links] = q*self.link_unit_vec_x[:self.number_of_links]
+        qy[:self.number_of_links] = q*self.link_unit_vec_y[:self.number_of_links]
+        
+        # Loop over each row in the node_inlink_matrix and node_outlink_matrix.
+        # This isn't a big loop! In a raster grid, these have only two rows each;
+        # in an unstructured grid, it depends on the grid geometry; for a hex
+        # grid, there are up to 6 rows.
+        n_matrix_rows = numpy.size(self.node_inlink_matrix, 0)
+        for i in range(n_matrix_rows):
+            node_vec_x += qx[self.node_inlink_matrix[i,:]]
+            node_vec_x += qx[self.node_outlink_matrix[i,:]]
+            node_vec_y += qy[self.node_inlink_matrix[i,:]]
+            node_vec_y += qy[self.node_outlink_matrix[i,:]]
+        node_vec_x /= self.node_unit_vector_sum_x
+        node_vec_y /= self.node_unit_vector_sum_y
+        
+        return node_vec_x, node_vec_y
     
     def display_grid(self, draw_voronoi=False):
-        """
-        Displays the grid (mainly for purposes of debugging/testing and
-        visual examples).
-        """
+        """Displays the grid."""
         import matplotlib.pyplot as plt
         
         # Plot nodes, colored by boundary vs interior
@@ -1278,7 +2324,7 @@ class ModelGrid(ModelDataFields):
                      self._node_y[self.link_tonode[link]]], 'g-')
                      
         # If caller asked for a voronoi diagram, draw that too
-        if draw_voronoi!=None:
+        if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
             pts = numpy.zeros((self.number_of_nodes, 2))
             pts[:,0] = self._node_x
@@ -1290,9 +2336,22 @@ class ModelGrid(ModelDataFields):
         
         
     def is_boundary(self, ids, boundary_flag=None):
-        """
+        """Check if nodes are boundary nodes.
+
         Check if nodes at given *ids* are boundary nodes. Use the
         *boundary_flag* to specify a particular boundary type status flag.
+
+        Parameters
+        ----------
+        ids : ndarray
+            Node IDs to check.
+        boundary_flag : int, optional
+            A boundary type to check for.
+
+        Returns
+        -------
+        ndarray
+            Array of booleans indicating if nodes are boundary nodes.
         """
         if boundary_flag is None:
             return ~ (self.node_status[ids] == CORE_NODE)
@@ -1300,8 +2359,14 @@ class ModelGrid(ModelDataFields):
             return self.node_status[ids] == boundary_flag
     
     def get_boundary_nodes(self):
-        """
-        Returns ids of all open and closed boundary nodes in the grid.
+        """Boundary nodes of a grid.
+
+        Gat ids of all open and closed boundary nodes in the grid.
+
+        Returns
+        -------
+        ndarray
+            IDs of boundary nodes.
         """
         return numpy.where(self.node_status != 0)[0]
     
@@ -1311,21 +2376,22 @@ class ModelGrid(ModelDataFields):
         right, top or bottom of the grid, based on its distance from the grid's
         centerpoint (mean (x,y) position). Returns lists of nodes on each of 
         the four grid sides. Assumes self.node_status, self.number_of_nodes, 
-        self.boundary_nodes, self._node_x, and self._node_y have been initialized.
+        self.boundary_nodes, self._node_x, and self._node_y have been
+        initialized.
         
-        Example:
-
-            >>> import landlab as ll
-            >>> m = ll.HexModelGrid(5, 3, 1.0)
-            >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
-            >>> l
-            array([ 7, 12,  3], dtype=int32)
-            >>> r
-            array([11, 15,  6], dtype=int32)
-            >>> t
-            array([16, 18, 17], dtype=int32)
-            >>> b
-            array([0, 2, 1], dtype=int32)
+        Examples
+        --------
+        >>> import landlab as ll
+        >>> m = ll.HexModelGrid(5, 3, 1.0)
+        >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
+        >>> l
+        array([ 7, 12,  3], dtype=int32)
+        >>> r
+        array([11, 15,  6], dtype=int32)
+        >>> t
+        array([16, 18, 17], dtype=int32)
+        >>> b
+        array([0, 2, 1], dtype=int32)
         """
         # Calculate x and y distance from centerpoint
         dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
@@ -1336,10 +2402,12 @@ class ModelGrid(ModelDataFields):
                 
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive, 
                                 top_is_inactive, left_is_inactive):
-        """
-        .. deprecated:: 0.6
+        """Set boundaries to inactive.
+
+        .. note:: Deprecated since version 0.6.
             Due to imprecise terminology. Use :func:`set_closed_boundaries`
             instead.
+
         Handles boundary conditions by setting each of the four sides of the 
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
@@ -1366,6 +2434,8 @@ class ModelGrid(ModelDataFields):
         four-row by five-column grid that initially has all boundaries active
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
         
+        Examples
+        --------
         >>> import landlab as ll
         >>> rmg = ll.HexModelGrid(5, 3, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
@@ -1378,7 +2448,7 @@ class ModelGrid(ModelDataFields):
         >>> rmg.node_status
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
         """
-        if self.DEBUG_TRACK_METHODS:
+        if self._DEBUG_TRACK_METHODS:
             print 'ModelGrid.set_inactive_boundaries'
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
@@ -1404,31 +2474,28 @@ class ModelGrid(ModelDataFields):
         else:
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]        
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     def set_inactive_nodes(self, nodes):
-        """
-        .. deprecated:: 0.6
-            Outdated terminology. Use :func:`set_closed_nodes` instead.
+        """Make nodes inactive.
+
         Sets the given nodes' boundary condition statuses to INACTIVE (==4),
         and resets the list of active links to reflect any changes.
+
+        .. note:: Deprecated since version 0.6.
+            Outdated terminology. Use :func:`set_closed_nodes` instead.
         """
         self.set_closed_nodes(nodes)
         
         
     def set_closed_nodes(self, nodes):
-        """
+        """Make nodes closed boundaries.
+
         Sets the given nodes' boundary condition statuses to CLOSED (==4),
         and resets the list of active links to reflect any changes.
         """
         self.node_status[nodes] = CLOSED_BOUNDARY
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.activecell_node = node_ids[numpy.where(self.node_status != CLOSED_BOUNDARY)]
-        self.corecell_node = node_ids[numpy.where(self.node_status == CORE_NODE)]
-        self._reset_list_of_active_links()
+        self.update_links_nodes_cells_to_new_BCs()
 
     def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None, node_subset=numpy.nan, out_distance=None, out_azimuth=None):
         """
@@ -1521,65 +2588,94 @@ class ModelGrid(ModelDataFields):
         
         if get_az:
             if get_az == 'displacements':
-                out_azimuth[:len_subset] = self.azimuths_as_displacements[:len_subset]
+                out_azimuth[:len_subset] = azimuths_as_displacements[:len_subset]
                 return out_distance, out_azimuth
             elif get_az == 'angles':
-                try:
-                    numpy.divide(azimuths_as_displacements[1,:len_subset],
-                                 azimuths_as_displacements[0,:len_subset],
-                                 out=dummy_nodes_1[:len_subset])
-                    numpy.arctan(dummy_nodes_1[:len_subset],
-                                 out=dummy_nodes_2[:len_subset]) #"angle_to_xaxis"
-                except: #These cases have the impact right on a gridline.
-                    if len_subset == 1: #this is the single node case, point directly N or S of the node of interest
-                        if azimuths_as_displacements[1]<0:
-                            out_azimuth[0] = numpy.pi
-                        else:
-                            out_azimuth[0] = 0.
-                    else: #general case with whole array, with the impact right one one of the gridlines
-                        num_nonzero_nodes = numpy.count_nonzero(azimuths_as_displacements[0,:len_subset])
-                        dummy_nodes_3[:num_nonzero_nodes] = azimuths_as_displacements[0,:len_subset].nonzero() #"nonzero_nodes"
-                        nonzero_nodes = dummy_nodes_3[:num_nonzero_nodes]
-                        numpy.divide(azimuths_as_displacements[1,:len_subset][nonzero_nodes],
-                                     azimuths_as_displacements[0,:len_subset][nonzero_nodes],
-                                     out=dummy_nodes_1[:len_subset][nonzero_nodes])
-                        numpy.arctan(dummy_nodes_1[:len_subset][nonzero_nodes],
-                                     out=dummy_nodes_2[:len_subset][nonzero_nodes]) #"angle_to_xaxis"
-                        ##angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
-                        numpy.less(azimuths_as_displacements[0,:len_subset][nonzero_nodes], 0., out=dummy_bool[:len_subset][nonzero_nodes])
-                        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
-                        numpy.logical_not(dummy_bool[:len_subset][nonzero_nodes], out=dummy_bool[:len_subset][nonzero_nodes])
-                        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
-                        #out_azimuth[nonzero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset][nonzero_nodes]<0,
-                        #                                         1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes],
-                        #                                         0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes])
-                    num_zero_nodes = len_subset - num_nonzero_nodes
-                    #numpy.equal(azimuths_as_displacements[0,:len_subset], 0., out=dummy_bool[:num_zero_nodes]) #not clear if this will work, as output might be 2D
-                    dummy_nodes_3[:num_zero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset]==0.)[0] #"zero_nodes" ##POTENTIAL MEMORY LEAK REMAINS
-                    zero_nodes = dummy_nodes_3[:num_zero_nodes]
-                    numpy.less(azimuths_as_displacements[1,:len_subset][zero_nodes], 0., out=dummy_bool[:num_zero_nodes][zero_nodes])
-                    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = numpy.pi
-                    numpy.logical_not(dummy_bool[:num_zero_nodes][zero_nodes], out=dummy_bool[:num_zero_nodes][zero_nodes])
-                    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = 0.        
-                    #out_azimuth[zero_nodes] = numpy.where(azimuths_as_displacements[1,:len_subset][zero_nodes]<0.,numpy.pi,0.)
-                else: #the normal case
-                    numpy.sign(azimuths_as_displacements[0,:len_subset],
+                #new code to replace below ***
+                div_by_zero_cases = azimuths_as_displacements[0,:len_subset]==0.
+                not_div_by_zero_cases = numpy.logical_not(div_by_zero_cases)
+                #print azimuths_as_displacements[0,:len_subset]
+                #print azimuths_as_displacements[1,:len_subset]
+                #print not_div_by_zero_cases
+                dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1,:len_subset][not_div_by_zero_cases],
+                                 azimuths_as_displacements[0,:len_subset][not_div_by_zero_cases])
+                dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(dummy_nodes_1[:len_subset][not_div_by_zero_cases]) #"angle_to_xaxis"
+                dummy_nodes_2[:len_subset][div_by_zero_cases] = numpy.where(azimuths_as_displacements[1,:len_subset][div_by_zero_cases]<0, 0., numpy.pi)
+                #dummy_nodes_2[:len_subset][div_by_zero_cases] = 0.
+                #dummy_nodes_2[:len_subset][div_by_zero_cases][(azimuths_as_displacements[1,:len_subset][div_by_zero_cases]<0)] = numpy.pi
+                numpy.sign(azimuths_as_displacements[0,:len_subset],
                                out=dummy_nodes_1[:len_subset])
-                    numpy.subtract(1., dummy_nodes_1[:len_subset],
+                numpy.subtract(1., dummy_nodes_1[:len_subset],
                                    out=dummy_nodes_3[:len_subset])
-                    numpy.multiply(dummy_nodes_3[:len_subset], 0.5*numpy.pi,
+                numpy.multiply(dummy_nodes_3[:len_subset], 0.5*numpy.pi,
                                    out=dummy_nodes_1[:len_subset])
-                    numpy.subtract(0.5*numpy.pi, dummy_nodes_2[:len_subset],
+                numpy.subtract(0.5*numpy.pi, dummy_nodes_2[:len_subset],
                                    out=dummy_nodes_3[:len_subset])
-                    if out_azimuth is not None:
-                        numpy.add(dummy_nodes_1[:len_subset],
+                if out_azimuth is not None:
+                    numpy.add(dummy_nodes_1[:len_subset],
                                   dummy_nodes_3[:len_subset],
                                   out=out_azimuth)
-                    else:
-                        numpy.add(dummy_nodes_1[:len_subset],
+                else:
+                    numpy.add(dummy_nodes_1[:len_subset],
                                   dummy_nodes_3[:len_subset],
                                   out=out_azimuth[0,:])
-                    ##azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis) #duplicated by the above
+                #***
+                #try:
+                #    numpy.divide(azimuths_as_displacements[1,:len_subset],
+                #                 azimuths_as_displacements[0,:len_subset],
+                #                 out=dummy_nodes_1[:len_subset])
+                #    numpy.arctan(dummy_nodes_1[:len_subset],
+                #                 out=dummy_nodes_2[:len_subset]) #"angle_to_xaxis"
+                #except: #These cases have the impact right on a gridline.
+                #    if len_subset == 1: #this is the single node case, point directly N or S of the node of interest
+                #        if azimuths_as_displacements[1]<0:
+                #            out_azimuth[0] = numpy.pi
+                #        else:
+                #            out_azimuth[0] = 0.
+                #    else: #general case with whole array, with the impact right one one of the gridlines
+                #        num_nonzero_nodes = numpy.count_nonzero(azimuths_as_displacements[0,:len_subset])
+                #        dummy_nodes_3[:num_nonzero_nodes] = azimuths_as_displacements[0,:len_subset].nonzero() #"nonzero_nodes"
+                #        nonzero_nodes = dummy_nodes_3[:num_nonzero_nodes]
+                #        numpy.divide(azimuths_as_displacements[1,:len_subset][nonzero_nodes],
+                #                     azimuths_as_displacements[0,:len_subset][nonzero_nodes],
+                #                     out=dummy_nodes_1[:len_subset][nonzero_nodes])
+                #        numpy.arctan(dummy_nodes_1[:len_subset][nonzero_nodes],
+                #                     out=dummy_nodes_2[:len_subset][nonzero_nodes]) #"angle_to_xaxis"
+                #        ##angle_to_xaxis = numpy.arctan(y_displacement[nonzero_nodes]/x_displacement[nonzero_nodes])
+                #        numpy.less(azimuths_as_displacements[0,:len_subset][nonzero_nodes], 0., out=dummy_bool[:len_subset][nonzero_nodes])
+                #        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
+                #        numpy.logical_not(dummy_bool[:len_subset][nonzero_nodes], out=dummy_bool[:len_subset][nonzero_nodes])
+                #        out_azimuth[nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]] = 0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes][dummy_bool[:len_subset][nonzero_nodes]]
+                #        #out_azimuth[nonzero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset][nonzero_nodes]<0,
+                #        #                                         1.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes],
+                #        #                                         0.5*numpy.pi-dummy_nodes_2[:len_subset][nonzero_nodes])
+                #    num_zero_nodes = len_subset - num_nonzero_nodes
+                #    #numpy.equal(azimuths_as_displacements[0,:len_subset], 0., out=dummy_bool[:num_zero_nodes]) #not clear if this will work, as output might be 2D
+                #    dummy_nodes_3[:num_zero_nodes] = numpy.where(azimuths_as_displacements[0,:len_subset]==0.)[0] #"zero_nodes" ##POTENTIAL MEMORY LEAK REMAINS
+                #    zero_nodes = dummy_nodes_3[:num_zero_nodes]
+                #    numpy.less(azimuths_as_displacements[1,:len_subset][zero_nodes], 0., out=dummy_bool[:num_zero_nodes][zero_nodes])
+                #    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = numpy.pi
+                #    numpy.logical_not(dummy_bool[:num_zero_nodes][zero_nodes], out=dummy_bool[:num_zero_nodes][zero_nodes])
+                #    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = 0.        
+                #    #out_azimuth[zero_nodes] = numpy.where(azimuths_as_displacements[1,:len_subset][zero_nodes]<0.,numpy.pi,0.)
+                #else: #the normal case
+                #    numpy.sign(azimuths_as_displacements[0,:len_subset],
+                #               out=dummy_nodes_1[:len_subset])
+                #    numpy.subtract(1., dummy_nodes_1[:len_subset],
+                #                   out=dummy_nodes_3[:len_subset])
+                #    numpy.multiply(dummy_nodes_3[:len_subset], 0.5*numpy.pi,
+                #                   out=dummy_nodes_1[:len_subset])
+                #    numpy.subtract(0.5*numpy.pi, dummy_nodes_2[:len_subset],
+                #                   out=dummy_nodes_3[:len_subset])
+                #    if out_azimuth is not None:
+                #        numpy.add(dummy_nodes_1[:len_subset],
+                #                  dummy_nodes_3[:len_subset],
+                #                  out=out_azimuth)
+                #    else:
+                #        numpy.add(dummy_nodes_1[:len_subset],
+                #                  dummy_nodes_3[:len_subset],
+                #                  out=out_azimuth[0,:])
+                #    ##azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis) #duplicated by the above
                 if out_azimuth.shape[0] == 2 and len(out_azimuth.shape) == 2:
                     return out_distance, out_azimuth[0,:]
                 else:
@@ -1590,20 +2686,27 @@ class ModelGrid(ModelDataFields):
             return out_distance
             
     def build_all_node_distances_azimuths_maps(self):
-        """
+        """Build distance-azimuth maps.
+
         This function creates and stores in the grid field two nnodes*nnodes 
         arrays that map the distances and azimuths of all nodes in the grid to 
         all nodes in the grid.
+
         This is useful if your module needs to make repeated lookups of distances
         between the same nodes, but does potentially use up a lot of memory so
         should be used with caution.
+
         The map is symmetrical, so it does not matter whether rows are "from" or
         "to".
+
         The arrays are called:
-            self.all_node_distances_map
-            self.all_node_azimuths_map
+            - ``self.all_node_distances_map``
+            - ``self.all_node_azimuths_map``
         
-        The method returns these two arrays as output.
+        Returns
+        -------
+        tuple of ndarrays
+            Tuple of (distances, azimuths)
         """
         
         self.all_node_distances_map = numpy.empty((self.number_of_nodes,
@@ -1621,6 +2724,8 @@ class ModelGrid(ModelDataFields):
         assert numpy.all(self.all_node_distances_map >= 0.)
         
         return self.all_node_distances_map, self.all_node_azimuths_map
+    
+
         
 
 if __name__ == '__main__':

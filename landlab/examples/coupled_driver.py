@@ -4,6 +4,7 @@ from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDif
 from landlab.components.diffusion.diffusion import DiffusionComponent
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
+from landlab.plot.imshow import imshow_node_grid
 
 from landlab import RasterModelGrid
 import numpy as np
@@ -25,16 +26,17 @@ uplift_per_step = uplift_rate * dt
 
 #instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
-#set up its boundary conditions (bottom, right, top, left is inactive)
-mg.set_inactive_boundaries(False, True, False, True)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic_elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'planet_surface__elevation'] = z + np.random.rand(len(z))/100000.
+mg.at_node[ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+
+#set up grid's boundary conditions (bottom, right, top, left is inactive)
+mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
 # Display a message
 print 'Running ...' 
@@ -43,17 +45,15 @@ print 'Running ...'
 fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
 diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg)
-lin_diffuse.initialize(input_file)
-
+lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
 
 #perform the loops:
 for i in xrange(nt):
-    mg['node']['planet_surface__elevation'][mg.get_interior_nodes()] += uplift_per_step
+    #note the input arguments here are not totally standardized between modules
+    #mg = diffuse.diffuse(mg, i*dt)
+    mg = lin_diffuse.diffuse(mg, dt)
     mg = fr.route_flow(grid=mg)
     mg = sp.erode(mg)
-    mg = diffuse.diffuse(mg, i*dt)
-    #mg = lin_diffuse.diffuse(mg, dt)
     
     ##plot long profiles along channels
     pylab.figure(6)
@@ -62,30 +62,25 @@ for i in xrange(nt):
             mg.at_node['flow_receiver'])
     dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
-    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['planet_surface__elevation'])
+    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+
     print 'Completed loop ', i
  
 print 'Completed the simulation. Plotting...'
 
 
 #Finalize and plot
-elev = fr.node_water_discharge
-elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-pylab.colorbar(im)
-pylab.title('Water discharge')
+im = imshow_node_grid(mg, 'water_discharges', cmap='PuBu')  # display a colored image
 
-elev = mg['node']['planet_surface__elevation']
-elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(2)
-im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-pylab.colorbar(im)
-pylab.title('Topography')
+im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
 
+elev = mg['node']['topographic_elevation']
+elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 pylab.title('N-S cross_section')

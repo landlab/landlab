@@ -154,7 +154,7 @@ There are two basic types of information we wish to store: information about the
 The first of these is fairly straightforward. 
 The nodes that form the ``from'' and ``to'' nodes for each are stored in two lists: \code{link\_fromnode} and \code{link\_tonode}. For example, the ID of the ``from'' node of link number 7 is stored in \code{link\_fromnode[7]}. 
 
-Storing information about the links connected to 
+Storing information about the links connected to ...
 
 
 
@@ -210,5 +210,37 @@ Storing information about the links connected to
 (2) know the ID numbering scheme for links and set the appropriate ones
 
 	
+\section{Reviewing needs and possible solutions for node-node and node-link connectivity (July 2014, GT)}
+
+Things we need regarding node-link and node-neighbor connectivity:
+
+\begin{enumerate}
+\item
+Number of neighbor nodes
+\item
+Number of neighbors connected by active link
+\item
+Raster: number of D8 neighbors via active link
+\item
+All neighbor node IDs
+\item
+All neighbor nodes connected via an active link
+\item
+Raster: all D8 neighbors connected via active link
+\item
+All links
+\item
+All active links
+\item
+Links / active links ordered CW or CCW
+\item
+All D8 active links?
+\item
+All incoming active links
+\item 
+All outgoing active links
+\end{enumerate}
+
+
 			
 \end{document}
