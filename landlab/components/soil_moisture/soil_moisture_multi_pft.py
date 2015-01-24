@@ -120,7 +120,8 @@ class SoilMoisture( Component ):
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
         self._fr = self._cell_values['LiveLeafAreaIndex']/1.44
-        self._Sini = self._cell_values['InitialSaturationFraction']
+        self._Sini = np.zeros(self._SO.shape)
+                            
 
         for cell in range(0,self.grid.number_of_cells):
 
