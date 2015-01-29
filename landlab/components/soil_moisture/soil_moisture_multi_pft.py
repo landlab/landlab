@@ -83,26 +83,26 @@ class SoilMoisture( Component ):
 
         self._interception_cap = \
                 np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',
-                                            [ 1., 1.5, 2., 1., 1.5, 2 ]))
+                                            [ 1., 1.5, 2., 1., 1.5, 2 ]))        # Full canopy interception (mm)
         self._zr = np.choose(self._vegtype, kwds.pop('ZR',
-                                            [ 0.3, 1., 2., 0.3, 1., 2. ]))
+                                            [ 0.3, 1., 2., 0.3, 1., 2. ]))       # Root depth (mm)
         self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B',
-                                            [ 12, 10000, 42, 12, 10000, 42 ]))
+                                            [ 12, 10000, 42, 12, 10000, 42 ]))   # Infiltration capacity of bare soil (mm/h)
         self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
-                                            [ 36, 10000, 42, 36, 10000, 42 ]))
-        self._soil_Ew = kwds.pop('EW', [0.1])
+                                            [ 36, 10000, 42, 36, 10000, 42 ]))   # Infiltration capacity of vegetated soil (mm/h)
+        self._soil_Ew = kwds.pop('EW', [0.1])                                     
         self._soil_pc = np.choose(self._vegtype, kwds.pop('PC',
-                                        [ 0.43, 0.43, 0.43, 0.43, 0.43, 0.43 ]))
+                                        [ 0.43, 0.43, 0.43, 0.43, 0.43, 0.43 ])) # Soil porosity
         self._soil_fc = np.choose(self._vegtype, kwds.pop('FC',
-                                        [ 0.56, 0.56, 0.5, 0.56, 0.56, 0.5 ]))
+                                        [ 0.56, 0.56, 0.5, 0.56, 0.56, 0.5 ]))   # Saturation degree at soil field capacity
         self._soil_sc = np.choose(self._vegtype, kwds.pop('SC',
-                                        [ 0.46, 0.46, 0.19, 0.46, 0.46, 0.19 ]))
+                                        [ 0.46, 0.46, 0.19, 0.46, 0.46, 0.19 ])) # Saturation degree at soil stomatal closure
         self._soil_wp = np.choose(self._vegtype, kwds.pop('WP',
-                                        [ 0.19, 0.16, 0.13, 0.19, 0.16, 0.13 ]))
+                                        [ 0.19, 0.16, 0.13, 0.19, 0.16, 0.13 ])) # Saturation degree at soil wilting point
         self._soil_hgw = np.choose(self._vegtype, kwds.pop('HGW',
-                                        [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))
+                                        [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))   # Saturation degree at soil hygroscopic point
         self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA',
-                                        [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ]))
+                                        [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) # Deep percolation constant
 
 
 
