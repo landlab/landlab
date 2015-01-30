@@ -79,6 +79,8 @@ class Vegetation( Component ):
     def initialize( self, **kwds ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
+        self._vegtype = \
+          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
         self._WUE = np.choose(self._vegtype, kwds.pop('WUE', 
                                 [ 0.01, 0.0025, 0.0045, 0.01, 0.0025, 0.0045 ]))   # Water Use Efficiency  KgCO2kg-1H2O
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
@@ -97,8 +99,8 @@ class Vegetation( Component ):
         self._Bdead_init = kwds.pop('BDEAD_INI', 450.)
         self._ETthresholdup = kwds.pop('ETTup', 3.8)                               # Growth threshold (mm/d)
         self._ETthresholddown = kwds.pop('ETTdwn', 6.8)                            # Dormancy threshold (mm/d)
-        self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax', 
-                                [ 10, 10, 10, 10, 10, 10 ]))                       # Constant for dead biomass loss adjustment (mm/d)
+        #self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax', 
+        #                        [ 10, 10, 10, 10, 10, 10 ]))                       # Constant for dead biomass loss adjustment (mm/d)
 
         self._cell_values = self.grid['cell']
 
@@ -131,35 +133,55 @@ class Vegetation( Component ):
             ksg = self._ksg[cell]
             kdd = self._kdd[cell]
             kws = self._kws[cell]
-            ETdmax = self._ETdmax[cell]
+            #ETdmax = self._ETdmax[cell]
                        
             LAIlive =  min (cb * self._Blive_ini[cell], LAImax)
             LAIdead =  min (cd * self._Bdead_ini[cell], (LAImax                \
                             - LAIlive))
+            NPP = max((ActualET[cell]/(Tb+Tr))*                                \
+                                WUE*24.*0.55*1000, 0.001)
 
-            if PET[cell] > PETthreshold:  # Growing Season
+            if self._vegtype[cell] == 0:
 
-                NPP = max((ActualET[cell]/(Tb+Tr))*                            \
-                            WUE*24*0.55*1000, 0.001)
-                Bmax = (LAImax - LAIdead)/cb
-                Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell])+              \
+                if PET[cell] > PETthreshold:          # Growing Season    
+                    
+                    Bmax = (LAImax - LAIdead)/cb
+                    Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell])+          \
+                                ksg)/NPP)))
+                    Blive = (self._Blive_ini[cell] - Yconst) *                 \
+                                np.exp(-(NPP/Yconst) * ((Tb+Tr)/24.)) + Yconst
+                    Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *      \
+                                np.exp(-ksg * Tb/24.),0.00001)))*              \
+                                np.exp(-kdd * min( PET[cell]/10., 1 ) *        \
+                                Tb/24.)
+    
+                else:                                 # Senescense
+    
+                    Blive = max(self._Blive_ini[cell] * np.exp((-2) * ksg *    \
+                                Tb/24.), 1 )
+                    Bdead = max( (self._Bdead_ini[cell] +                      \
+                                ( self._Blive_ini[cell] -                      \
+                                max( self._Blive_ini[cell]*np.exp( (-2) *      \
+                                ksg * Tb/24.), 0.000001)))*                    \
+                                np.exp( (-1) * kdd *                           \
+                                min( PET[cell]/10, 1 ) * Tb/24.), 0. )
+
+            elif self._vegtype[cell] == 3:
+                
+                Blive = 0.
+                Bdead = 0.
+                            
+            else:
+                
+                Bmax = LAImax/cb
+                Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell]) +             \
                             ksg)/NPP)))
-                Blive = (self._Blive_ini[cell] - Yconst) *np.exp(-(NPP/Yconst)*\
-                            ((Tb+Tr)/24)) + Yconst
+                Blive = (self._Blive_ini[cell] - Yconst) *                     \
+                            np.exp(-(NPP/Yconst) * ((Tb+Tr)/24.)) + Yconst
                 Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *          \
-                            np.exp(-ksg * Tb/24),0.00001)))*                   \
-                            np.exp(-kdd * min( PET[cell]/10, 1 ) *             \
-                            Tb/24)
-
-            else:                                 # Senescense
-
-                Blive = max(self._Blive_ini[cell] * np.exp((-2) * ksg *        \
-                            Tb/24), 1 )
-                Bdead = max( (self._Bdead_ini[cell] + ( self._Blive_ini[cell]  \
-                            -max( self._Blive_ini[cell]*np.exp( (-2) *         \
-                            ksg * Tb/24), 0.000001)))*                         \
-                            np.exp( (-1)*kdd *                                 \
-                            min( PET[cell]/10, 1 ) * Tb/24), 0 )
+                            np.exp(-ksg * Tb/24.),0.00001))) *                 \
+                            np.exp(-kdd * min( PET[cell]/10., 1 ) *            \
+                            Tb/24.)
 
             LAIlive =  min( cb * Blive, LAImax )
             LAIdead =  min( cd * Bdead, ( LAImax - LAIlive ) )
