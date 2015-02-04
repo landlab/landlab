@@ -53,46 +53,46 @@ class SPEroder(Component):
     
     The primary method of this class is :func:`erode`.
     '''
+
+    _name = 'fastscape_stream_power'
+    
+    _input_var_names = set([
+        'topographic_elevation',
+        'drainage_area', 
+        'upstream_ID_order', 
+        'links_to_flow_receiver', 
+        'flow_receiver'
+    ])
+    
+    _output_var_names = set([
+        'topographic_elevation'
+    ])
+    
+    _var_units = {
+        'topographic_elevation' : 'm',
+        'drainage_area' : 'm**2',
+        'upstream_ID_order' : 'None',
+        'links_to_flow_receiver' : 'None',
+        'flow_receiver' : 'None'
+    }
+    
+    _var_mapping = {
+        'topographic_elevation' : 'Node',
+        'drainage_area' : 'Node',
+        'upstream_ID_order' : 'Node',
+        'links_to_flow_receiver' : 'Node',
+        'flow_receiver' : 'Node'
+    }
+    
+    _var_defs = {
+        'topographic_elevation' : 'The land surface elevation',
+        'drainage_area' : 'The upstream accumulated drainage area at each node',
+        'upstream_ID_order' : 'The node ID of each node in the grid, arranged in order from outlet to drainage network tips by distance from outlet',
+        'links_to_flow_receiver' : 'The link ID connecting each node to its downstream neighbor',
+        'flow_receiver' : 'The node ID of the node downstream for each node'
+    }
     
     def __init__(self, grid, input_stream):
-
-        self._name = 'fastscape_stream_power'
-        
-        self._input_var_names = set([
-            'topographic_elevation',
-            'drainage_area', 
-            'upstream_ID_order', 
-            'links_to_flow_receiver', 
-            'flow_receiver'
-        ])
-        
-        self._output_var_names = set([
-            'topographic_elevation'
-        ])
-        
-        self._var_units = {
-            'topographic_elevation' : 'm',
-            'drainage_area' : 'm**2',
-            'upstream_ID_order' : 'None',
-            'links_to_flow_receiver' : 'None',
-            'flow_receiver' : 'None'
-        }
-        
-        self._var_mapping = {
-            'topographic_elevation' : 'Node',
-            'drainage_area' : 'Node',
-            'upstream_ID_order' : 'Node',
-            'links_to_flow_receiver' : 'Node',
-            'flow_receiver' : 'Node'
-        }
-        
-        self._var_defs = {
-            'topographic_elevation' : 'The land surface elevation',
-            'drainage_area' : 'The upstream accumulated drainage area at each node',
-            'upstream_ID_order' : 'The node ID of each node in the grid, arranged in order from outlet to drainage network tips by distance from outlet',
-            'links_to_flow_receiver' : 'The link ID connecting each node to its downstream neighbor',
-            'flow_receiver' : 'The node ID of the node downstream for each node'
-        }
         
         self._grid = grid
         inputs = ModelParameterDictionary(input_stream)
