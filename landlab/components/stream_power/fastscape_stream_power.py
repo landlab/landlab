@@ -7,6 +7,7 @@ Created DEJH, March 2014.
 
 import numpy
 from landlab import ModelParameterDictionary
+from landlab import Component
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from scipy import weave
@@ -14,7 +15,7 @@ from scipy.optimize import newton, fsolve
 #from scipy.weave.build_tools import CompileError
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
-class SPEroder(object):
+class SPEroder(Component):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the amount
     of erosion at each node in a grid, following a stream power framework.
@@ -54,8 +55,63 @@ class SPEroder(object):
     '''
     
     def __init__(self, grid, input_stream):
-        self.grid = grid
+
+        self._name = 'fastscape_stream_power'
+        
+        self._input_var_names = set([
+            'topographic_elevation',
+            'drainage_area', 
+            'upstream_ID_order', 
+            'links_to_flow_receiver', 
+            'flow_receiver'
+        ])
+        
+        self._output_var_names = set([
+            'topographic_elevation'
+        ])
+        
+        self._var_units = {
+            'topographic_elevation' : 'm',
+            'drainage_area' : 'm**2',
+            'upstream_ID_order' : 'None',
+            'links_to_flow_receiver' : 'None',
+            'flow_receiver' : 'None'
+        }
+        
+        self._var_mapping = {
+            'topographic_elevation' : 'Node',
+            'drainage_area' : 'Node',
+            'upstream_ID_order' : 'Node',
+            'links_to_flow_receiver' : 'Node',
+            'flow_receiver' : 'Node'
+        }
+        
+        self._var_defs = {
+            'topographic_elevation' : 'The land surface elevation',
+            'drainage_area' : 'The upstream accumulated drainage area at each node',
+            'upstream_ID_order' : 'The node ID of each node in the grid, arranged in order from outlet to drainage network tips by distance from outlet',
+            'links_to_flow_receiver' : 'The link ID connecting each node to its downstream neighbor',
+            'flow_receiver' : 'The node ID of the node downstream for each node'
+        }
+        
+        self._grid = grid
         inputs = ModelParameterDictionary(input_stream)
+        
+        #perform a check that none of the standard names have been overwritten in the params file:
+        for current_var_names in (self._input_var_names, self._output_var_names):
+            for io_name in current_var_names:
+                try:
+                    updated_name = inputs.read_string(io_name)
+                except:
+                    pass
+                else:
+                    del current_var_names[io_name]
+                    current_var_names.add(updated_name)
+                    for this_dict in (self._var_units, self._var_mapping, self._var_defs):
+                        this_value = this_dict[io_name]
+                        del this_dict[io_name]
+                        this_dict[updated_name] = this_value
+                    
         
         #User sets:
         try:
@@ -84,7 +140,7 @@ class SPEroder(object):
         self.alpha = grid.empty(centering='node')
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
         
-        self.grid.node_diagonal_links() #calculates the number of diagonal links
+        self._grid.node_diagonal_links() #calculates the number of diagonal links
         
         if self.n != 1.:
             #raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
@@ -140,51 +196,52 @@ class SPEroder(object):
         supplied), and also returns a length-1 tuple containing the array of 
         topographic elevations.
         """
+        
         self.dt=dt
         try:
-            upstream_order_IDs = self.grid['node'][upstream_ID_order]
+            upstream_order_IDs = self._grid['node'][upstream_ID_order]
         except TypeError:
             upstream_order_IDs = upstream_ID_order
         try:
-            z = self.grid['node'][topographic_elevation]
+            z = self._grid['node'][topographic_elevation]
         except TypeError:
             z = topographic_elevation
         try:
-            A = self.grid.at_node[drainage_area]
+            A = self._grid.at_node[drainage_area]
         except TypeError:
             A = drainage_area
         try:
-            links_to_flow_receiver_in = self.grid['node'][links_to_flow_receiver]
+            links_to_flow_receiver_in = self._grid['node'][links_to_flow_receiver]
         except:
             links_to_flow_receiver_in = links_to_flow_receiver
         defined_flow_receivers = numpy.not_equal(links_to_flow_receiver_in,UNDEFINED_INDEX)
         #flow_link_lengths = numpy.zeros_like(self.alpha)
-        flow_link_lengths = self.grid.link_length[links_to_flow_receiver_in[defined_flow_receivers]]
+        flow_link_lengths = self._grid.link_length[links_to_flow_receiver_in[defined_flow_receivers]]
         
         if K_if_used!=None:
             assert self.use_K, "An array of erodabilities was provided, but you didn't set K_sp to 'array' in your input file! Aborting..."
             try:
-                self.K = self.grid.at_node[K_if_used][defined_flow_receivers]
+                self.K = self._grid.at_node[K_if_used][defined_flow_receivers]
             except TypeError:
                 self.K = K_if_used[defined_flow_receivers]
         
         if rainfall_intensity_if_used!=None:
             try:
-                self.r_i = self.grid.at_node[rainfall_intensity_if_used][defined_flow_receivers]
+                self.r_i = self._grid.at_node[rainfall_intensity_if_used][defined_flow_receivers]
             except TypeError:
                 self.r_i = rainfall_intensity_if_used[defined_flow_receivers]
             
         
-        #regular_links = numpy.less(self.grid['node']['links_to_flow_receiver'][defined_flow_receivers],self.grid.number_of_links)
-        #flow_link_lengths[defined_flow_receivers][regular_links] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
+        #regular_links = numpy.less(self._grid['node']['links_to_flow_receiver'][defined_flow_receivers],self._grid.number_of_links)
+        #flow_link_lengths[defined_flow_receivers][regular_links] = self._grid.link_length[(self._grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
         #diagonal_links = numpy.logical_not(regular_links)
-        #flow_link_lengths[defined_flow_receivers][diagonal_links] = numpy.sqrt(self.grid.node_spacing*self.grid.node_spacing)
+        #flow_link_lengths[defined_flow_receivers][diagonal_links] = numpy.sqrt(self._grid.node_spacing*self._grid.node_spacing)
         numpy.power(A, self.m, out=self.A_to_the_m)
         #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
         self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
         try:        
-            flow_receivers = self.grid['node'][flow_receiver]
+            flow_receivers = self._grid['node'][flow_receiver]
         except TypeError:
             flow_receivers = flow_receiver
         n_nodes = upstream_order_IDs.size
@@ -256,7 +313,7 @@ class SPEroder(object):
                             z[i] = newton(func_for_newton, z[i], fprime=func_for_newton_diff, args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n), maxiter=10)
                         else:
                             z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
-        #self.grid['node'][self.value_field] = z
+        #self._grid['node'][self.value_field] = z
         
         return (z,)
 
