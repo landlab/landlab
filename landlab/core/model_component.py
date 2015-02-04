@@ -28,6 +28,21 @@ class Component(object):
     @property
     def units(self):
         return self._var_units
+    
+    @property
+    def var_units(self):
+        return self._var_units
+        
+    @property
+    def var_definitions(self):
+        return self._var_defs
+    
+    @property
+    def var_mapping(self):
+        """var_mapping
+        This is 'node', 'cell', 'active_link', etc.
+        """
+        return self._var_mapping
 
     @property
     def shape(self):

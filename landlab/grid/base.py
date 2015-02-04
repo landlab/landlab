@@ -442,6 +442,7 @@ class ModelGrid(ModelDataFields):
             self.weave_flag = False
             print "***Warnings which appear directly above this line relate to an attempt by Landlab to implement C++ acceleration. However, regardless of whether warnings appear, your installation of Python lacks the necessary C++ compiler to allow this. Everything will still work fine, but Landlab may run more slowly for you on large (>>10**4 nodes) grids. See the readthedocs documentation, or contact the developers, for more information.***"
         else:
+            print "(If warnings are generated above this line, you can safely ignore them.)"
             self.weave_flag = True
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
