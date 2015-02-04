@@ -1,3 +1,8 @@
+
+[![Documentation Status](https://readthedocs.org/projects/landlab/badge/?version=latest)](https://readthedocs.org/projects/landlab/?badge=latest)
+[![Build Status](https://travis-ci.org/landlab/landlab.svg?branch=master)](https://travis-ci.org/landlab/landlab)
+[![Coverage Status](https://coveralls.io/repos/landlab/landlab/badge.png)](https://coveralls.io/r/landlab/landlab)
+[![Code Health](https://landscape.io/github/landlab/landlab/master/landscape.svg)](https://landscape.io/github/landlab/landlab/master)
 landlab
 =======
 
@@ -24,5 +29,4 @@ repository:
 
 http://github.com/landlab/landlab
 
-[![Build Status](https://travis-ci.org/landlab/landlab.svg?branch=master)](https://travis-ci.org/landlab/landlab)
-[![Coverage Status](https://coveralls.io/repos/landlab/landlab/badge.png)](https://coveralls.io/r/landlab/landlab)
+
