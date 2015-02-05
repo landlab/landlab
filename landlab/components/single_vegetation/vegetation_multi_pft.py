@@ -59,7 +59,7 @@ class Vegetation( Component ):
         
         assert_method_is_valid(self._method)
 
-        super(Vegetation, self).__init__(grid, **kwds)
+        super(Vegetation, self).__init__(grid)
 
         self.initialize( VEGTYPE = grid['cell']['VegetationType'], **kwds )
 
@@ -84,7 +84,7 @@ class Vegetation( Component ):
         self._WUE = np.choose(self._vegtype, kwds.pop('WUE', 
                                 [ 0.01, 0.0025, 0.0045, 0.01, 0.0025, 0.0045 ]))   # Water Use Efficiency  KgCO2kg-1H2O
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
-                                [ 2, 2, 4, 0, 1, 2 ]))                             # Maximum leaf area index (m2/m2)
+                                [ 2., 2., 4., 0., 1., 2. ]))                       # Maximum leaf area index (m2/m2)
         self._cb = np.choose( self._vegtype, kwds.pop('CB', 
                                 [ 0.0047, 0.004, 0.004, 0.0047, 0.004, 0.004 ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
         self._cd = np.choose( self._vegtype, kwds.pop('CD', 
