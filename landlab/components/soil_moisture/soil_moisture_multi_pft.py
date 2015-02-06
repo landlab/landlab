@@ -103,7 +103,8 @@ class SoilMoisture( Component ):
                                         [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))   # Saturation degree at soil hygroscopic point
         self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA',
                                         [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) # Deep percolation constant
-
+        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
+                                        [ 2., 2., 4., 0.01, 1., 2. ]))           # Maximum leaf area index (m2/m2)
 
 
     def update( self, current_time, **kwds ):
@@ -119,7 +120,8 @@ class SoilMoisture( Component ):
         self._S = self._cell_values['SaturationFraction']
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
-        self._fr = self._cell_values['LiveLeafAreaIndex']/1.44
+        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAI_max
+        self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
                             
 
@@ -142,7 +144,7 @@ class SoilMoisture( Component ):
                                     self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
-                                    P)  # Interception capacity
+                            P*self._vegcover[cell])  # Interception capacity
             Peff = max(P-Int_cap, 0.0)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1-fc))-1))
             Ep = max((self._PET[cell]*self._fr[cell]

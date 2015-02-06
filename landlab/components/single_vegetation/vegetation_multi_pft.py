@@ -84,7 +84,7 @@ class Vegetation( Component ):
         self._WUE = np.choose(self._vegtype, kwds.pop('WUE', 
                                 [ 0.01, 0.0025, 0.0045, 0.01, 0.0025, 0.0045 ]))   # Water Use Efficiency  KgCO2kg-1H2O
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
-                                [ 2., 2., 4., 0., 1., 2. ]))                       # Maximum leaf area index (m2/m2)
+                                [ 2., 2., 4., 0.01, 1., 2. ]))                     # Maximum leaf area index (m2/m2)
         self._cb = np.choose( self._vegtype, kwds.pop('CB', 
                                 [ 0.0047, 0.004, 0.004, 0.0047, 0.004, 0.004 ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
         self._cd = np.choose( self._vegtype, kwds.pop('CD', 
@@ -152,7 +152,7 @@ class Vegetation( Component ):
                                 np.exp(-(NPP/Yconst) * ((Tb+Tr)/24.)) + Yconst
                     Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *      \
                                 np.exp(-ksg * Tb/24.),0.00001)))*              \
-                                np.exp(-kdd * min( PET[cell]/10., 1 ) *        \
+                                np.exp(-kdd * min( PET[cell]/10., 1. ) *       \
                                 Tb/24.)
     
                 else:                                 # Senescense
@@ -164,7 +164,7 @@ class Vegetation( Component ):
                                 max( self._Blive_ini[cell]*np.exp( (-2) *      \
                                 ksg * Tb/24.), 0.000001)))*                    \
                                 np.exp( (-1) * kdd *                           \
-                                min( PET[cell]/10, 1 ) * Tb/24.), 0. )
+                                min( PET[cell]/10., 1. ) * Tb/24.), 0. )
 
             elif self._vegtype[cell] == 3:
                 
@@ -180,12 +180,16 @@ class Vegetation( Component ):
                             np.exp(-(NPP/Yconst) * ((Tb+Tr)/24.)) + Yconst
                 Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *          \
                             np.exp(-ksg * Tb/24.),0.00001))) *                 \
-                            np.exp(-kdd * min( PET[cell]/10., 1 ) *            \
+                            np.exp(-kdd * min( PET[cell]/10., 1. ) *           \
                             Tb/24.)
 
-            LAIlive =  min( cb * Blive, LAImax )
-            LAIdead =  min( cd * Bdead, ( LAImax - LAIlive ) )
-            Vt = 1 - np.exp(-0.75 * (LAIlive + LAIdead))
+            LAIlive =  min( cb * (Blive + self._Blive_ini[cell])/2., LAImax )
+            LAIdead =  min( cd * (Bdead + self._Bdead_ini[cell])/2.,
+                                                       ( LAImax - LAIlive ) )
+            if self._vegtype[cell] == 0:
+                Vt = 1 - np.exp(-0.75 * (LAIlive + LAIdead))
+            else:
+                Vt = 1 - np.exp(-0.75 * LAIlive)
 
             self._LAIlive[cell] = LAIlive
             self._LAIdead[cell] = LAIdead
