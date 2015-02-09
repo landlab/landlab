@@ -125,9 +125,6 @@ class SoilMoisture( Component ):
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
 
-        self._vegcover[1:3] = 1.  # Vegcover for shrub and tree set to 1.
-        self._vegcover[4:6] = 1.  # Vegcover for seedlings set to 1.
-
 
         for cell in range(0,self.grid.number_of_cells):
 

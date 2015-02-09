@@ -56,7 +56,7 @@ class Vegetation( Component ):
 
     def __init__(self, grid, **kwds):
         self._method = kwds.pop('method', 'Grid')
-        
+
         assert_method_is_valid(self._method)
 
         super(Vegetation, self).__init__(grid)
@@ -81,25 +81,25 @@ class Vegetation( Component ):
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
           kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
-        self._WUE = np.choose(self._vegtype, kwds.pop('WUE', 
+        self._WUE = np.choose(self._vegtype, kwds.pop('WUE',
                                 [ 0.01, 0.0025, 0.0045, 0.01, 0.0025, 0.0045 ]))   # Water Use Efficiency  KgCO2kg-1H2O
-        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
+        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
                                 [ 2., 2., 4., 0.01, 1., 2. ]))                     # Maximum leaf area index (m2/m2)
-        self._cb = np.choose( self._vegtype, kwds.pop('CB', 
+        self._cb = np.choose( self._vegtype, kwds.pop('CB',
                                 [ 0.0047, 0.004, 0.004, 0.0047, 0.004, 0.004 ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
-        self._cd = np.choose( self._vegtype, kwds.pop('CD', 
+        self._cd = np.choose( self._vegtype, kwds.pop('CD',
                                 [ 0.009, 0.01, 0.01, 0.009, 0.01, 0.01 ]))         # Specific leaf area for dead biomass (m2 leaf g-1 DM)
-        self._ksg = np.choose( self._vegtype, kwds.pop('KSG', 
+        self._ksg = np.choose( self._vegtype, kwds.pop('KSG',
                                 [ 0.012, 0.002, 0.002, 0.012, 0.002, 0.002 ]))     # Senescence coefficient of green/live biomass (d-1)
-        self._kdd = np.choose( self._vegtype, kwds.pop('KDD', 
+        self._kdd = np.choose( self._vegtype, kwds.pop('KDD',
                                 [ 0.013, 0.013, 0.013, 0.013, 0.013, 0.013 ]))     # Decay coefficient of aboveground dead biomass (d-1)
-        self._kws = np.choose( self._vegtype, kwds.pop('KWS', 
+        self._kws = np.choose( self._vegtype, kwds.pop('KWS',
                                 [ 0.02, 0.02, 0.001, 0.02, 0.02, 0.001 ]))         # Maximum drought induced foliage loss rates (d-1)
         self._Blive_init = kwds.pop('BLIVE_INI', 102.)
         self._Bdead_init = kwds.pop('BDEAD_INI', 450.)
         self._ETthresholdup = kwds.pop('ETTup', 3.8)                               # Growth threshold (mm/d)
         self._ETthresholddown = kwds.pop('ETTdwn', 6.8)                            # Dormancy threshold (mm/d)
-        #self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax', 
+        #self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax',
         #                        [ 10, 10, 10, 10, 10, 10 ]))                       # Constant for dead biomass loss adjustment (mm/d)
 
         self._cell_values = self.grid['cell']
@@ -134,7 +134,7 @@ class Vegetation( Component ):
             kdd = self._kdd[cell]
             kws = self._kws[cell]
             #ETdmax = self._ETdmax[cell]
-                       
+
             LAIlive =  min (cb * self._Blive_ini[cell], LAImax)
             LAIdead =  min (cd * self._Bdead_ini[cell], (LAImax                \
                             - LAIlive))
@@ -143,8 +143,8 @@ class Vegetation( Component ):
 
             if self._vegtype[cell] == 0:
 
-                if PET[cell] > PETthreshold:          # Growing Season    
-                    
+                if PET[cell] > PETthreshold:          # Growing Season
+
                     Bmax = (LAImax - LAIdead)/cb
                     Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell])+          \
                                 ksg)/NPP)))
@@ -154,9 +154,9 @@ class Vegetation( Component ):
                                 np.exp(-ksg * Tb/24.),0.00001)))*              \
                                 np.exp(-kdd * min( PET[cell]/10., 1. ) *       \
                                 Tb/24.)
-    
+
                 else:                                 # Senescense
-    
+
                     Blive = max(self._Blive_ini[cell] * np.exp((-2) * ksg *    \
                                 Tb/24.), 1 )
                     Bdead = max( (self._Bdead_ini[cell] +                      \
@@ -167,12 +167,12 @@ class Vegetation( Component ):
                                 min( PET[cell]/10., 1. ) * Tb/24.), 0. )
 
             elif self._vegtype[cell] == 3:
-                
+
                 Blive = 0.
                 Bdead = 0.
-                            
+
             else:
-                
+
                 Bmax = LAImax/cb
                 Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell]) +             \
                             ksg)/NPP)))
@@ -187,9 +187,10 @@ class Vegetation( Component ):
             LAIdead =  min( cd * (Bdead + self._Bdead_ini[cell])/2.,
                                                        ( LAImax - LAIlive ) )
             if self._vegtype[cell] == 0:
-                Vt = 1 - np.exp(-0.75 * (LAIlive + LAIdead))
+                Vt = 1. - np.exp(-0.75 * (LAIlive + LAIdead))
             else:
-                Vt = 1 - np.exp(-0.75 * LAIlive)
+                #Vt = 1 - np.exp(-0.75 * LAIlive)
+                Vt = 1.
 
             self._LAIlive[cell] = LAIlive
             self._LAIdead[cell] = LAIdead

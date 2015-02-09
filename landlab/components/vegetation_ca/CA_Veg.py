@@ -167,7 +167,7 @@ class VegCA( Component ):
         PMd = self._CumWS[plant_cells] - Theta
         PMd[PMd < 0.] = 0.
         tpmax = np.choose(self._VegType[plant_cells],
-                    [ 0, self._tpmax_sh, self._tpmax_tr,
+                    [ 200000, self._tpmax_sh, self._tpmax_tr,
                             0, self._tpmax_sh_s, self._tpmax_tr_s])
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
