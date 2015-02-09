@@ -90,7 +90,7 @@ class SoilMoisture( Component ):
                                             [ 12, 10000, 42, 12, 10000, 42 ]))   # Infiltration capacity of bare soil (mm/h)
         self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
                                             [ 36, 10000, 42, 36, 10000, 42 ]))   # Infiltration capacity of vegetated soil (mm/h)
-        self._soil_Ew = kwds.pop('EW', [0.1])                                     
+        self._soil_Ew = kwds.pop('EW', [0.1])
         self._soil_pc = np.choose(self._vegtype, kwds.pop('PC',
                                         [ 0.43, 0.43, 0.43, 0.43, 0.43, 0.43 ])) # Soil porosity
         self._soil_fc = np.choose(self._vegtype, kwds.pop('FC',
@@ -103,7 +103,7 @@ class SoilMoisture( Component ):
                                         [ 0.11, 0.11, 0.1, 0.11, 0.11, 0.1 ]))   # Saturation degree at soil hygroscopic point
         self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA',
                                         [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) # Deep percolation constant
-        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX', 
+        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
                                         [ 2., 2., 4., 0.01, 1., 2. ]))           # Maximum leaf area index (m2/m2)
 
 
@@ -123,7 +123,11 @@ class SoilMoisture( Component ):
         self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAI_max
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
-                            
+        self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
+
+        self._vegcover[1:3] = 1.  # Vegcover for shrub and tree set to 1.
+        self._vegcover[4:6] = 1.  # Vegcover for seedlings set to 1.
+
 
         for cell in range(0,self.grid.number_of_cells):
 
@@ -145,76 +149,77 @@ class SoilMoisture( Component ):
                                                         # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
                             P*self._vegcover[cell])  # Interception capacity
-            Peff = max(P-Int_cap, 0.0)         # Effective precipitation depth
-            mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1-fc))-1))
+            Peff = max(P-Int_cap, 0.)         # Effective precipitation depth
+            mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell]
-                                +fbare*self._PET[cell]*(1-self._fr[cell]))
-                                    - Int_cap, 0.001)  #
-            nu = ((Ep/24.0)/1000.0)/(pc*ZR) # Loss function parameter
-            nuw = ((Ep*0.1/24)/1000.0)/(pc*ZR) # Loss function parameter
-            sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.0))
+                                +fbare*self._PET[cell]*(1.-self._fr[cell]))
+                                    - Int_cap, 0.0001)  # mm/d
+            self._ETmax[cell] = Ep
+            nu = ((Ep/24.)/1000.)/(pc*ZR) # Loss function parameter
+            nuw = ((Ep*0.1/24.)/1000.)/(pc*ZR) # Loss function parameter
+            sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.))
 
-            if sini>1:
-                self._runoff = (sini-1)*pc*ZR*1000
+            if sini>1.:
+                self._runoff = (sini-1.)*pc*ZR*1000.
                 #print 'Runoff =', self._runoff
-                sini = 1
+                sini = 1.
 
             else:
-                self._runoff = 0
+                self._runoff = 0.
 
 
             #self._runon = runoff
 
             if sini>=fc:
-                tfc = (1.0/(beta*(mu-nu)))*(beta*(fc-sini)+                   \
+                tfc = (1./(beta*(mu-nu)))*(beta*(fc-sini)+                   \
                         np.log((nu-mu+mu*np.exp(beta*(sini-fc)))/nu))
                 tsc = ((fc-sc)/nu)+tfc
                 twp = ((sc-wp)/(nu-nuw))*np.log(nu/nuw)+tsc
 
                 if Tb<tfc:
-                    s = abs(sini-(1/beta)*np.log(((nu-mu+mu*                  \
+                    s = abs(sini-(1./beta)*np.log(((nu-mu+mu*                 \
                             np.exp(beta*(sini-fc)))*np.exp(beta*(nu-mu)*Tb)   \
                             -mu*np.exp(beta*(sini-fc)))/(nu-mu)))
 
-                    self._D[cell] = ((pc*ZR*1000)*(sini-s))-(Tb*(Ep/24))
-                    self._ETA[cell] = (Tb*(Ep/24))
+                    self._D[cell] = ((pc*ZR*1000.)*(sini-s))-(Tb*(Ep/24.))
+                    self._ETA[cell] = (Tb*(Ep/24.))
 
                 elif Tb>=tfc and Tb<tsc:
                     s = fc-(nu*(Tb-tfc))
-                    self._D[cell] = ((pc*ZR*1000)*(sini-fc))-((tfc)*(Ep/24))
-                    self._ETA[cell] = (Tb*(Ep/24))
+                    self._D[cell] = ((pc*ZR*1000.)*(sini-fc))-((tfc)*(Ep/24.))
+                    self._ETA[cell] = (Tb*(Ep/24.))
 
                 elif Tb>=tsc and Tb<twp:
                     s = wp+(sc-wp)*((nu/(nu-nuw))*np.exp((-1)*((nu-nuw)
                                         /(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
-                    self._D[cell] = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))-self._D[cell]
+                    self._D[cell] = ((pc*ZR*1000.)*(sini-fc))-(tfc*Ep/24.)
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))-self._D[cell]
 
                 else:
-                    s = hgw+(wp-hgw)*np.exp((-1)*(nuw/(wp-hgw))*max(Tb-twp,0))
-                    self._D[cell] = ((pc*ZR*1000)*(sini-fc))-(tfc*Ep/24)
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))-self._D[cell]
+                    s = hgw+(wp-hgw)*np.exp((-1)*(nuw/(wp-hgw))*max(Tb-twp,0.))
+                    self._D[cell] = ((pc*ZR*1000.)*(sini-fc))-(tfc*Ep/24.)
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))-self._D[cell]
 
             elif sini<fc and sini>=sc:
-                tfc = 0
+                tfc = 0.
                 tsc = (sini-sc)/nu
                 twp = ((sc-wp)/(nu-nuw))*np.log(nu/nuw)+tsc
 
                 if Tb<tsc:
                     s = sini - nu*Tb
-                    self._D[cell] = 0
-                    self._ETA[cell] = 1000*ZR*pc*(sini-s)
+                    self._D[cell] = 0.
+                    self._ETA[cell] = 1000.*ZR*pc*(sini-s)
 
                 elif Tb>=tsc and Tb<twp:
                     s = wp+(sc-wp)*((nu/(nu-nuw))*np.exp((-1)
                                 *((nu-nuw)/(sc-wp))*(Tb-tsc))-(nuw/(nu-nuw)))
                     self._D[cell] = 0
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))
 
                 else:
                     s = hgw+(wp-hgw)*np.exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
-                    self._D[cell] = 0
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))
+                    self._D[cell] = 0.
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))
 
             elif sini<sc and sini>=wp:
                 tfc = 0
@@ -226,22 +231,22 @@ class SoilMoisture( Component ):
                     s = wp+((sc-wp)/(nu-nuw))*((np.exp((-1)*((nu-nuw)
                                     /(sc-wp))*Tb))*(nuw+((nu-nuw)
                                         /(sc-wp))*(sini-wp))-nuw)
-                    self._D[cell] = 0
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))
+                    self._D[cell] = 0.
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))
 
                 else:
                     s = hgw+(wp-hgw)*np.exp((-1)*(nuw/(wp-hgw))*(Tb-twp))
-                    self._D[cell] = 0
-                    self._ETA[cell] = (1000*ZR*pc*(sini-s))
+                    self._D[cell] = 0.
+                    self._ETA[cell] = (1000.*ZR*pc*(sini-s))
 
             else:
-                tfc = 0
-                tsc = 0
-                twp = 0
+                tfc = 0.
+                tsc = 0.
+                twp = 0.
 
                 s = hgw+(sini-hgw)*np.exp((-1)*(nuw/(wp-hgw))*Tb)
-                self._D[cell] = 0
-                self._ETA[cell] = (1000*ZR*pc*(sini-s))
+                self._D[cell] = 0.
+                self._ETA[cell] = (1000.*ZR*pc*(sini-s))
 
             self._water_stress[cell] = min(((max(((sc - (s+sini)/2.)
                                           /(sc - wp)),0.))**4.),1.0)
