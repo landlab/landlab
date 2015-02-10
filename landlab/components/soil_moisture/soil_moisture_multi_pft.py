@@ -104,7 +104,7 @@ class SoilMoisture( Component ):
         self._soil_beta = np.choose(self._vegtype, kwds.pop('BETA',
                                         [ 13.8, 13.8, 14.8, 13.8, 13.8, 14.8 ])) # Deep percolation constant
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
-                                        [ 2., 2., 4., 0.01, 1., 2. ]))           # Maximum leaf area index (m2/m2)
+                                        [ 2., 2., 4., 0.01, 2., 4. ]))           # Maximum leaf area index (m2/m2)
 
 
     def update( self, current_time, **kwds ):

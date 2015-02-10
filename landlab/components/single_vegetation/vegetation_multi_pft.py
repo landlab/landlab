@@ -84,7 +84,7 @@ class Vegetation( Component ):
         self._WUE = np.choose(self._vegtype, kwds.pop('WUE',
                                 [ 0.01, 0.0025, 0.0045, 0.01, 0.0025, 0.0045 ]))   # Water Use Efficiency  KgCO2kg-1H2O
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
-                                [ 2., 2., 4., 0.01, 1., 2. ]))                     # Maximum leaf area index (m2/m2)
+                                [ 2., 2., 4., 0.01, 2., 4. ]))                     # Maximum leaf area index (m2/m2)
         self._cb = np.choose( self._vegtype, kwds.pop('CB',
                                 [ 0.0047, 0.004, 0.004, 0.0047, 0.004, 0.004 ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
         self._cd = np.choose( self._vegtype, kwds.pop('CD',
@@ -94,7 +94,7 @@ class Vegetation( Component ):
         self._kdd = np.choose( self._vegtype, kwds.pop('KDD',
                                 [ 0.013, 0.013, 0.013, 0.013, 0.013, 0.013 ]))     # Decay coefficient of aboveground dead biomass (d-1)
         self._kws = np.choose( self._vegtype, kwds.pop('KWS',
-                                [ 0.02, 0.02, 0.001, 0.02, 0.02, 0.001 ]))         # Maximum drought induced foliage loss rates (d-1)
+                                [ 0.02, 0.02, 0.01, 0.02, 0.02, 0.01 ]))         # Maximum drought induced foliage loss rates (d-1)
         self._Blive_init = kwds.pop('BLIVE_INI', 102.)
         self._Bdead_init = kwds.pop('BDEAD_INI', 450.)
         self._ETthresholdup = kwds.pop('ETTup', 3.8)                               # Growth threshold (mm/d)
