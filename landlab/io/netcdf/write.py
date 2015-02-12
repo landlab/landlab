@@ -135,7 +135,7 @@ def _add_variables_at_points(root, fields):
         else:
             var[n_times] = node_fields[var_name].flat[0]
 
-        var.units = node_fields.units[var_name]
+        var.units = node_fields.units[var_name] or '?'
         var.long_name = var_name
 
 
