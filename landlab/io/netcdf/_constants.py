@@ -15,6 +15,7 @@ _NP_TO_NC_TYPE = {
     'uint16': 'u2',
     'uint32': 'u4',
     'uint64': 'u8',
+    'bool': 'i1',
 }
 
 
