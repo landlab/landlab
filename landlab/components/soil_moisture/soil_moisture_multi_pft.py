@@ -85,7 +85,7 @@ class SoilMoisture( Component ):
                 np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',
                                             [ 1., 1.5, 2., 1., 1.5, 2 ]))        # Full canopy interception (mm)
         self._zr = np.choose(self._vegtype, kwds.pop('ZR',
-                                            [ 0.3, 1., 2., 0.3, 1., 2. ]))       # Root depth (mm)
+                                            [ 0.3, 1., 2., 0.3, 1., 2. ]))       # Root depth (m)
         self._soil_Ib = np.choose(self._vegtype, kwds.pop('I_B',
                                             [ 12, 10000, 42, 12, 10000, 42 ]))   # Infiltration capacity of bare soil (mm/h)
         self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
