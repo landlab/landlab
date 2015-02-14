@@ -196,6 +196,42 @@ def write_netcdf(path, fields, attrs=None, append=False,
     names : iterable of str, optional
         Names of the fields to include in the netcdf file. If not provided,
         write all fields.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.netcdf import write_netcdf
+
+    Create a uniform rectilinear grid with four rows and 3 columns, and add
+    some data fields to it.
+
+    >>> rmg = RasterModelGrid(4, 3)
+    >>> _ = rmg.add_field('node', 'topographic_elevation', np.arange(12.))
+    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+
+    Create a temporary directory to write the netcdf file into.
+
+    >>> import tempfile, os
+    >>> temp_dir = tempfile.mkdtemp()
+    >>> os.chdir(temp_dir)
+
+    Write the grid to a netcdf3 file but only include the *uplift_rate*
+    data in the file.
+
+    >>> write_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
+    ...     names='uplift_rate')
+
+    Read the file back in check the contents.
+
+    >>> from scipy.io import netcdf
+    >>> fp = netcdf.netcdf_file('test.nc', 'r')
+    >>> 'uplift_rate' in fp.variables
+    True
+    >>> 'topographic_elevation' in fp.variables
+    False
+    >>> fp.variables['uplift_rate'][:].flatten()
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+           22.])
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
