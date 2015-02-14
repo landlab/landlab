@@ -25,7 +25,38 @@ except ImportError:
     pass
 
 
-_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+def test_netcdf_write_as_netcdf3_64bit():
+    from scipy.io import netcdf
+
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, format='NETCDF3_64BIT')
+
+        f = netcdf.netcdf_file('test.nc', 'r')
+
+        for name in ['topographic_elevation', 'uplift_rate']:
+            assert_true(name in f.variables)
+            assert_array_equal(f.variables[name][:].flat, field.at_node[name])
+
+
+def test_netcdf_write_as_netcdf3_classic():
+    from scipy.io import netcdf
+
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, format='NETCDF3_CLASSIC')
+
+        f = netcdf.netcdf_file('test.nc', 'r')
+
+        for name in ['topographic_elevation', 'uplift_rate']:
+            assert_true(name in f.variables)
+            assert_array_equal(f.variables[name][:].flat, field.at_node[name])
 
 
 @skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
@@ -34,7 +65,7 @@ def test_netcdf_write():
     field.add_field('node', 'topographic_elevation', np.arange(12.))
 
     with cdtemp() as _:
-        write_netcdf('test.nc', field)
+        write_netcdf('test.nc', field, format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         assert_equal(set(root.dimensions), set(['ni', 'nj', 'nt']))
@@ -59,13 +90,30 @@ def test_netcdf_write():
 
 
 @skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+def test_netcdf_write_as_netcdf4_classic():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, format='NETCDF4_CLASSIC')
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4_CLASSIC')
+
+        for name in ['topographic_elevation', 'uplift_rate']:
+            assert_true(name in root.variables)
+            assert_array_equal(root.variables[name][:].flat,
+                               field.at_node[name])
+
+
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_list():
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
     with cdtemp() as _:
-        write_netcdf('test.nc', field, names=['topographic_elevation'])
+        write_netcdf('test.nc', field, names=['topographic_elevation'],
+                    format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         assert_true('topographic_elevation' in root.variables)
@@ -81,7 +129,7 @@ def test_netcdf_write_names_keyword_as_str():
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
     with cdtemp() as _:
-        write_netcdf('test.nc', field, names='uplift_rate')
+        write_netcdf('test.nc', field, names='uplift_rate', format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         assert_true('topographic_elevation' not in root.variables)
@@ -97,7 +145,7 @@ def test_netcdf_write_names_keyword_as_none():
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
     with cdtemp() as _:
-        write_netcdf('test.nc', field, names=None)
+        write_netcdf('test.nc', field, names=None, format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         for name in ['topographic_elevation', 'uplift_rate']:
