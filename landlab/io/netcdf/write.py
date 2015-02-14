@@ -1,7 +1,8 @@
 #! /usr/bin/env python
-
 import os
 import warnings
+import types
+
 
 try:
     import netCDF4 as nc4
@@ -68,18 +69,20 @@ def _set_netcdf_structured_dimensions(root, shape):
 
 
 def _set_netcdf_variables(root, fields, **kwds):
+    """Set the field variables.
+    
+    First set the variables that define the grid and then the variables at
+    the grid nodes and cells.
     """
-    Set the variables. First set the variables that define the grid and
-    then the variables at the grid nodes and cells.
-    """
+    names = kwds.pop('names', None)
+
     _add_spatial_variables(root, fields, **kwds)
     #_add_variables_at_points(root, fields['nodes'])
-    _add_variables_at_points(root, fields)
+    _add_variables_at_points(root, fields, names=names)
 
 
 def _add_spatial_variables(root, grid, **kwds):
-    """
-    Add the variables to *root* that define the structured grid, *grid*.
+    """Add the variables to *root* that define the structured grid, *grid*.
     """
     long_name = kwds.get('long_name', {})
 
@@ -106,7 +109,11 @@ def _add_spatial_variables(root, grid, **kwds):
             var.long_name = grid.axis_name[axis]
 
 
-def _add_variables_at_points(root, fields):
+def _add_variables_at_points(root, fields, names=None):
+    if isinstance(names, types.StringTypes):
+        names = [names]
+    names = names or fields['node'].keys()
+
     vars = root.variables
 
     spatial_variable_shape = _get_dimension_names(fields.shape)
@@ -117,7 +124,7 @@ def _add_variables_at_points(root, fields):
         n_times = 0
 
     node_fields = fields['node']
-    for var_name in node_fields:
+    for var_name in names:
         try:
             var = vars[var_name]
         except KeyError:
@@ -166,13 +173,70 @@ _VALID_NETCDF_FORMATS = set([
     'NETCDF4',
 ])
 
-def write_netcdf(path, fields, attrs={}, append=False, format='NETCDF3_64BIT'):
-    """
+def write_netcdf(path, fields, attrs=None, append=False,
+                 format='NETCDF3_64BIT', names=None):
+    """Write landlab fields to netcdf.
+
     Write the data and grid information for *fields* to *path* as NetCDF.
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
+
+    Parameters
+    ----------
+    path : str
+        Path to output file.
+    fields : field-like
+        Landlab field object that holds a grid and associated values.
+    append : boolean, optional
+        Append data to an existing file, otherwise clobber the file.
+    format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
+        Format of output netcdf file.
+    attrs : dict
+        Attributes to add to netcdf file.
+    names : iterable of str, optional
+        Names of the fields to include in the netcdf file. If not provided,
+        write all fields.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.netcdf import write_netcdf
+
+    Create a uniform rectilinear grid with four rows and 3 columns, and add
+    some data fields to it.
+
+    >>> rmg = RasterModelGrid(4, 3)
+    >>> _ = rmg.add_field('node', 'topographic_elevation', np.arange(12.))
+    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+
+    Create a temporary directory to write the netcdf file into.
+
+    >>> import tempfile, os
+    >>> temp_dir = tempfile.mkdtemp()
+    >>> os.chdir(temp_dir)
+
+    Write the grid to a netcdf3 file but only include the *uplift_rate*
+    data in the file.
+
+    >>> write_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
+    ...     names='uplift_rate')
+
+    Read the file back in check the contents.
+
+    >>> from scipy.io import netcdf
+    >>> fp = netcdf.netcdf_file('test.nc', 'r')
+    >>> 'uplift_rate' in fp.variables
+    True
+    >>> 'topographic_elevation' in fp.variables
+    False
+    >>> fp.variables['uplift_rate'][:].flatten()
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+           22.])
     """
-    assert(format in _VALID_NETCDF_FORMATS)
+    if format not in _VALID_NETCDF_FORMATS:
+        raise ValueError('format not understood')
+
+    attrs = attrs or {}
 
     if os.path.isfile(path) and append:
         mode = 'a'
@@ -188,6 +252,6 @@ def write_netcdf(path, fields, attrs={}, append=False, format='NETCDF3_64BIT'):
 
     _set_netcdf_attributes(root, attrs)
     _set_netcdf_structured_dimensions(root, fields.shape)
-    _set_netcdf_variables(root, fields)
+    _set_netcdf_variables(root, fields, names=names)
 
     root.close()
