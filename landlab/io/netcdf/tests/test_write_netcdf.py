@@ -12,10 +12,17 @@ try:
     from nose import assert_list_equal
 except ImportError:
     from landlab.testing.tools import assert_list_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.io.netcdf import write_netcdf, NotRasterGridError, WITH_NETCDF4
 from landlab.io.netcdf.read import _get_raster_spacing
+from landlab.testing.tools import cdtemp
+
+try:
+    import netCDF4 as nc
+except ImportError:
+    pass
 
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -24,38 +31,79 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 @skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write():
     field = RasterModelGrid(4, 3)
-    #field.new_field_location('node', 12.)
-    values = np.arange(12.)
-    field.add_field('node', 'topographic_elevation', values)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
 
-    write_netcdf('test.nc', field)
+    with cdtemp() as _:
+        write_netcdf('test.nc', field)
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
-    import netCDF4 as nc
+        assert_equal(set(root.dimensions), set(['ni', 'nj', 'nt']))
+        assert_equal(len(root.dimensions['ni']), 3)
+        assert_equal(len(root.dimensions['nj']), 4)
+        assert_true(len(root.dimensions['nt']), 1)
+        assert_true(root.dimensions['nt'].isunlimited())
 
-    root = nc.Dataset('test.nc', 'r', format='NETCDF4')
-    assert_equal(set(root.dimensions), set(['ni', 'nj', 'nt']))
-    assert_equal(len(root.dimensions['ni']), 3)
-    assert_equal(len(root.dimensions['nj']), 4)
-    assert_true(len(root.dimensions['nt']), 1)
-    assert_true(root.dimensions['nt'].isunlimited())
+        assert_equal(set(root.variables),
+                     set(['x', 'y', 'topographic_elevation']))
 
-    assert_equal(set(root.variables),
-                 set(['x', 'y', 'topographic_elevation']))
+        assert_array_equal(root.variables['x'][:].flat,
+                          np.array([0., 1., 2., 0., 1., 2., 0., 1., 2.,
+                                    0., 1., 2., ]))
+        assert_array_equal(root.variables['y'][:].flat,
+                          np.array([0., 0., 0., 1., 1., 1., 2., 2., 2.,
+                                    3., 3., 3., ]))
+        assert_array_equal(root.variables['topographic_elevation'][:].flat,
+                           field.at_node['topographic_elevation'])
 
-    assert_list_equal(list(root.variables['x'][:].flat),
-                      [0., 1., 2.,
-                       0., 1., 2.,
-                       0., 1., 2.,
-                       0., 1., 2., ])
-    assert_list_equal(list(root.variables['y'][:].flat),
-                      [0., 0., 0.,
-                       1., 1., 1.,
-                       2., 2., 2.,
-                       3., 3., 3., ])
-    assert_list_equal(
-        list(root.variables['topographic_elevation'][:].flat),
-        range(12))
-    root.close()
+        root.close()
+
+
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+def test_netcdf_write_names_keyword_as_list():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, names=['topographic_elevation'])
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
+
+        assert_true('topographic_elevation' in root.variables)
+        assert_true('uplift_rate' not in root.variables)
+        assert_array_equal(root.variables['topographic_elevation'][:].flat,
+                           field.at_node['topographic_elevation'])
+
+
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+def test_netcdf_write_names_keyword_as_str():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, names='uplift_rate')
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
+
+        assert_true('topographic_elevation' not in root.variables)
+        assert_true('uplift_rate' in root.variables)
+        assert_array_equal(root.variables['uplift_rate'][:].flat,
+                           field.at_node['uplift_rate'])
+
+
+@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+def test_netcdf_write_names_keyword_as_none():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic_elevation', np.arange(12.))
+    field.add_field('node', 'uplift_rate', np.arange(12.))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, names=None)
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
+
+        for name in ['topographic_elevation', 'uplift_rate']:
+            assert_true(name in root.variables)
+            assert_array_equal(root.variables[name][:].flat,
+                               field.at_node[name])
 
 
 def test_2d_unit_spacing():
