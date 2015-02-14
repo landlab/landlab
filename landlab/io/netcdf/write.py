@@ -1,7 +1,8 @@
 #! /usr/bin/env python
-
 import os
 import warnings
+import types
+
 
 try:
     import netCDF4 as nc4
@@ -68,18 +69,20 @@ def _set_netcdf_structured_dimensions(root, shape):
 
 
 def _set_netcdf_variables(root, fields, **kwds):
+    """Set the field variables.
+    
+    First set the variables that define the grid and then the variables at
+    the grid nodes and cells.
     """
-    Set the variables. First set the variables that define the grid and
-    then the variables at the grid nodes and cells.
-    """
+    names = kwds.pop('names', None)
+
     _add_spatial_variables(root, fields, **kwds)
     #_add_variables_at_points(root, fields['nodes'])
-    _add_variables_at_points(root, fields)
+    _add_variables_at_points(root, fields, names=names)
 
 
 def _add_spatial_variables(root, grid, **kwds):
-    """
-    Add the variables to *root* that define the structured grid, *grid*.
+    """Add the variables to *root* that define the structured grid, *grid*.
     """
     long_name = kwds.get('long_name', {})
 
@@ -106,7 +109,11 @@ def _add_spatial_variables(root, grid, **kwds):
             var.long_name = grid.axis_name[axis]
 
 
-def _add_variables_at_points(root, fields):
+def _add_variables_at_points(root, fields, names=None):
+    if isinstance(names, types.StringTypes):
+        names = [names]
+    names = names or fields['node'].keys()
+
     vars = root.variables
 
     spatial_variable_shape = _get_dimension_names(fields.shape)
@@ -117,7 +124,7 @@ def _add_variables_at_points(root, fields):
         n_times = 0
 
     node_fields = fields['node']
-    for var_name in node_fields:
+    for var_name in names:
         try:
             var = vars[var_name]
         except KeyError:
@@ -167,7 +174,7 @@ _VALID_NETCDF_FORMATS = set([
 ])
 
 def write_netcdf(path, fields, attrs=None, append=False,
-                 format='NETCDF3_64BIT'):
+                 format='NETCDF3_64BIT', names=None):
     """Write landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
@@ -186,6 +193,9 @@ def write_netcdf(path, fields, attrs=None, append=False,
         Format of output netcdf file.
     attrs : dict
         Attributes to add to netcdf file.
+    names : iterable of str, optional
+        Names of the fields to include in the netcdf file. If not provided,
+        write all fields.
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
@@ -206,6 +216,6 @@ def write_netcdf(path, fields, attrs=None, append=False,
 
     _set_netcdf_attributes(root, attrs)
     _set_netcdf_structured_dimensions(root, fields.shape)
-    _set_netcdf_variables(root, fields)
+    _set_netcdf_variables(root, fields, names=names)
 
     root.close()
