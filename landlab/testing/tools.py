@@ -1,4 +1,39 @@
+import os
+import shutil
+import tempfile
+
 from nose.tools import assert_true, assert_equal
+
+
+class cd(object):
+    def __init__(self, dir):
+        self._dir = dir
+
+    def __enter__(self):
+        self._starting_dir = os.path.abspath(os.getcwd())
+        if not os.path.isdir(self._dir):
+            mkpath(self._dir)
+        os.chdir(self._dir)
+        return os.path.abspath(os.getcwd())
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self._starting_dir)
+
+
+class cdtemp(object):
+    def __init__(self, **kwds):
+        self._kwds = kwds
+        self._tmp_dir = None
+
+    def __enter__(self):
+        self._starting_dir = os.path.abspath(os.getcwd())
+        self._tmp_dir = tempfile.mkdtemp(**self._kwds)
+        os.chdir(self._tmp_dir)
+        return os.path.abspath(self._tmp_dir)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self._starting_dir)
+        shutil.rmtree(self._tmp_dir)
 
 
 def assert_is(expr1, expr2, msg=None):
