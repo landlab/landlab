@@ -221,7 +221,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     >>> write_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
     ...     names='uplift_rate')
 
-    Read the file back in check the contents.
+    Read the file back in and check its contents.
 
     >>> from scipy.io import netcdf
     >>> fp = netcdf.netcdf_file('test.nc', 'r')
