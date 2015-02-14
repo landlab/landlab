@@ -166,13 +166,31 @@ _VALID_NETCDF_FORMATS = set([
     'NETCDF4',
 ])
 
-def write_netcdf(path, fields, attrs={}, append=False, format='NETCDF3_64BIT'):
-    """
+def write_netcdf(path, fields, attrs=None, append=False,
+                 format='NETCDF3_64BIT'):
+    """Write landlab fields to netcdf.
+
     Write the data and grid information for *fields* to *path* as NetCDF.
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
+
+    Parameters
+    ----------
+    path : str
+        Path to output file.
+    fields : field-like
+        Landlab field object that holds a grid and associated values.
+    append : boolean, optional
+        Append data to an existing file, otherwise clobber the file.
+    format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
+        Format of output netcdf file.
+    attrs : dict
+        Attributes to add to netcdf file.
     """
-    assert(format in _VALID_NETCDF_FORMATS)
+    if format not in _VALID_NETCDF_FORMATS:
+        raise ValueError('format not understood')
+
+    attrs = attrs or {}
 
     if os.path.isfile(path) and append:
         mode = 'a'
