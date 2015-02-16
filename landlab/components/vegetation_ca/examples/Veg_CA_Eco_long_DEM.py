@@ -48,7 +48,7 @@ _DEFAULT_INPUT_FILE_1 = os.path.join(os.path.dirname(__file__),
 _DEFAULT_INPUT_FILE_2 = os.path.join(os.path.dirname(__file__),
                                  'elevation_NS.npy')
 
-InputFile = 'Inputs_Vegetation_CA_orig.txt'
+InputFile = 'Inputs_Vegetation_CA.txt'
 data = txt_data_dict( InputFile ) # Create dictionary that holds the inputs
 
 USE_DEM = 1    # Make this 0 to use a custom grid
