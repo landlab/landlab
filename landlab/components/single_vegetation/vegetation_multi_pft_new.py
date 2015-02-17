@@ -90,20 +90,20 @@ class Vegetation( Component ):
                    data['LAI_MAX_tree'], data['LAI_MAX_bare'],
                    data['LAI_MAX_shrub'], data['LAI_MAX_tree'] ]))                     # Maximum leaf area index (m2/m2)
         self._cb = np.choose( self._vegtype, kwds.pop('CB',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+                [ data['CB_grass'], data['CB_shrub'], data['CB_tree'],
+                  data['CB_bare'], data['CB_shrub'], data['CB_tree'] ]))   # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
         self._cd = np.choose( self._vegtype, kwds.pop('CD',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))         # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+                [ data['CD_grass'], data['CD_shrub'], data['CD_tree'],
+                  data['CD_bare'], data['CD_shrub'], data['CD_tree'] ]))         # Specific leaf area for dead biomass (m2 leaf g-1 DM)
         self._ksg = np.choose( self._vegtype, kwds.pop('KSG',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))     # Senescence coefficient of green/live biomass (d-1)
+                [ data['KSG_grass'], data['KSG_shrub'], data['KSG_tree'],
+                  data['KSG_bare'], data['KSG_shrub'], data['KSG_tree'] ]))     # Senescence coefficient of green/live biomass (d-1)
         self._kdd = np.choose( self._vegtype, kwds.pop('KDD',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))     # Decay coefficient of aboveground dead biomass (d-1)
+                [ data['KDD_grass'], data['KDD_shrub'], data['KDD_tree'],
+                  data['KDD_bare'], data['KDD_shrub'], data['KDD_tree'] ]))     # Decay coefficient of aboveground dead biomass (d-1)
         self._kws = np.choose( self._vegtype, kwds.pop('KWS',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))         # Maximum drought induced foliage loss rates (d-1)
+                [ data['KWS_grass'], data['KWS_shrub'], data['KWS_tree'],
+                  data['KWS_bare'], data['KWS_shrub'], data['KWS_tree'] ]))         # Maximum drought induced foliage loss rates (d-1)
         self._Blive_init = kwds.pop('BLIVE_INI', data['BLIVE_INI'])
         self._Bdead_init = kwds.pop('BDEAD_INI', data['BDEAD_INI'])
         self._ETthresholdup = kwds.pop('ETTup', data['ETTup'])                               # Growth threshold (mm/d)
