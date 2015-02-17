@@ -83,8 +83,8 @@ class Vegetation( Component ):
         self._vegtype = \
           kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
         self._WUE = np.choose(self._vegtype, kwds.pop('WUE',
-                [ data['ZR_grass'], data['ZR_shrub'], data['ZR_tree'],
-                  data['ZR_bare'], data['ZR_shrub'], data['ZR_tree'] ]))   # Water Use Efficiency  KgCO2kg-1H2O
+                [ data['WUE_grass'], data['WUE_shrub'], data['WUE_tree'],
+                  data['WUE_bare'], data['WUE_shrub'], data['WUE_tree'] ]))   # Water Use Efficiency  KgCO2kg-1H2O
         self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
                 [ data['LAI_MAX_grass'], data['LAI_MAX_shrub'],
                    data['LAI_MAX_tree'], data['LAI_MAX_bare'],
