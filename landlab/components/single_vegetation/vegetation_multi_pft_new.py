@@ -119,6 +119,7 @@ class Vegetation( Component ):
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.01)
         PET = self._cell_values['PotentialEvapotranspiration']
+        PET30_ = self._cell_values['PotentialEvapotranspiration30']
         ActualET = self._cell_values['ActualEvapotranspiration']
         Water_stress = self._cell_values['WaterStress']
 
@@ -152,7 +153,7 @@ class Vegetation( Component ):
 
             if self._vegtype[cell] == 0:
 
-                if PET[cell] > PETthreshold:          # Growing Season
+                if PET30_[cell] > PETthreshold:          # Growing Season
 
                     Bmax = (LAImax - LAIdead)/cb
                     Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell])+          \
