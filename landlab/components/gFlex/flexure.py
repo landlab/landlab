@@ -112,7 +112,7 @@ class gFlex(Component):
         * surface_load__stress
         
         gFlex modifies/returns:
-        * topographic_elevation
+        * topographic_elevation (if it exists already)
         * lithosphere__vertical_displacement
         
         
@@ -182,7 +182,8 @@ class gFlex(Component):
         #set up the link between surface load stresses in the gFlex component and the LL grid field:
         flex.qs = grid.at_node['surface_load__stress'].view().reshape((grid.number_of_node_rows, grid.number_of_node_columns))
         
-        #create the links between the internal variables and LL's fields:
+        #create a holder for the "pre-flexure" state of the grid, to allow updating of elevs:
+        self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
         
         
     
@@ -200,6 +201,11 @@ class gFlex(Component):
         self._grid.at_node['lithosphere__vertical_displacement'] = self.flex.w.view().ravel()
         
         try:
-            self._grid.at_node['topographic_elevation'] += self._grid.at_node['lithosphere__vertical_displacement']
+            self._grid.at_node['topographic_elevation']
+            #a topo exists...
         except FieldError:
             pass
+        else:
+            topo_diff = self._grid.at_node['lithosphere__vertical_displacement'] - self.pre_flex
+            self._grid.at_node['topographic_elevation'] += topo_diff
+            self.pre_flex += topo_diff
