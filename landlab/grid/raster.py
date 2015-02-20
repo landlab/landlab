@@ -488,6 +488,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         2.0
         """
         return self._dx
+    
+    @property
+    def dy(self):
+        """
+        Returns the node spacing in the row direction.
+        Note in a RasterModelGrid, dy==dx.
+
+        Returns
+        -------
+        float
+            Spacing of node rows.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.dy
+        1.0
+        >>> grid = RasterModelGrid(4, 5, 2.0)
+        >>> grid.dy
+        2.0
+        """
+        return self._dx
+        
+        """
 
     def node_links(self, *args):
         """node_links([node_ids])
