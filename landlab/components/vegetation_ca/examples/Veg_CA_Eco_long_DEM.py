@@ -157,6 +157,9 @@ for i in range(0, n):
     grid['cell']['PotentialEvapotranspiration'] =  \
             (np.choose(grid['cell']['VegetationType'],PET_[Julian])) * \
                         Rad_Factor[Julian]
+    grid['cell']['PotentialEvapotranspiration30'] =  \
+            (np.choose(grid['cell']['VegetationType'],EP30[Julian])) * \
+                        Rad_Factor[Julian]
     current_time = SM.update( current_time, P = P[i], Tr = Tr[i], Tb = Tb[i] )
     if Julian != 364:
         if EP30[Julian + 1,0] > EP30[Julian,0]:

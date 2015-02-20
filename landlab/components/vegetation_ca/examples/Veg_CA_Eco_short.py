@@ -161,6 +161,7 @@ for i in range(0, n):
         Tb[i] = PD_W.interstorm_duration
 
     grid['cell']['PotentialEvapotranspiration'] = PET_[Julian]
+    grid['cell']['PotentialEvapotranspiration30'] = EP30[Julian]
     current_time = SM.update( current_time, P = P[i], Tr = Tr[i], Tb = Tb[i] )
     PETn_[i] = SM._PET
 
