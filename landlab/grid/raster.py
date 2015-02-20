@@ -512,7 +512,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return self._dx
         
-        """
 
     def node_links(self, *args):
         """node_links([node_ids])

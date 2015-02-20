@@ -24,8 +24,9 @@ import numpy as np
 import inspect
 from landlab import RasterModelGrid, Component
 from landlab import ModelParameterDictionary
+from landlab import FieldError
 try:
-    import gFlex
+    import gflex
 except ImportError:
     print """You ***must*** install gFlex on your machine to use this module!
         
@@ -51,10 +52,11 @@ class gFlex(Component):
     """
     _name = 'gFlex'
     
-    _input_var_names = set(['surface_load_stress',
+    _input_var_names = set(['surface_load__stress',
                         ])
     
     _output_var_names = set(['lithosphere__vertical_displacement',
+                             'topographic_elevation',
                         ])
                         
     _var_units = {'earth_material_load__magnitude_of_stress' : 'Pa',
@@ -73,13 +75,13 @@ class gFlex(Component):
                   'lithosphere__vertical_displacement' : 'node',
                   }
     
-    _var_defs = {{'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
+    _var_defs = {'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
                   'earth_material_load__x_positions' : 'x position of any surface load',
                   'earth_material_load__y_positions' : 'y position of any surface load',
                   'earth_material_load__force' : 'Force exerted by surface load',
                   'lithosphere__elastic_thickness' : 'Elastic thickness of the lithosphere',
                   'lithosphere__vertical_displacement' : 'Vertical deflection of the surface and of the lithospheric plate',
-                  }}
+                  }
     
     def __init__(self, grid, params):
         self.initialize(grid, params)
@@ -107,7 +109,7 @@ class gFlex(Component):
         * g, the gravitational acceleration (defaults to 9.81)
         
         gFlex takes as input fields:
-        * surface_load_stress
+        * surface_load__stress
         
         gFlex modifies/returns:
         * topographic_elevation
@@ -125,10 +127,11 @@ class gFlex(Component):
             input_dict = params
         
         #instantiate the module:
-        self.flex = gFlex.F2D()
+        self.flex = gflex.F2D()
         flex = self.flex
         
         #set up the grid variables:
+        self._grid = grid
         flex.dx = grid.dx
         flex.dy = grid.dy
         
@@ -149,7 +152,7 @@ class gFlex(Component):
         try:
             quiet = input_dict['Quiet']
         except KeyError:
-            flex.Quiet = False
+            flex.Quiet = True
         else:
             flex.Quiet = bool(quiet)
         
@@ -177,13 +180,10 @@ class gFlex(Component):
             self._output_var_names.add(Te_in)
         
         #set up the link between surface load stresses in the gFlex component and the LL grid field:
-        flex.qs = grid.at_node['surface_load_stress'].view().reshape((grid.number_of_node_rows, grid.number_of_node_columns))
-        
-        #run the initialize method in gFlex
-        flex.initialize()
+        flex.qs = grid.at_node['surface_load__stress'].view().reshape((grid.number_of_node_rows, grid.number_of_node_columns))
         
         #create the links between the internal variables and LL's fields:
-        grid.at_node['lithosphere__vertical_displacement'] = self.flex.w.view().ravel()
+        
         
     
     def flex_lithosphere(self, **kwds):
@@ -193,5 +193,13 @@ class gFlex(Component):
         in a single timestep.
         """
         #note kwds is redundant at the moment, but could be used subsequently for dynamic control over params
+        self.flex.initialize()
         self.flex.run()
-        self.flex.finalize() ####dejh wonders if there's any problem with doing this...
+        self.flex.finalize()
+        
+        self._grid.at_node['lithosphere__vertical_displacement'] = self.flex.w.view().ravel()
+        
+        try:
+            self._grid.at_node['topographic_elevation'] += self._grid.at_node['lithosphere__vertical_displacement']
+        except FieldError:
+            pass
