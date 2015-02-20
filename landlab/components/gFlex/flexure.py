@@ -116,7 +116,7 @@ class gFlex(Component):
         
         """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
-        BC_options = ('Dirichlet0', '0Moment0Shear', 'Periodic')
+        BC_options = ('Dirichlet0', '0Moment0Shear', '0Slope0Shear', 'Periodic')
         
         if type(params) == str:
             input_dict = ModelParameterDictionary(params)
