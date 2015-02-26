@@ -80,7 +80,7 @@ class SoilMoisture( Component ):
         self._vegtype = \
           kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
         self._runon = kwds.pop('RUNON', 0.)
-        self._fbare = kwds.pop('F_BARE', 0.7)
+        self._fbare = kwds.pop('F_BARE', data['F_BARE'])
 
         self._interception_cap = \
                 np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',

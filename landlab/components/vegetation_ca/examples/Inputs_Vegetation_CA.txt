@@ -90,10 +90,8 @@ WP_grass:               # Soil saturation degree at wilting point (None)
 0.13
 HGW_grass:              # Soil saturation degree at hygroscopic point (None)
 0.1
-BETA_grass:             # Deep percolation constant
+BETA_grass:             # Deep percolation constant = 2*b+4  where b is water retention parameter
 13.8
-LAI_MAX_grass:          # Maximum leaf area index (m2/m2)
-2.
 
 # Shrub
 
@@ -117,10 +115,8 @@ WP_shrub:               # Soil saturation degree at wilting point (None)
 0.13
 HGW_shrub:              # Soil saturation degree at hygroscopic point (None)
 0.1
-BETA_shrub:             # Deep percolation constant
+BETA_shrub:             # Deep percolation constant = 2*b+4  where b is water retention parameter
 13.8
-LAI_MAX_shrub:          # Maximum leaf area index (m2/m2)
-2.
 
 # Tree
 
@@ -144,10 +140,8 @@ WP_tree:                # Soil saturation degree at wilting point (None)
 0.15
 HGW_tree:               # Soil saturation degree at hygroscopic point (None)
 0.1
-BETA_tree:              # Deep percolation constant
+BETA_tree:              # Deep percolation constant = 2*b+4  where b is water retention parameter
 13.8
-LAI_MAX_tree:           # Maximum leaf area index (m2/m2)
-4.
 
 # Bare Soil
 
@@ -173,8 +167,6 @@ HGW_bare:              # Soil saturation degree at hygroscopic point (None)
 0.1
 BETA_bare:             # Deep percolation constant
 13.8
-LAI_MAX_bare:          # Maximum leaf area index (m2/m2)
-0.01
 
 
 ## Vegetation Dynamics:
@@ -187,6 +179,10 @@ ETTup:                  # PET threshold for growing season (mm/d)
 3.8
 ETTdwn:                 # PET threshold for dormant season (mm/d)
 6.8
+Tdmax:					# Constant for dead biomass loss adjustment (mm/d)
+10.
+w:						# Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+0.55
 
 # Grass
 
