@@ -119,6 +119,10 @@ class SoilMoisture( Component ):
                 [ data['LAI_MAX_grass'], data['LAI_MAX_shrub'],
                    data['LAI_MAX_tree'], data['LAI_MAX_bare'],
                    data['LAI_MAX_shrub'], data['LAI_MAX_tree'] ]))              # Maximum leaf area index (m2/m2)
+        self._LAIR_max = np.choose( self._vegtype, kwds.pop('LAIR_MAX',
+                [ data['LAIR_MAX_grass'], data['LAIR_MAX_shrub'],
+                   data['LAIR_MAX_tree'], data['LAIR_MAX_bare'],
+                   data['LAIR_MAX_shrub'], data['LAIR_MAX_tree'] ]))            # Reference leaf area index (m2/m2)
 
 
     def update( self, current_time, **kwds ):
@@ -134,7 +138,7 @@ class SoilMoisture( Component ):
         self._S = self._cell_values['SaturationFraction']
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
-        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAI_max
+        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAIR_max
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
