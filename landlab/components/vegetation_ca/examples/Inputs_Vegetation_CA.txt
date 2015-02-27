@@ -200,6 +200,8 @@ KWS_grass:              # Maximum drought induced foliage loss rate (d-1)
 0.02
 LAI_MAX_grass:          # Maximum leaf area index (m2/m2)
 2.
+LAIR_MAX_grass:         # Reference leaf area index (m2/m2)
+2.88
 
 # Shrub
 
@@ -216,6 +218,8 @@ KDD_shrub:              # Decay coefficient of aboveground dead biomass (d-1)
 KWS_shrub:              # Maximum drought induced foliage loss rate (d-1)
 0.02
 LAI_MAX_shrub:          # Maximum leaf area index (m2/m2)
+2.
+LAIR_MAX_shrub:         # Reference leaf area index (m2/m2)
 2.
 
 # Tree
@@ -234,6 +238,8 @@ KWS_tree:               # Maximum drought induced foliage loss rate (d-1)
 0.01
 LAI_MAX_tree:          # Maximum leaf area index (m2/m2)
 4.
+LAIR_MAX_tree:          # Reference leaf area index (m2/m2)
+4.
 
 # Bare
 
@@ -250,6 +256,8 @@ KDD_bare:              # Decay coefficient of aboveground dead biomass (d-1)
 KWS_bare:              # Maximum drought induced foliage loss rate (d-1)
 0.02
 LAI_MAX_bare:          # Maximum leaf area index (m2/m2)
+0.01
+LAIR_MAX_bare:         # Reference leaf area index (m2/m2)
 0.01
 
 
