@@ -22,16 +22,10 @@ def assert_method_is_valid(method):
         raise ValueError('%s: Invalid method name' % method)
 
 
-class VegCA( Component ):
-    """
-    Landlab component that implements 1D and 2D vegetation dynamics
-    model.
+class VegCA(Component):
+    """1D and 2D vegetation dynamics.
 
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
-    >>> veg_ca = VegCA(grid)
-    >>> veg_ca.name
-    'VegCA'
+    Landlab component that implements 1D and 2D vegetation dynamics model.
     """
     _name = 'VegCA'
 
@@ -213,6 +207,7 @@ def count( Arr, value ):
             if Arr[i][j] == value:
                 Res[i] += 1
     return Res
+
 
 def WS_PFT( VegType, PlantType, WS ):
     Phi = np.zeros(WS.shape[0])
