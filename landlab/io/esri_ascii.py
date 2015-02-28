@@ -3,6 +3,7 @@
 Read data from an ESRI ASCII file into a RasterModelGrid
 """
 
+import os
 import types
 import re
 
@@ -241,6 +242,77 @@ def read_esri_ascii(asc_file, reshape=False):
                            dx=spacing[0])
 
     return (grid, data)
+
+
+def write_esri_ascii(path, fields, names=None, clobber=False):
+    """Write landlab fields to ESRI ASCII.
+
+    Write the data and grid information for *fields* to *path* in the ESRI
+    ASCII format.
+
+    Parameters
+    ----------
+    path : str
+        Path to output file.
+    fields : field-like
+        Landlab field object that holds a grid and associated values.
+    names : iterable of str, optional
+        Names of the fields to include in the output file. If not provided,
+        write all fields.
+    clobber : boolean
+        If *path* exists, clobber the existing file, otherwise raise an
+        exception.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.testing.tools import cdtemp
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.esri_ascii import write_esri_ascii
+
+    >>> grid = RasterModelGrid(4, 5, dx=2.)
+    >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
+    >>> with cdtemp() as _:
+    ...     files = write_esri_ascii('test.asc', grid)
+    >>> files
+    ['test.asc']
+
+    >>> _ = grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+    >>> with cdtemp() as _:
+    ...     files = write_esri_ascii('test.asc', grid)
+    >>> files.sort()
+    >>> files
+    ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
+    """
+    if os.path.exists(path) and not clobber:
+        raise ValueError('file exists')
+
+    names = names or fields.at_node.keys()
+
+    if len(names) == 1:
+        paths = [path]
+    elif len(names) > 1:
+        (base, ext) = os.path.splitext(path)
+        paths = [base + '_' + name + ext for name in names]
+    else:
+        raise ValueError('no node fields to write')
+
+    header = {
+        'ncols': fields.number_of_node_columns,
+        'nrows': fields.number_of_node_rows,
+        'xllcorner': fields.node_x[0],
+        'yllcorner': fields.node_y[0],
+        'cellsize': fields.dx,
+    }
+
+    for path, name in zip(paths, names):
+        with open(path, 'w') as fp:
+            for key, val in header.items():
+                fp.write('%s %s%s' % (key, str(val), os.linesep))
+            data = fields.at_node[name].reshape(header['nrows'],
+                                                header['ncols'])
+            np.savetxt(fp, data)
+    return paths
 
 
 def write_esri_ascii_from_raster_model_grid_data(grid, data_name=None,
