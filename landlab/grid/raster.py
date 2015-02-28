@@ -4229,6 +4229,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return slope and aspect
         return s, a
 
+    def save(self, path, fields=None, format=None):
+        format = format or guess_format_from_name(path)
+
+        if format == 'netcdf':
+            write_netcdf(path, self, format='NETCDF3_64BIT', names=fields)
+        else:
+            raise ValueError('format not understood')
+
+
+def _guess_format_from_name(path):
+    fname = os.path.basename(path)
+
+    if fname.endswith('.nc'):
+        return 'netcdf'
+    elif fname.endswith('.asc'):
+        return 'esri_ascii'
+    else:
+        return None
+
 
 def _is_closed_boundary(boundary_string):
     '''
