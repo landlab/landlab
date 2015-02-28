@@ -4230,7 +4230,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return s, a
 
     def save(self, path, fields=None, format=None):
-        format = format or guess_format_from_name(path)
+        """Save a grid and fields.
+
+        Parameters
+        ----------
+        path : str
+            Path to output file.
+        fields : iterable of strings, optional
+            List of field names to save.
+        format : {'netcdf', 'esri-ascii'}, optional
+            Output file format. Guess from file extension if not given.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 5)
+        """
+        format = format or _guess_format_from_name(path)
 
         if format == 'netcdf':
             write_netcdf(path, self, format='NETCDF3_64BIT', names=fields)
