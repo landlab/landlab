@@ -59,11 +59,11 @@ class Vegetation(Component):
                             **kwds )
 
         for name in self._input_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
