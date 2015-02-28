@@ -79,11 +79,11 @@ class VegCA(Component):
         super(VegCA, self).__init__(grid, **kwds)
 
         for name in self._input_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
@@ -147,13 +147,13 @@ class VegCA(Component):
         Peg = np.amin(np.vstack((Phi_g/(n*self._INg),Pemaxg)),axis = 0)
         Pesh = np.amin(np.vstack((Phi_sh, Pemaxsh)), axis = 0)
         Petr = np.amin(np.vstack((Phi_tr, Pemaxtr)), axis = 0)
-        Select_PFT_E = np.random.choice([GRASS,SHRUBSEEDLING,TREESEEDLING],
-                                            n_bare)
-                        # Grass - 0; Shrub Seedling - 4; Tree Seedling - 5
+        Select_PFT_E = np.random.choice([GRASS, SHRUBSEEDLING, TREESEEDLING],
+                                        n_bare)
+        # Grass - 0; Shrub Seedling - 4; Tree Seedling - 5
         Pest = np.choose(Select_PFT_E, [Peg, 0, 0, 0, Pesh, Petr])
-                        # Probability of establishment
+        # Probability of establishment
         R_Est = np.random.rand(n_bare)
-                        # Random number for comparison to establish
+        # Random number for comparison to establish
         Establish = np.int32(np.where(np.greater_equal(Pest, R_Est)==True)[0])
         self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish]
         self._tp[bare_cells[Establish]] = 0
@@ -172,8 +172,8 @@ class VegCA(Component):
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
         tp_greater = np.where(tp_plant>0.5*tpmax)[0]
-        PMa[tp_greater] = ((tp_plant[tp_greater] - 0.5*tpmax[tp_greater])
-                                /(0.5*tpmax[tp_greater])) - 1
+        PMa[tp_greater] = ((tp_plant[tp_greater] - 0.5 * tpmax[tp_greater]) /
+                           (0.5 * tpmax[tp_greater])) - 1
         PMb = np.choose( self._VegType[plant_cells],
                             [self._Pmb_g, self._Pmb_sh, self._Pmb_tr, 0,
                                 self._Pmb_sh_s, self._Pmb_tr_s] )
