@@ -22,12 +22,13 @@ def assert_method_is_valid(method):
         raise ValueError('%s: Invalid method name' % method)
 
 
-class VegCA( Component ):
+class VegCA(Component):
     """
     Landlab component that implements 1D and 2D vegetation dynamics
     model.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components.vegetation_ca.CA_Veg import VegCA
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> veg_ca = VegCA(grid)
     >>> veg_ca.name
