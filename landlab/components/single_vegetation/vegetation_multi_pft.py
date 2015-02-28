@@ -16,16 +16,10 @@ def assert_method_is_valid(method):
         raise ValueError('%s: Invalid method name' % method)
 
 
-class Vegetation( Component ):
-    """
-    Landlab component that implements 1D and 2D vegetation dynamics
-    model.
+class Vegetation(Component):
+    """1D and 2D vegetation dynamics.
 
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
-    >>> veg = Vegetation(grid)
-    >>> veg.name
-    'Vegetation'
+    Landlab component that implements 1D and 2D vegetation dynamics model.
     """
     _name = 'Vegetation'
 
@@ -64,11 +58,11 @@ class Vegetation( Component ):
         self.initialize( VEGTYPE = grid['cell']['VegetationType'], **kwds )
 
         for name in self._input_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']

@@ -462,6 +462,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.cell_grid_shape
         (1, 2)
@@ -1343,9 +1344,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.corner_cells
-        array([ 0,  2, 3, 5])
+        array([0, 2, 3, 5])
         """
         return sgrid.corners(self.cell_grid_shape)
         

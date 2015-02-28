@@ -19,29 +19,27 @@ Created on Thu Feb 19 18:47:11 2015
 
 ...following AW's run_in_script_2D.py.
 """
+from __future__ import print_function
 
 import numpy as np
 import inspect
 from landlab import RasterModelGrid, Component
 from landlab import ModelParameterDictionary
 from landlab import FieldError
+
 try:
     import gflex
 except ImportError:
-    print """You ***must*** install gFlex on your machine to use this module!
-        
-        From a command prompt, use pip if you have it:
-        
-            pip install gFlex
-        
-        ...Or download and unpack the from PyPI.python.org/pypi/gFlex or 
-        Github/awickert/gFlex/, then run from the downloaded folder containing
-        setup.py:
-        
-            python setup.py install
-        
-        Then try this again!!
-        """
+    import warnings, sys
+
+    warnings.warn("gFlex not installed.")
+    print("""
+To use the gFlex component you must have gFlex installed on your machine.
+For installation instructions see gFlex on GitHub:
+
+  https://github.com/awickert/gFlex
+          """.strip(), file=sys.stderr)
+
 
 class gFlex(Component):
     """
