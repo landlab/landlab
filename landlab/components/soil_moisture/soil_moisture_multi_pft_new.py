@@ -96,7 +96,7 @@ class SoilMoisture( Component ):
         self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
                 [ data['I_V_grass'], data['I_V_shrub'], data['I_V_tree'],
                   data['I_V_bare'], data['I_V_shrub'], data['I_V_tree'] ]))     # Infiltration capacity of vegetated soil (mm/h)
-        self._soil_Ew = kwds.pop('EW', [0.1])
+        self._soil_Ew = kwds.pop('EW', 0.1)
         self._soil_pc = np.choose(self._vegtype, kwds.pop('PC',
                 [ data['PC_grass'], data['PC_shrub'], data['PC_tree'],
                   data['PC_bare'], data['PC_shrub'], data['PC_tree'] ]))        # Soil porosity
@@ -171,7 +171,7 @@ class SoilMoisture( Component ):
                                     - Int_cap, 0.0001)  # mm/d
             self._ETmax[cell] = Ep
             nu = ((Ep/24.)/1000.)/(pc*ZR) # Loss function parameter
-            nuw = ((Ep*0.1/24.)/1000.)/(pc*ZR) # Loss function parameter
+            nuw = ((self._soil_Ew/24.)/1000.)/(pc*ZR) # Loss function parameter
             sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.))
 
             if sini>1.:
