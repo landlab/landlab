@@ -19,6 +19,7 @@ from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
 from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
+from ..io import write_esri_ascii
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -4257,12 +4258,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
 def _guess_format_from_name(path):
+    import os
+
     fname = os.path.basename(path)
 
     if fname.endswith('.nc'):
         return 'netcdf'
     elif fname.endswith('.asc'):
-        return 'esri_ascii'
+        return 'esri-ascii'
     else:
         return None
 
