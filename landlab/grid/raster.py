@@ -4250,6 +4250,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if format == 'netcdf':
             write_netcdf(path, self, format='NETCDF3_64BIT', names=fields)
+        elif format == 'esri-ascii':
+            write_esri_ascii(path, self, names=fields)
         else:
             raise ValueError('format not understood')
 
