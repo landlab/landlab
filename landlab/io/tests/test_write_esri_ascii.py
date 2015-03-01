@@ -17,8 +17,7 @@ from landlab import RasterModelGrid
 def test_grid_with_no_fields():
     grid = RasterModelGrid(4, 5, dx=2.)
     with cdtemp() as _:
-        with assert_raises(ValueError):
-            write_esri_ascii('test.asc', grid)
+        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid)
 
 
 def test_grid_with_one_field():
@@ -81,8 +80,8 @@ def test_names_keyword_with_bad_name():
     grid.add_field('node', 'air__temperature', np.arange(20.))
 
     with cdtemp() as _:
-        with assert_raises(ValueError):
-            write_esri_ascii('test.asc', grid, names='not_a_name')
+        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid,
+                      names='not_a_name')
 
 
 def test_clobber_keyword():
@@ -91,10 +90,9 @@ def test_clobber_keyword():
 
     with cdtemp() as _:
         write_esri_ascii('test.asc', grid)
-        with assert_raises(ValueError):
-            write_esri_ascii('test.asc', grid)
-        with assert_raises(ValueError):
-            write_esri_ascii('test.asc', grid, clobber=False)
+        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid)
+        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid,
+                      clobber=False)
         write_esri_ascii('test.asc', grid, clobber=True)
 
 
