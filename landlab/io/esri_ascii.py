@@ -318,7 +318,8 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
                 fp.write('%s %s%s' % (key, str(val), os.linesep))
             data = fields.at_node[name].reshape(header['nrows'],
                                                 header['ncols'])
-            np.savetxt(fp, data)
+            np.savetxt(fp, np.flipud(data))
+
     return paths
 
 
