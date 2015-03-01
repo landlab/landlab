@@ -5,12 +5,13 @@ Unit tests for landlab.io.esri_ascii module.
 import os
 import numpy as np
 from StringIO import StringIO
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
-    from nose.tools import assert_is_instance, assert_list_equal
+    from nose.tools import assert_is_instance, assert_list_equal, assert_is
 except ImportError:
-    from landlab.testing.tools import assert_is_instance, assert_list_equal
+    from landlab.testing.tools import (assert_is_instance, assert_list_equal,
+                                       assert_is)
 
 from landlab.io import read_esri_ascii, read_asc_header
 from landlab.io import MissingRequiredKeyError, KeyTypeError, DataSizeError
@@ -212,6 +213,23 @@ CELLSIZE      10.
 NODATA_value  -999
         """)
     assert_raises(KeyTypeError, read_asc_header, asc_file)
+
+
+def test_name_keyword():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
+                                                 '4_x_3.asc'),
+                                   name='air__temperature')
+
+    assert_is_instance(grid, RasterModelGrid)
+
+    assert_is_instance(field, np.ndarray)
+    assert_array_equal(field,
+                       np.array([9., 10., 11.,
+                                 6.,  7.,  8.,
+                                 3.,  4.,  5.,
+                                 0.,  1.,  2.]))
+    assert_array_almost_equal(grid.at_node['air__temperature'], field)
+    assert_is(grid.at_node['air__temperature'], field)
 
 
 if __name__ == '__main__':
