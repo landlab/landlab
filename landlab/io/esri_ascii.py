@@ -201,7 +201,7 @@ def _read_asc_data(asc_file, header={}):
     #return np.genfromtxt(asc_file)
 
 
-def read_esri_ascii(asc_file, reshape=False):
+def read_esri_ascii(asc_file, reshape=False, name=None):
     """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
 
     Read data from *asc_file*, an ESRI_ ASCII file, into a
@@ -222,6 +222,8 @@ def read_esri_ascii(asc_file, reshape=False):
         Data file to read.
     reshape : boolean, optional
         Reshape the returned array, otherwise return a flattened array.
+    name : str, optional
+        Add data to the grid as a named field.
 
     Returns
     -------
@@ -253,6 +255,8 @@ def read_esri_ascii(asc_file, reshape=False):
 
     grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
                            dx=spacing[0])
+    if name:
+        grid.add_zeros('node', name, data)
 
     return (grid, data)
 
