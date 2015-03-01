@@ -20,6 +20,7 @@ from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
 from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
+from ..io.netcdf import write_netcdf
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -4237,7 +4238,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         path : str
             Path to output file.
-        fields : iterable of strings, optional
+        names : iterable of strings, optional
             List of field names to save.
         format : {'netcdf', 'esri-ascii'}, optional
             Output file format. Guess from file extension if not given.
@@ -4248,6 +4249,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5)
         """
         format = format or _guess_format_from_name(path)
+        path = _add_format_extension(path, format)
 
         if format == 'netcdf':
             write_netcdf(path, self, format='NETCDF3_64BIT', names=fields)
@@ -4268,6 +4270,17 @@ def _guess_format_from_name(path):
         return 'esri-ascii'
     else:
         return None
+
+
+def _add_format_extension(path, format):
+    import os
+
+    (base, ext) = os.path.splitext(path)
+    if format == 'netcdf':
+        ext = '.nc'
+    elif format == 'esri-ascii':
+        ext = '.asc'
+    return base + ext
 
 
 def _is_closed_boundary(boundary_string):
