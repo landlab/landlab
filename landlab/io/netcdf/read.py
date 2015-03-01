@@ -17,7 +17,6 @@ import re
 
 import numpy as np
 
-from landlab import RasterModelGrid
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
@@ -107,6 +106,8 @@ def read_netcdf(nc_file, reshape=False, just_grid=False):
     Check the names of the fields in the returned grid with
     grid.at_nodes.keys().
     """
+    from landlab import RasterModelGrid
+
     try:
         root = nc.netcdf_file(nc_file, 'r', version=2)
     except TypeError:
