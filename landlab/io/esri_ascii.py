@@ -287,6 +287,9 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError('file exists')
 
+    if isinstance(names, types.StringTypes):
+        names = [names]
+
     names = names or fields.at_node.keys()
 
     if len(names) == 1:
