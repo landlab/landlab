@@ -4231,7 +4231,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return slope and aspect
         return s, a
 
-    def save(self, path, fields=None, format=None):
+    def save(self, path, names=None, format=None):
         """Save a grid and fields.
 
         Parameters
@@ -4252,9 +4252,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         path = _add_format_extension(path, format)
 
         if format == 'netcdf':
-            write_netcdf(path, self, format='NETCDF3_64BIT', names=fields)
+            write_netcdf(path, self, format='NETCDF3_64BIT', names=names)
         elif format == 'esri-ascii':
-            write_esri_ascii(path, self, names=fields)
+            write_esri_ascii(path, self, names=names)
         else:
             raise ValueError('format not understood')
 
