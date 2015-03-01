@@ -300,6 +300,10 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     else:
         raise ValueError('no node fields to write')
 
+    bad_names = set(names) - set(fields.at_node.keys())
+    if len(bad_names) > 0:
+        raise ValueError('unknown field name(s): %s' % ','.join(bad_names))
+
     header = {
         'ncols': fields.number_of_node_columns,
         'nrows': fields.number_of_node_rows,
