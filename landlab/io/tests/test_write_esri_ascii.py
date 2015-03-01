@@ -83,3 +83,16 @@ def test_names_keyword_with_bad_name():
     with cdtemp() as _:
         with assert_raises(ValueError):
             write_esri_ascii('test.asc', grid, names='not_a_name')
+
+
+def test_clobber_keyword():
+    grid = RasterModelGrid(4, 5, dx=2.)
+    grid.add_field('node', 'air__temperature', np.arange(20.))
+
+    with cdtemp() as _:
+        write_esri_ascii('test.asc', grid)
+        with assert_raises(ValueError):
+            write_esri_ascii('test.asc', grid)
+        with assert_raises(ValueError):
+            write_esri_ascii('test.asc', grid, clobber=False)
+        write_esri_ascii('test.asc', grid, clobber=True)
