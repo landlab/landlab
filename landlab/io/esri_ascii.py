@@ -256,7 +256,7 @@ def read_esri_ascii(asc_file, reshape=False, name=None):
     grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
                            dx=spacing[0])
     if name:
-        grid.add_zeros('node', name, data)
+        grid.add_field('node', name, data)
 
     return (grid, data)
 
