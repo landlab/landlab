@@ -9,10 +9,6 @@ import re
 
 import numpy as np
 
-import landlab
-from landlab import RasterModelGrid
-
-
 _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
     'yllcenter', 'cellsize', 'nodata_value',
@@ -230,6 +226,8 @@ def read_esri_ascii(asc_file, reshape=False, name=None):
     (grid, data) : tuple
         A newly-created RasterModel grid and the associated node data.
     """
+    from ..grid import RasterModelGrid
+
     if isinstance(asc_file, types.StringTypes):
         file_name = asc_file
         with open(file_name, 'r') as asc_file:
