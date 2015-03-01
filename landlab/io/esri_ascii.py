@@ -202,10 +202,11 @@ def _read_asc_data(asc_file, header={}):
 
 
 def read_esri_ascii(asc_file, reshape=False):
-    """
+    """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
+
     Read data from *asc_file*, an ESRI_ ASCII file, into a
-    :py:class:`~landlab.RasterModelGrid`.  *asc_file* is either
-    the name of the data file or is a file-like object.
+    :py:class:`~landlab.RasterModelGrid`.  *asc_file* is either the name of
+    the data file or is a file-like object.
 
     The grid and data read from the file are returned as a tuple
     (*grid*, *data*) where *grid* is an instance of
@@ -214,6 +215,18 @@ def read_esri_ascii(asc_file, reshape=False):
     and columns given in the header.
 
     .. _ESRI: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+
+    Parameters
+    ----------
+    asc_file : str of file-like
+        Data file to read.
+    reshape : boolean, optional
+        Reshape the returned array, otherwise return a flattened array.
+
+    Returns
+    -------
+    (grid, data) : tuple
+        A newly-created RasterModel grid and the associated node data.
     """
     if isinstance(asc_file, types.StringTypes):
         file_name = asc_file
