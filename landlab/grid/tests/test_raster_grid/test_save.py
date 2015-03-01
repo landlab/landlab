@@ -62,3 +62,23 @@ def test_guess_format():
         grid.save('test.nc')
         assert_true(os.path.isfile('test.nc'))
         read_netcdf('test.nc')
+
+
+def test_names_keyword():
+    grid = RasterModelGrid(4, 5, 2.)
+    grid.add_field('node', 'air__temperature', np.arange(20.))
+    grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+
+    with cdtemp() as _:
+        grid.save('test.asc', names='land_surface__elevation')
+        assert_true(os.path.isfile('test.asc'))
+        read_esri_ascii('test.asc')
+
+    with cdtemp() as _:
+        grid.save('test.asc', names=['land_surface__elevation',
+                                     'air__temperature'])
+        files = ['test_land_surface__elevation.asc',
+                 'test_air__temperature.asc']
+        for fname in files:
+            assert_true(os.path.isfile(fname))
+            read_esri_ascii(fname)
