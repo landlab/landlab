@@ -2,15 +2,15 @@
 import os
 
 import numpy as np
-
-from nose.tools import assert_true, assert_raises
+from numpy.testing import assert_array_almost_equal
+from nose.tools import assert_true, assert_equal, assert_raises
 try:
     from nose.tools import assert_list_equal
 except ImportError:
     from landlab.testing.tools import assert_list_equal
 
 from landlab.testing.tools import cdtemp
-from landlab.io import write_esri_ascii
+from landlab.io import write_esri_ascii, read_esri_ascii
 from landlab import RasterModelGrid
 
 
@@ -96,3 +96,19 @@ def test_clobber_keyword():
         with assert_raises(ValueError):
             write_esri_ascii('test.asc', grid, clobber=False)
         write_esri_ascii('test.asc', grid, clobber=True)
+
+
+def test_write_then_read():
+    grid = RasterModelGrid(4, 5, dx=2.)
+    grid.add_field('node', 'air__temperature', np.arange(20.))
+
+    with cdtemp() as _:
+        write_esri_ascii('test.asc', grid)
+        new_grid, field = read_esri_ascii('test.asc')
+
+    assert_equal(grid.number_of_node_columns, new_grid.number_of_node_columns)
+    assert_equal(grid.number_of_node_rows, new_grid.number_of_node_rows)
+    assert_equal(grid.dx, new_grid.dx)
+    assert_array_almost_equal(grid.node_x, new_grid.node_x)
+    assert_array_almost_equal(grid.node_y, new_grid.node_y)
+    assert_array_almost_equal(field, grid.at_node['air__temperature'])
