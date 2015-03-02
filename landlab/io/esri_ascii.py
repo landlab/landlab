@@ -13,7 +13,8 @@ _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
     'yllcenter', 'cellsize', 'nodata_value',
 ]
-_HEADER_REGEX_PATTERN = re.compile('\s*(?P<key>\w+)\s+(?P<value>[\w.+-]+)')
+_HEADER_KEY_REGEX_PATTERN = re.compile('\s*(?P<key>[a-zA-z]\w+)')
+_HEADER_REGEX_PATTERN = re.compile('\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
 _HEADER_VALUE_TESTS = {
     'nrows': (int, lambda x: x > 0),
     'ncols': (int, lambda x: x > 0),
@@ -94,17 +95,21 @@ class DataSizeError(Error):
 
 
 def _parse_header_key_value(line):
+    match = _HEADER_KEY_REGEX_PATTERN.match(line)
+    if match is None:
+        return None
+        #raise BadHeaderLineError(line)
+
     match = _HEADER_REGEX_PATTERN.match(line)
     if match is None:
         raise BadHeaderLineError(line)
 
     (key, value) = (match.group('key').lower(), match.group('value'))
-    try:
-        assert(key in _VALID_HEADER_KEYS)
-    except AssertionError:
-        raise BadHeaderLineError(line)
-    else:
+
+    if key in _VALID_HEADER_KEYS:
         return (key, value)
+    else:
+        raise BadHeaderLineError(line)
 
 
 def _header_lines(asc_file):
@@ -112,13 +117,12 @@ def _header_lines(asc_file):
     line = asc_file.readline()
     while len(line) > 0:
         if len(line.strip()) > 0:
-            try:
-                (key, value) = _parse_header_key_value(line)
-            except BadHeaderLineError:
+            item = _parse_header_key_value(line)
+            if item:
+                yield item
+            else:
                 asc_file.seek(pos, 0)
                 break
-            else:
-                yield (key, value)
         pos = asc_file.tell()
         line = asc_file.readline()
 
