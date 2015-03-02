@@ -14,7 +14,8 @@ except ImportError:
                                        assert_is)
 
 from landlab.io import read_esri_ascii, read_asc_header
-from landlab.io import MissingRequiredKeyError, KeyTypeError, DataSizeError
+from landlab.io import (MissingRequiredKeyError, KeyTypeError, DataSizeError,
+                        BadHeaderLineError, KeyValueError)
 from landlab import RasterModelGrid
 
 
@@ -132,6 +133,47 @@ NODATA_value  -9999
     assert_raises(MissingRequiredKeyError, read_asc_header, asc_file)
 
 
+def test_header_unknown_key():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+invalid_key   1
+        """)
+    assert_raises(BadHeaderLineError, read_asc_header, asc_file)
+
+
+def test_header_missing_value():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      
+NODATA_value  -9999
+invalid_key   1
+        """)
+    assert_raises(BadHeaderLineError, read_asc_header, asc_file)
+
+
+def test_header_bad_values():
+    asc_file = StringIO(
+        """
+nrows         -4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+        """)
+    assert_raises(KeyValueError, read_asc_header, asc_file)
+
+
 def test_header_missing_mutex_key():
     asc_file = StringIO(
         """
@@ -201,6 +243,7 @@ NODATA_value  -999
     for key in ['ncols', 'nrows', 'xllcenter', 'yllcorner', 'cellsize',
                 'nodata_value']:
         assert_true(key in header)
+
 
 def test_header_wrong_type():
     asc_file = StringIO(
