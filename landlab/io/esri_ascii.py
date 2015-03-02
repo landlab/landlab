@@ -182,23 +182,18 @@ def read_asc_header(asc_file):
 
 
 def _read_asc_data(asc_file, header={}):
-    """
-    Read gridded data from an ESRI ASCII data file.
+    """Read gridded data from an ESRI ASCII data file.
 
-    :asc_file: File-like object of the data file pointing to the start of the
-               data.
+    Parameters
+    ----------
+    asc_file : file-like
+        File-like object of the data file pointing to the start of the data.
 
     .. note::
-        Row 1 of the data is at the top of the raster, row 2 is just under
-        row 1, and so on.
+        First row of the data is at the top of the raster grid, the second
+        row is the second from the top, and so on.
     """
-    #return np.fromtxt(asc_file, skiprows=len(header))
-    try:
-        return np.loadtxt(asc_file)
-    except ValueError as error:
-        print header
-        print error
-    #return np.genfromtxt(asc_file)
+    return np.loadtxt(asc_file)
 
 
 def read_esri_ascii(asc_file, reshape=False, name=None):
