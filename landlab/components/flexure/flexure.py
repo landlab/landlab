@@ -4,6 +4,7 @@ import numpy as np
 
 from landlab import RasterModelGrid, Component
 from landlab.components.flexure.funcs import subside_point_loads
+from .funcs import get_flexure_parameter
 
 
 _VALID_METHODS = set(['airy', 'flexure'])
@@ -140,6 +141,18 @@ class FlexureComponent(Component):
 
         self._nodal_values = self.grid['node']
 
+        self._r = self._set_kei_func_grid()
+
+    def _set_kei_func_grid(self):
+        from scipy.special import kei
+
+        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
+        dx, dy = np.meshgrid(
+            np.arange(self._grid.number_of_node_columns) * self._grid.dx,
+            np.arange(self._grid.number_of_node_rows) * self._grid.dx)
+
+        return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
+
     def update(self, n_procs=1):
         elevation = self._nodal_values['lithosphere__elevation']
         load = self._nodal_values['lithosphere__overlying_pressure']
@@ -165,8 +178,16 @@ class FlexureComponent(Component):
         if deflection is None:
             deflection = np.empty(self.shape, dtype=np.float)
 
-        subside_point_loads(loads, locs, self.coords, self._eet, self._youngs,
-                            deflection=deflection, n_procs=n_procs)
+        #subside_point_loads(loads, locs, self.coords, self._eet, self._youngs,
+        #                    deflection=deflection, n_procs=n_procs)
+
+        from .cfuncs import subside_grid_in_parallel
+
+        w = deflection.reshape(self._grid.shape)
+        load = loads.reshape(self._grid.shape)
+        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
+
+        subside_grid_in_parallel(w, load, self._r, alpha, n_procs)
 
         return deflection
 
