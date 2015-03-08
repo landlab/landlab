@@ -69,14 +69,30 @@ def _calculate_deflections(load, locs, coords, alpha, out=None):
         return np.sum(r, axis=1, out=out)
 
 
-def subside_point_load(load, loc, coords, eet, youngs, deflection=None):
-    """
+def subside_point_load(load, loc, coords, eet, youngs, out=None):
+    """Calculate deflection due a point load.
+
     Calculate deflections on a grid, defined by the points in the *coords*
     tuple, due to a point load of magnitude *load* applied at *loc*.
 
     *x* and *y* are the x and y coordinates of each node of the solution
     grid (in meters). The scalars *eet* and *youngs* define the crustal
     properties.
+
+    Parameters
+    ----------
+    load : float
+        Magnitude of the point load.
+    loc : float or tuple
+        Location of the load as either a scalar or as (*x*, *y*)
+    coords : ndarray
+        Array of points to calculate deflections at
+    eet : float
+        Effective elastic thickness
+    youngs : float
+        Young's modulus.
+    out : ndarray, optional
+        Array to put deflections into.
 
     Example
     -------
@@ -124,19 +140,19 @@ def subside_point_load(load, loc, coords, eet, youngs, deflection=None):
     if not isinstance(load, (int, float, np.ndarray)):
         load = np.array(load)
 
-    if deflection is None:
-        deflection = np.empty(coords[0].size, dtype=np.float)
+    if out is None:
+        out = np.empty(coords[0].size, dtype=np.float)
 
     alpha = get_flexure_parameter(eet, youngs, len(loc))
 
     if len(loc) == 2:
-        _calculate_deflections(load, loc, coords, alpha, out=deflection)
+        _calculate_deflections(load, loc, coords, alpha, out=out)
     else:
         c = load / (2. * alpha * _RHO_MANTLE * _GRAVITY)
         r = abs(coords[0] - loc[0]) / alpha
-        deflection[:] = c * np.exp(-r) * (np.cos(r) + np.sin(r))
+        out[:] = c * np.exp(-r) * (np.cos(r) + np.sin(r))
 
-    return deflection
+    return out
 
 
 def subside_point_loads(loads, locs, coords, eet, youngs, deflection=None,
