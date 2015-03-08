@@ -2,8 +2,7 @@
 
 import numpy as np
 
-from landlab import RasterModelGrid, Component
-from landlab.components.flexure.funcs import subside_point_loads
+from landlab import Component
 from .funcs import get_flexure_parameter
 
 
@@ -85,14 +84,16 @@ class FlexureComponent(Component):
     ])
     #...the component modifies these values
 
-    #the next three dictionaries must each have the union of the two var_name sets above as their keys
+    # the next three dictionaries must each have the union of the two var_name
+    # sets above as their keys
     _var_units = {
         'lithosphere__overlying_pressure': 'Pa',
         'lithosphere__elevation': 'm',
         'lithosphere__elevation_increment': 'm',
         'planet_surface_sediment__deposition_increment': 'm',
     }
-    #...the units for each field. In the future, there may be unit casting required, as there's nothing stopping you passing in the wrong units!!!
+    #...the units for each field. In the future, there may be unit casting
+    # required, as there's nothing stopping you passing in the wrong units!!!
     
     _var_mapping = {
         'lithosphere__overlying_pressure': 'node',
@@ -100,7 +101,9 @@ class FlexureComponent(Component):
         'lithosphere__elevation_increment': 'node',
         'planet_surface_sediment__deposition_increment': 'node',
     }
-    #...the grid centering of each name. Note you CANNOT and SHOULD NOT TRY TO define the same field name but with different centering within one component; you'll need to distinguish the names. 
+    #...the grid centering of each name. Note you CANNOT and SHOULD NOT TRY
+    # TO define the same field name but with different centering within one
+    # component; you'll need to distinguish the names. 
     
     _var_defs = {
         'lithosphere__overlying_pressure': 'The pressure at the base of the lithosphere',
@@ -108,7 +111,8 @@ class FlexureComponent(Component):
         'lithosphere__elevation_increment': 'The change in elevation of the top of the lithosphere (the land surface) in one timestep',
         'planet_surface_sediment__deposition_increment': 'The amount of sediment deposited at the land surface in one timestep',
     }
-    #...give the names a short description. [We still need to work out how we deal with same name, but different description between components]
+    #...give the names a short description. [We still need to work out how
+    # we deal with same name, but different description between components]
     
     ###lastly, ---> 1. did you remember to import and inherit from Component?
     #do the import up top ->
@@ -116,7 +120,8 @@ class FlexureComponent(Component):
     #& in the class declaration ->
     #   class FlexureComponent(Component): 
     #        ...
-    ### ---> 2. Make sure that self._grid is an alias for the grid after initialization, below
+    ### ---> 2. Make sure that self._grid is an alias for the grid after
+    # initialization, below
     ################################
 
     def __init__(self, grid, **kwds):
@@ -130,11 +135,11 @@ class FlexureComponent(Component):
         super(FlexureComponent, self).__init__(grid, **kwds)
 
         for name in self._input_var_names:
-            if not name in self.grid.at_node:
+            if name not in self.grid.at_node:
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_node:
+            if name not in self.grid.at_node:
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
         self._last_load = self.grid.field_values('node', 'lithosphere__overlying_pressure').copy()
@@ -169,17 +174,13 @@ class FlexureComponent(Component):
         if self._method == 'airy':
             deflection[:] = new_load / (3300. * 9.81)
         else:
-            self.subside_loads(new_load, self.coords, deflection=deflection,
+            self.subside_loads(new_load, deflection=deflection,
                                n_procs=n_procs)
+        np.subtract(elevation, deflection, out=elevation)
 
-        elevation -= deflection
-
-    def subside_loads(self, loads, locs, deflection=None, n_procs=1):
+    def subside_loads(self, loads, deflection=None, n_procs=1):
         if deflection is None:
             deflection = np.empty(self.shape, dtype=np.float)
-
-        #subside_point_loads(loads, locs, self.coords, self._eet, self._youngs,
-        #                    deflection=deflection, n_procs=n_procs)
 
         from .cfuncs import subside_grid_in_parallel
 
@@ -188,13 +189,6 @@ class FlexureComponent(Component):
         alpha = get_flexure_parameter(self._eet, self._youngs, 2)
 
         subside_grid_in_parallel(w, load, self._r, alpha, n_procs)
-
-        return deflection
-
-    def subside_load(self, load, loc, deflection=None):
-        subside_point_load(
-            load, loc, self.coords, self._eet, self._youngs,
-            deflection=self._nodal_values['lithosphere__elevation_increment'])
 
         return deflection
 
