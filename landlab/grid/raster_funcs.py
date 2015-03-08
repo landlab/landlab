@@ -1084,27 +1084,27 @@ def is_point_on_grid(self, xcoord, ycoord):
     boolean :
         True if the point is on the grid. Otherwise, False.
     """
-    x_condition = numpy.logical_and(
-        numpy.less(0., xcoord),
-        numpy.less(xcoord, (self.get_grid_xdimension() - self._dx)))
-    y_condition = numpy.logical_and(
-        numpy.less(0., ycoord),
-        numpy.less(ycoord, (self.get_grid_ydimension() - self._dx)))
+    x_condition = np.logical_and(
+        np.less(0., xcoord),
+        np.less(xcoord, (self.get_grid_xdimension() - self._dx)))
+    y_condition = np.logical_and(
+        np.less(0., ycoord),
+        np.less(ycoord, (self.get_grid_ydimension() - self._dx)))
 
-    if (numpy.all(
+    if (np.all(
         self.node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or
-        numpy.all(self.node_status[sgrid.right_edge_node_ids(self.shape)] == 3)):
+        np.all(self.node_status[sgrid.right_edge_node_ids(self.shape)] == 3)):
         try:
             x_condition[:] = 1
         except:
             x_condition = 1
 
-    if (numpy.all(
+    if (np.all(
         self.node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or
-        numpy.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3)):
+        np.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3)):
         try:
             y_condition[:] = 1
         except:
             y_condition = 1
 
-    return numpy.logical_and(x_condition, y_condition)
+    return np.logical_and(x_condition, y_condition)

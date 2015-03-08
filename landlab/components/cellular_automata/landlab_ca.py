@@ -191,8 +191,17 @@ class Event():
             
 class CAPlotter():
     
-    def __init__(self, ca):
+    def __init__(self, ca, cmap=None):
         
+        import matplotlib
+        
+        if cmap is None:
+            self._cmap = matplotlib.cm.jet
+            print 'defaulting to jet'
+        else:
+            self._cmap = cmap
+            print 'using cmap'
+            
         self.ca = ca
         
         plt.ion()
@@ -207,9 +216,9 @@ class CAPlotter():
         plt.clf()
         if self.gridtype=='rast':
             nsr = self.ca.grid.node_vector_to_raster(self.ca.node_state)
-            plt.imshow(nsr, interpolation='None', origin='lower')
+            plt.imshow(nsr, interpolation='None', origin='lower', cmap=self._cmap)
         else:
-            self.ca.grid.hexplot(self.ca.node_state)
+            self.ca.grid.hexplot(self.ca.node_state, color_map=self._cmap)
         plt.draw()
         plt.pause(0.001)
         

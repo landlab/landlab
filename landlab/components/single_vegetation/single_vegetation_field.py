@@ -75,11 +75,11 @@ class Vegetation( Component ):
         super(Vegetation, self).__init__(grid, **kwds)
 
         for name in self._input_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
@@ -89,7 +89,7 @@ class Vegetation( Component ):
 
     def update(self, **kwds):
 
-        PETthreshold = kwds.pop('PotentialEvapotranspirationThreshold', 0)
+        PETthreshold_ = kwds.pop('PotentialEvapotranspirationThreshold', 0)
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.01)
         PET = self._cell_values['PotentialEvapotranspiration']
@@ -102,6 +102,10 @@ class Vegetation( Component ):
         self._Bdead = self._cell_values['DeadBiomass']
         self._VegCov = self._cell_values['VegetationCover']
 
+        if PETthreshold_ == 1:
+            PETthreshold = self._ETthresholdup
+        else:
+            PETthreshold = self._ETthresholddown
 
         for cell in range(0, self.grid.number_of_cells):
 
@@ -112,30 +116,30 @@ class Vegetation( Component ):
             if PET[cell] > PETthreshold:  # Growing Season
 
                 NPP = max((ActualET[cell]/(Tb+Tr))*                            \
-                            self._WUE*24*0.55*1000, 0.001)
+                            self._WUE*24.*0.55*1000., 0.001)
                 Bmax = (self._LAI_max - LAIdead)/self._cb
-                Yconst = (1/((1/Bmax)+(((self._kws*Water_stress[cell])+        \
+                Yconst = (1./((1./Bmax)+(((self._kws*Water_stress[cell])+      \
                             self._ksg)/NPP)))
                 Blive = (self._Blive_ini[cell] - Yconst) *np.exp(-(NPP/Yconst)*\
-                            ((Tb+Tr)/24)) + Yconst
+                            ((Tb+Tr)/24.)) + Yconst
                 Bdead = (self._Bdead_ini[cell] + (Blive - max(Blive *          \
                             np.exp(-self._ksg * Tb/24),0.00001)))*             \
-                            np.exp(-self._kdd * min( PET[cell]/10, 1 ) *       \
-                            Tb/24)
+                            np.exp(-self._kdd * min( PET[cell]/10., 1. ) *     \
+                            Tb/24.)
 
             else:                                 # Senescense
 
                 Blive = max(self._Blive_ini[cell] * np.exp((-2) * self._ksg *  \
-                            Tb/24), 1 )
+                            Tb/24.), 1. )
                 Bdead = max( (self._Bdead_ini[cell] + ( self._Blive_ini[cell]  \
                             -max( self._Blive_ini[cell]*np.exp( (-2) *         \
-                            self._ksg * Tb/24), 0.000001)))*                   \
+                            self._ksg * Tb/24.), 0.000001)))*                  \
                             np.exp( (-1)*self._kdd *                           \
-                            min( PET[cell]/10, 1 ) * Tb/24), 0 )
+                            min( PET[cell]/10., 1. ) * Tb/24.), 0. )
 
             LAIlive =  min( self._cb * Blive, self._LAI_max )
             LAIdead =  min( self._cd * Bdead, ( self._LAI_max - LAIlive ) )
-            Vt = 1 - np.exp(-0.75 * (LAIlive + LAIdead))
+            Vt = 1. - np.exp(-0.75 * (LAIlive + LAIdead))
 
             self._LAIlive[cell] = LAIlive
             self._LAIdead[cell] = LAIdead
