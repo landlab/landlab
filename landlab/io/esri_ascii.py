@@ -181,7 +181,7 @@ def read_asc_header(asc_file):
     return header
 
 
-def _read_asc_data(asc_file, header={}):
+def _read_asc_data(asc_file):
     """Read gridded data from an ESRI ASCII data file.
 
     Parameters
@@ -231,18 +231,16 @@ def read_esri_ascii(asc_file, reshape=False, name=None):
         file_name = asc_file
         with open(file_name, 'r') as asc_file:
             header = read_asc_header(asc_file)
-            data = _read_asc_data(asc_file, header=header)
+            data = _read_asc_data(asc_file)
     else:
         header = read_asc_header(asc_file)
-        data = _read_asc_data(asc_file, header=header)
+        data = _read_asc_data(asc_file)
 
     shape = (header['nrows'], header['ncols'])
     spacing = (header['cellsize'], header['cellsize'])
     origin = (header['xllcorner'], header['yllcorner'])
 
-    try:
-        assert(data.size == shape[0] * shape[1])
-    except AssertionError:
+    if data.size != shape[0] * shape[1]
         raise DataSizeError(shape[0] * shape[1], data.size)
 
     data.shape = shape
