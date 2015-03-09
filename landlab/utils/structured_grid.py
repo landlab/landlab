@@ -1155,7 +1155,9 @@ def neighbor_node_ids(shape, inactive=BAD_INDEX_VALUE):
 def linked_neighbor_node_ids(shape, closed_boundary_nodes,
                              open_boundary_nodes=None,
                              inactive=BAD_INDEX_VALUE):
-    open_boundary_nodes = open_boundary_nodes or []
+    if open_boundary_nodes is None:
+        open_boundary_nodes = []
+
     ids_with_halo = node_index_with_halo(shape, halo_indices=inactive)
 
     # Everything that touches a closed boundary is inactive
