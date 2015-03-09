@@ -240,7 +240,7 @@ def read_esri_ascii(asc_file, reshape=False, name=None):
     spacing = (header['cellsize'], header['cellsize'])
     origin = (header['xllcorner'], header['yllcorner'])
 
-    if data.size != shape[0] * shape[1]
+    if data.size != shape[0] * shape[1]:
         raise DataSizeError(shape[0] * shape[1], data.size)
 
     data.shape = shape
