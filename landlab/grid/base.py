@@ -1065,17 +1065,16 @@ class ModelGrid(ModelDataFields):
         .. note:: Deprecated since version 0.1.
             Use :func:`calculate_gradients_at_active_links`
         """
-        if gradient==None:
-            gradient = numpy.zeros(self.number_of_active_links)
+        gradient = gradient or np.zeros(self.number_of_active_links)
             
         assert (len(gradient) == self.number_of_active_links), \
                 "len(gradient)!=number_of_active_links"
                 
         active_link_id = 0
         for link_id in self.active_link_ids:
-            gradient[active_link_id] = (s[self.link_tonode[link_id]]
-                                        -s[self.link_fromnode[link_id]]) / \
-                                        self.link_length[link_id]
+            gradient[active_link_id] = (
+                (s[self.link_tonode[link_id]] -
+                 s[self.link_fromnode[link_id]]) / self.link_length[link_id])
             active_link_id += 1
         
         return gradient
@@ -1113,9 +1112,19 @@ class ModelGrid(ModelDataFields):
         dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
         dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
         dummy_patch_nodes[-1,:] = -1
-        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3] #now any ref to a null node will be -1 in this new (N,patch_max_dim,4or3) array.
-        #note we truncate the array to be [N,patch_max_dim,3]; we only need 3 pts per patch, if we're working on a raster
-        node_elevs = numpy.ones((nodes_on_patches.shape[0],nodes_on_patches.shape[1],3,3),dtype=float) #using the wrong values in -1 won't matter, as we'll mask with nodes_on_patches at the end
+
+        # Now any ref to a null node will be -1 in this new
+        # (N, patch_max_dim, 4or3) array.
+        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3]
+        # Note: we truncate the array to be [N, patch_max_dim,3]; we only
+        # need 3 pts per patch, if we're working on a raster
+
+        # Using the wrong values in -1 won't matter, as we'll mask with
+        # nodes_on_patches at the end
+        node_elevs = numpy.ones((nodes_on_patches.shape[0],
+                                 nodes_on_patches.shape[1], 3, 3),
+                                dtype=float)
+
         mask_from_nop = nodes_on_patches[:,:,0]==-1
         node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
         node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
@@ -1244,7 +1253,7 @@ class ModelGrid(ModelDataFields):
         associated with the high values, so is recommended for plotting.
 
         """
-        if slp!=None and asp!=None:
+        if slp is not None and asp is not None:
             if unit=='degrees':
                 (alt, az, slp, asp) = (numpy.radians(alt), numpy.radians(az),
                                 numpy.radians(slp), numpy.radians(asp))
@@ -1255,7 +1264,7 @@ class ModelGrid(ModelDataFields):
                     #...because it would be super easy to specify radians, but leave the default params alone...
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
-        elif slp==None and asp==None:
+        elif slp is None and asp is None:
             if unit=='degrees':
                 (alt, az) = (numpy.radians(alt), numpy.radians(az))
             elif unit=='radians':
@@ -1495,7 +1504,7 @@ class ModelGrid(ModelDataFields):
                "incorrect length of active_link_flux array"
             
         # If needed, create net_unit_flux array
-        if net_unit_flux==False:
+        if net_unit_flux is False:
             net_unit_flux = numpy.zeros(self.number_of_active_cells)
         else:
             net_unit_flux[:] = 0.
@@ -1588,7 +1597,7 @@ class ModelGrid(ModelDataFields):
         """
         try:
             return self._face_widths
-        except:
+        except AttributeError:
             return self._setup_face_widths()
     
     def _setup_cell_areas_array_force_inactive(self):
@@ -1702,7 +1711,7 @@ class ModelGrid(ModelDataFields):
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
         return self._link_length
 
-    def assign_upslope_vals_to_active_links(self, u, v=[0]):
+    def assign_upslope_vals_to_active_links(self, u, v=None):
         """Assign upslope node value to link.
 
         Assigns to each active link the value of *u* at whichever of its
@@ -1730,6 +1739,8 @@ class ModelGrid(ModelDataFields):
         >>> grid.assign_upslope_vals_to_active_links(u)
         array([ 4.,  7.,  4.,  5.])
         """
+        v = v or [0]
+
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
             for i in xrange(0, self.number_of_active_links):
@@ -1817,17 +1828,16 @@ class ModelGrid(ModelDataFields):
         self._reset_list_of_active_links()
         self._reset_lists_of_nodes_cells()
         try:
-            if self.diagonal_list_created == True:
+            if self.diagonal_list_created:
                 self.diagonal_list_created = False
         except AttributeError:
             pass
         try:
-            if self.neighbor_list_created == True:
+            if self.neighbor_list_created:
                 self.neighbor_list_created = False
         except AttributeError:
             pass
 
-        
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
@@ -2730,7 +2740,7 @@ class ModelGrid(ModelDataFields):
         
         for i in xrange(self.number_of_nodes):
             self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point((node_coords[i,0],node_coords[i,1]), get_az='angles')
-        
+
         assert numpy.all(self.all_node_distances_map >= 0.)
         
         return self.all_node_distances_map, self.all_node_azimuths_map
