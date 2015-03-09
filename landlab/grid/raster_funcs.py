@@ -718,8 +718,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     assert(len(net_unit_flux) == grid.number_of_nodes)
     
     flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid._dx
-    
+    flux[:len(active_link_flux)] = active_link_flux * grid.dx
+
     net_unit_flux[:] = (
         (flux[grid.node_active_outlink_matrix[0][:]] +
          flux[grid.node_active_outlink_matrix[1][:]]) -
@@ -761,13 +761,13 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     if neighbor_cells[3]!=-1:
         diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
     slopes = []
-    diagonal_dx = np.sqrt(2.) * grid._dx  # Corrected (multiplied grid._dx) SN 05Nov13
+    diagonal_dx = np.sqrt(2.) * grid.dx
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
         #print '\n', cell_id
         #print '\n', a
-        single_slope = (u[cell_id] - u[a])/grid._dx
+        single_slope = (u[cell_id] - u[a])/grid.dx
         #print 'cell id: ', cell_id
         #print 'neighbor id: ', a
         #print 'cell, neighbor are internal: ', grid.is_interior(cell_id), grid.is_interior(a)
@@ -851,7 +851,7 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
         if self.node_status[a] != CLOSED_BOUNDARY:
-            single_slope = (u[cell_id] - u[a])/self._dx
+            single_slope = (u[cell_id] - u[a])/self.dx
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
@@ -922,7 +922,7 @@ def calculate_slope_aspect_BFP(xs, ys, zs):
     # in python, the unit normal to the best fit plane is
     # given by the third column of the U matrix.
     mat = np.vstack((x, y, z))
-    U, s, V = np.linalg.svd(mat)
+    U, _, V = np.linalg.svd(mat)
     normal = U[:, 2]
       
     # step 3: calculate the aspect   
