@@ -3,8 +3,8 @@ import numpy as np
 import itertools
 
 from ..grid.base import (CORE_NODE, FIXED_GRADIENT_BOUNDARY,
-                         TRACKS_CELL_BOUNDARY, CLOSED_BOUNDARY,
-                         BAD_INDEX_VALUE)
+                         FIXED_VALUE_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                         CLOSED_BOUNDARY, BAD_INDEX_VALUE)
 
 
 def node_count(shape):
