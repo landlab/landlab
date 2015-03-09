@@ -994,7 +994,7 @@ def active_inlink_count_per_node(shape):
     return np.ravel(link_count)
 
 
-def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
+def setup_outlink_matrix(shape, return_count=True):
     links = outlinks(shape)
     if return_count:
         return (links, outlink_count_per_node(shape))
@@ -1002,7 +1002,7 @@ def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
         return links
 
 
-def setup_inlink_matrix(shape, tonodes=None, return_count=True):
+def setup_inlink_matrix(shape, return_count=True):
     links = inlinks(shape)
     if return_count:
         return (links, inlink_count_per_node(shape))
