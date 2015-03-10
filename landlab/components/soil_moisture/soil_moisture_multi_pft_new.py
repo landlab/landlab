@@ -139,6 +139,12 @@ class SoilMoisture( Component ):
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
         self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAIR_max
+        #LAIl = self._cell_values['LiveLeafAreaIndex']
+        #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
+        #if LAIt.all() == 0.:
+        #    self._fr = np.zeros(self.grid.number_of_cells)
+        #else:            
+        #    self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
@@ -153,17 +159,18 @@ class SoilMoisture( Component ):
             ZR = self._zr[cell]
             pc = self._soil_pc[cell]
             fc = self._soil_fc[cell]
-            sc = self._soil_sc[cell]
+            scc = self._soil_sc[cell]
             wp = self._soil_wp[cell]
             hgw = self._soil_hgw[cell]
             beta = self._soil_beta[cell]
+            sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
 
 
             Inf_cap = self._soil_Ib[cell]*(1-self._vegcover[cell]) +         \
                                     self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
-                            P*self._vegcover[cell])  # Interception capacity
+                            P)#*self._vegcover[cell])  # Interception capacity
             Peff = max(P-Int_cap, 0.)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell]
