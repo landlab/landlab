@@ -78,7 +78,7 @@ class SoilMoisture( Component ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
-          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
+          kwds.pop('VEGTYPE', self.grid['cell']['VegetationType'])
         self._runon = kwds.pop('RUNON', 0.)
         self._fbare = kwds.pop('F_BARE', data['F_BARE'])
 
@@ -163,9 +163,11 @@ class SoilMoisture( Component ):
             wp = self._soil_wp[cell]
             hgw = self._soil_hgw[cell]
             beta = self._soil_beta[cell]
-            sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
-
-
+            if self._vegtype[cell] == 0:   # 0 - GRASS
+                sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
+            else:
+                sc = scc
+                
             Inf_cap = self._soil_Ib[cell]*(1-self._vegcover[cell]) +         \
                                     self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity
