@@ -193,6 +193,7 @@ class gFlex(Component):
         in a single timestep.
         """
         #note kwds is redundant at the moment, but could be used subsequently for dynamic control over params
+        self.flex.qs = self._grid.at_node['surface_load__stress'].view().reshape((self._grid.number_of_node_rows, self._grid.number_of_node_columns))
         self.flex.initialize()
         self.flex.run()
         self.flex.finalize()
