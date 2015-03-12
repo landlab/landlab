@@ -3882,34 +3882,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         tests are in the doctests for each function, and in
         test_raster_model_grid.py.
         """
-
-        print 'Performing some tests for RasterModelGrid ...'
-        print
-
-        num_rows_for_unit_test = 4
-        num_cols_for_unit_test = 5
-
-        print 'Initializing ...'
-        self._initialize(num_rows_for_unit_test, num_cols_for_unit_test, 1.0)
-        print 'done.'
-        print
-
-        print 'Testing fluxes and in/out links:'
-        flux2 = np.zeros(len(flux)+1)
-        flux2[:len(flux)] = flux
-        print flux2
-        for n in range(0, self.number_of_nodes):
-            mysum = -(flux2[self.node_active_inlink_matrix[0][n]] + \
-                      flux2[self.node_active_inlink_matrix[1][n]]) + \
-                     (flux2[self.node_active_outlink_matrix[0][n]] + \
-                      flux2[self.node_active_outlink_matrix[1][n]])
-            print(str(n)+' '+str(flux2[self.node_active_inlink_matrix[0][n]])
-                        +' '+str(flux2[self.node_active_inlink_matrix[1][n]])
-                        +' '+str(flux2[self.node_active_outlink_matrix[0][n]])
-                        +' '+str(flux2[self.node_active_outlink_matrix[1][n]])
-                        +' '+str(mysum))
-        divg2 = self.calculate_flux_divergence_at_nodes(flux)
-        print divg2
+        pass
 
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
         """Aspect at nodes.
