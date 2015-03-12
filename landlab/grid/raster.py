@@ -5,7 +5,6 @@ grids for 2D numerical models in Landlab.
 
 """
 
-import numpy
 import numpy as np
 
 from landlab.testing.decorators import track_this_method
@@ -75,14 +74,14 @@ def _make_arg_into_array(arg):
         The input array converted to an iterable.
     """
     ids = arg
-    if not isinstance(ids, list) or not isinstance(ids, numpy.ndarray):
+    if not isinstance(ids, list) or not isinstance(ids, np.ndarray):
         try:
             ids = list(ids)
         except TypeError:
             ids = [ids]
     return ids
 
-has_boundary_neighbor = numpy.vectorize(node_has_boundary_neighbor,
+has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                         excluded=['mg'])
 
 
@@ -164,6 +163,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self.number_of_nodes > 0:
             self._initialize(num_rows, num_cols, dx)
         super(RasterModelGrid, self).__init__(**kwds)
+
+        self.looped_node_properties = {}
 
     def _initialize(self, num_rows, num_cols, dx):
         """
@@ -274,7 +275,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
-        assert(numpy.min((num_rows, num_cols)) >= 3)
+        assert(np.min((num_rows, num_cols)) >= 3)
 
         # Assign and store node (x,y,z) coordinates.
         #
@@ -417,7 +418,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This method supports the creation of the array that stores cell areas.
         It is not meant to be called manually.
         '''
-        self._cell_areas = numpy.empty(self.number_of_cells)
+        self._cell_areas = np.empty(self.number_of_cells)
         self._cell_areas.fill(self._dx ** 2)
         return self._cell_areas
 
@@ -430,7 +431,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         '''
-        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
+        self._forced_cell_areas = np.empty(self.number_of_nodes)
         self._forced_cell_areas.fill(self._dx ** 2)
         return self._forced_cell_areas
 
@@ -663,7 +664,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             self._node_diagonal_links
         except AttributeError:
-            self._node_diagonal_links = numpy.empty((4,self.number_of_nodes), dtype=int)
+            self._node_diagonal_links = np.empty((4,self.number_of_nodes), dtype=int)
             self._node_diagonal_links.fill(-1)
             self._node_diagonal_links[0,:][
                 np.setdiff1d(np.arange(self.number_of_nodes),np.union1d(self.left_edge_node_ids(),
@@ -738,7 +739,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns the four nodes at the corners of each patch in a regular grid.
         Shape of the returned array is (nnodes, 4).
         """
-        base = numpy.arange(self.number_of_patches)
+        base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base//(self._ncols-1)
         return np.column_stack((bottom_left_corner,bottom_left_corner+1,bottom_left_corner+self._ncols,bottom_left_corner+self._ncols+1))
 
@@ -839,7 +840,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                              ((diag_tonode_status == CORE_NODE) & ~
                               (diag_fromnode_status == CLOSED_BOUNDARY)))
 
-        (_diag_active_links, ) = numpy.where(diag_active_links)
+        (_diag_active_links, ) = np.where(diag_active_links)
 
         self._num_diag_active_links = len(_diag_active_links)
         self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
@@ -921,8 +922,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assume that the order of links is:
         # - The first (R-1)*C are vertical and oriented upward
         # - The remaining R*(C-1) are horizontal and oriented rightward
-        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
-        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_x = np.zeros(self.number_of_links+1)
+        self.link_unit_vec_y = np.zeros(self.number_of_links+1)
         n_vert_links = (self.number_of_node_rows-1)*self.number_of_node_columns
         self.link_unit_vec_y[:n_vert_links] = 1.0
         self.link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
@@ -933,20 +934,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # each of which has 2 rows, corresponding to the maximum possible 2
         # inlinks and 2 outlinks in a raster grid.
         #     Create the arrays
-        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
-        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
+        self.node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
         #     x-component contribution from inlinks
-        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[0,:]])
-        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_inlink_matrix[1,:]])
+        self.node_unit_vector_sum_x += np.abs(self.link_unit_vec_x[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += np.abs(self.link_unit_vec_x[self.node_inlink_matrix[1,:]])
         #     x-component contribution from outlinks
-        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[0,:]])
-        self.node_unit_vector_sum_x += numpy.abs(self.link_unit_vec_x[self.node_outlink_matrix[1,:]])
+        self.node_unit_vector_sum_x += np.abs(self.link_unit_vec_x[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_x += np.abs(self.link_unit_vec_x[self.node_outlink_matrix[1,:]])
         #     y-component contribution from inlinks
-        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[0,:]])
-        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_inlink_matrix[1,:]])
+        self.node_unit_vector_sum_y += np.abs(self.link_unit_vec_y[self.node_inlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += np.abs(self.link_unit_vec_y[self.node_inlink_matrix[1,:]])
         #     y-component contribution from outlinks
-        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[0,:]])
-        self.node_unit_vector_sum_y += numpy.abs(self.link_unit_vec_y[self.node_outlink_matrix[1,:]])
+        self.node_unit_vector_sum_y += np.abs(self.link_unit_vec_y[self.node_outlink_matrix[0,:]])
+        self.node_unit_vector_sum_y += np.abs(self.link_unit_vec_y[self.node_outlink_matrix[1,:]])
 
     def cell_faces(self, *args):
         """cell_faces([cell_id])
@@ -996,7 +997,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         node_ids = self.cell_node[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
-        return numpy.squeeze(numpy.concatenate(
+        return np.squeeze(np.concatenate(
             (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
 
 
@@ -1032,16 +1033,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         face_ids.shape = (-1, )
 
         #face_ids = _make_arg_into_array(face_id)
-        #if type(face_ids) != numpy.ndarray:
-        #    face_ids = numpy.array(face_ids)
+        #if type(face_ids) != np.ndarray:
+        #    face_ids = np.array(face_ids)
 
         row = face_ids // (self.shape[1] - 2)
-        in_rows = numpy.less(row, self.shape[0] - 1)
-        in_cols = numpy.logical_not(in_rows)
+        in_rows = np.less(row, self.shape[0] - 1)
+        in_cols = np.logical_not(in_rows)
         excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
                                           (self.shape[1] - 2))
         col = excess_col // (self.shape[1] - 1)
-        links = numpy.empty_like(face_ids)
+        links = np.empty_like(face_ids)
         links[in_rows] = (row[in_rows] * self.shape[1] +
                           face_ids[in_rows] % (self.shape[1] - 2) + 1)
         links[in_cols] = (
@@ -1363,19 +1364,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Coordinates can be ints or arrays of ints. If arrays, will return an
         array of the same length of boolean truth values.
         """
-        x_condition = numpy.logical_and(numpy.less(0.,xcoord), numpy.less(xcoord,(self.get_grid_xdimension()-self._dx)))
-        y_condition = numpy.logical_and(numpy.less(0.,ycoord), numpy.less(ycoord,(self.get_grid_ydimension()-self._dx)))
-        if numpy.all(self.node_status[sgrid.left_edge_node_ids(self.shape)]==3) or numpy.all(self.node_status[sgrid.right_edge_node_ids(self.shape)]==3):
+        x_condition = np.logical_and(np.less(0.,xcoord), np.less(xcoord,(self.get_grid_xdimension()-self._dx)))
+        y_condition = np.logical_and(np.less(0.,ycoord), np.less(ycoord,(self.get_grid_ydimension()-self._dx)))
+        if np.all(self.node_status[sgrid.left_edge_node_ids(self.shape)]==3) or np.all(self.node_status[sgrid.right_edge_node_ids(self.shape)]==3):
             try:
                 x_condition[:] = 1
             except:
                 x_condition = 1
-        if numpy.all(self.node_status[sgrid.top_edge_node_ids(self.shape)]==3) or numpy.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)]==3):
+        if np.all(self.node_status[sgrid.top_edge_node_ids(self.shape)]==3) or np.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)]==3):
             try:
                 y_condition[:] = 1
             except:
                 y_condition = 1
-        return numpy.logical_and(x_condition, y_condition)
+        return np.logical_and(x_condition, y_condition)
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """Nodes surrounding a point.
@@ -1421,7 +1422,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ID = int(ID)
         except:
             ID = ID.astype(int)
-        return numpy.array([ID, ID + self.number_of_node_columns,
+        return np.array([ID, ID + self.number_of_node_columns,
                             ID + self.number_of_node_columns + 1, ID + 1])
 
     def snap_coords_to_grid(self, xcoord, ycoord):
@@ -1439,19 +1440,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #    if not self.is_point_on_grid(xcoord, ycoord):
         #        raise LookupError('Coordinates specified are outside the grid area')
         #else: #it's an array
-        #    if not numpy.all(self.is_point_on_grid(xcoord, ycoord)):
+        #    if not np.all(self.is_point_on_grid(xcoord, ycoord)):
         #        raise LookupError('One or more pairs of coordinates specified are outside the grid area')
         vertices_array = self.get_nodes_around_point(xcoord, ycoord)
         #print vertices_array
         #vertices_array.reshape((4,-1))
         #print self.node_x[vertices_array], self.node_y[vertices_array]
-        xdir_displacement = numpy.tile(xcoord,(4,1)) - self.node_x[vertices_array]
-        ydir_displacement = numpy.tile(ycoord,(4,1)) - self.node_y[vertices_array]
-        distances_to_vertices = numpy.sqrt(xdir_displacement*xdir_displacement + ydir_displacement*ydir_displacement)
+        xdir_displacement = np.tile(xcoord,(4,1)) - self.node_x[vertices_array]
+        ydir_displacement = np.tile(ycoord,(4,1)) - self.node_y[vertices_array]
+        distances_to_vertices = np.sqrt(xdir_displacement*xdir_displacement + ydir_displacement*ydir_displacement)
         try:
-            return vertices_array[(numpy.argmin(distances_to_vertices, axis=0), xrange(distances_to_vertices.shape[1]))]
+            return vertices_array[(np.argmin(distances_to_vertices, axis=0), xrange(distances_to_vertices.shape[1]))]
         except:
-            return vertices_array[numpy.argmin(distances_to_vertices)]
+            return vertices_array[np.argmin(distances_to_vertices)]
         #...per fancy indexing
 
     def find_nearest_node(self, coords, mode='raise'):
@@ -1461,7 +1462,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Coordinates are provided as numpy arrays in the *coords* tuple.
 
         Use the *mode* keyword to specify what to do if the given coordinates
-        are out-of-bounds. See :func:`numpy.ravel_multi_index` for a
+        are out-of-bounds. See :func:`np.ravel_multi_index` for a
         description of possible values for *mode*. Note that a coordinate is
         out-of-bounds if it is beyond one half the node spacing from the
         exterior nodes.
@@ -1613,9 +1614,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not self._diagonal_links_created:
                 return self._calculate_link_length()
             else:
-                self._link_length = numpy.empty(self.number_of_links + self.number_of_diagonal_links)
+                self._link_length = np.empty(self.number_of_links + self.number_of_diagonal_links)
                 self._link_length[:self.number_of_links] = self._dx
-                self._link_length[self.number_of_links:] = numpy.sqrt(2.*self._dx*self._dx)
+                self._link_length[self.number_of_links:] = np.sqrt(2.*self._dx*self._dx)
                 return self._link_length
 
     def _setup_diagonal_links(self):
@@ -1629,8 +1630,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the steepest downslope direction.
         """
         n_diagonal_links = 2*(self._nrows-1)*(self._ncols-1)
-        self._diag_link_fromnode = numpy.zeros(n_diagonal_links, dtype=int)
-        self._diag_link_tonode = numpy.zeros(n_diagonal_links, dtype=int)
+        self._diag_link_fromnode = np.zeros(n_diagonal_links, dtype=int)
+        self._diag_link_tonode = np.zeros(n_diagonal_links, dtype=int)
         i = 0
         for r in range(self._nrows-1):
             for c in range(self._ncols-1):
@@ -1680,10 +1681,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self._setup_diagonal_links()
 
         return (
-            numpy.concatenate((self.active_links, self._diag_active_links)),
-            numpy.concatenate((self.activelink_fromnode,
+            np.concatenate((self.active_links, self._diag_active_links)),
+            np.concatenate((self.activelink_fromnode,
                                self._diag_activelink_fromnode)),
-            numpy.concatenate((self.activelink_tonode,
+            np.concatenate((self.activelink_tonode,
                                self._diag_activelink_tonode))
         )
 
@@ -1964,7 +1965,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #if neighbor_cells[3]!=-1:
         diagonal_nodes.extend([neighbor_nodes[3]-1, neighbor_nodes[3]+1])
         slopes = []
-        diagonal_dx = numpy.sqrt(2.)
+        diagonal_dx = np.sqrt(2.)
         for a in neighbor_nodes:
             if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/self.dx
@@ -1977,7 +1978,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             #print 'cell elev: ', u[cell_id]
             #print 'neighbor elev: ', u[a]
             #print single_slope
-            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+            if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
                 print 'NaNs present in the grid!'
@@ -1987,7 +1988,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 single_slope = -9999
             #print single_slope
-            if not numpy.isnan(single_slope):
+            if not np.isnan(single_slope):
                 slopes.append(single_slope)
             else:
                 print 'NaNs present in the grid!'
@@ -1997,10 +1998,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             print u
             print 'Returning NaN angle and direction...'
-            max_slope = numpy.nan
+            max_slope = np.nan
             index_max = 8
 
-        all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
+        all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
         #print 'all_neighbor_cells ', all_neighbor_cells
 
         #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
@@ -2057,7 +2058,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             #print 'cell elev: ', u[cell_id]
             #print 'neighbor elev: ', u[a]
             #print single_slope
-            if not numpy.isnan(single_slope): #This should no longer be necessary, but retained in case
+            if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
                 print 'NaNs present in the grid!'
@@ -2068,10 +2069,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             print u
             print 'Returning NaN angle and direction...'
-            max_slope = numpy.nan
+            max_slope = np.nan
             index_max = 4
 
-        #all_neighbor_nodes=numpy.concatenate((neighbor_nodes,diagonal_nodes))
+        #all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
         #print 'all_neighbor_cells ', all_neighbor_cells
 
         #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
@@ -2385,11 +2386,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #save some internal data to speed updating:
         self.fixed_value_node_properties = {}
-        self.fixed_value_node_properties['boundary_node_IDs'] = numpy.where(self.node_status==FIXED_VALUE_BOUNDARY)[0]
+        self.fixed_value_node_properties['boundary_node_IDs'] = np.where(self.node_status==FIXED_VALUE_BOUNDARY)[0]
         if value:
             if type(value) == float or type(value) == int:
                 values_to_use = float(value)
-            elif type(value) == numpy.ndarray:
+            elif type(value) == np.ndarray:
                 if value.size == self.fixed_value_node_properties['boundary_node_IDs'].size:
                     values_to_use = value
                 elif value.size == self.number_of_nodes:
@@ -2470,24 +2471,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Added DEJH Feb 2014
         # TODO: Assign BC_statuses also to *links*
 
-        bottom_edge = numpy.array(range(0, self.number_of_node_columns))
-        right_edge = numpy.array(range(2 * self.number_of_node_columns  - 1,
+        bottom_edge = np.array(range(0, self.number_of_node_columns))
+        right_edge = np.array(range(2 * self.number_of_node_columns  - 1,
                            self.number_of_nodes - 1,
                            self.number_of_node_columns))
-        top_edge = numpy.array(range((self.number_of_node_rows - 1) *
+        top_edge = np.array(range((self.number_of_node_rows - 1) *
                           self.number_of_node_columns, self.number_of_nodes))
-        left_edge = numpy.array(range(self.number_of_node_columns,
+        left_edge = np.array(range(self.number_of_node_columns,
                           (self.number_of_nodes - self.number_of_node_columns),
                           self.number_of_node_columns))
-        these_boundary_IDs = numpy.array([])
-        these_linked_nodes = numpy.array([])
+        these_boundary_IDs = np.array([])
+        these_linked_nodes = np.array([])
 
         if top_bottom_are_looped:
             self.node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
             self.node_status[top_edge] = TRACKS_CELL_BOUNDARY
-            these_boundary_IDs = numpy.concatenate((these_boundary_IDs,
+            these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                    bottom_edge, top_edge))
-            these_linked_nodes = numpy.concatenate((
+            these_linked_nodes = np.concatenate((
                                    these_linked_nodes,
                                    top_edge-self.number_of_node_columns,
                                    bottom_edge+self.number_of_node_columns))
@@ -2495,37 +2496,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if sides_are_looped:
             self.node_status[right_edge] = TRACKS_CELL_BOUNDARY
             self.node_status[left_edge] = TRACKS_CELL_BOUNDARY
-            these_boundary_IDs = numpy.concatenate((these_boundary_IDs,
+            these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                    left_edge, right_edge))
-            these_linked_nodes = numpy.concatenate((
+            these_linked_nodes = np.concatenate((
                                    these_linked_nodes,
                                    right_edge-1, left_edge+1))
 
         self.update_links_nodes_cells_to_new_BCs()
 
-        try:
-            type(self.looped_node_properties)
-        except:
-            existing_IDs = numpy.array([])
-            existing_links = numpy.array([])
+        if not self.looped_node_properties:
+            existing_IDs = np.array([])
+            existing_links = np.array([])
         else:
-            unrepeated_node_entries = numpy.logical_not(numpy.in1d(self.looped_node_properties['boundary_node_IDs'], these_linked_nodes))
+            unrepeated_node_entries = np.logical_not(
+                np.in1d(self.looped_node_properties['boundary_node_IDs'],
+                        these_linked_nodes))
             existing_IDs = self.looped_node_properties['boundary_node_IDs'][unrepeated_node_entries]
             existing_links = self.looped_node_properties['linked_node_IDs'][unrepeated_node_entries]
 
         self.looped_node_properties = {}
-        all_the_IDs = numpy.concatenate((these_boundary_IDs, existing_IDs))
-        ID_ordering = numpy.argsort(all_the_IDs)
+        all_the_IDs = np.concatenate((these_boundary_IDs, existing_IDs))
+        ID_ordering = np.argsort(all_the_IDs)
         self.looped_node_properties['boundary_node_IDs'] = all_the_IDs[ID_ordering].astype(int)
-        self.looped_node_properties['linked_node_IDs'] = numpy.concatenate((these_linked_nodes,existing_links))[ID_ordering].astype(int)
+        self.looped_node_properties['linked_node_IDs'] = np.concatenate((these_linked_nodes,existing_links))[ID_ordering].astype(int)
 
-        if numpy.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
+        if np.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
             raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
 
 
     def set_fixed_gradient_boundaries(
         self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
-        gradient_in=numpy.nan, gradient_of='topographic_elevation'):
+        gradient_in=np.nan, gradient_of='topographic_elevation'):
         """Create fixed gradient boundaries.
 
         Handles boundary conditions by setting each of the four sides of the
@@ -2699,72 +2700,72 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         bottom_edge = range(0, self.number_of_node_columns)
         if type(bottom_edge) != list:
-            bottom_edge = numpy.array([bottom_edge])
+            bottom_edge = np.array([bottom_edge])
         else:
-            bottom_edge = numpy.array(bottom_edge)
+            bottom_edge = np.array(bottom_edge)
         right_edge = range(2*self.number_of_node_columns - 1,
                            self.number_of_nodes - 1,
                            self.number_of_node_columns)
         if type(right_edge) != list:
-            right_edge = numpy.array([right_edge])
+            right_edge = np.array([right_edge])
         else:
-            right_edge = numpy.array(right_edge)
+            right_edge = np.array(right_edge)
         top_edge = range((self.number_of_node_rows - 1) *
                          self.number_of_node_columns, self.number_of_nodes)
         if type(top_edge) != list:
-            top_edge = numpy.array([top_edge])
+            top_edge = np.array([top_edge])
         else:
-            top_edge = numpy.array(top_edge)
+            top_edge = np.array(top_edge)
         left_edge = range(self.number_of_node_columns,
                           self.number_of_nodes - self.number_of_node_columns,
                           self.number_of_node_columns)
         if type(left_edge) != list:
-            left_edge = numpy.array([left_edge])
+            left_edge = np.array([left_edge])
         else:
-            left_edge = numpy.array(left_edge)
+            left_edge = np.array(left_edge)
 
-        fixed_gradient_nodes = numpy.array([], dtype=int)
-        fixed_gradient_linked_nodes = numpy.array([], dtype=int)
-        boundary_links = numpy.array([], dtype=int)
-        #fixed_gradient_values_to_add = numpy.array([], dtype=float)
+        fixed_gradient_nodes = np.array([], dtype=int)
+        fixed_gradient_linked_nodes = np.array([], dtype=int)
+        boundary_links = np.array([], dtype=int)
+        #fixed_gradient_values_to_add = np.array([], dtype=float)
 
         if bottom_is_fixed:
             self.node_status[bottom_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, bottom_edge))
+            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, bottom_edge))
             bottom_anchor_nodes = bottom_edge+self.number_of_node_columns
             bottom_anchor_nodes[0] = bottom_edge[1]+self.number_of_node_columns
             bottom_anchor_nodes[-1] = bottom_edge[-2]+self.number_of_node_columns
-            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, bottom_anchor_nodes))
+            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, bottom_anchor_nodes))
             bottom_links = self.node_links(bottom_edge)[2,:]
-            boundary_links = numpy.concatenate((boundary_links, bottom_links))
+            boundary_links = np.concatenate((boundary_links, bottom_links))
         if right_is_fixed:
             self.node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, right_edge))
+            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, right_edge))
             right_anchor_nodes = right_edge-1
-            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, right_anchor_nodes))
+            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, right_anchor_nodes))
             right_links = self.node_links(right_edge)[1,:]
-            boundary_links = numpy.concatenate((boundary_links, right_links))
+            boundary_links = np.concatenate((boundary_links, right_links))
         if top_is_fixed:
             self.node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, top_edge))
+            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, top_edge))
             top_anchor_nodes = top_edge-self.number_of_node_columns
             top_anchor_nodes[0] = top_edge[1]-self.number_of_node_columns
             top_anchor_nodes[-1] = top_edge[-2]-self.number_of_node_columns
-            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, top_anchor_nodes))
+            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, top_anchor_nodes))
             top_links = self.node_links(top_edge)[0,:]
-            boundary_links = numpy.concatenate((boundary_links, top_links))
+            boundary_links = np.concatenate((boundary_links, top_links))
         if left_is_fixed:
             self.node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, left_edge))
+            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, left_edge))
             left_anchor_nodes = left_edge+1
-            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, left_anchor_nodes))
+            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, left_anchor_nodes))
             left_links = self.node_links(left_edge)[3,:]
-            boundary_links = numpy.concatenate((boundary_links, left_links))
+            boundary_links = np.concatenate((boundary_links, left_links))
 
         self.update_links_nodes_cells_to_new_BCs()
 
         try:
-            no_val_provided = numpy.all(numpy.isnan(gradient_in))
+            no_val_provided = np.all(np.isnan(gradient_in))
         except:
             no_val_provided = False
         if no_val_provided:
@@ -2778,7 +2779,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 fixed_gradient = float(gradient_in)
             except:
                 try:
-                    fixed_gradient_array = numpy.array(gradient_in) #an iterable of gradients was supplied
+                    fixed_gradient_array = np.array(gradient_in) #an iterable of gradients was supplied
                 except TypeError:
                     raise TypeError('The supplied gradient parameter must be a single number or iterable of length number_of_fixed_gradient_nodes')
                 self.force_boundaries_from_gradients(boundary_links, fixed_gradient_array, gradient_of)
@@ -2791,26 +2792,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     print '***********************************************'
 
                 #the supplied gradient was a single number
-                fixed_gradient_array = numpy.array([], dtype=float)
+                fixed_gradient_array = np.array([], dtype=float)
                 if bottom_is_fixed:
-                    bottom_fixed_gradients = numpy.ones(bottom_edge.size, dtype=float)*-fixed_gradient
+                    bottom_fixed_gradients = np.ones(bottom_edge.size, dtype=float)*-fixed_gradient
                     #force the corner gradient:
                     bottom_fixed_gradients[0] = 0.
                     bottom_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = numpy.concatenate((fixed_gradient_array, bottom_fixed_gradients))
+                    fixed_gradient_array = np.concatenate((fixed_gradient_array, bottom_fixed_gradients))
                 if right_is_fixed:
-                    right_fixed_gradients = numpy.ones(right_edge.size,dtype=float)*fixed_gradient
+                    right_fixed_gradients = np.ones(right_edge.size,dtype=float)*fixed_gradient
                     #right_fixed_gradients[0] = 0.
-                    fixed_gradient_array = numpy.concatenate((fixed_gradient_array, right_fixed_gradients))
+                    fixed_gradient_array = np.concatenate((fixed_gradient_array, right_fixed_gradients))
                 if top_is_fixed:
-                    top_fixed_gradients = numpy.ones(top_edge.size,dtype=float)*fixed_gradient
+                    top_fixed_gradients = np.ones(top_edge.size,dtype=float)*fixed_gradient
                     top_fixed_gradients[0] = 0.
                     top_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = numpy.concatenate((fixed_gradient_array, top_fixed_gradients))
+                    fixed_gradient_array = np.concatenate((fixed_gradient_array, top_fixed_gradients))
                 if left_is_fixed:
-                    left_fixed_gradients = numpy.ones(left_edge.size,dtype=float)*-fixed_gradient
+                    left_fixed_gradients = np.ones(left_edge.size,dtype=float)*-fixed_gradient
                     #left_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = numpy.concatenate((fixed_gradient_array, left_fixed_gradients))
+                    fixed_gradient_array = np.concatenate((fixed_gradient_array, left_fixed_gradients))
                 self.force_boundaries_from_gradients(boundary_links, fixed_gradient_array, gradient_of)
                 fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
 
@@ -2839,15 +2840,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 raise ValueError('At the moment, you have to define all your boundaries on the same set of values!') #need to sort this ASAP...
                 #...We probably want the syntax to be rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT, to which we can pin these properties
             #The fixed_gradient_nodes should be uniquely defined...
-            unrepeated_node_entries = numpy.logical_not(numpy.in1d(self.fixed_gradient_node_properties['boundary_node_IDs'], fixed_gradient_nodes))
-            unrepeated_link_entries = numpy.logical_not(numpy.in1d(self.fixed_gradient_link_properties['boundary_link_IDs'], boundary_links))
-            fixed_gradient_array = numpy.concatenate((fixed_gradient_array, self.fixed_gradient_link_properties['boundary_link_gradients'][unrepeated_link_entries]))
-            boundary_links = numpy.concatenate((boundary_links, self.fixed_gradient_link_properties['boundary_link_IDs'][unrepeated_link_entries]))
-            fixed_gradient_nodes = numpy.concatenate((fixed_gradient_nodes, self.fixed_gradient_node_properties['boundary_node_IDs'][unrepeated_node_entries]))
-            fixed_gradient_linked_nodes = numpy.concatenate((fixed_gradient_linked_nodes, self.fixed_gradient_node_properties['anchor_node_IDs'][unrepeated_node_entries]))
-            fixed_gradient_values_to_add = numpy.concatenate((fixed_gradient_values_to_add, self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
+            unrepeated_node_entries = np.logical_not(np.in1d(self.fixed_gradient_node_properties['boundary_node_IDs'], fixed_gradient_nodes))
+            unrepeated_link_entries = np.logical_not(np.in1d(self.fixed_gradient_link_properties['boundary_link_IDs'], boundary_links))
+            fixed_gradient_array = np.concatenate((fixed_gradient_array, self.fixed_gradient_link_properties['boundary_link_gradients'][unrepeated_link_entries]))
+            boundary_links = np.concatenate((boundary_links, self.fixed_gradient_link_properties['boundary_link_IDs'][unrepeated_link_entries]))
+            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, self.fixed_gradient_node_properties['boundary_node_IDs'][unrepeated_node_entries]))
+            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, self.fixed_gradient_node_properties['anchor_node_IDs'][unrepeated_node_entries]))
+            fixed_gradient_values_to_add = np.concatenate((fixed_gradient_values_to_add, self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
 
-            if numpy.any(self.node_status[fixed_gradient_nodes] == 3):
+            if np.any(self.node_status[fixed_gradient_nodes] == 3):
                 raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
 
             self.fixed_gradient_node_properties = {}
@@ -2909,17 +2910,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         fromnodes = self.link_fromnode[link_IDs]
         tonode_boundaries = self.node_status[tonodes] != 0
         fromnode_boundaries = self.node_status[fromnodes] != 0
-        edge_links = numpy.logical_xor(tonode_boundaries, fromnode_boundaries)
-        edge_tonode_boundaries = numpy.logical_and(tonode_boundaries,edge_links)
-        edge_fromnode_boundaries = numpy.logical_and(fromnode_boundaries,edge_links)
+        edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
+        edge_tonode_boundaries = np.logical_and(tonode_boundaries,edge_links)
+        edge_fromnode_boundaries = np.logical_and(fromnode_boundaries,edge_links)
         self['node'][value][tonodes[edge_tonode_boundaries]] = self['node'][value][fromnodes[edge_tonode_boundaries]] + link_gradients[edge_tonode_boundaries]*self.dx
         self['node'][value][fromnodes[edge_fromnode_boundaries]] = self['node'][value][tonodes[edge_fromnode_boundaries]] - link_gradients[edge_fromnode_boundaries]*self.dx
 
-        if not numpy.all(edge_links):
-            corner_links = numpy.logical_not(edge_links)
-            tonode_is_corner = numpy.in1d(tonodes[corner_links], corner_nodes)
-            fromnode_is_corner = numpy.in1d(fromnodes[numpy.logical_not(edge_links)], corner_nodes)
-            if not numpy.all(numpy.logical_xor(tonode_is_corner, fromnode_is_corner)):
+        if not np.all(edge_links):
+            corner_links = np.logical_not(edge_links)
+            tonode_is_corner = np.in1d(tonodes[corner_links], corner_nodes)
+            fromnode_is_corner = np.in1d(fromnodes[np.logical_not(edge_links)], corner_nodes)
+            if not np.all(np.logical_xor(tonode_is_corner, fromnode_is_corner)):
                 raise ValueError('One or more of the supplied links was neither an edge link, nor a link to a corner!')
             self['node'][value][(tonodes[corner_links])[tonode_is_corner]] = self['node'][value][(fromnodes[corner_links])[tonode_is_corner]] + (link_gradients[corner_links])[tonode_is_corner]*self.dx
             self['node'][value][(fromnodes[corner_links])[fromnode_is_corner]] = self['node'][value][(tonodes[corner_links])[fromnode_is_corner]] - (link_gradients[corner_links])[fromnode_is_corner]*self.dx
@@ -2964,7 +2965,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # For no-flux boundaries, we need to know which interior
         # cells to mirror.
-        #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=numpy.int )
+        #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=np.int )
         lower_left = 0
         lower_right = self.number_of_node_columns - 1
         upper_right = (self.number_of_node_columns +
@@ -3044,7 +3045,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     or :func:`calculate_gradient_across_cell_corners` instead
         """
         diffs = gfuncs.calculate_diff_at_links(self, node_values, out=out)
-        return numpy.divide(diffs, self._dx, out=diffs)
+        return np.divide(diffs, self._dx, out=diffs)
 
 
     @track_this_method
@@ -3092,7 +3093,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         diffs = gfuncs.calculate_diff_at_active_links(self, node_values,
                                                       out=out)
-        return numpy.divide(diffs, self._dx, out=diffs)
+        return np.divide(diffs, self._dx, out=diffs)
 
 
     def calculate_gradients_at_d8_active_links(self, node_values, out=None):
@@ -3110,7 +3111,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diagonal_link_slopes = (node_values[self._diag_activelink_tonode] -
                                 node_values[self._diag_activelink_fromnode]) / \
                                 diag_dist
-        return numpy.concatenate((straight_link_slopes, diagonal_link_slopes))
+        return np.concatenate((straight_link_slopes, diagonal_link_slopes))
 
 
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients, max_slope=False, dstr_node_ids=False):
@@ -3138,40 +3139,40 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # If needed, create max_gradient array and the ID array
         if max_slope is False:
-            max_slope = numpy.zeros(self.number_of_nodes)
+            max_slope = np.zeros(self.number_of_nodes)
         else:
             max_slope[:] = 0.
 
         if dstr_node_ids is False:
-            dstr_node_ids = - numpy.ones(self.number_of_nodes, dtype=int)
+            dstr_node_ids = - np.ones(self.number_of_nodes, dtype=int)
         else:
             dstr_node_ids[:] = -1
 
         assert(len(max_slope) == self.number_of_nodes)
         assert(len(dstr_node_ids) == self.number_of_nodes)
 
-        gradients = numpy.zeros(len(link_gradients)+1)
+        gradients = np.zeros(len(link_gradients)+1)
         gradients[:-1] = link_gradients
 
         #Make a matrix of the links. Need to append to this the gradients *on the diagonals*.
-        node_links = numpy.vstack((gradients[self.node_active_outlink_matrix[0][:]], gradients[self.node_active_outlink_matrix[1][:]], -gradients[self.node_active_inlink_matrix[0][:]], -gradients[self.node_active_inlink_matrix[1][:]]))
+        node_links = np.vstack((gradients[self.node_active_outlink_matrix[0][:]], gradients[self.node_active_outlink_matrix[1][:]], -gradients[self.node_active_inlink_matrix[0][:]], -gradients[self.node_active_inlink_matrix[1][:]]))
 
         #calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(self.shape, out_of_bounds=-1)).T
         #Set the diagonals pointing to inactive nodes as inactive
-        diagonal_nodes[numpy.where(self.node_status[diagonal_nodes] == 4)] = -1
+        diagonal_nodes[np.where(self.node_status[diagonal_nodes] == 4)] = -1
         #Repeat the -1 indexing trick from above:
-        elevs = numpy.zeros(len(elevs_in)+1)
+        elevs = np.zeros(len(elevs_in)+1)
         elevs[-1] = 9999999999999. #...as we want the gradients to inhibit flow
         elevs[:-1] = elevs_in
 
-        slopes_diagonal_nodes = ((elevs[diagonal_nodes])-numpy.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
+        slopes_diagonal_nodes = ((elevs[diagonal_nodes])-np.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
         #Debug:
         #print 'Shape of node_links: ', node_links.shape
         #print 'Shape of diagonal array: ', slopes_diagonal_nodes.shape
-        gradients_all_nodes = numpy.vstack((node_links, slopes_diagonal_nodes))
+        gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         #The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
-        max_slope_indices = numpy.argmin(gradients_all_nodes, axis=0)
+        max_slope_indices = np.argmin(gradients_all_nodes, axis=0)
         max_slope = -gradients_all_nodes[max_slope_indices, xrange(gradients_all_nodes.shape[1])]
         #...per fancy indexing
         #print gradients_all_nodes
@@ -3181,14 +3182,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         neighbors_ENWS = (self.get_neighbor_list()).T
         #print neighbors_ENWS.shape
         #print diagonal_nodes.shape
-        dstr_id_source_array = numpy.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
+        dstr_id_source_array = np.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
         #print dstr_id_source_array.shape
         most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, xrange(dstr_id_source_array.shape[1])]
-        #print numpy.array([range(24),])
+        #print np.array([range(24),])
         #print dstr_id_source_array[:,:-1]
         #print most_negative_gradient_node_ids.reshape((5,5))
         #But we only want to return an id if the "dstr" node is actually downstream! So ->
-        downslope_nodes = numpy.where(max_slope > 0)
+        downslope_nodes = np.where(max_slope > 0)
         #print downslope_nodes
         dstr_node_ids[downslope_nodes] = most_negative_gradient_node_ids[downslope_nodes]
         #Local topo lows will retain the -1 index in dstr_node_ids
@@ -3420,7 +3421,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             offset = 0
 
         # Remember the top N rows
-        top_rows_to_move = numpy.zeros((shift, ncols-2*offset))
+        top_rows_to_move = np.zeros((shift, ncols-2*offset))
         for i in range(0, shift):
             top_rows_to_move[shift-(i+1),:] = data[top_ids-i*ncols]
 
@@ -3604,7 +3605,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         closed_boundaries.fill(bad_index)
         self.diagonal_cells[self.closed_boundary_nodes,:] = closed_boundaries
         self.diagonal_cells.ravel()[
-            numpy.in1d(self.diagonal_cells.ravel(),
+            np.in1d(self.diagonal_cells.ravel(),
                 self.closed_boundary_nodes)] = bad_index
         return self.diagonal_cells
 
@@ -3633,9 +3634,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             node_ids = args[0]
         except IndexError: #return all nodes
-            return numpy.equal(self.node_status, CORE_NODE)
+            return np.equal(self.node_status, CORE_NODE)
         else:
-            return numpy.equal(self.node_status[node_ids], CORE_NODE)
+            return np.equal(self.node_status[node_ids], CORE_NODE)
 
     def is_core(self, *args):
         """is_core([ids])
@@ -3653,9 +3654,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             node_ids = args[0]
         except IndexError: #return all nodes
-            return numpy.equal(self.node_status, CORE_NODE)
+            return np.equal(self.node_status, CORE_NODE)
         else:
-            return numpy.equal(self.node_status[node_ids], CORE_NODE)
+            return np.equal(self.node_status[node_ids], CORE_NODE)
 
     def are_all_interior( self, IDs ):
         """Check if nodes are interior.
@@ -3667,7 +3668,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns a single boolean truth value, True if all nodes with *IDs* are
         interior nodes, False if not.
         """
-        return numpy.all(numpy.equal(self.node_status[IDs], CORE_NODE))
+        return np.all(np.equal(self.node_status[IDs], CORE_NODE))
 
     def are_all_core(self, ids):
         """Check if nodes are all core.
@@ -3685,7 +3686,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         boolean
             ``True`` if all the given nodes are *core* nodes.
         """
-        return numpy.all(numpy.equal(self.node_status[ids], CORE_NODE))
+        return np.all(np.equal(self.node_status[ids], CORE_NODE))
 
     def get_boundary_code( self, id ):
         """
@@ -3704,7 +3705,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If the cells do not share any faces, returns an empty array.
         """
         cell_faces = self.cell_faces([cell_a, cell_b])
-        return numpy.intersect1d(cell_faces[0], cell_faces[1],
+        return np.intersect1d(cell_faces[0], cell_faces[1],
                                  assume_unique=True)
 
     def get_link_connecting_node_pair(self, node_a, node_b):
@@ -3715,7 +3716,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         '''
         node_links_a = self.node_links(node_a)
         node_links_b = self.node_links(node_b)
-        return numpy.intersect1d(node_links_a, node_links_b, assume_unique=True)
+        return np.intersect1d(node_links_a, node_links_b, assume_unique=True)
 
     def get_active_link_connecting_node_pair(self, node_a, node_b):
         """Returns an array of active link indices that *node_a* and *node_b*
@@ -3747,7 +3748,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Create the array, which has as many columns entries as there are columns in node_links_a
         # (which is the number of nodes of interest)
-        connecting_links_ids = BAD_INDEX_VALUE + numpy.zeros(node_links_a.shape[1], dtype=int)
+        connecting_links_ids = BAD_INDEX_VALUE + np.zeros(node_links_a.shape[1], dtype=int)
 
         # Iterate over the number of columns, which is equal to the number of nodes of interest.
         # Yes, this uses a loop, which is generally to be avoided. However, this is the sort
@@ -3755,7 +3756,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         for i in range(node_links_a.shape[1]):
 
             # Find any node IDs that the two links have in common.
-            common = numpy.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
+            common = np.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
 
             # Remove any -1 values from the list of common node IDs
             # (-1 just means "no active link at this slot")
@@ -3865,13 +3866,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
         """
-        return numpy.ravel_multi_index((row, col), self.shape, **kwds)
+        return np.ravel_multi_index((row, col), self.shape, **kwds)
 
     def _setup_face_widths(self):
         """
         Produces an array of length nfaces containing the face width (dx).
         """
-        self._face_widths = numpy.empty(self.number_of_faces)
+        self._face_widths = np.empty(self.number_of_faces)
         self._face_widths.fill(self.dx)
         return self._face_widths
 
@@ -3894,7 +3895,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         print
 
         print 'Testing fluxes and in/out links:'
-        flux2 = numpy.zeros(len(flux)+1)
+        flux2 = np.zeros(len(flux)+1)
         flux2[:len(flux)] = flux
         print flux2
         for n in range(0, self.number_of_nodes):
@@ -4221,18 +4222,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #S_we = ((vals[diagonals[:,1]]+2.*vals[neighbors[:,2]]+vals[diagonals[:,2]])-(vals[diagonals[:,0]]+2.*vals[neighbors[:,0]]+vals[diagonals[:,3]]))/(8.*self.dx)
         #S_sn = ((vals[diagonals[:,2]]+2.*vals[neighbors[:,3]]+vals[diagonals[:,3]])-(vals[diagonals[:,1]]+2.*vals[neighbors[:,1]]+vals[diagonals[:,0]]))/(8.*self.dy)
 
-        slopes_array = numpy.apply_along_axis(one_line_slopes, 1, input_array, self, vals)
+        slopes_array = np.apply_along_axis(one_line_slopes, 1, input_array, self, vals)
         S_we = slopes_array[:,0]
         S_sn = slopes_array[:,1]
 
-        s = numpy.sqrt(S_we*S_we + S_sn*S_sn)
-        a = numpy.empty_like(s)
+        s = np.sqrt(S_we*S_we + S_sn*S_sn)
+        a = np.empty_like(s)
         simple_cases = S_we!=0.
-        complex_cases = numpy.logical_not(simple_cases)
-        a[complex_cases][S_sn[complex_cases]<0.] = numpy.pi
+        complex_cases = np.logical_not(simple_cases)
+        a[complex_cases][S_sn[complex_cases]<0.] = np.pi
         a[complex_cases][S_sn[complex_cases]>=0.] = 0.
-        angle_to_xaxis = numpy.arctan(S_sn[simple_cases]/S_we[simple_cases]) #+ve is CCW rotation from x axis
-        a[simple_cases] = ((1.-numpy.sign(S_we[simple_cases]))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis)
+        angle_to_xaxis = np.arctan(S_sn[simple_cases]/S_we[simple_cases]) #+ve is CCW rotation from x axis
+        a[simple_cases] = ((1.-np.sign(S_we[simple_cases]))*0.5)*np.pi + (0.5*np.pi-angle_to_xaxis)
 
         return s.ravel(), a.ravel()
 
