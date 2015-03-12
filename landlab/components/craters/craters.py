@@ -781,16 +781,19 @@ def ten_times_reduction(mg_in, vectors_in, loops=25):
         crater_time_sequ_5_m_min[i] = copy(vectors_in)
     return crater_time_sequ_50_m_min, crater_time_sequ_5_m_min
 
-def step_reduce_size(mg_in, vectors_in, loops=[25,25], interval=10000, min_radius_in=[0.05, 0.005]):
+def step_reduce_size(mg_in, vectors_in, loops=(25, 25), interval=10000,
+                     min_radius_in=(0.05, 0.005)):
     crater_time_sequ_1st = {}
     crater_time_sequ_2nd = {}
     profile_list = []
     xsec_list = []
     for i in xrange(0,loops[0]):
-        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[0])
+        mg_in, vectors_in, profile, xsec = dig_some_craters(
+            mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[0])
         crater_time_sequ_1st[i] = copy(vectors_in)
     for i in xrange(0, loops[1]):
-        mg_in, vectors_in, profile, xsec = dig_some_craters(mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[1])
+        mg_in, vectors_in, profile, xsec = dig_some_craters(
+            mg_in, vectors_in, nt_in=interval, min_radius=min_radius_in[1])
         crater_time_sequ_2nd[i] = copy(vectors_in)
     return crater_time_sequ_1st, crater_time_sequ_2nd
 
