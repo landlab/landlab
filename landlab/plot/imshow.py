@@ -243,7 +243,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
                         cmap='pink', limits=None, allow_colorbar=True,
-                        norm=None):
+                        norm=None, shrink=1.):
     
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -269,7 +269,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         plt.autoscale(tight=True)
         
         if allow_colorbar:
-            plt.colorbar(norm=norm)
+            plt.colorbar(norm=norm,shrink=shrink)
     
         plt.xlabel('X (%s)' % grid_units[1])
         plt.ylabel('Y (%s)' % grid_units[0])
