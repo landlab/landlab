@@ -65,9 +65,9 @@ class VideoPlotter(object):
         
         self.last_remainder = float('inf') #this controls the intervals at which to plot
         self.last_t = float('-inf')
-        if start==None:
+        if start is None:
             start = float('-inf')
-        if stop==None:
+        if stop is None:
             stop = float('inf')
         self.step_control_tuple = (start,stop,step)
         
@@ -126,8 +126,9 @@ class VideoPlotter(object):
                 self.data_list.append(data_in.copy())
             else:
                 excess_fraction = normalized_elapsed_t%self.step_control_tuple[2]
-                #print "excess_fraction", excess_fraction
-                if excess_fraction<self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]): #problems with rounding errors make this double check necessary
+                # Problems with rounding errors make this double check
+                # necessary
+                if excess_fraction < self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]):
                     print 'Adding frame to video at elapsed time ', elapsed_t
                     self.data_list.append(data_in.copy())
                 self.last_remainder = excess_fraction
