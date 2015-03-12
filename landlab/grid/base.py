@@ -850,14 +850,15 @@ class ModelGrid(ModelDataFields):
         """
         import numpy as np
         if len(args) == 0:
-            return np.vstack((self.node_active_inlink_matrix,
-                              self.node_active_outlink_matrix))
+            return numpy.vstack((self.node_active_inlink_matrix,
+                                 self.node_active_outlink_matrix))
         elif len(args) == 1:
-            node_ids = np.broadcast_arrays(args[0])[0]
+            node_ids = numpy.broadcast_arrays(args[0])[0]
             return (
-                np.vstack((self.node_active_inlink_matrix[:, node_ids],
-                           self.node_active_outlink_matrix[:, node_ids])
-                         ).reshape(2*np.size(self.node_active_inlink_matrix, 0), -1))
+                numpy.vstack(
+                    (self.node_active_inlink_matrix[:, node_ids],
+                     self.node_active_outlink_matrix[:, node_ids])
+                ).reshape(2*numpy.size(self.node_active_inlink_matrix, 0), -1))
         else:
             raise ValueError('only zero or one arguments accepted')
 
@@ -1065,7 +1066,7 @@ class ModelGrid(ModelDataFields):
         .. note:: Deprecated since version 0.1.
             Use :func:`calculate_gradients_at_active_links`
         """
-        gradient = gradient or np.zeros(self.number_of_active_links)
+        gradient = gradient or numpy.zeros(self.number_of_active_links)
             
         assert (len(gradient) == self.number_of_active_links), \
                 "len(gradient)!=number_of_active_links"
