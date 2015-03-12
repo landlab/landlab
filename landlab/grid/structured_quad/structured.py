@@ -50,7 +50,9 @@ class StructuredQuadGrid(BaseGrid):
 
         self._shape = shape or node_coord[0].shape
 
-        assert(node_status is None or node_status.size == self._num_nodes)
+        if node_status is not None:
+            if node_status.size != nodes.number_of_nodes(self.shape):
+                raise ValueError('incorrect size for node_status array')
 
         if node_status is None:
             self._status = nodes.status_with_perimeter_as_boundary(
