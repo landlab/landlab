@@ -44,7 +44,7 @@ def _read_netcdf_coordinate_values(root):
     values = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
         try:
-            values.append(root.variables[coordinate_name][:])
+            values.append(root.variables[coordinate_name][:].copy())
         except KeyError:
             pass
     return values
