@@ -402,30 +402,6 @@ class ModelParameterDictionary(dict):
             return typed_value
 
 
-    # Added by SN 14Nov2013
-    def read_from_mat(self, mat_file_name):
-        """Read values from a matlab file.
-
-        Locate *mat_file_name* and load the .mat (matlab data file)
-        and return the data as a subset of the object 'self'
-
-        Parameters
-        ----------
-        mat_file_name : str
-            Name of matlab file.
-
-        Raises
-        ------
-        Raise IOError if the file *mat_file_name* is not found.
-        """
-        try:
-            self.data = scipy.io.loadmat( mat_file_name )
-            return self.data
-        except IOError:
-            print 'Unable to open', file_name
-            raise        
-        
-
     def read_int(self, key, *args):
         """
         Locate *key* in the input file and return it as an integer.
