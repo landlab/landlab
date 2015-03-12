@@ -91,7 +91,7 @@ PET_Grass = PotentialEvapotranspiration( grid1, method = data['PET_method'], \
                     DeltaD = data['DeltaD'] )
 SM = SoilMoisture( grid, data )   # Soil Moisture object
 VEG = Vegetation( grid, data )    # Vegetation object
-vegca = VegCA( grid1, data )      # Cellular automaton object
+vegca = VegCA( grid, data )      # Cellular automaton object
 
 ##########
 n = data['n_long_DEM']   # Defining number of storms the model will be run
