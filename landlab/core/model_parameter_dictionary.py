@@ -75,13 +75,9 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 import warnings
 import types
-#------------------------------------------------------------
-# Added by SN 14Nov2013 - To enable loading '.mat' (matlab data) file
  
 import scipy.io
-from numpy import *  
 import numpy as np
-#------------------------------------------------------------
 
 
 _VALID_TRUE_VALUES = set(['TRUE', '1', 1])
@@ -293,8 +289,6 @@ class ModelParameterDictionary(dict):
         If there are no commas, the order of types is bool, int, float, and
         str.
         """
-        import numpy as np
-
         if ',' in line:
             try:
                 return np.array(line.split(','), np.int)
@@ -407,26 +401,6 @@ class ModelParameterDictionary(dict):
         else:
             return typed_value
 
-
-#------------------------------------------------------------
-    # Added by SN 14Nov2013
-    """ Locate *mat_file_name* and load the .mat (matlab data file)
-        and return the data as a subset of the object 'self'
-
-        Raise an error 'Unable to open' if the file *mat_file_name*
-        is not found. 
-    """
-    
-    def read_from_mat(self, mat_file_name):
-        try:
-            self.data = scipy.io.loadmat( mat_file_name )
-            return self.data
-        except IOError:
-            print 'Unable to open', file_name
-            raise        
-        
-#------------------------------------------------------------
-        
 
     def read_int(self, key, *args):
         """

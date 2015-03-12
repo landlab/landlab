@@ -5,7 +5,8 @@ class Component(object):
     _output_var_names = set()
     _var_units = dict()
 
-    def __init__(self, grid, map_vars={}):
+    def __init__(self, grid, map_vars=None):
+        map_vars = map_vars or {}
         self._grid = grid
 
         for (location, vars) in map_vars.items():

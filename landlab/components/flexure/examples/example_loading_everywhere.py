@@ -6,26 +6,22 @@ from landlab.components.flexure import FlexureComponent
 from landlab import RasterModelGrid
 
 
-def get_random_load_locations(shape, n_loads):
-    return np.random.random_integers(0, shape[0] * shape[1] - 1, n_loads)
-
-
 def get_random_load_magnitudes(n_loads):
     return np.random.normal(1e9, 1e12, n_loads)
 
 
-def put_loads_on_grid(grid, load_locations, load_sizes):
-    load = grid.at_node['lithosphere__overlying_pressure'].view()
-    for (loc, size) in zip(load_locations, load_sizes):
-        load.flat[loc] = size
+def put_loads_on_grid(grid, load_sizes):
+    load = grid.at_node['lithosphere__overlying_pressure']
+    load[:] = load_sizes
+
+    #for (loc, size) in zip(load_locations, load_sizes):
+    #    load.flat[loc] = size
 
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n-loads', type=int, default=16,
-                        help='Number of loads to apply')
     parser.add_argument('--shape', type=int, default=200,
                         help='Number rows and columns')
     parser.add_argument('--spacing', type=int, default=5e3,
@@ -39,15 +35,14 @@ def main():
 
     shape = (args.shape, args.shape)
     spacing = (args.spacing, args.spacing)
-
-    load_locs = get_random_load_locations(shape, args.n_loads)
-    load_sizes = get_random_load_magnitudes(args.n_loads)
+    
+    load_sizes = get_random_load_magnitudes(args.shape * args.shape)
 
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     flex = FlexureComponent(grid, method='flexure')
 
-    put_loads_on_grid(grid, load_locs, load_sizes)
+    put_loads_on_grid(grid, load_sizes)
 
     flex.update(n_procs=args.n_procs)
 

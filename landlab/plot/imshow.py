@@ -280,13 +280,11 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         #plt.show()
         
     elif VoronoiDelaunayGrid in gridtypes:
-        """
-        This is still very much ad-hoc, and needs prettifying.
-        We should save the modifications needed to plot color all the way
-        to the diagram edge *into* the grid, for faster plotting.
-        (see http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram)
-        (This technique is not implemented yet)
-        """
+        # This is still very much ad-hoc, and needs prettifying.
+        # We should save the modifications needed to plot color all the way
+        # to the diagram edge *into* the grid, for faster plotting.
+        # (see http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram)
+        # (This technique is not implemented yet)
         from scipy.spatial import voronoi_plot_2d
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
@@ -309,14 +307,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
             colortouse = next(mycolors)
-            if not -1 in region:
+            if -1 not in region:
                 polygon = [grid.vor.vertices[i] for i in region]
-                #print "polygon:"
-                #print polygon
-                #print len(polygon)
-                #print "colortouse:"
-                #print next(colortouse)
-                #print len(colortouse)
                 plt.fill(*zip(*polygon),color=colortouse)
                 #must be TOTALLY sure the ordering is right
 
@@ -366,14 +358,11 @@ def imshow_field(field, name, **kwds):
 # This function is exactly the same as imshow_grid but this function plots
 # arrays spread over cells rather than nodes
 ##DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
-    """.. deprecated:: 0.6
-    Use :meth:`imshow_active_cell_grid`, above, instead.
-    """
-
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
                 grid_units=(None, None), symmetric_cbar=False,
                 cmap='pink'):
-    """.. deprecated:: 0.6
+    """
+    .. deprecated:: 0.6
     Use :meth:`imshow_active_cell_grid`, above, instead.
     """
     data = values.view()

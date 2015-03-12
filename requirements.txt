@@ -6,3 +6,4 @@ numpydoc
 netCDF4
 sympy
 pandas
+cython>=0.22
