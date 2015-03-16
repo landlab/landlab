@@ -70,12 +70,12 @@ Main data structures
 node_state : 1d array (x number of nodes in grid)
     Node-based grid of node-state codes. This is the grid of cell (sic) states.
     
-link_state_dict : dictionary 
+link_state_dict : dictionary
     Keys are 3-element tuples that represent the cell-state pairs and 
     orientation code for each possible link type; values are the corresponding
     link-state codes. Allows you to look up the link-state code corresponding
     to a particular pair of adjacent nodes with a particular orientation.
-    
+
 cell_pair : list (x number of possible link states)
     List of 3-element tuples representing all the various link states. Allows
     you to look up the node states and orientation corresponding to a particular 
@@ -149,12 +149,14 @@ class Transition():
     Orientation is 0: horizontal, L-R; 1: vertical, bottom-top.
     For such a tuple, order is (left/bottom, right/top, orientation).
     """
-    def __init__(self, from_state, to_state, rate, name=None):
+    def __init__(self, from_state, to_state, rate, name=None, 
+                 swap_properties=False):
         
         self.from_state = from_state
         self.to_state = to_state
         self.rate = rate
         self.name = name
+        self.swap_properties = swap_properties
         
         
 class Event():
@@ -178,11 +180,12 @@ class Event():
     >>> e2 < e1
     True
     """
-    def __init__(self, time, link, xn_to):
+    def __init__(self, time, link, xn_to, propswap=False):
 
         self.time = time
         self.link = link
         self.xn_to = xn_to
+        self.propswap = propswap
         
     def __lt__(self, other):
         
@@ -197,10 +200,8 @@ class CAPlotter():
         
         if cmap is None:
             self._cmap = matplotlib.cm.jet
-            print 'defaulting to jet'
         else:
             self._cmap = cmap
-            print 'using cmap'
             
         self.ca = ca
         
@@ -219,6 +220,7 @@ class CAPlotter():
             plt.imshow(nsr, interpolation='None', origin='lower', cmap=self._cmap)
         else:
             self.ca.grid.hexplot(self.ca.node_state, color_map=self._cmap)
+        
         plt.draw()
         plt.pause(0.001)
         
@@ -326,6 +328,11 @@ class LandlabCellularAutomaton(object):
         # Put the various transitions on the event queue
         self.push_transitions_to_event_queue()
         
+        # In order to keep track of cell "properties", we create an array of
+        # indices that refer to locations in the caller's code where properties
+        # are tracked.
+        self.propid = numpy.arange(self.grid.number_of_nodes)
+        
 
     def set_node_state_grid(self, node_states):
         """
@@ -416,7 +423,7 @@ class LandlabCellularAutomaton(object):
                          orientation)
             #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
-        
+                    
         if False and _DEBUG:
             print 
             print 'assign_link_states_from_node_types(): the link state array is:'
@@ -432,7 +439,11 @@ class LandlabCellularAutomaton(object):
             xn_to: 2D array that records, for each link state and each
                    transition, the new state into which the link transitions.
             xn_rate: 2D array that records, for each link state and each
-                     transition, the rate (1/time) of the transition.                 
+                     transition, the rate (1/time) of the transition.
+            xn_propswap: 2D array that indicates, for each link state and each
+                         transition, whether that transition is accompanied by
+                         a "property" swap, in which the two cells exchange
+                         properties (in order to represent a particle moving)
         """
         # First, create an array that stores the number of possible transitions
         # out of each state.
@@ -449,16 +460,19 @@ class LandlabCellularAutomaton(object):
         max_transitions = numpy.max(self.n_xn)
         self.xn_to = numpy.zeros((self.num_link_states, max_transitions), dtype=int)
         self.xn_rate = numpy.zeros((self.num_link_states, max_transitions))
+        self.xn_propswap = numpy.zeros((self.num_link_states, max_transitions), dtype=bool)
     
-        #print n_xn, xn_to, xn_rate
+        #print self.n_xn, self.xn_to, self.xn_rate, self.xn_propswap
+        #print self.xn_to.size, self.xn_propswap.size
     
         # Populate the "to" and "rate" arrays
         self.n_xn[:] = 0  # reset this and then re-do (inefficient but should work)
         for xn in xn_list:
-            #print 'from:',xn.from_state,'to:',xn.to_state,'rate:',xn.rate
+            #print 'from:',xn.from_state,'to:',xn.to_state,'rate:',xn.rate,'sp:',xn.swap_properties
             from_state = xn.from_state
             self.xn_to[from_state][self.n_xn[from_state]] = xn.to_state
             self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
+            self.xn_propswap[from_state][self.n_xn[from_state]] = xn.swap_properties
             self.n_xn[from_state] += 1
     
         if False and _DEBUG:
@@ -554,6 +568,7 @@ class LandlabCellularAutomaton(object):
         # Find next event time for each potential transition
         if self.n_xn[current_state]==1:
             xn = self.xn_to[current_state][0]
+            propswap = self.xn_propswap[current_state][0]
             next_time = numpy.random.exponential(1.0/self.xn_rate[current_state][0])
         else:
             next_time = _NEVER
@@ -563,15 +578,17 @@ class LandlabCellularAutomaton(object):
                 if this_next < next_time:
                     next_time = this_next
                     xn = self.xn_to[current_state][i]
+                    propswap = self.xn_propswap[current_state][i]
     
         # Create and setup event, and return it
-        my_event = Event(next_time+current_time, link, xn)
+        my_event = Event(next_time+current_time, link, xn, propswap)
     
         if _DEBUG:
             print 'get_next_event():'
             print '  next_time:',my_event.time
             print '  link:',my_event.link
             print '  xn_to:',my_event.xn_to
+            print '  propswap:',my_event.propswap
     
         return my_event
     
@@ -699,11 +716,11 @@ class LandlabCellularAutomaton(object):
                 node-state pair
         
         """
-    
+
         if _DEBUG:
             print
             print 'do_transition() for link',event.link
-            
+
         # We'll process the event if its update time matches the one we have 
         # recorded for the link in question. If not, it means that the link has
         # changed state since the event was pushed onto the event queue, and in that
@@ -762,6 +779,11 @@ class LandlabCellularAutomaton(object):
 
             if plot_each_transition and (plotter is not None):
                 plotter.update_plot()
+                
+            if event.propswap:
+                tmp = self.propid[fromnode]
+                self.propid[fromnode] = self.propid[tonode]
+                self.propid[tonode] = tmp
                 
             if _DEBUG:
                 n = self.grid.number_of_nodes
