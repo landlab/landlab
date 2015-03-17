@@ -128,7 +128,7 @@ import numpy
 import pylab as plt
 import time
 
-_NEVER = 1e12
+_NEVER = 1e50
 
 _DEBUG = False
 
@@ -573,12 +573,20 @@ class LandlabCellularAutomaton(object):
         else:
             next_time = _NEVER
             xn = None
+            propswap = False
             for i in range(self.n_xn[current_state]):
                 this_next = numpy.random.exponential(1.0/self.xn_rate[current_state][i])
+                #print 'this next:', this_next
                 if this_next < next_time:
                     next_time = this_next
                     xn = self.xn_to[current_state][i]
                     propswap = self.xn_propswap[current_state][i]
+
+        #print self.n_xn[current_state]
+        #print self.xn_to[current_state]
+        #print self.xn_rate[current_state]
+        #print self.xn_propswap[current_state]
+        #assert (xn is not None), ['No valid transition from state '+str(current_state)+str(self.cell_pair[current_state])] 
     
         # Create and setup event, and return it
         my_event = Event(next_time+current_time, link, xn, propswap)
