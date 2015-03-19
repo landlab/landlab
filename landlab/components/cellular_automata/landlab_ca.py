@@ -130,7 +130,7 @@ import time
 
 _NEVER = 1e50
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 
@@ -238,7 +238,7 @@ class LandlabCellularAutomaton(object):
     determined by the states of the cell pair.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, prop_data=None, prop_reset_value=None):
         
         # Are we calling this from a subclass __init__? If so, then the 
         # variable self.number_of_orientations should already be defined.
@@ -332,6 +332,12 @@ class LandlabCellularAutomaton(object):
         # indices that refer to locations in the caller's code where properties
         # are tracked.
         self.propid = numpy.arange(self.grid.number_of_nodes)
+        if prop_data is None:
+            self.prop_data = numpy.zeros(self.grid.number_of_nodes)
+            self.prop_reset_value = 0.0
+        else:
+            self.prop_data = prop_data
+            self.prop_reset_value = prop_reset_value
         
 
     def set_node_state_grid(self, node_states):
@@ -421,7 +427,7 @@ class LandlabCellularAutomaton(object):
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]], \
                          orientation)
-            #print 'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
+            print 'active link:',i,'fr:',self.grid.activelink_fromnode[i],'to:',self.grid.activelink_tonode[i],'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
                     
         if False and _DEBUG:
@@ -589,6 +595,7 @@ class LandlabCellularAutomaton(object):
         #assert (xn is not None), ['No valid transition from state '+str(current_state)+str(self.cell_pair[current_state])] 
     
         # Create and setup event, and return it
+        print 'sched xn from', self.cell_pair[current_state], 'to',self.cell_pair[xn],'for',current_time,'+',next_time,'at link',link,self.grid.activelink_fromnode[link],self.grid.activelink_tonode[link]
         my_event = Event(next_time+current_time, link, xn, propswap)
     
         if _DEBUG:
@@ -688,9 +695,10 @@ class LandlabCellularAutomaton(object):
             self.next_update[link] = _NEVER
             
         if _DEBUG:
-            print
+            #print
             print '  at link',link
             print '  state changed to',self.link_state[link],self.cell_pair[self.link_state[link]]
+            #print '  number of possible xns',self.n_xn[new_link_state]
             print '  update time now',self.next_update[link]
         
             
@@ -792,7 +800,13 @@ class LandlabCellularAutomaton(object):
                 tmp = self.propid[fromnode]
                 self.propid[fromnode] = self.propid[tonode]
                 self.propid[tonode] = tmp
-                
+                if self.grid.node_status[fromnode]!=landlab.grid.base.CORE_NODE:
+                    print 'RESETTING BOUNDARY FROMNODE PROPERTY FROM',self.prop_data[self.propid[fromnode]]
+                    self.prop_data[self.propid[fromnode]] = self.prop_reset_value
+                if self.grid.node_status[tonode]!=landlab.grid.base.CORE_NODE:
+                    self.prop_data[self.propid[tonode]] = self.prop_reset_value
+                    print 'RESETTING BOUNDARY TONODE PROPERTY FROM',self.prop_data[self.propid[tonode]]
+               
             if _DEBUG:
                 n = self.grid.number_of_nodes
                 for r in range(self.grid.number_of_node_rows):
@@ -800,6 +814,14 @@ class LandlabCellularAutomaton(object):
                         n -= 1
                         print '{0:.0f}'.format(self.node_state[n]),
                     print
+                if self.propid is not None:
+                    print
+                    n = self.grid.number_of_nodes
+                    for r in range(self.grid.number_of_node_rows):
+                        for c in range(self.grid.number_of_node_columns):
+                            n -= 1
+                            print '{0:2.0f}'.format(self.propid[n]),
+                        print
 
         elif _DEBUG:
             print '  event time is',event.time,'but update time is', \
