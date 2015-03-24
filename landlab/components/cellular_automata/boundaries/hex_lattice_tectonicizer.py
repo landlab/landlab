@@ -28,7 +28,7 @@ class HexLatticeTectonicizer(object):
     """Base class from which classes to represent particular baselevel/fault
     geometries are derived.
     """
-    def __init__(self, grid=None, node_state=None):
+    def __init__(self, grid=None, node_state=None, propid=None):
         
         # If needed, create grid
         if grid is None:
@@ -55,6 +55,10 @@ class HexLatticeTectonicizer(object):
         # Remember the # of rows and cols
         self.nr = self.grid.number_of_node_rows
         self.nc = self.grid.number_of_node_columns
+        
+        # propid should be either a reference to a CA model's "property id" 
+        # array, or None
+        self.propid = propid
         
 
 class LatticeNormalFault(HexLatticeTectonicizer):
@@ -114,22 +118,35 @@ class LatticeUplifter(HexLatticeTectonicizer):
     """Handles vertical uplift of interior (not edges) for a hexagonal lattice
     with vertical node orientation and rectangular node arrangement.
     """
-    def __init__(self, grid=None, node_state=None):
+    def __init__(self, grid=None, node_state=None, propid=None):
         
         # Do the base class init
-        super(LatticeUplifter, self).__init__(grid, node_state)
+        super(LatticeUplifter, self).__init__(grid, node_state, propid)
 
         self.base_row_nodes = arange(self.nr, self.nr*(self.nc-1), self.nr)
+        if self.propid is not None:
+            self.top_row_nodes = self.base_row_nodes+(self.nr-1)
+            print 'top:',self.top_row_nodes
+            print 'base:',self.base_row_nodes
     
     def uplift_interior_nodes(self, rock_state=1):
 
         print 'in uin, ns is'
         print self.node_state        
         
+        # Shift the node states up by one row
         for r in range(self.nr-1, 0, -1):
             self.node_state[self.base_row_nodes+r] = \
                     self.node_state[self.base_row_nodes+(r-1)]
         self.node_state[self.base_row_nodes] = rock_state
+        
+        # If propid (property ID or index) is defined, shift that too.
+        if self.propid is not None:
+            top_row_propid = self.propid[self.top_row_nodes]
+            for r in range(self.nr-1, 0, -1):
+                self.propid[self.base_row_nodes+r] = self.propid[self.base_row_nodes+(r-1)]
+            self.propid[self.base_row_nodes] = top_row_propid
+        
 
 def main():
 

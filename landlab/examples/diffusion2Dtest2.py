@@ -5,11 +5,10 @@ diffusion code.
 
 GT, July 2010
 """
+import numpy as np
+from pylab import plot, draw, show, contour
 
 from landlab import RasterModelGrid
-
-import pylab
-from pylab import plot, draw, show, contour
 
 
 def set_flux_coefficients(mg, dx):
@@ -45,8 +44,8 @@ def set_flux_coefficients(mg, dx):
     yf = yf - dx/2.0
     x0 = 0.5 * (mg.number_of_node_columns - 2) * dx
     y0 = (mg.number_of_node_columns - 2) * dx
-    dist = sqrt((xf-x0)**2.0 + (yf-y0)**2.0)
-    K = Kmax * exp(-dist / decay_scale)
+    dist = np.sqrt((xf - x0) ** 2.0 + (yf - y0) ** 2.0)
+    K = Kmax * np.exp(-dist / decay_scale)
 
     if False:
         print 'dist:', dist

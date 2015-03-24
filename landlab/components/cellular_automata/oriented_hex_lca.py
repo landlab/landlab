@@ -19,7 +19,7 @@ import landlab
 class OrientedHexLCA(LandlabCellularAutomaton):
     
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, prop_data=None, prop_reset_value=None):
         
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
@@ -37,7 +37,7 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
         super(OrientedHexLCA, self).__init__(model_grid, node_state_dict, 
-            transition_list, initial_node_states)
+            transition_list, initial_node_states, prop_data, prop_reset_value)
             
 
     def setup_array_of_orientation_codes(self):

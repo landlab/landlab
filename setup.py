@@ -7,6 +7,16 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 
+from distutils.extension import Extension
+
+import sys
+if 'setuptools.extension' in sys.modules:
+    m = sys.modules['setuptools.extension']
+    m.Extension.__dict__ = m._Extension.__dict__
+
+from Cython.Build import cythonize
+import numpy as np
+
 from landlab import __version__
 
 
@@ -47,7 +57,13 @@ class develop_and_register(develop):
         register_landlab()
 
 
-setup(name='TheLandlab',
+import os
+
+cython_pathspec = os.path.join('landlab', 'components','**','*.pyx')
+ext_modules = cythonize(cython_pathspec)
+
+
+setup(name='landlab',
       version=__version__,
       author='Eric Hutton',
       author_email='eric.hutton@colorado.edu',
@@ -78,4 +94,7 @@ setup(name='TheLandlab',
           'install': install_and_register,
           'develop': develop_and_register,
       },
+
+      include_dirs = [np.get_include()],
+      ext_modules = ext_modules,
      )

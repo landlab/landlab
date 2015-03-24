@@ -20,7 +20,7 @@ _DEBUG = False
 class OrientedRasterLCA(LandlabCellularAutomaton):
     
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, track_cell_properties=False):
         
         if _DEBUG:
             print 'OrientedRasterLCA.__init__ here'

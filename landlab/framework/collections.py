@@ -82,7 +82,7 @@ class Collection(dict):
     """
     def __init__(self, **kwds):
         super(Collection, self).__init__(**kwds)
-        for (name, component) in self.items():
+        for (_, component) in self.items():
             assert(is_implementation(component, BmiBase))
 
     def list(self):

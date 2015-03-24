@@ -2,13 +2,9 @@
 import numpy as np
 import itertools
 
-from ..grid.base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                         FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                         CLOSED_BOUNDARY,BAD_INDEX_VALUE)
-
-#BAD_INDEX_VALUE = np.iinfo(np.int).max
-
-#from landlab.utils import count_repeated_values
+from ..grid.base import (CORE_NODE, FIXED_GRADIENT_BOUNDARY,
+                         FIXED_VALUE_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                         CLOSED_BOUNDARY, BAD_INDEX_VALUE)
 
 
 def node_count(shape):
@@ -998,7 +994,7 @@ def active_inlink_count_per_node(shape):
     return np.ravel(link_count)
 
 
-def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
+def setup_outlink_matrix(shape, return_count=True):
     links = outlinks(shape)
     if return_count:
         return (links, outlink_count_per_node(shape))
@@ -1006,7 +1002,7 @@ def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
         return links
 
 
-def setup_inlink_matrix(shape, tonodes=None, return_count=True):
+def setup_inlink_matrix(shape, return_count=True):
     links = inlinks(shape)
     if return_count:
         return (links, inlink_count_per_node(shape))
@@ -1157,8 +1153,11 @@ def neighbor_node_ids(shape, inactive=BAD_INDEX_VALUE):
 
 
 def linked_neighbor_node_ids(shape, closed_boundary_nodes,
-                             open_boundary_nodes=[],
+                             open_boundary_nodes=None,
                              inactive=BAD_INDEX_VALUE):
+    if open_boundary_nodes is None:
+        open_boundary_nodes = []
+
     ids_with_halo = node_index_with_halo(shape, halo_indices=inactive)
 
     # Everything that touches a closed boundary is inactive
@@ -1368,24 +1367,24 @@ def has_boundary_neighbor(neighbors, diagonals,
 
 
 def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
-        #nbr_nodes=self.get_neighbor_list(id)
-        #diag_nbrs=self.get_diagonal_list(id)
+    # nbr_nodes=self.get_neighbor_list(id)
+    # diag_nbrs=self.get_diagonal_list(id)
 
-        i=0
-        while i < 4 and neighbors[i] != out_of_bounds:
-            i += 1
+    i=0
+    while i < 4 and neighbors[i] != out_of_bounds:
+        i += 1
 
-        if i < 4:
-            return True
-        else:
-            r = 0
-            while r < 4 and diagonals[r] != out_of_bounds:
-                r += 1
+    if i < 4:
+        return True
+    else:
+        r = 0
+        while r < 4 and diagonals[r] != out_of_bounds:
+            r += 1
 
-        if r < 4 :
-            return True
-        else:
-            return False
+    if r < 4 :
+        return True
+    else:
+        return False
 
 
 def reshape_array(shape, u, flip_vertically=False, copy=False):
@@ -1457,7 +1456,7 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
         return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
                                      (cols, cols, cols + 1, cols + 1)),
                                     shape, mode=mode).T
-    except ValueError as e:
+    except ValueError:
         raise
 
 def nodes_around_points(shape, coords, spacing=(1., 1.),
@@ -1483,7 +1482,7 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
             shape,
             ((coords[0] - origin[0]) / spacing[0],
              (coords[1] - origin[1]) / spacing[1]))
-    except ValueError as e:
+    except ValueError:
         raise
 
 def nodes_around_point(shape, coords, spacing=(1., 1.)):

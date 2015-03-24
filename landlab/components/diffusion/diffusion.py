@@ -7,9 +7,11 @@ Created July 2013 GT
 Last updated August 2013 GT
 
 """
+from __future__ import print_function
 
 from landlab import ModelParameterDictionary
 from landlab import create_and_initialize_grid
+from ...core.model_parameter_dictionary import MissingKeyError
 
 _ALPHA = 0.1   # time-step stability factor
 
@@ -17,7 +19,8 @@ _ALPHA = 0.1   # time-step stability factor
 #_VERSION = 'explicit'
 _VERSION = 'pass_grid'
 
-class DiffusionComponent():
+
+class DiffusionComponent(object):
     """
     This component implements linear diffusion of a field in the supplied
     ModelGrid.
@@ -59,7 +62,8 @@ class DiffusionComponent():
         if input_stream:
             self.initialize(input_stream)
         else:
-            print 'Ensure you call the initialize(input_stream) method before running the model!'
+            print('Ensure you call the initialize(input_stream) method before '
+                  'running the model!')
         
     def initialize(self, input_stream):
         
@@ -73,20 +77,22 @@ class DiffusionComponent():
         self.kd = inputs.read_float('DIFMOD_KD')
         try:
             self.uplift_rate = inputs.read_float('DIFMOD_UPLIFT_RATE')
-        except:
+        except MissingKeyError:
             self.uplift_rate = inputs.read_float('uplift_rate')
         try:
             self.values_to_diffuse = inputs.read_str('values_to_diffuse')
-        except:
+        except MissingKeyError:
             self.values_to_diffuse = 'topographic_elevation'
         try:
             self.timestep_in = inputs.read_float('dt')  
-        except:
-            print 'No fixed timestep supplied, it must be set dynamically somewhere else. Be sure to call input_timestep(timestep_in) as part of your run loop.'
+        except MissingKeyError:
+            print('No fixed timestep supplied, it must be set dynamically '
+                  'somewhere else. Be sure to call '
+                  'input_timestep(timestep_in) as part of your run loop.')
 
         
         # Create grid if one doesn't already exist
-        if self.grid==None:
+        if self.grid is None:
             self.grid = create_and_initialize_grid(input_stream)
             
         # Set internal time step
@@ -97,7 +103,7 @@ class DiffusionComponent():
         self.dt = _ALPHA*dx*dx/self.kd  # CFL condition
         try:
             self.tstep_ratio = self.timestep_in/self.dt
-        except:
+        except AttributeError:
             pass
         
         # Get a list of interior cells
@@ -108,7 +114,7 @@ class DiffusionComponent():
         # it all in the grid. With 'explicit', we require the caller/user to 
         # provide data.
         if _VERSION=='make_all_data':
-            #print 'creating internal data'
+            #print('creating internal data')
             self.z = self.grid.add_zeros('node', 'landscape_surface__elevation')
             self.g = self.grid.add_zeros('active_link', 'landscape_surface__gradient')  # surface gradients
             self.qs = self.grid.add_zeros('active_link','unit_sediment_flux')  # unit sediment flux

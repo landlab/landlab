@@ -8,6 +8,10 @@ else:
     WITH_NETCDF4 = True
 
 
-from landlab.io.netcdf.read import read_netcdf
-from landlab.io.netcdf.write import write_netcdf
-from landlab.io.netcdf.errors import NotRasterGridError
+from .read import read_netcdf
+from .write import write_netcdf
+from .errors import NotRasterGridError
+
+
+__all__ = ['read_netcdf', 'write_netcdf', 'NotRasterGridError',
+           'WITH_NETCDF4', ]

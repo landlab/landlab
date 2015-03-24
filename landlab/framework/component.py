@@ -82,24 +82,6 @@ def load_components(cls, paths=None):
     return components
 
 
-def _load_landlab_components(paths=None):
-    """
-    Load components for The Landlab. These are classes that implement BmiBase. Use
-    the *paths* keyword to specify a list of paths to search for components.
-
-    .. seealso::
-
-        :func:`load_components_from_dir`
-    """
-    if not paths:
-        paths = _COMPONENT_PATH
-
-    components = {}
-    for path in paths[::-1]:
-        components.update(load_components_from_dir(path, cls))
-    return components
-
-
 def load_landlab_components(paths=None):
     """
     Load components for The Landlab. These are classes that implement BmiBase.

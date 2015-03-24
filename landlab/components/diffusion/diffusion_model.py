@@ -15,13 +15,13 @@ from landlab import RasterModelGrid
 from landlab.plot.imshow import imshow_node_grid
 import diffusion
 
-class DiffusionModel():
+class DiffusionModel(object):
     
     def initialize(self, input_stream=None):
     
         # If no input file/stream specified, use default (or command line?)
         # (or default values?)
-        if input_stream==None:
+        if input_stream is None:
             input_stream = str(raw_input('Enter name of input file: '))
         
         # Open input file

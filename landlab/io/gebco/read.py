@@ -11,10 +11,6 @@ except ImportError:
 
 from scipy.io import netcdf as nc
 
-import os
-import types
-import re
-
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -38,8 +34,8 @@ def _read_netcdf_coordinate_values(root):
 
     spacing = root.variables['spacing'][:]
     for (axis, coordinate_name) in enumerate(_AXIS_NAMES):
-        range = root.variables[coordinate_name + '_range'][:]
-        values.append(np.arange(range[0], range[1] + spacing[axis],
+        coord_range = root.variables[coordinate_name + '_range'][:]
+        values.append(np.arange(coord_range[0], coord_range[1] + spacing[axis],
                                 spacing[axis]))
 
     return values
@@ -52,7 +48,7 @@ def _read_netcdf_coordinate_units(root):
 def _read_netcdf_structured_data(root):
     fields = dict()
     for (name, var) in root.variables.items():
-        if not name in _COORDINATE_NAMES:
+        if name not in _COORDINATE_NAMES:
             fields[name] = var[:] * var.scale_factor + var.add_offset
             fields[name].shape = (fields[name].size, )
     return fields

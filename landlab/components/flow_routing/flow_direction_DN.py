@@ -8,8 +8,6 @@ GT Nov 2013
 Modified Feb 2014
 """
 
-
-import numpy
 import numpy as np
 import inspect
 from scipy import weave
@@ -104,7 +102,7 @@ def grid_flow_directions(grid, elevations):
     slope, receiver = calculate_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
-    (sink_cell, ) = numpy.where(slope >= 0.)
+    (sink_cell, ) = np.where(slope >= 0.)
     receiver[sink_cell] = grid.node_index_at_cells[sink_cell]
     slope[sink_cell] = 0.
 
@@ -216,9 +214,9 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     
     # Setup
     num_nodes = len(elev)
-    steepest_slope = numpy.zeros(num_nodes)
-    receiver = numpy.arange(num_nodes)
-    receiver_link = UNDEFINED_INDEX + numpy.zeros(num_nodes, dtype=int)
+    steepest_slope = np.zeros(num_nodes)
+    receiver = np.arange(num_nodes)
+    receiver_link = UNDEFINED_INDEX + np.zeros(num_nodes, dtype=int)
     
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
@@ -279,25 +277,25 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
             #global neighbor_nodes
             #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
             try:
-                elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max)
+                elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max)
             except NameError:
-                neighbor_nodes = numpy.empty((grid.active_nodes.size, 8), dtype=int)
+                neighbor_nodes = np.empty((grid.active_nodes.size, 8), dtype=int)
                 #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
                 neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
                 neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
-                links_list = numpy.empty_like(neighbor_nodes)
+                links_list = np.empty_like(neighbor_nodes)
                 links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)
                 links_list[:,4:] = grid.node_diagonal_links().T[grid.active_nodes,:] #SW,NW,NE,NE
-                elevs_array = numpy.where(neighbor_nodes!=-1, elev[neighbor_nodes], numpy.finfo(float).max/1000.)
+                elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
             slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.link_length[links_list]
-            axis_indices = numpy.argmax(slope_array, axis=1)
-            steepest_slope[grid.active_nodes] = slope_array[numpy.indices(axis_indices.shape),axis_indices]
-            downslope = numpy.greater(steepest_slope, 0.)
+            axis_indices = np.argmax(slope_array, axis=1)
+            steepest_slope[grid.active_nodes] = slope_array[np.indices(axis_indices.shape),axis_indices]
+            downslope = np.greater(steepest_slope, 0.)
             downslope_active = downslope[grid.active_nodes]
-            receiver[downslope] = neighbor_nodes[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
-            receiver_link[downslope] = links_list[numpy.indices(axis_indices.shape),axis_indices][0,downslope_active]
+            receiver[downslope] = neighbor_nodes[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
+            receiver_link[downslope] = links_list[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
             
-    node_id = numpy.arange(num_nodes)
+    node_id = np.arange(num_nodes)
 
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:
@@ -308,7 +306,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = numpy.where(node_id==receiver)
+    (sink, ) = np.where(node_id==receiver)
     
     return receiver, steepest_slope, sink, receiver_link
     
