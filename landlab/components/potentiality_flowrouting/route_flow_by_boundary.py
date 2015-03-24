@@ -1,22 +1,32 @@
 # -*- coding: utf-8 -*-
 """
 This is an implementation of Vaughan Voller's experimental boundary method
-reduced complexity flow router and diffuser. It needs to be broken into routing
-and sed mobility methods post hoc.
+reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
 Created on Fri Feb 20 09:32:27 2015
 
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
+###in the diagonal case, even closed edges can produce "drag". Is this right?
+#Could suppress by mirroring the diagonals
+
 import numpy as np
 from landlab import RasterModelGrid, ModelParameterDictionary, Component, FieldError
 import inspect
-from pylab import show, figure
-from landlab.plot.imshow import imshow_node_grid
 
 class PotentialityFlowRouter(Component):
     """
+    This class implements Voller, Hobley, and Paola's experimental matrix
+    solutions for flow routing.
+    Options are permitted to allow "abstract" routing (flow enforced downslope,
+    but no particular assumptions are made about the governing equations), or
+    routing according to the Chezy or Manning equations. This routine assumes
+    that water is distributed evenly over the surface of the cell in deriving
+    the depth, and does not assume channelization. You will need to back-
+    calculate channel depths for yourself using known widths at each node
+    if that is what you want.
+    
     """
     _name = 'PotentialityFlowRouter'
     
@@ -28,6 +38,7 @@ class PotentialityFlowRouter(Component):
                              'water__volume_flux_xcomponent',
                              'water__volume_flux_ycomponent',
                              'potentiality_field',
+                             'water__depth',
                              'water__volume_flux',
                              ])
                              
@@ -37,6 +48,7 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux_xcomponent' : 'm**3/s',
                   'water__volume_flux_ycomponent' : 'm**3/s',
                   'potentiality_field' : 'm**3/s',
+                  'water__depth': 'm',
                   'water__volume_flux' : 'm**3/s',
                   }
     
@@ -46,6 +58,7 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux_xcomponent' : 'node',
                   'water__volume_flux_ycomponent' : 'node',
                   'potentiality_field' : 'node',
+                  'water__depth': 'node',
                   'water__volume_flux' : 'link',
                   }
     
@@ -55,8 +68,11 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux_xcomponent' : 'x component of resolved water flux through node',
                   'water__volume_flux_ycomponent' : 'y component of resolved water flux through node',
                   'potentiality_field' : 'Value of the hypothetical field "K", used to force water flux to flow downhill',
+                  'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
                   'water__volume_flux' : 'Water fluxes on links',
                   }
+    
+    _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
 
     
     def __init__(self, grid, params):
@@ -64,6 +80,13 @@ class PotentialityFlowRouter(Component):
     
     
     def initialize(self, grid, params):
+        """
+        Optional input parameters are:
+        * "flow_equation" - options are "default" (default), "Manning", or "Chezy".
+          If Equation is Manning or Chezy, you must also specify:
+           - "Mannings_n" (if "Manning") : float
+           - "Chezys_C" (if "Chezy") : float
+        """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         assert grid.number_of_node_rows >= 3
         assert grid.number_of_node_columns >= 3
@@ -75,6 +98,17 @@ class PotentialityFlowRouter(Component):
         else:
             assert type(params) == dict
             input_dict = params
+        
+        #ingest the inputs
+        try:
+            self.equation = input_dict['flow_equation']
+        except KeyError:
+            self.equation = 'default'
+        assert self.equation in ('default', 'Chezy', 'Manning')
+        if self.equation == 'Chezy':
+            self.chezy_C = float(input_dict["Chezys_C"])
+        if self.equation == 'Manning':
+            self.manning_n = float(input_dict["Mannings_n"])
         
         ncols = grid.number_of_node_columns
         nrows = grid.number_of_node_rows
@@ -93,6 +127,10 @@ class PotentialityFlowRouter(Component):
         self._uW = np.zeros_like(self.elev_raster)
         self._uN = np.zeros_like(self.elev_raster)
         self._uS = np.zeros_like(self.elev_raster)
+        self._uNE = np.zeros_like(self.elev_raster)
+        self._uNW = np.zeros_like(self.elev_raster)
+        self._uSE = np.zeros_like(self.elev_raster)
+        self._uSW = np.zeros_like(self.elev_raster)
         self._K = np.zeros_like(self.elev_raster)
         
         #extras for diagonal routing:
@@ -104,6 +142,12 @@ class PotentialityFlowRouter(Component):
         self._aSEP = np.zeros_like(self.elev_raster)
         self._aSWSW = np.zeros_like(self.elev_raster)
         self._aSWP = np.zeros_like(self.elev_raster)
+        self._totalfluxout = np.empty((nrows, ncols), dtype=float)
+        self._meanflux = np.zeros_like(self._totalfluxout)
+        self._xdirfluxout = np.zeros_like(self._totalfluxout)
+        self._ydirfluxout = np.zeros_like(self._totalfluxout)
+        self._xdirfluxin = np.zeros_like(self._totalfluxout)
+        self._ydirfluxin = np.zeros_like(self._totalfluxout)
         
         #setup slices for use in IDing the neighbors
         self._Es = (slice(1,-1),slice(2,ncols+2))
@@ -133,19 +177,22 @@ class PotentialityFlowRouter(Component):
         self._BCs = 4*np.ones_like(self.elev_raster)
         self._BCs[self._core].flat = self._grid.get_node_status()
         BCR = self._BCs #for conciseness below
-        #these are conditions for boundary-boundary contacts AND core-closed contacts w/i the grid, both of which forbid flow
-        self.boundaryboundaryN = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ns]>0), np.logical_and(BCR[self._core]==0, BCR[self._Ns]==4))
-        self.boundaryboundaryS = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ss]>0), np.logical_and(BCR[self._core]==0, BCR[self._Ss]==4))
-        self.boundaryboundaryE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Es]>0), np.logical_and(BCR[self._core]==0, BCR[self._Es]==4))
-        self.boundaryboundaryW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ws]>0), np.logical_and(BCR[self._core]==0, BCR[self._Ws]==4))
-        self.boundaryboundaryNE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._NEs]>0), np.logical_and(BCR[self._core]==0, BCR[self._NEs]==4))
-        self.boundaryboundaryNW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._NWs]>0), np.logical_and(BCR[self._core]==0, BCR[self._NWs]==4))
-        self.boundaryboundarySE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SEs]>0), np.logical_and(BCR[self._core]==0, BCR[self._SEs]==4))
-        self.boundaryboundarySW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SWs]>0), np.logical_and(BCR[self._core]==0, BCR[self._SWs]==4))
+        #these are conditions for boundary->boundary contacts AND anything->closed contacts w/i the grid, both of which forbid flow
+        self.boundaryboundaryN = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ns]>0), np.logical_or(BCR[self._Ns]==4, BCR[self._core]==4))
+        self.boundaryboundaryS = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ss]>0), np.logical_or(BCR[self._Ss]==4, BCR[self._core]==4))
+        self.boundaryboundaryE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Es]>0), np.logical_or(BCR[self._Es]==4, BCR[self._core]==4))
+        self.boundaryboundaryW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ws]>0), np.logical_or(BCR[self._Ws]==4, BCR[self._core]==4))
+        self.boundaryboundaryNE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._NEs]>0), np.logical_or(BCR[self._NEs]==4, BCR[self._core]==4))
+        self.boundaryboundaryNW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._NWs]>0), np.logical_or(BCR[self._NWs]==4, BCR[self._core]==4))
+        self.boundaryboundarySE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SEs]>0), np.logical_or(BCR[self._SEs]==4, BCR[self._core]==4))
+        self.boundaryboundarySW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SWs]>0), np.logical_or(BCR[self._SWs]==4, BCR[self._core]==4))
         self.notboundaries = BCR[self._core] == 0
         
+        self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+        #this is the equivalent seen CSWidth of a cell for a flow in a generic 360 direction
+        
     
-    def route_flow(self, route_on_diagonals=True):
+    def route_flow(self, route_on_diagonals=True, return_components=False):
         """
         """
         #create aliases for ease
@@ -159,6 +206,8 @@ class PotentialityFlowRouter(Component):
         aNP = self._aNP
         aSS = self._aSS
         aSP = self._aSP
+        totalfluxout = self._totalfluxout
+        meanflux = self._meanflux
         uE = self._uE
         uW = self._uW
         uN = self._uN
@@ -173,17 +222,17 @@ class PotentialityFlowRouter(Component):
         Ss = self._Ss
         SEs = self._SEs
         core = self._core
-        corecore = self._corecore
         one_over_dx = 1./self._grid.dx
         one_over_dy = 1./self._grid.dy
         one_over_diagonal = 1./np.sqrt(self._grid.dx**2+self._grid.dy**2)
         qwater_in = self._grid.at_node['water__volume_flux_in'].reshape((self._grid.number_of_node_rows, self._grid.number_of_node_columns))
         prev_K = K.copy()
-        BCR = self._BCs
         bbN = self.boundaryboundaryN
         bbS = self.boundaryboundaryS
         bbE = self.boundaryboundaryE
         bbW = self.boundaryboundaryW
+        if return_components:
+            flux_error = np.zeros_like(self._totalfluxout)
         
         if route_on_diagonals:
             #extras for diagonal routing:
@@ -199,12 +248,13 @@ class PotentialityFlowRouter(Component):
             bbNE = self.boundaryboundaryNE
             bbNW = self.boundaryboundaryNW
             bbSE = self.boundaryboundarySE
-            bbSW = self.boundaryboundarySW
+            bbSW = self.boundaryboundarySW            
             
         #paste in the elevs
         hR[1:-1,1:-1].flat = self._grid.at_node['topographic_elevation']
         
         #update the dummy edges of our variables - these all act as closed nodes (the inner, true boundaries are handled elsewhere... or they should be closed anyway!):
+        #note this isn't sufficient of we have diagonals turned on, as flow can still occur on them
         hR[0,1:-1] = hR[1,1:-1]
         hR[-1,1:-1] = hR[-2,1:-1]
         hR[1:-1,0] = hR[1:-1,1]
@@ -237,123 +287,11 @@ class PotentialityFlowRouter(Component):
         aNP[core][bbN] = 0.
         aSS[core][bbS] = 0.
         aSP[core][bbS] = 0.
+        #diag correction happens below
         
-        
-        
-#        #the routing routine should not "see" a flat - flow should get routed across it unimpeded
-#        #find the flat nodes; have to iterate
-#        flatE = np.isclose(aEE[corecore],aEP[corecore])
-#        flatW = np.isclose(aWW[corecore],aWP[corecore])
-#        flatN = np.isclose(aNN[corecore],aNP[corecore])
-#        flatS = np.isclose(aSS[corecore],aSP[corecore])
-#        sumflatE = np.sum(flatE)
-#        sumflatW = np.sum(flatW)
-#        sumflatN = np.sum(flatN)
-#        sumflatS = np.sum(flatS)
-#        oldsumflatE = sumflatE
-#        oldsumflatW = sumflatW
-#        oldsumflatN = sumflatN
-#        oldsumflatS = sumflatS
-#        while sum((sumflatE,sumflatN,sumflatS,sumflatW))>0:
-#            print 'Cardinals: ', sum((sumflatE,sumflatN,sumflatS,sumflatW))
-#            #figure(1)
-#            #imshow_node_grid(self._grid, aNN[core])
-#            #figure(2)
-#            #imshow_node_grid(self._grid, aNP[core])
-#            #figure(3)
-#            #imshow_node_grid(self._grid, aSS[core])
-#            #figure(4)
-#            #imshow_node_grid(self._grid, aSP[core])
-#            #show()
-#            #oldEP=aEP[core][flatE].copy()
-#            #oldWP=aWP[core][flatW].copy()
-#            #oldNP=aNP[core][flatN].copy()
-#            #oldSP=aSP[core][flatS].copy()
-#            #E
-#            flow_is_inE = np.logical_and(aWW[corecore]>0., flatE)
-#            flow_is_outE = np.logical_and(aWP[corecore]>0., flatE) #note we won't be switching if it's flat
-#            flow_is_inW = np.logical_and(aEE[corecore]>0., flatW)
-#            flow_is_outW = np.logical_and(aEP[corecore]>0., flatW)
-#            flow_is_inN = np.logical_and(aSS[corecore]>0., flatN)
-#            flow_is_outN = np.logical_and(aSP[corecore]>0., flatN)
-#            flow_is_inS = np.logical_and(aNN[corecore]>0., flatS)
-#            flow_is_outS = np.logical_and(aNP[corecore]>0., flatS)
-#            
-#            aEP[corecore][flow_is_inE] = aWW[corecore][flow_is_inE] #if it's flat, aEE must already be 0...
-#            aEE[corecore][flow_is_outE] = aWP[corecore][flow_is_outE]
-#            #propagate to its counterpart to the E:
-#            aWW[Es][core][flow_is_inE] = aWW[corecore][flow_is_inE]
-#            aWP[Es][core][flow_is_outE] = aWP[corecore][flow_is_outE]
-#            
-#            aWP[corecore][flow_is_inW] = aEE[corecore][flow_is_inW]
-#            aWW[corecore][flow_is_outW] = aEP[corecore][flow_is_outW]
-#            aEE[Ws][core][flow_is_inW] = aEE[corecore][flow_is_inW]
-#            aEP[Ws][core][flow_is_outW] = aEP[corecore][flow_is_outW]
-#            
-#            aNP[corecore][flow_is_inN] = aSS[corecore][flow_is_inN]
-#            aNN[corecore][flow_is_outN] = aSP[corecore][flow_is_outN]
-#            aSS[Ns][core][flow_is_inN] = aSS[corecore][flow_is_inN]
-#            aSP[Ns][core][flow_is_outN] = aSP[corecore][flow_is_outN]
-#            
-#            aSP[corecore][flow_is_inS] = aNN[corecore][flow_is_inS]
-#            aSS[corecore][flow_is_outS] = aNP[corecore][flow_is_outS]
-#            aNN[Ss][core][flow_is_inS] = aNN[corecore][flow_is_inS]
-#            aNP[Ss][core][flow_is_outS] = aNP[corecore][flow_is_outS]
-#            #figure(1)
-#            #imshow_node_grid(self._grid, aNN[core])
-#            #figure(2)
-#            #imshow_node_grid(self._grid, aNP[core])
-#            #figure(3)
-#            #imshow_node_grid(self._grid, aSS[core])
-#            #figure(4)
-#            #imshow_node_grid(self._grid, aSP[core])
-#            #show()
-#            
-#            ###not convinced the following is the best way to go about this... Could leave occasional blanks?
-#            flatE = np.isclose(aEE[corecore],aEP[corecore])
-#            sumflatE = np.sum(flatE)
-#            if sumflatE==oldsumflatE:
-#                sumflatE=0 #no further change is happening; at least one fully blank row. Stop iterating
-#            oldsumflatE = sumflatE
-#            #oldsumflatE = min((sumflatE, oldsumflatE))
-#            flatW = np.isclose(aWW[corecore],aWP[corecore])
-#            sumflatW = np.sum(flatW)
-#            if sumflatW==oldsumflatW:
-#                sumflatW=0
-#            oldsumflatW = sumflatW
-#            #oldsumflatW = min((sumflatW, oldsumflatW))
-#            flatN = np.isclose(aNN[corecore],aNP[corecore])
-#            sumflatN = np.sum(flatN)
-#            if sumflatN==oldsumflatN:
-#                sumflatN=0
-#            oldsumflatN = sumflatN
-#            #oldsumflatN = min((sumflatN,oldsumflatN))
-#            flatS = np.isclose(aSS[corecore],aSP[corecore])
-#            sumflatS = np.sum(flatS)
-#            if sumflatS==oldsumflatS:
-#                sumflatS=0
-#            oldsumflatS = sumflatS
-#            #oldsumflatS = min((sumflatS, oldsumflatS))
-
-        #figure(1)
-        #imshow_node_grid(self._grid, aNN[core])
-        #figure(2)
-        #imshow_node_grid(self._grid, aNP[core])
-        #figure(3)
-        #imshow_node_grid(self._grid, aSS[core])
-        #figure(4)
-        #imshow_node_grid(self._grid, aSP[core])
-        #show()
-        #figure(1)
-        #imshow_node_grid(self._grid, aEE[core])
-        #figure(2)
-        #imshow_node_grid(self._grid, aEP[core])
-        #figure(3)
-        #imshow_node_grid(self._grid, aWW[core])
-        #figure(4)
-        #imshow_node_grid(self._grid, aWP[core])
-        #show()
-        #this DOES NOT work
+        if self.equation != 'default':
+            for grad in (aEE,aEP,aWW,aWP,aNN,aNP,aSS,aSP):
+                np.sqrt(grad[core], out=grad[core]) #...because both Manning and Chezy actually follow sqrt slope, not slope
         
         if route_on_diagonals:
             #adding diagonals
@@ -384,78 +322,15 @@ class PotentialityFlowRouter(Component):
             aSWSW[core][bbSW] = 0.
             aSWP[core][bbSW] = 0.
             
-        
-#            flatNE = np.isclose(aNENE[corecore],aNEP[corecore])
-#            flatSE = np.isclose(aSESE[corecore],aSEP[corecore])
-#            flatSW = np.isclose(aSWSW[corecore],aSWP[corecore])
-#            flatNW = np.isclose(aNWNW[corecore],aNWP[corecore])
-#            sumflatNE = np.sum(flatNE)
-#            sumflatSE = np.sum(flatSE)
-#            sumflatSW = np.sum(flatSW)
-#            sumflatNW = np.sum(flatNW)
-#            oldsumflatNE = sumflatNE
-#            oldsumflatSE = sumflatSE
-#            oldsumflatSW = sumflatSW
-#            oldsumflatNW = sumflatNW
-#            while sum((sumflatNE,sumflatNW,sumflatSE,sumflatSW))>0:
-#                print 'diags: ', sum((sumflatNE,sumflatNW,sumflatSE,sumflatSW))
-#                flow_is_inNE = np.logical_and(aNENE[corecore]>0., flatNE)
-#                flow_is_outNE = np.logical_and(aNEP[corecore]>0., flatNE) #note we won't be switching if it's flat
-#                flow_is_inSE = np.logical_and(aSESE[corecore]>0., flatSE)
-#                flow_is_outSE = np.logical_and(aSEP[corecore]>0., flatSE)
-#                flow_is_inSW = np.logical_and(aSWSW[corecore]>0., flatSW)
-#                flow_is_outSW = np.logical_and(aSWP[corecore]>0., flatSW)
-#                flow_is_inNW = np.logical_and(aNWNW[corecore]>0., flatNW)
-#                flow_is_outNW = np.logical_and(aNWP[corecore]>0., flatNW)
-#                
-#                aNEP[corecore][flow_is_inNE] = aSWSW[corecore][flow_is_inNE] #if it's flat, aEE must already be 0...
-#                aNENE[corecore][flow_is_outNE] = aSWP[corecore][flow_is_outNE]
-#                #propagate to its counterpart to the E:
-#                aSWSW[NEs][core][flow_is_inNE] = aSWSW[corecore][flow_is_inNE]
-#                aSWP[NEs][core][flow_is_outNE] = aSWP[corecore][flow_is_outNE]
-#                
-#                aNWP[corecore][flow_is_inNW] = aSESE[corecore][flow_is_inNW]
-#                aNWNW[corecore][flow_is_outNW] = aSEP[corecore][flow_is_outNW]
-#                aSESE[NWs][core][flow_is_inNW] = aSESE[corecore][flow_is_inNW]
-#                aSEP[NWs][core][flow_is_outNW] = aSEP[corecore][flow_is_outNW]
-#                
-#                aSEP[corecore][flow_is_inSE] = aSWSW[corecore][flow_is_inSE]
-#                aSESE[corecore][flow_is_outSE] = aSWP[corecore][flow_is_outSE]
-#                aSWSW[SEs][core][flow_is_inSE] = aSWSW[corecore][flow_is_inSE]
-#                aSWP[SEs][core][flow_is_outSE] = aSWP[corecore][flow_is_outSE]
-#                
-#                aSWP[corecore][flow_is_inSW] = aSESE[corecore][flow_is_inSW]
-#                aSWSW[corecore][flow_is_outSW] = aSEP[corecore][flow_is_outSW]
-#                aSESE[SWs][core][flow_is_inSW] = aSESE[corecore][flow_is_inSW]
-#                aSEP[SWs][core][flow_is_outSW] = aSEP[corecore][flow_is_outSW]
-#                
-#                flatNE = np.isclose(aNENE[corecore],aNEP[corecore])
-#                sumflatNE = np.sum(flatNE)
-#                if sumflatNE>=oldsumflatNE:
-#                    sumflatNE=0 #no further change is happening; at least one fully blank row. Stop iterating
-#                oldsumflatNE = min((sumflatNE, oldsumflatNE))
-#                flatNW = np.isclose(aNWNW[corecore],aNWP[corecore])
-#                sumflatNW = np.sum(flatNW)
-#                if sumflatNW>=oldsumflatNW:
-#                    sumflatNW=0
-#                oldsumflatNW = min((sumflatNW, oldsumflatNW))
-#                flatSE = np.isclose(aSESE[corecore],aSEP[corecore])
-#                sumflatSE = np.sum(flatSE)
-#                if sumflatSE>=oldsumflatSE:
-#                    sumflatSE=0
-#                oldsumflatSE = min((sumflatSE, oldsumflatSE))
-#                flatSW = np.isclose(aSWSW[corecore],aSWP[corecore])
-#                sumflatSW = np.sum(flatSW)
-#                if sumflatSW>=oldsumflatSW:
-#                    sumflatSW=0
-#                oldsumflatSW = min((sumflatSW, oldsumflatSW))
-        
-        
+            if self.equation != 'default':
+                for grad in (aNENE,aNEP,aNWNW,aNWP,aSESE,aSEP,aSWSW,aSWP):
+                    np.sqrt(grad[core], out=grad[core]) #...because both Manning and Chezy actually follow sqrt slope, not slope
+                
         if not route_on_diagonals:
-            aPP[core] = aWP[core]+aEP[core]+aSP[core]+aNP[core]+1.e-12
+            aPP[core] = aWP[core]+aEP[core]+aSP[core]+aNP[core]+self._min_slope_thresh
         else:
             aPP[core] = (aWP[core]+aEP[core]+aSP[core]+aNP[core]
-                        +aNEP[core]+aSEP[core]+aSWP[core]+aNWP[core])+1.e-12
+                        +aNEP[core]+aSEP[core]+aSWP[core]+aNWP[core])+self._min_slope_thresh
                         
         mismatch = 10000.
         self.loops_needed = 0
@@ -465,7 +340,6 @@ class PotentialityFlowRouter(Component):
             if not route_on_diagonals:
                 K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
                                     +qwater_in)/aPP[core]
-#####This needs to be qw/2 because...?
             else:
                 K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
                           +aNENE[core]*K[NEs]+aSESE[core]*K[SEs]
@@ -475,7 +349,7 @@ class PotentialityFlowRouter(Component):
             mismatch = np.sum(np.square(K[core]-prev_K[core]))
             self.loops_needed += 1
             prev_K = K.copy()
-            print mismatch
+            #print mismatch
             
             for BC in (K,):
                 BC[0,1:-1] = BC[1,1:-1]
@@ -484,32 +358,100 @@ class PotentialityFlowRouter(Component):
                 BC[1:-1,-1] = BC[1:-1,-2]
                 BC[(0,-1,0,-1),(0,-1,-1,0)] = BC[(1,-2,1,-2),(1,-2,-2,1)]
         
-        if not route_on_diagonals:
-            uW[core] = aWW[core]*K[Ws]-aWP[core]*K[core]
-            uE[core] = -aEE[core]*K[Es]+aEP[core]*K[core]
-            uN[core] = -aNN[core]*K[Ns]+aNP[core]*K[core]
-            uS[core] = aSS[core]*K[Ss]-aSP[core]*K[core]
+        if route_on_diagonals:
+            outdirs = (aNP,aSP,aEP,aWP,aNWP,aNEP,aSWP,aSEP)
+            indirs = ((aNN,K[Ns]),(aSS,K[Ss]),(aEE,K[Es]),(aWW,K[Ws]),(aNWNW,K[NWs]),(aNENE,K[NEs]),(aSWSW,K[SWs]),(aSESE,K[SEs]))
         else:
-            prefactor_to_x = np.arctan(self._grid.dy/self._grid.dx)
-            prefactor_to_y = np.arctan(self._grid.dx/self._grid.dy)
-            uW[core] = aWW[core]*K[Ws]-aWP[core]*K[core] + (aNWNW[core]*K[NWs]-aNWP[core]*K[core]+aSWSW[core]*K[SWs]-aSWP[core]*K[core])*prefactor_to_x
-            uE[core] = -aEE[core]*K[Es]+aEP[core]*K[core] + (-aNENE[core]*K[NEs]+aNEP[core]*K[core]-aSESE[core]*K[SEs]+aSEP[core]*K[core])*prefactor_to_x
-            uN[core] = -aNN[core]*K[Ns]+aNP[core]*K[core] + (-aNWNW[core]*K[NWs]+aNWP[core]*K[core]-aNENE[core]*K[NEs]+aNEP[core]*K[core])*prefactor_to_y
-            uS[core] = aSS[core]*K[Ss]-aSP[core]*K[core] + (aSWSW[core]*K[SWs]-aSWP[core]*K[core]+aSESE[core]*K[SEs]-aSEP[core]*K[core])*prefactor_to_y
+            outdirs = (aNP,aSP,aEP,aWP)
+            indirs = ((aNN,K[Ns]),(aSS,K[Ss]),(aEE,K[Es]),(aWW,K[Ws]))
         
-        uval = uW[core]+uE[core]
-        vval = uN[core]+uS[core]
-        uval[self.notboundaries] /= 2.
-        vval[self.notboundaries] /= 2. #because we want mean values, but not where one of the values is 0 because it's a BC
+        totalfluxout.fill(0.)
+        for array in outdirs:
+            totalfluxout += array[core]
+        totalfluxout *= K[core]        
+        no_outs = np.equal(totalfluxout,0.)
+        #this WON'T work if there is no out flux, i.e., a BC, so - 
+        if np.any(no_outs):
+            for (inarray, inK) in indirs:
+                totalfluxout[no_outs] += inarray[core][no_outs]*inK[no_outs]
+        yes_outs = np.logical_not(no_outs)
+        meanflux[:] = totalfluxout
+        meanflux[yes_outs] -= 0.5*qwater_in[yes_outs]
+        #so note the BC nodes get the value of the fluxes they RECEIVE, without any addition of flux
+        #& also, nodes at the TOP of the network, with no explicit ins, get averaged values, not just their out values
+            
         
+        if return_components:
+            #this takes a nontrivial number of additional calculations, so is optional
+            #we aim to return the MEAN flow direction.
+            if route_on_diagonals:
+                prefactor_to_x = np.cos(np.arctan(self._grid.dy/self._grid.dx))
+                prefactor_to_y = np.sin(np.arctan(self._grid.dy/self._grid.dx))
+                xdir_mod_out = (0.,0.,1.,-1.,-prefactor_to_x,prefactor_to_x,-prefactor_to_x,prefactor_to_x)
+                ydir_mod_out = (1.,-1.,0.,0.,prefactor_to_y,prefactor_to_y,-prefactor_to_y,-prefactor_to_y)
+                xdir_mod_in = (0.,0.,-1.,1.,prefactor_to_x,-prefactor_to_x,prefactor_to_x,-prefactor_to_x)
+                ydir_mod_in = (-1.,1.,0.,0.,-prefactor_to_y,-prefactor_to_y,prefactor_to_y,prefactor_to_y)
+            else:
+                xdir_mod_out = (0.,0.,1.,-1.)
+                ydir_mod_out = (1.,-1.,0.,0.)
+                xdir_mod_in = (0.,0.,-1.,1.)
+                ydir_mod_in = (-1.,1.,0.,0.)
+            #out is easier, so do it first:
+            self._xdirfluxout.fill(0.)
+            self._ydirfluxout.fill(0.)
+            for (array,mod) in zip(outdirs,xdir_mod_out):
+                self._xdirfluxout += mod*array[core]
+            for (array,mod) in zip(outdirs,ydir_mod_out):
+                self._ydirfluxout += mod*array[core]
+            #now in
+            self._xdirfluxin.fill(0.)
+            self._ydirfluxin.fill(0.)
+            for ((array,Kin),mod) in zip(indirs,xdir_mod_in):
+                self._xdirfluxin += mod*array[core]*Kin
+            for ((array,Kin),mod) in zip(indirs,ydir_mod_in):
+                self._ydirfluxin += mod*array[core]*Kin
+            #modify for doing the means:
+            self._xdirfluxin[yes_outs] *= 0.5
+            self._ydirfluxin[yes_outs] *= 0.5
+            #flux outs all get adjusted:
+            self._xdirfluxout *= 0.5
+            self._ydirfluxout *= 0.5
+            #NB: handling of degenerate cases where there is no angle defined (though rare) could be problematic.
+            # => assign an arbitary zero angle in these cases
+            #so...
+            mean_x = self._xdirfluxin + self._xdirfluxout
+            mean_y = self._ydirfluxin + self._ydirfluxout
+            apparent_flux = np.sqrt(mean_x*mean_x + mean_y*mean_y)
+            degenerate_fluxes = np.equal(apparent_flux,0.)
+            if np.any(degenerate_fluxes):
+                #THIS PART HAS NOT BEEN TESTED
+                defined_fluxes = np.logical_not(degenerate_fluxes)
+                flux_error[defined_fluxes] = meanflux[defined_fluxes]/apparent_flux[defined_fluxes]
+                #zeros in the degenerate slots
+                self._grid.at_node['water__volume_flux_xcomponent'][:] = (mean_x*flux_error).flat
+                #now modify so we get the right answer for total flux, pointing arbitrarily N
+                self._grid.at_node['water__volume_flux_ycomponent'][defined_fluxes] = (mean_y[defined_fluxes]*flux_error[defined_fluxes]).flat
+                self._grid.at_node['water__volume_flux_ycomponent'][degenerate_fluxes] = meanflux[degenerate_fluxes].flat
+            else:
+                flux_error[:] = meanflux/apparent_flux
+                self._grid.at_node['water__volume_flux_ycomponent'][:] = (mean_y*flux_error).flat
+                self._grid.at_node['water__volume_flux_xcomponent'][:] = (mean_x*flux_error).flat
+            
         #save the output
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[0]] = uS[core].flat #[S,W,N,E], (4,nnodes)
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[1]] = uW[core].flat
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[2]] = uN[core].flat
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[3]] = uE[core].flat
         self._grid.at_node['potentiality_field'][:] = K[core].flat
-        self._grid.at_node['water__volume_flux_xcomponent'][:] = uval.flat
-        self._grid.at_node['water__volume_flux_ycomponent'][:] = vval.flat
-        self._grid.at_node['water__volume_flux_magnitude'][:] = np.sqrt(uval*uval+vval*vval).flat
+        self._grid.at_node['water__volume_flux_magnitude'][:] = meanflux.flat
+        #the x,y components are created above, in the if statement
         
-####Outstanding issues - 1. BC handling (flow comes back in from edges ATM); 2. flow routing on flats (?)
+        #now process uval and vval to give the depths, if Chezy or Manning:
+        if self.equation == 'Chezy':
+            #Chezy: Q = C*Area*sqrt(depth*slope)
+            self._grid.at_node['water__depth'][:] = (self._grid.at_node['potentiality_field']/self.chezy_C/self.equiv_circ_diam)**(2./3.)
+        elif self.equation == 'Manning':
+            #Manning: Q = w/n*depth**(5/3)
+            self._grid.at_node['water__depth'][:] = (self._grid.at_node['potentiality_field']*self.manning_n/self.equiv_circ_diam)**0.6
+        else:
+            pass
