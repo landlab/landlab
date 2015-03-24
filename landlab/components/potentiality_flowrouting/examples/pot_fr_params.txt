@@ -4,13 +4,13 @@ nrows:
 ncols:
 100
 dx:
-1.
+1000.
 dt:
-1.
+10000.
 uplift_rate: #per time, not per timestep
 0.001
 run_time:
-100.
+1000000.
 init_elev:
 0.
 
@@ -30,3 +30,8 @@ threshold_sp:
 0.
 #use_Q:
 #True
+
+flow_equation:
+Manning
+Mannings_n:
+0.03
