@@ -50,7 +50,7 @@ def adjust_flow_receivers(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
             receiver[src_id] = dst_id
             steepest_slope[src_id] = link_slope[i]
             receiver_link[src_id] = active_links[i]
-        elif z[dst_id] > z[src_id] and - link_slope[i] > steepest_slope[dst_id]:
+        elif z[dst_id] > z[src_id] and -link_slope[i] > steepest_slope[dst_id]:
             receiver[dst_id] = src_id
             steepest_slope[dst_id] = - link_slope[i]
             receiver_link[dst_id] = active_links[i]
