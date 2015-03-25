@@ -173,7 +173,16 @@ class SPEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
         if self.nonlinear_flag==False: #n==1
-            if self.weave_flag:
+            print 'Linear'
+            method = 'cython'
+            if method in ('cython', 'weave'):
+                if method == 'cython':
+                    from .cfuncs import erode_with_alpha
+                else:
+                    from .weavefuncs import erode_with_alpha
+                erode_with_alpha(upstream_order_IDs, flow_receivers, alpha, z)
+            #if self.weave_flag:
+            elif method == 'weave':
                 code = """
                     int current_node;
                     int j;
@@ -192,6 +201,7 @@ class SPEroder(object):
                     if i != j:
                         z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         else: #general, nonlinear n case
+            print 'Non-linear'
             self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
             alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
             n = float(self.n)
@@ -205,30 +215,14 @@ class SPEroder(object):
                         if i != j:
                             z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
                 else:
-                    code = """
-                        int current_node;
-                        int j;
-                        double current_z;
-                        double previous_z;
-                        double elev_diff;
-                        double elev_diff_tothenless1;
-                        for (int i = 0; i < n_nodes; i++) {
-                            current_node = upstream_order_IDs[i];
-                            j = flow_receivers[current_node];
-                            previous_z = z[current_node];
-                            if (current_node != j) {
-                                while (1) {
-                                    elev_diff = previous_z-z[j];
-                                    elev_diff_tothenless1 = pow(elev_diff, n-1.); //this isn't defined if in some iterations the elev_diff goes -ve
-                                    current_z = previous_z - (previous_z - z[current_node] + alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1*elev_diff)/(1.+n*alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1);
-                                    if (abs((current_z - previous_z)/current_z) < 1.48e-08) break;
-                                    previous_z = current_z;
-                                }
-                                z[current_node] = current_z;
-                            }
-                        }
-                    """
-                    weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha_by_flow_link_lengthtothenless1', 'n'], headers=["<math.h>"])
+                    method = 'cython'
+                    if method == 'cython':
+                        from .cfuncs import erode_with_link_alpha
+                    elif method == 'weave':
+                        from .weavefuncs import erode_with_link_alpha
+                    erode_with_link_alpha(upstream_order_IDs, flow_receivers,
+                                          alpha_by_flow_link_lengthtothenless1,
+                                          n, z)
             else:
                 for i in upstream_order_IDs:
                     j = flow_receivers[i]
