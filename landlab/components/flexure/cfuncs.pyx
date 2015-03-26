@@ -4,6 +4,9 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
+from libc.math cimport fabs
+from libc.stdlib cimport abs
+
 
 _RHO_MANTLE = 3300.
 _GRAVITY = 9.81
@@ -11,6 +14,7 @@ _GRAVITY = 9.81
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
+
 
 @cython.boundscheck(False)
 def subside_parallel_row(np.ndarray[DTYPE_t, ndim=1] w,
@@ -23,10 +27,10 @@ def subside_parallel_row(np.ndarray[DTYPE_t, ndim=1] w,
   cdef int i
   cdef int j
 
-  for i in xrange(ncols):
-    if abs(load[i]) > 1e-6:
+  for i in range(ncols):
+    if fabs(load[i]) > 1e-6:
       c = load[i] * inv_c
-      for j in xrange(ncols):
+      for j in range(ncols):
         w[j] += - c * r[abs(j - i)]
 
 
@@ -37,8 +41,8 @@ def subside_grid(np.ndarray[DTYPE_t, ndim=2] w,
   cdef int nrows = w.shape[0]
   cdef i, j
 
-  for i in xrange(nrows):
-    for j in xrange(nrows):
+  for i in range(nrows):
+    for j in range(nrows):
       subside_parallel_row(w[j], load[i], r[abs(j - i)], alpha)
 
 
@@ -50,8 +54,8 @@ def subside_grid_strip(np.ndarray[DTYPE_t, ndim=2] load,
   cdef np.ndarray w = np.zeros((stop - start, load.shape[1]), dtype=DTYPE)
   cdef i
 
-  for i in xrange(load.shape[0]):
-    for j in xrange(start, stop):
+  for i in range(load.shape[0]):
+    for j in range(start, stop):
       subside_parallel_row(w[j - start], load[i], r[abs(j - i)], alpha)
 
   return w, strip_range
