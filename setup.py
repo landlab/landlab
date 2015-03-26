@@ -63,7 +63,7 @@ cython_pathspec = os.path.join('landlab', 'components','**','*.pyx')
 ext_modules = cythonize(cython_pathspec)
 
 
-setup(name='TheLandlab',
+setup(name='landlab',
       version=__version__,
       author='Eric Hutton',
       author_email='eric.hutton@colorado.edu',
