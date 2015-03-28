@@ -71,11 +71,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     """
     def __init__(self, fault_x_intercept=0.0, grid=None, node_state=None, propid=None, prop_data=None, prop_reset_value=None):
         """        
-        Example
-        -------
-        >>> pid = arange(25, dtype=int)
-        >>> pdata = arange(25)
-        >>> ns = arange(25, dtype=int)
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
+        >>> ns = np.arange(25, dtype=int)
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
@@ -86,7 +90,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         array([ 5, 10, 11, 15])
         >>> lnf.outgoing_node
         array([22, 23, 24, 18])
-        
         """
         # Do the base class init
         super(LatticeNormalFault, self).__init__(grid, node_state, propid, prop_data, prop_reset_value)
@@ -221,18 +224,21 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         rock_state : int
             State code to apply to new cells introduced along bottom row.
             
-        Example
-        -------        
-        >>> pid = arange(25, dtype=int)
-        >>> pdata = arange(25)
-        >>> ns = arange(25, dtype=int)
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab import HexModelGrid
+
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
+        >>> ns = np.arange(25, dtype=int)
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.do_offset()
         >>> lnf.propid
         array([ 0,  1,  2,  3,  4, 22,  6,  7,  8,  9, 23, 24,  5, 13, 14, 18, 10,
                11, 12, 19, 20, 21, 15, 16, 17])
-
         """
 
         # If we need to shift the property ID numbers, we'll first need to
@@ -345,6 +351,7 @@ def main():
     
     Examples
     --------
+    >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import test_create_lnf
     >>> lnf = test_create_lnf(4, 4)
     >>> lnf.incoming_node
     array([4, 8, 9])
