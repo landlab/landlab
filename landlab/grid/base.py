@@ -1740,8 +1740,8 @@ class ModelGrid(ModelDataFields):
         >>> grid.assign_upslope_vals_to_active_links(u)
         array([ 4.,  7.,  4.,  5.])
         """
-        #v = v or [0]   # This line causes the error: ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-
+        if v is None:
+            v = numpy.array((0., ))
 
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
