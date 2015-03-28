@@ -530,6 +530,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         #    cb.set_label(data_label)
         
         #plt.show()
+        return ax
 
 
 def from_dict(param_dict):

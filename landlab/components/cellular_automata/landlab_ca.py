@@ -130,7 +130,7 @@ import time
 
 _NEVER = 1e50
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -427,7 +427,7 @@ class LandlabCellularAutomaton(object):
             node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
                          self.node_state[self.grid.activelink_tonode[i]], \
                          orientation)
-            print 'active link:',i,'fr:',self.grid.activelink_fromnode[i],'to:',self.grid.activelink_tonode[i],'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
+            #print 'active link:',i,'fr:',self.grid.activelink_fromnode[i],'to:',self.grid.activelink_tonode[i],'node pair:', node_pair, 'dict:', self.link_state_dict[node_pair]
             self.link_state[i] = self.link_state_dict[node_pair]
                     
         if False and _DEBUG:
@@ -595,7 +595,7 @@ class LandlabCellularAutomaton(object):
         #assert (xn is not None), ['No valid transition from state '+str(current_state)+str(self.cell_pair[current_state])] 
     
         # Create and setup event, and return it
-        print 'sched xn from', self.cell_pair[current_state], 'to',self.cell_pair[xn],'for',current_time,'+',next_time,'at link',link,self.grid.activelink_fromnode[link],self.grid.activelink_tonode[link]
+        #print 'sched xn from', self.cell_pair[current_state], 'to',self.cell_pair[xn],'for',current_time,'+',next_time,'at link',link,self.grid.activelink_fromnode[link],self.grid.activelink_tonode[link]
         my_event = Event(next_time+current_time, link, xn, propswap)
     
         if _DEBUG:
@@ -801,11 +801,11 @@ class LandlabCellularAutomaton(object):
                 self.propid[fromnode] = self.propid[tonode]
                 self.propid[tonode] = tmp
                 if self.grid.node_status[fromnode]!=landlab.grid.base.CORE_NODE:
-                    print 'RESETTING BOUNDARY FROMNODE PROPERTY FROM',self.prop_data[self.propid[fromnode]]
+                    #print 'RESETTING BOUNDARY FROMNODE PROPERTY FROM',self.prop_data[self.propid[fromnode]]
                     self.prop_data[self.propid[fromnode]] = self.prop_reset_value
                 if self.grid.node_status[tonode]!=landlab.grid.base.CORE_NODE:
                     self.prop_data[self.propid[tonode]] = self.prop_reset_value
-                    print 'RESETTING BOUNDARY TONODE PROPERTY FROM',self.prop_data[self.propid[tonode]]
+                    #print 'RESETTING BOUNDARY TONODE PROPERTY FROM',self.prop_data[self.propid[tonode]]
                
             if _DEBUG:
                 n = self.grid.number_of_nodes
