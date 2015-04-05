@@ -6,7 +6,6 @@ Unit tests for landlab.io.netcdf module.
 import os
 import numpy as np
 from StringIO import StringIO
-#from unittest import skipIf
 from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
 
@@ -21,7 +20,6 @@ def test_read_netcdf3_64bit():
     assert_equal(grid.shape, (4, 3))
 
 
-#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_read_netcdf4():
     if not WITH_NETCDF4:
         raise SkipTest('netCDF4 package not installed')
