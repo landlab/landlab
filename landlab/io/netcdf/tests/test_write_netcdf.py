@@ -6,7 +6,7 @@ Unit tests for landlab.io.netcdf module.
 import os
 import numpy as np
 from StringIO import StringIO
-from unittest import skipIf
+#from unittest import skipIf
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
     from nose import assert_list_equal
@@ -59,8 +59,11 @@ def test_netcdf_write_as_netcdf3_classic():
             assert_array_equal(f.variables[name][:].flat, field.at_node[name])
 
 
-@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write():
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
 
@@ -89,8 +92,11 @@ def test_netcdf_write():
         root.close()
 
 
-@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write_as_netcdf4_classic():
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -105,8 +111,11 @@ def test_netcdf_write_as_netcdf4_classic():
                                field.at_node[name])
 
 
-@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_list():
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -122,8 +131,11 @@ def test_netcdf_write_names_keyword_as_list():
                            field.at_node['topographic_elevation'])
 
 
-@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_str():
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -138,8 +150,11 @@ def test_netcdf_write_names_keyword_as_str():
                            field.at_node['uplift_rate'])
 
 
-@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
+#@skipIf(not WITH_NETCDF4, 'netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_none():
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic_elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
