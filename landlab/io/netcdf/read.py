@@ -99,12 +99,45 @@ def _get_raster_spacing(coords):
         return spacing[0]
 
 
-def read_netcdf(nc_file, reshape=False, just_grid=False):
-    """
-    Reads the NetCDF file *nc_file*, and writes it to the fields of a new
-    RasterModelGrid, which it then returns.
-    Check the names of the fields in the returned grid with
-    grid.at_nodes.keys().
+def read_netcdf(nc_file, just_grid=False):
+    """Create a RasterModelGrid from a netcdf file.
+
+    Create a new RasterModelGrid from the netcdf file, *nc_file*. If the
+    netcdf file also contains data, add that data to the grid's fields.
+
+    Parameters
+    ----------
+    nc_file : str
+        Name of a netcdf file.
+    just_grid : boolean, optional
+        Create a new grid but don't add value data.
+
+    Returns
+    -------
+    RasterModelGrid
+        A newly-created RasterModelGrid.
+
+    Examples
+    --------
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> from landlab.io.netcdf import NETCDF4_EXAMPLE_FILE
+    >>> grid = read_netcdf(NETCDF4_EXAMPLE_FILE)
+    >>> grid.shape
+    (4, 3)
+    >>> grid.node_spacing
+    1.0
+    >>> grid.at_node.keys()
+    [u'surface__elevation']
+    >>> grid.at_node['surface__elevation']
+    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+            11.])
+
+    >>> from landlab.io.netcdf import NETCDF3_64BIT_EXAMPLE_FILE
+    >>> grid = read_netcdf(NETCDF3_64BIT_EXAMPLE_FILE)
+    >>> grid.shape
+    (4, 3)
+    >>> grid.node_spacing
+    1.0
     """
     from landlab import RasterModelGrid
 
