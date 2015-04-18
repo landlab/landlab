@@ -1285,108 +1285,6 @@ class ModelGrid(ModelDataFields):
         return shaded
         
         
-    def calculate_flux_divergence_at_active_cells(self, active_link_flux, 
-                                                  net_unit_flux=None):
-        """Flux divergence for active cells.
-
-        .. note:: Deprecated since version 0.6
-            Uses outdated terminology; use the exact equivalent
-            :func:`calculate_flux_divergence_at_core_nodes` instead.
-            
-        Given an array of fluxes along links, computes the net total flux
-        within each cell, divides by cell area, and stores the result in
-        net_unit_flux.
-        
-        The function works by calling calculate_flux_divergence_at_nodes, then
-        slicing out only the values at active cells. Therefore, it is slower
-        than calculate_flux_divergence_at_nodes, even though it returns a
-        shorter list of numbers.
-        
-        The input active_link_flux should be flux of
-        something (e.g., mass, momentum, energy) per unit face width, positive
-        if flowing in the same direction as its link, and negative otherwise.
-        There should be one value per active link. Returns an array of net
-        total flux per unit area, one value per active cell (creates this
-        array if it is not given as an argument).
-          By convention, divergence is positive for net outflow, and negative 
-        for net outflow. That's why we *add* outgoing flux and *subtract* 
-        incoming flux. This makes net_unit_flux have the same sign and 
-        dimensions as a typical divergence term in a conservation equation.
-
-        In general, for a polygonal cell with $N$ sides of lengths
-        Li and with surface area A, the net influx divided by cell
-        area would be:
-            .. math::
-                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
-
-        For a square cell, which is what we have in RasterModelGrid,
-        the sum is over 4 sides of length dx, and
-        :math:`A = dx^2`, so:
-            .. math::
-                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
-
-        .. note::
-            The net flux is defined as positive outward, negative
-            inward. In a diffusion problem, for example, one would use:
-                .. math::
-                    {du \over dt} = \\text{source} - \\text{fd}
-            where fd is "flux divergence".
-            
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5, 1.0)
-        >>> u = [0., 1., 2., 3., 0.,
-        ...      1., 2., 3., 2., 3.,
-        ...      0., 1., 2., 1., 2.,
-        ...      0., 0., 2., 2., 0.]
-        >>> u = np.array(u)
-        >>> grad = rmg.calculate_gradients_at_active_links(u)
-        >>> grad
-        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
-        >>> flux = -grad    # downhill flux proportional to gradient
-        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux)
-        >>> divflux
-        array([ 2.,  4., -2.,  0.,  1., -4.])
-            
-        If calculate_gradients_at_active_links is called inside a loop, you can
-        improve speed slightly by creating an array outside the loop. For 
-        example, do this once, before the loop:
-            
-        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
-            
-        Then do this inside the loop:
-            
-        >>> divflux = rmg.calculate_flux_divergence_at_active_cells(flux, divflux)
-            
-        In this case, the function will not have to create the divflux array.
-        
-        Note this method is untested with looped boundary conditions.
-        """
-        
-        if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_active_cells'
-            
-        assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
-            
-        # If needed, create net_unit_flux array
-        if net_unit_flux is None:
-            net_unit_flux = numpy.zeros(self.number_of_active_cells)
-        else:
-            net_unit_flux[:] = 0.
-            
-        assert (len(net_unit_flux)) == self.number_of_active_cells
-        
-        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
-                
-        net_unit_flux = node_net_unit_flux[self.activecell_node]
-                
-        return net_unit_flux
-        
-        
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux, 
                                                   net_unit_flux=None):
         """Flux divergence for core nodes.
@@ -1810,10 +1708,10 @@ class ModelGrid(ModelDataFields):
         self._num_active_cells = self._num_core_cells
         self.active_cells = numpy.arange(self._num_active_cells)
         self.core_cells = numpy.arange(self._num_core_cells)
-        self.node_corecell = numpy.empty(self.number_of_nodes)
+        self.node_corecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[self.corecell_node] = self.core_cells
-        self.node_activecell = numpy.empty(self.number_of_nodes)
+        self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
         self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0]

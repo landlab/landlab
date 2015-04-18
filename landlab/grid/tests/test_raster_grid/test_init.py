@@ -147,7 +147,7 @@ class TestRasterModelGrid(object):
             assert_true(self.rmg.is_interior(cell_id))
 
     def test_get_interior_cells(self):
-        assert_array_equal(self.rmg.get_active_cell_node_ids(),
+        assert_array_equal(self.rmg.get_core_cell_node_ids(),
                            np.array([6, 7, 8, 11, 12, 13]))
 
     def test_active_links(self):
