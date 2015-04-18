@@ -1708,10 +1708,10 @@ class ModelGrid(ModelDataFields):
         self._num_active_cells = self._num_core_cells
         self.active_cells = numpy.arange(self._num_active_cells)
         self.core_cells = numpy.arange(self._num_core_cells)
-        self.node_corecell = numpy.empty(self.number_of_nodes)
+        self.node_corecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[self.corecell_node] = self.core_cells
-        self.node_activecell = numpy.empty(self.number_of_nodes)
+        self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
         self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0]
