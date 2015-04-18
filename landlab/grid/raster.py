@@ -110,8 +110,56 @@ class RasterModelGridPlotter(object):
         imshow_field(self, var_name, **kwds)
 
 
+def grid_edge_is_closed_from_dict(boundary_conditions):
+    """Get a list of closed-boundary status at grid edges.
+
+    Get a list that indicates grid edges that are closed boundaries. The
+    returned list provides a boolean that gives the boundary condition status
+    for edges order as [*bottom*, *left*, *top*, *right*].
+
+    *boundary_conditions* is a dict whose keys indicate edge location (as
+    "bottom", "left", "top", "right") and values must be one of "open", or
+    "closed". If an edge location key is missing, that edge is assumed to be
+    *open*.
+
+    Parameters
+    ----------
+    boundary_conditions : dict
+        Boundary condition for grid edges.
+
+    Returns
+    -------
+    list
+        List of booleans indicating if an edge is a closed boundary.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import grid_edge_is_closed_from_dict
+    >>> grid_edge_is_closed_from_dict(dict(bottom='closed', top='open'))
+    [True, False, False, False]
+    >>> grid_edge_is_closed_from_dict({})
+    [False, False, False, False]
+    """
+    for condition in boundary_conditions.values():
+        if condition not in ['open', 'closed']:
+            raise ValueError('%s: boundary condition type not understood',
+                             condition)
+
+    return [boundary_conditions.get(loc, 'open') == 'closed'
+            for loc in ['bottom', 'left', 'top', 'right']]
+
+
 class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     """A 2D uniform rectilinear grid.
+
+    Create a uniform rectilinear grid that has *num_rows* and *num_cols*
+    of grid nodes, with a row and column spacing of *dx*.
+
+    Use the *bc* keyword to specify boundary_conditions along the edge nodes
+    of the grid. *bc* is a dict whose keys indicate edge location (as
+    "bottom", "left", "top", "right") and values must be one of "open", or
+    "closed". If an edge location key is missing, that edge is assumed to be
+    *open*.
 
     Parameters
     ----------
@@ -121,13 +169,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Number of columns of nodes.
     dx : float, optional
         Node spacing.
+    bc : dict, optional
+        Edge boundary conditions.
 
     Examples
     --------
+    Create a uniform rectilinear grid that has 4 rows and 5 columns of nodes.
+    Nodes along the edges will be *open*. That is, links connecting these
+    nodes to core nodes are *active*.
+
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-    >>> rmg.number_of_nodes
-    20
+    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> rmg.number_of_node_rows, rmg.number_of_node_columns
+    (4, 5)
+    >>> rmg.number_of_active_links
+    17
+
+    Set the nodes along the top edge of the grid to be *closed* boundaries.
+    This means that any links touching these nodes will be *inactive*.
+
+    >>> rmg = RasterModelGrid(4, 5, 1.0, bc={'top': 'closed'})
+    >>> rmg.number_of_node_rows, rmg.number_of_node_columns
+    (4, 5)
+    >>> rmg.number_of_active_links
+    14
     """
     def __init__(self, num_rows=0, num_cols=0, dx=1.0, **kwds):
         """Create a 2D grid with equal spacing.
@@ -162,6 +227,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
             self._initialize(num_rows, num_cols, dx)
+
+        self.set_closed_boundaries_at_grid_edges(
+            *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
+
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
