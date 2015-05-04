@@ -41,7 +41,7 @@ enough to indicate Python conflict is the problem.
 Resolving the problem:
 >>>>>>>>>>>>>>>>>>>>>>
 
-There are two ways to fix this problem; and easy way, and a hard way. Try the easy one 
+There are two ways to fix this problem; an easy way, and a hard way. Try the easy one 
 first!
 
 .. _the_easy_way:
