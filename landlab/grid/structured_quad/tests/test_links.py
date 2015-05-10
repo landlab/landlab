@@ -1,7 +1,7 @@
 import numpy as np
 
 from numpy.testing import assert_array_equal
-from nose.tools import raises, assert_true
+from nose.tools import raises, assert_equal
 
 from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
 from landlab.grid.structured_quad.links import active_link_ids
@@ -16,14 +16,14 @@ def test_active_links_ids():
 
     link_ids = active_link_ids((4, 5), status)
     assert_array_equal(link_ids, [7, 8, 21, 25])
-    assert_true(str(link_ids.dtype).startswith('int'))
+    assert_equal(link_ids.dtype, np.int)
 
 
 def test_active_links_with_edge_boundaries():
     status = status_with_perimeter_as_boundary((3, 4))
     link_ids = active_link_ids((3, 4), status)
     assert_array_equal(link_ids, [1, 2, 5, 6, 11, 12, 13])
-    assert_true(str(link_ids.dtype).startswith('int'))
+    assert_equal(link_ids.dtype, np.int)
 
 
 @raises(ValueError)
