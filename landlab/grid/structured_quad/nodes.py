@@ -273,14 +273,14 @@ def perimeter(shape):
 
 
 def status_with_perimeter_as_boundary(shape,
-                                      status_on_perimeter=FIXED_VALUE_BOUNDARY):
+                                      node_status=FIXED_VALUE_BOUNDARY):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    status_on_perimeter : array_like of int, optional
+    node_status : int or array_lik of int, optional
         Status of nodes on grid perimeter.
 
     Returns
@@ -295,13 +295,13 @@ def status_with_perimeter_as_boundary(shape,
     array([[1, 1, 1, 1],
            [1, 0, 0, 1],
            [1, 1, 1, 1]])
-    >>> status_with_perimeter_as_boundary((3, 4), status_on_perimeter=-1)
+    >>> status_with_perimeter_as_boundary((3, 4), node_status=-1)
     array([[-1, -1, -1, -1],
            [-1,  0,  0, -1],
            [-1, -1, -1, -1]])
     """
     status = np.empty(shape, dtype=int)
     status.fill(CORE_NODE)
-    status.flat[perimeter(shape)] = status_on_perimeter
+    status.flat[perimeter(shape)] = node_status
 
     return status
