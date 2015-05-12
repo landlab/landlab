@@ -103,8 +103,8 @@ Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spa
 
 *mg* is a grid object. This grid has 400 ( 10*40 ) nodes.  It has 2,330 ( 40*(30-1) + 30*(40-1) ) links.
 
-Adding Data to a Landlab Grid Element
--------------------------------------
+Adding Data to a Landlab Grid Element using Fields
+--------------------------------------------------
 
 Landlab has a data structure called *fields* that will store data associated with different types
 of grid elements.  Fields are convenient because 1) fields create data arrays of the proper length for 
