@@ -114,29 +114,36 @@ track the elevation at each node.  The following code creates the field elevatio
 
 >>> z = mg.add_zeros('node', 'elevation')
 
-a is an array that should have the same length as the number of nodes.  You can check this by:
+*z* is an array that should have the same length as the number of nodes.  You can check this by:
 
 >>> len(z)
 400
 
-You can see all of the field data at the nodes associated with *mg* with the following:
+You can see all of the field data at the nodes on *mg* with the following:
 
 >>> mg.at_node.keys()
 ['elevation']
 
-where *['elevation']* is returned.  You may recognize this as a dictionary type structure, where 
+You may recognize this as a dictionary-type structure, where 
 the keys are the names (as strings) of the data arrays. 
 
 A piece of code that has access to the grid, can copy the elevation field with the following:
 
 >>>  z_copy = mg.at_node['elevation']
 
-Now, you can see that there is currently no data assigned to the links with the following:
+There is currently no data assigned to the links, as apparent the following:
 
 >>> mg. at_link.keys()
 []
 
-where *[]* is returned.
+Fields can store data at nodes, cells, links, faces, core_nodes, core_cells, active_links, and active_faces.
+Core nodes and cells are ones on which the model is performing operations, and active links 
+connect two core nodes or a core node with an open boundary node.  The meanings of core, boundary, active and inactive are
+described in more detail below.  Note that when initializing a field, the singular of the object name is provided:
+
+>>> veg = mg.add_ones('cell', 'percent_vegetation')
+>>> mg.at_cell.keys()
+['percent_vegetation']
 
 
 Representing Gradients in a Landlab Grid
