@@ -129,7 +129,7 @@ the keys are the names (as strings) of the data arrays.
 
 A piece of code that has access to the grid, can copy the elevation field with the following:
 
->>>  z_copy = mg.at_node['elevation']
+>>>  elev = mg.at_node['elevation']
 
 There is currently no data assigned to the links, as apparent the following:
 
@@ -149,8 +149,11 @@ name is provided:
 Note that here *veg* is an array of ones, that has the same length as the number of cells.  Note that there are
 no cells around the edge of a grid, so there are less cells than nodes:
 
->>> len(veg)
+>>> len(mg.at_cell['percent_vegetation'])
 304
+
+As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc. 
+there are on the grid.
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
