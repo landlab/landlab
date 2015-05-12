@@ -110,17 +110,26 @@ Landlab has a data structure called *fields* that will store data associated wit
 of grid elements.  Fields are convenient because 1) fields create data arrays of the proper length for 
 the associated data type and 2) fields attach these data to the grid, so that any piece of code that has 
 access to the grid also has access to the data stored in fields. Suppose you would like like to
-track the elevation at each node.  The following code creates the field elevation on the nodes:
+track the elevation at each node.  The following code creates a data field (array) called *elevation* and 
+the number of elements in the array is the number of nodes:
 
 >>> z = mg.add_zeros('node', 'elevation')
 
-Here *z* is an array of zeros that should have the same length as the number of nodes.  You can check this by:
+Here *z* is an array of zeros.  You can that *z* has the same length as the number of nodes:
 
 >>> len(z)
 400
 
 Note that *z* is a deep copy of the data stored in the model field.  This means that if you change z, you
-also change the data in the elevation model field.  You can see all of the field data at the nodes on *mg* with the following:
+also change the data in the ModelGrid's elevation field.  You can also change values directly in the ModelGrid's 
+elevation field:
+
+>>> mg.at_node['elevation'][5] = 1000
+
+Now the sixth element in the model's elevation field array, or in *z*, is equal to 1000.  (Remember that the first 
+element of a Python array has an index of 0 (zero).
+
+You can see all of the field data at the nodes on *mg* with the following:
 
 >>> mg.at_node.keys()
 ['elevation']
@@ -128,13 +137,7 @@ also change the data in the elevation model field.  You can see all of the field
 You may recognize this as a dictionary-type structure, where 
 the keys are the names (as strings) of the data arrays. 
 
-A piece of code that has access to the grid, can copy the elevation field with the following:
-
->>>  elev = mg.at_node['elevation']
-
-Again, this is a deep copy, so changing *elev* also changes the data in the elevation field.  
-
-There is currently no data assigned to the links, as apparent the following:
+There are currently no data assigned to the links, as apparent by the following:
 
 >>> mg. at_link.keys()
 []
@@ -142,8 +145,8 @@ There is currently no data assigned to the links, as apparent the following:
 Fields can store data at nodes, cells, links, faces, core_nodes, core_cells, active_links, and active_faces.
 Core nodes and cells are ones on which the model is performing operations, and active links 
 connect two core nodes or a core node with an open boundary node.  The meanings of core, boundary, active and inactive are
-described in more detail below [LINK TO BOUNDARY CONDITIONS].  Note that when initializing a field, the singular of the object 
-name is provided:
+described in more detail below [LINK TO BOUNDARY CONDITIONS].  Note that when initializing a field, the singular of the grid  
+element type is provided:
 
 >>> veg = mg.add_ones('cell', 'percent_vegetation')
 >>> mg.at_cell.keys()
@@ -156,7 +159,8 @@ no cells around the edge of a grid, so there are less cells than nodes:
 304
 
 As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc. 
-there are on the grid.
+there are on the grid.  Further it is easy for any part of the code to query what data are already associated with the grid
+and operate on these data.
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
@@ -168,7 +172,7 @@ easier for programmers by providing built-in functions to calculate gradients
 along links, and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The tutorial examples below illustrate how
 this capability can be used to create models of processes such as diffusion and
-overland flow.
+overland flow.  
 
 Other Grid Elements
 -------------------
