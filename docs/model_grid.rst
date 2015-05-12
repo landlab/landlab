@@ -114,7 +114,7 @@ track the elevation at each node.  The following code creates the field elevatio
 
 >>> z = mg.add_zeros('node', 'elevation')
 
-*z* is an array that should have the same length as the number of nodes.  You can check this by:
+Here *z* is an array of zeros that should have the same length as the number of nodes.  You can check this by:
 
 >>> len(z)
 400
@@ -139,12 +139,18 @@ There is currently no data assigned to the links, as apparent the following:
 Fields can store data at nodes, cells, links, faces, core_nodes, core_cells, active_links, and active_faces.
 Core nodes and cells are ones on which the model is performing operations, and active links 
 connect two core nodes or a core node with an open boundary node.  The meanings of core, boundary, active and inactive are
-described in more detail below.  Note that when initializing a field, the singular of the object name is provided:
+described in more detail below [LINK TO BOUNDARY CONDITIONS].  Note that when initializing a field, the singular of the object 
+name is provided:
 
 >>> veg = mg.add_ones('cell', 'percent_vegetation')
 >>> mg.at_cell.keys()
 ['percent_vegetation']
 
+Note that here *veg* is an array of ones, that has the same length as the number of cells.  Note that there are
+no cells around the edge of a grid, so there are less cells than nodes:
+
+>>> len(veg)
+304
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
