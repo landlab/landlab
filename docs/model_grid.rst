@@ -119,7 +119,8 @@ Here *z* is an array of zeros that should have the same length as the number of 
 >>> len(z)
 400
 
-You can see all of the field data at the nodes on *mg* with the following:
+Note that *z* is a deep copy of the data stored in the model field.  This means that if you change z, you
+also change the data in the elevation model field.  You can see all of the field data at the nodes on *mg* with the following:
 
 >>> mg.at_node.keys()
 ['elevation']
@@ -130,6 +131,8 @@ the keys are the names (as strings) of the data arrays.
 A piece of code that has access to the grid, can copy the elevation field with the following:
 
 >>>  elev = mg.at_node['elevation']
+
+Again, this is a deep copy, so changing elev also changes the data in the elevation field.  
 
 There is currently no data assigned to the links, as apparent the following:
 
