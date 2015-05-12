@@ -103,6 +103,42 @@ Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spa
 
 *mg* is a grid object. This grid has 400 ( 10*40 ) nodes.  It has 2,330 ( 40*(30-1) + 30*(40-1) ) links.
 
+Adding Data to a Landlab Grid Element
+-------------------------------------
+
+Landlab has a data structure called *fields* that will store data associated with different types
+of grid elements.  Fields are convenient because 1) fields create data arrays of the proper length for 
+the associated data type and 2) fields attach these data to the grid, so that any piece of code that has 
+access to the grid also has access to the data stored in fields. Suppose you would like like to
+track the elevation at each node.  The following code creates the field elevation on the nodes:
+
+>>> z = mg.add_zeros('node', 'elevation')
+
+a is an array that should have the same length as the number of nodes.  You can check this by:
+
+>>> len(z)
+400
+
+You can see all of the field data at the nodes associated with *mg* with the following:
+
+>>> mg.at_node.keys()
+['elevation']
+
+where *['elevation']* is returned.  You may recognize this as a dictionary type structure, where 
+the keys are the names (as strings) of the data arrays. 
+
+A piece of code that has access to the grid, can copy the elevation field with the following:
+
+>>>  z_copy = mg.at_node['elevation']
+
+Now, you can see that there is currently no data assigned to the links with the following:
+
+>>> mg. at_link.keys()
+[]
+
+where *[]* is returned.
+
+
 Representing Gradients in a Landlab Grid
 ----------------------------------------
 
