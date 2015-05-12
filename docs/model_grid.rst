@@ -132,7 +132,7 @@ A piece of code that has access to the grid, can copy the elevation field with t
 
 >>>  elev = mg.at_node['elevation']
 
-Again, this is a deep copy, so changing elev also changes the data in the elevation field.  
+Again, this is a deep copy, so changing *elev* also changes the data in the elevation field.  
 
 There is currently no data assigned to the links, as apparent the following:
 
