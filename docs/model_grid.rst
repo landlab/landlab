@@ -70,9 +70,9 @@ or temperature.
 Each adjacent pair of nodes is connected by a line segment known as
 a *link*. A link has both a position in space, denoted
 by the coordinates of the two bounding nodes, and a direction: a link
-runs from one node (known as its *from-node*) to another (its *to-node*). 
+runs from one node (known as its *from-node* or "tail-node*) to another (its *to-node* or *head-node*). 
 
-Every node in the grid interior is associated with a polygon known as a ``cell`` (illustrated,
+Every node in the grid interior is associated with a polygon known as a *cell* (illustrated,
 for example, by the shaded square region in :ref:`Figure 1a <grid>`). Each cell is 
 bounded by a set of line segments known as *faces*, which it shares with its neighboring
 cells.
@@ -84,13 +84,24 @@ cells are Voronoi polygons (also known as Theissen polygons)
 (:ref:`Figure 1b <grid>`). In this case, each cell represents the surface area that
 is closer to its own node than to any other node in the grid. The faces then
 represent locations that are equidistant between two neighboring nodes. Other grid
-configurations are possible as well. The spring 2014 version of Landlab includes
+configurations are possible as well. The spring 2015 version of Landlab includes
 support for hexagonal and radial grids, which are specialized versions of the 
 Voronoi-Delaunay grid shown in :ref:`Figure 1b <grid>`. Note that the node-link-cell-face
 topology is general enough to represent other types of grid; for example, one could use
 **ModelGrid's** data structures to implement a quad-tree grid, 
 or a Delaunay-Voronoi grid in which cells are triangular elements with
 nodes at their circumcenters.
+
+Creating a grid is easy.  The first step is to import Landlab's RasterModelGrid class (this 
+assumes you have installed landlab and are working in your favorite Python environment):
+
+>>> from landlab import RasterModelGrid
+
+Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spacing (dx) of 5:
+
+>>> mg = RasterModelGrid(10, 40, 5)
+
+*mg* is a grid object. This grid has 400 (10*40) nodes.  It has 17 ( 4*(3-1) + 3*(4-1) ) links.
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
@@ -115,7 +126,8 @@ values (say, ice thickness in a glacier) at nodes, and vector values (say, ice
 velocity) at junctions. This approach is sometimes referred to as a
 staggered-grid scheme. It lends itself naturally to finite-volume methods, in
 which one computes fluxes of mass, momentum, or energy across cell faces, and
-maintains conservation of mass within cells.
+maintains conservation of mass within cells.  (In the spring 2015 version of Lanlab, 
+there are no supporting functions for the use of junctions.)
 
 Notice that the links also enclose a set of polygons that are offset from the
 cells. These secondary polygons are known as *patches* (:ref:`Figure 1,
