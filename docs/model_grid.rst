@@ -101,7 +101,7 @@ Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spa
 
 >>> mg = RasterModelGrid(10, 40, 5)
 
-*mg* is a grid object. This grid has 400 (10*40) nodes.  It has 17 ( 4*(3-1) + 3*(4-1) ) links.
+*mg* is a grid object. This grid has 400 ( 10*40 ) nodes.  It has 2,330 ( 40*(30-1) + 30*(40-1) ) links.
 
 Representing Gradients in a Landlab Grid
 ----------------------------------------
