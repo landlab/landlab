@@ -20,18 +20,22 @@ Some of the things you can do with **ModelGrid** include:
 - Easily implement staggered-grid finite-difference / finite-volume schemes
 - Calculate gradients in state variables in a single line
 - Calculate net fluxes in/out of grid cells in a single line
-- Easily read in model parameters from a formatted text file
-- Write grid and data output to netCDF files for import into open-source visualization 
-  packages such as ParaView and VisIt
 - Set up and run "link-based" cellular automaton models
 - Switch between structured and unstructured grids without needing to change the rest of
   the code
 - Develop complete, 2D numerical finite-volume or finite-difference models much more
   quickly and efficiently than would be possible using straight C, Fortran, Matlab, or 
   Python code
-- Create models by coupling together your own and/or pre-built process components (note 
-  that this capability is still under development as of Spring 2014)
+
+Some of the Landlab capabilities that work with **ModelGrid** to enable easy numerical modeling include:
+
+- Easily read in model parameters from a formatted text file
+- Write grid and data output to netCDF files for import into open-source visualization 
+  packages such as ParaView and VisIt
+- Create grids from ArcGIS-formatted ascii files
+- Create models by coupling together your own and/or pre-built process components 
 - Use models built by others from process components
+
 
 This document provides a basic introduction to building applications using
 **ModelGrid**. It covers: (1) how grids are represented, and (2) a set of tutorial examples
@@ -52,7 +56,7 @@ Basic Grid Elements
 	
     Figure 1: Elements of a model grid. The main grid elements are nodes, links, and faces. 
     Less commonly used elements include corners, patches, and junctions. In the 
-    spring 2014 version of Landlab, **ModelGrid** can implement raster (a) and 
+    spring 2015 version of Landlab, **ModelGrid** can implement raster (a) and 
     Voronoi-Delaunay (b) grids, as well as radial and hexagonal grids (not shown).
     (Note that not all links patches are shown, and only one representative cell is 
     shaded.)
