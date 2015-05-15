@@ -256,7 +256,7 @@ distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as the following simple example illustrates.
 
 Using a Different Grid Type
----------------------------
+===========================
 
 As noted earlier, Landlab provides several different types of grid. Available grids (as of this writing) are listed in the table below. Grids are designed using Python classes, with 
 more specialized grids inheriting properties and behavior from more general types. The
