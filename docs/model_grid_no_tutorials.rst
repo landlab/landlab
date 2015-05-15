@@ -170,9 +170,18 @@ gradients in one or more scalar variables, and often these gradients are
 evaluated between pairs of adjacent nodes. ModelGrid makes these calculations
 easier for programmers by providing built-in functions to calculate gradients
 along links, and allowing applications to associate an array of gradient values
-with their corresponding links or edges. The tutorial examples below illustrate how
-this capability can be used to create models of processes such as diffusion and
-overland flow.  
+with their corresponding links or edges. The tutorial examples on the following
+pages illustrate how this capability can be used to create models of processes 
+such as diffusion and overland flow.  
+
+Here we simply illustrate the method for 
+calculating gradients on the links.  Remember that we have already created the 
+elevation array z, which is also accesible from the elevation field on *mg*.
+
+>>> gradients = mg. calculate_gradients_at_active_links(z)
+
+Now gradients have been calculated at all links that are active, or links on which 
+flow is possible (see boundary conditions below).  
 
 Other Grid Elements
 -------------------
