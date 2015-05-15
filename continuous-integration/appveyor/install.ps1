@@ -91,6 +91,7 @@ function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     UpdateConda $env:PYTHON
     InstallCondaPackages $env:PYTHON "conda-build=1.4.0 pip jinja2 binstar"
+    InstallCondaPackages $env:PYTHON "conda-build=1.4.0 scipy>=0.12 numpy nose>=1.3 matplotlib netCDF4 sympy pandas cython>=0.22"
 }
 
 main
