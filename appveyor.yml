@@ -48,15 +48,18 @@ test_script:
   # we'll use a simple python script.
   #- python continuous-integration\move-conda-package.py conda-recipe
 
-#artifacts:
-#  # Archive the generated conda package in the ci.appveyor.com build report.
-#  - path: '*.tar.bz2'
+after_test:
+  - python setup.py bdist_wheel
 
-on_success:
-  # Upload built binaries to binstar.org. The globbing and handling of the
-  # exit-status code is tricky in cmd.exe or powershell, so we're just using
-  # a python script.
-  - python setupy.py bdist_wheel
+artifacts:
+  # Archive the generated conda package in the ci.appveyor.com build report.
+  - path: 'dist\*'
+
+#on_success:
+#  # Upload built binaries to binstar.org. The globbing and handling of the
+#  # exit-status code is tricky in cmd.exe or powershell, so we're just using
+#  # a python script.
+#  - python setupy.py bdist_wheel
 
 deploy:
   provider: FTP
