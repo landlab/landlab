@@ -68,4 +68,4 @@ deploy:
   host: csdms.colorado.edu
   username: anonymous
   password: appveyor@appveyor.com
-  folder: incoming/huttone
+  folder: incoming/huttone/
