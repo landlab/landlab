@@ -1,5 +1,5 @@
 ========================================================================
-Building Simple Models with Landlab's Gridding Library: A Tutorial Guide
+Introduction to Landlab's Gridding Library
 ========================================================================
 
 When creating a two-dimensional simulation model, often the most time-consuming and
