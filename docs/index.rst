@@ -22,6 +22,14 @@ Getting Started with Landlab
 User Guide
 ==========
 
+Introduction to Landlab's Gridding Library
+------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+   
+   model_grid
+
 Tutorials
 ---------
 
