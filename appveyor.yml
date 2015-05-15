@@ -52,8 +52,15 @@ test_script:
 #  # Archive the generated conda package in the ci.appveyor.com build report.
 #  - path: '*.tar.bz2'
 
-#on_success:
-#  # Upload built binaries to binstar.org. The globbing and handling of the
-#  # exit-status code is tricky in cmd.exe or powershell, so we're just using
-#  # a python script.
-#  - python continuous-integration\binstar-push.py
+on_success:
+  # Upload built binaries to binstar.org. The globbing and handling of the
+  # exit-status code is tricky in cmd.exe or powershell, so we're just using
+  # a python script.
+  - python setupy.py bdist_wheel
+
+deploy:
+  provider: ftp
+  host: csdms.colorado.edu
+  username: anonymous
+  password: appveyor@appveyor.com
+  folder: incoming/huttone
