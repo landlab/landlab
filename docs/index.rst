@@ -28,7 +28,7 @@ Introduction to Landlab's Gridding Library
 .. toctree::
    :maxdepth: 1
    
-   model_grid
+   model_grid_no_tutorials
 
 Tutorials
 ---------
@@ -37,6 +37,9 @@ Tutorials
    :maxdepth: 1
 
    model_grid
+   diffusion_raster_grid_tutorial
+   overland_flow_general_tutorial
+   overland_flow_dem_tutorial
    landlab_component_tutorial
    radiation_field_tutorial
 
