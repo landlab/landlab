@@ -59,7 +59,8 @@ on_success:
   - python setupy.py bdist_wheel
 
 deploy:
-  provider: ftp
+  provider: FTP
+  protocol: ftp
   host: csdms.colorado.edu
   username: anonymous
   password: appveyor@appveyor.com
