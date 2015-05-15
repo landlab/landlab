@@ -24,8 +24,7 @@ import time
 #from images2gif import writeGif  # To write GIFs
 #from PIL import Image             # For GIFs
 
-# GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
-# SHRUBSEEDLING = 4; TREESEEDLING = 5
+
 
 ## Function that converts text file to a dictionary
 def txt_data_dict( InputFile ):
@@ -47,25 +46,28 @@ def txt_data_dict( InputFile ):
     return data1.copy()
 
 
-## Make two grids - One for Cellular Automaton and one
-## for hydrology
-
-grid1 = rmg(100,100,5.)
+## Initialize domain
+grid1 = rmg(100,100,5.) # Grid for Cellular Automaton modeling of plant types
 grid1['node']['Elevation'] = 1700. * np.ones(grid1.number_of_nodes)
-grid = rmg(5,4,5)
+grid = rmg(5,4,5)  # Representative grid for Ecohydrology of each plant type
 grid['node']['Elevation'] = 1700. * np.ones(grid.number_of_nodes)
 
-## Prepare the initial grid for cellular automaton
-grid1['cell']['VegetationType'] = np.random.randint(0,6,grid1.number_of_cells)
+## Initialize random plant type field
+grid1['cell']['VegetationType'] = np.random.choice([0,1,2,3,4,5],grid1.number_of_cells)
+## Plant types are defined as following:
+# GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
+# SHRUBSEEDLING = 4; TREESEEDLING = 5
 
-## Prepare the initial grid for hydrology - 6 cells with each PFT
+## Assign plant type for representative ecohydrologic simulations
 grid['cell']['VegetationType'] = np.arange(0,6)
 
 ## Create input dictionary from text file
 InputFile = 'Inputs_Vegetation_CA.txt'
 data = txt_data_dict( InputFile ) # Create dictionary that holds the inputs
 
-# Create radiation, soil moisture and Vegetation objects
+# Create rainfall, radiation, potential evapotranspiration,
+# soil moisture and Vegetation objects
+# Assign parameters to the components
 PD_D = PrecipitationDistribution(mean_storm = data['mean_storm_dry'],  \
                     mean_interstorm = data['mean_interstorm_dry'],
                     mean_storm_depth = data['mean_storm_depth_dry'])
@@ -88,7 +90,7 @@ VEG = Vegetation( grid, data )    # Vegetation object
 vegca = VegCA( grid1, data )      # Cellular automaton object
 
 ##########
-n = 66000    # Defining number of storms the model will be run
+n = 6600    # Defining number of storms the model will be run
 ##########
 
 ## Create arrays to store modeled data
@@ -185,7 +187,7 @@ VegType[yrs] = grid1['cell']['VegetationType']
 Time_Consumed = (Final_time - Start_time)/60.    # in minutes
 
 ## Saving
-sim = 'WaterStress_11Mar15_'
+sim = 'WaterStress_15May15_'
 np.save(sim+'Tb',Tb)
 np.save(sim+'Tr',Tr)
 np.save(sim+'P',P)
