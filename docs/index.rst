@@ -22,6 +22,17 @@ Getting Started with Landlab
 User Guide
 ==========
 
+Landlab's Gridding Library
+--------------------------
+
+.. toctree::
+   :maxdepth: 1
+   
+   model_grid_no_tutorials
+   diffusion_raster_grid_tutorial
+   overland_flow_general_tutorial
+   overland_flow_dem_tutorial
+
 Tutorials
 ---------
 
