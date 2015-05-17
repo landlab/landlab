@@ -7,7 +7,7 @@ environment:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\continuous-integration\\appveyor\\run_with_env.cmd"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
     - PYTHON: "C:\\Python27_32"
@@ -25,7 +25,7 @@ environment:
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
-  - powershell .\\continuous-integration\\appveyor\\install.ps1
+  - powershell .\\.ci\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python setup.py install
 
@@ -46,7 +46,7 @@ test_script:
   # Move the conda package into the current directory, to register it
   # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
   # we'll use a simple python script.
-  #- python continuous-integration\move-conda-package.py conda-recipe
+  #- python .ci\move-conda-package.py conda-recipe
 
 after_test:
   - pip install wheel
