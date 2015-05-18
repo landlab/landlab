@@ -5,8 +5,8 @@ Computer models can be tremendously useful in exploring and visualizing the cons
 
 The following tutorial examples give a flavor for what this means. The tutorial examples in this Quick Start guide can be typed directly on the command line of any Python interpreter. To try them out, you'll need (1) an installation of Python 2.x, (2) the Numpy, Scipy, and Pylab modules, and (3) Landlab. If you don't already have Numpy and its relatives installed, we recommend  Enthought Canopy (which provides a command-line interpreter, development environment, and the Numpy, Scipy, and Pylab modules all in one convenient package). To install Landlab, see :ref:`install`.
 
-Building a Model *Without* Components
------------------------------------
+Building a Model *WITHOUT* Components
+-------------------------------------
 
 In the first example, we will build a 2D model of the erosional degradation of a fault scarp 
 through the process of linear diffusion.  Conveniently Landlab already has a component that will
@@ -14,7 +14,7 @@ calculate erosion rates due to linear diffusion, but in this example we do not t
 Landlab's pre-built diffusion component.  After building this model without a component, we then
 contrast what the model would look like when using the pre-built component.  (LINK HERE!!!!)
 
-To download the code for the fault-scapr model without components, click HERE!!!
+To download the code for the fault-scarp model without components, click HERE!!!
 
 Note that ``>>>`` implies that we are on the command line in canopy, or your favorite python 
 frontend.  We start by importing Numpy and Landlab's RasterModelGrid class:
@@ -115,7 +115,7 @@ Here is the resulting image:
 .. image:: images/degraded_scarp.png
    :align: center
 
-Building a Model *With* Components
+Building a Model *WITH* Components
 -----------------------------------
 
 We now build the same exact model but we take advantage of Landlab's pre-built
