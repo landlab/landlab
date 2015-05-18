@@ -4379,33 +4379,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('format not understood')
 
-
-def _guess_format_from_name(path):
-    import os
-
-    fname = os.path.basename(path)
-
-    if fname.endswith('.nc'):
-        return 'netcdf'
-    elif fname.endswith('.asc'):
-        return 'esri-ascii'
-    else:
-        return None
-
-
-def _add_format_extension(path, format):
-    import os
-
-    (base, ext) = os.path.splitext(path)
-    if format == 'netcdf':
-        ext = '.nc'
-    elif format == 'esri-ascii':
-        ext = '.asc'
-    return base + ext
-
-    def get_looped_cell_neighbor_list( self, *args ):
-        """
-        Get list of looped neighbor cell IDs (all 8 neighbors).
+    def get_looped_cell_neighbor_list(self, *args):
+        """Get list of looped neighbor cell IDs (all 8 neighbors).
         
         Returns lists of looped neighbor cell IDs of given *cell ids*.
         If *cell ids* are not given, it returns a 2D array of size
@@ -4424,10 +4399,8 @@ def _add_format_extension(path, format):
                                     self.create_looped_cell_neighbor_list()
             return(self.get_looped_cell_neighbor_list( *args ))
                 
-    
-    def create_looped_cell_neighbor_list( self ):
-        """
-        Creates list of looped immediate cell neighbors (8 adjacent cells). 
+    def create_looped_cell_neighbor_list(self):
+        """Create a list of looped immediate cell neighbors (8 adjacent cells). 
         
         Creates a list of looped immediate cell neighbors (*cell ids*) for each 
         cell as a 2D array of size ( self.number_of_cells, 8 ).
@@ -4492,7 +4465,6 @@ def _add_format_extension(path, format):
         self.looped_cell_neighbor_list_created = True
         return looped_cell_neighbors
 
-
     def get_second_ring_looped_cell_neighbor_list( self, *args ):
         """
         Get list of second ring looped neighbor cell IDs (all 16 neighbors).
@@ -4513,7 +4485,6 @@ def _add_format_extension(path, format):
             self.second_ring_looped_cell_neighbor_list =                                 \
                             self.create_second_ring_looped_cell_neighbor_list()
             return(self.get_second_ring_looped_cell_neighbor_list( *args ))
-                
 
     def create_second_ring_looped_cell_neighbor_list( self ):
         """
@@ -4540,12 +4511,35 @@ def _add_format_extension(path, format):
     
 
 def _is_closed_boundary(boundary_string):
-    '''
+    """
     Helper function, probably depreciated due to changes in BC handling
     procedures (DEJH, May 14).
-    '''
-
+    """
     return boundary_string.lower() == 'closed'
+
+
+def _guess_format_from_name(path):
+    import os
+
+    fname = os.path.basename(path)
+
+    if fname.endswith('.nc'):
+        return 'netcdf'
+    elif fname.endswith('.asc'):
+        return 'esri-ascii'
+    else:
+        return None
+
+
+def _add_format_extension(path, format):
+    import os
+
+    (base, ext) = os.path.splitext(path)
+    if format == 'netcdf':
+        ext = '.nc'
+    elif format == 'esri-ascii':
+        ext = '.asc'
+    return base + ext
 
 
 def from_dict(param_dict):
