@@ -1,7 +1,7 @@
 An Introduction to Landlab
 ==========================
 
-(Written by Greg Tucker, December 2013)
+(originally authored by Greg Tucker, December 2013)
 
 Landlab is a Python software package that supports numerical modeling in earth science, 
 and especially those fields that deal with earth-surface dynamics, including geomorphology, 
