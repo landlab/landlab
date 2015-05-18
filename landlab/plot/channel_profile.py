@@ -24,7 +24,7 @@ except ImportError:
     import warnings
     warnings.warn('matplotlib not found', ImportWarning)
 
-def channel_nodes(grid, steepest_nodes, drainage_area, upstream_ID_order, flow_receiver, number_of_channels=1, threshold=None):
+def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
     if threshold==None:
         threshold = 2.*numpy.amin(grid.cell_areas)
     boundary_nodes = grid.get_boundary_nodes()
@@ -71,13 +71,20 @@ def plot_profiles(distances_upstream, profile_IDs, elevations):
         
 def analyze_channel_network_and_plot(grid, elevations='topographic_elevation', 
                                      drainage_area='drainage_area', 
-                                     upstream_ID_order='upstream_ID_order', 
                                      flow_receiver='flow_receiver', 
                                      links_to_flow_receiver='links_to_flow_receiver',
                                      number_of_channels=1, 
                                      starting_nodes=None,
                                      threshold=None):
-    """
+                                         
+    """analyze_channel_network_and_plot(grid, elevations='topographic_elevation', 
+                                     drainage_area='drainage_area', 
+                                     flow_receiver='flow_receiver', 
+                                     links_to_flow_receiver='links_to_flow_receiver',
+                                     number_of_channels=1, 
+                                     starting_nodes=None,
+                                     threshold=None)
+    
     This function wraps the other three present here, and allows a single-line
     call to plot long profiles.
     As typical elsewhere, the inputs can be field names or arrays.
@@ -94,8 +101,8 @@ def analyze_channel_network_and_plot(grid, elevations='topographic_elevation',
         Both lists are number_of_channels long.
         - 
     """
-    internal_list = [0,0,0,0,0] #we're going to put the input arrays in here; must be a better way but this will do
-    inputs = (elevations, drainage_area, upstream_ID_order, flow_receiver, links_to_flow_receiver)
+    internal_list = [0,0,0,0] #we're going to put the input arrays in here; must be a better way but this will do
+    inputs = (elevations, drainage_area, flow_receiver, links_to_flow_receiver)
     for i in xrange(5):
         j = inputs[i]
         if type(j)==str:
@@ -105,7 +112,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic_elevation',
             internal_list[i] = j
     
     if starting_nodes==None:
-        profile_IDs = channel_nodes(grid, None, internal_list[1], internal_list[2], internal_list[3], number_of_channels, threshold)
+        profile_IDs = channel_nodes(grid, None, internal_list[1], internal_list[2], number_of_channels, threshold)
     else:
         assert len(starting_nodes)==number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
         if threshold==None:
@@ -125,7 +132,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic_elevation',
                     j = supplying_nodes[max_drainage]
             profile_IDs.append(numpy.array(data_store))
             
-    dists_upstr = get_distances_upstream(grid, internal_list[1].size, profile_IDs, internal_list[4])
+    dists_upstr = get_distances_upstream(grid, internal_list[1].size, profile_IDs, internal_list[3])
     plot_profiles(dists_upstr, profile_IDs, internal_list[0])
     
     return (profile_IDs, dists_upstr)
