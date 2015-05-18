@@ -12,7 +12,7 @@ In the first example, we will build a 2D model of the erosional degradation of a
 through the process of linear diffusion.  Conveniently Landlab already has a component that will
 calculate erosion rates due to linear diffusion, but in this example we do not take advantage of
 Landlab's pre-built diffusion component.  After building this model without a component, we then
-contrast what the model would look like when using the pre-built component.  (LINK HERE)
+contrast what the model would look like when using the pre-built component.  (LINK HERE!!!!)
 
 To download the code for the fault-scapr model without components, click HERE!!!
 
