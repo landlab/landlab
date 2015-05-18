@@ -3,15 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Getting Started with Landlab
-============================
+Introduction to Landlab
+=======================
 
 .. toctree::
    :maxdepth: 2
 
-   about
+   what_is_landlab
    install
-   tutorial
+   getting_started
    
 .. toctree::
    :maxdepth: 1
@@ -21,6 +21,15 @@ Getting Started with Landlab
 
 User Guide
 ==========
+
+Landlab, Python, and Numpy
+--------------------------
+.. toctree::
+   :maxdepth: 1
+   
+   coding_style
+   help_with_python_numpy
+
 
 Landlab's Gridding Library
 --------------------------
@@ -33,15 +42,16 @@ Landlab's Gridding Library
    overland_flow_general_tutorial
    overland_flow_dem_tutorial
 
-Tutorials
----------
+Building a Model
+----------------
 
 .. toctree::
    :maxdepth: 1
+   
+   components
+   building_model_with_components
+   standalone_model
 
-   model_grid
-   landlab_component_tutorial
-   radiation_field_tutorial
 
 Simple guides to functionality
 ------------------------------
