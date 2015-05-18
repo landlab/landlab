@@ -1,5 +1,5 @@
 Getting started with Landlab
-=======================
+============================
 
 Landlab is coded in Python and exploits and includes as dependencies a number of widely used scientific Python packages - in particular, numpy and scipy. The decision to code in Python was explicitly made to lower the bar to entry for Landlab; to increase the flexibility and reusability of the code base; and to increase development speed both for the core development team and for future users. The choice of Python also means that developers using Landlab can take advantage of that language’s affinity for rapid development timescales.
 
