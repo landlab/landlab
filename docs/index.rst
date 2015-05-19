@@ -49,7 +49,7 @@ Building a Model
 ----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    working_with_landlab
 
