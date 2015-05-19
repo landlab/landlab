@@ -95,6 +95,7 @@ An example might be:
 
 
 3. Load/create data in fields
++++++++++++++++++++++++++++++
 
 (see this section (XXX LINK) if you don’t know what a Landlab field is)
 
@@ -122,6 +123,7 @@ Note that if you don’t want to use any Landlab components, you can continue to
 
 
 4. Set the boundary conditions
+++++++++++++++++++++++++++++++
 
 Once you have a grid and the initial condition data you’ll need, it’s time to set the boundary conditions. If you’re working with a raster, or some pre-existing imported data, this is very straightforward using the built in RasterModelGrid functions. For a raster where only the edges are to be boundary nodes:
 
@@ -144,6 +146,7 @@ If you’re working with individual nodes’ boundary statuses, you’ll need to
 
 
 5. Run the model
+++++++++++++++++
 
 We’re now ready to actually implement a run of our model! Most things you might want to do with Landlab are probably time-sensitive, so in almost all cases, you’ll probably be placing the guts of your simulation inside a loop of some sort. In simple cases, you can just use some variation on a simple for loop or while statement, either:
 
@@ -177,16 +180,6 @@ What exactly “...do the thing” consists of is up to you. You can either desi
 
 
 6. Finalize and handle the data
++++++++++++++++++++++++++++++++
 
-Once the looping is complete, the model is effectively finished. However, you will still need to output the data somehow! Some obvious options are:
-
-Save the data
-
-Plot the data
-Final data
-Plotting inside the loop
-
-Export the data
-
-
-Note that if you’re running inside an interactive Python session like iPython, all the variables and objects (both grid and component) that you’ve used in your model will still be available in the environment. Thus, you can play with your data for as long as you want!
+ADD TEXT LATER
