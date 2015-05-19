@@ -40,7 +40,6 @@ Landlab's Gridding Library
    
 .. toctree::
    :maxdepth: 1 
-   
 
    diffusion_raster_grid_tutorial
    overland_flow_general_tutorial
