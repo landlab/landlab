@@ -1,7 +1,7 @@
 .. _install:
 
 ==================
-Installing Landlab
+Installing Landlab - THIS NEEDS UPDATING!
 ==================
 
 Dependencies
