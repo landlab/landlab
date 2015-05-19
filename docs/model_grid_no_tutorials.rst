@@ -1,8 +1,7 @@
 .. _model_grid_description:
 
-========================================================================
 Introduction to Landlab's Gridding Library
-========================================================================
+===========================================
 
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
@@ -42,7 +41,6 @@ Some of the Landlab capabilities that work with **ModelGrid** to enable easy num
 This document provides a basic introduction to building applications using
 **ModelGrid**. It covers: (1) how grids are represented, and (2) a set of tutorial examples
 that illustrate how to build models using simple scripts.
-
 
 How a Grid is Represented
 =========================
@@ -211,7 +209,6 @@ create a mesh with Voronoi polygons as cells and Delaunay triangles as patches
 two sets of square elements that are offset by half the grid spacing
 (:ref:`Figure 1a <grid>`). Whatever the form of the tessellation, **ModelGrid** keeps
 track of the geometry and topology of the grid.
-
 
 
 Managing Grid Boundaries
