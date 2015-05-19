@@ -17,6 +17,7 @@ Introduction to Landlab
    :maxdepth: 1
    
    dan_installs_on_linux
+   getting_example_files
 
 
 User Guide
