@@ -1,5 +1,5 @@
-What is a Landlab Model Made of?
-================================
+What goes into a Landlab Model?
+==============================
 
 In the previous section, we showed you most of the core functionality of the Landlab grid. In this section, we introduce you to how to actually use it, or building models and components.
 
@@ -17,8 +17,8 @@ Typically, a driver file will consist of six distinct sections:
 Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about driver files here (XXX LINK to under component section). However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
 
 
-What is a Landlab component?
-----------------------------
+Components
+----------
 
 A key strength of Landlab is that not only is it designed to make implementing your own process simulations as simple as possible, it also offers an off-the-shelf library of pre-designed process descriptions that you can use in your drivers. We call these process simulators Landlab **components**. The intention is that each component be:
 
