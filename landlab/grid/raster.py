@@ -4354,13 +4354,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def save(self, path, names=None, format=None):
         """Save a grid and fields.
+        
+        If more than one field name is specified for names when saving to ARC
+        ascii, multiple files will be produced, suffixed with the field names.
+        
+        When saving to netCDF (.nc), the fields are incorporated into the 
+        single named .nc file.
 
         Parameters
         ----------
         path : str
             Path to output file.
         names : iterable of strings, optional
-            List of field names to save.
+            List of field names to save, defaults to all if not specified.
         format : {'netcdf', 'esri-ascii'}, optional
             Output file format. Guess from file extension if not given.
 
