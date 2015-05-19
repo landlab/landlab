@@ -50,11 +50,9 @@ Building a Model
 ----------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    
-   components
-   building_model_with_components
-   standalone_model
+   working_with_landlab
 
 BELOW HERE IS ALL OLD STUFF
 ---------------------------
