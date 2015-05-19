@@ -22,13 +22,12 @@ Introduction to Landlab
 User Guide
 ==========
 
-Landlab, Python, and Numpy
---------------------------
+The Nuts and Bolts of Coding in Landlab
+---------------------------------------
 .. toctree::
    :maxdepth: 1
    
    coding_style
-   help_with_python_numpy
 
 
 Landlab's Gridding Library
@@ -52,6 +51,8 @@ Building a Model
    building_model_with_components
    standalone_model
 
+BELOW HERE IS ALL OLD STUFF
+---------------------------
 
 Simple guides to functionality
 ------------------------------
