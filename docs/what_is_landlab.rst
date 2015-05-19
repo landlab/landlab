@@ -25,6 +25,13 @@ Landlab provides four main resources and capabilities:
 
 (4) A *library of models* that have already been created from component(s).
 
+An example of some models that can easily be built with Landlabs current capabilities are:
+
+* A landscape evolution model using linear diffusion and the stream-power model
+* A model that explores the flexural response to the growth and recession of glaciers
+* An ecohydrology model in which vegetation on two sides of a valley grows and dies in response to stochastic storms and solar forcing throughout the year
+* A model that routes hydrographs across a watershed based on rainfall inputs
+
 Acknowledgements
 ----------------
 
