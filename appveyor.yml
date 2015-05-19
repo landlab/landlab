@@ -17,8 +17,8 @@ environment:
       NUMPY_VERSION: "1.9.1"
       PYTHON_ARCH: "64"
 
-platform:
-  - x64
+#platform:
+#  - x64
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
