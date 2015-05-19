@@ -79,15 +79,15 @@ setup(name='landlab',
                         'pandas',
                         'Cython>=0.22'],
       packages=find_packages(),
-      entry_points={
-          'console_scripts': [
-              'craters = landlab.components.craters:main',
-              'landlab = landlab.cmd:main',
-              'landlab_ex_1 = landlab.examples.diffusion2Dtest:main',
-              'landlab_ex_2 = landlab.examples.diffusion2Dtest2:main',
-              'landlab_ex_3 = landlab.examples.diffusion2Dtest3:main',
-          ]
-      },
+      #entry_points={
+      #    'console_scripts': [
+      #        'craters = landlab.components.craters:main',
+      #        'landlab = landlab.cmd:main',
+      #        'landlab_ex_1 = landlab.examples.diffusion2Dtest:main',
+      #        'landlab_ex_2 = landlab.examples.diffusion2Dtest2:main',
+      #        'landlab_ex_3 = landlab.examples.diffusion2Dtest3:main',
+      #    ]
+      #},
       package_data={'': ['data/*asc', 'data/*nc', 'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
