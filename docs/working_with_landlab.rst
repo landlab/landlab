@@ -1,20 +1,24 @@
-In the previous section, we showed you most of the core functionality of the Landlab grid. In this section, we introduce you to how to actually use it.
+Using Landlab
+=============
 
-Using Landlab requires that you build a Python script to import, instantiate, and then run your landscape model which you are implementing with Landlab. We describe such a script as a driver. It’s also possible to do the same set of processes on the fly in an interactive Python environment like iPython.)
+In the previous section, we showed you most of the core functionality of the Landlab grid. In this section, we introduce you to how to actually use it, or building models and components.
+
+Using Landlab requires that you build a Python script to import, instantiate, and then run your landscape model which you are implementing with Landlab. We describe such a script as a **driver**.  It’s also possible to do the same set of processes on the fly in an interactive Python environment like iPython.
 
 Typically, a driver file will consist of six distinct sections:
 
-Import the Python and Landlab libraries you’ll need to run your model
-Instantiate the Landlab elements (grid and, if using them, components)
-Load any necessary data into the grid fields
-Set the boundary conditions
-Run the model, typically by creating a for loop or using a Landlab generator (see below)
-Finalize and handle the data (e.g., plot, export)
+* **Import** the Python and Landlab libraries you’ll need to run your model
+* **Instantiate** the Landlab elements (grid and, if using them, components)
+* **Load** any necessary data into the grid fields
+* Set the **boundary conditions**
+* **Run** the model, typically by creating a for loop or using a Landlab generator (see below)
+* **Finalize** and handle the data (e.g., plot, export)
 
 Beyond the driver, if you’re using Landlab components, you’ll probably also need a parameter file. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about driver files here (XXX LINK to under component section). However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
 
 
 What is a Landlab component?
+----------------------------
 
 A key strength of Landlab is that not only is it designed to make implementing your own process simulations as simple as possible, it also offers an off-the-shelf library of pre-designed process descriptions that you can use in your drivers. We call these process simulators Landlab components. The intention is that each component be:
 
@@ -45,6 +49,7 @@ Note that not all components will run under all conditions, but that any limitat
 
 
 Implementing a Landlab driver
+-----------------------------
 
 As noted above, the process of creating a driver is essentially equivalent whether you want to implement Landlab components, purely your own code, or some mixture of the two. Here we take a closer look at the various steps.
 
@@ -91,4 +96,95 @@ An example might be:
 
 (see this section (XXX LINK) if you don’t know what a Landlab field is)
 
-Now we need some data to work with.
+Now we need some data to work with. Here we’ll assume that you’re going to be working with a DEM-style elevation map across the nodes of the grid, but similar considerations would apply for any other type of data.
+
+You will likely be in one of two situations regarding the initial data you want to put on the grid - either you will have some external data source that you want to load in and use as your initial conditions (e.g., a DEM of some basin, or some other real topography), or you want to set up some simple analytical initial condition like a flat surface with noise or an inclined surface.
+
+In both cases, we advocate a two step process: creating a numpy array of the data, then loading it into the grid as a field. We can illustrate for both of the above cases:
+
+>>> mg = RasterModelGrid(10,10,1.) #make a grid
+>>> z = np.zeros(100, dtype=float) #make a flat surface, elev 0
+>>> #or…
+>>> z = mg.node_y*0.01 #a flat surface dipping shallowly south
+>>> z += np.random.rand(100.)/10000. #add a little noise to the surface
+>>> mg.add_field(‘node’, ‘topographic_elevation’, z, units=’m’) #create the field
+
+Alternatively, we can use the specialized Landlab function io.read_esri_ascii to import an ascii raster that can be output from ARC. Note this function both creates the grid for you and loads the data as a field if you provide ‘name’. If not, you’ll have to load the data output (‘z’, below) manually.
+
+>>> from landlab.io import read_esri_ascii
+>>> mg, z = read_esri_ascii(‘my_ARC_output.asc’, name=’topographic_elevation’)
+>>> np.all(mg.at_node[‘topographic_elevation’] == z)
+    True
+
+Note that if you don’t want to use any Landlab components, you can continue to work with data as “free floating” numpy arrays, and can ignore the fields (e.g., see the simple tutorial at the start of this guide).
+
+
+4. Set the boundary conditions
+
+Once you have a grid and the initial condition data you’ll need, it’s time to set the boundary conditions. If you’re working with a raster, or some pre-existing imported data, this is very straightforward using the built in RasterModelGrid functions. For a raster where only the edges are to be boundary nodes:
+
+>>> mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
+>>> mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+
+This will give a grid with fixed value boundaries at the left and right edges, and closed boundaries at the top and bottom.
+
+If you’re working with, say, an ARC imported array with a null value on the closed nodes (e.g., -9999), you can do this:
+
+>>> mg.set_nodata_nodes_to_closed(mg.at_node[‘topographic_elevation’], -9999)
+
+(Note though that you’re still likely to have to reopen an outlet node manually! In which case you’ll also need to follow the instructions below.)
+
+If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs slightly differently. First, you’ll need to alter those statuses directly, but then - and very importantly! - you’ll need to make sure all there’s full internal consistency between the node statuses and all the subsidiary statuses like those on cells and links. Use mg.update_links_nodes_cells_to_new_BCs(). Do this like so:
+
+>>> outlet_id = mg.core_nodes[np.argmin( mg.at_node[‘topographic_elevation’][mg.core_nodes])] #find the ID of the lowest elevation core node; we’ll make this a fixed gradient outlet
+>>> mg.node_status[outlet_id] = 2 #remember, 0:core, 1:fixedval, 2:fixedgrad, 3:looped, 4:closed
+>>> mg.update_links_nodes_cells_to_new_BCs() #make sure to call this if you make manual BC changes!!
+
+
+5. Run the model
+
+We’re now ready to actually implement a run of our model! Most things you might want to do with Landlab are probably time-sensitive, so in almost all cases, you’ll probably be placing the guts of your simulation inside a loop of some sort. In simple cases, you can just use some variation on a simple for loop or while statement, either:
+
+>>> dt = 10.
+>>> for tstep in xrange(100):
+…    #...do the thing for one timestep dt
+
+or
+
+>>> dt = 10.
+>>> accumulated_time = 0.
+>>> while accumulated_time<1000.:
+…    #...do the thing for one timestep dt
+…    accumulated_time += dt
+
+Both produce 1000. time units of run, with an explicit timestep of 10. Notice that the latter technique is particularly amenable to situations where your explicit timestep is varying (e.g., a storm sequence).
+
+Landlab also however has a built in storm generator component, which (as its name suggests) actually acts as a true Python generator (XXX LINK out to what a generator is). This means producing a storm series in Landlab is also very easy:
+
+>>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+>>> time_to_run = 500000.
+>>> precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
+>>> for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
+…    if rainfall_rate != 0.:
+…        #...do the thing, making sure to pass it the current interval_duration and rainfall_rate
+
+Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired!
+
+
+What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See here (XXX LINK) for more information on using the components.
+
+
+6. Finalize and handle the data
+
+Once the looping is complete, the model is effectively finished. However, you will still need to output the data somehow! Some obvious options are:
+
+Save the data
+
+Plot the data
+Final data
+Plotting inside the loop
+
+Export the data
+
+
+Note that if you’re running inside an interactive Python session like iPython, all the variables and objects (both grid and component) that you’ve used in your model will still be available in the environment. Thus, you can play with your data for as long as you want!
