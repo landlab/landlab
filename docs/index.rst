@@ -25,7 +25,7 @@ User Guide
 The Nuts and Bolts of Coding in Landlab
 ---------------------------------------
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    
    coding_style
 
@@ -34,9 +34,12 @@ Landlab's Gridding Library
 --------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    
    model_grid_no_tutorials
+   
+.. toctree::
+   :maxdepth: 1   
    diffusion_raster_grid_tutorial
    overland_flow_general_tutorial
    overland_flow_dem_tutorial
