@@ -1,6 +1,5 @@
-=====================================
 Tutorial: Modeling Diffusion on a Raster Grid
-=====================================
+=============================================
 
 The following is a simple example in which we use **ModelGrid** to build an explicit, 
 finite-volume, staggered-grid model of diffusion. The mathematics of diffusion describe 
@@ -9,7 +8,10 @@ of solutes, transport of momentum in a viscous shear flow, and transport of
 soil on hillslopes. To make this example concrete, we will use the hillslope evolution as 
 our working case study, though in fact the solution could apply to any of these systems.
 
-To work through this example, you can type in and run the code below, or run the file
+To work through this example, you can type in and run the code below, or you can download
+the file with :download:'the example script <../model_grid_guide/diffusion_with_model_grid.py>'.
+
+or run the file
 *diffusion_with_model_grid.py*, which is located in the Landlab developer distribution
 under *docs/model_grid_guide*. The complete source code for the diffusion model is listed 
 below. Line numbers are 
