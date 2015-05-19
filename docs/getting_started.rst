@@ -121,7 +121,7 @@ Building a Model *WITH* Components
 -----------------------------------
 
 We now build the same exact model but we take advantage of Landlab's pre-built
-linear diffusion component.  To download the code for this model, click HERE!!!
+linear diffusion component.  The code for the fault-scarp model without components (XXXXXX) and with components (XXXXXXX), can be found in the zip file of code examples at https://github.com/landlab/drivers/archive/master.zip.
 
 
 For more information about using the ModelGrid module, see :ref:`model_grid_description`.
