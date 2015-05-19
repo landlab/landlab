@@ -283,3 +283,66 @@ In a *VoronoiDelaunay* grid, a set of node coordinates is given as an initial co
 Delaunay triangulation, so that the links between nodes are the edges of the triangles, and the cells are Voronoi polygons. A *HexModelGrid* is a special type of *VoronoiDelaunay* grid in which the Voronoi cells happen to be regular hexagons. In a *RadialModelGrid*, nodes
 are created in concentric circles and then connected to form a Delaunay triangulation (again with Voronoi polygons as cells). The next example illustrates the use of a 
 *RadialModelGrid*.
+
+Importing a DEM
+===============
+
+
+Plotting and Visualization
+==========================
+
+Visualising a Grid
+------------------
+
+Landlab offers a set of matplotlib-based plotting routines for your data. These exist in the landlab.plot library. You’ll also need to import some basic plotting functions from pylab (or matplotlib) to let you control your plotting output: at a minimum *show* and *figure*. The most useful function is called *imshow_node_grid*, and is imported and used as follows:
+
+>>> from landlab.plot.imshow import imshow_node_grid
+>>> from pylab import show, figure
+>>> mg = RasterModelGrid(50,50, 1.) #make a grid to plot
+>>> z = mg.node_x *0.1 #make an arbitrary sloping surface
+>>> mg.add_field(‘node’, ‘topographic_elevation’, z, units=’meters’, copy=True) #create the data as a field
+>>> figure(‘Elevations from the field’) #new fig, with a name
+>>> imshow_node_grid(mg, ‘topographic_elevation’)
+>>> figure(‘You can also use values directly, not fields’) #...but you’ll lose the units, figure naming, etc when you do
+>>> imshow_node_grid(mg, z)
+>>> show()
+
+Note that imshow_node_grid is clever enough to examine the grid object you pass it, work out whether the grid is irregular or regular, and plot the data appropriately.
+
+By default, Landlab uses a Python colormap called ‘pink’. This was a deliberate choice to improve Landlab’s user-friendliness to the colorblind in the science community. Nonetheless, you can easily override this colorscheme using the keyword “cmap” as an argument to imshow_node_grid. Other useful built in colorschemes are ‘bone’ (black to white), ‘Blues’ (white to blue), and ‘terrain’ (blue-green-brown-white) (note these names are case sensitive). See http://matplotlib.org/examples/color/colormaps_reference.html for more options. Note that imshow_node_grid takes all of the same keyword arguments as the standard matplotlib function “imshow” (XXX LINK).
+
+Visualising transects through your data
+---------------------------------------
+
+If you are working with a regular grid, it is trivial to plot horizontal and vertical sections through your data. The grid provides the method node_vector_to_raster, which will turn a Landlab 1D node data array into a two dimensional rows*columns numpy array, which you can then take slices of. e.g., we can do this:
+
+>>> from pylab import plot, show
+>>> mg = RasterModelGrid(10,10, 1.)
+>>> z = mg.node_x *0.1
+>>> my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
+>>> my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
+>>> plot(my_ycoords, my_section)
+>>> show()
+
+
+Visualizing river profiles
+--------------------------
+
+Landlab provides a (still somewhat experimental) basic stream profiler. It is also found in the landlab.plot.channel_profile library. The key function is called *analyze_channel_network_and_plot*, though you can also call the functions in channel_profile individually. It was designed to interface with the flow_routing Landlab component, and assumes you already have most of the fields that that component produces in your grid (i.e., 'topographic_elevation', 'drainage_area', ''flow_receiver', and 'links_to_flow_receiver'). It can also take three additional arguments:
+
+* *number_of_channels* - an integer giving how many stream channels you want to extract from the grid, default 1;
+* *starting_nodes* - the ID, or list or array of IDs (per number_of_channels), of the node at which the outlet of the channel you want to profile is at. Default is None, which tells the profiler to start from the number_of_channels nodes with the highest drainage areas that are boundary nodes;
+* *threshold* - the threshold drainage area (in drainage area units, not pixels) to stop tracing the channels upstream. Defaults to None, which tells the profiler to apply a threshold of twice the smallest cell area in the grid.
+
+The profiler will add a plot of elevation vs distance upstream to the currently active figure each time it is called. It also returns a 2-item tuple containing 1. a number_of_channels-long list of arrays of profile IDs in each stream, arranged in upstream order, and 2. a number_of_channels-long list of arrays of distances of those nodes upstream. In this way, you can extract drainage areas or other pertinent surface metrics to use with a call to pylab.plot to get, e.g., slope-area, elevation-drainage area, etc plots.
+
+See the tutorial XXXXXXXX for an example of the profiler in use.  (Tutorials available from  https://github.com/landlab/drivers/archive/master.zip.)
+
+Please let the development team know if you would like a better profiler, or better yet, have coded one up for Landlab yourself and would like to contribute it!
+
+Making Movies
+-------------
+
+Landlab does have an experimental movie making component. However, it has come to the developers’ attention that the matplotlib functions it relies on in turn demand that your machine already has installed one of a small set of highly temperamental open source video codecs. It is quite likely using the component in its current form is more trouble than it’s worth; however, the brave can take a look at the library landlab.plot.video_out. We intend to improve video out in future Landlab releases.
+
+For now, we advocate the approach of creating an animation by saving separately individual plots from, e.g., plot() or imshow_node_grid, then stitching them together into, e.g., a gif using external software. Note it’s possible to do this directly from Preview on a Mac.
