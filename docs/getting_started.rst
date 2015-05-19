@@ -12,9 +12,9 @@ In the first example, we will build a 2D model of the erosional degradation of a
 through the process of linear diffusion.  Conveniently Landlab already has a component that will
 calculate erosion rates due to linear diffusion, but in this example we do not take advantage of
 Landlab's pre-built diffusion component.  After building this model without a component, we then
-contrast what the model would look like when using the pre-built component.  (LINK HERE!!!!)
+contrast what the model would look like when using the pre-built component (see :ref:`diffusion_model_with_components`).
 
-To download the code for the fault-scarp model without components, click HERE!!!
+The code for the fault-scarp model without components (XXXXXX) and with components (XXXXXXX), can be found in the zip file of code examples at https://github.com/landlab/drivers/archive/master.zip.
 
 Note that ``>>>`` implies that we are on the command line in canopy, or your favorite python 
 frontend.  We start by importing Numpy and Landlab's RasterModelGrid class:
@@ -114,6 +114,8 @@ Here is the resulting image:
 
 .. image:: images/degraded_scarp.png
    :align: center
+
+.. _diffusion_model_with_components:
 
 Building a Model *WITH* Components
 -----------------------------------
