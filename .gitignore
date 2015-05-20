@@ -69,4 +69,5 @@ test-results.xml
 !docs/**/*.png
 installfiles.txt
 
-landlab/components/flexure/cfuncs.c
+# Ignore all .c files as, currently, they are all cython generated.
+*.c
