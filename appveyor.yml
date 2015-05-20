@@ -3,21 +3,9 @@ environment:
   global:
     PYTHON: "C:\\conda"
     MINICONDA_VERSION: "3.5.5"
-    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
-    # /E:ON and /V:ON options are not enabled in the batch script intepreter
-    # See: http://stackoverflow.com/a/13751649/163740
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     PYTHON_VERSION: "2.7"
     NUMPY_VERSION: "1.9.1"
-
-#  matrix:
-#    - PYTHON_VERSION: "2.7"
-#      NUMPY_VERSION: "1.9.1"
-#      #PYTHON_ARCH: "32"
-#
-#    - PYTHON_VERSION: "2.7"
-#      NUMPY_VERSION: "1.9.1"
-#      #PYTHON_ARCH: "64"
 
 platform:
   - x64
@@ -35,7 +23,6 @@ install:
   - "python --version"
   - "conda install -q --yes numpy=%NUMPY_VERSION% pip jinja2 scipy nose>=1.3 matplotlib netCDF4 sympy pandas Cython"
   - "pip install wheel"
-  #- python setup.py install
   - "%WITH_COMPILER% python setup.py install"
 
 build: false
