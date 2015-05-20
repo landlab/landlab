@@ -67,3 +67,6 @@ test-results.xml
 
 *.png
 !docs/**/*.png
+installfiles.txt
+
+landlab/components/flexure/cfuncs.c
