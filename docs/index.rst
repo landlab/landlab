@@ -104,15 +104,6 @@ reproduced here in a tree reflecting Landlab's file structure.
    landlab
 
 
-Bibliography
-============
-
-.. toctree::
-   :maxdepth: 2
-
-   bibiography
-
-
 Reference
 =========
 
