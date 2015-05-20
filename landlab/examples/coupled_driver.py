@@ -52,14 +52,14 @@ for i in xrange(nt):
     #note the input arguments here are not totally standardized between modules
     #mg = diffuse.diffuse(mg, i*dt)
     mg = lin_diffuse.diffuse(mg, dt)
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     mg = sp.erode(mg)
     
     ##plot long profiles along channels
     pylab.figure(6)
-    profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+    profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-    dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+    dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
     prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
 
@@ -73,7 +73,7 @@ print 'Completed the simulation. Plotting...'
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = imshow_node_grid(mg, 'water_discharges', cmap='PuBu')  # display a colored image
+im = imshow_node_grid(mg, 'water__volume_flux', cmap='PuBu')  # display a colored image
 
 pylab.figure(2)
 im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
@@ -89,7 +89,7 @@ im = pylab.plot(mg.dx*np.arange(ncols), elev_r[int(nrows//4),:])
 pylab.title('E-W cross_section')
 
 drainage_areas = mg['node']['drainage_area'][mg.get_interior_nodes()]
-steepest_slopes = mg['node']['steepest_slope'][mg.get_interior_nodes()]
+steepest_slopes = mg['node']['topographic__steepest_slope'][mg.get_interior_nodes()]
 pylab.figure(5)
 pylab.loglog(drainage_areas, steepest_slopes, 'x')
 pylab.xlabel('Upstream drainage area, m^2')

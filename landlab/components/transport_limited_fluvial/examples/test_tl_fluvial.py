@@ -66,18 +66,18 @@ for i in xrange(nt):
     #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic_elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)
     #max_slope = np.max(np.fabs(neighbor_slopes),axis=1)
-    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')
+    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='topographic__steepest_slope')
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes=max_slope)
     mg_copy = deepcopy(mg)
     mg,_ = tl.erode(mg,dt,stability_condition='loose')
     if i%20 == 0:
         print 'loop ', i
         print 'subdivisions of dt used: ', tl.iterations_in_dt
-        print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
+        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                         mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
     #mg.update_boundary_nodes()

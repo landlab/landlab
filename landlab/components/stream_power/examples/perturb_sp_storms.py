@@ -73,7 +73,7 @@ except NameError:
         if rainfall_rate != 0.:
             mg = fr.route_flow(grid=mg, runoff_rate=rainfall_rate)
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water_discharges', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
         #add uplift
         mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
@@ -98,16 +98,16 @@ if True:
         if rainfall_rate != 0.:
             mg = fr.route_flow(grid=mg, runoff_rate=rainfall_rate)
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water_discharges', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
     
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
             print 'saving a plot at perturbed loop ', out_interval*this_trunc
             pylab.figure("long_profiles")
-            profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+            profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-            dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+            dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
             last_trunc=this_trunc
@@ -136,7 +136,7 @@ im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a co
 pylab.title('Vertical cross section')
 
 pylab.figure("Slope-Area")
-im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['steepest_slope'],'.')
+im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['topographic__steepest_slope'],'.')
 pylab.title('Slope-Area')
 
 pylab.show()

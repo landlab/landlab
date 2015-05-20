@@ -167,7 +167,7 @@ class StreamPowerEroder(object):
             node_drainage_areas='drainage_area', 
             flow_receiver='flow_receiver',
             node_order_upstream='upstream_ID_order',
-            slopes_at_nodes='steepest_slope',
+            slopes_at_nodes='topographic__steepest_slope',
             link_node_mapping='links_to_flow_receiver', 
             link_slopes=None, slopes_from_elevs=None, 
             W_if_used=None, Q_if_used=None, K_if_used=None):

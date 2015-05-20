@@ -52,7 +52,7 @@ while elapsed_time < time_to_run:
         dt = time_to_run - elapsed_time
     mg = fr.route_flow(grid=mg)
     #mg = fsp.erode(mg)
-    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
+    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
     mg.at_node['surface_load__stress'] = (mg.at_node['topographic_elevation']+1000)*rock_stress_param
     gf.flex_lithosphere()
     mg.at_node['topographic_elevation'][mg.number_of_nodes//4:3.*mg.number_of_nodes//4] += uplift_perstep
