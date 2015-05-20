@@ -23,12 +23,30 @@ def assert_array_size_matches(array, size, msg=None):
 def imshow_node_grid(grid, values, **kwds):
     """
     Prepares a map view of data over all nodes in the grid.
-    Method can take any of the same **kwds as imshow().
+    
+    Data is plotted with the surrounding cell shaded with the value
+    at the node at its center. Outer edges of perimeter cells are 
+    extrapolated.
     
     requires:
     grid: the grid
     values: the values on the nodes (length nnodes), or a field name (string)
     from which t draw the data.
+    
+    Keyword options are:
+    var_name=None (defaults to field name),
+    var_units=None (defaults to field units),
+    grid_units=(None, None) (defaults to grid units),
+    symmetric_cbar=False,
+    cmap='pink', 
+    limits=None (limits on the colorbar),
+    allow_colorbar=True,
+    norm=None (for the colorbar),
+    shrink=1. (for the colorbar).
+    
+    Use matplotlib functions like xlim, ylim to modify your
+    plot after calling imshow_node_grid, as desired.
+    
     """
     if type(values) == str:
         value_str = values
