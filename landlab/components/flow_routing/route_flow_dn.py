@@ -19,8 +19,8 @@ from landlab.components.flow_routing import flow_direction_DN
 #reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError
+from landlab import ModelParameterDictionary
 import numpy
-from scipy import weave
 #from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
