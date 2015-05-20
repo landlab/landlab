@@ -60,10 +60,10 @@ Landlab Grid Data Structures
 
 Quick links to the landlab grid data structures:
 
-* :class:`~.RasterModelGrid`
-* :class:`~.HexModelGrid`
-* :class:`~.RadialModelGrid`
-* :class:`~.VoronoiDelaunayGrid`
+* :class:`landlab.grid.raster.RasterModelGrid`
+* :class:`landlab.grid.hex.HexModelGrid`
+* :class:`landlab.grid.radial.RadialModelGrid`
+* :class:`landlab.grid.voronoi.VoronoiDelaunayGrid`
 
 
 BELOW HERE IS ALL OLD STUFF
