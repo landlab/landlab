@@ -54,6 +54,18 @@ Building a Model
    
    working_with_landlab
 
+
+Landlab Grid Data Structures
+----------------------------
+
+Quick links to the landlab grid data structures:
+
+* :class:`~.RasterModelGrid`
+* :class:`~.HexModelGrid`
+* :class:`~.RadialModelGrid`
+* :class:`~.VoronoiDelaunayGrid`
+
+
 BELOW HERE IS ALL OLD STUFF
 ---------------------------
 
@@ -95,14 +107,6 @@ Code Documentation
 These webpages are auto-generated from Landlab, and list all available
 functions, methods, and properties. All available documentation in the code is
 reproduced here in a tree reflecting Landlab's file structure.
-
-.. toctree::
-   :maxdepth: 2
-
-   landlab.grid.base
-   landlab.grid.raster
-   landlab
-
 
 Reference
 =========
