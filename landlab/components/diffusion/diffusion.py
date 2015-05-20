@@ -80,7 +80,7 @@ class DiffusionComponent(object):
         except MissingKeyError:
             self.uplift_rate = inputs.read_float('uplift_rate')
         try:
-            self.values_to_diffuse = inputs.read_str('values_to_diffuse')
+            self.values_to_diffuse = inputs.read_string('values_to_diffuse')
         except MissingKeyError:
             self.values_to_diffuse = 'topographic_elevation'
         try:
