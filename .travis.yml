@@ -8,18 +8,18 @@ os:
 
 install:
   - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
-  - bash .travis/install_python.sh
+  - bash .ci/travis/install_python.sh
   - export PATH="$HOME/miniconda/bin:$PATH"
   - source activate test-env
   - pip install coveralls
   - if [[ "$TRAVIS_PYTHON_VERSION" == 3.* ]]; then
-      bash .travis/convert_to_python_3.sh;
+      bash .ci/travis/convert_to_python_3.sh;
     fi
   - python setup.py install
 
 script: 
   - (cd docs && make html 2> /dev/null)
-  - bash .travis/run_travis_test.sh
+  - bash .ci/travis/run_travis_test.sh
 
 virtualenv:
   system_site_packages: false

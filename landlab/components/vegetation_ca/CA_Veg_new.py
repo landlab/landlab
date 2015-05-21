@@ -98,10 +98,8 @@ class VegCA(Component):
                                     np.where(VegType==TREE)[0].shape)
         tp[VegType == SHRUB] = np.random.randint(0,self._tpmax_sh,
                                     np.where(VegType==SHRUB)[0].shape)
-        tp[VegType == TREESEEDLING] = np.random.randint(0,self._tpmax_tr_s,
-                                    np.where(VegType==TREESEEDLING)[0].shape)
-        tp[VegType == SHRUBSEEDLING] = np.random.randint(0,self._tpmax_sh_s,
-                                    np.where(VegType==SHRUBSEEDLING)[0].shape)
+        VegType[tp[VegType == TREE] < self._tpmax_tr_s] = TREESEEDLING
+        VegType[tp[VegType == SHRUB] < self._tpmax_sh_s] = SHRUBSEEDLING
         grid['cell']['PlantAge'] = tp
 
 

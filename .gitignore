@@ -58,12 +58,19 @@ docs/_build/
 *.swp
 *.swo
 
-landlab/test.pdf
 test-results.xml
 
 *.gif
 
 *.p
 
+*.pdf
+!docs/**/*.pdf
+
 *.png
 !docs/**/*.png
+
+installfiles.txt
+
+# Ignore all .c files as, currently, they are all cython generated.
+*.c

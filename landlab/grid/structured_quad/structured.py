@@ -56,7 +56,7 @@ class StructuredQuadGrid(BaseGrid):
 
         if node_status is None:
             self._status = nodes.status_with_perimeter_as_boundary(
-                self.shape, status_on_perimeter=FIXED_VALUE_BOUNDARY)
+                self.shape, node_status=FIXED_VALUE_BOUNDARY)
         else:
             self._status = node_status
 

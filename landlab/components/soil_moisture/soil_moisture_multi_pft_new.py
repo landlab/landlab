@@ -78,9 +78,9 @@ class SoilMoisture( Component ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
-          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
+          kwds.pop('VEGTYPE', self.grid['cell']['VegetationType'])
         self._runon = kwds.pop('RUNON', 0.)
-        self._fbare = kwds.pop('F_BARE', 0.7)
+        self._fbare = kwds.pop('F_BARE', data['F_BARE'])
 
         self._interception_cap = \
                 np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',
@@ -96,7 +96,7 @@ class SoilMoisture( Component ):
         self._soil_Iv = np.choose(self._vegtype, kwds.pop('I_V',
                 [ data['I_V_grass'], data['I_V_shrub'], data['I_V_tree'],
                   data['I_V_bare'], data['I_V_shrub'], data['I_V_tree'] ]))     # Infiltration capacity of vegetated soil (mm/h)
-        self._soil_Ew = kwds.pop('EW', [0.1])
+        self._soil_Ew = kwds.pop('EW', 0.1)
         self._soil_pc = np.choose(self._vegtype, kwds.pop('PC',
                 [ data['PC_grass'], data['PC_shrub'], data['PC_tree'],
                   data['PC_bare'], data['PC_shrub'], data['PC_tree'] ]))        # Soil porosity
@@ -119,6 +119,10 @@ class SoilMoisture( Component ):
                 [ data['LAI_MAX_grass'], data['LAI_MAX_shrub'],
                    data['LAI_MAX_tree'], data['LAI_MAX_bare'],
                    data['LAI_MAX_shrub'], data['LAI_MAX_tree'] ]))              # Maximum leaf area index (m2/m2)
+        self._LAIR_max = np.choose( self._vegtype, kwds.pop('LAIR_MAX',
+                [ data['LAIR_MAX_grass'], data['LAIR_MAX_shrub'],
+                   data['LAIR_MAX_tree'], data['LAIR_MAX_bare'],
+                   data['LAIR_MAX_shrub'], data['LAIR_MAX_tree'] ]))            # Reference leaf area index (m2/m2)
 
 
     def update( self, current_time, **kwds ):
@@ -134,7 +138,13 @@ class SoilMoisture( Component ):
         self._S = self._cell_values['SaturationFraction']
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
-        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAI_max
+        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAIR_max
+        #LAIl = self._cell_values['LiveLeafAreaIndex']
+        #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
+        #if LAIt.all() == 0.:
+        #    self._fr = np.zeros(self.grid.number_of_cells)
+        #else:            
+        #    self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
@@ -149,17 +159,20 @@ class SoilMoisture( Component ):
             ZR = self._zr[cell]
             pc = self._soil_pc[cell]
             fc = self._soil_fc[cell]
-            sc = self._soil_sc[cell]
+            scc = self._soil_sc[cell]
             wp = self._soil_wp[cell]
             hgw = self._soil_hgw[cell]
             beta = self._soil_beta[cell]
-
-
+            if self._vegtype[cell] == 0:   # 0 - GRASS
+                sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
+            else:
+                sc = scc
+                
             Inf_cap = self._soil_Ib[cell]*(1-self._vegcover[cell]) +         \
                                     self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
-                            P*self._vegcover[cell])  # Interception capacity
+                            P)#*self._vegcover[cell])  # Interception capacity
             Peff = max(P-Int_cap, 0.)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell]
@@ -167,7 +180,7 @@ class SoilMoisture( Component ):
                                     - Int_cap, 0.0001)  # mm/d
             self._ETmax[cell] = Ep
             nu = ((Ep/24.)/1000.)/(pc*ZR) # Loss function parameter
-            nuw = ((Ep*0.1/24.)/1000.)/(pc*ZR) # Loss function parameter
+            nuw = ((self._soil_Ew/24.)/1000.)/(pc*ZR) # Loss function parameter
             sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.))
 
             if sini>1.:

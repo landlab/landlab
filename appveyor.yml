@@ -1,0 +1,67 @@
+environment:
+
+  global:
+    PYTHON: "C:\\conda"
+    MINICONDA_VERSION: "3.5.5"
+    WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
+    PYTHON_VERSION: "2.7"
+    NUMPY_VERSION: "1.9.1"
+
+platform:
+  - x64
+  - x86
+
+init:
+  - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
+
+install:
+  - "powershell .\\.ci\\appveyor\\install-miniconda.ps1"
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "conda update --yes conda"
+  - "conda create -q --yes -n test python=%PYTHON_VERSION%"
+  - "activate test"
+  - "python --version"
+  - "conda install -q --yes numpy=%NUMPY_VERSION% pip jinja2 scipy nose>=1.3 matplotlib netCDF4 sympy pandas Cython"
+  - "pip install wheel"
+  - "%WITH_COMPILER% python setup.py install"
+
+build: false
+
+test_script:
+  # Build and test the package. This appears(?) to sporadically fail due to a 
+  # bug in conda-build on 32 bit python.
+  # https://github.com/conda/conda-build/issues/152
+  #
+  # Note also that our setup.py script, which is called by conda-build, writes
+  # a __conda_version__.txt file, so the version number on the binary package
+  # is set dynamically. This unfortunately mean that conda build --output
+  # doesn't really work.
+  #
+  - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
+  #- "%CMD_IN_ENV% python scripts//test-installed-landlab.py"
+  #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
+  # Move the conda package into the current directory, to register it
+  # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
+  # we'll use a simple python script.
+  #- python .ci\move-conda-package.py conda-recipe
+
+after_test:
+  - "%WITH_COMPILER% python setup.py bdist_wheel"
+
+artifacts:
+  # Archive the generated conda package in the ci.appveyor.com build report.
+  - path: 'dist\*'
+
+#on_success:
+#  # Upload built binaries to binstar.org. The globbing and handling of the
+#  # exit-status code is tricky in cmd.exe or powershell, so we're just using
+#  # a python script.
+#  - python setupy.py bdist_wheel
+
+deploy:
+  provider: FTP
+  protocol: ftp
+  host: csdms.colorado.edu
+  username: anonymous
+  password: appveyor@appveyor.com
+  folder: incoming/huttone/

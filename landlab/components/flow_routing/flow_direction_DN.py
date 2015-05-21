@@ -197,29 +197,16 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     #as of Dec 2014, we prioritise the weave if a weave is viable, and only do 
     #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
     #presumably better if the grid is bigger)
-    if use_weave:
-        n_nodes = len(fromnode)
-        code="""
-            int f;
-            int t;
-            for (int i=0; i<n_nodes; i++) {
-                f = fromnode[i];
-                t = tonode[i];
-                if (elev[f]>elev[t] && link_slope[i]>steepest_slope[f]) {
-                    receiver[f] = t;
-                    steepest_slope[f] = link_slope[i];
-                    receiver_link[f] = active_links[i];
-                }
-                else if (elev[t]>elev[f] && -link_slope[i]>steepest_slope[t]) {
-                    receiver[t] = f;
-                    steepest_slope[t] = -link_slope[i];
-                    receiver_link[t] = active_links[i];
-                }
-            }
-        """
-        weave.inline(code, ['n_nodes', 'fromnode', 'tonode', 'elev', 
-                            'link_slope', 'steepest_slope', 'receiver', 
-                            'receiver_link', 'active_links'])
+    method = 'weave'
+    if method in ('cython', 'weave'):
+        if method == 'cython':
+            from .cfuncs import adjust_flow_receivers
+        elif method == 'weave':
+            from .weavefuncs import adjust_flow_receivers
+
+        adjust_flow_receivers(fromnode, tonode, elev, link_slope,
+                              active_links, receiver, receiver_link,
+                              steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
             #print "looped method"

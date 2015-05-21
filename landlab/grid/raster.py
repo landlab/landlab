@@ -149,6 +149,31 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
             for loc in ['bottom', 'left', 'top', 'right']]
 
 
+def _old_style_args(args):
+    return len(args) in (2, 3) and isinstance(args[0], int)
+
+
+def _parse_grid_shape_from_args(args):
+    if _old_style_args(args):
+        rows, cols = args[0], args[1]
+    else:
+        try:
+            (rows, cols) = args[0]
+        except ValueError:
+            raise ValueError('grid shape must be tuple')
+    return rows, cols
+
+
+def _parse_grid_spacing_from_args(args):
+    try:
+        if _old_style_args(args):
+            return args[2]
+        else:
+            return args[1]
+    except IndexError:
+        return None
+
+
 class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     """A 2D uniform rectilinear grid.
 
@@ -163,12 +188,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     Parameters
     ----------
-    num_rows : int
-        Number of rows of nodes.
-    num_cols : int
-        Number of columns of nodes.
-    dx : float, optional
-        Node spacing.
+    shape : tuple of int
+        Shape of the grid in nodes.
+    spacing : float, optional
+        Row and column node spacing.
     bc : dict, optional
         Edge boundary conditions.
 
@@ -179,7 +202,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     nodes to core nodes are *active*.
 
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> rmg = RasterModelGrid((4, 5), 1.0)
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -188,11 +211,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals.size
     17
 
-
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
 
-    >>> rmg = RasterModelGrid(4, 5, 1.0, bc={'top': 'closed'})
+    >>> rmg = RasterModelGrid((4, 5), 1.0, bc={'top': 'closed'})
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -201,7 +223,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals.size
     14
     """
-    def __init__(self, num_rows=0, num_cols=0, dx=1.0, **kwds):
+    def __init__(self, *args, **kwds):
         """Create a 2D grid with equal spacing.
 
         Optionally takes numbers of rows and columns and cell size as
@@ -211,12 +233,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        num_rows : int
-            Number of rows of nodes.
-        num_cols : int
-            Number of columns of nodes.
-        dx : float, optional
-            Node spacing.
+        shape : tuple of int
+            Shape of the grid in nodes.
+        spacing : float, optional
+            Row and column node spacing.
+        bc : dict, optional
+            Edge boundary conditions.
 
         Returns
         -------
@@ -230,10 +252,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
+        dx = kwds.pop('dx', None)
+        num_rows = kwds.pop('num_rows', None)
+        num_cols = kwds.pop('num_cols', None)
+
+        if num_rows is None and num_cols is None:
+            num_rows, num_cols = _parse_grid_shape_from_args(args)
+        elif len(args) > 0:
+            raise ValueError(
+                'number of args must be 0 when using keywords for grid shape')
+
+        if dx is None:
+            dx = kwds.pop('spacing', _parse_grid_spacing_from_args(args) or 1.)
+
+
         # Set number of nodes, and initialize if caller has given dimensions
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
-            self._initialize(num_rows, num_cols, dx)
+            self._initialize(num_rows, num_cols, float(dx))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -4354,13 +4390,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def save(self, path, names=None, format=None):
         """Save a grid and fields.
+        
+        If more than one field name is specified for names when saving to ARC
+        ascii, multiple files will be produced, suffixed with the field names.
+        
+        When saving to netCDF (.nc), the fields are incorporated into the 
+        single named .nc file.
 
         Parameters
         ----------
         path : str
             Path to output file.
         names : iterable of strings, optional
-            List of field names to save.
+            List of field names to save, defaults to all if not specified.
         format : {'netcdf', 'esri-ascii'}, optional
             Output file format. Guess from file extension if not given.
 
@@ -4379,33 +4421,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('format not understood')
 
-
-def _guess_format_from_name(path):
-    import os
-
-    fname = os.path.basename(path)
-
-    if fname.endswith('.nc'):
-        return 'netcdf'
-    elif fname.endswith('.asc'):
-        return 'esri-ascii'
-    else:
-        return None
-
-
-def _add_format_extension(path, format):
-    import os
-
-    (base, ext) = os.path.splitext(path)
-    if format == 'netcdf':
-        ext = '.nc'
-    elif format == 'esri-ascii':
-        ext = '.asc'
-    return base + ext
-
-    def get_looped_cell_neighbor_list( self, *args ):
-        """
-        Get list of looped neighbor cell IDs (all 8 neighbors).
+    def get_looped_cell_neighbor_list(self, *args):
+        """Get list of looped neighbor cell IDs (all 8 neighbors).
         
         Returns lists of looped neighbor cell IDs of given *cell ids*.
         If *cell ids* are not given, it returns a 2D array of size
@@ -4424,10 +4441,8 @@ def _add_format_extension(path, format):
                                     self.create_looped_cell_neighbor_list()
             return(self.get_looped_cell_neighbor_list( *args ))
                 
-    
-    def create_looped_cell_neighbor_list( self ):
-        """
-        Creates list of looped immediate cell neighbors (8 adjacent cells). 
+    def create_looped_cell_neighbor_list(self):
+        """Create a list of looped immediate cell neighbors (8 adjacent cells). 
         
         Creates a list of looped immediate cell neighbors (*cell ids*) for each 
         cell as a 2D array of size ( self.number_of_cells, 8 ).
@@ -4492,7 +4507,6 @@ def _add_format_extension(path, format):
         self.looped_cell_neighbor_list_created = True
         return looped_cell_neighbors
 
-
     def get_second_ring_looped_cell_neighbor_list( self, *args ):
         """
         Get list of second ring looped neighbor cell IDs (all 16 neighbors).
@@ -4513,7 +4527,6 @@ def _add_format_extension(path, format):
             self.second_ring_looped_cell_neighbor_list =                                 \
                             self.create_second_ring_looped_cell_neighbor_list()
             return(self.get_second_ring_looped_cell_neighbor_list( *args ))
-                
 
     def create_second_ring_looped_cell_neighbor_list( self ):
         """
@@ -4540,12 +4553,35 @@ def _add_format_extension(path, format):
     
 
 def _is_closed_boundary(boundary_string):
-    '''
+    """
     Helper function, probably depreciated due to changes in BC handling
     procedures (DEJH, May 14).
-    '''
-
+    """
     return boundary_string.lower() == 'closed'
+
+
+def _guess_format_from_name(path):
+    import os
+
+    fname = os.path.basename(path)
+
+    if fname.endswith('.nc'):
+        return 'netcdf'
+    elif fname.endswith('.asc'):
+        return 'esri-ascii'
+    else:
+        return None
+
+
+def _add_format_extension(path, format):
+    import os
+
+    (base, ext) = os.path.splitext(path)
+    if format == 'netcdf':
+        ext = '.nc'
+    elif format == 'esri-ascii':
+        ext = '.asc'
+    return base + ext
 
 
 def from_dict(param_dict):

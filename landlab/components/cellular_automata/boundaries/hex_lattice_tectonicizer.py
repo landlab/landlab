@@ -276,8 +276,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             if len(indices)>0:
                 self.node_state[indices] = self.node_state[indices-(self.nr+row_offset)]
                 if self.propid is not None:
-                    #print 'replacing nodes',indices,'with',indices-(self.nr+row_offset)
+                    #print 'in col',c,'replacing nodes',indices,'with',indices-(self.nr+row_offset)
+                    #if c==2:
+                        #print 'node 18 propid changing from',self.propid[18],'(',self.prop_data[self.propid[18]],')'
                     self.propid[indices] = self.propid[indices-(self.nr+row_offset)]
+                    #if c==2:
+                        #print '    to',self.propid[18],'(',self.prop_data[self.propid[18]],')'
 
         if self.propid is not None:
             self.propid[self.incoming_node] = propids_for_incoming_nodes
