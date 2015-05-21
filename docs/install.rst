@@ -162,12 +162,12 @@ With GitHub GUI
     
 #. Finally, test everything worked. From the same command line, type::
     
-        python
+       > python
     
    An interactive Python window will open in the command line; the prompt will look like
    ``>>>``. From here, enter::
     
-        import landlab
+        >>> import landlab
     
    If you are returned to the >>> prompt after a few moments, everything is fine. If you
    see an error message, you might have some problems with your install. See the 
@@ -176,7 +176,7 @@ With GitHub GUI
    
    Leave the Python shell by typing::
    
-        exit()
+        >>> exit()
       
 
 .. _command-line-install:
