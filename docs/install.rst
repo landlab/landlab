@@ -85,7 +85,32 @@ Classroom Version
 
 If you are new to Landlab and just want to try it out, we recomend installing the latest release package. This is a quick and easy way to get a non-updateable snapshot of Landlab.  Installing the release package is ideal for users in a classroom or Landlab clinic.  The code behind Landlab will not be visable to the user with this installation method.
 
-MORE STUFF HERE FROM JORDAN!
+Installing Landlab on Macintosh OS X Yosemite (Version 10.10.3) using Enthought Canopy
+______________________________________________________________________________________
+
+If you don't have Canopy, start here:
+
+- Download a version of Canopy here: https://www.enthought.com/products/canopy/. Note, to receive a full version, which contains all necessary libraries for a clean Landlab install, a purchased version or a free academic license is required. (See more information here: https://store.enthought.com/ - canopy-academic).
+
+Once you have Canopy installed::
+
+- Open the Python editor by clicking on the Canopy icon.
+-	On the “Welcome to Canopy” window, log in to your Enthought Account. This will give you access to the package manager and required subpackages. 
+- On the Canopy toolbar, go to Tools → Package Manager to install required dependencies.
+- In the Package Manager, search for and install the following libraries::
+  **pip 6.1.1-1**
+  **netCDF4 1.1.7.1-2**
+-	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
+- Now to install Landlab! On the command line, enter the following command::
+  > pip install landlab
+- 8.	Once Landlab has been successfully installed, on the Python shell line in the Canopy editor window, check to make sure it is up-to-date::
+  >>> import landlab
+  >>> landlab.__version__
+The output version should be::
+  ``0.1.12``
+
+
+
 
 Developer Installation - Installing from Source Code
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -200,7 +225,7 @@ With Git
    `setup.py`). From your likely current location this will probably just be 
    ``cd landlab``. From here, enter::
 
-    python setup.py develop
+    > python setup.py develop
 
 #. Finally, test everything worked. From the same command line, type::
     
