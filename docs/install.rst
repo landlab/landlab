@@ -96,11 +96,7 @@ Once you have Canopy installed:
 - Open the Python editor by clicking on the Canopy icon.
 -	On the “Welcome to Canopy” window, log in to your Enthought Account. This will give you access to the package manager and required subpackages. 
 - On the Canopy toolbar, go to Tools → Package Manager to install required dependencies.
-- In the Package Manager, search for and install the following libraries::
-  
-  pip 6.1.1-1
-  netCDF4 1.1.7.1-2
-  
+- In the Package Manager, search for and install the **pip 6.1.1-1** and **netCDF4 1.1.7.1-2** libraries.
 -	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
 - Now to install Landlab! On the command line, enter the following command::
 
