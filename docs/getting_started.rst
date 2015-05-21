@@ -192,7 +192,7 @@ Note that in order to initialize an object of type ``DiffusionComponent``, a gri
 
 In this case *DIFMOD_KD*, *uplift_rate*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
 
-Note that in the model without a component, we calculated *dt* in the model.  Here we are inputting *dt*.  Also, the diffusion model will add uplift to the values (or any kind of source), and so we have entered an uplift rate of zero to make it consistent with the previous example.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Similarly, the ``uplift_rate`` in that case could be a rate of heat addition to the system from some outside source.
+Note that in the model without a component, we calculated *dt* in the model.  Here we are inputting *dt*.  Also, the diffusion model will add uplift to the values (or any kind of source), and so we have entered an uplift rate of zero to make it consistent with the previous example.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation values.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Similarly, the ``uplift_rate`` in that case could be a rate of heat addition to the system from some outside source.
 
 Setting the boundary conditions is the same between the two models. 
 
@@ -200,6 +200,6 @@ The evolution loop in the model with the component is much shorter than the loop
 
 >>> mg = linear_diffuse.diffuse(mg)
 
-Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
+The ``diffuse`` method essentially does everything that was typed out explicitely in the example without a component.  Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
 
 Plotting the final landscape is the same between the two models and the result should be exactly the same between the two example models.
