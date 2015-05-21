@@ -85,8 +85,7 @@ Classroom Version
 
 If you are new to Landlab and just want to try it out, we recomend installing the latest release package. This is a quick and easy way to get a non-updateable snapshot of Landlab.  Installing the release package is ideal for users in a classroom or Landlab clinic.  The code behind Landlab will not be visable to the user with this installation method.
 
-Installing Landlab on Macintosh OS X Yosemite (Version 10.10.3) using Enthought Canopy
-______________________________________________________________________________________
+**Installing Landlab on Macintosh OS X Yosemite (Version 10.10.3) using Enthought Canopy**
 
 If you don't have Canopy, start here:
 
