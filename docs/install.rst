@@ -44,7 +44,7 @@ On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution, such as `Continuum IO's Anaconda
 <https://store.continuum.io/cshop/anaconda/>`_ or `Enthought's Canopy
 <https://www.enthought.com/products/canopy/>`_ (we prefer to use Anaconda but
-any of these should be fine). Download and follow the appropriate instructions 
+either of these should be fine). Download and follow the appropriate instructions 
 for your operating system/distribution. These collections already include compatible
 (and in some cases accelerated) versions of all of landlab's dependencies. When the
 distribution asks if you want to set it as the default Python for your system, say yes.
@@ -62,8 +62,12 @@ installed.)
 
 Once you have a full Python distribution on your machine, it is vital to check that
 it has been successfully set as the default copy of Python on your system. Open a command
-prompt (Terminal on a Mac, or Command Prompt on a PC) and type ``which python``, then
-``which ipython``. In each case, path should be the same (except the (i)python at the 
+prompt (Terminal on a Mac, or Command Prompt on a PC) and type the lines below (note the ``>>>`` indicates that you are on a command line).
+
+>>> which python
+>>> which ipython 
+
+In each case, path should be the same (except the (i)python at the 
 end), and it should clearly refer to Canopy or Anaconda. Details will depend on your
 operating system. For instance, Dan's Macbook Pro gives::
 
