@@ -169,42 +169,6 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> rl[3:8]
     array([        15, 2147483647,          1,          6,          2])
 
-    *Example 2*
-
-    This example implements a simple routing on a (4,5) raster grid with the
-    following node elevations::
-
-        5 - 5 - 5 - 5 - 5
-        |   |   |   |   |
-        5 - 3 - 4 - 3 - 5
-        |   |   |   |   |
-        5 - 1 - 2 - 2 - 5
-        |   |   |   |   |
-        5 - 0 - 5 - 5 - 5
-        
-    #>>> import numpy as np
-    #>>> from landlab import RasterModelGrid
-    #>>> z = np.array([0., 0., 0., 0., 0.,
-    #>>> mg = RasterModelGrid(4,5)
-    #...                  0., 1., 2., 5., 5.,
-    #...                  2., 2., 3., 5., 0.,
-    #...                  9., 9., 9., 9., 9.])
-    #>>> fn = tn = s = None
-    #>>> active_links = None #these can all be dummy variables because this is a raster
-
-    #>>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s, grid=mg)
-    #>>> r
-    #array([ 0,  1,  2,  3,  4,  5,  6,  6, 14,  9, 10,  6,  6, 14, 14, 15, 16, 17, 18, 19])
-    #>>> ss.round(decimals=2)
-    #array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.  ,  2.  ,  3.54,  0.  ,  0.  ,  2.  ,  2.12,  5.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ])
-    #>>> snk
-    #array([ True,  True,  True,  True,  True,  True,  True, False, False, True,  True, False, False, False,  True,  True,  True,  True,  True,  True], dtype=bool)
-    #>>> rl
-    #array([2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-    #   2147483647, 2147483647,         20,         38, 2147483647,
-    #   2147483647,          6,         36,         26, 2147483647,
-    #   2147483647, 2147483647, 2147483647, 2147483647, 2147483647])
-
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
         - Pass active_links in as argument
