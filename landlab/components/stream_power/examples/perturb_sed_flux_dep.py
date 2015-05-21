@@ -57,12 +57,12 @@ time_on = time()
 for i in xrange(nt):
     #print 'loop ', i
     mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     #mg.calculate_gradient_across_cell_faces(mg.at_node['topographic_elevation'])
     #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic_elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)
     #max_slope = np.max(np.fabs(neighbor_slopes),axis=1)
-    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')
+    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='topographic__steepest_slope')
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes=max_slope)
     mg_copy = deepcopy(mg)
     mg,_ = sde.erode(mg,dt)
@@ -71,17 +71,17 @@ for i in xrange(nt):
     #print 'rel sed ', np.nanmax(sed_in[mg.core_nodes]/capacity_out[mg.core_nodes])
     if i%100 == 0:
         print 'loop ', i
-        print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
+        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                                         mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
     if i%1000 == 0:
         x_profiles.append(dists_upstr)
         z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
-        S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+        S_profiles.append(mg.at_node['topographic__steepest_slope'][profile_IDs])
         A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
 #mg.update_boundary_nodes()
 #vid.add_frame(mg, 'topographic_elevation')

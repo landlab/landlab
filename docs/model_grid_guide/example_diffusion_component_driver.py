@@ -1,14 +1,14 @@
 #! /usr/env/python
 """
 
-Example of a simple diffusion model that uses the DiffusionComponent.
+Example of a simple diffusion model that uses the LinearDiffuser.
 
 Created July 2013 GT
 Last updated August 2013 GT
 
 """
 
-from landlab.components.diffusion import DiffusionComponent
+from landlab.components.diffusion import LinearDiffuser
 from landlab.grid import create_and_initialize_grid
 from landlab import ModelParameterDictionary
 import pylab
@@ -53,7 +53,7 @@ def main():
     mg = create_and_initialize_grid(mpd)
     
     # Create and initialize a diffusion component
-    dc = DiffusionComponent(mg)
+    dc = LinearDiffuser(mg)
     dc.initialize(mpd)
     
     # RUN

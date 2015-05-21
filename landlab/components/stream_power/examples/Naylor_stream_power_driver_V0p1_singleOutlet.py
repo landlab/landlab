@@ -68,15 +68,15 @@ for t in xrange(5):
     #perform the inner time loops:
     for i in xrange(nt):
         mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
-        mg = fr.route_flow(grid=mg)
+        mg = fr.route_flow()
         mg = sp.erode(mg)
     
         #plot long profiles along channels
         pylab.figure(6)
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                 mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
                 mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                 profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
         # print 'Completed loop ', i

@@ -1,5 +1,5 @@
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
-from landlab.components.diffusion.diffusion import DiffusionComponent #...the two different diffusion formulations
+from landlab.components.diffusion.diffusion import LinearDiffuser #...the two different diffusion formulations
 from landlab import ModelParameterDictionary #handles input from the input file
 
 from landlab import RasterModelGrid #the grid object
@@ -42,7 +42,7 @@ print 'Running ...'
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
+lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 #Perform the loops.
 
@@ -54,7 +54,7 @@ for i in xrange(nt):
     
     #Switch these lines to switch between diffusion styles:
     #mg = diffuse.diffuse(mg, i*dt) #nonlinear diffusion
-    mg = lin_diffuse.diffuse(mg) #linear diffusion
+    lin_diffuse.diffuse(dt) #linear diffusion
 
     #Plot a Xsection north-south through the middle of the data, once per loop
     pylab.figure(1)

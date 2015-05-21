@@ -52,7 +52,7 @@ time_on = time()
 for i in xrange(nt):
     print 'loop ', i
     mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     mg = sp.erode(mg)
     #vid.add_frame(mg, 'topographic_elevation')
     vid.add_frame(mg, mg.hillshade(alt=15.), cmap='gray')

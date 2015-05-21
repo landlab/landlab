@@ -40,7 +40,7 @@ interior_nodes = grid.get_active_cell_node_ids()
 
 # Route flow
 flow_router = FlowRouter(grid)
-r, a, q, ss, s, rl = flow_router.route_flow(z)
+grid = flow_router.route_flow()
 
 for i in range(grid.number_of_nodes):
     print i, grid.node_x[i], grid.node_y[i], z[i], grid.node_status[i], \

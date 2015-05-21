@@ -1,5 +1,5 @@
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
-from landlab.components.diffusion.diffusion import DiffusionComponent #...the two different diffusion formulations
+from landlab.components.diffusion.diffusion import LinearDiffuser #...the two different diffusion formulations
 from landlab import ModelParameterDictionary #handles input from the input file
 
 from landlab import RasterModelGrid #the grid object
@@ -43,7 +43,7 @@ print 'Running ...'
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
+lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 #lin_diffuse.initialize(input_file)
 
 #Perform the loops.
@@ -57,7 +57,7 @@ for i in xrange(nt): #nt is the number of timesteps we calculated above, i.e., l
     #("xrange" is a clever memory-saving way of producing consecutive integers to govern a loop)
     #this colon-then-tab-in arrangement is what Python uses to delineate connected blocks of text, instead of brackets or parentheses
     #This line performs the actual functionality of the component:
-    #mg = lin_diffuse.diffuse(mg, dt) #linear diffusion
+    #mg = lin_diffuse.diffuse(dt) #linear diffusion
     mg = diffuse.diffuse(mg, i*dt) #nonlinear diffusion
     #...swap around which line is commented out to switch between formulations of diffusion
 
@@ -97,18 +97,13 @@ print('Done.')
 mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
-print 'Running ...' 
-
-##instantiate the components:
-#diffuse = PerronNLDiffuse(mg, input_file)
-#lin_diffuse = DiffusionComponent(grid=mg)
-#lin_diffuse.initialize(input_file)
+print 'Running ...'
 
 for i in xrange(nt):
     #This line performs the actual functionality of the component:
     #***NB: the nonlinear diffuser contains an "automatic" element of uplift. If you instead use the linear diffuser, you need to add the uplift manually...
     mg['node']['topographic_elevation'][uplifted_nodes] += uplift_per_step 
-    mg = lin_diffuse.diffuse(mg, internal_uplift=False) #linear diffusion
+    mg = lin_diffuse.diffuse(dt) #linear diffusion
 
     pylab.figure(4)
     elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation'])
