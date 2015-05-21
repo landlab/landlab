@@ -513,6 +513,8 @@ def is_active_link(shape, node_status):
     ----------
     shape : tuple of int
         Shape of grid of nodes.
+    node_status : array_link
+        Status of nodes in grid.
 
     Returns
     -------
@@ -528,6 +530,10 @@ def is_active_link(shape, node_status):
     array([False,  True,  True, False, False,  True,  True, False, False,
            False, False,  True,  True,  True, False, False, False], dtype=bool)
     """
+    if np.prod(shape) != node_status.size:
+        raise ValueError('node status array does not match size of grid '
+                         '(%d != %d)' % (np.prod(shape), len(node_status)))
+
     status_at_link_start = node_status.flat[node_id_at_link_start(shape)]
     status_at_link_end = node_status.flat[node_id_at_link_end(shape)]
 
@@ -544,6 +550,8 @@ def active_link_ids(shape, node_status):
     ----------
     shape : tuple of int
         Shape of grid of nodes.
+    node_status : array_link
+        Status of nodes in grid.
 
     Returns
     -------

@@ -149,6 +149,31 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
             for loc in ['bottom', 'left', 'top', 'right']]
 
 
+def _old_style_args(args):
+    return len(args) in (2, 3) and isinstance(args[0], int)
+
+
+def _parse_grid_shape_from_args(args):
+    if _old_style_args(args):
+        rows, cols = args[0], args[1]
+    else:
+        try:
+            (rows, cols) = args[0]
+        except ValueError:
+            raise ValueError('grid shape must be tuple')
+    return rows, cols
+
+
+def _parse_grid_spacing_from_args(args):
+    try:
+        if _old_style_args(args):
+            return args[2]
+        else:
+            return args[1]
+    except IndexError:
+        return None
+
+
 class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     """A 2D uniform rectilinear grid.
 
@@ -163,12 +188,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     Parameters
     ----------
-    num_rows : int
-        Number of rows of nodes.
-    num_cols : int
-        Number of columns of nodes.
-    dx : float, optional
-        Node spacing.
+    shape : tuple of int
+        Shape of the grid in nodes.
+    spacing : float, optional
+        Row and column node spacing.
     bc : dict, optional
         Edge boundary conditions.
 
@@ -179,7 +202,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     nodes to core nodes are *active*.
 
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> rmg = RasterModelGrid((4, 5), 1.0)
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -188,11 +211,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals.size
     17
 
-
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
 
-    >>> rmg = RasterModelGrid(4, 5, 1.0, bc={'top': 'closed'})
+    >>> rmg = RasterModelGrid((4, 5), 1.0, bc={'top': 'closed'})
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -201,7 +223,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals.size
     14
     """
-    def __init__(self, num_rows=0, num_cols=0, dx=1.0, **kwds):
+    def __init__(self, *args, **kwds):
         """Create a 2D grid with equal spacing.
 
         Optionally takes numbers of rows and columns and cell size as
@@ -211,12 +233,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        num_rows : int
-            Number of rows of nodes.
-        num_cols : int
-            Number of columns of nodes.
-        dx : float, optional
-            Node spacing.
+        shape : tuple of int
+            Shape of the grid in nodes.
+        spacing : float, optional
+            Row and column node spacing.
+        bc : dict, optional
+            Edge boundary conditions.
 
         Returns
         -------
@@ -230,10 +252,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
+        dx = kwds.pop('dx', None)
+        num_rows = kwds.pop('num_rows', None)
+        num_cols = kwds.pop('num_cols', None)
+
+        if num_rows is None and num_cols is None:
+            num_rows, num_cols = _parse_grid_shape_from_args(args)
+        elif len(args) > 0:
+            raise ValueError(
+                'number of args must be 0 when using keywords for grid shape')
+
+        if dx is None:
+            dx = kwds.pop('spacing', _parse_grid_spacing_from_args(args) or 1.)
+
+
         # Set number of nodes, and initialize if caller has given dimensions
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
-            self._initialize(num_rows, num_cols, dx)
+            self._initialize(num_rows, num_cols, float(dx))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))

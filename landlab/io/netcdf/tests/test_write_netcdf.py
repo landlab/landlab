@@ -40,6 +40,8 @@ def test_netcdf_write_as_netcdf3_64bit():
             assert_true(name in f.variables)
             assert_array_equal(f.variables[name][:].flat, field.at_node[name])
 
+        f.close()
+
 
 def test_netcdf_write_as_netcdf3_classic():
     from scipy.io import netcdf
@@ -56,6 +58,8 @@ def test_netcdf_write_as_netcdf3_classic():
         for name in ['topographic_elevation', 'uplift_rate']:
             assert_true(name in f.variables)
             assert_array_equal(f.variables[name][:].flat, field.at_node[name])
+
+        f.close()
 
 
 def test_netcdf_write():
@@ -107,6 +111,8 @@ def test_netcdf_write_as_netcdf4_classic():
             assert_array_equal(root.variables[name][:].flat,
                                field.at_node[name])
 
+        root.close()
+
 
 def test_netcdf_write_names_keyword_as_list():
     if not WITH_NETCDF4:
@@ -126,6 +132,8 @@ def test_netcdf_write_names_keyword_as_list():
         assert_array_equal(root.variables['topographic_elevation'][:].flat,
                            field.at_node['topographic_elevation'])
 
+        root.close()
+
 
 def test_netcdf_write_names_keyword_as_str():
     if not WITH_NETCDF4:
@@ -144,6 +152,8 @@ def test_netcdf_write_names_keyword_as_str():
         assert_array_equal(root.variables['uplift_rate'][:].flat,
                            field.at_node['uplift_rate'])
 
+        root.close()
+
 
 def test_netcdf_write_names_keyword_as_none():
     if not WITH_NETCDF4:
@@ -161,6 +171,8 @@ def test_netcdf_write_names_keyword_as_none():
             assert_true(name in root.variables)
             assert_array_equal(root.variables[name][:].flat,
                                field.at_node[name])
+
+        root.close()
 
 
 def test_2d_unit_spacing():
