@@ -18,14 +18,14 @@ import landlab
 from landlab.components.flow_routing import flow_direction_DN
 #reload(flow_direction_DN)
 from landlab.components.flow_accum import flow_accum_bw
-from landlab import FieldError
+from landlab import FieldError, Component
 from landlab import ModelParameterDictionary
 import numpy
 #from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
 
-class FlowRouter():
+class FlowRouter(Component):
     """
     This class implements single-path (steepest direction) flow routing, and 
     calculates flow directions, drainage area, and (optionally) discharge. 
@@ -117,20 +117,25 @@ class FlowRouter():
         #test input variables are present:
         model_grid.at_node['topographic_elevation']
         try:
-            self.runoff_rate = model_grid.at_node['water__volume_flux_in']
+            model_grid.at_node['water__volume_flux_in']
             self.field_for_runoff = True
         except FieldError:
             self.field_for_runoff = False
+            #build the input array into the grid. This is important in case variable values appear during model run
+            model_grid.add_ones('node', 'water__volume_flux_in')
             
-        try:
-            self.runoff_rate = input_dict['runoff_rate']
-        except (KeyError, UnboundLocalError):
-            if not self.field_for_runoff:
-                self.runoff_rate = 1.
+        if not self.field_for_runoff:
+            try:
+                model_grid.at_node['water__volume_flux_in'].fill(input_dict['runoff_rate'])
+            except (KeyError, UnboundLocalError):
+                model_grid.at_node['water__volume_flux_in'].fill(1.)
         else:
-            if self.field_for_runoff:
+            try:
+                model_grid.at_node['water__volume_flux_in'].fill(input_dict['runoff_rate'])
+            except (KeyError, UnboundLocalError):
+                pass
+            else:
                 print "WARNING: Both a field and input parameter are available for runoff value. Was this intentional?? Taking the input parameter value..."
-            
         
         # Keep track of the following variables:
         #   - drainage area at each node
@@ -181,7 +186,7 @@ class FlowRouter():
         >>> mg.add_field('node','topographic_elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
-        >>> fr.route_flow()
+        >>> mg = fr.route_flow()
         >>> mg.at_node['flow_receiver']
         array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
                17, 18, 19])
@@ -192,11 +197,12 @@ class FlowRouter():
         Now let's change the cell area and the runoff rates:
         
         >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
+        >>> mg.add_field('node','topographic_elevation', elev) #put the data back into the new grid
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> mg.add_field('node', 'water__volume_flux_in', runoff_rate)
-        >>> fr.route_flow()
+        >>> mg = fr.route_flow()
         >>> mg.at_node['water__volume_flux']
         array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
                  800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
@@ -235,7 +241,7 @@ class FlowRouter():
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area=node_cell_area, 
-                                                  runoff_rate=self.runoff_rate,
+                                                  runoff_rate=self._grid.at_node['water__volume_flux_in'],
                                                   use_weave=self.weave_flag)
                                                   
         #added DEJH March 2014:
