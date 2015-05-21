@@ -173,7 +173,7 @@ The import statements are nearly the same, except that the model using a compone
 
 In this case the ``DiffusionComponent`` class is contained in a file called ``diffusion.py`` that is in the ``landlab/components/diffusion directory``.
 
-The code to create the raster grid, the elevation array (or field on *mg*), and the scarp across the landscape are all the same between the two different models.  Similarly, the plotting is the same between the two models.
+The code to create the raster grid (*mg*, an object of type ``RasterModelGrid``), the elevation array *z* (or elevation field on *mg*), and the scarp across the landscape are all the same between the two different models.  Similarly, the plotting is the same between the two models.
 
 Because the model is using the ``DiffusionComponent`` class, the code must instantiate a member of the class, or make an object of type ``DiffusionComponent``.  That step is repeated below, where *linear_diffuse* is an object of type ``DiffusionComponent``.
 
