@@ -124,14 +124,17 @@ Once you have Anaconda, start here:
 
 -	On the Spyder toolbar, go to Tools → Open command prompt to open the command line.
 
--	Check the version of pip. We need pip 6.1.1. On the command line, type the following:
-``> pip –version``
+-	Check the version of pip. We need pip 6.1.1. On the command line, type the following::
 
--	If the version is not up-to-date, On the command line, enter the following command:
-``> pip install –upgrade pip``
+  > pip –version
 
--	Once the correct version is installed, now install **netCDF4**
-``> conda install netCDF4``
+-	If the version is not up-to-date, On the command line, enter the following command::
+
+  > pip install –upgrade pip
+
+-	Once the correct version is installed, now install **netCDF4**::
+
+  > conda install netCDF4
 
 -	On the Python shell line in Anaconda, check the install of **netCDF4** to make sure it is up-to-date:
 >>> netCDF4.__version__
