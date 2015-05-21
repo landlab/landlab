@@ -42,7 +42,8 @@ def imshow_node_grid(grid, values, **kwds):
     limits=None (limits on the colorbar),
     allow_colorbar=True,
     norm=None (for the colorbar),
-    shrink=1. (for the colorbar).
+    shrink=1. (for the colorbar),
+    color_for_closed='black' (color to make closed nodes; presently only for regular grid)
     
     Use matplotlib functions like xlim, ylim to modify your
     plot after calling imshow_node_grid, as desired.
@@ -261,10 +262,14 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
                         cmap='pink', limits=None, allow_colorbar=True,
-                        norm=None, shrink=1.):
+                        norm=None, shrink=1., color_for_closed='black'):
     
     gridtypes = inspect.getmro(grid.__class__)
-
+    
+    masked_values = np.ma.masked_where((grid.node_status==4).reshape((grid.number_of_node_rows,grid.number_of_node_columns)), values)
+    cmap = plt.get_cmap(cmap)
+    cmap.set_bad(color=color_for_closed)
+    
     if RasterModelGrid in gridtypes:
         if len(values.shape) != 2:
             raise ValueError('dimension of values must be 2 (%s)' % values.shape)
@@ -273,15 +278,19 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
     
         kwds = dict(cmap=cmap)
         if limits is None:
+            #only want to work with NOT CLOSED nodes
+            open_nodes = np.not_equal(grid.node_status,4)
             if symmetric_cbar:
-                (var_min, var_max) = (values.min(), values.max())
+                (var_min, var_max) = (masked_values.flat[open_nodes].min(), masked_values.flat[open_nodes].max())
                 limit = max(abs(var_min), abs(var_max))
                 (kwds['vmin'], kwds['vmax']) = (- limit, limit)
+            else:
+                (kwds['vmin'], kwds['vmax']) = (masked_values.flat[open_nodes].min(), masked_values.flat[open_nodes].max())
         else:
             (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
     
     
-        myimage = plt.pcolormesh(x, y, values, **kwds)
+        myimage = plt.pcolormesh(x, y, masked_values, **kwds)
     
         plt.gca().set_aspect(1.)
         plt.autoscale(tight=True)
@@ -308,12 +317,14 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         import matplotlib.cm as cmx
         cm = plt.get_cmap(cmap)
         if limits is None:
+            #only want to work with NOT CLOSED nodes
+            open_nodes = grid.node_status!=4
             if symmetric_cbar:
-                (var_min, var_max) = (values.min(), values.max())
+                (var_min, var_max) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
                 limit = max(abs(var_min), abs(var_max))
                 (vmin, vmax) = (- limit, limit)
             else:
-                (vmin, vmax) = (values.min(), values.max())
+                (vmin, vmax) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
         else:
             (vmin, vmax) = (limits[0], limits[1])
         cNorm = colors.Normalize(vmin,vmax)
