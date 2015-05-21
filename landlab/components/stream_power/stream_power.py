@@ -332,24 +332,16 @@ class StreamPowerEroder(object):
         #we have to go in upstream order in case our rate is so big we impinge on baselevels > 1 node away
 
         elev_dstr = node_z[flow_receiver]# we substract erosion_increment[flow_receiver] in the loop, as it can update
-        if self.weave_flag:
-            n_nodes = node_order_upstream.size
-            code="""
-                int current_node;
-                double elev_this_node_before;
-                double elev_this_node_after;
-                double elev_dstr_node_after;
-                for (int i = 0; i < n_nodes; i++) {
-                    current_node = node_order_upstream[i];
-                    elev_this_node_before = node_z[current_node];
-                    elev_this_node_after = elev_this_node_before - erosion_increment[current_node];
-                    elev_dstr_node_after = elev_dstr[current_node] - erosion_increment[flow_receiver[current_node]];
-                    if (elev_this_node_after<elev_dstr_node_after) {
-                        erosion_increment[current_node] = (elev_this_node_before-elev_dstr_node_after)*0.999999;
-                        }
-                    }
-            """
-            weave.inline(code, ['n_nodes', 'node_order_upstream', 'node_z', 'erosion_increment', 'elev_dstr', 'flow_receiver'])
+
+        method = 'cython'
+        if method in ('cython', 'weave'):
+            if method == 'cython':
+                from .cfuncs import erode_avoiding_pits
+            else:
+                from .weavefuncs import erode_avoiding_pits
+
+            erode_avoiding_pits(node_order_upstream, flow_receiver, node_z,
+                                erosion_increment)
         else:           
             for i in node_order_upstream:
                 elev_this_node_before = node_z[i]
