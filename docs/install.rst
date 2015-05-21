@@ -144,7 +144,7 @@ With GitHub GUI
    called `setup.py` (check with ``dir`` (PC) or ``ls`` (Mac/Linux)).
    From this directory, type at the prompt::
 
-  ``> python setup.py develop``
+  > python setup.py develop
 
 .. note::
     
