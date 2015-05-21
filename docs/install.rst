@@ -91,7 +91,7 @@ If you don't have Canopy, start here:
 
 - Download a version of Canopy here: https://www.enthought.com/products/canopy/. Note, to receive a full version, which contains all necessary libraries for a clean Landlab install, a purchased version or a free academic license is required. (See more information here: https://store.enthought.com/ - canopy-academic).
 
-Once you have Canopy installed::
+Once you have Canopy installed:
 
 - Open the Python editor by clicking on the Canopy icon.
 -	On the “Welcome to Canopy” window, log in to your Enthought Account. This will give you access to the package manager and required subpackages. 
@@ -102,7 +102,7 @@ Once you have Canopy installed::
 -	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
 - Now to install Landlab! On the command line, enter the following command::
   > pip install landlab
-- 8.	Once Landlab has been successfully installed, on the Python shell line in the Canopy editor window, check to make sure it is up-to-date::
+- Once Landlab has been successfully installed, on the Python shell line in the Canopy editor window, check to make sure it is up-to-date::
   >>> import landlab
   >>> landlab.__version__
 The output version should be::
