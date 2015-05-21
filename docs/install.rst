@@ -98,8 +98,8 @@ Once you have Canopy installed:
 - On the Canopy toolbar, go to Tools → Package Manager to install required dependencies.
 - In the Package Manager, search for and install the following libraries::
 
-  **pip 6.1.1-1**
-  **netCDF4 1.1.7.1-2**
+  pip 6.1.1-1
+  netCDF4 1.1.7.1-2
   
 -	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
 - Now to install Landlab! On the command line, enter the following command::
@@ -111,7 +111,7 @@ Once you have Canopy installed:
   >>> import landlab
   >>> landlab.__version__
   
-The output version should be::
+- The output version should be::
   ``0.1.12``
 
 
