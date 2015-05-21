@@ -197,7 +197,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     #as of Dec 2014, we prioritise the weave if a weave is viable, and only do 
     #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
     #presumably better if the grid is bigger)
-    method = 'weave'
+    method = 'cython'
     if method in ('cython', 'weave'):
         if method == 'cython':
             from .cfuncs import adjust_flow_receivers
