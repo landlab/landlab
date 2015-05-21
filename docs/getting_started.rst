@@ -117,8 +117,7 @@ Here is the resulting image:
 Building a Model *With* Components
 -----------------------------------
 
-We now build the same exact model but we take advantage of Landlab's pre-built
-linear diffusion component.  If you have download the zip file of all code examples (https://github.com/landlab/drivers/archive/master.zip) you can find this code in *scripts/diffusion/scarp_diffusion_with_component.py*.  The input file, *diffusion_input_file.txt* is in the same folder.
+We now build the same exact model but we take advantage of Landlab's pre-built linear diffusion component.  If you have downloaded the zip file of all code examples (https://github.com/landlab/drivers/archive/master.zip) you can find this code in *scripts/diffusion/scarp_diffusion_with_component.py*.  The input file, *diffusion_input_file.txt* is in the same folder.
 
 Below is the entire code for the model which uses the pre-built linear diffusion component.  
 
@@ -166,4 +165,41 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 	show()
 
 
-For more information about using the ModelGrid module, see :ref:`model_grid_description`.
+Let's go through the model with a component and compare it to the non-component version presented in the previous section.
+
+The import statements are nearly the same, except that the model using a component has to import the ``DiffusionComponent`` class.  In Landlab components are built as classes, which among other things, means that they can have both their own data and methods (methods are functions that are part of a class).  The statement that imports the ``DiffusionComponent`` is repeated below:
+
+>>> from landlab.components.diffusion.diffusion import DiffusionComponent
+
+In this case the ``DiffusionComponent`` class is contained in a file called ``diffusion.py`` that is in the ``landlab/components/diffusion directory``.
+
+The code to create the raster grid, the elevation array (or field on *mg*), and the scarp across the landscape are all the same between the two different models.  Similarly, the plotting is the same between the two models.
+
+Because the model is using the ``DiffusionComponent`` class, the code must instantiate a member of the class, or make an object of type ``DiffusionComponent``.  That step is repeated below, where *linear_diffuse* is an object of type ``DiffusionComponent``.
+
+>>>  linear_diffuse = DiffusionComponent(grid=mg, input_stream='./diffusion_input_file.txt')
+
+Note that in order to initialize an object of type ``DiffusionComponent``, *mg* is passed (which is an object of type ``RasterModelGrid``), and an input file is also required.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains:
+
+DIFMOD_KD: in m2 per year
+0.01  
+uplift_rate: rate in m/yr across entire grid
+0.0
+dt: in years
+2000.0
+values_to_diffuse: name of field objects to diffuse
+elevation
+
+In this case *DIFMOD_KD*, *uplift_rate*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
+
+Note that in the model without a component, we calculated *dt* in the model.  Here we are inputting *dt*.  Also, the diffusion model will add uplift to the values (or any kind of source), and so we have entered an uplift rate of zero to make it consistent with the previous example.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Similarly, the ``uplift_rate`` in that case could be a rate of heat addition to the system from some outside source.
+
+Setting the boundary conditions is the same between the two models. 
+
+The evolution loop in the model with the component is much shorter than the loop in the model without the component.  In this case all that is needed is to call the ``diffuse`` method of the ``DiffusionComponent`` class:
+
+>>> mg = linear_diffuse.diffuse(mg)
+
+Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
+
+Plotting the final landscape is the same between the two models and the result should be exactly the same between the two example models.
