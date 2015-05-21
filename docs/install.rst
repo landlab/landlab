@@ -64,8 +64,8 @@ Once you have a full Python distribution on your machine, it is vital to check t
 it has been successfully set as the default copy of Python on your system. Open a command
 prompt (Terminal on a Mac, or Command Prompt on a PC) and type the lines below (note the ``>`` indicates that you are on a command line)::
 
-  ``> which python``
-  ``> which ipython`` 
+  > which python
+  > which ipython 
 
 In each case, path should be the same (except the (i)python at the 
 end), and it should clearly refer to Canopy or Anaconda. Details will depend on your
