@@ -20,7 +20,7 @@ import os
 #from landlab.plot.video_out import VideoPlotter as vid
 import csv
 
-f =open('C:\Users\Jordan\Dropbox\z.csv','w')
+
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'overland_flow_input.txt')
 
