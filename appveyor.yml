@@ -37,7 +37,7 @@ test_script:
   # is set dynamically. This unfortunately mean that conda build --output
   # doesn't really work.
   #
-  - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
+  - "%WITH_COMPILER% python scripts/test-installed-landlab.py --doctests"
   #- "%CMD_IN_ENV% python scripts//test-installed-landlab.py"
   #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
   # Move the conda package into the current directory, to register it
