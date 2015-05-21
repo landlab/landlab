@@ -181,7 +181,7 @@ Because the model is using the ``DiffusionComponent`` class, the code must insta
 
 Note that in order to initialize an object of type ``DiffusionComponent``, a grid object must be passed, as well as an input file.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains:
 
-.. code-block:: python
+.. 
 
 	DIFMOD_KD: in m2 per year
 	0.01  
