@@ -114,6 +114,42 @@ Once you have Canopy installed:
 - The output version should be  ``0.1.12``
 
 
+**Installing Landlab on Windows 7, 64-bit machine using Anaconda from Continuum Analytics**
+
+If you don’t have Anaconda, start here:
+
+-	Download the free full version of Anaconda here:  https://store.continuum.io/cshop/anaconda/.
+
+-	When installing, be sure to check that Anaconda is adding itself to your PATH and that is making itself your default Pytho 
+
+Once you have Anaconda, start here:
+
+-	Open the Python editor in Anaconda called Spyder.
+
+-	On the Spyder toolbar, go to Tools → Open command prompt to open the command line.
+
+-	Check the version of pip. We need pip 6.1.1. On the command line, type the following:
+``> pip –version``
+
+-	If the version is not up-to-date, On the command line, enter the following command:
+``> pip install –upgrade pip``
+
+-	Once the correct version is installed, now install **netCDF4**
+``> conda install netCDF4``
+
+-	On the Python shell line in Anaconda, check the install of **netCDF4** to make sure it is up-to-date:
+>>> netCDF4.__version__
+
+This should return ``1.1.8``
+
+-	Now to install Landlab! On the command line, enter the following command:
+``> pip install landlab``
+
+-	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date:
+>>> import landlab
+>>> landlab.__version__
+
+This should return ``0.1.12``
 
 
 Developer Installation - Installing from Source Code
