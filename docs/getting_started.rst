@@ -180,15 +180,16 @@ Because the model is using the ``DiffusionComponent`` class, the code must insta
 >>>  linear_diffuse = DiffusionComponent(grid=mg, input_stream='./diffusion_input_file.txt')
 
 Note that in order to initialize an object of type ``DiffusionComponent``, a grid object must be passed, as well as an input file.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains:
+.. code-block:: python
 
-DIFMOD_KD: in m2 per year
-0.01  
-uplift_rate: rate in m/yr across entire grid
-0.0
-dt: in years
-2000.0
-values_to_diffuse: name of field objects to diffuse
-elevation
+	DIFMOD_KD: in m2 per year
+	0.01  
+	uplift_rate: rate in m/yr across entire grid
+	0.0
+	dt: in years
+	2000.0
+	values_to_diffuse: name of field objects to diffuse
+	elevation
 
 In this case *DIFMOD_KD*, *uplift_rate*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
 
