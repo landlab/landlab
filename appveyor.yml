@@ -28,22 +28,7 @@ install:
 build: false
 
 test_script:
-  # Build and test the package. This appears(?) to sporadically fail due to a 
-  # bug in conda-build on 32 bit python.
-  # https://github.com/conda/conda-build/issues/152
-  #
-  # Note also that our setup.py script, which is called by conda-build, writes
-  # a __conda_version__.txt file, so the version number on the binary package
-  # is set dynamically. This unfortunately mean that conda build --output
-  # doesn't really work.
-  #
-  - "%WITH_COMPILER% python scripts/test-installed-landlab.py --doctests"
-  #- "%CMD_IN_ENV% python scripts//test-installed-landlab.py"
-  #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
-  # Move the conda package into the current directory, to register it
-  # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
-  # we'll use a simple python script.
-  #- python .ci\move-conda-package.py conda-recipe
+  - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
 
 after_test:
   - "%WITH_COMPILER% python setup.py bdist_wheel"
@@ -51,12 +36,6 @@ after_test:
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
-
-#on_success:
-#  # Upload built binaries to binstar.org. The globbing and handling of the
-#  # exit-status code is tricky in cmd.exe or powershell, so we're just using
-#  # a python script.
-#  - python setupy.py bdist_wheel
 
 deploy:
   provider: FTP
