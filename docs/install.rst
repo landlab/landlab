@@ -144,7 +144,7 @@ With GitHub GUI
    called `setup.py` (check with ``dir`` (PC) or ``ls`` (Mac/Linux)).
    From this directory, type at the prompt::
 
-  > python setup.py develop
+        python setup.py develop
 
 .. note::
     
@@ -162,12 +162,12 @@ With GitHub GUI
     
 #. Finally, test everything worked. From the same command line, type::
     
-  > python
+        python
     
    An interactive Python window will open in the command line; the prompt will look like
    ``>>>``. From here, enter::
     
-  >>> import landlab
+        import landlab
     
    If you are returned to the >>> prompt after a few moments, everything is fine. If you
    see an error message, you might have some problems with your install. See the 
@@ -176,7 +176,7 @@ With GitHub GUI
    
    Leave the Python shell by typing::
    
-  >>> exit()
+        exit()
       
 
 .. _command-line-install:
@@ -194,22 +194,22 @@ With Git
    hosted on `github.com <http://www.github.com>`_. The files will be added inside 
    whichever directory you are in when you enter this command.::
 
-    > git clone https://github.com/landlab/landlab.git
+    git clone https://github.com/landlab/landlab.git
 
 #. Navigate From the root directory of your landlab clone (the folder that contains
    `setup.py`). From your likely current location this will probably just be 
    ``cd landlab``. From here, enter::
 
-    > python setup.py develop
+    python setup.py develop
 
 #. Finally, test everything worked. From the same command line, type::
     
-      > python
+      python
     
    An interactive Python window will open in the command line; the prompt will look like
    ``>>>``. From here, enter::
     
-      >>> import landlab
+      import landlab
     
    If you are returned to the >>> prompt after a few moments, everything is fine. If you
    see an error message, you might have some problems with your install. See the 
@@ -218,7 +218,7 @@ With Git
    
    Leave the Python shell by typing::
    
-      >>> exit()
+      exit()
 
 You can find more details about installing Landlab as a developer :ref:`here 
 <dev_guide>`.
