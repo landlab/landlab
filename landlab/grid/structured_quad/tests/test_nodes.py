@@ -24,7 +24,7 @@ def test_perimeter_status_default():
                         [F, C, C, C, F],
                         [F, C, C, C, F],
                         [F, F, F, F, F]])
-    assert_array_is_int(node_ids)
+    assert_array_is_int(node_status)
 
 
 def test_perimeter_status_status_as_scalar():
