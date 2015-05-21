@@ -217,4 +217,4 @@ With Git
       exit()
 
 You can find more details about installing Landlab as a developer :ref:`here 
-<dev_guide>`
+<dev_guide>`.
