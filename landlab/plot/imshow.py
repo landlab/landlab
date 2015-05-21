@@ -250,8 +250,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
     if RasterModelGrid in gridtypes:
         if len(values.shape) != 2:
             raise ValueError('dimension of values must be 2 (%s)' % values.shape)
-        y = np.arange(values.shape[0] + 1) - grid.dx * .5
-        x = np.arange(values.shape[1] + 1) - grid.dx * .5
+        y = np.arange(values.shape[0] + 1) * grid.dx - grid.dx * .5
+        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
     
         kwds = dict(cmap=cmap)
         if limits is None:
