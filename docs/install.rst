@@ -1,7 +1,7 @@
 .. _install:
 
 ==================
-Installing Landlab - THIS NEEDS UPDATING!
+Installing Landlab
 ==================
 
 Dependencies
@@ -76,13 +76,17 @@ If you *don't* see reference to your newly installed distribution, click :ref:`h
 Installing Landlab
 ==================
 
-The recommended way to install landlab is from source, as it will make it
-easiest to keep up with the latest bug fixes.
+Classroom Version
++++++++++++++++++
 
-It is also possible to install a **"classroom version"** of Landlab, which will give you
-(or more likely, your putative undergraduate class) a single, quick and easy, but
-non-updateable snapshot of Landlab. For details on installing the classroom version,
-click :ref:`here <classroom_install>`.
+If you are new to Landlab and just want to try it out, we recomend installing the latest release package. This is a quick and easy way to get a non-updateable snapshot of Landlab.  Installing the release package is ideal for users in a classroom or Landlab clinic.  The code behind Landlab will not be visable to the user with this installation method.
+
+MORE STUFF HERE FROM JORDAN!
+
+Developer Installation - Installing from Source Code
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+If you have already gotten a feel for Landlab and want to commit for the longterm, we recommended installing landlab from the source, as it will make it easiest to keep up with the latest bug fixes and contribute codes back to the Landlab repository.
 
 .. note::
 
@@ -97,10 +101,7 @@ click :ref:`here <classroom_install>`.
 
 .. _source-install:
 
-Installing from source
-----------------------
-
-Our code lives in the `Github <https://github.com>`_ online code repository. For install, 
+The Landlab code lives in the `Github <https://github.com>`_ online code repository. For install, 
 you have two choices. Firstly, you can sign up to Github as a user of that website, 
 download their third party GUI, and use that to get a copy of the code. 
 Alternatively, you can manage the code acquisition directly through the command line 
@@ -215,4 +216,5 @@ With Git
    
       exit()
 
-
+You can find more details about installing Landlab as a developer :ref:`here 
+<dev_guide>`
