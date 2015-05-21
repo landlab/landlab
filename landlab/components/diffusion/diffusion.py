@@ -11,7 +11,7 @@ from __future__ import print_function
 
 from landlab import ModelParameterDictionary
 from landlab import create_and_initialize_grid
-from ...core.model_parameter_dictionary import MissingKeyError
+from landlab.core.model_parameter_dictionary import MissingKeyError
 
 _ALPHA = 0.1   # time-step stability factor
 
@@ -80,7 +80,7 @@ class DiffusionComponent(object):
         except MissingKeyError:
             self.uplift_rate = inputs.read_float('uplift_rate')
         try:
-            self.values_to_diffuse = inputs.read_str('values_to_diffuse')
+            self.values_to_diffuse = inputs.read_string('values_to_diffuse')
         except MissingKeyError:
             self.values_to_diffuse = 'topographic_elevation'
         try:
