@@ -52,7 +52,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print "Short step!"
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
     mg = fsp.erode(mg, K_if_used='K_values')

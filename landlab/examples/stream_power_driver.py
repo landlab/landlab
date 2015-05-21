@@ -49,7 +49,7 @@ time_on = time()
 #perform the loops:
 for i in xrange(nt):
     mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     mg = sp.erode(mg)
 
     #plot long profiles along channels

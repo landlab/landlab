@@ -64,7 +64,7 @@ time_on = time()
 for i in xrange(nt):
     #print 'loop ', i
     mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     #mg.calculate_gradient_across_cell_faces(mg.at_node['topographic_elevation'])
     #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic_elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)

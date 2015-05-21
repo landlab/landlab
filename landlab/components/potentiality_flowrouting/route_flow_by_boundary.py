@@ -15,6 +15,10 @@ import numpy as np
 from landlab import RasterModelGrid, ModelParameterDictionary, Component, FieldError
 import inspect
 
+##########################
+#THIS DOESN'T ACCOUNT FOR CELL AREA YET!!!!!!
+##########################
+
 class PotentialityFlowRouter(Component):
     """
     This class implements Voller, Hobley, and Paola's experimental matrix

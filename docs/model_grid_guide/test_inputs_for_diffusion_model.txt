@@ -27,8 +27,8 @@ True
 OPT_FILE_OUTPUT
 False
 # Diffusion component parameters:
-DIFMOD_KD
+linear_diffusivity
 0.01
-DIFMOD_UPLIFT_RATE
+uplift_rate
 0.001
 

@@ -1,7 +1,7 @@
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
-from landlab.components.diffusion.diffusion import DiffusionComponent
+from landlab.components.diffusion.diffusion import LinearDiffuser
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 from landlab.plot.imshow import imshow_node_grid
@@ -45,15 +45,16 @@ print 'Running ...'
 fr = FlowRouter(mg)
 sp = SPEroder(mg, input_file)
 diffuse = PerronNLDiffuse(mg, input_file)
-lin_diffuse = DiffusionComponent(grid=mg, input_stream=input_file)
+lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 #perform the loops:
 for i in xrange(nt):
     #note the input arguments here are not totally standardized between modules
     #mg = diffuse.diffuse(mg, i*dt)
-    mg = lin_diffuse.diffuse(mg, dt)
+    mg = lin_diffuse.diffuse(dt)
     mg = fr.route_flow()
     mg = sp.erode(mg)
+    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
     
     ##plot long profiles along channels
     pylab.figure(6)

@@ -1,3 +1,3 @@
-from diffusion import DiffusionComponent
+from diffusion import LinearDiffuser
 
-__all__ = ['DiffusionComponent']
+__all__ = ['LinearDiffuser']
