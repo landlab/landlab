@@ -1,12 +1,12 @@
-Using Landlab to Quickly Build 2D Models
-========================================
+A Tutorial on Quickly Building 2D Models in Landlab
+===================================================
 
 Computer models can be tremendously useful in exploring and visualizing the consequences of scientific hypotheses, and comparing these predictions with data. New ideas and discoveries require new models. In an ideal world, the necessary programming, testing, and debugging would be trivial, leaving us free to focus on the core science. In practice, however, high-quality scientific programming takes time. Landlab was written to make the process of writing models more efficient, by providing pre-built software that handles many of the common tasks, and by providing pre-built process components that save you from having to re-invent the wheel.
 
-The following tutorial examples give a flavor for what this means. The tutorial examples in this Quick Start guide can be typed directly on the command line of any Python interpreter. To try them out, you'll need (1) an installation of Python 2.x, (2) the Numpy, Scipy, and Pylab modules, and (3) Landlab. If you don't already have Numpy and its relatives installed, we recommend  Enthought Canopy (which provides a command-line interpreter, development environment, and the Numpy, Scipy, and Pylab modules all in one convenient package). To install Landlab, see :ref:`install`.
+The following tutorial examples give a flavor for what this means. The tutorial examples here can be typed directly on the command line of any Python interpreter, or you can download all example codes from https://github.com/landlab/drivers/archive/master.zip and find the codes and input file used here in the *scripts/diffusion* folder. To try them out, you'll need (1) an installation of Python 2.x, (2) the Numpy, Scipy, and Pylab modules, and (3) Landlab. If you don't already have Numpy and its relatives installed, we recommend Anaconda Spyder or Enthought Canopy (which provide a command-line interpreter, development environment, and the Numpy, Scipy, and Pylab modules all in one convenient package). To install Landlab, see :ref:`install`.
 
-Building a Model *WITHOUT* Components
--------------------------------------
+Building a Scarp Diffusion Model *Without* Components
+-----------------------------------------------------
 
 In the first example, we will build a 2D model of the erosional degradation of a fault scarp 
 through the process of linear diffusion.  Conveniently Landlab already has a component that will
@@ -14,13 +14,18 @@ calculate erosion rates due to linear diffusion, but in this example we do not t
 Landlab's pre-built diffusion component.  After building this model without a component, we then
 contrast what the model would look like when using the pre-built component (see :ref:`diffusion_model_with_components`).
 
-The code for the fault-scarp model without components (XXXXXX) and with components (XXXXXXX), can be found in the zip file of code examples at https://github.com/landlab/drivers/archive/master.zip.
+If you have downloaded the example codes, the code below is contained in *scarp_diffusion_no_component.py*.  
 
-Note that ``>>>`` implies that we are on the command line in canopy, or your favorite python 
+Note that ``>>>`` implies that we are on the command line in your favorite python 
 frontend.  We start by importing Numpy and Landlab's RasterModelGrid class:
 
 >>> import numpy
 >>> from landlab import RasterModelGrid
+
+We also need to import functions for plotting:
+
+>>> from landlab.plot.imshow import imshow_node_grid
+>>> from pylab import show, figure
 
 Next, we create a new raster grid with 40 columns, 25 rows, and a cell spacing of 10 m:
 
@@ -48,13 +53,10 @@ Now, we uplift the portion of the domain where ``y > fault_y``. We'll have this 
 
 The Numpy ``where`` function finds and returns the array indices where the condition ``mg.node_y > fault_y`` is true; the resulting array ``upthrown_nodes`` contains the indices of the nodes whose elevation we want to raise. We then raise these elevations on the next line. Let's see what this looks like:
  
->>> zr = mg.node_vector_to_raster(z)
+>>> imshow_node_grid(mg, z, cmap='jet', grid_units=['m','m'])
+>>> show()
 
-This returns a version of ``z`` that has been converted into a 2D Numpy array. Then we display it using the Pylab function ``imshow``:
-
->>> import pylab
->>> pylab.imshow(zr, cmap=pylab.cm.jet, extent=[0, 400, 0, 250], origin='lower')
->>> pylab.show()
+``imshow_node_grid()`` is part of the plotting functions that come Landlab.  We are sending imshow_node_grid the model grid and the values we want to plot, in this case *z*.  We are specifying the colormap to be jet (red to blue) and that the units on the x and y axes are in meters.  ``show()`` makes the plot pop-up on your screen.
 
 The result looks like this:
 
@@ -99,16 +101,11 @@ The next step is to add up the net sediment fluxes entering and leaving each cel
 	
 We do this operation on the next line. Finally, on the last line of the loop we calculate elevation changes (by multiplying ``dzdt`` by time-step size) and update the elevations of the interior nodes.
 
-The following commands show a contoured image of the terrain after 50,000 years of hillslope diffusion:
+The following commands oepn a new figure window and show an image of the terrain after 50,000 years of hillslope diffusion:
 
->>> zr = mg.node_vector_to_raster(z)
->>> pylab.imshow(zr, extent=[0,400,0,250], origin='lower')
->>> cs=pylab.contour(zr, extent=[0,400,0,250], hold='on', colors='k')
->>> pylab.clabel(cs)
->>> pylab.xlabel('Distance (m)')
->>> pylab.ylabel('Distance (m)')
->>> pylab.title('Topography after 50,000 years of scarp degradation')
->>> pylab.show()
+>>> figure()
+>>> imshow_node_grid(mg, z, cmap='jet', grid_units=['m','m'])
+>>> show()
 
 Here is the resulting image:
 
@@ -117,12 +114,14 @@ Here is the resulting image:
 
 .. _diffusion_model_with_components:
 
-Building a Model *WITH* Components
+Building a Model *With* Components
 -----------------------------------
 
 We now build the same exact model but we take advantage of Landlab's pre-built
-linear diffusion component.  The code for the fault-scarp model without components (XXXXXX) and with components (XXXXXXX), can be found in the zip file of code examples at https://github.com/landlab/drivers/archive/master.zip.
+linear diffusion component.  If you have download the zip file of all code examples (https://github.com/landlab/drivers/archive/master.zip) you can find this code in *scripts/diffusion/scarp_diffusion_with_component.py*.  The input file, *diffusion_input_file.txt* is in the same folder.
+
+Below is the entire code for the model which uses the pre-built linear diffusion component.  
+
 
 
 For more information about using the ModelGrid module, see :ref:`model_grid_description`.
-
