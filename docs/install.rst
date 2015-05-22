@@ -101,21 +101,17 @@ If you are new to Python, you probably should see instructions :ref:`here for An
 Installing Using using Anaconda  - Recommended Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This should work for both Windows and Mac users of Anaconda.
+This should work for Anaconda users with Windows 7, Mac OS 10.6+, or Ubuntu Linux (only the latest version has been tested).
 
 -	Open the Python editor in Anaconda called Spyder.
 
--	On the Spyder toolbar, go to Tools → Open command prompt to open the command line.
+-	On the Spyder toolbar, go to **Tools → Open** command prompt to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.
 
-- Check the version of pip.  We need pip 6.1.1 (as of May 2015).  On the command line, type the following::
-
-  > pip -version
-
-- If the version is not up-to-date, enter the following command::
+- To ensure that your version of *pip* (a package installer) is up-to-date, enter the following command::
 
   > pip install -upgrade pip
   
-- Once the correct version is installed, now install **netCDF4**::
+- Once the correct version is installed, now install **netCDF4**.  (Note the ``conda`` command below handles Anaconda-supported package installation and updates)::
 
   > conda install netCDF4
 
@@ -134,14 +130,14 @@ As of May 2015 this should return ``1.1.8``
   >>> import landlab
   >>> landlab.__version__
 
-The version number is changing rapidly at this point.  Check with the Landlab development team to make sure you have the latest version.
+The version number is changing rapidly at this point, but it should be something higher than 0.1.12.  If you are having problems with Landlab, check with the Landlab development team to make sure you have the latest version.
 
 .. _landlab-install_with_canopy:
 
 Installing using Enthought Canopy
 +++++++++++++++++++++++++++++++++
 
-This should work for both Windows and Mac users of Canopy.
+This should work for Canopy users with Windows 7 or Mac OS 10.6 and above.
 
 - Open the Python editor by clicking on the Canopy icon.
 
@@ -151,7 +147,7 @@ This should work for both Windows and Mac users of Canopy.
 
 - In the Package Manager, search for and install the **pip 6.1.1-1** and **netCDF4 1.1.7.1-2** libraries.
 
--	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
+-	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.
 
 - Now to install Landlab! On the command line, enter the following command::
 
@@ -162,7 +158,7 @@ This should work for both Windows and Mac users of Canopy.
   >>> import landlab
   >>> landlab.__version__
   
-The version of Landlab is changing rapidly.  Please check with the development team to see if your version is up-to-date.
+The version number is changing rapidly at this point, but it should be something higher than 0.1.12.  If you are having problems with Landlab, check with the Landlab development team to make sure you have the latest version.
 
 
 Developer Installation - Installing from Source Code
