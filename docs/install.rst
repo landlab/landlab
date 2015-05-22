@@ -101,7 +101,7 @@ If you are new to Python, you probably should see instructions :ref:`here for An
 Installing Landlab Using using Anaconda  - Recommended Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This should work for Anaconda users with Windows 7, Mac OS 10.6+, or Ubuntu Linux (only the latest version has been tested).
+This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Linux (only the latest version has been tested).
 
 -	Open the Python editor in Anaconda called Spyder.
 
@@ -137,7 +137,7 @@ The version number is changing rapidly at this point, but it should be something
 Installing Landlab using Enthought Canopy
 +++++++++++++++++++++++++++++++++
 
-This should work for Canopy users with Windows 7 or Mac OS 10.6 and above.
+This should work for Canopy users with Windows 7+ or Mac OS 10.6 and above.
 
 - Open the Python editor by clicking on the Canopy icon.
 
