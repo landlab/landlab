@@ -86,13 +86,17 @@ Here we describe how to install the latest release package of Landlab.  This is 
 
 We here assume that you have read :ref:`the previous section <python-install>` and you have now installed a Python front-end  on your computer (which should have also installed a Python distribution) and that your default Python path is set correctly (more on Python path :ref:`here <correcting_python_version>`).
 
-Quick Install Instructions (For Experienced Python Users and Software Developer)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Quick Install Instructions (For Experienced Python Users)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>` and :ref:`here for Canopy users <landlab-install_with_canopy>`.
 
 - Open a terminal (or the command prompt) and type the following::
 
 > pip install --upgrade pip
 > pip install landlab
+
+.. _landlab-install_with_anaconda:
 
 Installing Using using Anaconda  - Recommended Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -127,15 +131,21 @@ As of May 2015 this should return ``1.1.8``
 
 The version number is changing rapidly at this point.  Check with the Landlab development team to make sure you have the latest version.
 
+.. _landlab-install_with_canopy:
 
 Installing using Enthought Canopy
 +++++++++++++++++++++++++++++++++
 
 - Open the Python editor by clicking on the Canopy icon.
+
 -	On the “Welcome to Canopy” window, log in to your Enthought Account. This will give you access to the package manager and required subpackages. 
+
 - On the Canopy toolbar, go to Tools → Package Manager to install required dependencies.
+
 - In the Package Manager, search for and install the **pip 6.1.1-1** and **netCDF4 1.1.7.1-2** libraries.
+
 -	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open an xterm (X11.app) or terminal window (Terminal.app), which are both found in your Applications/Utilities directory.
+
 - Now to install Landlab! On the command line, enter the following command::
 
   > pip install landlab
