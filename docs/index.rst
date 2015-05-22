@@ -7,9 +7,11 @@ Introduction to Landlab
 =======================
 
 .. toctree::
-   :maxdepth: 2
-
+   :maxdepth: 1
    what_is_landlab
+   
+.. toctree::
+   :maxdepth: 1   
    install
    getting_started
    
@@ -66,9 +68,6 @@ Quick links to the landlab grid data structures:
 * :class:`landlab.grid.voronoi.VoronoiDelaunayGrid`
 
 
-BELOW HERE IS ALL OLD STUFF
----------------------------
-
 Simple guides to functionality
 ------------------------------
 
@@ -101,15 +100,8 @@ Developer Documentation
    dev_guide
 
 
-Code Documentation
-=================
-
-These webpages are auto-generated from Landlab, and list all available
-functions, methods, and properties. All available documentation in the code is
-reproduced here in a tree reflecting Landlab's file structure.
-
-Reference
-=========
+References
+==========
 
 * :ref:`genindex`
 * :ref:`modindex`
