@@ -121,9 +121,10 @@ As of May 2015 this should return ``1.1.8``
 -	Now to install Landlab! On the command line, enter the following command::
   > pip install landlab
 
--	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date::
-  >>> import landlab
-  >>> landlab.__version__
+-	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date
+
+   >>> import landlab
+   >>> landlab.__version__
 
 The version number is changing rapidly at this point.  Check with the Landlab development team to make sure you have the latest version.
 
@@ -151,7 +152,7 @@ Installing using Enthought Canopy
   >>> import landlab
   >>> landlab.__version__
   
-- The output version should be  ``0.1.12``
+The version of Landlab is changing rapidly.  Please check with the development team to see if your version is up-to-date.
 
 
 Developer Installation - Installing from Source Code
