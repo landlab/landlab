@@ -145,16 +145,16 @@ in multiple goups.
 
 >>> grid.at_node.keys() # There a no values defined at grid nodes
 []
->>> z = grid.add_ones('node', 'topographic_elevation')
+>>> z = grid.add_ones('node', 'topographic__elevation')
 
 We now see that the array has been added to the grid as a reference to the
 array returned by ``add_ones``.
 
 >>> grid.at_node.keys()
-['topographic_elevation']
->>> grid.at_node['topographic_elevation']
+['topographic__elevation']
+>>> grid.at_node['topographic__elevation']
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
->>> z is grid.at_node['topographic_elevation']
+>>> z is grid.at_node['topographic__elevation']
 True
 
 To add a previously created array to the grid, use the
@@ -436,23 +436,23 @@ class ModelGrid(ModelDataFields):
             except AttributeError:
                 pass
         #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
-        try:
-            weave.inline('',[])
-        except CompileError:
-            self.weave_flag = False
-            warnings.warn(
-                "Warnings which appear directly above this line relate to an "
-                "attempt by Landlab to implement C++ acceleration. However, "
-                "regardless of whether warnings appear, your installation of "
-                "Python lacks the necessary C++ compiler to allow this. "
-                "Everything will still work fine, but Landlab may run more "
-                "slowly for you on large (>>10**4 nodes) grids. See the "
-                "readthedocs documentation, or contact the developers, for "
-                "more information.")
-        else:
-            warnings.warn("If warnings are generated above this line, you can "
-                          "safely ignore them.")
-            self.weave_flag = True
+        #try:
+        #    weave.inline('',[])
+        #except CompileError:
+        #    self.weave_flag = False
+        #    warnings.warn(
+        #        "Warnings which appear directly above this line relate to an "
+        #        "attempt by Landlab to implement C++ acceleration. However, "
+        #        "regardless of whether warnings appear, your installation of "
+        #        "Python lacks the necessary C++ compiler to allow this. "
+        #        "Everything will still work fine, but Landlab may run more "
+        #        "slowly for you on large (>>10**4 nodes) grids. See the "
+        #        "readthedocs documentation, or contact the developers, for "
+        #        "more information.")
+        #else:
+        #    warnings.warn("If warnings are generated above this line, you can "
+        #                  "safely ignore them.")
+        self.weave_flag = False
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get('axis_units', _default_axis_units(self.ndim))
@@ -891,11 +891,11 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4,5)
         >>> mydata = np.arange(20, dtype=float)
-        >>> rmg.create_node_array_zeros('topographic_elevation')
+        >>> rmg.create_node_array_zeros('topographic__elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg.at_node['topographic_elevation'] = mydata
-        >>> rmg.at_node['topographic_elevation']
+        >>> rmg.at_node['topographic__elevation'] = mydata
+        >>> rmg.at_node['topographic__elevation']
         array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
                 11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         """
@@ -1098,7 +1098,7 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
 
-    def node_slopes_using_patches(self, elevs='topographic_elevation', unit='degrees', return_components=False):
+    def node_slopes_using_patches(self, elevs='topographic__elevation', unit='degrees', return_components=False):
         """
         trial run to extract average local slopes at nodes by the average slope
         of its surrounding patches. DEJH 10/1/14
@@ -1166,14 +1166,14 @@ class ModelGrid(ModelDataFields):
         """
         This method is simply an alias for grid.node_slopes_using_patches()
         Takes
-        * elevs : field name or nnodes array, defaults to 'topographic_elevation'
+        * elevs : field name or nnodes array, defaults to 'topographic__elevation'
         * unit : 'degrees' (default) or 'radians'
         as for node_slopes_using_patches
         """
         return self.node_slopes_using_patches(**kwargs)
         
     
-    def aspect(self, slope_component_tuple=None, elevs='topographic_elevation', unit='degrees'):
+    def aspect(self, slope_component_tuple=None, elevs='topographic__elevation', unit='degrees'):
         """aspect
         Calculates at returns the aspect of a surface. Aspect is returned as 
         radians clockwise of north, unless input parameter units is set to
@@ -1184,7 +1184,7 @@ class ModelGrid(ModelDataFields):
         
         If it is not, it will be derived from elevation data at the nodes,
         which can either be a string referring to a grid field (default:
-        'topographic_elevation'), or an nnodes-long numpy array of the
+        'topographic__elevation'), or an nnodes-long numpy array of the
         values themselves.
         """
         if slope_component_tuple:
@@ -1207,7 +1207,7 @@ class ModelGrid(ModelDataFields):
             raise TypeError("unit must be 'degrees' or 'radians'")
         
     
-    def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees', elevs='topographic_elevation'):
+    def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees', elevs='topographic__elevation'):
         """Calculate hillshade.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
@@ -1229,7 +1229,7 @@ class ModelGrid(ModelDataFields):
                                                 are not provided
             
         If slp and asp are both not specified, 'elevs' must be provided as
-        a grid field name (defaults to 'topographic_elevation') or an
+        a grid field name (defaults to 'topographic__elevation') or an
         nnodes-long array of elevation values. In this case, the method will
         calculate local slopes and aspects internally as part of the hillshade
         production.

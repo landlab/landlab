@@ -69,7 +69,7 @@ def plot_profiles(distances_upstream, profile_IDs, elevations):
         the_nodes = profile_IDs[i]
         plt.plot(distances_upstream[i], elevations[the_nodes])
         
-def analyze_channel_network_and_plot(grid, elevations='topographic_elevation', 
+def analyze_channel_network_and_plot(grid, elevations='topographic__elevation', 
                                      drainage_area='drainage_area', 
                                      flow_receiver='flow_receiver', 
                                      links_to_flow_receiver='links_to_flow_receiver',
@@ -77,7 +77,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic_elevation',
                                      starting_nodes=None,
                                      threshold=None):
                                          
-    """analyze_channel_network_and_plot(grid, elevations='topographic_elevation', 
+    """analyze_channel_network_and_plot(grid, elevations='topographic__elevation', 
                                      drainage_area='drainage_area', 
                                      flow_receiver='flow_receiver', 
                                      links_to_flow_receiver='links_to_flow_receiver',

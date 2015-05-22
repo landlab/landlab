@@ -43,13 +43,13 @@ class SPEroder(object):
     modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
     rainfall intensity on erosivity. *value_field* is a string giving the name
     of the field containing the elevation data in the grid. It defaults to
-    'topographic_elevation' if not supplied.
+    'topographic__elevation' if not supplied.
     
     This module assumes you have already run 
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
     in the same timestep. It looks for 'upstream_ID_order', 
     'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
-    'topographic_elevation' at the nodes in the grid. 'drainage_area' should
+    'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
     
@@ -90,7 +90,7 @@ class SPEroder(object):
         try:
             self.value_field = inputs.read_str('value_field')
         except:
-            self.value_field = 'topographic_elevation'
+            self.value_field = 'topographic__elevation'
             
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
@@ -127,7 +127,7 @@ class SPEroder(object):
         return self.dt, self.r_i
         
 
-    def erode(self, grid_in, K_if_used=None):
+    def erode(self, grid_in, dt=None, K_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -140,6 +140,8 @@ class SPEroder(object):
         It returns the grid, in which it will have modified the value of 
         *value_field*, as specified in component initialization.
         """
+        if dt:
+            self.dt = dt
         
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
@@ -173,7 +175,16 @@ class SPEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
         if self.nonlinear_flag==False: #n==1
-            if self.weave_flag:
+            #print 'Linear'
+            method = 'cython'
+            if method in ('cython', 'weave'):
+                if method == 'cython':
+                    from .cfuncs import erode_with_alpha
+                else:
+                    from .weavefuncs import erode_with_alpha
+                erode_with_alpha(upstream_order_IDs, flow_receivers, alpha, z)
+            #if self.weave_flag:
+            elif method == 'weave':
                 code = """
                     int current_node;
                     int j;
@@ -192,6 +203,7 @@ class SPEroder(object):
                     if i != j:
                         z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         else: #general, nonlinear n case
+            print 'Non-linear'
             self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
             alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
             n = float(self.n)
@@ -205,30 +217,14 @@ class SPEroder(object):
                         if i != j:
                             z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
                 else:
-                    code = """
-                        int current_node;
-                        int j;
-                        double current_z;
-                        double previous_z;
-                        double elev_diff;
-                        double elev_diff_tothenless1;
-                        for (int i = 0; i < n_nodes; i++) {
-                            current_node = upstream_order_IDs[i];
-                            j = flow_receivers[current_node];
-                            previous_z = z[current_node];
-                            if (current_node != j) {
-                                while (1) {
-                                    elev_diff = previous_z-z[j];
-                                    elev_diff_tothenless1 = pow(elev_diff, n-1.); //this isn't defined if in some iterations the elev_diff goes -ve
-                                    current_z = previous_z - (previous_z - z[current_node] + alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1*elev_diff)/(1.+n*alpha_by_flow_link_lengthtothenless1[current_node]*elev_diff_tothenless1);
-                                    if (abs((current_z - previous_z)/current_z) < 1.48e-08) break;
-                                    previous_z = current_z;
-                                }
-                                z[current_node] = current_z;
-                            }
-                        }
-                    """
-                    weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha_by_flow_link_lengthtothenless1', 'n'], headers=["<math.h>"])
+                    method = 'cython'
+                    if method == 'cython':
+                        from .cfuncs import erode_with_link_alpha
+                    elif method == 'weave':
+                        from .weavefuncs import erode_with_link_alpha
+                    erode_with_link_alpha(upstream_order_IDs, flow_receivers,
+                                          alpha_by_flow_link_lengthtothenless1,
+                                          n, z)
             else:
                 for i in upstream_order_IDs:
                     j = flow_receivers[i]

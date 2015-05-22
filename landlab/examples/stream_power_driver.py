@@ -29,11 +29,11 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up its boundary conditions (bottom, left, top, right is inactive)
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -48,17 +48,17 @@ sp = SPEroder(mg, input_file)
 time_on = time()
 #perform the loops:
 for i in xrange(nt):
-    mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
+    mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
+    mg = fr.route_flow()
     mg = sp.erode(mg)
 
     #plot long profiles along channels
     pylab.figure(6)
-    profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+    profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-    dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+    dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
-    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
     print 'Completed loop ', i
  
 print 'Completed the simulation. Plotting...'
@@ -70,12 +70,12 @@ time_off = time()
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = imshow_node_grid(mg, 'water_discharges', cmap='Blues')  # display a colored image
+im = imshow_node_grid(mg, 'water__volume_flux', cmap='Blues')  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
@@ -86,7 +86,7 @@ im = pylab.plot(mg.dx*np.arange(ncols), elev_r[int(nrows//4),:])
 pylab.title('E-W cross_section')
 
 drainage_areas = mg['node']['drainage_area'][mg.get_interior_nodes()]
-steepest_slopes = mg['node']['steepest_slope'][mg.get_interior_nodes()]
+steepest_slopes = mg['node']['topographic__steepest_slope'][mg.get_interior_nodes()]
 pylab.figure(5)
 pylab.loglog(drainage_areas, steepest_slopes, 'x')
 pylab.xlabel('Upstream drainage area, m^2')

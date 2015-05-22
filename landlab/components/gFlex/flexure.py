@@ -54,7 +54,7 @@ class gFlex(Component):
                         ])
     
     _output_var_names = set(['lithosphere__vertical_displacement',
-                             'topographic_elevation',
+                             'topographic__elevation',
                         ])
                         
     _var_units = {'earth_material_load__magnitude_of_stress' : 'Pa',
@@ -110,7 +110,7 @@ class gFlex(Component):
         * surface_load__stress
         
         gFlex modifies/returns:
-        * topographic_elevation (if it exists already)
+        * topographic__elevation (if it exists already)
         * lithosphere__vertical_displacement
         
         
@@ -200,11 +200,11 @@ class gFlex(Component):
         self._grid.at_node['lithosphere__vertical_displacement'] = self.flex.w.view().ravel()
         
         try:
-            self._grid.at_node['topographic_elevation']
+            self._grid.at_node['topographic__elevation']
             #a topo exists...
         except FieldError:
             pass
         else:
             topo_diff = self._grid.at_node['lithosphere__vertical_displacement'] - self.pre_flex
-            self._grid.at_node['topographic_elevation'] += topo_diff
+            self._grid.at_node['topographic__elevation'] += topo_diff
             self.pre_flex += topo_diff

@@ -169,42 +169,6 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> rl[3:8]
     array([        15, 2147483647,          1,          6,          2])
 
-    *Example 2*
-
-    This example implements a simple routing on a (4,5) raster grid with the
-    following node elevations::
-
-        5 - 5 - 5 - 5 - 5
-        |   |   |   |   |
-        5 - 3 - 4 - 3 - 5
-        |   |   |   |   |
-        5 - 1 - 2 - 2 - 5
-        |   |   |   |   |
-        5 - 0 - 5 - 5 - 5
-        
-    #>>> import numpy as np
-    #>>> from landlab import RasterModelGrid
-    #>>> z = np.array([0., 0., 0., 0., 0.,
-    #>>> mg = RasterModelGrid(4,5)
-    #...                  0., 1., 2., 5., 5.,
-    #...                  2., 2., 3., 5., 0.,
-    #...                  9., 9., 9., 9., 9.])
-    #>>> fn = tn = s = None
-    #>>> active_links = None #these can all be dummy variables because this is a raster
-
-    #>>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s, grid=mg)
-    #>>> r
-    #array([ 0,  1,  2,  3,  4,  5,  6,  6, 14,  9, 10,  6,  6, 14, 14, 15, 16, 17, 18, 19])
-    #>>> ss.round(decimals=2)
-    #array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.  ,  2.  ,  3.54,  0.  ,  0.  ,  2.  ,  2.12,  5.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ])
-    #>>> snk
-    #array([ True,  True,  True,  True,  True,  True,  True, False, False, True,  True, False, False, False,  True,  True,  True,  True,  True,  True], dtype=bool)
-    #>>> rl
-    #array([2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-    #   2147483647, 2147483647,         20,         38, 2147483647,
-    #   2147483647,          6,         36,         26, 2147483647,
-    #   2147483647, 2147483647, 2147483647, 2147483647, 2147483647])
-
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
         - Pass active_links in as argument
@@ -233,29 +197,16 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     #as of Dec 2014, we prioritise the weave if a weave is viable, and only do 
     #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
     #presumably better if the grid is bigger)
-    if use_weave:
-        n_nodes = len(fromnode)
-        code="""
-            int f;
-            int t;
-            for (int i=0; i<n_nodes; i++) {
-                f = fromnode[i];
-                t = tonode[i];
-                if (elev[f]>elev[t] && link_slope[i]>steepest_slope[f]) {
-                    receiver[f] = t;
-                    steepest_slope[f] = link_slope[i];
-                    receiver_link[f] = active_links[i];
-                }
-                else if (elev[t]>elev[f] && -link_slope[i]>steepest_slope[t]) {
-                    receiver[t] = f;
-                    steepest_slope[t] = -link_slope[i];
-                    receiver_link[t] = active_links[i];
-                }
-            }
-        """
-        weave.inline(code, ['n_nodes', 'fromnode', 'tonode', 'elev', 
-                            'link_slope', 'steepest_slope', 'receiver', 
-                            'receiver_link', 'active_links'])
+    method = 'cython'
+    if method in ('cython', 'weave'):
+        if method == 'cython':
+            from .cfuncs import adjust_flow_receivers
+        elif method == 'weave':
+            from .weavefuncs import adjust_flow_receivers
+
+        adjust_flow_receivers(fromnode, tonode, elev, link_slope,
+                              active_links, receiver, receiver_link,
+                              steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
             #print "looped method"

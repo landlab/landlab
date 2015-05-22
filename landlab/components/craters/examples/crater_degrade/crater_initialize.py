@@ -21,10 +21,10 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
-mg['node'][ 'topographic_elevation'] = z #+ np.random.rand(len(z))/10000.
+mg['node'][ 'topographic__elevation'] = z #+ np.random.rand(len(z))/10000.
 
 # Display a message
 print( 'Running ...' )
@@ -56,7 +56,7 @@ for i in xrange(loops):
         mass_balance[j] = craters_component.mass_balance
         print 'Completed loop ', j
     mystring = 'init_topo'
-    np.save(mystring,mg['node']['topographic_elevation'])
+    np.save(mystring,mg['node']['topographic__elevation'])
     #Save the properties
     np.save(('x_'+str((i+1)*nt)),x)
     np.save(('y_'+str((i+1)*nt)),y)
@@ -67,7 +67,7 @@ for i in xrange(loops):
     np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 pylab.figure(1)

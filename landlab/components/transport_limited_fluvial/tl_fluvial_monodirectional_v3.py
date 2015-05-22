@@ -262,11 +262,11 @@ class TransportLimitedEroder(object):
             """
         
                     
-    def erode(self, grid, dt=None, node_elevs='topographic_elevation', 
+    def erode(self, grid, dt=None, node_elevs='topographic__elevation', 
                 node_drainage_areas='drainage_area', 
                 node_receiving_flow='flow_receiver',
                 node_order_upstream='upstream_ID_order',
-                node_slope='steepest_slope',
+                node_slope='topographic__steepest_slope',
                 steepest_link='links_to_flow_receiver',
                 runoff_rate_if_used=None,
                 #W_if_used=None, Q_if_used=None,
@@ -311,7 +311,7 @@ class TransportLimitedEroder(object):
         
         *slopes_from_elevs* allows the module to create gradients internally
         from elevations rather than have them provided. Set to True to force 
-        the component to look for the data in grid.at_node['topographic_elevation'];
+        the component to look for the data in grid.at_node['topographic__elevation'];
         set to 'name_of_field' to override this name, or pass an nnode-array
         to use those values as elevations instead. Using this option is 
         considerably slower than any of the alternatives, as it also has to 
@@ -347,7 +347,7 @@ class TransportLimitedEroder(object):
         
         SETS: (as fields on the grid)
         ***Note the time units are SECONDS in these fields***
-        - 'topographic_elevation' (m), the elevations (or your name)
+        - 'topographic__elevation' (m), the elevations (or your name)
         - 'fluvial_sediment_transport_capacity' (m**3/s), the volumetric 
             transport capacities at each node
         - 'fluvial_sediment_flux_into_node' (m**3/s), the total volumetric sed 

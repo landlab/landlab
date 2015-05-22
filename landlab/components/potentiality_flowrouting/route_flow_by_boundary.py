@@ -15,6 +15,10 @@ import numpy as np
 from landlab import RasterModelGrid, ModelParameterDictionary, Component, FieldError
 import inspect
 
+##########################
+#THIS DOESN'T ACCOUNT FOR CELL AREA YET!!!!!!
+##########################
+
 class PotentialityFlowRouter(Component):
     """
     This class implements Voller, Hobley, and Paola's experimental matrix
@@ -30,7 +34,7 @@ class PotentialityFlowRouter(Component):
     """
     _name = 'PotentialityFlowRouter'
     
-    _input_var_names = set(['topographic_elevation',
+    _input_var_names = set(['topographic__elevation',
                             'water__volume_flux_in',
                             ])
     
@@ -42,7 +46,7 @@ class PotentialityFlowRouter(Component):
                              'water__volume_flux',
                              ])
                              
-    _var_units = {'topographic_elevation' : 'm',
+    _var_units = {'topographic__elevation' : 'm',
                   'water__volume_flux_in' : 'm**3/s',
                   'water__volume_flux_magnitude' : 'm**3/s',
                   'water__volume_flux_xcomponent' : 'm**3/s',
@@ -52,7 +56,7 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux' : 'm**3/s',
                   }
     
-    _var_mapping = {'topographic_elevation' : 'node',
+    _var_mapping = {'topographic__elevation' : 'node',
                   'water__volume_flux_in' : 'node',
                   'water__volume_flux_magnitude' : 'node',
                   'water__volume_flux_xcomponent' : 'node',
@@ -62,7 +66,7 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux' : 'link',
                   }
     
-    _var_defs = {'topographic_elevation' : 'Land surface topographic elevation',
+    _var_defs = {'topographic__elevation' : 'Land surface topographic elevation',
                   'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
                   'water__volume_flux_magnitude' : 'Magnitude of volumetric water flux through each node',
                   'water__volume_flux_xcomponent' : 'x component of resolved water flux through node',
@@ -251,7 +255,7 @@ class PotentialityFlowRouter(Component):
             bbSW = self.boundaryboundarySW            
             
         #paste in the elevs
-        hR[1:-1,1:-1].flat = self._grid.at_node['topographic_elevation']
+        hR[1:-1,1:-1].flat = self._grid.at_node['topographic__elevation']
         
         #update the dummy edges of our variables - these all act as closed nodes (the inner, true boundaries are handled elsewhere... or they should be closed anyway!):
         #note this isn't sufficient of we have diagonals turned on, as flow can still occur on them

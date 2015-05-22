@@ -223,11 +223,11 @@ class ScalarDataFields(dict):
 
         >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
-        >>> field.add_ones('topographic_elevation')
+        >>> field.add_ones('topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
         >>> field.keys()
-        ['topographic_elevation']
-        >>> field['topographic_elevation']
+        ['topographic__elevation']
+        >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
         return self.add_field(name, self.ones(**kwds), units=units)
@@ -302,13 +302,13 @@ class ScalarDataFields(dict):
         >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('topographic_elevation', values)
+        >>> field.add_field('topographic__elevation', values)
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field['topographic_elevation'] is values
+        >>> field['topographic__elevation'] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -316,13 +316,13 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('topographic_elevation', values, copy=True)
+        >>> field.add_field('topographic__elevation', values, copy=True)
         array([1, 1, 1, 1])
-        >>> field['topographic_elevation'] is values
+        >>> field['topographic__elevation'] is values
         False
-        >>> field.add_field('topographic_elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('topographic__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        FieldError: topographic_elevation
+        FieldError: topographic__elevation
         """
         if noclobber and name in self:
             raise FieldError(name)

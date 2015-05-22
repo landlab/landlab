@@ -9,7 +9,7 @@ leftmost_elevation:
 initial_slope:
 0.
 dt:
-1.
+0.1
 total_time:
 100.
 uplift_rate:
@@ -29,5 +29,5 @@ kappa:
 S_crit:
 0.56
 
-DIFMOD_KD:
+linear_diffusivity:
 0.0001

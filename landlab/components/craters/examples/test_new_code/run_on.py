@@ -40,7 +40,7 @@ for i in xrange(loops):
         mass_balance[j] = craters_component.mass_balance
         print 'Completed loop ', j
     mystring = 'craterssave'+str((i+1)*nt)
-    np.save(mystring,mg['node']['topographic_elevation'])
+    np.save(mystring,mg['node']['topographic__elevation'])
     #Save the properties
     np.save(('x_'+str((i+1)*nt)),x)
     np.save(('y_'+str((i+1)*nt)),y)
@@ -51,7 +51,7 @@ for i in xrange(loops):
     np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 pylab.figure(1)

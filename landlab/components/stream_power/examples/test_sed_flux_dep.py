@@ -40,15 +40,15 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up grid's boundary conditions (bottom, left, top, right is inactive)
 mg.set_inactive_boundaries(False, True, False, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic_elevation')
+mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic__elevation')
 print 'fixed vals in grid: ', mg.fixed_value_node_properties['values']
 
 # Display a message
@@ -63,13 +63,13 @@ time_on = time()
 #perform the loops:
 for i in xrange(nt):
     #print 'loop ', i
-    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow(grid=mg)
-    #mg.calculate_gradient_across_cell_faces(mg.at_node['topographic_elevation'])
-    #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic_elevation'])
+    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
+    mg = fr.route_flow()
+    #mg.calculate_gradient_across_cell_faces(mg.at_node['topographic__elevation'])
+    #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic__elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)
     #max_slope = np.max(np.fabs(neighbor_slopes),axis=1)
-    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')
+    #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='topographic__steepest_slope')
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes=max_slope)
     mg_copy = deepcopy(mg)
     mg,_ = sde.erode(mg,dt)
@@ -78,15 +78,15 @@ for i in xrange(nt):
     #print 'rel sed ', np.nanmax(sed_in[mg.core_nodes]/capacity_out[mg.core_nodes])
     if i%100 == 0:
         print 'loop ', i
-        print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
+        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes])
         pylab.figure("long_profiles")
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                         mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
-        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
     #mg.update_boundary_nodes()
-    #vid.add_frame(mg, 'topographic_elevation')
+    #vid.add_frame(mg, 'topographic__elevation')
     
  
 print 'Completed the simulation. Plotting...'
@@ -95,7 +95,7 @@ time_off = time()
 
 #Finalize and plot
 
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 #imshow.imshow_node_grid(mg, elev)
 
 print('Done.')

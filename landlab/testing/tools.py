@@ -2,6 +2,8 @@ import os
 import shutil
 import tempfile
 
+import numpy as np
+
 from nose.tools import assert_true, assert_equal
 from distutils.dir_util import mkpath
 
@@ -90,6 +92,10 @@ class cdtemp(object):
     def __exit__(self, ex_type, ex_value, traceback):
         os.chdir(self._starting_dir)
         shutil.rmtree(self._tmp_dir)
+
+
+def assert_array_is_int(x):
+    assert_true(x.dtype == np.int32 or x.dtype == np.int64)
 
 
 def assert_is(expr1, expr2, msg=None):

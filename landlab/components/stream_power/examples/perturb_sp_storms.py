@@ -39,9 +39,10 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
+mg.add_zeros('node', 'water__volume_flux_in')
 
 #make some K values in a field to test 
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
@@ -71,11 +72,12 @@ except NameError:
     #We're going to cheat by running Fastscape SP for the first part of the solution
     for (interval_duration, rainfall_rate) in precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg = fr.route_flow(grid=mg, runoff_rate=rainfall_rate)
+            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg = fr.route_flow()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water_discharges', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*interval_duration
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
             print 'made it to loop ', out_interval*this_trunc
@@ -96,27 +98,28 @@ if True:
     last_trunc = time_to_run #we use this to trigger taking an output plot
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg = fr.route_flow(grid=mg, runoff_rate=rainfall_rate)
+            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water_discharges', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
     
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
             print 'saving a plot at perturbed loop ', out_interval*this_trunc
             pylab.figure("long_profiles")
-            profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
+            profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
-            dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+            dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
-            prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+            prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
     
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += 5.*uplift*interval_duration
+        mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 # Clear previous plots
@@ -126,7 +129,7 @@ pylab.close()
 # Plot topography
 pylab.figure("topo")
 #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-im = llplot.imshow_node_grid(mg, 'topographic_elevation')
+im = llplot.imshow_node_grid(mg, 'topographic__elevation')
 #print elev_r
 #pylab.colorbar(im)
 #pylab.title('Topography')
@@ -136,7 +139,7 @@ im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a co
 pylab.title('Vertical cross section')
 
 pylab.figure("Slope-Area")
-im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['steepest_slope'],'.')
+im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['topographic__steepest_slope'],'.')
 pylab.title('Slope-Area')
 
 pylab.show()

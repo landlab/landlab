@@ -30,9 +30,9 @@ rock_stress_param = inputs.read_float('rock_density')*9.81
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/1000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
 #make some surface load stresses in a field to test 
 mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
@@ -50,16 +50,16 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print "Short step!"
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     #mg = fsp.erode(mg)
-    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='steepest_slope')
-    mg.at_node['surface_load__stress'] = (mg.at_node['topographic_elevation']+1000)*rock_stress_param
+    mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
+    mg.at_node['surface_load__stress'] = (mg.at_node['topographic__elevation']+1000)*rock_stress_param
     gf.flex_lithosphere()
-    mg.at_node['topographic_elevation'][mg.number_of_nodes//4:3.*mg.number_of_nodes//4] += uplift_perstep
+    mg.at_node['topographic__elevation'][mg.number_of_nodes//4:3.*mg.number_of_nodes//4] += uplift_perstep
     elapsed_time += dt
 
 pylab.figure(1)
-im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 pylab.figure(2)
 im = imshow_node_grid(mg, 'lithosphere__vertical_displacement')

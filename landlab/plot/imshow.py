@@ -21,14 +21,42 @@ def assert_array_size_matches(array, size, msg=None):
 
 
 def imshow_node_grid(grid, values, **kwds):
-    """
-    Prepares a map view of data over all nodes in the grid.
-    Method can take any of the same **kwds as imshow().
+    """Prepare a map view of data over all nodes in the grid.
     
-    requires:
-    grid: the grid
-    values: the values on the nodes (length nnodes), or a field name (string)
-    from which t draw the data.
+    Data is plotted with the surrounding cell shaded with the value
+    at the node at its center. Outer edges of perimeter cells are 
+    extrapolated.
+    
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Grid containing node field to plot.
+    values : array_like or str
+        Node values or a field name as a string from which to draw the data.
+    var_name : str, optional
+        Name of the variable to put in plot title.
+    var_units : str, optional
+        Units for the variable being plotted.
+    grid_units : tuple of str
+        Units for y, and x dimensions.
+    symmetric_cbar : bool
+        Make the colormap symetric about 0.
+    cmap : str
+        Name of a colormap
+    limits : tuple of float
+        Minimum and maximum of the colorbar.
+    allow_colorbar : bool
+        If True, include the colorbar.
+    norm : matplotlib.colors.Normalize
+        The normalizing object which scales data, typically into the interval
+        [0, 1].
+    shrink : float
+        Fraction by which to shrink the colorbar.
+    color_for_closed : str
+        Color to use for closed nodes
+    
+    Use matplotlib functions like xlim, ylim to modify your
+    plot after calling imshow_node_grid, as desired.
     """
     if type(values) == str:
         value_str = values
@@ -41,6 +69,9 @@ def imshow_node_grid(grid, values, **kwds):
     
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
+
+    data = np.ma.masked_where((grid.node_status == 4).reshape(grid.shape),
+                              data)
 
     myimage = _imshow_grid_values(grid, data, **kwds)
     
@@ -243,33 +274,39 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
                         cmap='pink', limits=None, allow_colorbar=True,
-                        norm=None, shrink=1.):
+                        norm=None, shrink=1., color_for_closed='black'):
     
     gridtypes = inspect.getmro(grid.__class__)
-
+    
+    cmap = plt.get_cmap(cmap)
+    cmap.set_bad(color=color_for_closed)
+    
     if RasterModelGrid in gridtypes:
         if len(values.shape) != 2:
             raise ValueError('dimension of values must be 2 (%s)' % values.shape)
-        y = np.arange(values.shape[0] + 1) - grid.dx * .5
-        x = np.arange(values.shape[1] + 1) - grid.dx * .5
+
+        y = np.arange(values.shape[0] + 1) * grid.dx - grid.dx * .5
+        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
     
         kwds = dict(cmap=cmap)
         if limits is None:
             if symmetric_cbar:
                 (var_min, var_max) = (values.min(), values.max())
+
                 limit = max(abs(var_min), abs(var_max))
                 (kwds['vmin'], kwds['vmax']) = (- limit, limit)
+            else:
+                (kwds['vmin'], kwds['vmax']) = (values.min(), values.max())
         else:
             (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
-    
-    
+
         myimage = plt.pcolormesh(x, y, values, **kwds)
     
         plt.gca().set_aspect(1.)
         plt.autoscale(tight=True)
         
         if allow_colorbar:
-            plt.colorbar(norm=norm,shrink=shrink)
+            plt.colorbar(norm=norm, shrink=shrink)
     
         plt.xlabel('X (%s)' % grid_units[1])
         plt.ylabel('Y (%s)' % grid_units[0])
@@ -290,12 +327,14 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         import matplotlib.cm as cmx
         cm = plt.get_cmap(cmap)
         if limits is None:
+            #only want to work with NOT CLOSED nodes
+            open_nodes = grid.node_status!=4
             if symmetric_cbar:
-                (var_min, var_max) = (values.min(), values.max())
+                (var_min, var_max) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
                 limit = max(abs(var_min), abs(var_max))
                 (vmin, vmax) = (- limit, limit)
             else:
-                (vmin, vmax) = (values.min(), values.max())
+                (vmin, vmax) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
         else:
             (vmin, vmax) = (limits[0], limits[1])
         cNorm = colors.Normalize(vmin,vmax)
