@@ -115,10 +115,6 @@ This should work for both Windows and Mac users of Anaconda.
 
   > pip install -upgrade pip
 
--	If the version is not up-to-date, On the command line, enter the following command::
-
-   > pip install –upgrade pip
-
 -	Once the correct version is installed, now install **netCDF4**::
 
    > conda install netCDF4
