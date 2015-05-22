@@ -81,7 +81,7 @@ If you *don't* see reference to your newly installed distribution, click :ref:`h
 Installing Landlab
 ==================
 
-Here we describe how to install the latest release package of Landlab.  This is a quick and easy way to get started with Landlab.  Note that this method of installation hides the code behind Landlab.  If you want to actually edit existing Landlab code and add to the Landlab repository, please follow the installation instructions :ref:`here 
+Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the installation instructions :ref:`here 
 <dev_guide>`.
 
 We here assume that you have read :ref:`the previous section <python-install>` and you have now installed a Python front-end  on your computer (which should have also installed a Python distribution) and that your default Python path is set correctly (more on Python path :ref:`here <correcting_python_version>`).
