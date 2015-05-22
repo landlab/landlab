@@ -674,9 +674,9 @@ def active_links(shape, node_status_array=None, link_nodes=None):
                     ((to_node_status == CORE_NODE) & ~
                      (from_node_status == CLOSED_BOUNDARY)))
 
-    (active_links, ) = np.where(active_links).astype(np.int)
+    (active_links, ) = np.where(active_links)
 
-    return active_links
+    return active_links.astype(np.int)
 
 
 def active_face_index(shape):
