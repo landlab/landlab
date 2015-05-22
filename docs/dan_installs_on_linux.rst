@@ -1,7 +1,7 @@
 .. _dan_installs_on_linux:
 
 ================================
-A rough guide to Python on Linux - WHERE SHOULD THIS GO???
+A rough guide to Python on Linux
 ================================
 
 *Handling Python installs on Linux if you are non-expert can be a confusing
