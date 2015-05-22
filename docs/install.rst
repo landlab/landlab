@@ -105,7 +105,7 @@ This should work for Anaconda users with Windows 7, Mac OS 10.6+, or Ubuntu Linu
 
 -	Open the Python editor in Anaconda called Spyder.
 
--	On the Spyder toolbar, go to **Tools → Open** command prompt to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.
+-	On the Spyder toolbar, go to **Tools → Open** command prompt to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.  If you do use a standard terminal, make sure you have :ref:`resolved your path issues <correcting_python_version>`).
 
 - To ensure that your version of *pip* (a package installer) is up-to-date, enter the following command::
 
@@ -147,7 +147,7 @@ This should work for Canopy users with Windows 7 or Mac OS 10.6 and above.
 
 - In the Package Manager, search for and install the **pip 6.1.1-1** and **netCDF4 1.1.7.1-2** libraries.
 
--	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.
+-	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to Tools → Canopy Terminal to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a mac, which are both found in the Applications/Utilities directory.  If you do use a standard terminal, make sure you have :ref:`resolved your path issues <correcting_python_version>`).
 
 - Now to install Landlab! On the command line, enter the following command::
 
