@@ -30,7 +30,7 @@ build: false
 test_script:
   #- "%WITH_COMPILER% python setup.py build_ext --inplace"
   #- "%WITH_COMPILER% python coupled_driver.py"
-  - "%WITH_COMPILER% python scripts/test-installed-landlab.py --doctests"
+  - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
 
 after_test:
   - "%WITH_COMPILER% python setup.py bdist_wheel"
