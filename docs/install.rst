@@ -109,7 +109,7 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
 - To ensure that your version of *pip* (a package installer) is up-to-date, enter the following command::
 
-  > pip install -upgrade pip
+  > pip install --upgrade pip
   
 - Once the correct version is installed, now install **netCDF4**.  (Note the ``conda`` command below handles Anaconda-supported package installation and updates)::
 
