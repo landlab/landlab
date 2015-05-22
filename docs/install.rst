@@ -86,6 +86,10 @@ Here we describe how to install the latest release package of Landlab.  Note tha
 
 We here assume that you have read :ref:`the previous section <python-install>` and you have now installed a Python front-end  on your computer (which should have also installed a Python distribution) and that your default Python path is set correctly (more on Python path :ref:`here <correcting_python_version>`).
 
+The instructions below describe the installation of Landlab with :ref:`Anaconda <landlab-install_with_anaconda>` and :ref:`Canopy <landlab-install_with_canopy>` on both PCs and Macs.  If you're running Linux, it's likely you've already got your system the way you like it, and you'll already know how to get Landlab running on your machine using only the :ref:`fast install directions <landlab-install_quickly>`.  If, however, you want a bit more advice on beating your Linux system into shape with regards to running Python and getting Landlab, you can follow :ref:`this link <dan_installs_on_linux>`. 
+
+.. _landlab-install_quickly:
+
 Quick Landlab Install Instructions (For Experienced Python Users)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
