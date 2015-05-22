@@ -48,7 +48,7 @@ def txt_data_dict( InputFile ):
 _DEFAULT_INPUT_FILE_1 = os.path.join(os.path.dirname(__file__),
                                  'DEM_10m.asc')
 
-InputFile = 'Inputs_deep_well_Xiaochi_WRR_2013.txt'
+InputFile = 'Inputs_Vegetation_CA.txt'
 data = txt_data_dict( InputFile ) # Create dictionary that holds the inputs
 
 ## Importing Grid and Elevations from DEM

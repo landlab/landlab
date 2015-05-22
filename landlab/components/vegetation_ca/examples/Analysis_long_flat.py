@@ -11,7 +11,7 @@ TREESEEDLING = 5
 import numpy as np
 import matplotlib.pyplot as plt
 
-sim = 'sim_4_'
+sim = 'WaterStress_15May15_'
 CumWaterStress = np.load(sim+'CumWaterStress.npy')
 P = np.load(sim+'P.npy')
 Tb = np.load(sim+'Tb.npy')

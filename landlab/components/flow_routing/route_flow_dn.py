@@ -183,7 +183,7 @@ class FlowRouter(Component):
         ...                  0., 31., 20., 0.,
         ...                  0., 32., 30., 0.,
         ...                  0.,  0.,  0., 0.])
-        >>> mg.add_field('node','topographic__elevation', elev)
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
         >>> mg = fr.route_flow()
@@ -197,11 +197,11 @@ class FlowRouter(Component):
         Now let's change the cell area and the runoff rates:
         
         >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
-        >>> mg.add_field('node','topographic__elevation', elev) #put the data back into the new grid
+        >>> _ = mg.add_field('node','topographic__elevation', elev) #put the data back into the new grid
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
-        >>> mg.add_field('node', 'water__volume_flux_in', runoff_rate)
+        >>> _ = mg.add_field('node', 'water__volume_flux_in', runoff_rate)
         >>> mg = fr.route_flow()
         >>> mg.at_node['water__volume_flux']
         array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
