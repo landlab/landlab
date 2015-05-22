@@ -953,6 +953,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                               (diag_fromnode_status == CLOSED_BOUNDARY)))
 
         (_diag_active_links, ) = np.where(diag_active_links)
+        _diag_active_links = _diag_active_links.astype(np.int)
 
         self._num_diag_active_links = len(_diag_active_links)
         self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
@@ -2498,7 +2499,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #save some internal data to speed updating:
         self.fixed_value_node_properties = {}
-        self.fixed_value_node_properties['boundary_node_IDs'] = np.where(self.node_status==FIXED_VALUE_BOUNDARY)[0]
+        self.fixed_value_node_properties['boundary_node_IDs'] = np.where(self.node_status==FIXED_VALUE_BOUNDARY)[0].astype(np.int)
         if value:
             if type(value) == float or type(value) == int:
                 values_to_use = float(value)

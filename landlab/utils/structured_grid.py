@@ -674,7 +674,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
                     ((to_node_status == CORE_NODE) & ~
                      (from_node_status == CLOSED_BOUNDARY)))
 
-    (active_links, ) = np.where(active_links)
+    (active_links, ) = np.where(active_links).astype(np.int)
 
     return active_links
 
