@@ -86,7 +86,7 @@ Here we describe how to install the latest release package of Landlab.  Note tha
 
 We here assume that you have read :ref:`the previous section <python-install>` and you have now installed a Python front-end  on your computer (which should have also installed a Python distribution) and that your default Python path is set correctly (more on Python path :ref:`here <correcting_python_version>`).
 
-Quick Install Instructions (For Experienced Python Users)
+Quick Landlab Install Instructions (For Experienced Python Users)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>` and :ref:`here for Canopy users <landlab-install_with_canopy>`.  Otherwise, if you don't like details, continue!
@@ -98,7 +98,7 @@ If you are new to Python, you probably should see instructions :ref:`here for An
 
 .. _landlab-install_with_anaconda:
 
-Installing Using using Anaconda  - Recommended Method
+Installing Landlab Using using Anaconda  - Recommended Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This should work for Anaconda users with Windows 7, Mac OS 10.6+, or Ubuntu Linux (only the latest version has been tested).
@@ -134,7 +134,7 @@ The version number is changing rapidly at this point, but it should be something
 
 .. _landlab-install_with_canopy:
 
-Installing using Enthought Canopy
+Installing Landlab using Enthought Canopy
 +++++++++++++++++++++++++++++++++
 
 This should work for Canopy users with Windows 7 or Mac OS 10.6 and above.
@@ -161,7 +161,7 @@ This should work for Canopy users with Windows 7 or Mac OS 10.6 and above.
 The version number is changing rapidly at this point, but it should be something higher than 0.1.12.  If you are having problems with Landlab, check with the Landlab development team to make sure you have the latest version.
 
 
-Developer Installation - Installing from Source Code
+Developer Installation - Installing from Landlab Source Code
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is recommended only for users who have gotten a feel for Landlab and want to keep up with the absolute latest Landlab developments and contribute codes back to the Landlab repository.  If this is not you, please follow the standard installation instructions :ref:`above <landlab_install>`.  Otherwise, if you are ready to become a Landlab developer, follow :ref:`these directions <dev_guide>`.
