@@ -127,7 +127,7 @@ class SPEroder(object):
         return self.dt, self.r_i
         
 
-    def erode(self, grid_in, K_if_used=None):
+    def erode(self, grid_in, dt=None, K_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -140,6 +140,8 @@ class SPEroder(object):
         It returns the grid, in which it will have modified the value of 
         *value_field*, as specified in component initialization.
         """
+        if dt:
+            self.dt = dt
         
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
@@ -173,7 +175,7 @@ class SPEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
         if self.nonlinear_flag==False: #n==1
-            print 'Linear'
+            #print 'Linear'
             method = 'cython'
             if method in ('cython', 'weave'):
                 if method == 'cython':
