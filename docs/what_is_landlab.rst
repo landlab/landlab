@@ -1,5 +1,5 @@
-An Introduction to Landlab
-==========================
+What is Landlab?
+================
 
 (originally authored by Greg Tucker, December 2013)
 
@@ -46,5 +46,3 @@ The Landlab Team:
 
 Initial funding was provided by a grant from the National Science Foundation to Greg Tucker (ACI 1147454), 
 Erkan Istanbulluoglu (ACI 1148305), and Nicole Gasparini (ACI 1147519).
-
-(MAYBE ADD SOMETHING ON PRESENTATIONS AND CITATIONS?)
