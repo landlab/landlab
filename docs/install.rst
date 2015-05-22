@@ -101,9 +101,15 @@ If you are new to Python, you probably should see instructions :ref:`here for An
 Installing Using using Anaconda  - Recommended Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+This should work for both Windows and Mac users of Anaconda.
+
 -	Open the Python editor in Anaconda called Spyder.
 
 -	On the Spyder toolbar, go to Tools → Open command prompt to open the command line.
+
+- Check the version of pip.  We need pip 6.1.1 (as of May 2015).  On the command line, type the following::
+
+  > pip -version
 
 -	Check the version of pip. We need pip 6.1.1. On the command line, type the following::
 
@@ -138,6 +144,8 @@ The version number is changing rapidly at this point.  Check with the Landlab de
 
 Installing using Enthought Canopy
 +++++++++++++++++++++++++++++++++
+
+This should work for both Windows and Mac users of Canopy.
 
 - Open the Python editor by clicking on the Canopy icon.
 
