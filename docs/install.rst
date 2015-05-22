@@ -111,9 +111,9 @@ This should work for both Windows and Mac users of Anaconda.
 
   > pip -version
 
--	Check the version of pip. We need pip 6.1.1. On the command line, type the following::
+- If the version is not up-to-date, enter the following command::
 
-   > pip –version
+  > pip install -upgrade pip
 
 -	If the version is not up-to-date, On the command line, enter the following command::
 
