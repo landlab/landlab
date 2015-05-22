@@ -119,7 +119,7 @@ This should work for both Windows and Mac users of Anaconda.
 
   > conda install netCDF4
 
--On the Python shell line in Anaconda, check the install of **netCDF4** to make sure it is up-to-date (note that those are double underscores around version)::
+- On the Python shell line in Anaconda, check the install of **netCDF4** to make sure it is up-to-date (note that those are double underscores around version)::
 
   >>> netCDF4.__version__
 
@@ -129,12 +129,7 @@ As of May 2015 this should return ``1.1.8``
 
   > pip install landlab
 
--Once Landlab has been successfully installed, on the python sheel line, check to make sure it is up-to-date (note that those are double undersocres around version)
-
-  >>> import landlab
-  >>> landlab.__version__
-
--	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date
+- Once Landlab has been successfully installed, on the python sheel line, check to make sure it is up-to-date (note that those are double undersocres around version)
 
   >>> import landlab
   >>> landlab.__version__
