@@ -139,7 +139,7 @@ This should work for Canopy users with Windows 7+ or Mac OS 10.6 and above.
 
 - On the Canopy toolbar, go to **Tools → Package Manager** to install required dependencies.
 
-- In the Package Manager, search for and install the **pip 6.1.1-1** and **netCDF4 1.1.7.1-2** libraries.
+- In the Package Manager, search for and install the **pip** and **netCDF4** libraries.
 
 -	Once **pip** and **netCDF** are installed, go to the Canopy editor window. On the toolbar, go to **Tools → Canopy Terminal** to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a Mac, or a command prompt on a Windows machine.  If you do use a standard terminal and run into problems, make sure you have :ref:`resolved your path issues <correcting_python_version>`).
 
