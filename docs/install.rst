@@ -107,7 +107,7 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
 -	On the Spyder toolbar, go to **Tools → Open** command prompt to open the command line.  Alternatively you can open a standard terminal window, such as an xterm (X11.app) or terminal window (Terminal.app) on a Mac, or a command prompt on a Windows machine.  If you do use a standard terminal and run into problems, make sure you have :ref:`resolved your path issues <correcting_python_version>`).
 
-- To ensure that your version of *pip* (a package installer) is up-to-date, enter the following command::
+- To ensure that your version of **pip** (a package installer) is up-to-date, enter the following command::
 
   > pip install --upgrade pip
   
