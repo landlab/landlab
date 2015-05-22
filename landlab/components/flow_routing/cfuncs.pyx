@@ -7,7 +7,8 @@ DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
 DTYPE_INT = np.longlong
-ctypedef np.int_t DTYPE_INT_t
+ctypedef np.longlong_t DTYPE_INT_t
+#ctypedef np.int_t DTYPE_INT_t
 
 
 @cython.boundscheck(False)
