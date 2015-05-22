@@ -92,8 +92,9 @@ Quick Install Instructions (For Experienced Python Users)
 If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>` and :ref:`here for Canopy users <landlab-install_with_canopy>`.  Otherwise, continue!
 
 - Open a terminal (or the command prompt) and type the following::
-  > pip install --upgrade pip
-  > pip install landlab
+
+   > pip install --upgrade pip
+   > pip install landlab
 
 .. _landlab-install_with_anaconda:
 
