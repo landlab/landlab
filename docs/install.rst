@@ -125,9 +125,14 @@ This should work for both Windows and Mac users of Anaconda.
 
 As of May 2015 this should return ``1.1.8``
 
--	Now to install Landlab! On the command line, enter the following command::
+- Now to install Landlab! Enter the following command ::
 
   > pip install landlab
+
+-Once Landlab has been successfully installed, on the python sheel line, check to make sure it is up-to-date (note that those are double undersocres around version)
+
+  >>> import landlab
+  >>> landlab.__version__
 
 -	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date
 
@@ -157,7 +162,7 @@ This should work for both Windows and Mac users of Canopy.
 
   > pip install landlab
   
-- Once Landlab has been successfully installed, on the Python shell line in the Canopy editor window, check to make sure it is up-to-date
+- Once Landlab has been successfully installed, on the Python shell line in the Canopy editor window, check to make sure it is up-to-date (note that those are double undersocres around version)
 
   >>> import landlab
   >>> landlab.__version__
