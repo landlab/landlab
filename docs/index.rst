@@ -12,7 +12,7 @@ Introduction to Landlab
    what_is_landlab
    
 .. toctree::
-   :maxdepth: 1   
+   :maxdepth: 2   
 
    install
    getting_started
