@@ -46,7 +46,7 @@ class impactor(object):
         
         #test the necessary fields are all already present:
         try:
-            self.elev = grid.at_node['topographic_elevation']
+            self.elev = grid.at_node['topographic__elevation']
         except:
             print 'elevations not found in grid!'
 
@@ -1644,7 +1644,7 @@ class impactor(object):
         ***This is one of the primary interface method of this class.***
         '''
         self.grid = grid
-        self.elev = grid.at_node['topographic_elevation']
+        self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
@@ -1681,7 +1681,7 @@ class impactor(object):
         ***This is one of the primary interface method of this class.***
         '''
         self.grid = grid
-        self.elev = grid.at_node['topographic_elevation']
+        self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))

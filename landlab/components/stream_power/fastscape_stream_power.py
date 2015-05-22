@@ -43,13 +43,13 @@ class SPEroder(object):
     modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
     rainfall intensity on erosivity. *value_field* is a string giving the name
     of the field containing the elevation data in the grid. It defaults to
-    'topographic_elevation' if not supplied.
+    'topographic__elevation' if not supplied.
     
     This module assumes you have already run 
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
     in the same timestep. It looks for 'upstream_ID_order', 
     'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
-    'topographic_elevation' at the nodes in the grid. 'drainage_area' should
+    'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
     
@@ -90,7 +90,7 @@ class SPEroder(object):
         try:
             self.value_field = inputs.read_str('value_field')
         except:
-            self.value_field = 'topographic_elevation'
+            self.value_field = 'topographic__elevation'
             
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()

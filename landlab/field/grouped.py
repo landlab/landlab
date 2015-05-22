@@ -63,21 +63,21 @@ class ModelDataFields(object):
     fields are in different groups (node and cell), they can have the same
     name.
 
-    >>> fields.add_ones('node', 'topographic_elevation')
+    >>> fields.add_ones('node', 'topographic__elevation')
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
-    >>> fields.at_node['topographic_elevation']
+    >>> fields.at_node['topographic__elevation']
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-    >>> fields.add_ones('cell', 'topographic_elevation')
+    >>> fields.add_ones('cell', 'topographic__elevation')
     array([ 1.,  1.])
-    >>> fields.at_cell['topographic_elevation']
+    >>> fields.at_cell['topographic__elevation']
     array([ 1.,  1.])
 
     Each group acts as a `dict` so, for instance, to get the variables names
     in a group use the `keys` method,
 
     >>> fields.at_cell.keys()
-    ['topographic_elevation']
+    ['topographic__elevation']
     """
     def __init__(self, **kwds):
         self._groups = dict()
@@ -138,16 +138,16 @@ class ModelDataFields(object):
 
         Examples
         --------
-        Check if the field named ``topographic_elevation`` is contained
+        Check if the field named ``topographic__elevation`` is contained
         in a group.
 
         >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
-        >>> _ = fields.add_ones('node', 'topographic_elevation')
-        >>> fields.has_field('node', 'topographic_elevation')
+        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> fields.has_field('node', 'topographic__elevation')
         True
-        >>> fields.has_field('cell', 'topographic_elevation')
+        >>> fields.has_field('cell', 'topographic__elevation')
         False
         """
         try:
@@ -177,9 +177,9 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> fields.keys('node')
         []
-        >>> _ = fields.add_empty('node', 'topographic_elevation')
+        >>> _ = fields.add_empty('node', 'topographic__elevation')
         >>> fields.keys('node')
-        ['topographic_elevation']
+        ['topographic__elevation']
         """
         return self[group].keys()
 
@@ -287,12 +287,12 @@ class ModelDataFields(object):
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
 
-        Add a field, initialized to ones, called *topographic_elevation*
+        Add a field, initialized to ones, called *topographic__elevation*
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic_elevation')
-        >>> fields.field_values('node', 'topographic_elevation')
+        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> fields.field_values('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
 
         Raise FieldError if *field* does not exist in *group*.
@@ -303,7 +303,7 @@ class ModelDataFields(object):
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.field_values('cell', 'topographic_elevation') # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.field_values('cell', 'topographic__elevation') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
         """
@@ -513,13 +513,13 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
-        >>> field.add_ones('node', 'topographic_elevation')
+        >>> field.add_ones('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
         >>> field.keys('node')
-        ['topographic_elevation']
-        >>> field['node']['topographic_elevation']
+        ['topographic__elevation']
+        >>> field['node']['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
-        >>> field.at_node['topographic_elevation']
+        >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
         units = kwds.pop('units', None)
@@ -605,13 +605,13 @@ class ModelDataFields(object):
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('node', 'topographic_elevation', values)
+        >>> field.add_field('node', 'topographic__elevation', values)
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field.at_node['topographic_elevation'] is values
+        >>> field.at_node['topographic__elevation'] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -619,13 +619,13 @@ class ModelDataFields(object):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('node', 'topographic_elevation', values, copy=True)
+        >>> field.add_field('node', 'topographic__elevation', values, copy=True)
         array([1, 1, 1, 1])
-        >>> field.at_node['topographic_elevation'] is values
+        >>> field.at_node['topographic__elevation'] is values
         False
-        >>> field.add_field('node', 'topographic_elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('node', 'topographic__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        FieldError: topographic_elevation
+        FieldError: topographic__elevation
         """
         return self[group].add_field(name, value_array, **kwds)
 

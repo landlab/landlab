@@ -19,7 +19,7 @@ loops = inputs.read_int('number_of_loops')
 
 mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 
 def fitFunc(t, a,b,c,d,e,f,g):
     return a*t**6. + b*t**5. +c*t**4. + d*t**3. + e*t**2. + f*t + g
@@ -52,7 +52,7 @@ for i in range(repeats):
         initial_slope = k
         z = mg.create_node_array_zeros() + leftmost_elev
         z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
-        mg.at_node[ 'topographic_elevation'] = z
+        mg.at_node[ 'topographic__elevation'] = z
     
         #craters_component.grid = mg
     
@@ -60,7 +60,7 @@ for i in range(repeats):
         mass_balance.append(craters_component.mass_balance)
         beta.append(craters_component.impact_angle_to_normal)
 
-        elev_r = mg.node_vector_to_raster(mg.at_node['topographic_elevation'])
+        elev_r = mg.node_vector_to_raster(mg.at_node['topographic__elevation'])
         pylab.figure(1)
         pylab.imshow(elev_r)
         pylab.colorbar()

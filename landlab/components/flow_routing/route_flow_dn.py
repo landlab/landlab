@@ -42,7 +42,7 @@ class FlowRouter(Component):
     
     _name = 'DNFlowRouter'
     
-    _input_var_names = set(['topographic_elevation',
+    _input_var_names = set(['topographic__elevation',
                             'water__volume_flux_in',
                             ])
     
@@ -55,7 +55,7 @@ class FlowRouter(Component):
                              'flow_sinks',
                              ])
                              
-    _var_units = {'topographic_elevation' : 'm',
+    _var_units = {'topographic__elevation' : 'm',
                   'water__volume_flux_in' : 'm**3/s',
                   'drainage_area' : 'm**2',
                   'flow_receiver' : '-',
@@ -66,7 +66,7 @@ class FlowRouter(Component):
                   'flow_sinks' : '-',
                   }
     
-    _var_mapping = {'topographic_elevation' : 'node',
+    _var_mapping = {'topographic__elevation' : 'node',
                     'water__volume_flux_in' : 'node',
                     'drainage_area' : 'node',
                     'flow_receiver' : 'node',
@@ -77,7 +77,7 @@ class FlowRouter(Component):
                     'flow_sinks' : 'node',
                     }
     
-    _var_defs = {'topographic_elevation' : 'Land surface topographic elevation',
+    _var_defs = {'topographic__elevation' : 'Land surface topographic elevation',
                  'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
                  "drainage_area" : "Upstream accumulated surface area contributing to the node's discharge",
                  'flow_receiver' : 'Node array of receivers (node that receives flow from current node)',
@@ -93,7 +93,7 @@ class FlowRouter(Component):
         
         # We keep a local reference to the grid
         self._grid = model_grid
-        self.value_field = 'topographic_elevation'
+        self.value_field = 'topographic__elevation'
         
         if input_params:
             if type(input_params) == str:
@@ -115,7 +115,7 @@ class FlowRouter(Component):
             self._activelink_to = model_grid.activelink_tonode
         
         #test input variables are present:
-        model_grid.at_node['topographic_elevation']
+        model_grid.at_node['topographic__elevation']
         try:
             model_grid.at_node['water__volume_flux_in']
             self.field_for_runoff = True
@@ -183,7 +183,7 @@ class FlowRouter(Component):
         ...                  0., 31., 20., 0.,
         ...                  0., 32., 30., 0.,
         ...                  0.,  0.,  0., 0.])
-        >>> mg.add_field('node','topographic_elevation', elev)
+        >>> mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
         >>> mg = fr.route_flow()
@@ -197,7 +197,7 @@ class FlowRouter(Component):
         Now let's change the cell area and the runoff rates:
         
         >>> mg = RasterModelGrid(5, 4, 10.) #so cell area==100.
-        >>> mg.add_field('node','topographic_elevation', elev) #put the data back into the new grid
+        >>> mg.add_field('node','topographic__elevation', elev) #put the data back into the new grid
         >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)

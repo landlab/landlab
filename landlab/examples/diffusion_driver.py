@@ -29,10 +29,10 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev #in our case, slope is zero, so the leftmost_elev is the mean elev
 #put these values plus roughness into that field
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up its boundary conditions (bottom, left, top, right)
 #The mechanisms for this are all automated within the grid object
@@ -63,7 +63,7 @@ for i in xrange(nt): #nt is the number of timesteps we calculated above, i.e., l
 
     #now plot a N-S cross section from this stage in the run onto figure 1. The sections will all be superimposed, as show() hasn't yet been called
     pylab.figure(1)
-    elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
+    elev_r = mg.node_vector_to_raster(mg['node']['topographic__elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
     im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)]) #square brackets denote a subset of nodes to use.
     #...this kind of data extraction from a larger data structure ("slicing", or "fancy indexing") is extremely useful and powerful, and is one of the appeals of Python
     #...this is plot(x, y).
@@ -83,10 +83,10 @@ pylab.ylabel('Elevation')
 
 #figure 2 is the map of the final elevations
 pylab.figure(2)
-im_nl = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+im_nl = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 pylab.figure(3)
-elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
+elev_r = mg.node_vector_to_raster(mg['node']['topographic__elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 
 print('Done.')
@@ -94,7 +94,7 @@ print('Done.')
 #now do the linear diffusion:
 
 ##Reset the elevation field in the grid:
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
 print 'Running ...'
@@ -102,11 +102,11 @@ print 'Running ...'
 for i in xrange(nt):
     #This line performs the actual functionality of the component:
     #***NB: the nonlinear diffuser contains an "automatic" element of uplift. If you instead use the linear diffuser, you need to add the uplift manually...
-    mg['node']['topographic_elevation'][uplifted_nodes] += uplift_per_step 
+    mg['node']['topographic__elevation'][uplifted_nodes] += uplift_per_step 
     mg = lin_diffuse.diffuse(dt) #linear diffusion
 
     pylab.figure(4)
-    elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation'])
+    elev_r = mg.node_vector_to_raster(mg['node']['topographic__elevation'])
     im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 
     print 'Completed loop ', i
@@ -122,11 +122,11 @@ pylab.ylabel('Elevation')
 
 #figure 5 is the map of the final elevations
 pylab.figure(5)
-im = imshow_node_grid(mg, 'topographic_elevation')
+im = imshow_node_grid(mg, 'topographic__elevation')
 
 #superpose this final form onto figure 3:
 pylab.figure(3)
-elev_r = mg.node_vector_to_raster(mg['node']['topographic_elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
+elev_r = mg.node_vector_to_raster(mg['node']['topographic__elevation']) #turn the 1-D array of elevation values into a spatially accurate 2-D gridded format, for plotting
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 pylab.xlabel('Distance')
 pylab.ylabel('Elevation')

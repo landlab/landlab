@@ -206,7 +206,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     some data fields to it.
 
     >>> rmg = RasterModelGrid(4, 3)
-    >>> _ = rmg.add_field('node', 'topographic_elevation', np.arange(12.))
+    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
     >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
     Create a temporary directory to write the netcdf file into.
@@ -227,7 +227,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     >>> fp = netcdf.netcdf_file('test.nc', 'r')
     >>> 'uplift_rate' in fp.variables
     True
-    >>> 'topographic_elevation' in fp.variables
+    >>> 'topographic__elevation' in fp.variables
     False
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
