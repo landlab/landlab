@@ -115,12 +115,6 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
   > conda install netCDF4
 
-- On the Python shell line in Anaconda, check the install of **netCDF4** to make sure it is up-to-date (note that those are double underscores around version)::
-
-  >>> netCDF4.__version__
-
-As of May 2015 this should return ``1.1.8``
-
 - Now to install Landlab! Enter the following command ::
 
   > pip install landlab
