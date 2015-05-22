@@ -89,7 +89,7 @@ We here assume that you have read :ref:`the previous section <python-install>` a
 Quick Install Instructions (For Experienced Python Users)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>` and :ref:`here for Canopy users <landlab-install_with_canopy>`.
+If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>` and :ref:`here for Canopy users <landlab-install_with_canopy>`.  Otherwise, continue!
 
 - Open a terminal (or the command prompt) and type the following::
 
@@ -123,11 +123,11 @@ Installing Using using Anaconda  - Recommended Method
 As of May 2015 this should return ``1.1.8``
 
 -	Now to install Landlab! On the command line, enter the following command:
-``> pip install landlab``
+  > pip install landlab
 
 -	Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date:
->>> import landlab
->>> landlab.__version__
+  >>> import landlab
+  >>> landlab.__version__
 
 The version number is changing rapidly at this point.  Check with the Landlab development team to make sure you have the latest version.
 
