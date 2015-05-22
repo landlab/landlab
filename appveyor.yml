@@ -28,6 +28,9 @@ install:
 build: false
 
 test_script:
+  - "cd landlab/examples"
+  - "%WITH_COMPILER% python coupled_driver.py"
+  - "cd ../.."
   - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
 
 after_test:
