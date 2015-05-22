@@ -2,7 +2,7 @@
 Tutorial: Overland Flow across a DEM
 ====================================
 
-In the next example, we create a version of the storage-cell overland-flow model that uses a digital elevation model (DEM) for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor. The complete code listing is below. Output is shown in :ref:`Figure 7 <olflowdem>`.
+In the next example, we create a version of the storage-cell overland-flow model that uses a digital elevation model (DEM) for the topography, and has the flow fed by rain rather than by a boundary input. In walking through the code, we'll focus only on those aspects that are new. The code is set up to run for 40 minutes (2400 seconds) of flow, which takes about 78 seconds to execute on a 2.7 Ghz Intel Core i7 processor. The complete code listing is below and available for download :download:` here <../model_grid_guide/overland_flow_with_model_grid_dem.py>`. Note that to run this code you will also need to download the DEM which is available :download:` here <../model_grid_guide/ExampleDEM/west_bijou_gully.asc>`. Output is shown in :ref:`Figure 7 <olflowdem>`.
 
 .. _olflowdem:
 
