@@ -3979,7 +3979,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
         """
-        return np.ravel_multi_index((row, col), self.shape, **kwds)
+        ids = np.ravel_multi_index((row, col), self.shape, **kwds)
+        try:
+            return ids.astype(np.int, copy=False)
+        except TypeError:
+            return ids.astype(np.int)
 
     def _setup_face_widths(self):
         """
