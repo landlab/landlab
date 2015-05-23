@@ -142,7 +142,7 @@ def vertical_link_ids(shape):
     array([[0, 1, 2, 3],
            [4, 5, 6, 7]])
     """
-    link_ids = np.arange(number_of_vertical_links(shape))
+    link_ids = np.arange(number_of_vertical_links(shape), dtype=np.int)
     return link_ids.reshape(shape_of_vertical_links(shape))
 
 
@@ -167,7 +167,7 @@ def horizontal_link_ids(shape):
            [11, 12, 13],
            [14, 15, 16]])
     """
-    link_ids = (np.arange(number_of_horizontal_links(shape)) +
+    link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
                 number_of_vertical_links(shape))
     return link_ids.reshape(shape_of_horizontal_links(shape))
 
