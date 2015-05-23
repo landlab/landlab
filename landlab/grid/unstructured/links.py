@@ -124,7 +124,7 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     #if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
 
-    return np.bincount(node_at_link_end, minlength=number_of_nodes)
+    return np.bincount(node_at_link_end, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
 def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -155,7 +155,7 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
     if len(node_at_link_end) != len(node_at_link_start):
         raise ValueError('Link arrays must be the same length')
-    return np.bincount(node_at_link_start, minlength=number_of_nodes)
+    return np.bincount(node_at_link_start, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
 def link_count_per_node(node_at_link_ends, number_of_nodes=None):
