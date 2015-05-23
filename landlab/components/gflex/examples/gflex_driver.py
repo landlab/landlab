@@ -7,7 +7,7 @@ Created on Fri Feb 20 11:17:52 2015
 @author: danhobley
 """
 
-from landlab.components.gFlex.flexure import gFlex
+from landlab.components.gflex.flexure import gFlex
 import numpy as np
 import pylab
 from landlab import RasterModelGrid
