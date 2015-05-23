@@ -362,10 +362,12 @@ def node_in_link_ids(shape):
     >>> offset
     array([ 0,  0,  1,  2,  3,  4,  6,  8, 10, 11, 13, 15, 17])
 
-    The links entering the 1st, 5th, and last node,
+    The links entering the 1st, 5th, and last node. The first node does not
+    have any links entering it.
 
-    >>> for link in [0, 4, 11]: links[offset[link]:offset[link + 1]]
-    array([], dtype=int64)
+    >>> offset[0] == offset[1]
+    True
+    >>> for link in [4, 11]: links[offset[link]:offset[link + 1]]
     array([0])
     array([ 7, 16])
     """
@@ -401,12 +403,14 @@ def node_out_link_ids(shape):
     >>> offset
     array([ 0,  2,  4,  6,  7,  9, 11, 13, 14, 15, 16, 17, 17])
 
-    The links leaving the 1st, 8th, and last node,
+    The links leaving the 1st, 8th, and last node. The last node does not have
+    any links leaving it.
 
-    >>> for link in [0, 7, 11]: links[offset[link]:offset[link + 1]]
+    >>> offset[11] == offset[12]
+    True
+    >>> for link in [0, 7]: links[offset[link]:offset[link + 1]]
     array([0, 8])
     array([7])
-    array([], dtype=int64)
     """
     (out_vert, out_horiz) = _node_out_link_ids(shape)
     node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
