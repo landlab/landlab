@@ -308,7 +308,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # points. We include these in our set of boundary nodes.
         convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:,0]
-        boundary_nodes = numpy.concatenate((convex_hull_nodes, coplanar_nodes))
+        boundary_nodes = numpy.concatenate(
+            (convex_hull_nodes, coplanar_nodes)).astype(numpy.int, copy=False)
     
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
@@ -319,18 +320,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
-        core_nodes = numpy.where(node_status==0)[0]
+        core_nodes = numpy.where(node_status==0)[0].astype(numpy.int, copy=False)
         
         #save the arrays and update the properties
         self.node_status = node_status
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
         self._num_core_cells = len(core_nodes)
-        self.core_cells = numpy.arange(len(core_nodes))
-        self.node_corecell = numpy.empty(node_status.size)
+        self.core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
+        self.node_corecell = numpy.empty(node_status.size, dtype=numpy.int)
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[core_nodes] = self.core_cells
-        self.active_cells = numpy.arange(node_status.size)
+        self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self.cell_node = core_nodes
         self.activecell_node = core_nodes
         self.corecell_node = core_nodes
