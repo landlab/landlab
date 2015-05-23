@@ -65,15 +65,15 @@ class BaseGrid(object):
         5
         >>> ngrid.links_leaving_at_node(0)
         array([0, 2, 4])
-        >>> ngrid.links_entering_at_node(0)
-        array([], dtype=int64)
+        >>> len(ngrid.links_entering_at_node(0)) == 0
+        True
 
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
         ...     node_status=[0, 0, 0, 4], links=zip(*links))
         >>> grid.status_at_node
         array([0, 0, 0, 4])
-        >>> grid.active_links_entering_at_node(0)
-        array([], dtype=int64)
+        >>> len(grid.active_links_entering_at_node(0)) == 0
+        True
         >>> grid.active_links_leaving_at_node(0)
         array([0, 2])
         """

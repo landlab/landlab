@@ -1223,8 +1223,8 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     """
     >>> from landlab.utils.structured_grid import neighbor_cell_array
     >>> neighbors = neighbor_cell_array((2, 3), out_of_bounds=-1)
-    >>> neighbors
-    array([], dtype=int64)
+    >>> len(neighbors) == 0
+    True
 
     >>> neighbors = neighbor_cell_array((3, 3), out_of_bounds=-1)
     >>> neighbors
@@ -1306,8 +1306,8 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     An grid without any cells returns an empty array.
     >>> from landlab.utils.structured_grid import diagonal_cell_array
     >>> diags = diagonal_cell_array((2, 3), out_of_bounds=-1)
-    >>> diags
-    array([], dtype=int64)
+    >>> len(diags) == 0
+    True
 
     A grid that has only one cell does not have any neighbors so all of its
     diagonals are set to *out_of_bounds*.
@@ -1435,6 +1435,7 @@ def reshape_array(shape, u, flip_vertically=False, copy=False):
         else:
             return reshaped_u
 
+
 def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     """
     Returns the nodes around a point on a structured grid with unit spacing
@@ -1452,12 +1453,10 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     else:
         (rows, cols) = (int(coords[0]), int(coords[1]))
 
-    try:
-        return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
-                                     (cols, cols, cols + 1, cols + 1)),
-                                    shape, mode=mode).T
-    except ValueError:
-        raise
+    return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
+                                 (cols, cols, cols + 1, cols + 1)),
+                                shape, mode=mode).T.astype(np.int, copy=False)
+
 
 def nodes_around_points(shape, coords, spacing=(1., 1.),
                         origin=(0., 0.)):
@@ -1477,13 +1476,11 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
         ...
     ValueError: invalid entry in coordinates array
     """
-    try:
-        return nodes_around_points_on_unit_grid(
-            shape,
-            ((coords[0] - origin[0]) / spacing[0],
-             (coords[1] - origin[1]) / spacing[1]))
-    except ValueError:
-        raise
+    return nodes_around_points_on_unit_grid(
+        shape,
+        ((coords[0] - origin[0]) / spacing[0],
+         (coords[1] - origin[1]) / spacing[1])).astype(np.int, copy=False)
+
 
 def nodes_around_point(shape, coords, spacing=(1., 1.)):
     node_id = int(coords[0] // spacing[0] * shape[1] + coords[1] // spacing[1])

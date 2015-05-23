@@ -528,8 +528,8 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> lgrid.in_link_at_node(0)
-        array([], dtype=int64)
+        >>> len(lgrid.in_link_at_node(0)) == 0
+        True
         >>> lgrid.in_link_at_node(3)
         array([1, 3])
         """
@@ -554,8 +554,8 @@ class LinkGrid(object):
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> lgrid.out_link_at_node(0)
         array([0, 2])
-        >>> lgrid.out_link_at_node(3)
-        array([], dtype=int64)
+        >>> len(lgrid.out_link_at_node(3)) == 0
+        True
         """
         return self._out_link_at_node.row(node)
 
