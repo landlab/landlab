@@ -256,7 +256,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = np.where(node_id==receiver).astype(np.int, copy=False)
+    (sink, ) = np.where(node_id==receiver)
+    sink = sink.astype(np.int, copy=False)
     
     return receiver, steepest_slope, sink, receiver_link
     
