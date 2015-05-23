@@ -2306,13 +2306,13 @@ class ModelGrid(ModelDataFields):
         >>> m = ll.HexModelGrid(5, 3, 1.0)
         >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
         >>> l
-        array([ 7, 12,  3], dtype=int32)
+        array([ 7, 12,  3])
         >>> r
-        array([11, 15,  6], dtype=int32)
+        array([11, 15,  6])
         >>> t
-        array([16, 18, 17], dtype=int32)
+        array([16, 18, 17])
         >>> b
-        array([0, 2, 1], dtype=int32)
+        array([0, 2, 1])
         """
         # Calculate x and y distance from centerpoint
         dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
