@@ -20,7 +20,7 @@ def count_repeated_values(x):
     
     >>> import numpy as np
     >>> from landlab.utils.count_repeats import count_repeated_values
-    >>> counts = count_repeated_values(np.array([20, 30, 40]))
+    >>> counts = count_repeated_values(np.array([20, 30, 40], dtype=np.int))
     >>> len(counts)
     1
     >>> counts[0]
@@ -31,7 +31,7 @@ def count_repeated_values(x):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeated_values(np.array([20, 30, 40, 30]))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30], dtype=np.int))
     >>> len(counts)
     2
     >>> counts[0]
