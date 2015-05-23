@@ -142,7 +142,7 @@ def vertical_link_ids(shape):
     array([[0, 1, 2, 3],
            [4, 5, 6, 7]])
     """
-    link_ids = np.arange(number_of_vertical_links(shape))
+    link_ids = np.arange(number_of_vertical_links(shape), dtype=np.int)
     return link_ids.reshape(shape_of_vertical_links(shape))
 
 
@@ -167,7 +167,7 @@ def horizontal_link_ids(shape):
            [11, 12, 13],
            [14, 15, 16]])
     """
-    link_ids = (np.arange(number_of_horizontal_links(shape)) +
+    link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
                 number_of_vertical_links(shape))
     return link_ids.reshape(shape_of_horizontal_links(shape))
 
@@ -362,10 +362,12 @@ def node_in_link_ids(shape):
     >>> offset
     array([ 0,  0,  1,  2,  3,  4,  6,  8, 10, 11, 13, 15, 17])
 
-    The links entering the 1st, 5th, and last node,
+    The links entering the 1st, 5th, and last node. The first node does not
+    have any links entering it.
 
-    >>> for link in [0, 4, 11]: links[offset[link]:offset[link + 1]]
-    array([], dtype=int64)
+    >>> offset[0] == offset[1]
+    True
+    >>> for link in [4, 11]: links[offset[link]:offset[link + 1]]
     array([0])
     array([ 7, 16])
     """
@@ -401,12 +403,14 @@ def node_out_link_ids(shape):
     >>> offset
     array([ 0,  2,  4,  6,  7,  9, 11, 13, 14, 15, 16, 17, 17])
 
-    The links leaving the 1st, 8th, and last node,
+    The links leaving the 1st, 8th, and last node. The last node does not have
+    any links leaving it.
 
-    >>> for link in [0, 7, 11]: links[offset[link]:offset[link + 1]]
+    >>> offset[11] == offset[12]
+    True
+    >>> for link in [0, 7]: links[offset[link]:offset[link + 1]]
     array([0, 8])
     array([7])
-    array([], dtype=int64)
     """
     (out_vert, out_horiz) = _node_out_link_ids(shape)
     node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
@@ -566,7 +570,8 @@ def active_link_ids(shape, node_status):
     >>> active_link_ids((3, 4), status)
     array([ 1,  2,  5,  6, 11, 12, 13])
     """
-    return np.where(is_active_link(shape, node_status))[0]
+    return np.where(is_active_link(shape, node_status))[0].astype(np.int,
+                                                                  copy=False)
 
     
 def horizontal_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
@@ -1215,7 +1220,8 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_ids, BAD_INDEX_VALUE=-
     # To do this we simply call the find_d4_horizontal_neighbors() function 
     # which gives the neighbors for ALL horizontal links in an array, even 
     # inactive links. 
-    d4_neigh = find_d4_horizontal_neighbors(shape, horizontal_ids, BAD_INDEX_VALUE)
+    d4_neigh = find_d4_horizontal_neighbors(shape, horizontal_ids,
+                                            BAD_INDEX_VALUE)
     
     # Now we will just focus on indices that are ACTIVE...
     active_links = np.where(horizontal_ids != BAD_INDEX_VALUE)

@@ -477,7 +477,7 @@ class ModelGrid(ModelDataFields):
         core_nodes will return just core nodes.
         """
         (active_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        return active_node_ids.astype(numpy.int)
+        return active_node_ids.astype(numpy.int, copy=False)
 
     @property
     def core_nodes(self):
@@ -488,7 +488,7 @@ class ModelGrid(ModelDataFields):
             return self._core_nodes
         except:
             (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
-            return core_node_ids.astype(numpy.int)
+            return core_node_ids.astype(numpy.int, copy=False)
 
     @property
     def boundary_nodes(self):
@@ -499,7 +499,7 @@ class ModelGrid(ModelDataFields):
             return self._boundary_nodes
         except:
             (boundary_node_ids, ) = numpy.where(self.node_status != CORE_NODE)
-            return boundary_node_ids.astype(numpy.int)
+            return boundary_node_ids.astype(numpy.int, copy=False)
 
     @property
     def node_boundary_status(self):
@@ -525,7 +525,7 @@ class ModelGrid(ModelDataFields):
         Node id for all nodes not marked as a closed boundary
         """
         (open_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        return open_node_ids.astype(numpy.int)
+        return open_node_ids.astype(numpy.int, copy=False)
     
     @property
     def open_boundary_nodes(self):
@@ -533,7 +533,7 @@ class ModelGrid(ModelDataFields):
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
-        return open_boundary_node_ids.astype(numpy.int)
+        return open_boundary_node_ids.astype(numpy.int, copy=False)
     
     @property
     def closed_boundary_nodes(self):
@@ -541,7 +541,7 @@ class ModelGrid(ModelDataFields):
         """
         (closed_boundary_node_ids, ) = numpy.where(
             self.node_status == CLOSED_BOUNDARY)
-        return closed_boundary_node_ids.astype(numpy.int)
+        return closed_boundary_node_ids.astype(numpy.int, copy=False)
     
     @property
     def fixed_gradient_boundary_nodes(self):
@@ -549,7 +549,7 @@ class ModelGrid(ModelDataFields):
         """
         (fixed_gradient_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_GRADIENT_BOUNDARY)
-        return fixed_gradient_boundary_node_ids.astype(numpy.int)
+        return fixed_gradient_boundary_node_ids.astype(numpy.int, copy=False)
     
     @property
     def fixed_value_boundary_nodes(self):
@@ -557,7 +557,7 @@ class ModelGrid(ModelDataFields):
         """
         (fixed_value_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_VALUE_BOUNDARY)
-        return fixed_value_boundary_node_ids.astype(numpy.int)
+        return fixed_value_boundary_node_ids.astype(numpy.int, copy=False)
     
     @property
     def active_links(self):
@@ -577,13 +577,13 @@ class ModelGrid(ModelDataFields):
             use :func:`node_index_at_core_cells` for an exact equivalent.
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return active_cell_ids.astype(numpy.int)
+        return active_cell_ids.astype(numpy.int, copy=False)
 
     @property
     def node_index_at_core_cells(self):
         """Node ID associated with core grid cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return core_cell_ids.astype(numpy.int)
+        return core_cell_ids.astype(numpy.int, copy=False)
 
     @property
     def active_cell_index_at_nodes(self):
@@ -713,7 +713,7 @@ class ModelGrid(ModelDataFields):
             Deprecated due to outdated terminology;
             use :func:`get_core_nodes` instead.
         """
-        return numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int)
+        return numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int, copy=False)
 
     def get_core_nodes(self):
         """Node IDs of core nodes.
@@ -1674,7 +1674,7 @@ class ModelGrid(ModelDataFields):
                          (fromnode_status == CLOSED_BOUNDARY)))
 
         (self.active_link_ids, ) = numpy.where(active_links)
-        self.active_link_ids = self.active_link_ids.astype(numpy.int)
+        self.active_link_ids = self.active_link_ids.astype(numpy.int, copy=False)
 
         self._num_active_links = len(self.active_link_ids)
         self._num_active_faces = self._num_active_links
@@ -1701,8 +1701,8 @@ class ModelGrid(ModelDataFields):
             node_corecell
             _boundary_nodes
         """
-        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)[0].astype(numpy.int)
-        self.corecell_node = numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int)
+        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)[0].astype(numpy.int, copy=False)
+        self.corecell_node = numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int, copy=False)
         self._num_core_cells = self.corecell_node.size
         self._num_core_nodes = self._num_core_cells
         self._num_active_nodes = self.activecell_node.size
@@ -1715,7 +1715,7 @@ class ModelGrid(ModelDataFields):
         self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
-        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0].astype(numpy.int)
+        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0].astype(numpy.int, copy=False)
     
     
     def update_links_nodes_cells_to_new_BCs(self):
@@ -2289,7 +2289,7 @@ class ModelGrid(ModelDataFields):
         ndarray
             IDs of boundary nodes.
         """
-        return numpy.where(self.node_status != 0)[0].astype(numpy.int)
+        return numpy.where(self.node_status != 0)[0].astype(numpy.int, copy=False)
     
     def _assign_boundary_nodes_to_grid_sides(self):
         """
@@ -2306,13 +2306,13 @@ class ModelGrid(ModelDataFields):
         >>> m = ll.HexModelGrid(5, 3, 1.0)
         >>> [l,r,t,b] = m._assign_boundary_nodes_to_grid_sides()
         >>> l
-        array([ 7, 12,  3], dtype=int32)
+        array([ 7, 12,  3])
         >>> r
-        array([11, 15,  6], dtype=int32)
+        array([11, 15,  6])
         >>> t
-        array([16, 18, 17], dtype=int32)
+        array([16, 18, 17])
         >>> b
-        array([0, 2, 1], dtype=int32)
+        array([0, 2, 1])
         """
         # Calculate x and y distance from centerpoint
         dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)

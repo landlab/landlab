@@ -52,14 +52,14 @@ class Radiation( Component ):
     >>> x = grid['cell']['TotalShortWaveRadiation']
     >>> isinstance(x, np.ndarray)
     True
-    >>> x.shape
-    (6,)
+    >>> x.shape == (6, )
+    True
 
     >>> x = grid['cell']['RadiationFactor']
     >>> isinstance(x, np.ndarray)
     True
-    >>> x.shape
-    (6,)
+    >>> x.shape == (6, )
+    True
     """
 
     _name = 'Radiation'

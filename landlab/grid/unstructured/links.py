@@ -93,7 +93,7 @@ def find_active_links(node_status, node_at_link_ends):
 
     (active_link_ids, ) = np.where(link_is_active(status_at_link_ends))
 
-    return active_link_ids
+    return active_link_ids.astype(np.int, copy=False)
 
 
 def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -124,7 +124,7 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     #if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
 
-    return np.bincount(node_at_link_end, minlength=number_of_nodes)
+    return np.bincount(node_at_link_end, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
 def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -155,7 +155,7 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
     if len(node_at_link_end) != len(node_at_link_start):
         raise ValueError('Link arrays must be the same length')
-    return np.bincount(node_at_link_start, minlength=number_of_nodes)
+    return np.bincount(node_at_link_start, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
 def link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -199,9 +199,9 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
     sorted_links = np.argsort(node_at_link_ends[sortby])
 
     if link_ids is not None:
-        return np.array(link_ids)[sorted_links]
+        return np.array(link_ids, dtype=np.int)[sorted_links]
     else:
-        return sorted_links
+        return sorted_links.astype(np.int, copy=False)
 
 
 def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
@@ -528,8 +528,8 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> lgrid.in_link_at_node(0)
-        array([], dtype=int64)
+        >>> len(lgrid.in_link_at_node(0)) == 0
+        True
         >>> lgrid.in_link_at_node(3)
         array([1, 3])
         """
@@ -554,8 +554,8 @@ class LinkGrid(object):
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
         >>> lgrid.out_link_at_node(0)
         array([0, 2])
-        >>> lgrid.out_link_at_node(3)
-        array([], dtype=int64)
+        >>> len(lgrid.out_link_at_node(3)) == 0
+        True
         """
         return self._out_link_at_node.row(node)
 
