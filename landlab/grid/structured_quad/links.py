@@ -566,7 +566,8 @@ def active_link_ids(shape, node_status):
     >>> active_link_ids((3, 4), status)
     array([ 1,  2,  5,  6, 11, 12, 13])
     """
-    return np.where(is_active_link(shape, node_status))[0]
+    return np.where(is_active_link(shape, node_status))[0].astype(np.int,
+                                                                  copy=False)
 
     
 def horizontal_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
@@ -1215,7 +1216,8 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_ids, BAD_INDEX_VALUE=-
     # To do this we simply call the find_d4_horizontal_neighbors() function 
     # which gives the neighbors for ALL horizontal links in an array, even 
     # inactive links. 
-    d4_neigh = find_d4_horizontal_neighbors(shape, horizontal_ids, BAD_INDEX_VALUE)
+    d4_neigh = find_d4_horizontal_neighbors(shape, horizontal_ids,
+                                            BAD_INDEX_VALUE)
     
     # Now we will just focus on indices that are ACTIVE...
     active_links = np.where(horizontal_ids != BAD_INDEX_VALUE)
