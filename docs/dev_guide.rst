@@ -1,12 +1,12 @@
 .. _dev_guide:
 
 =======================
-landlab Developer Guide
+Landlab Developer Guide
 =======================
 
-landlab development takes place in your own *fork* of the main landlab
+Landlab development takes place in your own *fork* of the main Landlab
 repository. A fork is a *mirror* of the repository and is hosted on your
-personal GitHub account. You will use this fork for developing new landlab
+personal GitHub account. You will use this fork for developing new Landlab
 features. Your changes will migrate to the core repository (for review and
 merging) by requesting that the main repository "pull" in your changes. This
 is known as a pull request and is facilitated through the GitHub website.
@@ -17,7 +17,7 @@ How to create a fork
 You will only need to do this once for each project to which you want to
 contribute. Github has some great documentation on
 `how to create a fork <https://help.github.com/articles/fork-a-repo>`_. We
-outline below the basic steps as applied to landlab.
+outline below the basic steps as applied to Landlab.
 
 Create a GitHub account
 -----------------------
@@ -43,10 +43,10 @@ Create a GitHub account
    than one computer with the same user account.
 
 
-Creating your own fork of landlab
+Creating your own fork of Landlab
 ---------------------------------
 
-The following steps will create a fork of the landlab repository under your
+The following steps will create a fork of the Landlab repository under your
 github account.
 
 1. Sign in to your GitHub account.  
@@ -55,7 +55,7 @@ github account.
 3. Click the *fork* button in the upper-right corner of the page.
 
 Once completed, you will be redirected to the home page for your own copy
-of the landlab.
+of the Landlab.
 
 
 Cloning your fork to your computer
@@ -65,11 +65,11 @@ This is done from the GUI by:
 
 1. Sign in to git on the GUI.
 2. Hit on your account on the left side of the GUI.
-3. This will show you your fork of landlab.  Hit the clone option next to the
-   fork.  This will download the landlab package to your local computer.  If
-   you are on a windows machine, this will put landlab in the Documents/GitHub
+3. This will show you your fork of Landlab.  Hit the clone option next to the
+   fork.  This will download the Landlab package to your local computer.  If
+   you are on a windows machine, this will put Landlab in the Documents/GitHub
    folder.  If you are on a mac, you are given the option of where to put the
-   downloaded landlab package.
+   downloaded Landlab package.
 
 This is done from the command line with the following commands::
 
@@ -80,29 +80,29 @@ This is done from the command line with the following commands::
 
 .. _developer-install:
 
-Installing landlab in developer mode
+Installing Landlab in developer mode
 ------------------------------------
 
-Now that you have a working copy of landlab on you computer, you need to
-install it. To install landlab in developer mode run the following command
-from the root landlab folder (the one that contains `setup.py`)::
+Now that you have a working copy of Landlab on you computer, you need to
+install it. To install Landlab in developer mode run the following command
+from the root Landlab folder (it will be landlab with a small *l* and will contain `setup.py`)::
 
   > python setup.py develop
 
-This installs landlab on your computer in such a way that Python always
-imports landlab from the working copy you just cloned. This ensures that any
+This installs Landlab on your computer in such a way that Python always
+imports Landlab from the working copy you just cloned. This ensures that any
 changes you make to your copy of the code is seen by Python the *next* time
-you import landlab.
+you import Landlab.
 
-To uninstall your development version of landlab (again from the root landlab
+To uninstall your development version of Landlab (again from the root landlab
 folder) run the following command::
 
   > python setup.py develop -u
 
-With landlab uninstalled, you will not longer be able to import landlab
+With Landlab uninstalled, you will not longer be able to import Landlab
 from outside to root folder of your working copy.
 
-To check you have correctly installed landlab, run the landlab tests.
+To check you have correctly installed Landlab, run the Landlab tests.
 
 
 Fetching updates to the trunk
@@ -133,20 +133,20 @@ you and others will remember what it is you are intending to do with your
 branch (for example, `bugfix-for-that-major-problem`, or
 `add-that-cool-feature`).
 
-If you want to keep your branches on you public GitHub page for landlab (you
+If you want to keep your branches on you public GitHub page for Landlab (you
 probably do) you need to tell git to push changes to your github repo. This
 is done with the following command::
 
   > git push --set-upstream origin name-of-branch
 
-On your landlab GitHub page you will now be able to toggle between your
+On your Landlab GitHub page you will now be able to toggle between your
 various branches to see the code you have committed.
 
 
-Testing the landlab installation
+Testing the Landlab installation
 ================================
 
-The easiest way to run the landlab tests is to do so from inside the Python
+The easiest way to run the Landlab tests is to do so from inside the Python
 interpreter::
 
   >>> import landlab
@@ -169,20 +169,20 @@ Coding Style
 Testing
 =======
 
-Before merging any changes into the landlab trunk, *all* unit tests (including
-doctests) should be passing. In addition, any new features added to landlab
+Before merging any changes into the Landlab trunk, *all* unit tests (including
+doctests) should be passing. In addition, any new features added to Landlab
 should have an associated set of unit tests to verify that the new features
 are working properly.
 
-landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
+Landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
 testing. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
 shows the latest testing results. A new set of tests are executed whenever
-any changes are pushed to the landlab repository and with every pull request.
+any changes are pushed to the Landlab repository and with every pull request.
 We currently run test suites for Python versions 2.6, 2.7, 3.3, and 3.4 (for
 Python 3 versions we use the `2to3 <https://docs.python.org/2/library/2to3.html>`_
 tool).
 
-Once you send a pull request from GitHub, you will be taken to the landlab
+Once you send a pull request from GitHub, you will be taken to the Landlab
 pull request page and all unit tests are run. You will see the status
 of the unit tests next to your latest commit description. If you see a green
 check, all tests passed and your changes can be merged! However, if you see
@@ -192,7 +192,7 @@ you do not need to send a new pull request after committing for fixes. They
 will be added to the current pull request and the tests automatically rerun.
 
 You can also run unit tests locally with `nose
-<https://nose.readthedocs.org>`_. From the top-level landlab folder (the one
+<https://nose.readthedocs.org>`_. From the top-level Landlab folder (landlab with a lowercase *l* and the folder
 that contains `setup.py`) run::
 
   > nosetests

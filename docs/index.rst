@@ -3,34 +3,72 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Getting Started with Landlab
-============================
+Introduction to Landlab
+=======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   about
+   what_is_landlab
+   
+.. toctree::
+   :maxdepth: 2   
+
    install
-   tutorial
+   getting_started
    
 .. toctree::
    :maxdepth: 1
    
    dan_installs_on_linux
+   getting_example_files
 
 
 User Guide
 ==========
 
-Tutorials
----------
+The Nuts and Bolts of Coding in Landlab
+---------------------------------------
+.. toctree::
+   :maxdepth: 2
+   
+   coding_style
+
+
+Landlab's Gridding Library
+--------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   
+   model_grid_no_tutorials
+   
+.. toctree::
+   :maxdepth: 1 
 
-   model_grid
-   landlab_component_tutorial
-   radiation_field_tutorial
+   diffusion_raster_grid_tutorial
+   overland_flow_general_tutorial
+   overland_flow_dem_tutorial
+
+Building a Model
+----------------
+
+.. toctree::
+   :maxdepth: 3
+   
+   working_with_landlab
+
+
+Landlab Grid Data Structures
+----------------------------
+
+Quick links to the landlab grid data structures:
+
+* :class:`landlab.grid.raster.RasterModelGrid`
+* :class:`landlab.grid.hex.HexModelGrid`
+* :class:`landlab.grid.radial.RadialModelGrid`
+* :class:`landlab.grid.voronoi.VoronoiDelaunayGrid`
+
 
 Simple guides to functionality
 ------------------------------
@@ -64,32 +102,8 @@ Developer Documentation
    dev_guide
 
 
-Code Documentation
-=================
-
-These webpages are auto-generated from Landlab, and list all available
-functions, methods, and properties. All available documentation in the code is
-reproduced here in a tree reflecting Landlab's file structure.
-
-.. toctree::
-   :maxdepth: 2
-
-   landlab.grid.base
-   landlab.grid.raster
-   landlab
-
-
-Bibliography
-============
-
-.. toctree::
-   :maxdepth: 2
-
-   bibiography
-
-
-Reference
-=========
+References
+==========
 
 * :ref:`genindex`
 * :ref:`modindex`

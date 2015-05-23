@@ -38,7 +38,7 @@ class impactor(object):
         
         #test the necessary fields are all already present:
         try:
-            self.elev = grid.at_node['topographic_elevation']
+            self.elev = grid.at_node['topographic__elevation']
         except:
             print 'elevations not found in grid!'
 
@@ -995,7 +995,7 @@ class impactor(object):
         an impact within its ejecta footprint.
         '''
         self.grid = grid
-        self.elev = grid.at_node['topographic_elevation']
+        self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
         self.set_depth_from_size()
         self.set_crater_volume()

@@ -29,11 +29,11 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg.at_node[ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg.at_node[ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up grid's boundary conditions (bottom, right, top, left is inactive)
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -54,7 +54,7 @@ for i in xrange(nt):
     mg = lin_diffuse.diffuse(dt)
     mg = fr.route_flow()
     mg = sp.erode(mg)
-    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
+    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     
     ##plot long profiles along channels
     pylab.figure(6)
@@ -62,7 +62,7 @@ for i in xrange(nt):
             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
     dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
-    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+    prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
 
     print 'Completed loop ', i
  
@@ -77,9 +77,9 @@ pylab.figure(1)
 im = imshow_node_grid(mg, 'water__volume_flux', cmap='PuBu')  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
 im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])

@@ -163,7 +163,7 @@ class StreamPowerEroder(object):
         self.weave_flag = grid.weave_flag
 
         
-    def erode(self, grid, dt, node_elevs='topographic_elevation',
+    def erode(self, grid, dt, node_elevs='topographic__elevation',
             node_drainage_areas='drainage_area', 
             flow_receiver='flow_receiver',
             node_order_upstream='upstream_ID_order',

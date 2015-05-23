@@ -36,9 +36,9 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 print( 'Running ...' )
 
@@ -67,7 +67,7 @@ except NameError:
         mg = fsp.erode(mg)
         #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
         elapsed_time += dt
 
     mg_mature = copy.deepcopy(mg)
@@ -88,7 +88,7 @@ dt=0.5
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
     print elapsed_time
-    vid.add_frame(mg, 'topographic_elevation', elapsed_time)
+    vid.add_frame(mg, 'topographic__elevation', elapsed_time)
     if elapsed_time+dt>time_to_run:
         print "Short step!"
         dt = time_to_run - elapsed_time
@@ -104,15 +104,15 @@ while elapsed_time < time_to_run:
                         mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
-        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
 
     #add uplift
-    mg.at_node['topographic_elevation'][mg.core_nodes] += 5.*uplift*dt
+    mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*dt
 
     elapsed_time += dt
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 vid.produce_video()

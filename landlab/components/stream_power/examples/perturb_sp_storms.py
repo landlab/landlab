@@ -39,9 +39,9 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 mg.add_zeros('node', 'water__volume_flux_in')
 
 #make some K values in a field to test 
@@ -77,7 +77,7 @@ except NameError:
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*interval_duration
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
             print 'made it to loop ', out_interval*this_trunc
@@ -112,14 +112,14 @@ if True:
                             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
             dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
-            prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+            prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
     
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += 5.*uplift*interval_duration
+        mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 # Clear previous plots
@@ -129,7 +129,7 @@ pylab.close()
 # Plot topography
 pylab.figure("topo")
 #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-im = llplot.imshow_node_grid(mg, 'topographic_elevation')
+im = llplot.imshow_node_grid(mg, 'topographic__elevation')
 #print elev_r
 #pylab.colorbar(im)
 #pylab.title('Topography')

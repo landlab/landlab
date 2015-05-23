@@ -43,13 +43,13 @@ class SPEroder(object):
     modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
     rainfall intensity on erosivity. *value_field* is a string giving the name
     of the field containing the elevation data in the grid. It defaults to
-    'topographic_elevation' if not supplied.
+    'topographic__elevation' if not supplied.
     
     This module assumes you have already run 
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
     in the same timestep. It looks for 'upstream_ID_order', 
     'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
-    'topographic_elevation' at the nodes in the grid. 'drainage_area' should
+    'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
     
@@ -90,7 +90,7 @@ class SPEroder(object):
         try:
             self.value_field = inputs.read_str('value_field')
         except:
-            self.value_field = 'topographic_elevation'
+            self.value_field = 'topographic__elevation'
             
         #make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
@@ -127,7 +127,7 @@ class SPEroder(object):
         return self.dt, self.r_i
         
 
-    def erode(self, grid_in, K_if_used=None):
+    def erode(self, grid_in, dt=None, K_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -140,6 +140,8 @@ class SPEroder(object):
         It returns the grid, in which it will have modified the value of 
         *value_field*, as specified in component initialization.
         """
+        if dt:
+            self.dt = dt
         
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
@@ -173,7 +175,7 @@ class SPEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
         if self.nonlinear_flag==False: #n==1
-            print 'Linear'
+            #print 'Linear'
             method = 'cython'
             if method in ('cython', 'weave'):
                 if method == 'cython':

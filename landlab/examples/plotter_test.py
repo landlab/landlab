@@ -33,11 +33,11 @@ mg.set_inactive_boundaries(False, True, False, True)
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
 print 'Running ...' 
@@ -51,10 +51,10 @@ time_on = time()
 #perform the loops:
 for i in xrange(nt):
     print 'loop ', i
-    mg['node']['topographic_elevation'][mg.core_nodes] += uplift_per_step
+    mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()
     mg = sp.erode(mg)
-    #vid.add_frame(mg, 'topographic_elevation')
+    #vid.add_frame(mg, 'topographic__elevation')
     vid.add_frame(mg, mg.hillshade(alt=15.), cmap='gray')
     
  
@@ -64,7 +64,7 @@ time_off = time()
 
 #Finalize and plot
 
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 #imshow.imshow_node_grid(mg, elev)
 
 print('Done.')

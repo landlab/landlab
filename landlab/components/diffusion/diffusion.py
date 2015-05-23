@@ -45,7 +45,7 @@ class LinearDiffuser(Component):
     Supply *dt* to the diffuser through the diffuse() argument. 
     This allows you to set a dynamic timestep for this class.
     If 'values_to_diffuse' is not provided, defaults to 
-    'topographic_elevation'.
+    'topographic__elevation'.
     
     No particular units are necessary where they are not specified, as long as
     all units are internally consistent.
@@ -65,26 +65,26 @@ class LinearDiffuser(Component):
     
     _name = 'LinearDiffuser'
     
-    _input_var_names = set(['topographic_elevation',
+    _input_var_names = set(['topographic__elevation',
                             ])
     
 #############################UPDATE ME
-    _output_var_names = set(['topographic_elevation',
+    _output_var_names = set(['topographic__elevation',
                              'surface_gradient',
                              'unit_flux',
                              ])
                              
-    _var_units = {'topographic_elevation' : 'm',
+    _var_units = {'topographic__elevation' : 'm',
                   'surface_gradient' : '-',
                   'unit_flux' : 'm**3/s',
                   }
     
-    _var_mapping = {'topographic_elevation' : 'node',
+    _var_mapping = {'topographic__elevation' : 'node',
                     'surface_gradient' : 'link',
                     'unit_flux' : 'link',
                     }
     
-    _var_defs = {'topographic_elevation' : 'Land surface topographic elevation; can be overwritten in initialization',
+    _var_defs = {'topographic__elevation' : 'Land surface topographic elevation; can be overwritten in initialization',
                  'surface_gradient' : 'Gradient of surface, on links',
                  'unit_flux' : 'Volume flux per unit width along links',
                   }
@@ -115,14 +115,14 @@ class LinearDiffuser(Component):
         try:
             self.values_to_diffuse = inputs.read_string('values_to_diffuse')
         except MissingKeyError:
-            self.values_to_diffuse = 'topographic_elevation'
+            self.values_to_diffuse = 'topographic__elevation'
         else:
             #take switch in the new field name in the class properties
             for mysets in (self._input_var_names, self._output_var_names):
-                mysets.remove('topographic_elevation')
+                mysets.remove('topographic__elevation')
                 mysets.add(self.values_to_diffuse)
             for mydicts in (self._var_units, self._var_mapping, self._var_defs):
-                mydicts[self.values_to_diffuse] = mydicts.pop('topographic_elevation')
+                mydicts[self.values_to_diffuse] = mydicts.pop('topographic__elevation')
             
         try:
             self.timestep_in = inputs.read_float('dt')  
@@ -244,7 +244,7 @@ class LinearDiffuser(Component):
         of the model. Takes *dt*, the current timestep.
         
         The modelgrid must contain the field to diffuse, which defaults to
-        'topographic_elevation'. This can be overridden with the 
+        'topographic__elevation'. This can be overridden with the 
         values_to_diffuse property in the input file.
         
         See the class docstring for a list of the other properties necessary
