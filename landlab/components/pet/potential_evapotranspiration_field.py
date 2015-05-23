@@ -28,7 +28,7 @@ class PotentialEvapotranspiration( Component ):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.PET.potential_evapotranspiration_field import PotentialEvapotranspiration
+    >>> from landlab.components.pet.potential_evapotranspiration_field import PotentialEvapotranspiration
 
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> PET = PotentialEvapotranspiration(grid)
