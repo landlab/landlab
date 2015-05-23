@@ -93,7 +93,7 @@ def find_active_links(node_status, node_at_link_ends):
 
     (active_link_ids, ) = np.where(link_is_active(status_at_link_ends))
 
-    return active_link_ids
+    return active_link_ids.astype(np.int, copy=False)
 
 
 def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
