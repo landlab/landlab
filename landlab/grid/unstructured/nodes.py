@@ -32,8 +32,8 @@ class NodeGrid(object):
         Create a 1D grid.
 
         >>> ngrid = NodeGrid(((0, 1, 3), ))
-        >>> ngrid.ndim
-        1
+        >>> ngrid.ndim == 1
+        True
         >>> ngrid.number_of_nodes
         3
         >>> ngrid.x
