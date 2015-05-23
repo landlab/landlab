@@ -45,7 +45,7 @@ def count_repeated_values(x):
     (unique_values, unique_inds) = np.unique(x, return_index=True)
     if len(unique_values) > 0:
         x_inds = np.arange(len(x))
-        counts.append((unique_values, unique_inds))
+        counts.append((unique_values, unique_inds.astype(np.int, copy=False)))
 
         while 1:
             x = np.delete(x, unique_inds)
@@ -53,7 +53,8 @@ def count_repeated_values(x):
             (unique_values, unique_inds) = np.unique(x, return_index=True)
 
             if len(unique_values) > 0:
-                counts.append((unique_values, x_inds[unique_inds]))
+                counts.append((unique_values,
+                               x_inds[unique_inds].astype(np.int, copy=False)))
             else:
                 break
 
