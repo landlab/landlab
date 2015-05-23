@@ -89,8 +89,8 @@ def grid_flow_directions(grid, elevations):
     nodes associated with the cells.
 
     >>> sink_cells = np.where(slope >= 0)[0]
-    >>> sink_cells
-    array([2])
+    >>> print sink_cells
+    [2]
     >>> mg.node_index_at_cells[sink_cells] # Sink nodes
     array([8])
 
