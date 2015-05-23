@@ -199,9 +199,9 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
     sorted_links = np.argsort(node_at_link_ends[sortby])
 
     if link_ids is not None:
-        return np.array(link_ids)[sorted_links]
+        return np.array(link_ids, dtype=np.int)[sorted_links]
     else:
-        return sorted_links
+        return sorted_links.astype(np.int, copy=False)
 
 
 def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
