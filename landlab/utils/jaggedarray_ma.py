@@ -153,8 +153,8 @@ class JaggedArray(object):
         --------
         >>> from landlab.utils.jaggedarray_ma import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
-        >>> x.number_of_rows
-        2
+        >>> x.number_of_rows == 2
+        True
         """
         return self._number_of_rows
 

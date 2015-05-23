@@ -9,12 +9,10 @@ Examples
 >>> grid.number_of_nodes
 20
 
-#>>> grid.number_of_core_nodes
-6
->>> grid.number_of_node_rows
-4
->>> grid.number_of_node_columns
-5
+>>> grid.number_of_node_rows == 4
+True
+>>> grid.number_of_node_columns == 5
+True
 >>> grid.corner_nodes
 array([ 0,  4, 15, 19])
 >>> grid.number_of_cells

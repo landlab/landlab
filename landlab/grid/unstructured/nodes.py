@@ -20,10 +20,10 @@ class NodeGrid(object):
         --------
         >>> from landlab.grid.unstructured.nodes import NodeGrid
         >>> ngrid = NodeGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
-        >>> ngrid.ndim
-        2
-        >>> ngrid.number_of_nodes
-        4
+        >>> ngrid.ndim == 2
+        True
+        >>> ngrid.number_of_nodes == 4
+        True
         >>> ngrid.x
         array([ 0.,  1.,  0.,  1.])
         >>> ngrid.y

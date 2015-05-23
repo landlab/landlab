@@ -1392,8 +1392,8 @@ def reshape_array(shape, u, flip_vertically=False, copy=False):
     >>> from landlab.utils.structured_grid import reshape_array
     >>> x = np.arange(12.)
     >>> y = reshape_array((3, 4), x)
-    >>> y.shape
-    (3, 4)
+    >>> y.shape == (3, 4)
+    True
     >>> y
     array([[  0.,   1.,   2.,   3.],
            [  4.,   5.,   6.,   7.],

@@ -133,8 +133,8 @@ def read_netcdf(nc_file, just_grid=False):
     a variable called, *surface__elevation*.
 
     >>> grid = read_netcdf(NETCDF4_EXAMPLE_FILE)
-    >>> grid.shape
-    (4, 3)
+    >>> grid.shape == (4, 3)
+    True
     >>> grid.node_spacing
     1.0
     >>> grid.at_node.keys()
@@ -148,8 +148,8 @@ def read_netcdf(nc_file, just_grid=False):
 
     >>> from landlab.io.netcdf import NETCDF3_64BIT_EXAMPLE_FILE
     >>> grid = read_netcdf(NETCDF3_64BIT_EXAMPLE_FILE)
-    >>> grid.shape
-    (4, 3)
+    >>> grid.shape == (4, 3)
+    True
     >>> grid.node_spacing
     1.0
     """
