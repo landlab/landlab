@@ -175,12 +175,11 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         - In calling code, only refer to receiver_links for active nodes
     
     """
-    
     # Setup
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
     receiver = np.arange(num_nodes)
-    receiver_link = UNDEFINED_INDEX + np.zeros(num_nodes, dtype=int)
+    receiver_link = UNDEFINED_INDEX + np.zeros(num_nodes, dtype=np.int)
     
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
@@ -257,7 +256,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = np.where(node_id==receiver)
+    (sink, ) = np.where(node_id==receiver).astype(np.int, copy=False)
     
     return receiver, steepest_slope, sink, receiver_link
     
