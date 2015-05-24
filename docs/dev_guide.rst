@@ -55,7 +55,7 @@ github account.
 3. Click the *fork* button in the upper-right corner of the page.
 
 Once completed, you will be redirected to the home page for your own copy
-of the Landlab.
+of Landlab.
 
 
 Cloning your fork to your computer
@@ -77,13 +77,19 @@ This is done from the command line with the following commands::
   > cd landlab
   > git remote add upstream git://github.com/landlab/landlab.git
 
+You can also clone your fork in the GUI directly through the website; navigate
+to the page for your fork on the web (UserName/landlab) and hit the "Clone in
+Desktop" button on the right hand side of the page. Make sure you have the GUI
+installed and set up on your machine before you try this for the most 
+pain-free results.
+
 
 .. _developer-install:
 
 Installing Landlab in developer mode
 ------------------------------------
 
-Now that you have a working copy of Landlab on you computer, you need to
+Now that you have a working copy of the Landlab code on you computer, you need to
 install it. To install Landlab in developer mode run the following command
 from the root Landlab folder (it will be landlab with a small *l* and will contain `setup.py`)::
 
@@ -103,6 +109,8 @@ With Landlab uninstalled, you will not longer be able to import Landlab
 from outside to root folder of your working copy.
 
 To check you have correctly installed Landlab, run the Landlab tests.
+Do this by importing landlab in an interactive Python shell, then calling
+*landlab.test()*.
 
 
 Fetching updates to the trunk
@@ -141,6 +149,10 @@ is done with the following command::
 
 On your Landlab GitHub page you will now be able to toggle between your
 various branches to see the code you have committed.
+
+The GUI also offers fairly simple, intuitive, and powerful control over 
+branching and merging, for those uninclined to use the command line
+tools.
 
 
 Testing the Landlab installation
@@ -204,7 +216,7 @@ Troubleshooting
 What do I do if my pull request cannot be automatically merged?
 ---------------------------------------------------------------
 
-Get the latest upstream/master and go to the `master` branch. Remeber *do not develop here*.
+Get the latest upstream/master and go to the `master` branch. Remember, *do not develop here*.
 Always develop in a feature branch. Merge the lastest upstream master with your master::
   > git fetch upstream
   > git checkout master
@@ -224,3 +236,11 @@ After everything has been fixed, commit the changes and push the changes to the 
 The pull request will automatically be updated::
   > git commit
   > git push
+
+
+I'm still confused
+------------------
+
+The Landlab development team will be happy to hear from you. Email one of us 
+or create an issue request and we'll try to resolve your problem.
+

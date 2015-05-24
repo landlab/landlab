@@ -101,9 +101,9 @@ The next step is to add up the net sediment fluxes entering and leaving each cel
 	
 We do this operation on the next line. Finally, on the last line of the loop we calculate elevation changes (by multiplying ``dzdt`` by time-step size) and update the elevations of the interior nodes.
 
-The following commands oepn a new figure window and show an image of the terrain after 50,000 years of hillslope diffusion:
+The following commands open a new figure window and show an image of the terrain after 50,000 years of hillslope diffusion:
 
->>> figure()
+>>> figure('elev_50ka')
 >>> imshow_node_grid(mg, z, cmap='jet', grid_units=['m','m'])
 >>> show()
 
@@ -154,10 +154,14 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 
 	#Set boundary conditions
 	mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-
-	#Evolve landscape
+        
+        #set a model timestep
+        #(the component will subdivide this as needed to keep things stable)
+        dt = 2000. 
+	
+        #Evolve landscape
 	for i in range(25):
-    		mg = linear_diffuse.diffuse(mg)
+    		mg = linear_diffuse.diffuse(dt)
 
 	#Plot new landscape
 	figure()
@@ -181,24 +185,20 @@ Because the model is using the ``DiffusionComponent`` class, the code must insta
 
 Note that in order to initialize an object of type ``DiffusionComponent``, a grid object must be passed, as well as an input file.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains::
 
-	DIFMOD_KD: in m2 per year
+	linear_diffusivity: in m2 per year
 	0.01  
-	uplift_rate: rate in m/yr across entire grid
-	0.0
 	dt: in years
 	2000.0
 	values_to_diffuse: name of field objects to diffuse
 	elevation
 
-In this case *DIFMOD_KD*, *uplift_rate*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
+In this case *linear_diffusivity*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
 
-Note that in the model without a component, we calculated *dt* in the model.  Here we are inputting *dt*.  Also, the diffusion model will add uplift to the values (or any kind of source), and so we have entered an uplift rate of zero to make it consistent with the previous example.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation values.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Similarly, the ``uplift_rate`` in that case could be a rate of heat addition to the system from some outside source.
-
-Setting the boundary conditions is the same between the two models. 
+Note that in the model without a component, we calculated a stable *dt* in the model.  With the component, the testing of timestep stability happens automatically, and the component will internally subdivide the timestep as necessary.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation values.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Setting the boundary conditions is the same between the two models. 
 
 The evolution loop in the model with the component is much shorter than the loop in the model without the component.  In this case all that is needed is to call the ``diffuse`` method of the ``DiffusionComponent`` class:
 
->>> mg = linear_diffuse.diffuse(mg)
+>>> mg = linear_diffuse.diffuse(dt)
 
 The ``diffuse`` method essentially does everything that was typed out explicitely in the example without a component.  Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
 
