@@ -1,8 +1,8 @@
-.. _dev_guide:
+.. _dev_guide_install:
 
-=======================
-Landlab Developer Guide
-=======================
+==================================
+Installing Landlab for Development
+==================================
 
 Landlab development takes place in your own *fork* of the main Landlab
 repository. A fork is a *mirror* of the repository and is hosted on your
@@ -11,6 +11,7 @@ features. Your changes will migrate to the core repository (for review and
 merging) by requesting that the main repository "pull" in your changes. This
 is known as a pull request and is facilitated through the GitHub website.
 
+
 How to create a fork
 ====================
 
@@ -18,6 +19,7 @@ You will only need to do this once for each project to which you want to
 contribute. Github has some great documentation on
 `how to create a fork <https://help.github.com/articles/fork-a-repo>`_. We
 outline below the basic steps as applied to Landlab.
+
 
 Create a GitHub account
 -----------------------
@@ -176,6 +178,9 @@ Coding Style
 
 * Class and function docstrings should follow the `numpydoc conventions
   <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
+  
+* Further, Landlab-specific advice for developing your own components can be found
+  in the :ref:`component development guide <dev_guide_components>`.
 
 
 Testing

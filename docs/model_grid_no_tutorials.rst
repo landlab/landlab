@@ -193,11 +193,13 @@ there are on the grid.  Further it is easy for any part of the code to query wha
 and operate on these data.
 
 You are free to call your fields whatever you want. However, many Landlab components 
-require that you use Landlab’s standard names. The standard names required can be 
-accessed individually for each component with the properties c
-omponent_instance._input_var_names and component_instance._output_var_names 
+require that you use :ref:`Landlab’s standard names <standard_names>`_. 
+The standard names required can be 
+accessed individually for each component with the properties 
+component_instance._input_var_names and component_instance._output_var_names 
 (returned as dictionaries), and should also be listed in the docstring for each component.
-.. We also maintain a list of all standard names used in Landlab here (XXX LINK).
+
+We also maintain this list of all the `Landlab Standard Names`_.
 
 .. We don't have a standard list yet. We should.
 
@@ -434,7 +436,7 @@ with these boundary condition schemes! Almost all existing components work fine 
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient, 
 and most will struggle with looped. If you’re working with the component library, take 
 a moment to check your components can understand your implemented boundary conditions! 
-See the Component Developer’s Guide (XXX LINK) for more information.
+See the `Component Developer’s Guide <dev_guide_components>`_ for more information.
 
 
 Using a Different Grid Type

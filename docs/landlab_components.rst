@@ -45,6 +45,47 @@ Under active development are:
 * a deltaic simulator
 
 
+.. _input_files:
+
+Input Files
+-----------
+
+Component input files are all .txt text files, and all share a format. The contents of 
+the file form alternating lines, one giving the name of the variable followed by a colon,
+the next giving the value to use for that variable. e.g.,::
+
+    K_sp: Additional text can go after the colon to allow annotation
+    0.3
+    m_sp:
+    0.5
+    n_sp:
+    1.
+    linear_diffusivity:
+    0.0001
+    
+Landlab components use a special class called the ModelParameterDictionary to interact
+with these input files. Create an MPD object by using the input file as the argument to
+the ModelParameterDictionary. Once you have this object, it not only behaves as a Python
+dictionary with the variable names as the keys and the values as the values, but also
+provides a specialized set of property methods (**read_float**, **read_int**, 
+**read_string**) which allow you to test for type while reading the variables.
+A value of the wrong type *that cannot be cast to the correct type* will result in a 
+ParameterValueError.
+
+    >>> from landlab import ModelParameterDictionary
+    >>> MPD = ModelParameterDictionary('myinputfile.txt')
+    >>> MPD['m_sp']
+    0.5
+    >>> MPD.read_float['linear_diffusivity']
+    0.0001
+    >>> MPD.read_string['linear_diffusivity']
+    '0.0001'
+    >>> MPD.read_int['linear_diffusivity']
+    ParameterValueError
+    >>> MPD.read_bool['linear_diffusivity']
+    ParameterValueError
+    
+
 Implementing a Component
 ------------------------
 
@@ -78,6 +119,8 @@ As part of our rolling efforts to standardize and improve Landlab, we are also t
 See `the tutorials <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.
 
 
+.. _standard_names:
+
 Landlab Standard Naming Conventions
 -----------------------------------
 
@@ -87,11 +130,11 @@ Landlab Standard Naming Conventions
 
 The Landlab component library attempts to make use of a relatively standardized set of names across the various components, in order to maximize ease of component coupling. If you’re familiar with the concept of the `CSDMS standard naming conventions <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_, note that we have tried to strike a balance between the rigor and uniqueness of those names and a more user-friendly, succinct approach. Nonetheless, you may recognise the basic style of the names:
 
-	**thing_descibed__what_is_described**
+	**thing_described__what_is_described**
 
 e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
 
- You can see a list of the names currently in use here: :ref:`Landlab Standard Names <standard_names>`.
+ You can see a list of the names currently in use here: :ref:`Landlab Standard Names`_
 
 
 Dealing with nonstandard names

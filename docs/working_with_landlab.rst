@@ -1,3 +1,5 @@
+.. _drive_a_model:
+
 What goes into a Landlab Model?
 ==============================
 
@@ -14,7 +16,7 @@ Typically, a driver file will consist of six distinct sections:
 * **Run** the model, typically by creating a for loop or using a Landlab generator (see below)
 * **Finalize** and handle the data (e.g., plot, export)
 
-Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about driver files here (XXX LINK to under component section). However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
+Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about parameter files `here <input_files>`_. However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
 
 
 A Brief Introduction to Components
@@ -191,7 +193,7 @@ Landlab also however has a built in storm generator component, which (as its nam
 Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired! See the end of `this tutorial <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for an example of this generator in action.
 
 
-What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See here (XXX LINK) for more information on using the components.
+What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See `here <Landlab Components>`_ for more information on using the components.
 
 
 6. Finalize and handle the data
