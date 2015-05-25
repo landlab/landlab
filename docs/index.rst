@@ -59,7 +59,7 @@ Building a Model
    working_with_landlab
 
 .. toctree::
-   :mxdepth: 3
+   :maxdepth: 3
 
    landlab_components
 
