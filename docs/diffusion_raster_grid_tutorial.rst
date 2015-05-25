@@ -9,7 +9,7 @@ soil on hillslopes. To make this example concrete, we will use the hillslope evo
 our working case study, though in fact the solution could apply to any of these systems.
 
 To work through this example, you can type in and run the code below, or you can download
- :download:`the example script <../model_grid_guide/diffusion_with_model_grid.py>`.
+ :download:`the example script <../model_grid_guide/diffusion_with_model_grid.py>`_.
 The complete source code for the diffusion model is listed 
 below. Line numbers are included to make it easier to refer to particular lines of code 
 (of course, these numbers are not part of the source code). After the listing, we will take 

@@ -222,7 +222,7 @@ Field initialization
 
 “group” is one of ‘node’, ‘link’, ‘cell’, ‘face’, ‘corner’, ‘junction’, ‘patch’
 
-“name” is a string giving the field name (see below)
+“name” is a string giving the field name
 
 “units” (optional) is the units associated with the field values.
 
@@ -244,17 +244,18 @@ Arguments as above, plus:
 Field access
 ^^^^^^^^^^^^
 
-grid.at_node or grid[‘node’]
-grid.at_cell or grid[‘cell’]
-grid.at_link or grid[‘link’]
-grid.at_face or grid[‘face’]
-grid.at_corner or grid[‘corner’]
-grid.at_junction or grid[‘junction’]
-grid.at_patch or grid[‘patch’]
+* grid.at_node or grid[‘node’]
+* grid.at_cell or grid[‘cell’]
+* grid.at_link or grid[‘link’]
+* grid.at_face or grid[‘face’]
+* grid.at_corner or grid[‘corner’]
+* grid.at_junction or grid[‘junction’]
+* grid.at_patch or grid[‘patch’]
 
 Each of these is then followed by the field name as a string in square brackets, e.g.,
 
-grid.at_node[‘my_field_name’] or grid[‘node’][‘my_field_name’]
+>>> grid.at_node[‘my_field_name’] #or 
+>>> grid[‘node’][‘my_field_name’]
 
 You can also use these commands to create fields from existing arrays, 
 as long as you don’t want to take advantage of the added control “add_field()” gives you.
@@ -270,15 +271,16 @@ evaluated between pairs of adjacent nodes. ModelGrid makes these calculations
 easier for programmers by providing built-in functions to calculate gradients
 along links, and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The `tutorial examples 
-<github.com/landlab/drivers/blob/master/>`_ on the following
+<http://nbviewer.ipython.org/github/landlab/drivers/tree/master/notebooks/>`_ 
+on the following
 pages illustrate how this capability can be used to create models of processes 
-such as diffusion and overland flow.  
+such as diffusion and overland flow.
 
 Here we simply illustrate the method for 
 calculating gradients on the links.  Remember that we have already created the 
 elevation array z, which is also accesible from the elevation field on *mg*.
 
->>> gradients = mg. calculate_gradients_at_active_links(z)
+>>> gradients = mg.calculate_gradients_at_active_links(z)
 
 Now gradients have been calculated at all links that are active, or links on which 
 flow is possible (see boundary conditions below).  
@@ -344,15 +346,6 @@ them; the remaining 14 nodes form the perimeter of the grid.
     are tagged as core. An active link is one that connects either
     two core nodes, or one core node and one open boundary node.
 
-.. _raster4x5openclosed:
-
-.. figure:: images/example_raster_grid_with_closed_boundaries.png
-    :figwidth: 80 %
-    :align: center
-
-    Figure 3: Illustration of a simple four-row by five-column raster grid with a
-    combination of open and closed boundaries.
-
 All nodes are tagged as either *boundary* or *core*. Those on the
 perimeter of the grid are automatically tagged as boundary nodes. Nodes on the
 inside are *core* by default, but it is possible to tag some of them as
@@ -362,22 +355,33 @@ shown in :ref:`Figure 2 <raster4x5>`, all the interior nodes are *core*, and all
 perimeter nodes are *open boundary*. 
 
 Boundary nodes are flagged as either *open* or *closed*, and links are tagged as 
-either *active* or *inactive*.
+either *active* or *inactive* (:ref: `Figure 3 <raster4x5openclosed>`).
+
+.. _raster4x5openclosed:
+
+.. figure:: images/example_raster_grid_with_closed_boundaries.png
+    :figwidth: 80 %
+    :align: center
+
+    Figure 3: Illustration of a simple four-row by five-column raster grid with a
+    combination of open and closed boundaries.
 
 A closed boundary is one at which no flux is permitted enter or leave, ever.
 By definition, all links coming into or out of a closed boundary node must be inactive. 
 There is effectively no value assigned to a closed boundary; it will probably have a 
 BAD_INDEX_VALUE or null value of some kind.
 An open boundary is one at which flux can enter or leave, but whose value is controlled 
-by some boundary condition rule, updated at the end of each timestep. Active links can 
-connect to open boundaries, but all links between open boundary cells will be inactive 
-(see fig. :ref:`Figure 3 <raster4x5openclosed>`).
+by some boundary condition rule, updated at the end of each timestep.
 
 An *active link*
 is one that joins either two core nodes, or one *core* and one
 *open boundary* node (:ref:`Figure 3 <raster4x5openclosed>`). You can use this
 distinction in models to implement closed boundaries by performing flow
-calculations only on active links, as the following simple example illustrates.
+calculations only on active links, as seen in `this tutorial 
+<http://nbviewer.ipython.org/github/landlab/drivers/tree/master/notebooks/LandlabFaultScarpDemo.ipynb>`_.
+
+
+.. _BC_details:
 
 Boundary condition details and methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -463,8 +467,35 @@ The next example illustrates the use of a  *RadialModelGrid*.
 Importing a DEM
 ===============
 
-Details coming soon!
+Landlab offers the methods **read_esri_ascii** and **read_netcdf** to allow ingestion of
+existing digital elevation models as raster grids.
 
+**read_esri_ascii** allows import of an ARCmap formatted ascii file (.asc or .txt) 
+as a grid.
+It returns a tuple, containing the grid and the elevations in Landlab ID order.
+Use the *name* keyword to add the elevation to a field in the imported grid.
+
+>>> from landlab.io import read_esri_ascii
+>>> (mg, z) = read_esri_ascii('myARCoutput.txt', name='topographic__elevation')
+>>> mg.at_node.keys()
+['topographic__elevation']
+
+**read_netcdf** allows import of the open source netCDF format for DEMs. Fields will
+automatically be created according to the names of variables found in the file.
+Returns a RasterModelGrid.
+
+>>> from landlab.io.netcdf import read_netcdf
+>>> mg = read_netcdf('mynetcdf.nc')
+
+
+After import, you can use :ref:`**mg.set_nodata_nodes_to_closed** <BC_details>` to 
+handle the boundary conditions in your imported DEM.
+
+Equivalent methods for output are also available for both esri (**write_esri_ascii**) 
+and netCDF (**write_netcdf**) formats.
+
+
+.. _Plotting:
 
 Plotting and Visualization
 ==========================
@@ -483,10 +514,12 @@ and used as follows:
 >>> mg = RasterModelGrid(50,50, 1.) #make a grid to plot
 >>> z = mg.node_x *0.1 #make an arbitrary sloping surface
 >>> #create the data as a field
->>> mg.add_field(‘node’, ‘topographic_elevation’, z, units=’meters’, copy=True)
+>>> mg.add_field(‘node’, ‘topographic_elevation’, z, units=’meters’, 
+                 copy=True)
 >>> figure(‘Elevations from the field’) #new fig, with a name
 >>> imshow_node_grid(mg, ‘topographic_elevation’)
->>> figure(‘You can also use values directly, not fields’) #...but you’ll lose the units, figure naming, etc when you do
+>>> figure(‘You can also use values directly, not fields’)
+>>> #...but if you, do you’ll lose the units, figure naming capabilities, etc
 >>> imshow_node_grid(mg, z)
 >>> show()
 
