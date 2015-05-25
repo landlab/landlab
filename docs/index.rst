@@ -75,10 +75,10 @@ Quick links to the landlab grid data structures:
 .. * `RadialModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RadialModelGrid.__init__>`_
 .. * `VoronoiDelaunayGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.VonoroiDelaunayGrid.__init__>`_
 .. try this instead
-* `RasterModelGrid <RMG_link>`
-* `HexModelGrid <Hex_link>`
-* `RadialModelGrid <Radial_link>`
-* `VoronoiDelaunayGrid <VMG_link>`
+* :ref:`RasterModelGrid <RMG_link>`
+* :ref:`HexModelGrid <Hex_link>`
+* :ref:`RadialModelGrid <Radial_link>`
+* :ref:`VoronoiDelaunayGrid <VMG_link>`
 
 
 Simple guides to functionality
