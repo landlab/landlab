@@ -58,16 +58,21 @@ Building a Model
    
    working_with_landlab
 
+.. toctree::
+   :mxdepth: 3
+
+   landlab_components
+
 
 Landlab Grid Data Structures
 ----------------------------
 
 Quick links to the landlab grid data structures:
 
-* :class:`landlab.grid.raster.RasterModelGrid`
-* :class:`landlab.grid.hex.HexModelGrid`
-* :class:`landlab.grid.radial.RadialModelGrid`
-* :class:`landlab.grid.voronoi.VoronoiDelaunayGrid`
+* `RasterModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RasterModelGrid.__init__>`_
+* `HexModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.HexModelGrid.__init__>`_
+* `RadialModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RadialModelGrid.__init__>`_
+* `VoronoiDelaunayGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.VonoroiDelaunayGrid.__init__>`_
 
 
 Simple guides to functionality
@@ -82,8 +87,13 @@ Simple guides to functionality
    :maxdepth: 2  
    
    manual_index_alt_format
-    
-   
+
+.. toctree::
+   :maxdepth: 1
+
+   standard_names
+
+
 Frequently Asked Questions
 ==========================
 
