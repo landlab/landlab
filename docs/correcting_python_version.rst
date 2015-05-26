@@ -70,7 +70,8 @@ The Hard Way
 If the above didn't work, you're going to have to doctor your system environment variables
 yourself. What you do is system-dependent:
 
-**MAC/LINUX**. Open a terminal. It should automatically open in your home directory, but 
+**MAC/LINUX**. (This assumes you're running a bash shell.)
+Open a terminal. It should automatically open in your home directory, but 
 just to be on the safe side, type::
 
     cd ~
@@ -116,6 +117,12 @@ add the lines yourself. Add the following to the end of the file::
     export PATH=~/anaconda/bin:$PATH
 
 (Assuming you installed Anaconda in the default location).
+
+You can check the path that your machine is actually seeing by typing::
+
+    echo $PATH
+    
+from the terminal.
 
 
 **PC**. On a PC, the same principle of modifying your environment variables applies, but
