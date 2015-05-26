@@ -569,16 +569,6 @@ class ModelGrid(ModelDataFields):
             return self.active_link_ids
             
     @property
-    def link_tail_node(self):
-        """Node ID of tail node for each link"""
-        return self.link_fromnode
-
-    @property
-    def link_head_node(self):
-        """Node ID of head node for each link"""
-        return self.link_tonode
-
-    @property
     def node_index_at_active_cells(self):
         """Node ID associated with active grid cells.
 
