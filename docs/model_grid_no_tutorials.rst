@@ -124,7 +124,7 @@ the number of elements in the array is the number of nodes:
 
 Here *z* is an array of zeros.  You can that *z* has the same length as the number of nodes:
 
->>> len(z)
+>>> z.size  #or len(z)
 400
 
 Note that *z* is a reference to the data stored in the model field.  This means that if you change z, you

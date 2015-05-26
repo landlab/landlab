@@ -120,12 +120,12 @@ As part of our rolling efforts to standardize and improve Landlab, we are also t
 ============================  ======================================================
 Property                      Description
 ============================  ======================================================
-component._name 		      a string
-component._input_var_names 	  a set giving input field names
-component._output_var_names	  a set giving output field names
-component._var_units 		  a dict, with var_name keys
-component._var_mapping		  a dict with var_name keys, giving ‘node’, ‘link’, etc
-component._var_defs		      a dict with var_name keys, giving short descriptions
+component.name 		          a string
+component.input_var_names 	  a set giving input field names
+component.output_var_names	  a set giving output field names
+component.var_units 		  a dict, with var_name keys
+component.var_mapping		  a dict with var_name keys, giving ‘node’, ‘link’, etc
+component.var_defs	          a dict with var_name keys, giving short descriptions
 ============================  ======================================================
 
 See `the tutorials <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.
