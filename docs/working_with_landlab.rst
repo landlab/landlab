@@ -16,7 +16,7 @@ Typically, a driver file will consist of six distinct sections:
 * **Run** the model, typically by creating a for loop or using a Landlab generator (see below)
 * **Finalize** and handle the data (e.g., plot, export)
 
-Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about parameter files `here <input_files>`_. However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
+Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about parameter files :ref:`here <input_files>`. However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
 
 
 A Brief Introduction to Components
@@ -53,7 +53,7 @@ And under active development are:
 * Divergent and mixed convergent-divergent flow routers
 * A deltaic simulator
 
-Note that not all components will run under all conditions, but that any limitations should be made clear in the inline documentation associated with that component (access help either through the indices you can find `on this site <landlab.readthedocs.org/en/latest/users_guide.html#list-of-landlab-components>`_ or by typing “[component or method]?” in an interactive Python session). In particular, some components may demand you are running on a regular grid. It should probably also be emphasised that most of these components are still under active development within this beta release of Landlab, and may behave in idiosyncratic ways or be subject to sudden changes with little or no warning. In all cases, we’d recommend contacting the original coder of the component to let them know they have external users to think about before setting out on any major research challenges using it!
+Note that not all components will run under all conditions, but that any limitations should be made clear in the inline documentation associated with that component (access help either through the indices you can find `on this site <http://landlab.readthedocs.org/en/latest/users_guide.html#list-of-landlab-components>`_ or by typing “[component or method]?” in an interactive Python session). In particular, some components may demand you are running on a regular grid. It should probably also be emphasised that most of these components are still under active development within this beta release of Landlab, and may behave in idiosyncratic ways or be subject to sudden changes with little or no warning. In all cases, we’d recommend contacting the original coder of the component to let them know they have external users to think about before setting out on any major research challenges using it!
 
 
 Implementing a Landlab driver
@@ -110,7 +110,7 @@ An example might be:
 3. Load/create data in fields
 +++++++++++++++++++++++++++++
 
-*(:ref:`See this section <fields>` if you don’t know what a Landlab field is)*
+(:ref:`See this section <fields>` if you don’t know what a Landlab field is)
 
 Now we need some data to work with. Here we’ll assume that you’re going to be working with a DEM-style elevation map across the nodes of the grid, but similar considerations would apply for any other type of data.
 
@@ -193,7 +193,7 @@ Landlab also however has a built in storm generator component, which (as its nam
 Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired! See the end of `this tutorial <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for an example of this generator in action.
 
 
-What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See `here <Landlab Components>`_ for more information on using the components.
+What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See :ref:`here <landlab_components_page>` for more information on using the components.
 
 
 6. Finalize and handle the data

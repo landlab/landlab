@@ -199,7 +199,7 @@ accessed individually for each component with the properties
 component_instance._input_var_names and component_instance._output_var_names 
 (returned as dictionaries), and should also be listed in the docstring for each component.
 
-We also maintain this list of all the `Landlab Standard Names`.
+We also maintain this list of all the :ref:`Landlab standard names <standard_name_list>`.
 
 .. We don't have a standard list yet. We should.
 
@@ -357,7 +357,7 @@ shown in :ref:`Figure 2 <raster4x5>`, all the interior nodes are *core*, and all
 perimeter nodes are *open boundary*. 
 
 Boundary nodes are flagged as either *open* or *closed*, and links are tagged as 
-either *active* or *inactive* (:ref: `Figure 3 <raster4x5openclosed>`).
+either *active* or *inactive* (:ref:`Figure 3 <raster4x5openclosed>`).
 
 .. _raster4x5openclosed:
 
@@ -383,7 +383,7 @@ calculations only on active links, as seen in `this tutorial
 <http://nbviewer.ipython.org/github/landlab/drivers/tree/master/notebooks/LandlabFaultScarpDemo.ipynb>`_.
 
 
-.. _BC_details:
+.. _bc_details:
 
 Boundary condition details and methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -436,7 +436,7 @@ with these boundary condition schemes! Almost all existing components work fine 
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient, 
 and most will struggle with looped. If you’re working with the component library, take 
 a moment to check your components can understand your implemented boundary conditions! 
-See the `Component Developer’s Guide <dev_components>` for more information.
+See the :ref:`Component Developer’s Guide <dev_components>` for more information.
 
 
 Using a Different Grid Type
@@ -490,7 +490,7 @@ Returns a RasterModelGrid.
 >>> mg = read_netcdf('mynetcdf.nc')
 
 
-After import, you can use :ref:`mg.set_nodata_nodes_to_closed <BC_details>` to 
+After import, you can use :ref:`mg.set_nodata_nodes_to_closed <bc_details>` to 
 handle the boundary conditions in your imported DEM.
 
 Equivalent methods for output are also available for both esri (**write_esri_ascii**) 

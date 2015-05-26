@@ -4,20 +4,20 @@ How do I set the boundary codes for the edges of a grid?
 
 By default, the boundary nodes around the perimeter of a grid are all
 open boundaries. For a raster grid, if you want to make one or more sides
-closed boundaries, use the grid method :func:`~landlab.grid.base.ModelGrid.set_inactive_boundaries`.
+closed boundaries, use the grid method :func:`~landlab.grid.Raster.RasterModelGrid.set_closed_boundaries_at_grid_edges`.
 
-The following code snippet sets the southern boudary nodes to be :data:`~landlab.grid.base.INACTIVE_BOUNDARY`.
+The following code snippet sets the southern boudary nodes to be closed.
 
   >>> import landlab
   >>> grid = landlab.RasterModelGrid(3, 4)
-  >>> grid.set_inactive_boundaries(True, False, False, False)
+  >>> grid.set_closed_boundaries_at_grid_edges(True, False, False, False)
   >>> grid.node_status
   array([4, 4, 4, 4, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
 
 .. seealso::
 
-  :func:`~landlab.grid.base.ModelGrid.set_fixed_value_boundaries`,
-  :func:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_inactive`
+  :func:`~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges`,
+  :func:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed`
 
 
 Can I import Landlab output into ParaView or VisIt?
@@ -51,6 +51,9 @@ these by some other quantity (such as water-surface slope) that is defined on li
 are some options:
 
 (1) To assign the *average* 
+(2) To assign the upstream value
+(3) to assign the downstream value
+(4) ...
 
 
 Why are there no other FAQs besides these few?

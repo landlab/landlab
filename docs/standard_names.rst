@@ -1,3 +1,5 @@
+.. _standard_name_list:
+
 Landlab Standard Names
 ======================
 
