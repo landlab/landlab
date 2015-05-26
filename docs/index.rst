@@ -43,12 +43,6 @@ Landlab's Gridding Library
    
    model_grid_no_tutorials
    
-.. toctree::
-   :maxdepth: 1 
-
-   diffusion_raster_grid_tutorial
-   overland_flow_general_tutorial
-   overland_flow_dem_tutorial
 
 Building a Model
 ----------------
@@ -58,16 +52,42 @@ Building a Model
    
    working_with_landlab
 
+.. toctree::
+   :maxdepth: 3
 
-Landlab Grid Data Structures
-----------------------------
+   landlab_components
 
-Quick links to the landlab grid data structures:
 
-* :class:`landlab.grid.raster.RasterModelGrid`
-* :class:`landlab.grid.hex.HexModelGrid`
-* :class:`landlab.grid.radial.RadialModelGrid`
-* :class:`landlab.grid.voronoi.VoronoiDelaunayGrid`
+.. Landlab Grid Data Structures
+.. ----------------------------
+.. 
+.. Quick links to the landlab grid data structures:
+..
+.. for some reason, these weren't working
+.. * `RasterModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RasterModelGrid.__init__>`_
+.. * `HexModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.HexModelGrid.__init__>`_
+.. * `RadialModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RadialModelGrid.__init__>`_
+.. * `VoronoiDelaunayGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.VonoroiDelaunayGrid.__init__>`_
+..
+..
+
+
+Tutorials
+---------
+
+.. These tutorials are NOT IN MODERN STYLE, as of 05/25/15
+.. Thus DEJH has commented them out
+.. .. toctree::
+..    :maxdepth: 1 
+.. replaced with the notebook tutorials
+.. diffusion_raster_grid_tutorial
+.. overland_flow_general_tutorial
+.. overland_flow_dem_tutorial
+
+* A super-basic intro to Python and Numpy: https://github.com/landlab/drivers/blob/master/notebooks/Python_intro.ipynb
+* An introduction to modelling with Landlab: https://github.com/landlab/drivers/blob/master/notebooks/LandlabFaultScarpDemo.ipynb
+* Using the Landlab component library: https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb
+* The Landlab flexure component: https://github.com/landlab/drivers/blob/master/notebooks/flexure/lots_of_loads.ipynb
 
 
 Simple guides to functionality
@@ -82,8 +102,13 @@ Simple guides to functionality
    :maxdepth: 2  
    
    manual_index_alt_format
-    
-   
+
+.. toctree::
+   :maxdepth: 1
+
+   standard_names
+
+
 Frequently Asked Questions
 ==========================
 
@@ -96,10 +121,15 @@ Frequently Asked Questions
 Developer Documentation
 =======================
 
-.. toctree::
-   :maxdepth: 1
+If you're intending to make changes to the Landlab code base,
+or want to develop your own components, we recommend you follow
+these specialized developer install instructions.
 
-   dev_guide
+.. toctree::
+   :maxdepth: 2
+
+   dev_guide_install
+   dev_guide_components
 
 
 References

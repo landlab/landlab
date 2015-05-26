@@ -12,6 +12,7 @@ Landlab has the following dependencies:
 - Python 2.7
 - Numpy 1.8 or greater
 - Scipy 0.12 or greater
+- netCDF4 (will run without, but recommended)
 
 If you don't already have these packages installed on your computer, simply
 install one of the preassembled scientific Python collections described below
@@ -81,7 +82,7 @@ If you *don't* see reference to your newly installed distribution, click :ref:`h
 Installing Landlab
 ==================
 
-Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the installation instructions :ref:`here 
+Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the developers' installation instructions :ref:`here 
 <dev_guide>`.
 
 We here assume that you have read :ref:`the previous section <python-install>` and you have now installed a Python front-end  on your computer (which should have also installed a Python distribution) and that your default Python path is set correctly (more on Python path :ref:`here <correcting_python_version>`).
@@ -123,12 +124,12 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
   > pip install landlab
 
-- Once Landlab has been successfully installed, on the python sheel line, check to make sure it is up-to-date (note that those are double undersocres around version)
+- Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date (note that those are double underscores around version)
 
   >>> import landlab
   >>> landlab.__version__
 
-The version number is changing rapidly at this point, but it should be something higher than 0.1.12.  If you are having problems with Landlab, check with the Landlab development team to make sure you have the latest version.
+The version number is changing rapidly at this point, but it should be something higher than 0.1.18.  If you are having problems with Landlab, check with the Landlab development team to make sure you have the latest version.
 
 .. _landlab-install_with_canopy:
 

@@ -46,3 +46,6 @@ deploy:
   username: anonymous
   password: appveyor@appveyor.com
   folder: incoming/huttone/
+  on:
+    branch: master
+    appveyor_repo_tag: true

@@ -50,6 +50,6 @@ class LandlabTester(Tester):
         kwds.setdefault('verbose', 2)
         kwds.setdefault('doctests', 1)
         kwds.setdefault('coverage', 1)
-        kwds.setdefault('extra_argv', ['-x', 'where=landlab'])
+        kwds.setdefault('extra_argv', ['-x'])
         show_system_info()
         return super(LandlabTester, self).test(**kwds)

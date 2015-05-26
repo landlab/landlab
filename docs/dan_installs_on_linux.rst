@@ -22,7 +22,7 @@ However, DEJH found it wasn't the right version in his case. The problem
 is that the stable Python (and Python package) versions that are
 maintained through the Debian package repository that *apt-get* looks at
 tend not to be up to date. This is problematic, as Landlab needs at least
-Python 2.7, Numpy 1.7, and Scipy 0.12. So first, check your version.
+Python 2.7, Numpy 1.8, and Scipy 0.12. So first, check your version:
 
     $ python --version
     
@@ -87,6 +87,10 @@ the folder you downloaded it into, and simply run
 
 This should give you a trouble free install of pip.
 
+Once you have it, make sure you're fully up-to-date:
+
+    $ pip install --upgrade pip
+
 NB: DO NOT TRY TO INSTALL PIP WITH APT-GET. Pip binds to your Python
 install, and the binding probably won't take properly unless you 
 install through your version of Python, as described here. Note that
@@ -107,6 +111,8 @@ adding packages should be trouble free:
     $ sudo pip install matplotlib
     
     $ sudo pip install sympy
+
+    $ sudo pip install netCDF4
 
 Note in future, you can update these packages to new versions by:
 
@@ -133,4 +139,11 @@ and test:
     $ python
     
     >>> import landlab
+    >>> landlab.test()
 
+Or alternatively, just grab the release version using pip, as in the
+main instructions:
+
+    $ pip install landlab
+
+& again, test as above.
