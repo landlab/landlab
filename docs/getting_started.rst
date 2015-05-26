@@ -1,3 +1,5 @@
+.. _getting_started:
+
 A Tutorial on Quickly Building 2D Models in Landlab
 ===================================================
 

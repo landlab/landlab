@@ -84,6 +84,8 @@ Tutorials
 .. overland_flow_general_tutorial
 .. overland_flow_dem_tutorial
 
+Start with the :ref:`10 minute Landlab introduction tutorial <getting_started>`, then choose from:
+
 * A super-basic intro to Python and Numpy: https://github.com/landlab/drivers/blob/master/notebooks/Python_intro.ipynb
 * An introduction to modelling with Landlab: https://github.com/landlab/drivers/blob/master/notebooks/LandlabFaultScarpDemo.ipynb
 * Using the Landlab component library: https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb

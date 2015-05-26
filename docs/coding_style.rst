@@ -20,7 +20,7 @@ We recommend installing a Python distribution like the Enthought Python Distribu
 Getting to know Python
 ======================
 
-We recommend you approach Landlab with a basic working knowledge of the Python coding language. A good, concise, complete beginner’s guide that will get you to enough knowledge to be able to get started can be found here. We like `the Software Carpentry intro <http://software-carpentry.org/v4/python/>`_  and `these Python notebooks <http://nbviewer.ipython.org/github/jrjohansson/scientific-python-lectures/tree/master/>`_ as more comprehensive in troductions to Python.
+We recommend you approach Landlab with a basic working knowledge of the Python coding language. A good, concise, complete beginner’s guide that will get you to enough knowledge to be able to get started can be found here. We like `the Software Carpentry intro <http://software-carpentry.org/v4/python/>`_  and `these Python notebooks <http://nbviewer.ipython.org/github/jrjohansson/scientific-python-lectures/tree/master/>`_ as more comprehensive introductions to Python.
 
 If you’re already familiar with Matlab, you will probably feel fairly at home with Python fairly quickly. However, there are some critical differences. Important things to remember are:
 Python’s indexing is inclusive at the start and exclusive at the end (in contrast to Matlab). e.g.,
@@ -41,7 +41,7 @@ Lines don’t need to end with the semicolon to suppress output; Python won’t 
 
 Finally, but importantly, Python doesn't use the hat (.^) as its raise-to-the-power symbol. Instead, it uses a double star (**). Simple, but typically very frustrating for a day or two during transition! There's also the numpy method, np.square, which if you're using arrays typically outperforms the ** operator.
 
-Landlab is also written in an object-oriented coding style. Many of the elements of Landlab that you will interact with - grids, components, utilities - are Python objects, which means they contain both data that describe the object and functions that you can call that operate on the object. Think of the object as a container in which is stored everything relevant to that part of the code, so it can be accessed easily. You can read a bit more about Python objects `here <learnpythonthehardway.org/book/ex40.html>`_ for general information. We give more detail on what this means in terms of running our code :ref:`later in this guide <drive_a_model>`_.
+Landlab is also written in an object-oriented coding style. Many of the elements of Landlab that you will interact with - grids, components, utilities - are Python objects, which means they contain both data that describe the object and functions that you can call that operate on the object. Think of the object as a container in which is stored everything relevant to that part of the code, so it can be accessed easily. You can read a bit more about Python objects `here <http://learnpythonthehardway.org/book/ex40.html>`_ for general information. We give more detail on what this means in terms of running our code :ref:`later in this guide <drive_a_model>`.
 
 
 Numpy and Scipy, and Efficient Coding Style
@@ -83,6 +83,6 @@ If you go poking around in the Landlab source code code, you will discover that 
 
 From the user’s perspective, the most important thing to note is that Cython is a compiled language. (This isn’t true of Python, which is an interpreted - i.e., compiled at run time - language.) We provide the pre-compiled executables you will need to run Landlab when you install, and this should be sufficient for the vast majority of users.
 
-However, note that if as a developer you intend to modify any of the sections of code that we provide to you, you will probably need to recompile that code on your machine before the changes take effect. See the `development guide <dev_guide_install>`_ for lots more information on this.
+However, note that if as a developer you intend to modify any of the sections of code that we provide to you, you will probably need to recompile that code on your machine before the changes take effect. See the `development guide <dev_guide_install>` for lots more information on this.
 
 
