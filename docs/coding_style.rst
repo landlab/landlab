@@ -83,6 +83,6 @@ If you go poking around in the Landlab source code code, you will discover that 
 
 From the user’s perspective, the most important thing to note is that Cython is a compiled language. (This isn’t true of Python, which is an interpreted - i.e., compiled at run time - language.) We provide the pre-compiled executables you will need to run Landlab when you install, and this should be sufficient for the vast majority of users.
 
-However, note that if as a developer you intend to modify any of the sections of code that we provide to you, you will probably need to recompile that code on your machine before the changes take effect. See the `development guide <dev_guide_install>` for lots more information on this.
+However, note that if as a developer you intend to modify any of the sections of code that we provide to you, you will probably need to recompile that code on your machine before the changes take effect. See the `development guide <dev_install>` for lots more information on this.
 
 

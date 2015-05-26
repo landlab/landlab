@@ -163,4 +163,4 @@ The version number is changing rapidly at this point, but it should be something
 Developer Installation - Installing from Landlab Source Code
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This is recommended only for users who have gotten a feel for Landlab and want to keep up with the absolute latest Landlab developments and contribute codes back to the Landlab repository.  If this is not you, please follow the standard installation instructions :ref:`above <landlab_install>`.  Otherwise, if you are ready to become a Landlab developer, follow :ref:`these directions <dev_guide_install>`.
+This is recommended only for users who have gotten a feel for Landlab and want to keep up with the absolute latest Landlab developments and contribute codes back to the Landlab repository.  If this is not you, please follow the standard installation instructions :ref:`above <landlab_install>`.  Otherwise, if you are ready to become a Landlab developer, follow :ref:`these directions <dev_install>`.

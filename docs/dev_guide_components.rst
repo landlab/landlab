@@ -1,4 +1,4 @@
-.. _dev_guide_components:
+.. _dev_components:
 
 =================================
 Landlab Component Developer Guide

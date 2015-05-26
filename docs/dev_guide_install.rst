@@ -1,4 +1,4 @@
-.. _dev_guide_install:
+.. _dev_install:
 
 ==================================
 Installing Landlab for Development
@@ -180,7 +180,7 @@ Coding Style
   <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
   
 * Further, Landlab-specific advice for developing your own components can be found
-  in the :ref:`component development guide <dev_guide_components>`.
+  in the :ref:`component development guide <dev_components>`.
 
 
 Testing

@@ -193,13 +193,13 @@ there are on the grid.  Further it is easy for any part of the code to query wha
 and operate on these data.
 
 You are free to call your fields whatever you want. However, many Landlab components 
-require that you use :ref:`Landlab’s standard names <standard_names>`_. 
+require that you use :ref:`Landlab’s standard names <standard_names>`. 
 The standard names required can be 
 accessed individually for each component with the properties 
 component_instance._input_var_names and component_instance._output_var_names 
 (returned as dictionaries), and should also be listed in the docstring for each component.
 
-We also maintain this list of all the `Landlab Standard Names`_.
+We also maintain this list of all the `Landlab Standard Names`.
 
 .. We don't have a standard list yet. We should.
 
@@ -436,7 +436,7 @@ with these boundary condition schemes! Almost all existing components work fine 
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient, 
 and most will struggle with looped. If you’re working with the component library, take 
 a moment to check your components can understand your implemented boundary conditions! 
-See the `Component Developer’s Guide <dev_guide_components>`_ for more information.
+See the `Component Developer’s Guide <dev_components>` for more information.
 
 
 Using a Different Grid Type
@@ -490,7 +490,7 @@ Returns a RasterModelGrid.
 >>> mg = read_netcdf('mynetcdf.nc')
 
 
-After import, you can use :ref:`**mg.set_nodata_nodes_to_closed** <BC_details>` to 
+After import, you can use :ref:`mg.set_nodata_nodes_to_closed <BC_details>` to 
 handle the boundary conditions in your imported DEM.
 
 Equivalent methods for output are also available for both esri (**write_esri_ascii**) 
