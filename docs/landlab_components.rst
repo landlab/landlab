@@ -22,22 +22,22 @@ Available Landlab components
 
 The current library includes the following components in essentially full working order:
 
-* linear diffusion: *diffusion.diffusion.LinearDiffuser*
-* nonlinear hillslope diffusion: *nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse*
-* a fire generator: *fire_generator.generate_fire.FireGenerator*
-* a simple lithospheric flexure model: *flexure.flexure.FlexureComponent*
-* a more complex flexural model, incorporating A. Wickert’s gFlex code: *gflex.flexure.gFlex*
-* a single-direction (“D8 generalized” or “Dn”) flow router: *flow_routing.route_flow_dn.FlowRouter*
-* a thin ice glacial approximation: *glacier_thin_ice_model.glacier.Glacier*
-* a shallow overland flow approximation (following Bates et al., 2010): *overland_flow.generate_overland_flow_DEM.OverlandFlow*
-* a potential evapotranspiration module: *pet.potential_evapotranspiration_field.PotentialEvapotranspiration*
-* a solar total incident shortwave radiation calculator: *radiation.radiation_field.Radiation*
-* a soil moisture module: *soil_moisture.soil_moisture_field.SoilMoisture*
-* a simple stream power (pure detachment limited) fluvial component: *stream_power.stream_power.StreamPowerEroder*, or *stream_power.fastscape_stream_power.SPEroder*
-* a transport-limited fluvial component: *transport_limited_fluvial.tl_fluvial_monodirectional_v3.TransportLimitedEroder*
-* a sediment-flux dependent shear stress based fluvial incision component: *stream_power.sed_flux_dep_incision.SedDepEroder*
-* a generator for storms over a landscape: *uniform_precip.generate_uniform_precip.PrecipitationDistribution*
-* A powerful, generalized, continuous-time stochastic cellular automaton, that can be specialized for many other tasks: *cellular_automata.landlab_ca.LandlabCellularAutomaton*
+* linear diffusion: :class:`~landlab.components.diffusion.diffusion.LinearDiffuser`
+* nonlinear hillslope diffusion: :class:`~landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse`
+* a fire generator: :class:`~landlab.components.fire_generator.generate_fire.FireGenerator`
+* a simple lithospheric flexure model: :class:`~landlab.components.flexure.flexure.FlexureComponent`
+* a more complex flexural model, incorporating A. Wickert’s gFlex code: :class:`~landlab.components.gflex.flexure.gFlex`
+* a single-direction (“D8 generalized” or “Dn”) flow router: :class:`~landlab.components.flow_routing.route_flow_dn.FlowRouter`
+* a thin ice glacial approximation: :class:`~landlab.components.glacier_thin_ice_model.glacier.Glacier`
+* a shallow overland flow approximation (following Bates et al., 2010): :class:`~landlab.components.overland_flow.generate_overland_flow_DEM.OverlandFlow`
+* a potential evapotranspiration module: :class:`~landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration`
+* a solar total incident shortwave radiation calculator: :class:`~landlab.components.radiation.radiation_field.Radiation`
+* a soil moisture module: :class:`~landlab.components.soil_moisture.soil_moisture_field.SoilMoisture`
+* a simple stream power (pure detachment limited) fluvial component: :class:`~landlab.components.stream_power.stream_power.StreamPowerEroder`, or :class:`~landlab.components.stream_power.fastscape_stream_power.SPEroder`
+* a transport-limited fluvial component: :class:`~landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3.TransportLimitedEroder`
+* a sediment-flux dependent shear stress based fluvial incision component: :class:`~landlab.components.stream_power.sed_flux_dep_incision.SedDepEroder`
+* a generator for storms over a landscape: :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`
+* A powerful, generalized, continuous-time stochastic cellular automaton, that can be specialized for many other tasks: :class:`~landlab.components.cellular_automata.landlab_ca.LandlabCellularAutomaton`
 
 Under active development are:
 
@@ -69,8 +69,12 @@ Landlab components use a special class called the ModelParameterDictionary to in
 with these input files. Create an MPD object by using the input file as the argument to
 the ModelParameterDictionary. Once you have this object, it not only behaves as a Python
 dictionary with the variable names as the keys and the values as the values, but also
-provides a specialized set of property methods (**read_float**, **read_int**, 
-**read_string**) which allow you to test for type while reading the variables.
+provides a specialized set of property methods 
+(:func:`~landlab.core.model_parameter_dictionary.ModelParameterDictionary.read_float`, 
+:func:`~landlab.core.model_parameter_dictionary.ModelParameterDictionary.read_int`, 
+:func:`~landlab.core.model_parameter_dictionary.ModelParameterDictionary.read_bool`, 
+:func:`~landlab.core.model_parameter_dictionary.ModelParameterDictionary.read_string`), 
+which allow you to test for type while reading the variables.
 A value of the wrong type *that cannot be cast to the correct type* will result in a 
 ParameterValueError.
 

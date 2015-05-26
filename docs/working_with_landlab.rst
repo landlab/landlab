@@ -76,9 +76,9 @@ Also useful can be:
 
 From inside Landlab, you’ll also need:
 
-* A *grid* class. Choose from *RasterModelGrid*, *VoronoiDelaunayGrid*, or some of the more specialized classes
-* Any *components* you want to run
-* Any Landlab *utilities* you need, like the plotters (*imshow_node_grid*) or *io* functions
+* A **grid** class. Choose from :class:`~landlab.grid.raster.RasterModelGrid`, :class:`~landlab.grid.voronoi.VoronoiDelaunayGrid`, or some of the more specialized classes
+* Any **components** you want to run
+* Any Landlab **utilities** you need, like the plotters (:func:`~landlab.plot.imshow.imshow_node_grid`) or **io** functions
 
 A specific example might be:
 
@@ -125,7 +125,8 @@ In both cases, we advocate a two step process: creating a numpy array of the dat
 >>> z += np.random.rand(100.)/10000. #add a little noise to the surface
 >>> mg.add_field(‘node’, ‘topographic__elevation’, z, units=’m’) #create the field
 
-Alternatively, we can use the specialized Landlab function io.read_esri_ascii to import an ascii raster that can be output from ARC. Note this function both creates the grid for you and loads the data as a field if you provide ‘name’. If not, you’ll have to load the data output (‘z’, below) manually.
+Alternatively, we can use the specialized Landlab function :func:`~landlab.io.esri_ascii.read_esri_ascii` 
+to import an ascii raster that can be output from ARC. Note this function both creates the grid for you and loads the data as a field if you provide ‘name’. If not, you’ll have to load the data output (*z*, below) manually.
 
 >>> from landlab.io import read_esri_ascii
 >>> mg, z = read_esri_ascii(‘my_ARC_output.asc’, name=’topographic__elevation’)
@@ -151,7 +152,8 @@ If you’re working with, say, an ARC imported array with a null value on the cl
 
 (Note though that you’re still likely to have to reopen an outlet node manually! In which case you’ll also need to follow the instructions below.)
 
-If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs slightly differently. First, you’ll need to alter those statuses directly, but then - and very importantly! - you’ll need to make sure all there’s full internal consistency between the node statuses and all the subsidiary statuses like those on cells and links. Use *mg.update_links_nodes_cells_to_new_BCs()*. Do this like so:
+If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs slightly differently. First, you’ll need to alter those statuses directly, but then - and very importantly! - you’ll need to make sure all there’s full internal consistency between the node statuses and all the subsidiary statuses like those on cells and links. Use :func:`~landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs`.
+Do this like so:
 
 >>> #find the ID of the lowest elevation core node; we’ll make this a fixed gradient outlet:
 >>> outlet_id = mg.core_nodes[np.argmin( 
@@ -181,7 +183,11 @@ or
 
 Both produce 1000 time units of run, with an explicit timestep of 10. Notice that the latter technique is particularly amenable to situations where your explicit timestep is varying (e.g., a storm sequence).
 
-Landlab also however has a built in storm generator component, which (as its name suggests) actually acts as a true `Python generator <http://www.python-course.eu/generators.php>`_. This means producing a storm series in Landlab is also very easy:
+Landlab also however has a built in storm generator component,
+:class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`,
+which (as its module name suggests) actually acts as a true `Python generator <http://www.python-course.eu/generators.php>`_. The main method is 
+:func:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity`. 
+This means producing a storm series in Landlab is also very easy:
 
 >>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 >>> time_to_run = 500000.
@@ -214,7 +220,8 @@ or
 
 The former way will give two save files, my_savename_field1.asc and my_savename_field2.asc. The latter will just give ‘my_savename.nc’.
 
-To reload a netCDF file, use the Landlab io function read_netcdf:
+To reload a netCDF file, use the Landlab io function 
+:func:`~landlab.io.netcdf.read_netcdf`:
 
 >>> from landlab.io.netcdf import read_netcdf
 >>> mg = read_netcdf(‘my_savename.nc’)
@@ -229,7 +236,7 @@ If you’re using an irregular grid, the simple grid save function is not yet op
 
 Unfortunately, the power of pickle comes somewhat at the expense of both disk space and speed. Saves this way can be slow and, if the grid is big, memory expensive (e.g., ~1 Gb for millions of nodes).
 
-You can also use lower level, numpy save routines to preserve just your data (rather than the whole grid object). The numpy methods save and savetxt and load and loadtxt can be called on any numpy array, including those saved as fields. Save and load use the numpy specific .npy file format; savetxt and loadtxt use textfiles. Use them like this:
+You can also use lower level, numpy save routines to preserve just your data (rather than the whole grid object). The numpy methods **save** and **savetxt** and **load** and **loadtxt** can be called on any numpy array, including those saved as fields. Save and load use the numpy specific .npy file format; savetxt and loadtxt use textfiles. Use them like this:
 
 >>> np.save(‘savename.npy’, mg.at_node[‘my_field’])
 >>> mg.at_node[‘my_field’] = np.load(‘savename.npy’)
