@@ -89,11 +89,11 @@ class FlowRouter(Component):
                   }
     
     
-    def __init__(self, model_grid, input_params=None):
+    def initialize(self, model_grid, input_params=None):
         
         # We keep a local reference to the grid
         self._grid = model_grid
-        self.value_field = 'topographic__elevation'
+        self.value_field = self.var_names['topographic__elevation']
         
         if input_params:
             if type(input_params) == str:
@@ -115,23 +115,23 @@ class FlowRouter(Component):
             self._activelink_to = model_grid.activelink_tonode
         
         #test input variables are present:
-        model_grid.at_node['topographic__elevation']
+        model_grid.at_node[self.value_field]
         try:
-            model_grid.at_node['water__volume_flux_in']
+            model_grid.at_node[self.var_names['water__volume_flux_in']]
             self.field_for_runoff = True
         except FieldError:
             self.field_for_runoff = False
             #build the input array into the grid. This is important in case variable values appear during model run
-            model_grid.add_ones('node', 'water__volume_flux_in')
+            model_grid.add_ones('node', self.var_names['water__volume_flux_in'])
             
         if not self.field_for_runoff:
             try:
-                model_grid.at_node['water__volume_flux_in'].fill(input_dict['runoff_rate'])
+                model_grid.at_node[self.var_names['water__volume_flux_in']].fill(input_dict[self.var_names['runoff_rate']])
             except (KeyError, UnboundLocalError):
-                model_grid.at_node['water__volume_flux_in'].fill(1.)
+                model_grid.at_node[self.var_names['water__volume_flux_in']].fill(1.)
         else:
             try:
-                model_grid.at_node['water__volume_flux_in'].fill(input_dict['runoff_rate'])
+                model_grid.at_node[self.var_names['water__volume_flux_in']].fill(input_dict[self.var_names['runoff_rate']])
             except (KeyError, UnboundLocalError):
                 pass
             else:
@@ -140,12 +140,12 @@ class FlowRouter(Component):
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = model_grid.add_zeros('node', 'drainage_area')
-        self.receiver = model_grid.create_node_array_zeros('flow_receiver')
-        self.steepest_slope = model_grid.create_node_array_zeros('topographic__steepest_slope')
-        self.discharges = model_grid.create_node_array_zeros('water__volume_flux')
-        self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
-        self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
+        self.drainage_area = model_grid.add_zeros('node', self.var_names['drainage_area'])
+        self.receiver = model_grid.create_node_array_zeros(self.var_names['flow_receiver'])
+        self.steepest_slope = model_grid.create_node_array_zeros(self.var_names['topographic__steepest_slope'])
+        self.discharges = model_grid.create_node_array_zeros(self.var_names['water__volume_flux'])
+        self.upstream_ordered_nodes = model_grid.create_node_array_zeros(self.var_names['upstream_ID_order'])
+        self.links_to_receiver = model_grid.create_node_array_zeros(self.var_names['links_to_flow_receiver'])
         
         self.weave_flag = model_grid.weave_flag
         
@@ -241,45 +241,45 @@ class FlowRouter(Component):
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area=node_cell_area, 
-                                                  runoff_rate=self._grid.at_node['water__volume_flux_in'],
+                                                  runoff_rate=self._grid.at_node[self.var_names['water__volume_flux_in']],
                                                   use_weave=self.weave_flag)
                                                   
         #added DEJH March 2014:
         #store the generated data in the grid
-        self._grid['node']['drainage_area'] = a
-        self._grid['node']['flow_receiver'] = receiver
-        self._grid['node']['topographic__steepest_slope'] = steepest_slope
-        self._grid['node']['water__volume_flux'] = q
-        self._grid['node']['upstream_ID_order'] = s
-        self._grid['node']['links_to_flow_receiver'] = recvr_link
-        self._grid['node']['flow_sinks'] = numpy.zeros_like(receiver, dtype=bool)
-        self._grid['node']['flow_sinks'][sink] = True
+        self._grid['node'][self.var_names['drainage_area']] = a
+        self._grid['node'][self.var_names['flow_receiver']] = receiver
+        self._grid['node'][self.var_names['topographic__steepest_slope']] = steepest_slope
+        self._grid['node'][self.var_names['water__volume_flux']] = q
+        self._grid['node'][self.var_names['upstream_ID_order']] = s
+        self._grid['node'][self.var_names['links_to_flow_receiver']] = recvr_link
+        self._grid['node'][self.var_names['flow_sinks']] = numpy.zeros_like(receiver, dtype=bool)
+        self._grid['node'][self.var_names['flow_sinks']][sink] = True
         
         return self._grid
 
     @property
     def node_drainage_area(self):
-        return self._grid['node']['drainage_area']
+        return self._grid['node'][self.var_names['drainage_area']]
 
     @property
     def node_receiving_flow(self):
-        return self._grid['node']['flow_receiver']
+        return self._grid['node'][self.var_names['flow_receiver']]
 
     @property
     def node_steepest_slope(self):
-        return self._grid['node']['topographic__steepest_slope']
+        return self._grid['node'][self.var_names['topographic__steepest_slope']]
 
     @property
     def node_water_discharge(self):
-        return self._grid['node']['water__volume_flux']
+        return self._grid['node'][self.var_names['water__volume_flux']]
 
     @property
     def node_order_upstream(self):
-        return self._grid['node']['upstream_ID_order']
+        return self._grid['node'][self.var_names['upstream_ID_order']]
 
     @property
     def link_to_flow_receiving_node(self):
-        return self._grid['node']['links_to_flow_receiver']
+        return self._grid['node'][self.var_names['links_to_flow_receiver']]
 
 
 if __name__ == '__main__':
