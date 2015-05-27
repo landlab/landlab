@@ -3,7 +3,7 @@
 Landlab Components
 ==================
 
-For a tutorial introduction to using the component library, see `here <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_.
+For a tutorial introduction to using the component library, see `here <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_.
 
 The Landlab Component Library
 -----------------------------
@@ -128,7 +128,7 @@ component.var_mapping		  a dict with var_name keys, giving ‘node’, ‘link�
 component.var_defs	          a dict with var_name keys, giving short descriptions
 ============================  ======================================================
 
-See `the tutorials <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.
+See `the tutorials <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.
 
 
 .. _standard_names:

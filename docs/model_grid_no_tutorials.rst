@@ -603,7 +603,7 @@ metrics to use with a call to pylab.plot to get, e.g., slope-area, elevation-dra
 area, etc plots.
 
 See the `component tutorial 
-<https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ 
+<http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ 
 for an example of the profiler in use.  
 (Tutorials available as downloadable and executable file  from  
 https://github.com/landlab/drivers/archive/master.zip.)

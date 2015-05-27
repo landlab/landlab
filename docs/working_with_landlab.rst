@@ -196,7 +196,7 @@ This means producing a storm series in Landlab is also very easy:
 …    if rainfall_rate != 0.:
 …        #...do the thing, making sure to pass it the current interval_duration and rainfall_rate
 
-Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired! See the end of `this tutorial <https://github.com/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for an example of this generator in action.
+Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired! See the end of `this tutorial <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for an example of this generator in action.
 
 
 What exactly “...do the thing” consists of is up to you. You can either design your own operations to do in the loop for yourself, or you can implement processes from Landlab’s component library. See :ref:`here <landlab_components_page>` for more information on using the components.
