@@ -42,6 +42,8 @@ Lines don’t need to end with the semicolon to suppress output; Python won’t 
 
 Finally, but importantly, Python doesn't use the hat (.^) as its raise-to-the-power symbol. Instead, it uses a double star (**). Simple, but typically very frustrating for a day or two during transition! There's also the numpy method, np.square, which if you're using arrays typically outperforms the ** operator.
 
+We have a very short tutorial on Python and numpy from the point of view of Landab (and the key differences with Matlab) `here <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/Python_intro.ipynb>`_.
+
 Landlab is also written in an object-oriented coding style. Many of the elements of Landlab that you will interact with - grids, components, utilities - are Python objects, which means they contain both data that describe the object and functions that you can call that operate on the object. Think of the object as a container in which is stored everything relevant to that part of the code, so it can be accessed easily. You can read a bit more about Python objects `here <http://learnpythonthehardway.org/book/ex40.html>`_ for general information. We give more detail on what this means in terms of running our code :ref:`later in this guide <drive_a_model>`.
 
 
