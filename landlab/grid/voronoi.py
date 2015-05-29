@@ -654,3 +654,57 @@ class VoronoiDelaunayGrid(ModelGrid):
                 _node_patches[i,:patches_with_node.size] = patches_with_node[:]
         #mask it
         self._node_patches = numpy.ma.array(_node_patches, mask=numpy.equal(_node_patches, -1))
+
+    def save(self, path, clobber=False):
+        """Save a grid and fields.
+
+        This method uses cPickle to save a Voronoi grid as a cPickle file.
+        At the time of coding, this is the only convenient output format
+        for Voronoi grids, but support for netCDF is likely coming.
+        
+        All fields will be saved, along with the grid.
+
+        The recommended suffix for the save file is '.grid'. This will
+        be added to your save if you don't include it.
+        
+        This method is equivalent to
+        :py:func:`~landlab.io.native_landlab.save_grid`, and
+        :py:func:`~landlab.io.native_landlab.load_grid` can be used to
+        load these files.
+
+        Caution: Pickling can be slow, and can produce very large files.
+        Caution 2: Future updates to Landlab could potentially render old
+        saves unloadable.
+
+        Parameters
+        ----------
+        path : str
+            Path to output file.
+        clobber : bool (defaults to false)
+            Set to true to allow overwriting
+
+        Examples
+        --------
+        >>> from landlab import VoronoiDelaunayGrid
+        >>> import numpy as np
+        >>> import os
+        >>> x = np.random.rand(20)
+        >>> y = np.random.rand(20)
+        >>> vmg = VoronoiDelaunayGrid(x,y)
+        >>> vmg.save('./mytestsave.grid')
+        >>> os.remove('mytestsave.grid') #to remove traces of this test
+        """
+        import os
+        import cPickle
+
+        if os.path.exists(path) and not clobber:
+            raise ValueError('file exists')
+
+        (base, ext) = os.path.splitext(path)
+        if ext != '.grid':
+            ext = ext+'.grid'
+        path = base+ext
+
+        cPickle.dump(self, open(path, 'wb'))
+
+
