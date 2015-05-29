@@ -4414,7 +4414,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
+        >>> import os
         >>> rmg = RasterModelGrid(4, 5)
+        >>> rmg.save('./mysave.nc')
+        >>> os.remove('mysave.nc') #to remove traces of this test
         """
         format = format or _guess_format_from_name(path)
         path = _add_format_extension(path, format)
