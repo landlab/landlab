@@ -1,4 +1,6 @@
 import numpy as np
+import six
+from six.moves import range
 
 from .base import CLOSED_BOUNDARY
 from .base import BAD_INDEX_VALUE
@@ -416,7 +418,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -496,7 +498,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
         #node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -529,7 +531,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return links[xrange(len(cell_ids)), inds]
+    return links[range(len(cell_ids)), inds]
 
 
 def node_id_of_cell_neighbor(grid, inds, *args):
@@ -584,9 +586,9 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    #return neighbors[xrange(len(cell_ids)), 3 - inds]
+    #return neighbors[range(len(cell_ids)), 3 - inds]
     return (
-        np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
 
 
@@ -638,9 +640,9 @@ def node_id_of_cell_corner(grid, inds, *args):
         inds = np.array(inds)
 
     return (
-        np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
-    #return diagonals[xrange(len(cell_ids)), 3 - inds]
+    #return diagonals[range(len(cell_ids)), 3 - inds]
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
