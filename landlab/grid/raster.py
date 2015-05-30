@@ -357,8 +357,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid._initialize('+str(num_rows)+', ' \
-                   +str(num_cols)+', '+str(dx)+')'
+            six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
+                       + str(num_cols) + ', ' + str(dx) + ')')
 
         # Basic info about raster size and shape
         self._nrows = num_rows
@@ -2102,7 +2102,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
+                six.print_('NaNs present in the grid!')
         for a in diagonal_nodes:
             if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/diagonal_dx
@@ -2112,13 +2112,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not np.isnan(single_slope):
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
-        #print 'Slopes list: ', slopes
+                six.print_('NaNs present in the grid!')
         if slopes:
             max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
         else:
-            print u
-            print 'Returning NaN angle and direction...'
+            six.print_('Returning NaN angle and direction...')
             max_slope = np.nan
             index_max = 8
 
@@ -2182,16 +2180,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
+                six.print_('NaNs present in the grid!')
 
         #print 'Slopes list: ', slopes
         if slopes:
             max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
         else:
-            print u
-            print 'Returning NaN angle and direction...'
-            max_slope = np.nan
-            index_max = 4
+            six.print_('Returning NaN angle and direction...')
 
         #all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
         #print 'all_neighbor_cells ', all_neighbor_cells
@@ -2479,7 +2474,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This scheme is necessary for internal consistency with looped boundaries.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
+            six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -2528,7 +2523,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.fixed_value_node_properties['internal_flag'] = True
 
         if not self.has_field('node', value_of):
-            print """
+            six.print_("""
                 *************************************************
                 WARNING: set_fixed_value_boundaries_at_grid_edges
                 has not been provided with a grid field name to
@@ -2539,7 +2534,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 after loading the starting conditions into the
                 grid fields.
                 *************************************************
-                """
+                """)
             #set a flag to indicate no internal values
             self.fixed_value_node_properties['internal_flag'] = False
         else:
@@ -2891,7 +2886,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             no_val_provided = False
         if no_val_provided:
             #Set the gradients by reference to existing data on grid
-            print 'Fixed gradients will be set according to existing data in the grid...'
+            six.print_('Fixed gradients will be set according to existing data '
+                       'in the grid...')
             fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links] #this grid func gives slopes UP as positive
             fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
 
@@ -2907,10 +2903,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
             else:
                 if fixed_gradient > 0.:
-                    print '***********************************************'
-                    print '*** You supplied a positive gradient value. ***'
-                    print '* Did you remember gradients are positive up? *'
-                    print '***********************************************'
+                    six.print_('**********************************************')
+                    six.print_('*** You supplied a positive gradient value. **')
+                    six.print_('* Did you remember gradients are positive up? ')
+                    six.print_('**********************************************')
 
                 #the supplied gradient was a single number
                 fixed_gradient_array = np.array([], dtype=float)
@@ -3129,7 +3125,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 nbr = nbr - self.number_of_node_columns
 
         if self._DEBUG_VERBOSE:
-            print 'tracks_cell:',bc.tracks_cell
+            six.print_('tracks_cell: ' + bc.tracks_cell)
 
 
     def update_boundary_nodes(self):
@@ -3253,7 +3249,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_steepest_descent_on_nodes'
+            six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
 
         assert (len(link_gradients)==self.number_of_active_links), \
                "incorrect length of active_link_gradients array"
@@ -3381,8 +3377,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergence here with cell',id
-            print 'q:',q[self.faces[id,0:4]]
+            six.print_('RasterModelGrid.calculate_flux_divergence here with '
+                       'cell ' +id)
+            six.print_('q: ' + q[self.faces[id,0:4]])
+
         fd = ( -( q[self.faces[id,2]]   # left face (positive=in)
             + q[self.faces[id,3]] )           # bottom face (positive=in)
             + q[self.faces[id,0]]             # right face (positive=out)

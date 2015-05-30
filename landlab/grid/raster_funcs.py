@@ -777,7 +777,7 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
         if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
+            six.print_('NaNs present in the grid!')
             
     for a in diagonal_cells:
         single_slope = (u[cell_id] - u[a])/(diagonal_dx)
@@ -785,8 +785,7 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
-    #print 'Slopes list: ', slopes
+            six.print_('NaNs present in the grid!')
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
@@ -799,8 +798,7 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 8
     
@@ -880,8 +878,7 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 4
         

@@ -74,7 +74,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
 
     def _initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         if self._DEBUG_TRACK_METHODS:
-            print 'RadialModelGrid._initialize('+str(num_shells)+', '+str(dr)+')'
+            six.print_('RadialModelGrid._initialize(' + str(num_shells) + ', '
+                       + str(dr) + ')')
         
         [pts, npts] = self.make_radial_points(num_shells, dr)
         super(RadialModelGrid, self)._initialize(pts[:,0], pts[:,1])
