@@ -1253,8 +1253,8 @@ class ModelGrid(ModelDataFields):
                                 numpy.radians(slp), numpy.radians(asp))
             elif unit=='radians':
                 if alt>numpy.pi/2. or az>2.*numpy.pi:
-                    six.print('Assuming your solar properties are in degrees, '
-                              'but your slopes and aspects are in radians...')
+                    six.print_('Assuming your solar properties are in degrees, '
+                               'but your slopes and aspects are in radians...')
                     (alt, az) = (numpy.radians(alt), numpy.radians(az))
                     #...because it would be super easy to specify radians, but leave the default params alone...
             else:
@@ -1357,7 +1357,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            six.print('ModelGrid.calculate_flux_divergence_at_core_nodes')
+            six.print_('ModelGrid.calculate_flux_divergence_at_core_nodes')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1391,7 +1391,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            six.print('ModelGrid.calculate_flux_divergence_at_active_cells')
+            six.print_('ModelGrid.calculate_flux_divergence_at_active_cells')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1657,7 +1657,7 @@ class ModelGrid(ModelDataFields):
         the other is an active boundary.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print('ModelGrid._reset_list_of_active_links')
+            six.print_('ModelGrid._reset_list_of_active_links')
             
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
@@ -2364,7 +2364,7 @@ class ModelGrid(ModelDataFields):
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print('ModelGrid.set_inactive_boundaries')
+            six.print_('ModelGrid.set_inactive_boundaries')
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
                 self._assign_boundary_nodes_to_grid_sides()
@@ -2593,8 +2593,8 @@ class ModelGrid(ModelDataFields):
                 else:
                     return out_distance, out_azimuth
             else:
-                six.print("Option set for get_az not recognised. Should be "
-                          "'displacements' or 'angles'.")
+                six.print_("Option set for get_az not recognised. Should be "
+                           "'displacements' or 'angles'.")
         else:
             return out_distance
             

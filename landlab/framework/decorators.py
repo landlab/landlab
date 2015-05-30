@@ -57,19 +57,19 @@ def is_implementation(cls, interface):
                 cls_args = inspect.getargspec(getattr(cls, name))
                 interface_args = inspect.getargspec(value)
             except AttributeError:
-                six.print('Missing attribute %s' % name)
+                six.print_('Missing attribute %s' % name)
                 return False
             try:
                 assert(len(cls_args.args) == len(interface_args.args))
             except AssertionError:
-                six.print('Mismatch in number of args for %s' % name)
+                six.print_('Mismatch in number of args for %s' % name)
                 return False
         else:
             try:
                 assert(type(getattr(cls, name)) ==
                        type(getattr(interface, name)))
             except (AttributeError, AssertionError):
-                six.print('Missing member or type mismatch for %s' % name)
+                six.print_('Missing member or type mismatch for %s' % name)
                 return False
     return True
 

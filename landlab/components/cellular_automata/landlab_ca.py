@@ -128,6 +128,9 @@ import numpy
 import pylab as plt
 import time
 
+import six
+
+
 _NEVER = 1e50
 
 _DEBUG = False
@@ -463,13 +466,12 @@ class LandlabCellularAutomaton(object):
                     self.cell_pair.append((tail_state,head_state,orientation))
     
         if False and _DEBUG:
-            print 
-            print 'create_link_state_dict_and_pair_list(): dict is:'
-            print self.link_state_dict
-            print '  and the pair list is:'
-            print self.cell_pair
-            
-            
+            six.print_()
+            six.print_('create_link_state_dict_and_pair_list(): dict is:')
+            six.print_(self.link_state_dict)
+            six.print_('  and the pair list is:')
+            six.print_(self.cell_pair)
+
     def setup_array_of_orientation_codes(self):
         """
         Creates and configures an array that contain the orientation code for 
@@ -517,9 +519,10 @@ class LandlabCellularAutomaton(object):
             self.link_state[i] = self.link_state_dict[node_pair]
                     
         if False and _DEBUG:
-            print 
-            print 'assign_link_states_from_node_types(): the link state array is:'
-            print self.link_state
+            six.print_()
+            six.print_('assign_link_states_from_node_types(): the link state '
+                      'array is:')
+            six.print_(self.link_state)
 
 
     def setup_transition_data(self, xn_list):
@@ -564,11 +567,11 @@ class LandlabCellularAutomaton(object):
             self.n_xn[from_state] += 1
     
         if False and _DEBUG:
-            print 
-            print 'setup_transition_data():'
-            print '  n_xn',self.n_xn
-            print '  to:',self.xn_to
-            print '  rate:',self.xn_rate
+            six.print_()
+            six.print_('setup_transition_data():')
+            six.print_('  n_xn',self.n_xn)
+            six.print_('  to:',self.xn_to)
+            six.print_('  rate:',self.xn_rate)
             
             
     def current_link_state(self, link_id):

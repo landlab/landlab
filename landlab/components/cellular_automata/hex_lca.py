@@ -42,4 +42,4 @@ if __name__=='__main__':
     xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'hexxing' ) )
     nsg = mg.add_zeros('node', 'node_state_grid')
     hlca = HexLCA(mg, nsd, xnlist, nsg)
-    six.print(hlca.__dict__)
+    six.print_(hlca.__dict__)
