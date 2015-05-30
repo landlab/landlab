@@ -179,6 +179,7 @@ import numpy
 import warnings
 
 import six
+from six.moves import range
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
@@ -1602,7 +1603,7 @@ class ModelGrid(ModelDataFields):
         array([2])
         """
         active_link = BAD_INDEX_VALUE
-        for alink in xrange(0, self.number_of_active_links):
+        for alink in range(0, self.number_of_active_links):
             link_connects_nodes = (
                 (self.activelink_fromnode[alink] == node1 and
                 self.activelink_tonode[alink] == node2) or
@@ -1692,11 +1693,11 @@ class ModelGrid(ModelDataFields):
 
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
-            for i in xrange(0, self.number_of_active_links):
+            for i in range(0, self.number_of_active_links):
                 fv[i] = max(u[self.activelink_fromnode[i]], 
                             u[self.activelink_tonode[i]] )
         else:
-            for i in xrange(0, self.number_of_active_links):
+            for i in range(0, self.number_of_active_links):
                 if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
                     fv[i] = u[self.activelink_fromnode[i]]
                 else:
@@ -2753,7 +2754,7 @@ class ModelGrid(ModelDataFields):
         node_coords[:,0] = self.node_x
         node_coords[:,1] = self.node_y
         
-        for i in xrange(self.number_of_nodes):
+        for i in range(self.number_of_nodes):
             self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point((node_coords[i,0],node_coords[i,1]), get_az='angles')
 
         assert numpy.all(self.all_node_distances_map >= 0.)
