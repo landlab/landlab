@@ -1,5 +1,5 @@
 import numpy as np
-
+from six.moves import range
 
 from ...utils.jaggedarray import JaggedArray
 from .status import CORE_NODE, CLOSED_BOUNDARY
@@ -398,7 +398,7 @@ class LinkGrid(object):
         )
         self._link_ends = np.array(link_ends)
         if link_ids is not None:
-            self._link_id_map = dict(zip(link_ids, xrange(len(link_ids))))
+            self._link_id_map = dict(zip(link_ids, range(len(link_ids))))
             self._link_ids = link_ids
 
         self._number_of_links = len(link_ends[0])
@@ -435,7 +435,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_in_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_in_links_at_node(node) for node in range(4)]
         [0, 1, 1, 2]
         """
         return self._in_link_at_node.length_of_row(node)
@@ -457,7 +457,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_out_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_out_links_at_node(node) for node in range(4)]
         [2, 1, 1, 0]
         """
         return self._out_link_at_node.length_of_row(node)
@@ -479,7 +479,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_links_at_node(node) for node in range(4)]
         [2, 2, 2, 2]
         """
         return (self.number_of_in_links_at_node(node) +
@@ -577,7 +577,7 @@ class LinkGrid(object):
         array([0, 3])
         array([1, 3])
         """
-        for node in xrange(self.number_of_nodes):
+        for node in range(self.number_of_nodes):
             yield np.concatenate((
                 self.in_link_at_node(node),
                 self.out_link_at_node(node),
