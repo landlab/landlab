@@ -7,6 +7,7 @@ grids for 2D numerical models in Landlab.
 
 import numpy as np
 import six
+from six.moves import range
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
@@ -1570,7 +1571,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ydir_displacement = np.tile(ycoord,(4,1)) - self.node_y[vertices_array]
         distances_to_vertices = np.sqrt(xdir_displacement*xdir_displacement + ydir_displacement*ydir_displacement)
         try:
-            return vertices_array[(np.argmin(distances_to_vertices, axis=0), xrange(distances_to_vertices.shape[1]))]
+            return vertices_array[(np.argmin(distances_to_vertices, axis=0), range(distances_to_vertices.shape[1]))]
         except:
             return vertices_array[np.argmin(distances_to_vertices)]
         #...per fancy indexing
@@ -3070,7 +3071,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                       self.number_of_node_rows - 3)
 
         if bottom:
-            for id in xrange(1, self.number_of_node_columns - 1):   # Bottom
+            for id in range(1, self.number_of_node_columns - 1):   # Bottom
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = id + self.number_of_node_columns
             bc.boundary_code[lower_left] = bc.TRACKS_CELL_BOUNDARY
@@ -3079,14 +3080,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bc.tracks_cell[lower_right] = lower_right-1
         if right:
             nbr = 2 * self.number_of_node_columns - 2
-            for id in xrange( lower_right+1, upper_right ):   # Right
+            for id in range( lower_right+1, upper_right ):   # Right
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr += self.number_of_node_columns
         if top:
             ncells = self.number_of_node_rows * self.number_of_node_columns
             nbr = ncells - (self.number_of_node_columns + 2)
-            for id in xrange( upper_right+1, upper_left ):   # Top
+            for id in range( upper_right+1, upper_left ):   # Top
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - 1
@@ -3098,7 +3099,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             n_boundary_cells = (2 * (self.num_rows - 2) +
                                 2 * (self.num_cols - 2) + 4)
             nbr = (self.number_of_node_rows - 2) * self.number_of_node_columns + 1
-            for id in xrange( upper_left+1, n_boundary_cells ):   # Left
+            for id in range( upper_left+1, n_boundary_cells ):   # Left
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - self.number_of_node_columns
@@ -3267,12 +3268,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         #The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
         max_slope_indices = np.argmin(gradients_all_nodes, axis=0)
-        max_slope = -gradients_all_nodes[max_slope_indices, xrange(gradients_all_nodes.shape[1])]
+        max_slope = -gradients_all_nodes[max_slope_indices, range(gradients_all_nodes.shape[1])]
         #...per fancy indexing
         #Assemble a node index array which corresponds to this gradients array from which to draw the dstr IDs:
         neighbors_ENWS = (self.get_neighbor_list()).T
         dstr_id_source_array = np.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
-        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, xrange(dstr_id_source_array.shape[1])]
+        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, range(dstr_id_source_array.shape[1])]
         #But we only want to return an id if the "dstr" node is actually downstream! So ->
         downslope_nodes = np.where(max_slope > 0)
         dstr_node_ids[downslope_nodes] = most_negative_gradient_node_ids[downslope_nodes]

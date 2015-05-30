@@ -2,6 +2,7 @@
 
 import numpy
 import six
+from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 from scipy.spatial import Voronoi
@@ -643,12 +644,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         #need to build a squared off, masked array of the node_patches
         #the max number of patches for a node in the grid is the max sides of
         #the side-iest voronoi region.
-        for i in xrange(len(vor.regions)):
+        for i in range(len(vor.regions)):
             if len(vor.regions[i])>max_dimension:
                 max_dimension=len(vor.regions[i])
         _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
         _node_patches.fill(nodata)
-        for i in xrange(self.number_of_nodes):
+        for i in range(self.number_of_nodes):
             if not self.is_boundary(i, boundary_flag=4): #don't include closed nodes
                 patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
                 _node_patches[i,:patches_with_node.size] = patches_with_node[:]
