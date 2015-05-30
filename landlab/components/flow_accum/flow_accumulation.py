@@ -25,7 +25,7 @@ class AccumFlow(object):
         except:
             data.flowacc = self.flow_accum_by_area[:-1]
         else:
-            print "Another module has created the flow accumulation grid. Undesirable conflicts may occur!"
+            six.print_("Another module has created the flow accumulation grid. Undesirable conflicts may occur!")
             assert(len(data.flowacc) == len(self.flow_accum_by_area[:-1]))
 
     def calc_flowacc(self, grid, data):
@@ -35,12 +35,12 @@ class AccumFlow(object):
         try:
             height_order_active_cells = np.argsort(data.elev[active_cell_ids])[::-1] #descending order
         except:
-            print 'Cells could not be sorted by elevation. Does the data object contain the elevation vector?'
+            six.print_('Cells could not be sorted by elevation. Does the data object contain the elevation vector?')
 
         try:
             sorted_flowdirs = (data.flowdirs[active_cell_ids])[height_order_active_cells]
         except:
-            print 'Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?'
+            six.print_('Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?')
         #print grid.cell_areas
         self.flow_accum_by_area[active_cell_ids] = grid.cell_areas #This is only the active nodes == cells by definition
 

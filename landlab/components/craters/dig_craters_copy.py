@@ -21,6 +21,7 @@ import numpy
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
+import six
 
 from landlab import ModelParameterDictionary
 
@@ -40,7 +41,7 @@ class impactor(object):
         try:
             self.elev = grid.at_node['topographic__elevation']
         except:
-            print 'elevations not found in grid!'
+            six.print_('elevations not found in grid!')
 
         #User sets:
         self._minimum_crater = inputs.read_float('min_radius') #km. This is the smallest modelled crater radius. 10m diameter is the strict cutoff for known cr distns
@@ -50,7 +51,7 @@ class impactor(object):
         try:
             self._radius = inputs.read_float('forced_radius')
         except:
-            print 'Impact radii will be randomly generated.'
+            six.print_('Impact radii will be randomly generated.')
             self.radius_auto_flag = 1
             self.set_cr_radius_from_shoemaker()
         else:
@@ -59,7 +60,7 @@ class impactor(object):
             self._xcoord = inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
             self._ycoord = inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dx)
         except:
-            print 'Impact sites will be randomly generated.'
+            six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
             self.set_coords()
         else:
@@ -70,7 +71,7 @@ class impactor(object):
             self._angle_to_vertical = inputs.read_float('forced_angle')*numpy.pi/180.
             assert self._angle_to_vertical <= 0.5*numpy.pi
         except:
-            print 'Impactor angles will be randomly generated.'
+            six.print_('Impactor angles will be randomly generated.')
             self.angle_auto_flag = 1
             self.set_impactor_angles()
         else:
@@ -99,7 +100,7 @@ class impactor(object):
         
         self.impact_property_dict = {}
         
-        print 'Craters component setup complete!'
+        six.print_('Craters component setup complete!')
 
     def draw_new_parameters(self):
         #Need to ensure the elevs and grid have been updated before this call...
@@ -282,8 +283,8 @@ class impactor(object):
         except:
             self._surface_slope = 1.e-10
             self._surface_dip_direction = self._azimuth_of_travel
-            print 'Unable to assign crater slope by this method. Is crater of size comparable with grid?'
-            print 'Setting slope to zero'
+            six.print_('Unable to assign crater slope by this method. Is crater of size comparable with grid?')
+            six.print_('Setting slope to zero')
         else:
             #print 'Slope array: ', slope_array
             if hi_mag_slope > 0.: #i.e., dips WEST (or dead S)
@@ -389,7 +390,7 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -431,7 +432,7 @@ class impactor(object):
 
         footprint_nodes = self.create_square_footprint((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
         if excess_excavation_radius:
-            print 'A low-angle crater!'
+            six.print_('A low-angle crater!')
             cavity_footprint = self.create_square_footprint((self._xcoord,self._ycoord),_radius)
             footprint_nodes = numpy.unique(numpy.concatenate((footprint_nodes,cavity_footprint))) #combine the two footprints into array of unique IDs
                 
@@ -572,7 +573,7 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -625,7 +626,7 @@ class impactor(object):
 
         footprint_nodes = self.create_square_footprint((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
         if excess_excavation_radius:
-            print 'A low-angle crater!'
+            six.print_('A low-angle crater!')
             cavity_footprint = self.create_square_footprint((self._xcoord,self._ycoord),_radius)
             footprint_nodes = numpy.unique(numpy.concatenate((footprint_nodes,cavity_footprint))) #combine the two footprints into array of unique IDs
         
@@ -749,7 +750,7 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -1004,11 +1005,11 @@ class impactor(object):
         
         self.set_crater_mean_slope_v3()
         if numpy.isnan(self._surface_slope):
-            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+            six.print_('Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.')
         else:
             self.set_elev_change_only_beneath_footprint()
         #print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-        print 'Mass balance in impact: ', self.mass_balance_in_impact
+        six.print_('Mass balance in impact: ', self.mass_balance_in_impact)
         #print '*****'
         #Record the data:
         #Is this making copies, or just by reference? Check output. Should be copies, as these are floats, not more complex objects.
