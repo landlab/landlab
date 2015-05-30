@@ -5,7 +5,6 @@ Unit tests for landlab.io.netcdf module.
 
 import os
 import numpy as np
-from StringIO import StringIO
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
     from nose import assert_list_equal
