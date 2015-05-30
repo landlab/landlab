@@ -12,7 +12,9 @@ Created GT Sep 2014
 """
 
 from numpy import zeros
-from landlab_ca import LandlabCellularAutomaton, Transition
+import six
+
+from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
 _DEBUG = False
@@ -47,7 +49,7 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         print 'Use OrientedRasterCTS instead.'
                 
         if _DEBUG:
-            print 'OrientedRasterLCA.__init__ here'
+            six.print_('OrientedRasterLCA.__init__ here')
 
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
@@ -63,10 +65,10 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
             transition_list, initial_node_states, prop_data, prop_reset_value)
             
         if _DEBUG:
-            print 'ORLCA:'
-            print self.n_xn
-            print self.xn_to
-            print self.xn_rate
+            six.print_('ORLCA:')
+            six.print_(self.n_xn)
+            six.print_(self.xn_to)
+            six.print_(self.xn_rate)
         
 
     def setup_array_of_orientation_codes(self):
@@ -102,7 +104,7 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         self.active_link_orientation = dy.astype(int)
         
         if _DEBUG:
-            print self.active_link_orientation
+            six.print_(self.active_link_orientation)
             
             
 if __name__=='__main__':

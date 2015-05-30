@@ -10,7 +10,7 @@ pair-based CA.
 Created GT Sep 2014, starting from link_ca.py.
 """
 
-from landlab_ca import LandlabCellularAutomaton
+from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
 
