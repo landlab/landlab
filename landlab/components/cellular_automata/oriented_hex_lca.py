@@ -12,7 +12,7 @@ Created GT Sep 2014
 """
 
 from numpy import zeros
-from landlab_ca import LandlabCellularAutomaton, Transition
+from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
 
