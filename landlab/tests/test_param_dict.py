@@ -17,7 +17,7 @@ from landlab.core.model_parameter_dictionary import (MissingKeyError,
                                                      ParameterValueError)
 
 def setup():
-    from StringIO import StringIO
+    from six import StringIO
 
     _TEST_PARAM_DICT_FILE = u"""
     # A Comment
@@ -79,7 +79,7 @@ def test_read_file_name():
 
 @with_setup(setup)
 def test_read_file_like_twice():
-    from StringIO import StringIO
+    from six import StringIO
     param_file = StringIO(_TEST_PARAM_DICT_FILE)
     param_dict_1 = ModelParameterDictionary()
     param_dict_2 = ModelParameterDictionary()
@@ -160,7 +160,7 @@ def test_dict_index():
 
 
 def setup_auto_type():
-    from StringIO import StringIO
+    from six import StringIO
 
     _TEST_FILE = u"""
 # A Comment
