@@ -130,8 +130,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print('HexModelGrid._initialize('+str(base_num_rows) + ', ' +
-                      str(base_num_cols) + ', ' + str(dx) + ')')
+            six.print_('HexModelGrid._initialize('+str(base_num_rows) + ', ' +
+                       str(base_num_cols) + ', ' + str(dx) + ')')
                    
         # Make sure the parameter *orientation* is correct
         assert (orientation[0].lower()=='h' or orientation[0].lower()=='v'), \
