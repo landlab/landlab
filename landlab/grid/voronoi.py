@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
+import six
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 from scipy.spatial import Voronoi
@@ -162,7 +163,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       specify a subset of cells as active)
         #
         self._num_nodes = len(x)
-        #print x, y
         self._node_x = x
         self._node_y = y
         [self.node_status, self._core_nodes, self._boundary_nodes] = \
@@ -520,7 +520,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # vertex.
         num_active_links = num_links \
                     - numpy.count_nonzero(numpy.array(vor.ridge_vertices)==-1)
-        #print 'num_links=', num_links,'num_active_links=',num_active_links
         
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
@@ -542,16 +541,17 @@ class VoronoiDelaunayGrid(ModelGrid):
                 dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
                 face_width[j] = numpy.sqrt(dx*dx+dy*dy)
                 if abs(face_width[j])>=40000.0:
-                    print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
-                    print vor.ridge_vertices[i]
-                    print vor.vertices[vor.ridge_vertices[i]]
+                    six.print('link ' + i + ' from ' + link_fromnode[i] +
+                              ' to ' + link_tonode[i] + ' has face width ' +
+                              face_width[j])
+                    six.print(vor.ridge_vertices[i])
+                    six.print(vor.vertices[vor.ridge_vertices[i]])
+
                     from scipy.spatial import voronoi_plot_2d
                     voronoi_plot_2d(vor)
                 assert face_width[j] < 40000., 'face width must be less than earth circumference!'
                 active_links[j] = i
                 j += 1
-        #print 'active links:',active_links
-        #print 'vor ridge points:',vor.ridge_points
         
         #save the data
         #self.link_fromnode = link_fromnode
