@@ -10,6 +10,8 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 from landlab import ModelParameterDictionary
 import numpy as np
+import six
+
 
 class SurfaceFlowTransport(object):
     
@@ -31,11 +33,11 @@ class SurfaceFlowTransport(object):
         try:
             self.z = grid.at_node['topographic__elevation']
         except:
-            print 'elevations not found in grid!'
+            six.print_('elevations not found in grid!')
         try:
             self.h = grid.at_node['planet_surface__water_depth']
         except:
-            print 'initial water depths not found in grid!'
+            six.print_('initial water depths not found in grid!')
         
         #build the internally necessary params:
         self.rhog = 9810.          # water unit weight, kg/m2s2 (N/m3)
