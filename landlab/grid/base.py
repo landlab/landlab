@@ -178,6 +178,8 @@ True
 import numpy
 import warnings
 
+import six
+
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
@@ -1306,7 +1308,8 @@ class ModelGrid(ModelDataFields):
                                 numpy.radians(slp), numpy.radians(asp))
             elif unit=='radians':
                 if alt>numpy.pi/2. or az>2.*numpy.pi:
-                    print 'Assuming your solar properties are in degrees, but your slopes and aspects are in radians...'
+                    six.print('Assuming your solar properties are in degrees, '
+                              'but your slopes and aspects are in radians...')
                     (alt, az) = (numpy.radians(alt), numpy.radians(az))
                     #...because it would be super easy to specify radians, but leave the default params alone...
             else:
@@ -1409,7 +1412,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
+            six.print('ModelGrid.calculate_flux_divergence_at_core_nodes')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1443,7 +1446,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_active_cells'
+            six.print('ModelGrid.calculate_flux_divergence_at_active_cells')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1709,7 +1712,7 @@ class ModelGrid(ModelDataFields):
         the other is an active boundary.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid._reset_list_of_active_links'
+            six.print('ModelGrid._reset_list_of_active_links')
             
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
@@ -2483,7 +2486,7 @@ class ModelGrid(ModelDataFields):
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_inactive_boundaries'
+            six.print('ModelGrid.set_inactive_boundaries')
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
                 self._assign_boundary_nodes_to_grid_sides()
@@ -2628,9 +2631,6 @@ class ModelGrid(ModelDataFields):
                 #new code to replace below ***
                 div_by_zero_cases = azimuths_as_displacements[0,:len_subset]==0.
                 not_div_by_zero_cases = numpy.logical_not(div_by_zero_cases)
-                #print azimuths_as_displacements[0,:len_subset]
-                #print azimuths_as_displacements[1,:len_subset]
-                #print not_div_by_zero_cases
                 dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1,:len_subset][not_div_by_zero_cases],
                                  azimuths_as_displacements[0,:len_subset][not_div_by_zero_cases])
                 dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(dummy_nodes_1[:len_subset][not_div_by_zero_cases]) #"angle_to_xaxis"
@@ -2715,7 +2715,8 @@ class ModelGrid(ModelDataFields):
                 else:
                     return out_distance, out_azimuth
             else:
-                print "Option set for get_az not recognised. Should be 'displacements' or 'angles'."
+                six.print("Option set for get_az not recognised. Should be "
+                          "'displacements' or 'angles'.")
         else:
             return out_distance
             
