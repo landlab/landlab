@@ -1508,7 +1508,6 @@ def node_id_to_interior_node_id(shape, node_ids):
     ncols = shape[1]
     interior_ID = (node_ids//ncols - 1)*(ncols-2) + (node_ids%ncols) - 1
     if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
-        print "One of the supplied nodes was outside the interior grid!"
-        raise NameError()
+        raise IndexError("A supplied node was outside the interior grid")
     else:
         return interior_ID.astype(int)

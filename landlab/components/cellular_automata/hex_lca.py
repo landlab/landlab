@@ -10,6 +10,7 @@ raster. Hex grids are often used in CA models because of their symmetry.
 
 Created GT Sep 2014
 """
+import six
 
 from landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
@@ -41,4 +42,4 @@ if __name__=='__main__':
     xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'hexxing' ) )
     nsg = mg.add_zeros('node', 'node_state_grid')
     hlca = HexLCA(mg, nsd, xnlist, nsg)
-    print hlca.__dict__
+    six.print(hlca.__dict__)

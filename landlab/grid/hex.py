@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
+import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 
@@ -129,8 +130,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'HexModelGrid._initialize('+str(base_num_rows)+', ' \
-                   +str(base_num_cols)+', '+str(dx)+')'
+            six.print('HexModelGrid._initialize('+str(base_num_rows) + ', ' +
+                      str(base_num_cols) + ', ' + str(dx) + ')')
                    
         # Make sure the parameter *orientation* is correct
         assert (orientation[0].lower()=='h' or orientation[0].lower()=='v'), \
@@ -216,10 +217,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         if numpy.mod(num_rows, 2) == 0:  # even number of rows
             npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
-            #print 'even # rows, npts=', npts
         else:  # odd number of rows
             npts = num_rows * base_num_cols + ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
-            #print 'odd # rows, npts=', npts
         pts = numpy.zeros((npts, 2))
         middle_row = num_rows // 2
         extra_cols = 0
@@ -316,10 +315,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         if numpy.mod(num_cols, 2) == 0:  # even number of columns
             npts = base_num_rows * num_cols + (num_cols * num_cols) // 4
-            #print 'even # cols, npts=', npts
         else:  # odd number of columns
             npts = base_num_rows * num_cols + ((num_cols - 1) // 2) * ((num_cols - 1) // 2)
-            #print 'odd # columns, npts=', npts
         pts = numpy.zeros((npts, 2))
         middle_col = num_cols // 2
         extra_rows = 0
