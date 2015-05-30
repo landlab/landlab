@@ -2866,7 +2866,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if no_val_provided:
             #Set the gradients by reference to existing data on grid
             six.print_('Fixed gradients will be set according to existing data '
-                      'in the grid...')
+                       'in the grid...')
             fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links] #this grid func gives slopes UP as positive
             fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
 
