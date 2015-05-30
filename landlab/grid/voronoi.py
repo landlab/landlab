@@ -541,11 +541,11 @@ class VoronoiDelaunayGrid(ModelGrid):
                 dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
                 face_width[j] = numpy.sqrt(dx*dx+dy*dy)
                 if abs(face_width[j])>=40000.0:
-                    six.print('link ' + i + ' from ' + link_fromnode[i] +
-                              ' to ' + link_tonode[i] + ' has face width ' +
-                              face_width[j])
-                    six.print(vor.ridge_vertices[i])
-                    six.print(vor.vertices[vor.ridge_vertices[i]])
+                    six.print_('link ' + i + ' from ' + link_fromnode[i] +
+                               ' to ' + link_tonode[i] + ' has face width ' +
+                               face_width[j])
+                    six.print_(vor.ridge_vertices[i])
+                    six.print_(vor.vertices[vor.ridge_vertices[i]])
 
                     from scipy.spatial import voronoi_plot_2d
                     voronoi_plot_2d(vor)
