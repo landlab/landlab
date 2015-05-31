@@ -7,7 +7,16 @@ Created on Sat May 30 14:01:10 2015
 
 from landlab import ModelParameterDictionary, Component, FieldError, FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab.grid.base import BAD_INDEX_VALUE
 import numpy  # Used for: count_nonzero
+
+
+# Codes for depression status
+_UNFLOODED = 0
+_PIT = 1
+_CURRENT_LAKE = 2
+_FLOODED = 3
+
 
 class DepressionFinderAndRouter(Component):
     
@@ -76,9 +85,22 @@ class DepressionFinderAndRouter(Component):
             except AttributeError:
                 print 'Your grid does not seem to include a node field called',topo_field_name
                 
+        # Create output variables.
+        #
+        # Note that we initialize depression depth to -1 (negative values make
+        # no sense, so this is a clue to non-flooded nodes), and depression
+        # outlet ID to BAD_INDEX_VALUE (which is a major clue!)
+        self.depression_depth = self._grid.add_zeros('node', 'depression__depth') - 1.0             
+        self.depression_outlet = self._grid.add_zeros('node', 'depression__outlet_node_id', dtype=int) + BAD_INDEX_VALUE               
+                
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
         self._BIG_ELEV = numpy.amax(self._elev)+1
+        
+        # We'll also need a handy copy of the node neighbor lists
+        # TODO: presently, this grid method seems to only exist for Raster grids.
+        # We need it for *all* grids!
+        self._node_nbrs = self._grid.get_neighbor_list()
                 
                 
     def find_pits(self):
@@ -138,32 +160,126 @@ class DepressionFinderAndRouter(Component):
         (self.pit_node_ids, ) = numpy.where(self.is_pit)
         
         
+    def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
+        
+        print '  fln here'
+        # Start with the first node on the list, and an arbitrarily large elev
+        lowest_node = nodes_this_depression[0]
+        lowest_elev = self._BIG_ELEV
+        
+        for n in nodes_this_depression:
+            
+            print '  working on node',n,'neighbors are:'
+            for nbr in self._node_nbrs[n]:
+                print nbr
+                if nbr!=BAD_INDEX_VALUE:
+                    if self.flood_status[nbr]==_UNFLOODED:
+                        if self._elev[nbr] < lowest_elev:
+                            lowest_node = nbr
+                            lowest_elev = self._elev[nbr]
+                    elif self.flood_status[nbr]==_PIT or self.flood_status[nbr]==_FLOODED:
+                        nodes_this_depression.append(nbr)
+                        self.flood_status[nbr] = _CURRENT_LAKE
+                        
+        print '  lowest node on lake perim is',lowest_node,'with elev',lowest_elev
+        return lowest_node
+        
+        
+    def node_can_drain(self, the_node, nodes_this_depression):
+        
+        print '    checking drainage for node',the_node
+        for nbr in self._node_nbrs[the_node]:
+            print '    checking nbr',nbr
+            if nbr!=BAD_INDEX_VALUE:
+                print '    this nbr is valid'
+                print '    its flood status is',self.flood_status[nbr]
+                # TODO: Tucker et al. 2001 notes caveat about elevation of outlet...check this and correct if needed
+                if self._elev[nbr] < self._elev[the_node] and \
+                   self.flood_status[nbr]!=_CURRENT_LAKE and \
+                   self.flood_status[nbr]!=_FLOODED:  # caveat about outlet elevation...
+                    print '    Eureka!'
+                    return True
+        
+        print '    no, this node cannot drain'
+        return False
+            
+        
+    def is_valid_outlet(self, the_node, nodes_this_depression):
+        
+        if self._grid.node_boundary_status[the_node]==FIXED_VALUE_BOUNDARY:
+            print '   this node is an open boundary, so of course it can drain'
+            return True
+            
+        if self.node_can_drain(the_node, nodes_this_depression):
+            print '   this node can drain!'
+            return True
+        else:
+            print '   it cannot drain'
+            
+            
+    def record_depression_depth_and_outlet(self, nodes_this_depression, outlet_id):
+        
+        for n in nodes_this_depression:
+            self.flood_status[n] = _FLOODED
+            self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
+            self.depression_outlet[n] = outlet_id
+            
+
     def find_depression_from_pit(self, pit_node):
         
-        print 'for',pit_node
+        print ' processing pit at',pit_node
         
         # Place pit_node at top of depression list
-        self.depr_list.insert(0, pit_node)
+        nodes_this_depression = []
+        nodes_this_depression.insert(0, pit_node)
+        
+        # Flag the pit as being _CURRENT_LAKE (it's the first node in the
+        # current lake)
+        self.flood_status[pit_node] = _CURRENT_LAKE
         
         # This flag keeps track of when we're done with this depression
         found_outlet = False
         
+        # Safety check
+        count = 0
+        max_count = self._grid.number_of_nodes + 1
+        
         while not found_outlet:
             
-            lowest_node = self.depr_list[0]
-            lowest_elev = self._BIG_ELEV
+            lowest_node_on_perimeter = self.find_lowest_node_on_lake_perimeter(nodes_this_depression)
             
-            # temporary
-            found_outlet = True
+            found_outlet = self.is_valid_outlet(lowest_node_on_perimeter, nodes_this_depression)
+            
+            if not found_outlet:
+                
+                # Add lowest_node to the lake list
+                nodes_this_depression.append(lowest_node_on_perimeter)
+                
+                # Flag it as being part of the current lake/depression
+                self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
+                
+                print ' lake list:',nodes_this_depression
+                
+            else:
+                print ' node',lowest_node_on_perimeter,'has drainage and'
+                print ' therefore it is the outlet point'                
+            
+            # Safety check, in case a bug (ha!) puts us in an infinite loop
+            assert (count<max_count), 'too many iterations in lake filler!'
+        
+        # Now that we've mapped this depression, record it in the arrays
+        # depression_depth, depression_outlet, and flood_status
+        self.record_depression_depth_and_outlet(nodes_this_depression, lowest_node_on_perimeter)
+        
+        # TODO: ideally we need a way to keep track of the number, area extent,
+        # and average depth of depressions. Tricky thing is that one might be
+        # devoured by another, so would need to be removed from the list.
         
         
     def identify_depressions_and_outlets(self):
-        
-        # Create depression list
-        self.depr_list = []
-        
+                
         for pit_node in self.pit_node_ids:
-            
+            print 'mapping lake starting from pit',pit_node
             self.find_depression_from_pit(pit_node)
       
                 
@@ -172,6 +288,10 @@ class DepressionFinderAndRouter(Component):
         # Locate nodes with pits
         self.find_pits()
         
+        # Set up "lake code" array
+        self.flood_status = self._grid.add_zeros('node', 'flood_status_code') + _UNFLOODED
+        self.flood_status[self.pit_node_ids] = _PIT
+        
         self.identify_depressions_and_outlets()
         
         
@@ -179,12 +299,12 @@ class DepressionFinderAndRouter(Component):
 
 def main():
     """
-    temporary: sketch out the basic algorithm; later we'll divide this component-style.
+    temporary: test.
     """
     print 'howdy'
     from landlab import RasterModelGrid
     from numpy.random import rand
-    grid = RasterModelGrid(4, 5, 1.0)
+    grid = RasterModelGrid(6, 7, 1.0)
     z = grid.add_zeros('node', 'topographic__elevation')
     z[:] = rand(len(z))*100
     print z
@@ -198,6 +318,18 @@ def main():
             print int(z[n]),'(',dep_finder.is_pit[n],')',
             n+=1
         print
+        
+    n=0
+    for r in range(grid.number_of_node_rows):
+        for c in range(grid.number_of_node_columns):
+            if dep_finder.depression_outlet[n]==BAD_INDEX_VALUE:
+                print dep_finder.depression_depth[n],'( X )',
+            else:
+                print dep_finder.depression_depth[n],'(',dep_finder.depression_outlet[n],')',
+            n+=1
+        print
+        
+    
     
     
 if __name__=='__main__':
