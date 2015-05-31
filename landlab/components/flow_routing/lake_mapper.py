@@ -7,7 +7,7 @@ Created on Sat May 30 14:01:10 2015
 
 from landlab import ModelParameterDictionary, Component, FieldError, FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
-
+import numpy  # Used for: count_nonzero
 
 class DepressionFinderAndRouter(Component):
     
@@ -76,12 +76,50 @@ class DepressionFinderAndRouter(Component):
             except AttributeError:
                 print 'Your grid does not seem to include a node field called',topo_field_name
                 
+        # Later on, we'll need a number that's guaranteed to be larger than the
+        # highest elevation in the grid.
+        self._BIG_ELEV = numpy.amax(self._elev)+1
+                
                 
     def find_pits(self):
+        """
+        Locates local depressions ("pits") in a gridded elevation field.
         
+        Uses
+        ----
+        self._elev, self._grid
+        
+        Creates
+        -------
+        self.is_pit : node array of booleans
+            Flag indicating whether the node is a pit
+        self.number_of_pits : int
+            Number of pits found
+        self.pit_node_ids : node array of ints
+            IDs of the nodes that are pits
+        
+        Notes
+        -----
+        A node is defined as being a pit if and only if: 
+            1. All neighboring core nodes have equal or greater elevation, and
+            2. Any neighboring open boundary nodes have a greater elevation.
+        
+        The algorithm starts off assuming that all core nodes are pits. We then
+        loop through all active links. For each link, if one node is higher
+        than the other, the higher one cannot be a pit, so we flag it False.
+        We also look at cases in which an active link's nodes have equal 
+        elevations. If one is an open boundary, then the other must be a core
+        node, and we declare the latter not to be a pit (via rule 2 above).
+        """
+        
+        # Create the is_pit array, with all core nodes initialized to True and
+        # all boundary nodes initialized to False.
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
         self.is_pit[self._grid.boundary_nodes] = False
-        # For each core node in the grid
+        
+        # Loop over all active links: if one of a link's two nodes is higher
+        # than the other, the higher one is not a pit. Also, if they have
+        # equal elevations and one is an open boundary, the other is not a pit.
         for link in self._grid.active_links:
             h = self._grid.node_index_at_link_head[link]
             t = self._grid.node_index_at_link_tail[link]
@@ -94,12 +132,49 @@ class DepressionFinderAndRouter(Component):
                     self.is_pit[t] = False
                 elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
                     self.is_pit[h] = False
-        print self.is_pit
-  
+        
+        # Record the number of pits and the IDs of pit nodes.
+        self.number_of_pits = numpy.count_nonzero(self.is_pit)
+        (self.pit_node_ids, ) = numpy.where(self.is_pit)
+        
+        
+    def find_depression_from_pit(self, pit_node):
+        
+        print 'for',pit_node
+        
+        # Place pit_node at top of depression list
+        self.depr_list.insert(0, pit_node)
+        
+        # This flag keeps track of when we're done with this depression
+        found_outlet = False
+        
+        while not found_outlet:
+            
+            lowest_node = self.depr_list[0]
+            lowest_elev = self._BIG_ELEV
+            
+            # temporary
+            found_outlet = True
+        
+        
+    def identify_depressions_and_outlets(self):
+        
+        # Create depression list
+        self.depr_list = []
+        
+        for pit_node in self.pit_node_ids:
+            
+            self.find_depression_from_pit(pit_node)
+      
                 
     def map_depressions(self):
         
+        # Locate nodes with pits
         self.find_pits()
+        
+        self.identify_depressions_and_outlets()
+        
+        
     
 
 def main():
