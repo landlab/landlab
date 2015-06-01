@@ -11,6 +11,25 @@ features. Your changes will migrate to the core repository (for review and
 merging) by requesting that the main repository "pull" in your changes. This
 is known as a pull request and is facilitated through the GitHub website.
 
+.. note::
+    For dev work, we actively recommend Anaconda over the Enthought Python
+    Distribution, especially on Windows machines. This is because it ships 
+    with a working compiler already associated with Python, whereas the EPD
+    does not. On a Mac, this is less important as the Xcode app (available
+    through iTunes) gives you the necessary compilers instead - install it
+    now if you don't have it! If you choose to use the EPD on a Windows
+    machine, however, you'll need to install separately either Visual Basic
+    or MinGW and successfully associate them with your Python install.
+    This process hasn't been thoroughly explored by the core dev team, so
+    proceed at your own risk. But unless you're really invested in Canopy
+    and the EPD, uninstalling it and replacing with Anaconda is probably
+    the more stress-free way to go.
+
+    Either way, you'll need a working C++ compiler running alongside 
+    Python to be able to perform a full developer install. You'll see
+    errors referring to :ref:`Cython <cython>` if you don't have  working
+    compiler when calling *python setup.py develop*.
+
 
 How to create a fork
 ====================
