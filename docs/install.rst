@@ -82,7 +82,19 @@ If you *don't* see reference to your newly installed distribution, click :ref:`h
 Installing Landlab
 ==================
 
-*If you already have a Landlab install on your machine, see* :ref:`updating landlab, <LL_update>` *below.*
+.. note::
+
+    If you already have a Landlab install on your machine, see 
+    :ref:`updating landlab, <LL_update>` below.
+
+.. note::
+
+    If you already had a Python distribution on your machine, but it's a bit old, 
+    remember to update both the distribution itself and its internal packages
+    before attempting a Landlab install, to make sure the necessary dependencies
+    are up to date. Do this through the GUI in Canopy, or from the command prompt
+    for Anaconda, using: *conda update --all* (two dashes)
+
 
 Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the developers' installation instructions :ref:`here 
 <dev_guide>`.
@@ -177,6 +189,13 @@ As Landlab is still relatively early in its development cycle, the code will upd
 fairly often and new release versions will become available.
 To take advantage of new features and new library additions, we recommend you
 **update Landlab** fairly frequently.
+
+.. note::
+
+    Whenever you update Landlab, use this as a good time to also update your
+    Python package! From Canopy, use the GUI to update all the available
+    new packages listed. For Anaconda, use the conda package manager from a
+    command prompt: *conda update --all* (two dashes)
 
 If you installed Landlab through the instructions on this page, this is trivial.
 Simply use pip again to update, like so::
