@@ -91,6 +91,12 @@ pain-free results.
 Installing Landlab in developer mode
 ------------------------------------
 
+.. note::
+
+    This assumes **you have never put Landlab on your machine before**. If you've
+    previously used pip to install Landlab, we recommmend you take that version
+    off first. At a command prompt, use the command: *pip uninstall landlab*
+
 Now that you have a working copy of the Landlab code on you computer, you need to
 install it. To install Landlab in developer mode run the following command
 from the root Landlab folder (it will be landlab with a small *l* and will contain `setup.py`)::
