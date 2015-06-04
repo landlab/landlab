@@ -76,16 +76,17 @@ setup(name='landlab',
                         'sympy',
                         'pandas',
                         'Cython>=0.22'],
+      classifiers=[
+          'Intended Audience :: Science/Research',
+          'License :: OSI Approved :: MIT License',
+          'Operating System :: OS Independent',
+          'Programming Language :: Cython',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: Implementation :: CPython',
+          'Topic :: Scientific/Engineering :: Physics'
+      ],
       packages=find_packages(),
-      #entry_points={
-      #    'console_scripts': [
-      #        'craters = landlab.components.craters:main',
-      #        'landlab = landlab.cmd:main',
-      #        'landlab_ex_1 = landlab.examples.diffusion2Dtest:main',
-      #        'landlab_ex_2 = landlab.examples.diffusion2Dtest2:main',
-      #        'landlab_ex_3 = landlab.examples.diffusion2Dtest3:main',
-      #    ]
-      #},
       package_data={'': ['data/*asc', 'data/*nc', 'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
