@@ -17,17 +17,14 @@ def _split_link_ends(link_ends):
     >>> _split_link_ends((0, 3))
     (array([0]), array([3]))
     """
-    links = np.array(list(link_ends))
-    len_of_links = len(links)
+    links = np.array(list(link_ends), ndmin=2, dtype=np.int)
+    if len(links) != 2:
+        links = links.transpose()
 
-    if len_of_links > 2:
-        return (links[:, 0], links[:, 1])
-    elif len_of_links == 2:
-        return (links[0], links[1])
-    elif len_of_links == 0:
+    if links.size == 0:
         return (np.array([], dtype=np.int), np.array([], dtype=np.int))
     else:
-        raise ValueError('Link array must be at least of length 2')
+        return links[0], links[1]
 
 
 def link_is_active(status_at_link_ends):
@@ -120,7 +117,6 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     #if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
-
     return np.bincount(node_at_link_end, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
