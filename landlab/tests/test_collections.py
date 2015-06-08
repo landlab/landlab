@@ -21,7 +21,7 @@ def test_empty_palette():
 
     assert_equal(len(palette), 0)
     assert_equal(palette.list(), [])
-    assert_equal(palette.keys(), [])
+    assert_equal(list(palette.keys()), [])
     assert_equal(palette.uses(), [])
     assert_equal(palette.provides(), [])
 
@@ -46,10 +46,10 @@ def test_1_component_dict_interface():
 
     assert_dict_equal(dict(sample=Sample1), palette)
     assert_equal(len(palette), 1)
-    assert_equal(palette.keys(), ['sample'])
-    assert_equal(palette.values(), [Sample1])
+    assert_list_equal(list(palette.keys()), ['sample'])
+    assert_list_equal(list(palette.values()), [Sample1])
 
-    items = palette.items()
+    items = list(palette.items())
     assert_tuple_equal(('sample', Sample1), items[0])
 
 
@@ -110,7 +110,7 @@ def test_2_components_dict_interface():
     assert_dict_equal(dict(one=Sample1, two=Sample2), palette)
     assert_equal(len(palette), 2)
 
-    keys = palette.keys()
+    keys = list(palette.keys())
     keys.sort()
     assert_list_equal(['one', 'two'], keys)
 
@@ -118,7 +118,7 @@ def test_2_components_dict_interface():
     assert_equal(2, len(values))
     assert_true(Sample1 in values and Sample2 in values)
 
-    items = palette.items()
+    items = list(palette.items())
     items.sort()
     assert_equal(2, len(items))
     assert_tuple_equal(('one', Sample1), items[0])
