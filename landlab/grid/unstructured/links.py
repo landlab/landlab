@@ -17,20 +17,17 @@ def _split_link_ends(link_ends):
     >>> _split_link_ends((0, 3))
     (array([0]), array([3]))
     """
-    if len(link_ends) < 2:
-        raise ValueError('Link array must be at least of length 2')
-    elif len(link_ends) == 2:
-        start, end = link_ends
-    else:
-        start, end = zip(*link_ends)
+    links = np.array(list(link_ends))
+    len_of_links = len(links)
 
-    try:
-        if len(start) == len(end):
-            return np.array(start).ravel(), np.array(end).ravel()
-        else:
-            raise ValueError('Link arrays must be the same length')
-    except TypeError:
-        return np.array(start).ravel(), np.array(end).ravel()
+    if len_of_links > 2:
+        return (links[:, 0], links[:, 1])
+    elif len_of_links == 2:
+        return (links[0], links[1])
+    elif len_of_links == 0:
+        return (np.array([], dtype=np.int), np.array([], dtype=np.int))
+    else:
+        raise ValueError('Link array must be at least of length 2')
 
 
 def link_is_active(status_at_link_ends):
