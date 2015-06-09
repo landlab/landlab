@@ -33,8 +33,8 @@ def create_and_initialize_grid(input_source):
     named input file.
     
     Example:
-        
-    >>> from StringIO import StringIO
+
+    >>> from six import StringIO
     >>> test_file = StringIO('''
     ... GRID_TYPE:
     ... raster
