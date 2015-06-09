@@ -20,7 +20,7 @@ def test_empty_palette():
     palette = Palette()
 
     assert_equal(len(palette), 0)
-    assert_equal(palette.list(), [])
+    assert_equal(list(palette.list()), [])
     assert_equal(list(palette.keys()), [])
     assert_equal(palette.uses(), [])
     assert_equal(palette.provides(), [])
@@ -56,7 +56,7 @@ def test_1_component_dict_interface():
 def test_1_component_list():
     palette = Palette(sample=Sample1)
 
-    assert_equal(['sample'], palette.list())
+    assert_equal(['sample'], list(palette.list()))
 
 
 def test_1_component_uses():
