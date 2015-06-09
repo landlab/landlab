@@ -76,7 +76,7 @@ class ModelDataFields(object):
     Each group acts as a `dict` so, for instance, to get the variables names
     in a group use the `keys` method,
 
-    >>> fields.at_cell.keys()
+    >>> list(fields.at_cell.keys())
     ['topographic__elevation']
     """
     def __init__(self, **kwds):
@@ -175,10 +175,10 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
-        >>> fields.keys('node')
+        >>> list(fields.keys('node'))
         []
         >>> _ = fields.add_empty('node', 'topographic__elevation')
-        >>> fields.keys('node')
+        >>> list(fields.keys('node'))
         ['topographic__elevation']
         """
         return self[group].keys()
@@ -366,7 +366,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].empty(**kwds)
@@ -402,7 +402,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].ones(**kwds)
@@ -436,7 +436,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].zeros(**kwds)
@@ -515,7 +515,7 @@ class ModelDataFields(object):
         >>> field.new_field_location('node', 4)
         >>> field.add_ones('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         ['topographic__elevation']
         >>> field['node']['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
