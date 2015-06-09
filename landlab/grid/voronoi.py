@@ -499,7 +499,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> al
         array([ 2,  4,  5,  7, 10, 11])
         >>> fw
-        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  , 0.57836419])
+        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
+                0.57836419])
         """
         # Each Voronoi "ridge" corresponds to a link. The Voronoi object has an
         # attribute ridge_points that contains the IDs of the nodes on either
