@@ -380,7 +380,7 @@ class LinkGrid(object):
         >>> lgrid.nodes_at_link_id(1)
         array([0, 2])
         """
-        links_ends = _split_link_ends(link_ends)
+        link_ends = _split_link_ends(link_ends)
 
         self._in_link_at_node = JaggedArray(
             *in_link_ids_at_node(link_ends, link_ids=link_ids,
