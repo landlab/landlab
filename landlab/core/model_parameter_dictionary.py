@@ -74,8 +74,8 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 
 import warnings
-import types
- 
+import six
+
 import scipy.io
 import numpy as np
 
@@ -226,7 +226,7 @@ class ModelParameterDictionary(dict):
             - The key must be followed by a space, colon, or eol
             - The parameter can be numeric or text
         """
-        if isinstance(param_file, types.StringTypes):
+        if isinstance(param_file, six.string_types):
             try:
                 with open(param_file, 'r') as opened_file:
                     self._read_from_file_like(opened_file)
