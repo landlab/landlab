@@ -128,9 +128,9 @@ def test_2_components_dict_interface():
 def test_2_components_list():
     palette = Palette(one=Sample1, two=Sample2)
 
-    list = palette.list()
-    list.sort()
-    assert_list_equal(['one', 'two'], list)
+    components = list(palette.list())
+    components.sort()
+    assert_list_equal(['one', 'two'], components)
 
 
 def test_2_components_uses():
