@@ -61,7 +61,8 @@ def test_links_3x3_quad():
     link_ends = [(0, 3), (1, 4), (2, 5), (3, 6), (4, 7), (5, 8),
                  (0, 1), (1, 2), (3, 4), (4, 5), (6, 7), (7, 8)]
 
-    (links, count) = link_ids_at_node(zip(*link_ends), number_of_nodes=9)
+    (links, count) = link_ids_at_node(list(zip(*link_ends)), number_of_nodes=9)
+
     assert_array_equal(links, [0, 6, 6, 1, 7, 7, 2,
                                0, 3, 8, 1, 8, 4, 9, 2, 9, 5,
                                3, 10, 4, 10, 11, 5, 11])
