@@ -266,7 +266,7 @@ class BaseGrid(object):
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> links = [(0, 2), (1, 3), (0, 1), (2, 3), (0, 3)]
-        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=zip(*links))
+        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=links)
         >>> grid.link_length()
         array([ 4.,  4.,  3.,  3.,  5.])
         >>> grid.link_length(0)
