@@ -10,7 +10,7 @@ particular parameters by key name.
 
 The format of the input file looks like::
 
-    >>> from StringIO import StringIO
+    >>> from six import StringIO
     >>> param_file = StringIO('''
     ... PI: the text "PI" is an example of a KEY
     ... 3.1416
@@ -153,7 +153,7 @@ class ModelParameterDictionary(dict):
 
     Create a file-like object that contains a model parameter dictionary.
 
-    >>> from StringIO import StringIO
+    >>> from six import StringIO
     >>> test_file = StringIO('''
     ... INT_VAL:
     ... 1
@@ -324,7 +324,7 @@ class ModelParameterDictionary(dict):
         argument after *key* is provided, use it as a default in case *key*
         is not contained in the ModelParameterDictionary.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -362,7 +362,7 @@ class ModelParameterDictionary(dict):
             >>> bool('')
             False
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_BOOL:
@@ -406,7 +406,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as an integer.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -425,7 +425,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a float.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -451,7 +451,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a string.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -471,7 +471,7 @@ class ModelParameterDictionary(dict):
 
     def read_bool(self, key):
         """
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
