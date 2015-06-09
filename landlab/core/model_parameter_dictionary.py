@@ -179,27 +179,27 @@ class ModelParameterDictionary(dict):
     The returned ModelParameterDictionary can now be used just like a
     regular Python dictionary to get items, keys, etc.
 
-    >>> print sorted(params.keys())
+    >>> sorted(params.keys())
     ['BOOL_VAL', 'DBL_ARRAY', 'DBL_VAL', 'INT_ARRAY', 'INT_VAL', 'STR_VAL']
 
-    >>> print params['INT_VAL']
+    >>> params['INT_VAL']
     1
-    >>> print params['DBL_VAL']
+    >>> params['DBL_VAL']
     1.2
-    >>> print params['BOOL_VAL']
+    >>> params['BOOL_VAL']
     True
-    >>> print params['STR_VAL']
-    landlab is awesome!
+    >>> params['STR_VAL']
+    'landlab is awesome!'
 
     Lines containing commas are converted to numpy arrays. The type of the
     array is determined by the values.
 
     >>> isinstance(params['DBL_ARRAY'], np.ndarray)
     True
-    >>> print params['INT_ARRAY']
-    [1 2 3]
-    >>> print params['DBL_ARRAY']
-    [ 1.  2.  3.]
+    >>> params['INT_ARRAY']
+    array([1, 2, 3])
+    >>> params['DBL_ARRAY']
+    array([ 1.,  2.,  3.])
     """
     def __init__(self, from_file=None, auto_type=False):
         super(ModelParameterDictionary, self).__init__()
@@ -432,7 +432,7 @@ class ModelParameterDictionary(dict):
         ... MY_FLOAT:
         ... 3.14
         ... '''))
-        >>> print round(params.read_float('MY_FLOAT'), 6)
+        >>> round(params.read_float('MY_FLOAT'), 6)
         3.14
 
         An error is generated if *key* isn't in the dictionary or
