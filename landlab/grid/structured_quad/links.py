@@ -1091,22 +1091,22 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, BAD_INDEX_VALUE=-1):
     >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
     >>> horizontal_active_ids = horizontal_active_link_ids((4,5), active_link_ids)
     >>> find_d4_horizontal_neighbors((4,5), horizontal_active_ids)
-    array([[-1, -1, 19, -1],  
-        [-1, -1, 20, -1],
-        [-1, -1, 21, -1],
-        [-1, -1, 22, -1],
-        [-1, -1, 23, 20],
-        [-1, 19, 24, 21],
-        [-1, 20, 25, 22],
-        [-1, 21, 26, -1],
-        [19, -1, -1, 24],
-        [20, 23, -1, 25],
-        [21, 24, -1, 26],
-        [22, 25, -1, -1],
-        [23, -1, -1, -1],
-        [24, -1, -1, -1],
-        [25, -1, -1, -1],
-        [26, -1, -1, -1]])
+    array([[-1, -1, 19, -1],
+           [-1, -1, 20, -1],
+           [-1, -1, 21, -1],
+           [-1, -1, 22, -1],
+           [-1, -1, 23, 20],
+           [-1, 19, 24, 21],
+           [-1, 20, 25, 22],
+           [-1, 21, 26, -1],
+           [19, -1, -1, 24],
+           [20, 23, -1, 25],
+           [21, 24, -1, 26],
+           [22, 25, -1, -1],
+           [23, -1, -1, -1],
+           [24, -1, -1, -1],
+           [25, -1, -1, -1],
+           [26, -1, -1, -1]])
 
     
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
@@ -1184,13 +1184,13 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_ids, BAD_INDEX_VALUE=-
     >>> horizontal_active_ids = horizontal_active_link_ids((4,5), active_link_ids)
     >>> find_d4_horizontal_neighbors_active((4,5), horizontal_active_ids)
     array([[-1, -1, 23, 20],
-        [-1, 19, 24, 21],
-        [-1, 20, 25, 22],
-        [-1, 21, 26, -1],
-        [19, -1, -1, 24],
-        [20, 23, -1, 25],
-        [21, 24, -1, 26],
-        [22, 25, -1, -1]])
+           [-1, 19, 24, 21],
+           [-1, 20, 25, 22],
+           [-1, 21, 26, -1],
+           [19, -1, -1, 24],
+           [20, 23, -1, 25],
+           [21, 24, -1, 26],
+           [22, 25, -1, -1]])
 
 
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
@@ -1594,20 +1594,20 @@ def find_d4_vertical_neighbors(shape, vertical_ids, BAD_INDEX_VALUE=-1):
     >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
     >>> find_d4_vertical_neighbors((4,5), vertical_active_ids)
     array([[-1, -1, -1,  1],
-        [-1, -1,  6,  2],
-        [-1,  1,  7,  3],
-        [-1,  2,  8, -1],
-        [-1,  3, -1, -1],
-        [-1, -1, -1,  6],
-        [ 1, -1, 11,  7],
-        [ 2,  6, 12,  8],
-        [ 3,  7, 13, -1],
-        [-1,  8, -1, -1],
-        [-1, -1, -1, 11],
-        [ 6, -1, -1, 12],
-        [ 7, 11, -1, 13],
-        [ 8, 12, -1, -1],
-        [-1, 13, -1, -1]])
+           [-1, -1,  6,  2],
+           [-1,  1,  7,  3],
+           [-1,  2,  8, -1],
+           [-1,  3, -1, -1],
+           [-1, -1, -1,  6],
+           [ 1, -1, 11,  7],
+           [ 2,  6, 12,  8],
+           [ 3,  7, 13, -1],
+           [-1,  8, -1, -1],
+           [-1, -1, -1, 11],
+           [ 6, -1, -1, 12],
+           [ 7, 11, -1, 13],
+           [ 8, 12, -1, -1],
+           [-1, 13, -1, -1]])
     
     
     Example grid: Indicies are given for active vertical links in the 4x5 grid space.
@@ -1674,14 +1674,14 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, BAD_INDEX_VALUE=-1):
     >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
     >>> find_d4_vertical_neighbors_active((4,5), vertical_active_ids)
     array([[-1, -1,  6,  2],
-        [-1,  1,  7,  3],
-        [-1,  2,  8, -1],
-        [ 1, -1, 11,  7],
-        [ 2,  6, 12,  8],
-        [ 3,  7, 13, -1],
-        [ 6, -1, -1, 12],
-        [ 7, 11, -1, 13],
-        [ 8, 12, -1, -1]])
+           [-1,  1,  7,  3],
+           [-1,  2,  8, -1],
+           [ 1, -1, 11,  7],
+           [ 2,  6, 12,  8],
+           [ 3,  7, 13, -1],
+           [ 6, -1, -1, 12],
+           [ 7, 11, -1, 13],
+           [ 8, 12, -1, -1]])
 
     
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
