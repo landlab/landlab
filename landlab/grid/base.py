@@ -132,7 +132,7 @@ the :meth:`~.ModelGrid.ones` method.
 
 >>> grid.ones(centering='node')
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
->>> grid.at_node.keys() # Nothing has been added to the grid
+>>> list(grid.at_node.keys()) # Nothing has been added to the grid
 []
 
 Add Field Arrays
@@ -143,14 +143,14 @@ where values are associated and the second the name of the quantity. The
 quantity name must be unique within a group but the same quantity can appear
 in multiple goups.
 
->>> grid.at_node.keys() # There a no values defined at grid nodes
+>>> list(grid.at_node.keys()) # There a no values defined at grid nodes
 []
 >>> z = grid.add_ones('node', 'topographic__elevation')
 
 We now see that the array has been added to the grid as a reference to the
 array returned by ``add_ones``.
 
->>> grid.at_node.keys()
+>>> list(grid.at_node.keys())
 ['topographic__elevation']
 >>> grid.at_node['topographic__elevation']
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
