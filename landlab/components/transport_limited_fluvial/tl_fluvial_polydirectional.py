@@ -1,8 +1,6 @@
 import numpy as np
 from landlab import ModelParameterDictionary
 from time import sleep
-from scipy import weave
-from scipy.weave.build_tools import CompileError
 from landlab.utils import structured_grid as sgrid
 import pylab
 
