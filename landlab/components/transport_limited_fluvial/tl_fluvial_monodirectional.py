@@ -1,8 +1,6 @@
 import numpy as np
 from landlab import ModelParameterDictionary
 from time import sleep
-from scipy import weave
-from scipy.weave.build_tools import CompileError
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
@@ -310,23 +308,20 @@ class TransportLimitedEroder(object):
         sed_into_cell = np.zeros(capacity.size, dtype=np.float64) #this is, more accurately, a sed *flux* in
         dz = np.zeros_like(sed_into_cell)
         #print type(cell_areas), type(s), type(r), type(capacity), type(sed_into_cell)
-        try:
-            raise CompileError #force the python loop for debug
-            weave.inline(code, ['num_pts', 'cell_areas', 's', 'r', 'capacity', 'sed_into_cell', 'dz', 'dt'])
-        except CompileError:
-            for donor in s[::-1]:
-                rcvr = r[donor]
-                #by the time we get to donor, no more sed will be added; it's "done":
-    ########where should the next line be? Can an internally drained node erode down/deposit?
-                dz[donor] = (sed_into_cell[donor]-capacity[rcvr]*dt)/cell_areas[donor] #if capacity is greater than sed_in, it will erode (-ve value here)
-                #we look downstream to ensure continuity with the BCs at grid margins
+
+        for donor in s[::-1]:
+            rcvr = r[donor]
+            #by the time we get to donor, no more sed will be added; it's "done":
+            ########where should the next line be? Can an internally drained node erode down/deposit?
+            dz[donor] = (sed_into_cell[donor]-capacity[rcvr]*dt)/cell_areas[donor] #if capacity is greater than sed_in, it will erode (-ve value here)
+            #we look downstream to ensure continuity with the BCs at grid margins
+            #print "dz: ", dz[donor]
+            #capacity's worth of sed leaves donor & goes to rcvr
+            if donor != rcvr:
+                #print "saved", donor, rcvr
                 #print "dz: ", dz[donor]
-                #capacity's worth of sed leaves donor & goes to rcvr
-                if donor != rcvr:
-                    #print "saved", donor, rcvr
-                    #print "dz: ", dz[donor]
-                    sed_into_cell[rcvr] += capacity[donor]
-        #print dz
+                sed_into_cell[rcvr] += capacity[donor]
+
         return dz
 
         

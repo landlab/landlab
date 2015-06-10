@@ -1,7 +1,5 @@
 import numpy as np
 from landlab import ModelParameterDictionary
-from scipy import weave
-#from scipy.weave.build_tools import CompileError
 
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
@@ -159,8 +157,6 @@ class StreamPowerEroder(object):
         #    _ = self.grid.at_link['planet_surface__derivative_of_elevation']
         #except FieldError:
         #    self.made_link_gradients = True
-        
-        self.weave_flag = grid.weave_flag
 
         
     def erode(self, grid, dt, node_elevs='topographic__elevation',
@@ -334,11 +330,8 @@ class StreamPowerEroder(object):
         elev_dstr = node_z[flow_receiver]# we substract erosion_increment[flow_receiver] in the loop, as it can update
 
         method = 'cython'
-        if method in ('cython', 'weave'):
-            if method == 'cython':
-                from .cfuncs import erode_avoiding_pits
-            else:
-                from .weavefuncs import erode_avoiding_pits
+        if method == 'cython':
+            from .cfuncs import erode_avoiding_pits
 
             erode_avoiding_pits(node_order_upstream, flow_receiver, node_z,
                                 erosion_increment)

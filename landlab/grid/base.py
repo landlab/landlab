@@ -185,8 +185,7 @@ from landlab.field import ModelDataFields, ScalarDataFields
 from landlab.field.scalar_data_fields import FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
-from scipy import weave
-from scipy.weave.build_tools import CompileError
+
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
@@ -435,24 +434,6 @@ class ModelGrid(ModelDataFields):
                 self.new_field_location(element_name, array_length)
             except AttributeError:
                 pass
-        #perform a test to see if a weave will work, necessary this way due to PC ineosyncracies...
-        #try:
-        #    weave.inline('',[])
-        #except CompileError:
-        #    self.weave_flag = False
-        #    warnings.warn(
-        #        "Warnings which appear directly above this line relate to an "
-        #        "attempt by Landlab to implement C++ acceleration. However, "
-        #        "regardless of whether warnings appear, your installation of "
-        #        "Python lacks the necessary C++ compiler to allow this. "
-        #        "Everything will still work fine, but Landlab may run more "
-        #        "slowly for you on large (>>10**4 nodes) grids. See the "
-        #        "readthedocs documentation, or contact the developers, for "
-        #        "more information.")
-        #else:
-        #    warnings.warn("If warnings are generated above this line, you can "
-        #                  "safely ignore them.")
-        self.weave_flag = False
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get('axis_units', _default_axis_units(self.ndim))

@@ -7,13 +7,10 @@
     Created DEJH, 8/2013
 """
 
-#from scipy import weave
 import landlab
 from landlab import ModelParameterDictionary
 import numpy as np
 
-#weave.test()
-#import flow_routing_D8
 
 class AccumFlow(object):
     """
