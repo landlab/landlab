@@ -231,7 +231,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     False
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
-           22.])
+            22.])
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
