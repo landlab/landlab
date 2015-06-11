@@ -1,8 +1,4 @@
-
-[![Documentation Status](https://readthedocs.org/projects/landlab/badge/?version=latest)](https://readthedocs.org/projects/landlab/?badge=latest)
-[![Build Status](https://travis-ci.org/landlab/landlab.svg?branch=master)](https://travis-ci.org/landlab/landlab)
-[![Coverage Status](https://coveralls.io/repos/landlab/landlab/badge.png)](https://coveralls.io/r/landlab/landlab)
-[![Code Health](https://landscape.io/github/landlab/landlab/master/landscape.svg)](https://landscape.io/github/landlab/landlab/master)
+=======
 landlab
 =======
 
@@ -22,11 +18,29 @@ http://landlab.readthedocs.org
 
 After installation, tests can be run with:
 
-    python -c 'import landlab; landlab.test()'
+    $ python -c 'import landlab; landlab.test()'
 
 The most current development version is always available from our git
 repository:
 
 http://github.com/landlab/landlab
 
+
+Project Status
+--------------
+
+.. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
+    :target: https://readthedocs.org/projects/landlab/?badge=latest
+
+.. image:: https://travis-ci.org/landlab/landlab.svg?branch=master
+    :target: https://travis-ci.org/landlab/landlab
+
+.. image:: https://coveralls.io/repos/landlab/landlab/badge.png
+    :target: https://coveralls.io/r/landlab/landlab
+
+.. image:: https://ci.appveyor.com/api/projects/status/6u0bj0pggxrmf7s1?svg=true
+    :target: https://ci.appveyor.com/project/mcflugen/landlab/branch/master
+
+.. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
+    :target: https://landscape.io/github/landlab/landlab/master
 

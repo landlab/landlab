@@ -82,6 +82,20 @@ If you *don't* see reference to your newly installed distribution, click :ref:`h
 Installing Landlab
 ==================
 
+.. note::
+
+    If you already have a Landlab install on your machine, see 
+    :ref:`updating landlab, <LL_update>` below.
+
+.. note::
+
+    If you already had a Python distribution on your machine, but it's a bit old, 
+    remember to update both the distribution itself and its internal packages
+    before attempting a Landlab install, to make sure the necessary dependencies
+    are up to date. Do this through the GUI in Canopy, or from the command prompt
+    for Anaconda, using: *conda update --all* (two dashes)
+
+
 Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the developers' installation instructions :ref:`here 
 <dev_guide>`.
 
@@ -164,3 +178,84 @@ Developer Installation - Installing from Landlab Source Code
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is recommended only for users who have gotten a feel for Landlab and want to keep up with the absolute latest Landlab developments and contribute codes back to the Landlab repository.  If this is not you, please follow the standard installation instructions :ref:`above <landlab_install>`.  Otherwise, if you are ready to become a Landlab developer, follow :ref:`these directions <dev_install>`.
+
+
+.. _LL_update:
+
+Updating Landlab
+================
+
+As Landlab is still relatively early in its development cycle, the code will update 
+fairly often and new release versions will become available.
+To take advantage of new features and new library additions, we recommend you
+**update Landlab** fairly frequently.
+
+.. note::
+
+    Whenever you update Landlab, use this as a good time to also update your
+    Python package! From Canopy, use the GUI to update all the available
+    new packages listed. For Anaconda, use the conda package manager from a
+    command prompt: *conda update --all* (two dashes)
+
+If you installed Landlab through the instructions on this page, this is trivial.
+Simply use pip again to update, like so::
+
+    > pip install landlab --upgrade
+
+
+However, if you have ever used another method to install Landlab on your machine,
+this might not be adequate (i.e., pip will give you error messages).
+The first thing to do in such a case is to try a full uninstall and reinstall::
+
+    > pip uninstall landlab
+    > pip install landlab
+
+
+Still having problems? This probably means that some time early in our 
+development cycle you installed Landlab with one of our old procedures. The clue
+will be that you still have a (very out of date!) copy of the Landlab code
+base somewhere on your machine. Another possibility is that you've previously
+tried a :ref:`developer install <dev_install>`.
+This procedure will also work in this case.
+
+Try this:
+
+In a terminal, navigate to the top level directory of
+that old code, the one that contains the file *setup.py*.
+This is likely to be *your_home_dir*/landlab, if you installed with git
+and left all the defaults as is.
+Then::
+
+    > pip uninstall landlab #just to be on the safe side, may get errors again
+    > python setup.py develop -u
+
+This should remove the install, **if** you installed as a developer.
+
+Still getting error messages? This means we're going to have to excise the
+old Landlab install "by hand". You're looking to remove any reference to
+Landlab that lives inside *your_python_install*/lib/python2.7/site-packages.
+**Do this only after you've exhausted other possibilities, above**, as
+packages like pip will get annoyed with you if you start manually deleting
+their files if they installed them in the first place. To minimize the risk,
+onc again make sure you have just run::
+
+    > pip uninstall landlab
+
+Then find your Python directory with::
+
+    > which python
+
+Find that folder, ignoring everything after and including the subfolder 
+*bin*. Instead, go to *your_install*/lib/python2.7/site-packages. In here,
+you should find one (or more) folders referrring to landlab, e.g.,
+*landlab* or *landlab.egg-link*, or some other reference to 
+*landlab.egg*. Delete these. Leave everything else as it is!
+
+Now try another pip install::
+
+    > pip install landlab
+
+This should now take. *Still* having problems? This is probably multiple
+versions of Python on your machine interfering with each other. Solve
+that problem first, then return to trying to install Landlab.
+See :ref:`here <correcting_python_version>` for some help. 
