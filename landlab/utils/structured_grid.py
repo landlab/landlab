@@ -753,12 +753,30 @@ def horizontal_active_link_count(shape, node_status=None):
 
 
 def vertical_inactive_link_mask(shape, node_status):
-    is_inactive = (node_status == 0)
-    is_inactive.shape = shape
+    """
+    Creates and returns a boolean 2D array dimensioned as the number of
+    vertical links in the grid, not including the left and right boundaries.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    (NR-1,NC-2) array of bool (NR=# of rows, NC=# of columns)
+        Flags indicating whether the corresponding vertical link is inactive
+    """
+    
+    # Create a 2D boolean matrix indicating whether NODES are closed boundaries
+    is_closed_node = (node_status == 0) # GT thinks this should be False, not 0
+    is_closed_node.shape = shape
 
-    inactive_outlinks = is_inactive[:-1, 1:-1]
-    inactive_inlinks = is_inactive[1:, 1:-1]
-    return inactive_outlinks | inactive_inlinks
+    inactive_outlinks = is_closed_node[:-1, 1:-1] # middle cols, all but top row
+    inactive_inlinks = is_closed_node[1:, 1:-1] # middle cols, all but bottom row
+    return inactive_outlinks | inactive_inlinks # if either node is closed, the link is inactive
 
 
 def horizontal_inactive_link_mask(shape, node_status):
@@ -786,6 +804,9 @@ def vertical_active_link_ids(shape, node_status=None):
         inactive_links.shape = (inactive_links.size, )
         active_link_count = inactive_links.size - np.sum(inactive_links)
 
+        # GT note June 2015: to make a version of this fn compatible with
+        # LINK IDS (not ACTIVE-LINK IDS) we need to replace the simple "count"
+        # below with the IDs of the corresponding links.
         link_ids = np.empty(inactive_links.size)
         link_ids[inactive_links] = - 1
         link_ids[~ inactive_links] = np.arange(active_link_count, dtype=int)
