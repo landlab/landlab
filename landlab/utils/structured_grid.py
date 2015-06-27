@@ -768,6 +768,21 @@ def vertical_inactive_link_mask(shape, node_status):
     -------
     (NR-1,NC-2) array of bool (NR=# of rows, NC=# of columns)
         Flags indicating whether the corresponding vertical link is inactive
+        
+    Examples
+    --------
+    >>> ns = np.ones(12, dtype=bool)  # case of no closed boundary nodes
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False, False],
+           [False, False]], dtype=bool)
+    >>> ns[2] = False    # node 2 is a closed boundary
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False,  True],
+           [False, False]], dtype=bool)
+    >>> ns[9] = False    # node 9 is also a closed boundary
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False,  True],
+           [ True, False]], dtype=bool)
     """
     
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
@@ -804,9 +819,6 @@ def vertical_active_link_ids(shape, node_status=None):
         inactive_links.shape = (inactive_links.size, )
         active_link_count = inactive_links.size - np.sum(inactive_links)
 
-        # GT note June 2015: to make a version of this fn compatible with
-        # LINK IDS (not ACTIVE-LINK IDS) we need to replace the simple "count"
-        # below with the IDs of the corresponding links.
         link_ids = np.empty(inactive_links.size)
         link_ids[inactive_links] = - 1
         link_ids[~ inactive_links] = np.arange(active_link_count, dtype=int)
@@ -814,6 +826,53 @@ def vertical_active_link_ids(shape, node_status=None):
     link_ids.shape = (shape[0] - 1, shape[1] - 2)
     return link_ids
 
+
+def vertical_active_link_ids2(shape, node_status=None):
+    """
+    Returns the link IDs of vertical active links as an (R-1) x (C-2) array.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array (x number of nodes) of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link IDs of vertical active links, not including vertical links on the
+        left and right grid edges. If a vertical link is inactive, its ID is
+        given as -1.
+    
+    Examples
+    --------
+    >>> vertical_active_link_ids2((3,4))
+    array([[1, 2],
+           [5, 6]])
+    >>> ns = np.ones(12, dtype=bool)
+    >>> ns[1] = False
+    >>> ns[10] = False
+    >>> vertical_active_link_ids2((3,4), ns)
+    array([[-1,  2],
+           [ 5, -1]])
+           
+    Notes
+    -----
+    Same as vertical_active_link_ids() but returns "link IDs" for active links
+    rather than "active link IDs" for active links. Designed to ultimately
+    replace the original vertical_active_link_ids().
+    """
+    vert_link_ids = np.arange((shape[0]-1)*shape[1])
+    vert_link_ids.shape = (shape[0]-1, shape[1]) 
+    link_ids = vert_link_ids[:, 1:-1]
+    
+    if node_status is not None:
+        inactive_links = vertical_inactive_link_mask(shape, node_status)
+        link_ids[inactive_links] = -1
+        
+    return link_ids
+    
 
 def horizontal_active_link_ids(shape, node_status=None):
     if node_status is None:
