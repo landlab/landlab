@@ -91,7 +91,8 @@ def load_grid(path):
     if ext != '.grid':
         ext = ext+'.grid'
     path = base+ext
-    loaded_grid = cPickle.load(open(path,'rb'))       
+    with open(path, 'rb') as fp:
+        loaded_grid = cPickle.load(fp)
     assert issubclass(type(loaded_grid), ModelGrid)
     return loaded_grid
 
