@@ -13,6 +13,7 @@ a stochastic manner, each run of this driver will differ from the last run.
 Written by Jordan Marie Adams, 2013.
 
 """
+from six import print_ as print
 
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from matplotlib import pyplot as plt
@@ -71,18 +72,18 @@ def main():
     # depth and intensity are set stochastically in the initialization
     # phase, we should see that they seem reasonable. 
     
-    print "Mean storm duration is: ", PD.mean_storm, " hours, while the value from the Poisson distribution is: ", PD.storm_duration     
-    print "Mean interstorm Duration is: ", PD.mean_interstorm, 'hours, while the value from the Poisson distribution is: ', PD.interstorm_duration
-    print "Mean storm depth is: ", PD.mean_storm_depth, 'mm, while the value from the Poisson distribution is: ', PD.storm_depth
-    print "Mean intensity is: ", PD.mean_intensity, 'mm/hr, while the value from the Poisson distribution is: ', PD.intensity
-    print '\n'
+    print("Mean storm duration is: ", PD.mean_storm, " hours, while the value from the Poisson distribution is: ", PD.storm_duration)     
+    print("Mean interstorm Duration is: ", PD.mean_interstorm, 'hours, while the value from the Poisson distribution is: ', PD.interstorm_duration)
+    print("Mean storm depth is: ", PD.mean_storm_depth, 'mm, while the value from the Poisson distribution is: ', PD.storm_depth)
+    print("Mean intensity is: ", PD.mean_intensity, 'mm/hr, while the value from the Poisson distribution is: ', PD.intensity)
+    print('\n')
 
     # If we update the values, we can verify they are changing.
     PD.update()
-    print "Storm Duration is: ", PD.storm_duration, 'hours.'
-    print "Interstorm Duration is: ", PD.interstorm_duration, 'hours.'
-    print "Storm Depth is: ", PD.storm_depth, 'mm.'
-    print "Intensity is: ", PD.intensity, 'mm.'
+    print("Storm Duration is: ", PD.storm_duration, 'hours.')
+    print("Interstorm Duration is: ", PD.interstorm_duration, 'hours.')
+    print("Storm Depth is: ", PD.storm_depth, 'mm.')
+    print("Intensity is: ", PD.intensity, 'mm.')
     
     # If we generate a time series we can plot a precipitation distribution 
     PD.get_storm_time_series()

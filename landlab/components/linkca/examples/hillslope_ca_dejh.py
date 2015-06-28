@@ -11,6 +11,7 @@ node_state_grid[lower_half] to 3, not 4.
 
 GT, August 2014
 """
+from six import print_ as print
 
 _DEBUG = False
 
@@ -141,10 +142,10 @@ def setup_transition_list():
     #xn_list.append( Transition((4,3,1), (3,3,1), P_weath_cover, 'weathering front, down, covered') )
 
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -195,8 +196,8 @@ def main():
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print '{0:.0f}'.format(ca.node_state[n]),
-            print
+                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+            print()
 
     ca_plotter = CAPlotter(ca)
     
@@ -211,7 +212,7 @@ def main():
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
-                print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+                print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
             
             # Run the model forward in time until the next output step
@@ -228,8 +229,8 @@ def main():
                 for r in range(ca.grid.number_of_node_rows):
                     for c in range(ca.grid.number_of_node_columns):
                         n -= 1
-                        print '{0:.0f}'.format(ca.node_state[n]),
-                    print
+                        print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                    print()
 
     elif BC_type==1:
         # 1: block uplift
@@ -244,7 +245,7 @@ def main():
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
-                print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+                print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
             
             #make the uplift
@@ -276,7 +277,7 @@ def main():
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
-                print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+                print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
             
             #drop the baselevel

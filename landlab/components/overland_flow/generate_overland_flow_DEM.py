@@ -10,6 +10,8 @@ Written by Greg Tucker, Nicole Gasparini and Jordan Adams
 
 
 """
+from six import print_ as print
+
 from landlab import Component, ModelParameterDictionary
 from landlab.components.detachment_ltd_sed_trp.generate_detachment_ltd_transport import DetachmentLtdErosion
 import pylab
@@ -327,7 +329,7 @@ landlab.components.overland_flow folder.
             
             # Update model run time and print elapsed time.
             self.elapsed_time += dt
-            print "elapsed time", self.elapsed_time
+            print("elapsed time", self.elapsed_time)
             
         # Update our fields...
         self._water_depth[self.interior_nodes] = self.h[self.interior_nodes]
@@ -364,7 +366,7 @@ landlab.components.overland_flow folder.
         # Finally, call flow_at_one_node with our updated conditions.
         self.flow_at_one_node(grid, self.z, self.study_node, rainfall_duration=rain_dur, rainfall_intensity=intens, model_duration=model_dur, elapsed_time=elapsed)
         
-        print '\n','\n'
+        print('\n','\n')
 
             
                 
@@ -485,7 +487,7 @@ landlab.components.overland_flow folder.
             # Update model run time.
             self.total_dzdt += dzdt
             self.elapsed_time += dt
-            print "elapsed time", self.elapsed_time
+            print("elapsed time", self.elapsed_time)
         
         # Update our fields after the loop...
         self._water_depth[self.interior_nodes]= self.h.take(self.interior_nodes)

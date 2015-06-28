@@ -7,6 +7,7 @@ Created on Wed Mar 4 2015
 
 @author: danhobley
 """
+from six import print_ as print
 
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
@@ -47,14 +48,14 @@ figure(2)
 imshow_node_grid(mg, 'topographic__elevation')
 
 out_sum = np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))[-3,:])
-print out_sum
-print np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes])
-print out_sum - np.sum(mg.at_node['water__volume_flux_in'])
+print(out_sum)
+print(np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(out_sum - np.sum(mg.at_node['water__volume_flux_in']))
 
 show()
 
-print mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))
-print np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),axis=0)/3.
+print(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)))
+print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),axis=0)/3.)
 
 #now a run with a grid...
 
@@ -117,9 +118,9 @@ fsp = SPEroder(mg, './pot_fr_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
@@ -150,7 +151,7 @@ imshow_node_grid(mg, 'water__volume_flux_xcomponent')
 figure('ycomp')
 imshow_node_grid(mg, 'water__volume_flux_ycomponent')
 
-print 'flux in per node: ', mg.at_node['water__volume_flux_in'][0]
-print 'water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes])
-print -np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes])
-print (-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0]
+print('flux in per node: ', mg.at_node['water__volume_flux_in'][0])
+print('water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))
+print((-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0])
