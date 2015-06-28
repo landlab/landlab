@@ -1,3 +1,5 @@
+from six import print_ as print
+
 import numpy as np
 from pylab import show, imshow, colorbar, plot
 import landlab.grid.raster as raster
@@ -23,8 +25,8 @@ vectors = data(mg)
 
 vectors.elev = np.array([10.,10.,0.,10.,10.,10.,8.,8.,9.,10.,10.,4.,6.,7.,10.,10.,1.,3.,8.,10.,10.,0.,10.,10.,10.])
 
-print vectors.elev.reshape((5,5))
-print np.array(range(25)).reshape((5,5))
+print(vectors.elev.reshape((5,5)))
+print(np.array(range(25)).reshape((5,5)))
 #print mg.node_status.reshape((5,5))
 
 #imshow_grid(mg,vectors.elev)
@@ -42,5 +44,5 @@ accum = flow_accumulation.AccumFlow(mg, vectors)
 #vectors.flowacc = accum.calc_flowacc(mg, vectors)
 accum.calc_flowacc(mg, vectors)
 
-print vectors.flowacc.shape
-print vectors.flowacc.reshape((5,5))
+print(vectors.flowacc.shape)
+print(vectors.flowacc.reshape((5,5)))

@@ -4,7 +4,7 @@
 This module attempts to "component-ify" GT's Fastscape stream power erosion.
 Created DEJH, March 2014.
 """
-
+from six import print_ as print
 import numpy
 from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
@@ -82,7 +82,7 @@ class SPEroder(object):
         try:
             self.dt = inputs.read_float('dt')
         except: #if dt isn't supplied, it must be set by another module, so look in the grid
-            print 'Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.'
+            print('Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.')
         try:
             self.r_i = inputs.read_float('rainfall_intensity')
         except:
@@ -103,7 +103,7 @@ class SPEroder(object):
             #raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
             self.nonlinear_flag = True
             if self.n<1.:
-                print "***WARNING: With n<1 performance of the Fastscape algorithm is slow!***"
+                print("***WARNING: With n<1 performance of the Fastscape algorithm is slow!***")
         else:
             self.nonlinear_flag = False
         
@@ -185,7 +185,7 @@ class SPEroder(object):
                     if i != j:
                         z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
         else: #general, nonlinear n case
-            print 'Non-linear'
+            print('Non-linear')
             self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
             alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
             n = float(self.n)

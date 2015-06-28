@@ -6,6 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
+from six import print_ as print
 
 from landlab.components.gFlex.flexure import gFlex
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
@@ -46,9 +47,9 @@ fr = FlowRouter(mg)
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #mg = fsp.erode(mg)

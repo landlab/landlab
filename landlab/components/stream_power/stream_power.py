@@ -1,3 +1,4 @@
+from six import print_ as print
 import numpy as np
 from landlab import ModelParameterDictionary
 
@@ -98,7 +99,7 @@ class StreamPowerEroder(object):
         try:
             self.sp_crit = inputs.read_float('threshold_sp')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a threshold to use: ", self.sp_crit
+            print("Found a threshold to use: ", self.sp_crit)
         except MissingKeyError:
             self.sp_crit = 0.
             self.set_threshold = False

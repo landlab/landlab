@@ -1,3 +1,5 @@
+from six import print_ as print
+
 import numpy as np
 import pylab
 from landlab import RasterModelGrid
@@ -47,7 +49,7 @@ def main():
         elapsed_time = elapsed_time+storm_duration
         #print "elapsed_time", elapsed_time
         if elapsed_time%one_twentieth_time == 0:
-            print "elapsed time",elapsed_time
+            print("elapsed time",elapsed_time)
             elev_raster = rg.node_vector_to_raster(z,True)
             # Plot topography
             pylab.figure(22)

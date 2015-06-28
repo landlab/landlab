@@ -11,6 +11,7 @@ This change remains fully back compatible with GT's original version.
 Created GT Oct 2013, modified DEJH Aug 2014 to optionally use identifying pair 
 tuples, not just arbitrary IDs.
 """
+from six import print_ as print
 
 from heapq import heappush
 from heapq import heappop
@@ -241,11 +242,11 @@ class LinkCellularAutomaton():
                     self.cell_pair.append((fromstate,tostate,orientation))
     
         if False and _DEBUG:
-            print 
-            print 'create_link_state_dict_and_pair_list(): dict is:'
-            print self.link_state_dict
-            print '  and the pair list is:'
-            print self.cell_pair
+            print() 
+            print('create_link_state_dict_and_pair_list(): dict is:')
+            print(self.link_state_dict)
+            print('  and the pair list is:')
+            print(self.cell_pair)
 
 
     def active_link_orientation(self, act_link_id):
@@ -281,9 +282,9 @@ class LinkCellularAutomaton():
             self.link_state[i] = self.link_state_dict[node_pair]
         
         if False and _DEBUG:
-            print 
-            print 'assign_link_states_from_node_types(): the link state array is:'
-            print self.link_state
+            print() 
+            print('assign_link_states_from_node_types(): the link state array is:')
+            print(self.link_state)
 
 
     def setup_transition_data(self, xn_list):
@@ -325,11 +326,11 @@ class LinkCellularAutomaton():
             self.n_xn[from_state] += 1
     
         if False and _DEBUG:
-            print 
-            print 'setup_transition_data():'
-            print '  n_xn',self.n_xn
-            print '  to:',self.xn_to
-            print '  rate:',self.xn_rate
+            print() 
+            print('setup_transition_data():')
+            print('  n_xn',self.n_xn)
+            print('  to:',self.xn_to)
+            print('  rate:',self.xn_rate)
     
     
     def get_next_event(self, link, current_state, current_time):
@@ -378,10 +379,10 @@ class LinkCellularAutomaton():
         my_event = Event(next_time+current_time, link, xn)
     
         if _DEBUG:
-            print 'get_next_event():'
-            print '  next_time:',my_event.time
-            print '  link:',my_event.link
-            print '  xn_to:',my_event.xn_to
+            print('get_next_event():')
+            print('  next_time:',my_event.time)
+            print('  link:',my_event.link)
+            print('  xn_to:',my_event.xn_to)
     
         return my_event
     
@@ -389,7 +390,7 @@ class LinkCellularAutomaton():
     def push_transitions_to_event_queue(self):
     
         if False and _DEBUG:
-            print 'push_transitions_to_event_queue():',self.num_link_states,self.n_xn
+            print('push_transitions_to_event_queue():',self.num_link_states,self.n_xn)
         for i in range(self.grid.number_of_active_links):
         
             #print i, self.link_state[i]
@@ -403,9 +404,9 @@ class LinkCellularAutomaton():
                 self.next_update[i] = _NEVER
             
         if True and _DEBUG:
-            print '  push_transitions_to_event_queue(): events in queue are now:'
+            print('  push_transitions_to_event_queue(): events in queue are now:')
             for e in self.event_queue:
-                print '    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to
+                print('    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to)
             
             
     def update_node_states(self, fromnode, tonode, new_link_state):
@@ -425,9 +426,9 @@ class LinkCellularAutomaton():
             self.node_state[tonode] = self.cell_pair[new_link_state][1]
     
         if _DEBUG:
-            print 'update_node_states() for',fromnode,'and',tonode
-            print '  fromnode was',old_fromnode_state,'and is now',self.node_state[fromnode]
-            print '  tonode was',old_tonode_state,'and is now',self.node_state[tonode]
+            print('update_node_states() for',fromnode,'and',tonode)
+            print('  fromnode was',old_fromnode_state,'and is now',self.node_state[fromnode])
+            print('  tonode was',old_tonode_state,'and is now',self.node_state[tonode])
     
         return self.node_state[fromnode]!=old_fromnode_state, \
                self.node_state[tonode]!=old_tonode_state
@@ -445,15 +446,15 @@ class LinkCellularAutomaton():
             current_time - current time in simulation
         """
         if _DEBUG:
-            print
-            print 'update_link_state()'
+            print()
+            print('update_link_state()')
             
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
         fn = self.grid.activelink_fromnode[link]
         tn = self.grid.activelink_tonode[link]
         if _DEBUG:
-            print 'fn',fn,'tn',tn,'fnstat',self.grid.node_status[fn],'tnstat',self.grid.node_status[tn]
+            print('fn',fn,'tn',tn,'fnstat',self.grid.node_status[fn],'tnstat',self.grid.node_status[tn])
         if self.grid.node_status[fn]!=landlab.grid.base.CORE_NODE or \
            self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
             fns = self.node_state[self.grid.activelink_fromnode[link]]
@@ -462,7 +463,7 @@ class LinkCellularAutomaton():
             actual_pair = (fns,tns,orientation)
             new_link_state = self.link_state_dict[actual_pair]
             if _DEBUG:
-                print '**Boundary: overriding new link state to',new_link_state
+                print('**Boundary: overriding new link state to',new_link_state)
             
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
@@ -473,10 +474,10 @@ class LinkCellularAutomaton():
             self.next_update[link] = _NEVER
             
         if _DEBUG:
-            print
-            print '  at link',link
-            print '  state changed to',self.link_state[link],self.cell_pair[self.link_state[link]]
-            print '  update time now',self.next_update[link]
+            print()
+            print('  at link',link)
+            print('  state changed to',self.link_state[link],self.cell_pair[self.link_state[link]])
+            print('  update time now',self.next_update[link])
         
             
     def do_transition(self, event, current_time, plot_each_transition=False,
@@ -511,8 +512,8 @@ class LinkCellularAutomaton():
         """
     
         if _DEBUG:
-            print
-            print 'do_transition() for link',event.link
+            print()
+            print('do_transition() for link',event.link)
             
         # We'll process the event if its update time matches the one we have 
         # recorded for the link in question. If not, it means that the link has
@@ -521,7 +522,7 @@ class LinkCellularAutomaton():
         if event.time == self.next_update[event.link]:
         
             if _DEBUG:
-                print '  event time =',event.time
+                print('  event time =',event.time)
             
             fromnode = self.grid.activelink_fromnode[event.link]
             tonode = self.grid.activelink_tonode[event.link]
@@ -535,12 +536,12 @@ class LinkCellularAutomaton():
             if from_changed:
                 
                 if _DEBUG:
-                    print '    fromnode has changed state, so updating its links'
+                    print('    fromnode has changed state, so updating its links')
             
                 for link in self.node_active_links[:,fromnode]:
                     
                     if _DEBUG:
-                        print 'f checking link',link
+                        print('f checking link',link)
                     if link!=-1 and link!=event.link:
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
@@ -554,12 +555,12 @@ class LinkCellularAutomaton():
             if to_changed:
             
                 if _DEBUG:
-                    print '    tonode has changed state, so updating its links'
+                    print('    tonode has changed state, so updating its links')
             
                 for link in self.node_active_links[:,tonode]:
                 
                     if _DEBUG:
-                        print 't checking link',link
+                        print('t checking link',link)
                     if link!=-1 and link!=event.link:
                     
                         this_link_fromnode = self.grid.activelink_fromnode[link]
@@ -578,12 +579,12 @@ class LinkCellularAutomaton():
                 for r in range(self.grid.number_of_node_rows):
                     for c in range(self.grid.number_of_node_columns):
                         n -= 1
-                        print '{0:.0f}'.format(self.node_state[n]),
-                    print
+                        print('{0:.0f}'.format(self.node_state[n]), end=' ')
+                    print()
 
         elif _DEBUG:
-            print '  event time is',event.time,'but update time is', \
-                  self.next_update[event.link],'so event will be ignored'
+            print('  event time is',event.time,'but update time is', \
+                  self.next_update[event.link],'so event will be ignored')
     
     def update_component_data(self, new_node_state_array, nodes_added, translation_vector, changed_uplift=False):
         """
@@ -651,7 +652,7 @@ class LinkCellularAutomaton():
             #print vert_iter
             #print max_iter
             for i in xrange(max_iter):
-                print "Building the lists... ", i
+                print("Building the lists... ", i)
                 on_grid_nodes = numpy.logical_and(
                                             numpy.greater(hoz_iter,i),
                                             numpy.greater(vert_iter,i))
@@ -667,8 +668,8 @@ class LinkCellularAutomaton():
             #print old_nodes
             old_links = self.grid.node_activelinks(old_nodes)
             new_links = self.grid.node_activelinks(new_nodes)
-            print old_links.shape
-            print new_links.shape
+            print(old_links.shape)
+            print(new_links.shape)
             self.old_links, unique_index = numpy.unique(old_links, return_index=True)
             self.new_links = new_links.flat[unique_index]
             self.translation_index = True
@@ -694,13 +695,13 @@ class LinkCellularAutomaton():
         while self.current_time < run_duration and self.event_queue:
         
             if _DEBUG:
-                print 'Current Time = ', self.current_time
+                print('Current Time = ', self.current_time)
         
             # Pick the next transition event from the event queue
             ev = heappop(self.event_queue)
         
             if _DEBUG:
-                print 'Event:',ev.time,ev.link,ev.xn_to
+                print('Event:',ev.time,ev.link,ev.xn_to)
         
             self.do_transition(ev, self.current_time, plot_each_transition,
                                plotter)
@@ -742,7 +743,7 @@ def example_test2():
     # The initial grid represents a domain with half immobile soil, half air
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
     if _DEBUG:
-        print (numpy.where(mg.node_y<nr/2),)
+        print((numpy.where(mg.node_y<nr/2),))
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 1
     
@@ -753,14 +754,14 @@ def example_test2():
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
     
-    print 'INITIALIZING'
+    print('INITIALIZING')
     n = ca.grid.number_of_nodes
     if _DEBUG:
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print '{0:.0f}'.format(ca.node_state[n]),
-            print
+                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+            print()
         
     ca_plotter = CAPlotter(ca)
     
@@ -775,15 +776,15 @@ def example_test2():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
         
         ca.run(current_time+plot_interval, ca.node_state, 
                plot_each_transition=False) #, plotter=ca_plotter)
         current_time += plot_interval
         if _DEBUG:
-            print 'time:',current_time
-            print 'ca time:',ca.current_time
+            print('time:',current_time)
+            print('ca time:',ca.current_time)
         ca_plotter.update_plot()
         #time_slice += 1
         #filename = 'soil_ca1-'+str(time_slice).zfill(5)+'.nc'
@@ -793,8 +794,8 @@ def example_test2():
             for r in range(ca.grid.number_of_node_rows):
                 for c in range(ca.grid.number_of_node_columns):
                     n -= 1
-                    print '{0:.0f}'.format(ca.node_state[n]),
-                print
+                    print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                print()
         
         
     # FINALIZE
@@ -815,10 +816,10 @@ def setup_transition_list():
     xn_list.append( Transition(2, 3, 1., 'weathering') ) # sap-rock to sap-sap
         
     if False and _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -878,10 +879,10 @@ def setup_transition_list2():
     xn_list.append( Transition(15, 11, 1.0, 'upward motion') )    
         
     if False and _DEBUG:
-        print
-        print 'setup_transition_list2(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list2(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     

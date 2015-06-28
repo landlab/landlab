@@ -10,6 +10,7 @@ Have a temporary fix for this, but this needs improving.
 Last updated NG 6/2013
 
 """
+from six import print_ as print
 
 #from landlab.model_grid import RasterModelGrid
 from numpy import *
