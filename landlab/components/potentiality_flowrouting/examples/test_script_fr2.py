@@ -8,6 +8,7 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
+from six import print_ as print
 
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
@@ -101,7 +102,7 @@ SEs = (slice(0,-2),slice(2,n+2))
 
 for i in xrange(nt):
     if i%100==0:
-        print i
+        print(i)
     qE = np.zeros_like(hR)
     qW = np.zeros_like(hR)
     qN = np.zeros_like(hR)

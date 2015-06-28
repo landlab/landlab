@@ -3,11 +3,13 @@
 just a little script for testing the d8 flow routing class 
 and drainage area calculation 
 """
+from six import print_ as print
 
 from landlab import RasterModelGrid
 from landlab.examples.flowRoutingD8 import RouteFlowD8
 from landlab.examples.drainageArea import CalcDrainageArea
 from numpy import *
+
 
 def main():
     nr = 5
@@ -37,24 +39,24 @@ def main():
     #elevations[15]=-50
     
     #printing elevations for debugging purposes
-    print 'elevation vector' 
-    print elevations
+    print('elevation vector') 
+    print(elevations)
 
     #instantiate flow routing variable
     flow = RouteFlowD8(ncells)
     #calculate flow directions
     flow_directions = flow.calc_flowdirs(rg, elevations)    
     #printing flow directions for debugging purposes
-    print 'flow direction vector'
-    print flow_directions
+    print('flow direction vector')
+    print(flow_directions)
     
     #instantiate drainage area variable
     da_calculator = CalcDrainageArea(ncells)
     #calculate drainage area
     drain_area = da_calculator.calc_DA(rg, flow_directions)
     #printing drainage area for debugging purposes
-    print 'drainage area vector'
-    print drain_area
+    print('drainage area vector')
+    print(drain_area)
     
     ##test of other code bit in raster model grid
     #[ms, ma] = rg.calculate_max_gradient_across_node(elevations,12)

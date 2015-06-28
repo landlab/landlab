@@ -1,3 +1,5 @@
+from six import print_ as print
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
@@ -9,6 +11,7 @@ import numpy as np
 import pylab
 
 from time import time
+
 
 #get the needed properties to build the grid:
 input_file = './stream_power_params.txt'
@@ -40,7 +43,7 @@ z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -50,7 +53,7 @@ vid = VideoPlotter(mg, data_centering='node')
 time_on = time()
 #perform the loops:
 for i in xrange(nt):
-    print 'loop ', i
+    print('loop ', i)
     mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()
     mg = sp.erode(mg)
@@ -58,7 +61,7 @@ for i in xrange(nt):
     vid.add_frame(mg, mg.hillshade(alt=15.), cmap='gray')
     
  
-print 'Completed the simulation. Plotting...'
+print('Completed the simulation. Plotting...')
 
 time_off = time()
 
@@ -68,7 +71,7 @@ elev = mg['node']['topographic__elevation']
 #imshow.imshow_node_grid(mg, elev)
 
 print('Done.')
-print 'Time: ', time_off-time_on
+print('Time: ', time_off-time_on)
 
 #pylab.show()
 

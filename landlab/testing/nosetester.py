@@ -1,3 +1,4 @@
+from six import print_ as print
 import os
 import sys
 from numpy.testing import Tester

@@ -8,6 +8,7 @@ of a hillslope by disturbance-driven soil creep.
 
 GT, August 2014
 """
+from six import print_ as print
 
 _DEBUG = False
 
@@ -91,10 +92,10 @@ def setup_transition_list():
     xn_list.append( Transition(17, 20, 2.0e8, 'downward motion') )
         
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -204,8 +205,8 @@ def main():
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print '{0:.0f}'.format(ca.node_state[n]),
-            print
+                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+            print()
 
     # Create a CAPlotter object to handle screen display
     if opt_screen_display:
@@ -220,7 +221,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
             
         # Find out when the next interruption (for plotting, boundary control,
@@ -241,7 +242,7 @@ def main():
             
         # Write the current grid to file
         if current_time >= next_file_write:
-            print 'FILE OUTPUT NOT YET IMPLEMENTED'
+            print('FILE OUTPUT NOT YET IMPLEMENTED')
             next_file_write += file_output_interval
             
         # Custom boundary control: baselevel lowering
@@ -263,8 +264,8 @@ def main():
             for r in range(ca.grid.number_of_node_rows):
                 for c in range(ca.grid.number_of_node_columns):
                     n -= 1
-                    print '{0:.0f}'.format(ca.node_state[n]),
-                print
+                    print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                print()
         
         
     # FINALIZE
@@ -276,7 +277,7 @@ def main():
     # Custom post-processing
     z = extract_hillslope_profile(mg.node_vector_to_raster(ca.node_state))
     #numpy.savetxt('h0822-01-u125.txt',z)
-    print 'PEAK ELEV = ',numpy.amax(z)
+    print('PEAK ELEV = ',numpy.amax(z))
     
 
 if __name__ == "__main__":

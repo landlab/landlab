@@ -5,6 +5,8 @@ diffusion code.
 
 GT, July 2010
 """
+from six import print_ as print
+
 import numpy as np
 from pylab import plot, draw, show, contour
 
@@ -48,10 +50,10 @@ def set_flux_coefficients(mg, dx):
     K = Kmax * np.exp(-dist / decay_scale)
 
     if False:
-        print 'dist:', dist
-        print 'yf:', yf
-        print 'xf:', xf
-        print 'K:', K
+        print('dist:', dist)
+        print('yf:', yf)
+        print('xf:', xf)
+        print('K:', K)
 
     return K
 
@@ -106,7 +108,7 @@ def main():
     # Process
 
     for i in range(0, nt):
-        print i
+        print(i)
         g = mg.calculate_face_gradients(u)
         q = -k*g
         #print 'g=',g
@@ -123,7 +125,7 @@ def main():
         #draw()
 
     # Finalize
-    print 'Max u = ', max(u)
+    print('Max u = ', max(u))
     if opt_plot:
         ur = mg.cell_vector_to_raster(u)
         #x = 0.5*dx + dx*arange(0, nr)
