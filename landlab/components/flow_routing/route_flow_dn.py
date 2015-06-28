@@ -21,7 +21,6 @@ from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
 from landlab import ModelParameterDictionary
 import numpy
-#from scipy.weave.build_tools import CompileError
 
 #output_suppression_flag = True
 
@@ -147,8 +146,6 @@ class FlowRouter(Component):
         self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
         
-        self.weave_flag = model_grid.weave_flag
-        
         
     def route_flow(self):
         """
@@ -229,8 +226,7 @@ class FlowRouter(Component):
                                          self._activelink_from,
                                          self._activelink_to, link_slope, 
                                          grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes, 
-                                         use_weave=self.weave_flag)
+                                         baselevel_nodes=baselevel_nodes)
 #############grid=None???
         
         # TODO: either need a way to calculate and return the *length* of the
@@ -241,8 +237,7 @@ class FlowRouter(Component):
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(receiver, sink,
                                                   node_cell_area=node_cell_area, 
-                                                  runoff_rate=self._grid.at_node['water__volume_flux_in'],
-                                                  use_weave=self.weave_flag)
+                                                  runoff_rate=self._grid.at_node['water__volume_flux_in'])
                                                   
         #added DEJH March 2014:
         #store the generated data in the grid

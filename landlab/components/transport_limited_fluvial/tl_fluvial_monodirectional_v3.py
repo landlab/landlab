@@ -3,8 +3,6 @@ import inspect
 from landlab import ModelParameterDictionary
 from landlab import RasterModelGrid
 from time import sleep
-from scipy import weave
-from scipy.weave.build_tools import CompileError
 from landlab.utils import structured_grid as sgrid
 import pylab
 
@@ -475,16 +473,13 @@ class TransportLimitedEroder(object):
             dz = np.zeros(grid.number_of_nodes, dtype=float)
             len_s_in = s_in.size
             cell_areas = self.cell_areas
-            try:
-                raise CompileError
-                weave.inline(self.routing_code, ['len_s_in', 'sed_into_node', 'transport_capacities', 'dz', 'cell_areas', 'dt_this_step', 'flow_receiver'])
-            except CompileError:
-                for i in s_in[::-1]: #work downstream
-                    sed_flux_into_this_node = sed_into_node[i]
-                    sed_flux_out_of_this_node = transport_capacities[i] #we work in volume flux, not volume per se here
-                    flux_excess = sed_flux_into_this_node - sed_flux_out_of_this_node #gets deposited
-                    dz[i] = flux_excess/cell_areas*dt_this_step
-                    sed_into_node[flow_receiver[i]] += sed_flux_out_of_this_node
+
+            for i in s_in[::-1]: #work downstream
+                sed_flux_into_this_node = sed_into_node[i]
+                sed_flux_out_of_this_node = transport_capacities[i] #we work in volume flux, not volume per se here
+                flux_excess = sed_flux_into_this_node - sed_flux_out_of_this_node #gets deposited
+                dz[i] = flux_excess/cell_areas*dt_this_step
+                sed_into_node[flow_receiver[i]] += sed_flux_out_of_this_node
             
             if stability_condition == 'loose':
                 elev_diff = node_z - node_z[flow_receiver]
