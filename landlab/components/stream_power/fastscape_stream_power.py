@@ -5,6 +5,7 @@ This module attempts to "component-ify" GT's Fastscape stream power erosion.
 Created DEJH, March 2014.
 """
 from __future__ import print_function
+
 import numpy
 from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
