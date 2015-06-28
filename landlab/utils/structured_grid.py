@@ -702,9 +702,81 @@ def active_inlinks(shape, node_status=None, return_count=True):
     return links
 
 
+def active_inlinks2(shape, node_status=None):
+    """
+    Finds and returns the link IDs of active links coming in to each node
+    (that is, active links for which the node is the link head).
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status (optional) : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    2d numpy array of int (2 x number of grid nodes)
+        Link ID of incoming links to each node
+        
+    Example
+    -------
+    >>> active_inlinks2((3,4))
+    array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
+           [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
+           
+    Notes
+    -----
+    There are at most two inlinks for each node. The first row in the returned
+    array gives the ID of the vertical incoming link from below (south), or -1
+    if there is none. The second row gives the link ID of the horizontal link
+    coming in from the left (or -1).
+    """
+    links = np.vstack((active_south_links2(shape, node_status),
+                       active_west_links2(shape, node_status)))
+    links.shape = (2, node_count(shape))
+    return links
+
+
 def active_outlinks(shape, node_status=None, return_count=True):
     links = np.vstack((active_north_links(shape, node_status),
                        active_east_links(shape, node_status)))
+    links.shape = (2, node_count(shape))
+    return links
+
+
+def active_outlinks2(shape, node_status=None):
+    """
+    Finds and returns the link IDs of active links going out of each node
+    (that is, active links for which the node is the link tail).
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status (optional) : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    2d numpy array of int (2 x number of grid nodes)
+        Link ID of outgoing links from each node
+        
+    Example
+    -------
+    >>> active_outlinks2((3,4))
+    array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
+           
+    Notes
+    -----
+    There are at most two outlinks for each node. The first row in the returned
+    array gives the ID of the vertical outgoing link to above (north), or -1
+    if there is none. The second row gives the link ID of the horizontal link
+    going out to the right (east) (or -1).
+    """
+    links = np.vstack((active_north_links2(shape, node_status),
+                       active_east_links2(shape, node_status)))
     links.shape = (2, node_count(shape))
     return links
 
@@ -897,6 +969,52 @@ def horizontal_active_link_ids(shape, node_status=None):
     return link_ids
 
 
+def horizontal_active_link_ids2(shape, node_status=None):
+    """
+    Returns the link IDs of horizontal active links as an (R-2) x (C-1) array.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array (x number of nodes) of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link IDs of horizontal active links, not including horizontal links on
+        top and bottom grid edges. If a horizontal link is inactive, its ID is
+        given as -1.
+    
+    Examples
+    --------
+    >>> horizontal_active_link_ids2((3,4))
+    array([[11, 12, 13]])
+    >>> ns = np.ones(12, dtype=bool)
+    >>> ns[4] = False
+    >>> ns[7] = False
+    >>> horizontal_active_link_ids2((3,4), ns)
+    array([[-1, 12, -1]])
+           
+    Notes
+    -----
+    Same as horizontal_active_link_ids() but returns "link IDs" for active links
+    rather than "active link IDs" for active links. Designed to ultimately
+    replace the original horizontal_active_link_ids().
+    """
+
+    horiz_link_ids = np.arange(shape[0]*(shape[1]-1)) + (shape[0]-1)*shape[1]
+    horiz_link_ids.shape = (shape[0], shape[1]-1) 
+    link_ids = horiz_link_ids[1:-1, :]
+    
+    if node_status is not None:
+        inactive_links = horizontal_inactive_link_mask(shape, node_status)
+        link_ids[inactive_links] = -1
+        
+    return link_ids
+
+
 def west_links(shape):
     """
     >>> from landlab.utils.structured_grid import west_links
@@ -969,6 +1087,27 @@ def active_north_links(shape, node_status=None):
     return active_north_links
 
 
+def active_north_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_north_links2
+    >>> active_north_links2((3, 4))
+    array([[-1,  1,  2, -1],
+           [-1,  5,  6, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_north_links = np.empty(shape, dtype=int)
+    try:
+        links = vertical_active_link_ids2(shape, node_status=node_status)
+    except ValueError:
+        pass
+    links.shape = (shape[0] - 1, shape[1] - 2)
+    active_north_links[:-1, 1:-1] = links
+    active_north_links[:, (0, -1)] = -1
+    active_north_links[-1, :] = -1
+
+    return active_north_links
+
+
 def active_south_links(shape, node_status=None):
     """
     >>> from landlab.utils.structured_grid import active_south_links
@@ -983,6 +1122,43 @@ def active_south_links(shape, node_status=None):
     active_south_links[1:, 1:-1] = links
     active_south_links[:, (0, -1)] = -1
     active_south_links[0, :] = -1
+
+    return active_south_links
+
+
+def active_south_links2(shape, node_status=None):
+    """
+    Finds and returns link IDs of active links that enter each node from the
+    south (bottom), or -1 where no such active link exists.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link ID of active link connecting to a node from the south, or -1
+
+    Example
+    -------
+    >>> from landlab.utils.structured_grid import active_south_links2
+    >>> active_south_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1,  1,  2, -1],
+           [-1,  5,  6, -1]])
+           
+    Notes
+    -----
+    Like active_south_links, but returns link IDs rather than (now deprecated)
+    active-link IDs.
+    """
+    active_south_links = -np.ones(shape, dtype=int)
+    links = vertical_active_link_ids2(shape, node_status=node_status)
+    active_south_links[1:, 1:-1] = links
 
     return active_south_links
 
@@ -1007,6 +1183,21 @@ def active_west_links(shape, node_status=None):
     return active_west_links
 
 
+def active_west_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_west_links2
+    >>> active_west_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1, 11, 12, 13],
+           [-1, -1, -1, -1]])
+    """
+    active_west_links = -np.ones(shape, dtype=int)
+    active_west_links[1:-1, 1:] = horizontal_active_link_ids2(
+            shape, node_status=node_status)
+
+    return active_west_links
+
+
 def active_east_links(shape, node_status=None):
     """
     >>> from landlab.utils.structured_grid import active_east_links
@@ -1024,6 +1215,21 @@ def active_east_links(shape, node_status=None):
         pass
     active_east_links[(0, -1), :] = -1
     active_east_links[:, -1] = -1
+
+    return active_east_links
+
+
+def active_east_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_east_links2
+    >>> active_east_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [11, 12, 13, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_east_links = -np.ones(shape, dtype=int)
+    active_east_links[1:-1, :-1] = horizontal_active_link_ids2(
+            shape, node_status=node_status)
 
     return active_east_links
 
