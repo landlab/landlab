@@ -53,7 +53,8 @@ def save_grid(grid, path, clobber=False):
         ext = ext+'.grid'
     path = base+ext
 
-    cPickle.dump(grid, open(path, 'wb'))
+    with open(path, 'wb') as fp:
+        cPickle.dump(grid, fp)
 
 
 def load_grid(path):
