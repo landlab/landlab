@@ -721,6 +721,7 @@ def active_inlinks2(shape, node_status=None):
         
     Example
     -------
+    >>> from landlab.utils.structured_grid import active_inlinks2
     >>> active_inlinks2((3,4))
     array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
            [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
@@ -764,6 +765,7 @@ def active_outlinks2(shape, node_status=None):
         
     Example
     -------
+    >>> from landlab.utils.structured_grid import active_outlinks2
     >>> active_outlinks2((3,4))
     array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
@@ -843,6 +845,8 @@ def vertical_inactive_link_mask(shape, node_status):
         
     Examples
     --------
+    >>> import numpy as np
+    >>> from landlab.utils.structured_grid import vertical_inactive_link_mask
     >>> ns = np.ones(12, dtype=bool)  # case of no closed boundary nodes
     >>> vertical_inactive_link_mask((3,4), ns)
     array([[False, False],
@@ -919,6 +923,7 @@ def vertical_active_link_ids2(shape, node_status=None):
     
     Examples
     --------
+    >>> from landlab.utils.structured_grid import vertical_active_link_ids2
     >>> vertical_active_link_ids2((3,4))
     array([[1, 2],
            [5, 6]])
@@ -989,6 +994,7 @@ def horizontal_active_link_ids2(shape, node_status=None):
     
     Examples
     --------
+    >>> from landlab.utils.structured_grid import horizontal_active_link_ids2
     >>> horizontal_active_link_ids2((3,4))
     array([[11, 12, 13]])
     >>> ns = np.ones(12, dtype=bool)
