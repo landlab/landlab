@@ -700,7 +700,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> os.remove('mytestsave.grid') #to remove traces of this test
         """
         import os
-        import cPickle
+        from six.moves import cPickle
 
         if os.path.exists(path) and not clobber:
             raise ValueError('file exists')

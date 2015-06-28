@@ -6,7 +6,7 @@ Read data from an ESRI ASCII file into a RasterModelGrid
 import os
 import types
 import re
-import cPickle
+from six.moves import cPickle
 from landlab import ModelGrid
 import numpy as np
 
