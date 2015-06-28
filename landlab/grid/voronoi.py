@@ -707,6 +707,5 @@ class VoronoiDelaunayGrid(ModelGrid):
             ext = ext+'.grid'
         path = base+ext
 
-        cPickle.dump(self, open(path, 'wb'))
-
-
+        with open(path, 'wb') as fp:
+            cPickle.dump(self, fp)
