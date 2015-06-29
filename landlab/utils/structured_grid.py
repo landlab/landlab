@@ -1304,6 +1304,58 @@ def setup_active_outlink_matrix(shape, node_status=None, return_count=True):
         return links
 
 
+def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
+    """Active links leaving nodes.
+
+    Return the link IDs of the active links that leave each node of a grid. The 
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
+    the grid. The first row contains the link ID exiting the node to the 
+    top, and the second row the link exiting the node to the right.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    number of active links attached to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the 
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
+    lists links entering nodes from the bottom, and the second links entering 
+    from the left.
+
+    >>> from landlab.utils.structured_grid import setup_active_outlink_matrix2
+    >>> setup_active_outlink_matrix2((3, 4), return_count=False)
+    array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
+    >>> _, count = setup_active_outlink_matrix2((3, 4))
+    >>> count
+    array([0, 1, 1, 0, 1, 2, 2, 0, 0, 0, 0, 0])
+    """
+    links = active_outlinks2(shape, node_status=node_status)
+    if return_count:
+        return links, active_outlink_count_per_node(shape)
+    else:
+        return links
+
+
 def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
     """Active links entering nodes.
 
@@ -1347,6 +1399,58 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
     array([0, 0, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0])
     """
     links = active_inlinks(shape, node_status=node_status)
+    if return_count:
+        return links, active_inlink_count_per_node(shape)
+    else:
+        return links
+
+
+def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
+    """Active links entering nodes.
+
+    Return the link IDs of the active links that enter each node of a grid. The 
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
+    the grid. The first row contains the link ID entering the node from the 
+    bottom, and the second row the link entering the node from the left.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    number of active links attached to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the 
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
+    lists links entering nodes from the bottom, and the second links entering 
+    from the left.
+
+    >>> from landlab.utils.structured_grid import setup_active_inlink_matrix2
+    >>> setup_active_inlink_matrix2((3, 4), return_count=False)
+    array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
+           [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
+    >>> _, count = setup_active_inlink_matrix2((3, 4))
+    >>> count
+    array([0, 0, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0])
+    """
+    links = active_inlinks2(shape, node_status=node_status)
     if return_count:
         return links, active_inlink_count_per_node(shape)
     else:
