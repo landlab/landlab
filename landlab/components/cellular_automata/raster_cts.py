@@ -1,20 +1,20 @@
 #! /usr/env/python
 """
-raster_lca.py: simple raster Landlab cellular automaton
+raster_cts.py: simple raster continuous-time stochastic cellular automaton
 
-This file defines the RasterLCA class, which is a sub-class of 
-LandlabCellularAutomaton that implements a simple, non-oriented, raster-grid
-CA. Like its parent class, RasterLCA implements a continuous-time, stochastic,
+This file defines the RasterCTS class, which is a sub-class of 
+CellLabCTSModel that implements a simple, non-oriented, raster-grid
+CA. Like its parent class, RasterCTS implements a continuous-time, stochastic,
 pair-based CA.
 
 Created GT Sep 2014, starting from link_ca.py.
 """
 
-from landlab_ca import LandlabCellularAutomaton, Transition
+from celllab_cts import CellLabCTSModel, Transition
 import landlab
 
 
-class RasterLCA(LandlabCellularAutomaton):
+class RasterCTS(CellLabCTSModel):
     """
     Class RasterLCA implements a non-oriented raster CellLab-CTS model.
     
@@ -25,11 +25,7 @@ class RasterLCA(LandlabCellularAutomaton):
     >>> xnlist = []
     >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
-    >>> rlca = RasterLCA(mg, nsd, xnlist, nsg)
-    WARNING: use of RasterLCA is deprecated.
-    Use RasterCTS instead.
-    WARNING: Use of LandlabCellularAutomaton is deprecated.
-    Use CellLabCTSModel instead.
+    >>> rcts = RasterCTS(mg, nsd, xnlist, nsg)
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
@@ -53,9 +49,6 @@ class RasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of RasterLCA is deprecated.'
-        print 'Use RasterCTS instead.'
-        
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
                'model_grid must be a Landlab RasterModelGrid'
@@ -66,7 +59,7 @@ class RasterLCA(LandlabCellularAutomaton):
         
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(RasterLCA, self).__init__(model_grid, node_state_dict, 
+        super(RasterCTS, self).__init__(model_grid, node_state_dict, 
             transition_list, initial_node_states, prop_data, prop_reset_value)
         
 

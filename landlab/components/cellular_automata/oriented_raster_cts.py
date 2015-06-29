@@ -1,30 +1,39 @@
 #! /usr/env/python
 """
-oriented_raster_lca.py: simple raster Landlab cellular automaton, with 
+oriented_raster_cts.py: simple raster Landlab cellular automaton, with 
 cell-pair transitions that depend on orientation (vertical or horizontal)
 
-This file defines the OrientedRasterLCA class, which is a sub-class of 
-LandlabCellularAutomaton that implements a simple, oriented, raster-grid
-CA. Like its parent class, OrientedRasterLCA implements a continuous-time, 
+This file defines the OrientedRasterCTS class, which is a sub-class of 
+CellLabCTSModel that implements a simple, oriented, raster-grid
+CA. Like its parent class, OrientedRasterCTS implements a continuous-time, 
 stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
 
 from numpy import zeros
-from landlab_ca import LandlabCellularAutomaton, Transition
+from lcelllab_cts import CellLabCTSModel, Transition
 import landlab
 
 _DEBUG = False
 
-class OrientedRasterLCA(LandlabCellularAutomaton):
+class OrientedRasterCTS(CellLabCTSModel):
     """
-    Class OrientedRasterLCA implements an oriented raster CellLab-CTS model.
+    Class OrientedRasterCTS implements an oriented raster CellLab-CTS model.
+    
+    Example
+    -------
+    >>> mg = landlab.RasterModelGrid(3, 4, 1.0)
+    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> xnlist = []
+    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
+    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
         """
-        RasterLCA constructor: sets number of orientations to 2 and calls
+        RasterCTS constructor: sets number of orientations to 2 and calls
         base-class constructor.
         
         Parameters
@@ -43,11 +52,9 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of OrientedRasterLCA is deprecated.'
-        print 'Use OrientedRasterCTS instead.'
-                
+        
         if _DEBUG:
-            print 'OrientedRasterLCA.__init__ here'
+            print 'OrientedRasterCTS.__init__ here'
 
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
@@ -59,11 +66,11 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         
         # Call the LandlabCellularAutomaton constructor to do the rest of
         # the initialization
-        super(OrientedRasterLCA, self).__init__(model_grid, node_state_dict, 
+        super(OrientedRasterCTS, self).__init__(model_grid, node_state_dict, 
             transition_list, initial_node_states, prop_data, prop_reset_value)
             
         if _DEBUG:
-            print 'ORLCA:'
+            print 'ORCTS:'
             print self.n_xn
             print self.xn_to
             print self.xn_rate

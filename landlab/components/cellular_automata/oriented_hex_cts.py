@@ -1,10 +1,10 @@
 #! /usr/env/python
 """
-oriented_hex_lca.py: simple hexagonal Landlab cellular automaton
+oriented_hex_cts.py: simple hexagonal Landlab cellular automaton
 
-This file defines the OrientedHexLCA class, which is a sub-class of 
-LandlabCellularAutomaton that implements a simple, non-oriented, hex-grid
-CA. Like its parent class, OrientedHexLCA implements a continuous-time, stochastic,
+This file defines the OrientedHexCTS class, which is a sub-class of 
+CellLabCTSModel that implements a simple, non-oriented, hex-grid
+CA. Like its parent class, OrientedHexCTS implements a continuous-time, stochastic,
 pair-based CA. The hex grid has 3 principal directions, rather than 2 for a
 raster. Hex grids are often used in CA models because of their symmetry.
 
@@ -12,19 +12,28 @@ Created GT Sep 2014
 """
 
 from numpy import zeros
-from landlab_ca import LandlabCellularAutomaton, Transition
+from celllab_cts import CellLabCTSModel, Transition
 import landlab
 
 
-class OrientedHexLCA(LandlabCellularAutomaton):
+class OrientedHexCTS(CellLabCTSModel):
     """
-    Class OrientedHexLCA implements an oriented hex-grid CellLab-CTS model.
+    Class OrientedHexCTS implements an oriented hex-grid CellLab-CTS model.
+    
+    Example
+    -------
+    >>> mg = landlab.HexModelGrid(4, 3, 1.0)
+    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> xnlist = []
+    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
+    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
     
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
         """
-        OrientedHexLCA constructor: sets number of orientations to 3 and calls
+        OrientedHexCTS constructor: sets number of orientations to 3 and calls
         base-class constructor.
         
         Parameters
@@ -43,8 +52,6 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of OrientedHexLCA is deprecated.'
-        print 'Use OrientedHexCTS instead.'
         
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
@@ -61,7 +68,7 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(OrientedHexLCA, self).__init__(model_grid, node_state_dict, 
+        super(OrientedHexCTS, self).__init__(model_grid, node_state_dict, 
             transition_list, initial_node_states, prop_data, prop_reset_value)
             
 

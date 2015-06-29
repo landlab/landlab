@@ -1,11 +1,11 @@
 #! /usr/env/python
 """
-Landlab's cellular automata modeling package.
+Landlab's Continuous-Time Stochastic (CTS) cellular automata modeling package.
 
 Overview
 --------
 
-A Landlab Cellular Automaton, or LCA, implements a particular type of cellular
+A CellLab CTS model implements a particular type of cellular
 automaton (CA): a continuous-time stochastic CA. The approach is based on that
 of Narteau et al. (2002, 2009) and Rozier and Narteau (2014). Like a normal
 CA, the domain consists of a lattice of cells, each of which has a discrete
@@ -13,25 +13,25 @@ state. Unlike a conventional CA, the updating process is stochastic, and takes
 place in continuous rather than discrete time. Any given pair (or "doublet")
 of adjacent cell states has a certain specified probability of transition to a 
 different pair of states. The transition probability is given in the form of an
-average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual time of 
-transition is a random variable drawn from an exponential probability 
+average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual 
+time of transition is a random variable drawn from an exponential probability 
 distribution with mean :math:1/\lambda
 
 Subclasses
 ----------
 
 Landlab provides for several different lattice and connection types:
-    - RasterLCA: regular raster grid with transitions between horizontal and
+    - RasterCTS: regular raster grid with transitions between horizontal and
         vertical cell pairs
-    - OrientedRasterLCA: like a RasterLCA, but different transition rates can
+    - OrientedRasterCTS: like a RasterLCA, but different transition rates can
         be assigned to vertical and horizontal pairs. This property of
         orientation can be used, for example, to implement rules representing
         gravitational attraction, or flow of a fluid with a particular direction.
-    - RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
+    - RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
         and horizontal cell pairs.
-    - OrientedRasterD8LCA: as above but orientation also matters.
-    - HexLCA: hexagonal grid
-    - OrientedLCA: hexagonal grid, with transition rates allowed to vary
+    - OrientedRasterD8CTS: as above but orientation also matters.
+    - HexCTS: hexagonal grid
+    - OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
         according to orientation.
         
 Encoding of "states"
@@ -284,9 +284,9 @@ class CAPlotter():
         plt.show()
         
         
-class LandlabCellularAutomaton(object):
+class CellLabCTSModel(object):
     """
-    A LandlabCellularAutomaton implements a link-type (or doublet-type) cellular
+    A CellLabCTSModel implements a link-type (or doublet-type) cellular
     automaton model. A link connects a pair of cells. Each cell has a state
     (represented by an integer code), and each link also has a state that is
     determined by the states of the cell pair.
@@ -312,9 +312,6 @@ class LandlabCellularAutomaton(object):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: Use of LandlabCellularAutomaton is deprecated.'
-        print 'Use CellLabCTSModel instead.'        
-        
         # Are we calling this from a subclass __init__? If so, then the 
         # variable self.number_of_orientations should already be defined.
         try:
@@ -325,7 +322,7 @@ class LandlabCellularAutomaton(object):
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
         ###self.node_active_links = self.grid.node_activelinks()
-        self.node_active_links = self.grid.node_activelinks()
+        self.node_active_links = self.grid.node_activelinks2()
 
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)

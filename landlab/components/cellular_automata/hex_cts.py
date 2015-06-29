@@ -1,40 +1,38 @@
 #! /usr/env/python
 """
-raster_lca.py: simple raster Landlab cellular automaton
+hex_cts.py: simple hexagonal Landlab cellular automaton
 
-This file defines the RasterLCA class, which is a sub-class of 
-LandlabCellularAutomaton that implements a simple, non-oriented, raster-grid
-CA. Like its parent class, RasterLCA implements a continuous-time, stochastic,
-pair-based CA.
+This file defines the HexCTS class, which is a sub-class of 
+CellLabCTSModel that implements a simple, non-oriented, hex-grid
+CA. Like its parent class, HexCTS implements a continuous-time, stochastic,
+pair-based CA. The hex grid has 3 principal directions, rather than 2 for a
+raster. Hex grids are often used in CA models because of their symmetry.
 
-Created GT Sep 2014, starting from link_ca.py.
+Created GT Sep 2014
 """
 
-from landlab_ca import LandlabCellularAutomaton, Transition
+from celllab_cts import CellLabCTSModel, Transition
 import landlab
 
 
-class RasterLCA(LandlabCellularAutomaton):
+class HexCTS(CellLabCTSModel):
     """
-    Class RasterLCA implements a non-oriented raster CellLab-CTS model.
+    Class HexCTS implements a non-oriented hex-grid CellLab-CTS model.
     
     Example
     -------
-    >>> mg = landlab.RasterModelGrid(3, 4, 1.0)
+    >>> mg = landlab.HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
-    >>> rlca = RasterLCA(mg, nsd, xnlist, nsg)
-    WARNING: use of RasterLCA is deprecated.
-    Use RasterCTS instead.
-    WARNING: Use of LandlabCellularAutomaton is deprecated.
-    Use CellLabCTSModel instead.
+    >>> hcts = HexCTS(mg, nsd, xnlist, nsg)
     """
+    
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
         """
-        RasterLCA constructor: sets number of orientations to 1 and calls
+        HexCTS constructor: sets number of orientations to 1 and calls
         base-class constructor.
         
         Parameters
@@ -53,20 +51,18 @@ class RasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of RasterLCA is deprecated.'
-        print 'Use RasterCTS instead.'
         
         # Make sure caller has sent the right grid type        
-        assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
-               'model_grid must be a Landlab RasterModelGrid'
+        assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
+               'model_grid must be a Landlab HexModelGrid'
                
         # Define the number of distinct cell-pair orientations: here just 1,
-        # because RasterLCA represents a non-oriented CA model.
+        # because HexCTS represents a non-oriented CA model.
         self.number_of_orientations = 1
         
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(RasterLCA, self).__init__(model_grid, node_state_dict, 
+        super(HexCTS, self).__init__(model_grid, node_state_dict, 
             transition_list, initial_node_states, prop_data, prop_reset_value)
         
 
