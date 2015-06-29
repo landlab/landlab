@@ -206,9 +206,10 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         adjust_flow_receivers(fromnode, tonode, elev, link_slope,
                               active_links, receiver, receiver_link,
                               steepest_slope)
+        print 'after afr receiver = ',receiver
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            #print "looped method"
+            print "looped method"
             for i in xrange(len(fromnode)):
                 f = fromnode[i]
                 t = tonode[i]
@@ -226,6 +227,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
             #alternative, assuming grid structure doesn't change between steps
             #global neighbor_nodes
             #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
+            print 'alt'            
             try:
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max)
             except NameError:
@@ -259,6 +261,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     (sink, ) = np.where(node_id==receiver)
     sink = sink.astype(np.int, copy=False)
     
+    print 'about to return rcvr=',receiver
     return receiver, steepest_slope, sink, receiver_link
     
     
