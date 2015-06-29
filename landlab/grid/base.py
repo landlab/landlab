@@ -863,6 +863,71 @@ class ModelGrid(ModelDataFields):
             raise ValueError('only zero or one arguments accepted')
 
 
+    def node_activelinks2(self, *args):
+        """node_activelinks2([node_ids])
+        Link IDs of active link attached to one or more nodes.
+        
+        Parameters
+        ----------
+        node_ids : int or list of ints (optional)
+                   ID(s) of node(s) for which to find connected active links.
+                   (Default: all nodes)
+        
+        Returns
+        -------
+        (M, N) ndarray
+            The link IDs of active links attached to grid nodes with
+            *node_ids*. If *node_ids* is not given, return links for all of the
+            nodes in the grid. M is the number of rows in the grid's
+            node_active_inlink_matrix, which can vary depending on the type and
+            structure of the grid; in a hex grid, for example, it is 6.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(3, 2)
+        >>> hmg.node_activelinks2(3)
+        array([[-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [-1],
+               [ 0],
+               [ 1],
+               [ 2],
+               [ 3],
+               [ 4],
+               [ 5]])
+        >>> hmg.node_activelinks2()
+        array([[ 3,  5,  2, -1,  4,  1,  0],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
+               [-1, -1, -1,  2, -1, -1, -1],
+               [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  4, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1]])
+
+        """
+        if len(args) == 0:
+            return numpy.vstack((self.node_inlink_matrix,
+                                 self.node_outlink_matrix))
+        elif len(args) == 1:
+            node_ids = numpy.broadcast_arrays(args[0])[0]
+            return (
+                numpy.vstack(
+                    (self.node_inlink_matrix[:, node_ids],
+                     self.node_outlink_matrix[:, node_ids])
+                ).reshape(2*numpy.size(self.node_inlink_matrix, 0), -1))
+        else:
+            raise ValueError('only zero or one arguments accepted')
+
+
     def create_node_array_zeros(self, name=None, **kwds):
         """Return a new array of the given type, filled with zeros.
 
@@ -1919,6 +1984,29 @@ class ModelGrid(ModelDataFields):
         active outlinks for each node. These data structures are equivalent to
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 2)
+        >>> hg.node_numactiveinlink
+        array([1, 1, 1, 0, 1, 1, 1])
+        >>> hg.node_active_inlink_matrix2
+        array([[ 3,  5,  2, -1,  4,  1,  0],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1]])
+        >>> hg.node_numactiveoutlink
+        array([0, 0, 0, 6, 0, 0, 0])
+        >>> hg.node_active_outlink_matrix2
+        array([[-1, -1, -1,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
+               [-1, -1, -1,  2, -1, -1, -1],
+               [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  4, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1]])
         """
         # Create active in-link and out-link matrices.
         self.node_active_inlink_matrix = - numpy.ones(
@@ -1943,6 +2031,46 @@ class ModelGrid(ModelDataFields):
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
             
+        ## THE FOLLOWING IS MEANT TO REPLACE THE ABOVE CODE, USING LINK IDS
+        # FOR ACTIVE LINKS (ONLY), INSTEAD OF "ACTIVE LINK IDS". THE POINT IS
+        # TO HAVE JUST ONE ID/NUMBERING SYSTEM FOR LINKS, RATHER THAN A
+        # SEPARATE NUMBERING SYSTEM FOR ACTIVE LINKS
+        # GT JUNE 2015
+        # TODO: CLEAN THIS UP
+
+        # Create AN ALTERNATIVE VERSION OF active in-link and out-link matrices,
+        # WHICH WILL EVENTUALLY REPLACE THE ONE ABOVE (AND BE RENAMED TO GET
+        # RID OF THE "2")
+        # TODO: MAKE THIS CHANGE ONCE CODE THAT USES IT HAS BEEN PREPPED
+        self.node_active_inlink_matrix2 = - numpy.ones(
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
+        self.node_active_outlink_matrix2 = - numpy.ones(
+            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
+            
+        # Set up the inlink arrays
+        tonodes = self.link_tonode[self.active_links]
+        self.node_numactiveinlink = numpy.bincount(
+            tonodes, minlength=self.number_of_nodes)
+
+        # OK, HERE WE HAVE TO MAKE A CHANGE, BECAUSE THE INDICES RETURNED BY
+        # count_repeated_values ARE "ACTIVE LINK INDICES", WHICH WE ARE NO
+        # LONGER USING. HAVE TO TURN THESE BACK INTO LINK IDS. I THINK WE CAN
+        # DO THIS BY CHANGING active_link_ids TO
+        # self.active_links[active_link_ids] BUT HAVEN'T MADE THIS CHANGE YET.
+        # NEED TO WORK THROUGH EXAMPLE 3,2 HMG
+        counts = count_repeated_values(self.link_tonode[self.active_links])
+        for (count, (tonodes, active_link_ids)) in enumerate(counts):
+            self.node_active_inlink_matrix2[count][tonodes] = self.active_links[active_link_ids]
+
+        # Set up the outlink arrays
+        fromnodes = self.link_fromnode[self.active_links]
+        self.node_numactiveoutlink = numpy.bincount(
+            fromnodes, minlength=self.number_of_nodes)
+        counts = count_repeated_values(self.activelink_fromnode)
+        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
+            self.node_active_outlink_matrix2[count][fromnodes] = self.active_links[active_link_ids]
+            
+
     def _make_link_unit_vectors(self):
         """Makes arrays to store the unit vectors associated with each link.
         
