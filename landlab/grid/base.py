@@ -846,7 +846,7 @@ class ModelGrid(ModelDataFields):
 
     def node_activelinks2(self, *args):
         """node_activelinks2([node_ids])
-        Link IDs of active link attached to one or more nodes.
+        Link IDs of active links attached to one or more nodes.
         
         Parameters
         ----------
@@ -896,15 +896,15 @@ class ModelGrid(ModelDataFields):
 
         """
         if len(args) == 0:
-            return numpy.vstack((self.node_inlink_matrix,
-                                 self.node_outlink_matrix))
+            return numpy.vstack((self.node_active_inlink_matrix2,
+                                 self.node_active_outlink_matrix2))
         elif len(args) == 1:
             node_ids = numpy.broadcast_arrays(args[0])[0]
             return (
                 numpy.vstack(
-                    (self.node_inlink_matrix[:, node_ids],
-                     self.node_outlink_matrix[:, node_ids])
-                ).reshape(2*numpy.size(self.node_inlink_matrix, 0), -1))
+                    (self.node_active_inlink_matrix2[:, node_ids],
+                     self.node_active_outlink_matrix2[:, node_ids])
+                ).reshape(2*numpy.size(self.node_active_inlink_matrix2, 0), -1))
         else:
             raise ValueError('only zero or one arguments accepted')
 
