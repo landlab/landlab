@@ -9,9 +9,9 @@ import numpy
 from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
-from scipy import weave
 from scipy.optimize import newton, fsolve
-#from scipy.weave.build_tools import CompileError
+
+
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
 class SPEroder(object):
@@ -107,8 +107,6 @@ class SPEroder(object):
         else:
             self.nonlinear_flag = False
         
-        self.weave_flag = grid.weave_flag
-        
         def func_for_newton(x, last_step_elev, receiver_elev, alpha_by_flow_link_lengthtothenless1, n):
             y = x - last_step_elev + alpha_by_flow_link_lengthtothenless1*(x-receiver_elev)**n
             return y
@@ -174,29 +172,13 @@ class SPEroder(object):
         flow_receivers = self.grid['node']['flow_receiver']
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
-        if self.nonlinear_flag==False: #n==1
-            #print 'Linear'
-            method = 'cython'
-            if method in ('cython', 'weave'):
-                if method == 'cython':
-                    from .cfuncs import erode_with_alpha
-                else:
-                    from .weavefuncs import erode_with_alpha
+
+        method = 'cython'
+
+        if self.nonlinear_flag == False: #n==1
+            if method == 'cython':
+                from .cfuncs import erode_with_alpha
                 erode_with_alpha(upstream_order_IDs, flow_receivers, alpha, z)
-            #if self.weave_flag:
-            elif method == 'weave':
-                code = """
-                    int current_node;
-                    int j;
-                    for (int i = 0; i < n_nodes; i++) {
-                        current_node = upstream_order_IDs[i];
-                        j = flow_receivers[current_node];
-                        if (current_node != j) {
-                            z[current_node] = (z[current_node] + alpha[current_node]*z[j])/(1.0+alpha[current_node]);
-                        }
-                    }
-                """
-                weave.inline(code, ['n_nodes', 'upstream_order_IDs', 'flow_receivers', 'z', 'alpha'])
             else:
                 for i in upstream_order_IDs:
                     j = flow_receivers[i]
@@ -207,8 +189,8 @@ class SPEroder(object):
             self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
             alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
             n = float(self.n)
-            if self.weave_flag:
-                if n<1.:
+            if method == 'cython':
+                if n < 1.:
                     #this is SLOOOOOOOOOOOW...
                     for i in upstream_order_IDs:
                         j = flow_receivers[i]
@@ -217,11 +199,7 @@ class SPEroder(object):
                         if i != j:
                             z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
                 else:
-                    method = 'cython'
-                    if method == 'cython':
-                        from .cfuncs import erode_with_link_alpha
-                    elif method == 'weave':
-                        from .weavefuncs import erode_with_link_alpha
+                    from .cfuncs import erode_with_link_alpha
                     erode_with_link_alpha(upstream_order_IDs, flow_receivers,
                                           alpha_by_flow_link_lengthtothenless1,
                                           n, z)

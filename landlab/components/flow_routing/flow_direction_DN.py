@@ -10,8 +10,6 @@ Modified Feb 2014
 
 import numpy as np
 import inspect
-from scipy import weave
-from scipy.weave.build_tools import CompileError
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE
 from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
@@ -110,7 +108,7 @@ def grid_flow_directions(grid, elevations):
 
 
 def flow_directions(elev, active_links, fromnode, tonode, link_slope,
-                    grid=None, baselevel_nodes=None, use_weave=False):
+                    grid=None, baselevel_nodes=None):
     """Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
@@ -197,11 +195,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
     #presumably better if the grid is bigger)
     method = 'cython'
-    if method in ('cython', 'weave'):
-        if method == 'cython':
-            from .cfuncs import adjust_flow_receivers
-        elif method == 'weave':
-            from .weavefuncs import adjust_flow_receivers
+    if method == 'cython':
+        from .cfuncs import adjust_flow_receivers
 
         adjust_flow_receivers(fromnode, tonode, elev, link_slope,
                               active_links, receiver, receiver_link,

@@ -1,12 +1,11 @@
 import numpy as np
 from time import sleep
-from scipy import weave
 from landlab import ModelParameterDictionary
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
-from scipy.weave.build_tools import CompileError
 from landlab.grid.base import BAD_INDEX_VALUE
+
 
 class SedDepEroder(object):
     """
@@ -466,77 +465,74 @@ class SedDepEroder(object):
             transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
             shear_stress = shear_stress_prefactor_timesAparts*slopes_tothe07
             shear_tothe_a = shear_stress**self._a
-            
+
             dt_this_step = dt_secs-internal_t #timestep adjustment is made AFTER the dz calc
             node_vol_capacities = transport_capacities*dt_this_step
-            
+
             sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
             dz = np.zeros(grid.number_of_nodes, dtype=float)
             len_s_in = s_in.size
             cell_areas = self.cell_areas
-            try:
-                raise CompileError#tripped out deliberately for now; doesn't appear to accelerate much
-                weave.inline(self.routing_code, ['len_s_in', 'sed_into_node', 'transport_capacities', 'dz', 'cell_areas', 'dt_this_step', 'flow_receiver'])
-            except CompileError:
-                for i in s_in[::-1]: #work downstream
-                    try:
-                        cell_area = cell_areas[i]
-                    except TypeError: #it's a float, not an array
-                        cell_area = cell_areas
-                    sed_flux_into_this_node = sed_into_node[i]
-                    node_capacity = transport_capacities[i] #we work in volume flux, not volume per se here
-                    node_vol_capacity = node_vol_capacities[i]
-                    if sed_flux_into_this_node < node_vol_capacity: #note incision is forbidden at capacity
-#                        sed_flux_ratio = sed_flux_into_this_node/node_capacity
-#                        fqsqc=self.get_sed_flux_function(sed_flux_ratio)
-#                        try:
-#                            thresh = variable_thresh
-#                        except: #it doesn't exist
-#                            thresh = self.thresh
-#                        dz_here = self._K_unit_time*dt_this_step*fqsqc*(shear_tothe_a[i]-thresh).clip(0.) #let's define down as +ve
-#                        vol_pass_attempted = dz_here*cell_area + sed_flux_into_this_node
-#                        if vol_pass_attempted > node_vol_capacity:
-#                            #it's vital we don't allow the final node to erode more than it can remove from the node!!
-#                            #=>must modify dz_here, not just drop that sed
-#                            excess_volume = vol_pass_attempted-node_vol_capacity
-#                            dz_reduction = excess_volume/cell_area
-#                            dz_here -= dz_reduction
-#                            #add a "sneak" to stop the transition point developing into a sed deposition shock:
-#                            if dz_here < 0.:
-#                                #excess_vol_overhead += (dz_reduction-dz_here)*cell_area
-#                                #node_vol_capacities[flow_receiver[i]] += excess_vol_overhead
-#                                dz_here = 0. #this sed packet gets to be "excess overhead" -> it gets freely transported downstream.
-#                                #...but problems will arise if the system terminates before a boundary cell! (Mass leak)
-#                                #also, upstream node is still incising freely; it can't feel this.
-#                                #slopes can still reverse, if the initial gradient was small
-#                                #=>no node may incise more than the next node down in the previous tstep?
-#                                #could use this to set dt_internal... 
-#                                #do the "incising" part as normal, then pause once depo occurs,...
-#                                #then reduce dt_int so it can't dig further than the next node anywhere...
-#                                #then RERUN, don't scale dz
-#                            vol_pass = node_vol_capacity
-#                        else:
-#                            vol_pass = vol_pass_attempted
+
+            for i in s_in[::-1]: #work downstream
+                try:
+                    cell_area = cell_areas[i]
+                except TypeError: #it's a float, not an array
+                    cell_area = cell_areas
+                sed_flux_into_this_node = sed_into_node[i]
+                node_capacity = transport_capacities[i] #we work in volume flux, not volume per se here
+                node_vol_capacity = node_vol_capacities[i]
+                if sed_flux_into_this_node < node_vol_capacity: #note incision is forbidden at capacity
+#                    sed_flux_ratio = sed_flux_into_this_node/node_capacity
+#                    fqsqc=self.get_sed_flux_function(sed_flux_ratio)
+#                    try:
+#                        thresh = variable_thresh
+#                    except: #it doesn't exist
+#                        thresh = self.thresh
+#                    dz_here = self._K_unit_time*dt_this_step*fqsqc*(shear_tothe_a[i]-thresh).clip(0.) #let's define down as +ve
+#                    vol_pass_attempted = dz_here*cell_area + sed_flux_into_this_node
+#                    if vol_pass_attempted > node_vol_capacity:
+#                        #it's vital we don't allow the final node to erode more than it can remove from the node!!
+#                        #=>must modify dz_here, not just drop that sed
+#                        excess_volume = vol_pass_attempted-node_vol_capacity
+#                        dz_reduction = excess_volume/cell_area
+#                        dz_here -= dz_reduction
+#                        #add a "sneak" to stop the transition point developing into a sed deposition shock:
+#                        if dz_here < 0.:
+#                            #excess_vol_overhead += (dz_reduction-dz_here)*cell_area
+#                            #node_vol_capacities[flow_receiver[i]] += excess_vol_overhead
+#                            dz_here = 0. #this sed packet gets to be "excess overhead" -> it gets freely transported downstream.
+#                            #...but problems will arise if the system terminates before a boundary cell! (Mass leak)
+#                            #also, upstream node is still incising freely; it can't feel this.
+#                            #slopes can still reverse, if the initial gradient was small
+#                            #=>no node may incise more than the next node down in the previous tstep?
+#                            #could use this to set dt_internal... 
+#                            #do the "incising" part as normal, then pause once depo occurs,...
+#                            #then reduce dt_int so it can't dig further than the next node anywhere...
+#                            #then RERUN, don't scale dz
+#                        vol_pass = node_vol_capacity
+#                    else:
+#                        vol_pass = vol_pass_attempted
 ##implementing the pseudoimplicit method instead:
-                        try:
-                            thresh = variable_thresh
-                        except: #it doesn't exist
-                            thresh = self.thresh
-                        dz_prefactor = self._K_unit_time*dt_this_step*(shear_tothe_a[i]-thresh).clip(0.)
-                        vol_prefactor = dz_prefactor*cell_area
-                        dz_here, sed_flux_out, rel_sed_flux_here, error_in_sed_flux = self.get_sed_flux_function_pseudoimplicit(sed_flux_into_this_node, node_vol_capacity, vol_prefactor, dz_prefactor)
-                        #note now dz_here may never create more sed than the out can transport...
-                        assert sed_flux_out <= node_vol_capacity, 'failed at node '+str(s_in.size-i)+' with rel sed flux '+str(sed_flux_out/node_capacity)
-                        rel_sed_flux[i] = rel_sed_flux_here
-                        vol_pass = sed_flux_out#*dt_this_step
-                    else:
-                        rel_sed_flux[i] = 1.
-                        vol_dropped = sed_flux_into_this_node - node_vol_capacity
-                        dz_here = -vol_dropped/cell_area
-                        vol_pass = node_vol_capacity
-                    
-                    dz[i] -= dz_here
-                    sed_into_node[flow_receiver[i]] += vol_pass
+                    try:
+                        thresh = variable_thresh
+                    except: #it doesn't exist
+                        thresh = self.thresh
+                    dz_prefactor = self._K_unit_time*dt_this_step*(shear_tothe_a[i]-thresh).clip(0.)
+                    vol_prefactor = dz_prefactor*cell_area
+                    dz_here, sed_flux_out, rel_sed_flux_here, error_in_sed_flux = self.get_sed_flux_function_pseudoimplicit(sed_flux_into_this_node, node_vol_capacity, vol_prefactor, dz_prefactor)
+                    #note now dz_here may never create more sed than the out can transport...
+                    assert sed_flux_out <= node_vol_capacity, 'failed at node '+str(s_in.size-i)+' with rel sed flux '+str(sed_flux_out/node_capacity)
+                    rel_sed_flux[i] = rel_sed_flux_here
+                    vol_pass = sed_flux_out#*dt_this_step
+                else:
+                    rel_sed_flux[i] = 1.
+                    vol_dropped = sed_flux_into_this_node - node_vol_capacity
+                    dz_here = -vol_dropped/cell_area
+                    vol_pass = node_vol_capacity
+
+                dz[i] -= dz_here
+                sed_into_node[flow_receiver[i]] += vol_pass
             
 #            #perform the fractional-slope-change stability analysis
 #            elev_diff = node_z - node_z[flow_receiver]
