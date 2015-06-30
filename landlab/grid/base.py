@@ -1998,7 +1998,8 @@ class ModelGrid(ModelDataFields):
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
         self.node_numactiveinlink = numpy.bincount(
-            tonodes, minlength=self.number_of_nodes)
+            tonodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                            copy=False)
 
         counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
@@ -2007,7 +2008,8 @@ class ModelGrid(ModelDataFields):
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
         self.node_numactiveoutlink = numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes)
+            fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                              copy=False)
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
