@@ -1998,7 +1998,8 @@ class ModelGrid(ModelDataFields):
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
         self.node_numactiveinlink = numpy.bincount(
-            tonodes, minlength=self.number_of_nodes)
+            tonodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                            copy=False)
 
         counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
@@ -2007,7 +2008,8 @@ class ModelGrid(ModelDataFields):
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
         self.node_numactiveoutlink = numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes)
+            fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                              copy=False)
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
@@ -2031,7 +2033,8 @@ class ModelGrid(ModelDataFields):
         # Set up the inlink arrays
         tonodes = self.link_tonode[self.active_links]
         self.node_numactiveinlink = numpy.bincount(
-            tonodes, minlength=self.number_of_nodes)
+            tonodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                            copy=False)
 
         # OK, HERE WE HAVE TO MAKE A CHANGE, BECAUSE THE INDICES RETURNED BY
         # count_repeated_values ARE "ACTIVE LINK INDICES", WHICH WE ARE NO
@@ -2046,7 +2049,8 @@ class ModelGrid(ModelDataFields):
         # Set up the outlink arrays
         fromnodes = self.link_fromnode[self.active_links]
         self.node_numactiveoutlink = numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes)
+            fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
+                                                              copy=False)
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix2[count][fromnodes] = self.active_links[active_link_ids]
