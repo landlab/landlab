@@ -926,6 +926,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
          self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
              self.shape, node_status=node_status)
 
+        (self.node_active_inlink_matrix2,
+         self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
+             self.shape, node_status=node_status)
+
+        (self.node_active_outlink_matrix2,
+         self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
+             self.shape, node_status=node_status)
+
 
     def _reset_list_of_active_diagonal_links(self):
         '''
