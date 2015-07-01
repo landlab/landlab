@@ -1,4 +1,4 @@
-.. _compilers_in_windows:
+.. _compile_in_windows:
 
 ==============================================================
 Installing compilers for building Landlab on a Windows machine
@@ -14,6 +14,6 @@ of getting the necessary compilers, and getting Python talking to them.
     This process is only necessary if you want to build Landlab directly from its source
     code on your PC. This is necessary because some parts of Landlab use compiled C++
     code to accelerate things, using Cython. If you are using a binary install, as
-    described :ref:`here <install>`_, you don't need to do this.
+    described :ref:`here <install>`, you don't need to do this.
     
 

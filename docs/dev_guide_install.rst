@@ -20,7 +20,7 @@ is known as a pull request and is facilitated through the GitHub website.
     now if you don't have it! If you choose to use the EPD on a Windows
     machine, however, you'll need to install separately either Visual Basic
     or MinGW and successfully associate them with your Python install.
-    Help on this process can be found :ref:`here <compilers_in_windows>`_
+    Help on this process can be found :ref:`here <compile_in_windows>`.
     But unless you're really invested in Canopy
     and the EPD, uninstalling it and replacing with Anaconda is probably
     the more stress-free way to go.
@@ -110,9 +110,9 @@ pain-free results.
 Installing Landlab in developer mode
 ------------------------------------
 
-``Ensure you have installed with Xcode from the Apple app store (macs) or 
-:ref:`installed a working C++ compiler on your machine <compilers_in_windows>`_
-before proceeding with your developer install.``
+**Before you start:** Ensure you have installed with Xcode from the Apple app store 
+(macs) or :ref:`installed a working C++ compiler on your machine <compile_in_windows>`
+(PCs) before proceeding with your developer install.
 
 .. note::
 
