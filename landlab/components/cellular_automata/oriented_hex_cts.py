@@ -103,17 +103,16 @@ class OrientedHexCTS(CellLabCTSModel):
             1 = up and right (30 degrees clockwise from vertical)
             2 = horizontal (90 degrees clockwise from vertical)
         """
-        self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
-        for j in range(self.grid.number_of_active_links):
-            i = self.grid.active_links[j]
+        self.link_orientation = zeros(self.grid.number_of_links, dtype=int)
+        for i in range(self.grid.number_of_links):
             dy = self.grid.node_y[self.grid.link_tonode[i]]-self.grid.node_y[self.grid.link_fromnode[i]]
             dx = self.grid.node_x[self.grid.link_tonode[i]]-self.grid.node_x[self.grid.link_fromnode[i]]
             if dx <= 0.:
-                self.active_link_orientation[j] = 0
+                self.link_orientation[i] = 0
             elif dy<=0.:
-                self.active_link_orientation[j] = 2
+                self.link_orientation[i] = 2
             elif dx>0. and dy>0.:
-                self.active_link_orientation[j] = 1
+                self.link_orientation[i] = 1
             else:
                 assert (False), 'Non-handled link orientation case'
 
