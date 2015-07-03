@@ -9,14 +9,28 @@ pair-based CA.
 
 Created GT Sep 2014, starting from link_ca.py.
 """
+import warnings
 
-from .landlab_ca import LandlabCellularAutomaton, Transition
-import landlab
+from .landlab_ca import LandlabCellularAutomaton
+from ...grid import RasterModelGrid
 
 
 class RasterLCA(LandlabCellularAutomaton):
     """
     Class RasterLCA implements a non-oriented raster CellLab-CTS model.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.cellular_automata.landlab_ca import Transition
+    >>> from landlab.components.cellular_automata.raster_lca import RasterLCA
+
+    >>> mg = RasterModelGrid(3, 4, 1.0)
+    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> xnlist = []
+    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
+    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> rlca = RasterLCA(mg, nsd, xnlist, nsg)
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
@@ -40,13 +54,12 @@ class RasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of RasterLCA is deprecated.'
-        print 'Use RasterCTS instead.'
+        warnings.warn('use of RasterLCA is deprecated. Use RasterCTS instead.')
         
         # Make sure caller has sent the right grid type        
-        assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
-               'model_grid must be a Landlab RasterModelGrid'
-               
+        if not isinstance(model_grid, RasterModelGrid):
+            raise TypeError('model_grid must be a Landlab RasterModelGrid')
+
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.
         self.number_of_orientations = 1

@@ -10,6 +10,7 @@ stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
+import warnings
 
 from numpy import zeros
 import six
@@ -45,8 +46,8 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of OrientedRasterLCA is deprecated.'
-        print 'Use OrientedRasterCTS instead.'
+        warnings.warn('use of OrientedRasterLCA is deprecated. '
+                      'Use OrientedRasterCTS instead.')
                 
         if _DEBUG:
             six.print_('OrientedRasterLCA.__init__ here')
