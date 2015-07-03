@@ -174,6 +174,7 @@ class Transition():
         self.swap_properties = swap_properties
         
         
+        
 class Event():
     """
     Represents a transition event at a link. The transition occurs at a given
@@ -217,12 +218,14 @@ class Event():
         self.xn_to = xn_to
         self.propswap = propswap
         
+        
     def __lt__(self, other):
         """
         Overridden less-than operator: returns true if the event on the left
         has an earlier scheduled time than the event on the right
         """
         return self.time < other.time
+            
             
             
 class CAPlotter():
@@ -275,6 +278,7 @@ class CAPlotter():
         plt.draw()
         plt.pause(0.001)
         
+        
     def finalize(self):
         """
         Wraps up plotting by switching off interactive model and showing the
@@ -282,6 +286,7 @@ class CAPlotter():
         """        
         plt.ioff()
         plt.show()
+        
         
         
 class CellLabCTSModel(object):
@@ -843,10 +848,8 @@ class CellLabCTSModel(object):
             2) Update the link's state, choose its next transition, and push it on
             the event queue.
             3) Update the states of the other links attached to the two nodes, 
-            choose their next transitions, and push them on the event queue.
-            
+            choose their next transitions, and push them on the event queue.         
         """
-
         if _DEBUG:
             print
             print 'do_transition() for link',event.link
