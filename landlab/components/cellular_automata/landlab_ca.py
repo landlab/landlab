@@ -119,6 +119,7 @@ xn_rate : 2d array of floats (# possible link states x max. # transitions)
 
 Created GT Sep 2014, starting from link_ca.py.
 """
+import warnings
 
 from heapq import heappush
 from heapq import heappop
@@ -315,8 +316,8 @@ class LandlabCellularAutomaton(object):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: Use of LandlabCellularAutomaton is deprecated.'
-        print 'Use CellLabCTSModel instead.'        
+        warnings.warn('Use of LandlabCellularAutomaton is deprecated. '
+                      'Use CellLabCTSModel instead.')
         
         # Are we calling this from a subclass __init__? If so, then the 
         # variable self.number_of_orientations should already be defined.

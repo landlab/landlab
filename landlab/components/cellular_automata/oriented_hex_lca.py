@@ -10,6 +10,7 @@ raster. Hex grids are often used in CA models because of their symmetry.
 
 Created GT Sep 2014
 """
+import warnings
 
 from numpy import zeros
 from landlab_ca import LandlabCellularAutomaton, Transition
@@ -43,8 +44,8 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of OrientedHexLCA is deprecated.'
-        print 'Use OrientedHexCTS instead.'
+        warnings.warn('use of OrientedHexLCA is deprecated. '
+                      'Use OrientedHexCTS instead.')
         
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
