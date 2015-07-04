@@ -7,7 +7,7 @@ Created on Wed Mar 4 2015
 
 @author: danhobley
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid

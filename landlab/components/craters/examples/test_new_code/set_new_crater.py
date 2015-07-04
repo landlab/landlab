@@ -1,4 +1,4 @@
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary

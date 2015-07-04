@@ -1,4 +1,4 @@
-from six import print_ as print
+from __future__ import print_function
 import numpy as np
 from time import sleep
 from landlab import ModelParameterDictionary

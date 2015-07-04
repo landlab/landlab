@@ -13,7 +13,7 @@ a stochastic manner, each run of this driver will differ from the last run.
 Written by Jordan Marie Adams, 2013.
 
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from matplotlib import pyplot as plt
