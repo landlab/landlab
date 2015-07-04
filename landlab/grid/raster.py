@@ -2867,11 +2867,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if no_val_provided:
             #Set the gradients by reference to existing data on grid
             six.print_('Fixed gradients will be set according to existing data '
-<<<<<<< HEAD
                        'in the grid...')
-=======
-                      'in the grid...')
->>>>>>> 0bccc56d920d0896fa4544b4e2b9b7e4734c5115
             fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links] #this grid func gives slopes UP as positive
             fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
 
@@ -3277,11 +3273,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #Assemble a node index array which corresponds to this gradients array from which to draw the dstr IDs:
         neighbors_ENWS = (self.get_neighbor_list()).T
         dstr_id_source_array = np.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
-<<<<<<< HEAD
         most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, range(dstr_id_source_array.shape[1])]
-=======
-        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, xrange(dstr_id_source_array.shape[1])]
->>>>>>> 0bccc56d920d0896fa4544b4e2b9b7e4734c5115
         #But we only want to return an id if the "dstr" node is actually downstream! So ->
         downslope_nodes = np.where(max_slope > 0)
         dstr_node_ids[downslope_nodes] = most_negative_gradient_node_ids[downslope_nodes]
