@@ -8,6 +8,7 @@ simple two-state CA on a small grid.
 
 Created by Greg Tucker, May 2015
 """
+from __future__ import print_function
 
 import time
 from landlab import RasterModelGrid
@@ -113,7 +114,8 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time', current_time, '(',
+                  100 * current_time/run_duration, '%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step
@@ -130,6 +132,8 @@ def main():
     # Plot
     ca_plotter.finalize()
 
+    print('ok, here are the keys')
+    print(ca.__dict__.keys())
 
 # If user runs this file, activate the main() function
 if __name__ == "__main__":
