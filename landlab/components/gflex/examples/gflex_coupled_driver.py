@@ -6,7 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.gFlex.flexure import gFlex
 from landlab.components.flow_routing.route_flow_dn import FlowRouter

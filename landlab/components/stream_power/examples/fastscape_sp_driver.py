@@ -5,7 +5,7 @@ A simple driver implementing Braun-Willett flow routing and then a
 fastscape stream power component.
 DEJH, 09/15/14
 '''
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder

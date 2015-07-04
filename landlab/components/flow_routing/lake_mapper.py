@@ -4,7 +4,7 @@ Created on Sat May 30 14:01:10 2015
 
 @author: gtucker
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab import ModelParameterDictionary, Component, FieldError, FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError

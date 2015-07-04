@@ -3,7 +3,7 @@
 just a little script for testing the d8 flow routing class 
 and drainage area calculation 
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab import RasterModelGrid
 from landlab.examples.flowRoutingD8 import RouteFlowD8

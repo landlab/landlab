@@ -1,4 +1,4 @@
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 from landlab.components.diffusion.diffusion import LinearDiffuser #...the two different diffusion formulations

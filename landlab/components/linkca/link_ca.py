@@ -11,7 +11,7 @@ This change remains fully back compatible with GT's original version.
 Created GT Oct 2013, modified DEJH Aug 2014 to optionally use identifying pair 
 tuples, not just arbitrary IDs.
 """
-from six import print_ as print
+from __future__ import print_function
 
 from heapq import heappush
 from heapq import heappop

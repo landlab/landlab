@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
