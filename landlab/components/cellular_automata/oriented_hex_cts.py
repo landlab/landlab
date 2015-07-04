@@ -12,7 +12,7 @@ Created GT Sep 2014
 """
 
 from numpy import zeros
-from celllab_cts import CellLabCTSModel, Transition
+from celllab_cts import CellLabCTSModel
 import landlab
 
 
@@ -22,7 +22,10 @@ class OrientedHexCTS(CellLabCTSModel):
     
     Example
     -------
-    >>> mg = landlab.HexModelGrid(4, 3, 1.0)
+    >>> from landlab import HexModelGrid
+    >>> from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+    >>> from landlab.components.cellular_automata.celllab_cts import Transition
+    >>> mg = HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )

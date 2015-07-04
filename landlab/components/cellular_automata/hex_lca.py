@@ -11,22 +11,13 @@ raster. Hex grids are often used in CA models because of their symmetry.
 Created GT Sep 2014
 """
 
-from landlab_ca import LandlabCellularAutomaton, Transition
+from landlab_ca import LandlabCellularAutomaton
 import landlab
 
 
 class HexLCA(LandlabCellularAutomaton):
     """
     Class HexLCA implements a non-oriented hex-grid CellLab-CTS model.
-    
-    Example
-    -------
-    >>> mg = landlab.HexModelGrid(4, 3, 1.0)
-    >>> nsd = {0 : 'yes', 1 : 'no'}
-    >>> xnlist = []
-    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
-    >>> nsg = mg.add_zeros('node', 'node_state_grid')
-    >>> hlca = HexLCA(mg, nsd, xnlist, nsg)
     """
     
     def __init__(self, model_grid, node_state_dict, transition_list,
