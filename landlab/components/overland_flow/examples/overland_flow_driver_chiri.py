@@ -8,7 +8,7 @@ across a subwatershed in Chiricahua Mountains, Arizona.
 Written by Jordan Adams, Greg Tucker and Nicole Gasparini.
 
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab.components.overland_flow.generate_overland_flow_DEM import OverlandFlow
 from landlab.io import read_esri_ascii

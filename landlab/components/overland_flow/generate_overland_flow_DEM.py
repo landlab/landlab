@@ -10,7 +10,7 @@ Written by Greg Tucker, Nicole Gasparini and Jordan Adams
 
 
 """
-from six import print_ as print
+from __future__ import print_function
 
 from landlab import Component, ModelParameterDictionary
 from landlab.components.detachment_ltd_sed_trp.generate_detachment_ltd_transport import DetachmentLtdErosion

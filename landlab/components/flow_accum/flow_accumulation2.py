@@ -6,7 +6,7 @@
     
     Created DEJH, 8/2013
 """
-from six import print_ as print
+from __future__ import print_function
 
 import landlab
 from landlab import ModelParameterDictionary

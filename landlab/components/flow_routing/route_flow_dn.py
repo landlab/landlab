@@ -12,7 +12,7 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 Created GT Nov 2013
 Modified to save data to grid directly, DEJH March 2014
 """
-from six import print_ as print
+from __future__ import print_function
 
 import landlab
 #from landlab import RasterModelGrid

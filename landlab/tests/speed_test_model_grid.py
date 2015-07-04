@@ -2,7 +2,7 @@
 simple script to run speed tests of various functions in model grid
 """
 
-from six import print_ as print
+from __future__ import print_function
 import landlab as ll
 import time
 

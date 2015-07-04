@@ -8,7 +8,7 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
-from six import print_ as print
+from __future__ import print_function
 
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid

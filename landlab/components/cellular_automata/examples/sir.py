@@ -6,7 +6,7 @@ pair-transition rules.
 
 GT Sep 2014
 """
-from six import print_ as print
+from __future__ import print_function
 
 _DEBUG = False
 
