@@ -421,7 +421,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # a given vertex; in other words, two triangles are sharing an edge).
         #
         num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
-        num_links = 3*tri.nsimplex - num_shared_links/2
+        num_links = 3 * tri.nsimplex - num_shared_links // 2
         link_fromnode = numpy.zeros(num_links, dtype=int)
         link_tonode = numpy.zeros(num_links, dtype=int)
         
