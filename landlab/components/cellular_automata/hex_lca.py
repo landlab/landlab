@@ -10,6 +10,7 @@ raster. Hex grids are often used in CA models because of their symmetry.
 
 Created GT Sep 2014
 """
+import six
 
 from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
+import six
 
 from .voronoi import VoronoiDelaunayGrid
 

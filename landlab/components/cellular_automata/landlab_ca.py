@@ -129,6 +129,9 @@ import pylab as plt
 import six
 
 
+import six
+
+
 _NEVER = 1e50
 
 _DEBUG = False

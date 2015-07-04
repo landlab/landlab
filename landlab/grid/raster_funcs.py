@@ -767,15 +767,7 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
-        #print '\n', cell_id
-        #print '\n', a
         single_slope = (u[cell_id] - u[a])/grid.dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', grid.is_interior(cell_id), grid.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
         if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
             slopes.append(single_slope)
         else:
@@ -783,7 +775,6 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
             
     for a in diagonal_cells:
         single_slope = (u[cell_id] - u[a])/(diagonal_dx)
-        #print single_slope
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
@@ -793,8 +784,6 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
-    #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
@@ -843,8 +832,6 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     #We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = self.get_neighbor_list(cell_id)
     neighbor_cells.sort()
-    #print 'Node is internal: ', self.is_interior(cell_id)
-    #print 'Neighbor cells: ', neighbor_cells
 
     slopes = []
     for a in neighbor_cells:
@@ -855,25 +842,17 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
         #if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
         #    slopes.append(single_slope)
         #else:
         #    print 'NaNs present in the grid!'
         slopes.append(single_slope)
             
-    #print 'Slopes list: ', slopes
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
     #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
