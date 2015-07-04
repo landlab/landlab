@@ -68,8 +68,9 @@ class BaseGrid(object):
         >>> len(ngrid.links_entering_at_node(0)) == 0
         True
 
+        >>> tails, heads = zip(*links)
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
-        ...     node_status=[0, 0, 0, 4], links=zip(*links))
+        ...     node_status=[0, 0, 0, 4], links=[tails, heads])
         >>> grid.status_at_node
         array([0, 0, 0, 4])
         >>> len(grid.active_links_entering_at_node(0)) == 0
