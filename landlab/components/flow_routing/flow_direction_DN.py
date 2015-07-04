@@ -87,14 +87,14 @@ def grid_flow_directions(grid, elevations):
     nodes associated with the cells.
 
     >>> sink_cells = np.where(slope >= 0)[0]
-    >>> print sink_cells
+    >>> list(sink_cells)
     [2]
     >>> mg.node_index_at_cells[sink_cells] # Sink nodes
     array([8])
 
     The source/destination node pairs for the flow.
 
-    >>> zip(mg.node_index_at_cells, recv_nodes)
+    >>> list(zip(mg.node_index_at_cells, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
     slope, receiver = calculate_steepest_descent_across_cell_faces(
