@@ -102,17 +102,17 @@ class OrientedRasterCTS(CellLabCTSModel):
         This overrides the method of the same name in landlab_ca.py.
         """
         # Create array for the orientation of each active link
-        self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
+        self.link_orientation = zeros(self.grid.number_of_links, dtype=int)
     
         # Set its value according to the different in y coordinate between each
         # link's TO and FROM nodes (the numpy "astype" method turns the
         # resulting array into integer format)
-        dy = self.grid.node_y[self.grid.link_tonode[self.grid.active_links]] \
-             - self.grid.node_y[self.grid.link_fromnode[self.grid.active_links]]
-        self.active_link_orientation = dy.astype(int)
+        dy = self.grid.node_y[self.grid.link_tonode] \
+             - self.grid.node_y[self.grid.link_fromnode]
+        self.link_orientation = dy.astype(int)
         
         if _DEBUG:
-            print self.active_link_orientation
+            print self.link_orientation
             
             
 if __name__=='__main__':
