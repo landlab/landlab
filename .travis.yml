@@ -2,6 +2,7 @@ language: python
 python:
   - "2.6"
   - "2.7"
+  - "3.4"
 
 os:
   - linux
@@ -12,9 +13,6 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - source activate test-env
   - pip install coveralls
-  - if [[ "$TRAVIS_PYTHON_VERSION" == 3.* ]]; then
-      bash .ci/travis/convert_to_python_3.sh;
-    fi
   - python setup.py install
 
 script: 
