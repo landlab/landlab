@@ -2794,31 +2794,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         # Added DEJH Jan 2014
 
-        bottom_edge = range(0, self.number_of_node_columns)
-        if type(bottom_edge) != list:
-            bottom_edge = np.array([bottom_edge])
-        else:
-            bottom_edge = np.array(bottom_edge)
-        right_edge = range(2*self.number_of_node_columns - 1,
-                           self.number_of_nodes - 1,
-                           self.number_of_node_columns)
-        if type(right_edge) != list:
-            right_edge = np.array([right_edge])
-        else:
-            right_edge = np.array(right_edge)
-        top_edge = range((self.number_of_node_rows - 1) *
-                         self.number_of_node_columns, self.number_of_nodes)
-        if type(top_edge) != list:
-            top_edge = np.array([top_edge])
-        else:
-            top_edge = np.array(top_edge)
-        left_edge = range(self.number_of_node_columns,
-                          self.number_of_nodes - self.number_of_node_columns,
-                          self.number_of_node_columns)
-        if type(left_edge) != list:
-            left_edge = np.array([left_edge])
-        else:
-            left_edge = np.array(left_edge)
+        bottom_edge = np.arange(0, self.number_of_node_columns)
+        right_edge = np.arange(2 * self.number_of_node_columns - 1,
+                               self.number_of_nodes - 1,
+                               self.number_of_node_columns)
+        top_edge = np.arange((self.number_of_node_rows - 1) *
+                             self.number_of_node_columns, self.number_of_nodes)
+        left_edge = np.arange(self.number_of_node_columns,
+                              self.number_of_nodes - self.number_of_node_columns,
+                              self.number_of_node_columns)
 
         fixed_gradient_nodes = np.array([], dtype=int)
         fixed_gradient_linked_nodes = np.array([], dtype=int)
