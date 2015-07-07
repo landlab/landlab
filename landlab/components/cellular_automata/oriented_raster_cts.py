@@ -10,6 +10,7 @@ stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
+from __future__ import print_function
 
 from numpy import zeros
 
@@ -60,7 +61,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         """
         
         if _DEBUG:
-            print 'OrientedRasterCTS.__init__ here'
+            print('OrientedRasterCTS.__init__ here')
 
         # Make sure caller has sent the right grid type        
         if not isinstance(model_grid, RasterModelGrid):
@@ -76,10 +77,10 @@ class OrientedRasterCTS(CellLabCTSModel):
             transition_list, initial_node_states, prop_data, prop_reset_value)
             
         if _DEBUG:
-            print 'ORCTS:'
-            print self.n_xn
-            print self.xn_to
-            print self.xn_rate
+            print('ORCTS:')
+            print(self.n_xn)
+            print(self.xn_to)
+            print(self.xn_rate)
         
 
     def setup_array_of_orientation_codes(self):
@@ -115,7 +116,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         self.link_orientation = dy.astype(int)
         
         if _DEBUG:
-            print self.link_orientation
+            print(self.active_link_orientation)
             
             
 if __name__=='__main__':
