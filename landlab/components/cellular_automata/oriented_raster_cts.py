@@ -24,8 +24,9 @@ class OrientedRasterCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import RasterModelGrid
-    >>> from celllab_cts import Transition
-    >>> mg = landlab.RasterModelGrid(3, 4, 1.0)
+    >>> from landlab.components.cellular_automata.celllab_cts import Transition
+    >>> from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+    >>> mg = RasterModelGrid(3, 4, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )

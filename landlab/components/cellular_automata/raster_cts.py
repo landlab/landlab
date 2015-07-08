@@ -10,7 +10,7 @@ pair-based CA.
 Created GT Sep 2014, starting from link_ca.py.
 """
 
-from celllab_cts import CellLabCTSModel, Transition
+from celllab_cts import CellLabCTSModel
 import landlab
 
 
@@ -20,7 +20,10 @@ class RasterCTS(CellLabCTSModel):
     
     Example
     -------
-    >>> mg = landlab.RasterModelGrid(3, 4, 1.0)
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.cellular_automata.celllab_cts import Transition
+    >>> from landlab.components.cellular_automata.raster_cts import RasterCTS
+    >>> mg = RasterModelGrid(3, 4, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )

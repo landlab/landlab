@@ -130,9 +130,10 @@ def main():
     # Plot
     ca_plotter.finalize()
 
-    print 'ok, here are the keys'
-    print ca.__dict__.keys()
 
 # If user runs this file, activate the main() function
 if __name__ == "__main__":
+    #import cProfile
+    #fname = 'test_profiler_for_little_ca.txt'
+    #cProfile.run('print main(); print') #, fname)
     main()

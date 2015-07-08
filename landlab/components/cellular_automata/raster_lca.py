@@ -10,26 +10,13 @@ pair-based CA.
 Created GT Sep 2014, starting from link_ca.py.
 """
 
-from landlab_ca import LandlabCellularAutomaton, Transition
+from landlab_ca import LandlabCellularAutomaton
 import landlab
 
 
 class RasterLCA(LandlabCellularAutomaton):
     """
     Class RasterLCA implements a non-oriented raster CellLab-CTS model.
-    
-    Example
-    -------
-    >>> mg = landlab.RasterModelGrid(3, 4, 1.0)
-    >>> nsd = {0 : 'yes', 1 : 'no'}
-    >>> xnlist = []
-    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
-    >>> nsg = mg.add_zeros('node', 'node_state_grid')
-    >>> rlca = RasterLCA(mg, nsd, xnlist, nsg)
-    WARNING: use of RasterLCA is deprecated.
-    Use RasterCTS instead.
-    WARNING: Use of LandlabCellularAutomaton is deprecated.
-    Use CellLabCTSModel instead.
     """
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):

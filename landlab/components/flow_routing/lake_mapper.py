@@ -105,7 +105,7 @@ class DepressionFinderAndRouter(Component):
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = numpy.concatenate((self._node_nbrs, diag_nbrs), 1)
-            print 'NN',self._node_nbrs
+            #print 'NN',self._node_nbrs
                 
                 
     def find_pits(self):
@@ -144,17 +144,22 @@ class DepressionFinderAndRouter(Component):
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
         self.is_pit[self._grid.boundary_nodes] = False
         
-        # Get a list of active links; in a raster, this (TODO: optionally)
-        # includes diagonals.
-        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-            active_links = self._grid.d8_active_links()
-        else:
-            active_links = self._grid.active_links
+#        # Get a list of active links; in a raster, this (TODO: optionally)
+#        # includes diagonals.
+#        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+#            (active_links, tails, heads) = self._grid.d8_active_links()
+#        else:
+#            active_links = self._grid.active_links
+#            tails = self._grid.node_index_at_link_tail
+#            heads = self._grid.node_index_at_link_head
+#        print 'AL',active_links
+#        print 'T',tails
+#        print 'H',heads
         
         # Loop over all active links: if one of a link's two nodes is higher
         # than the other, the higher one is not a pit. Also, if they have
         # equal elevations and one is an open boundary, the other is not a pit.
-        for link in active_links:
+        for link in self._grid.active_links:
             h = self._grid.node_index_at_link_head[link]
             t = self._grid.node_index_at_link_tail[link]
             if self._elev[h] > self._elev[t]:
@@ -166,6 +171,27 @@ class DepressionFinderAndRouter(Component):
                     self.is_pit[t] = False
                 elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
                     self.is_pit[h] = False
+                    
+        # If we have a raster grid, handle the diagonal active links too
+        # (At the moment, their data structure is a bit different)
+        # TODO: update the diagonal link data structures
+        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if not self._grid._diagonal_links_created:
+                self._grid._setup_diagonal_links()
+            for i in range(len(self._grid._diag_active_links)):
+                h = self._grid._diag_activelink_tonode[i]
+                t = self._grid._diag_activelink_fromnode[i]
+                if self._elev[h] > self._elev[t]:
+                    self.is_pit[h] = False
+                elif self._elev[t] > self._elev[h]:
+                    self.is_pit[t] = False
+                elif self._elev[h] == self._elev[t]:
+                    if self._grid.node_boundary_status[h]==FIXED_VALUE_BOUNDARY:
+                        self.is_pit[t] = False
+                    elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
+                        self.is_pit[h] = False
+                    
+        
         
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = numpy.count_nonzero(self.is_pit)
@@ -294,7 +320,24 @@ class DepressionFinderAndRouter(Component):
       
                 
     def map_depressions(self):
+        """
+        Examples
+        --------
+        Test #1: 5x5 raster grid with a diagonal lake.
         
+        >>> from landlab import RasterModelGrid
+        >>> rg = RasterModelGrid(5, 5)
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = numpy.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
+        >>> df = DepressionFinderAndRouter(rg)
+        >>> df.map_depressions()
+        >>> df.display_depression_map()
+        . . . . .
+        . . . ~ .
+        . . ~ . .
+        . ~ . . .
+        o . . . .
+        """
         # Locate nodes with pits
         self.find_pits()
         
@@ -333,14 +376,15 @@ def main():
     """
     temporary: test.
     """
-    print 'howdy'
+    #print 'howdy'
     from landlab import RasterModelGrid
     from numpy.random import rand
     grid = RasterModelGrid(4, 5, 1.0)
     z = grid.add_zeros('node', 'topographic__elevation')
     z[:] = rand(len(z))*100
     print z
-    dep_finder = DepressionFinderAndRouter(grid, '/Users/gtucker/Dev/Landlab/gt_tests/test_inputs_for_depression_mapper.txt')
+    dep_finder = DepressionFinderAndRouter(grid)
+    #dep_finder = DepressionFinderAndRouter(grid, '/Users/gtucker/Dev/Landlab/gt_tests/test_inputs_for_depression_mapper.txt')
     #dep_finder.initialize()
     dep_finder.map_depressions()
     
@@ -375,6 +419,8 @@ def main():
     
     
 if __name__=='__main__':
+    import doctest
+    doctest.testmod()
     main()
 
     

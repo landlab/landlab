@@ -149,7 +149,7 @@ class Transition():
     For such a tuple, order is (left/bottom, right/top, orientation).
     """
     def __init__(self, from_state, to_state, rate, name=None, 
-                 swap_properties=False):
+                 swap_properties=False, prop_update_fn=None):
         """
         Transition() constructor sets 3 required properties and 2 optional
         properties for a transition from one cell pair to another.
@@ -172,6 +172,8 @@ class Transition():
         self.rate = rate
         self.name = name
         self.swap_properties = swap_properties
+        self.prop_update_fn = prop_update_fn
+        
         
         
 class Event():
@@ -195,7 +197,7 @@ class Event():
     >>> e2 < e1
     True
     """
-    def __init__(self, time, link, xn_to, propswap=False):
+    def __init__(self, time, link, xn_to, propswap=False, prop_update_fn=None):
         """
         Event() constructor sets 3 required properties and one optional
         property.
@@ -216,6 +218,8 @@ class Event():
         self.link = link
         self.xn_to = xn_to
         self.propswap = propswap
+        self.prop_update_fn = prop_update_fn
+        
         
     def __lt__(self, other):
         """
@@ -223,6 +227,7 @@ class Event():
         has an earlier scheduled time than the event on the right
         """
         return self.time < other.time
+            
             
             
 class CAPlotter():
@@ -275,6 +280,7 @@ class CAPlotter():
         plt.draw()
         plt.pause(0.001)
         
+        
     def finalize(self):
         """
         Wraps up plotting by switching off interactive model and showing the
@@ -282,6 +288,7 @@ class CAPlotter():
         """        
         plt.ioff()
         plt.show()
+        
         
         
 class CellLabCTSModel(object):
@@ -559,6 +566,7 @@ class CellLabCTSModel(object):
         self.xn_to = numpy.zeros((self.num_link_states, max_transitions), dtype=int)
         self.xn_rate = numpy.zeros((self.num_link_states, max_transitions))
         self.xn_propswap = numpy.zeros((self.num_link_states, max_transitions), dtype=bool)
+        self.xn_prop_update_fn = numpy.empty((self.num_link_states, max_transitions), dtype=object)
     
         # Populate the "to" and "rate" arrays
         self.n_xn[:] = 0  # reset this and then re-do (inefficient but should work)
@@ -567,6 +575,7 @@ class CellLabCTSModel(object):
             self.xn_to[from_state][self.n_xn[from_state]] = xn.to_state
             self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
             self.xn_propswap[from_state][self.n_xn[from_state]] = xn.swap_properties
+            self.xn_prop_update_fn[from_state][self.n_xn[from_state]] = xn.prop_update_fn
             self.n_xn[from_state] += 1
     
         if False and _DEBUG:
@@ -668,27 +677,30 @@ class CellLabCTSModel(object):
     
         # Find next event time for each potential transition
         if self.n_xn[current_state]==1:
-            xn = self.xn_to[current_state][0]
+            xn_to = self.xn_to[current_state][0]
             propswap = self.xn_propswap[current_state][0]
             next_time = numpy.random.exponential(1.0/self.xn_rate[current_state][0])
+            prop_update_fn = self.xn_prop_update_fn[current_state][0]
         else:
             next_time = _NEVER
-            xn = None
+            xn_to = None
             propswap = False
             for i in range(self.n_xn[current_state]):
                 this_next = numpy.random.exponential(1.0/self.xn_rate[current_state][i])
                 if this_next < next_time:
                     next_time = this_next
-                    xn = self.xn_to[current_state][i]
+                    xn_to = self.xn_to[current_state][i]
                     propswap = self.xn_propswap[current_state][i]
+                    prop_update_fn = self.xn_prop_update_fn[current_state][i]
 
         # Create and setup event, and return it
-        my_event = Event(next_time+current_time, link, xn, propswap)
+        my_event = Event(next_time+current_time, link, xn_to, propswap, prop_update_fn)
     
         if _DEBUG:
             print 'get_next_event():'
             print '  next_time:',my_event.time
             print '  link:',my_event.link
+            print '  xn:',my_event.xn
             print '  xn_to:',my_event.xn_to
             print '  propswap:',my_event.propswap
     
@@ -843,10 +855,8 @@ class CellLabCTSModel(object):
             2) Update the link's state, choose its next transition, and push it on
             the event queue.
             3) Update the states of the other links attached to the two nodes, 
-            choose their next transitions, and push them on the event queue.
-            
+            choose their next transitions, and push them on the event queue.         
         """
-
         if _DEBUG:
             print
             print 'do_transition() for link',event.link
