@@ -940,6 +940,8 @@ class CellLabCTSModel(object):
                     self.prop_data[self.propid[tail_node]] = self.prop_reset_value
                 if self.grid.node_status[head_node]!=landlab.grid.base.CORE_NODE:
                     self.prop_data[self.propid[head_node]] = self.prop_reset_value
+                if event.prop_update_fn is not None:
+                    event.prop_update_fn(self, tail_node, head_node)
                
             if _DEBUG:
                 n = self.grid.number_of_nodes
