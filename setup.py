@@ -1,20 +1,25 @@
 #! /usr/bin/env python
 
-from ez_setup import use_setuptools
-use_setuptools()
+#from ez_setup import use_setuptools
+#use_setuptools()
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 
 from distutils.extension import Extension
 
 import sys
-if 'setuptools.extension' in sys.modules:
-    m = sys.modules['setuptools.extension']
-    m.Extension.__dict__ = m._Extension.__dict__
 
-from Cython.Build import cythonize
+ext_modules = [
+    Extension('landlab.components.flexure.cfuncs',
+              ['landlab/components/flexure/cfuncs.pyx']),
+    Extension('landlab.components.flow_routing.cfuncs',
+              ['landlab/components/flow_routing/cfuncs.pyx']),
+    Extension('landlab.components.stream_power.cfuncs',
+              ['landlab/components/stream_power/cfuncs.pyx'])
+]
+
 import numpy as np
 
 from landlab import __version__
@@ -59,8 +64,8 @@ class develop_and_register(develop):
 
 import os
 
-cython_pathspec = os.path.join('landlab', 'components','**','*.pyx')
-ext_modules = cythonize(cython_pathspec)
+#cython_pathspec = os.path.join('landlab', 'components','**','*.pyx')
+#ext_modules = cythonize(cython_pathspec)
 
 
 setup(name='landlab',
@@ -75,7 +80,9 @@ setup(name='landlab',
                         'matplotlib',
                         'sympy',
                         'pandas',
-                        'Cython>=0.22'],
+                       ],
+      #                  'Cython>=0.22'],
+      setup_requires=['cython'],
       classifiers=[
           'Intended Audience :: Science/Research',
           'License :: OSI Approved :: MIT License',
