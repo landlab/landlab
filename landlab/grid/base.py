@@ -605,7 +605,7 @@ class ModelGrid(ModelDataFields):
         return self.link_fromnode
 
     @property
-    def node_index_at_link_tail(self):
+    def node_at_link_tail(self):
         """Node ID that defines the end of a link"""
         return self.link_tonode
 
@@ -1654,9 +1654,9 @@ class ModelGrid(ModelDataFields):
         if not hasattr(self, '_link_length'):
             self._link_length = self.empty(centering='link')
         dx = (self.node_x[self.node_at_link_head] -
-              self.node_x[self.node_index_at_link_tail])
+              self.node_x[self.node_at_link_tail])
         dy = (self.node_y[self.node_at_link_head] -
-              self.node_y[self.node_index_at_link_tail])
+              self.node_y[self.node_at_link_tail])
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
         return self._link_length
 

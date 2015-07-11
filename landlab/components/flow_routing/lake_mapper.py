@@ -161,8 +161,8 @@ class DepressionFinderAndRouter(Component):
         # than the other, the higher one is not a pit. Also, if they have
         # equal elevations and one is an open boundary, the other is not a pit.
         for link in self._grid.active_links:
-            h = self._grid.node_index_at_link_head[link]
-            t = self._grid.node_index_at_link_tail[link]
+            h = self._grid.node_at_link_head[link]
+            t = self._grid.node_at_link_tail[link]
             if self._elev[h] > self._elev[t]:
                 self.is_pit[h] = False
             elif self._elev[t] > self._elev[h]:

@@ -414,7 +414,7 @@ class TransportLimitedEroder(object):
                     node_z = grid.at_node[slopes_from_elevs]
                 else:
                     node_z = slopes_from_elevs
-                S_links = (node_z[grid.node_at_link_head]-node_z[grid.node_index_at_link_tail])/grid.link_length
+                S_links = (node_z[grid.node_at_link_head]-node_z[grid.node_at_link_tail])/grid.link_length
             else:
                 if link_slopes:
                     if type(link_slopes)==str:
