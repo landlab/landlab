@@ -83,7 +83,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_index_at_cells[cell_ids]
+    node_ids = grid.node_at_cell[cell_ids]
 
     neighbors = grid.get_neighbor_list(node_ids)
     if BAD_INDEX_VALUE!=-1:
@@ -141,7 +141,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
            [ 2.,  2., -1.,  0.]])
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_index_at_cells[cell_ids]
+    node_ids = grid.node_at_cell[cell_ids]
 
     values_at_diagonals = node_values[grid.get_diagonal_list(node_ids)]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
@@ -415,7 +415,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
+        node_ids = grid.diagonal_cells[grid.node_at_cell[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[range(len(cell_ids)), ind]
@@ -494,8 +494,8 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.get_neighbor_list()[grid.node_index_at_cells[cell_ids],ind]
-        #node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
+        node_ids = grid.get_neighbor_list()[grid.node_at_cell[cell_ids],ind]
+        #node_ids = grid.neighbor_nodes[grid.node_at_cell[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[range(len(cell_ids)), ind]
@@ -525,7 +525,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
         
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_index_at_cells[cell_ids]
+    node_ids = grid.node_at_cell[cell_ids]
     links = grid.active_node_links(node_ids).T
 
     if not isinstance(inds, np.ndarray):
@@ -580,7 +580,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
            [ 7, 17]])
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_index_at_cells[cell_ids]
+    node_ids = grid.node_at_cell[cell_ids]
     neighbors = grid.get_neighbor_list(node_ids)
 
     if not isinstance(inds, np.ndarray):
@@ -633,7 +633,7 @@ def node_id_of_cell_corner(grid, inds, *args):
            [ 8, 16]])
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_index_at_cells[cell_ids]
+    node_ids = grid.node_at_cell[cell_ids]
     diagonals = grid.get_diagonal_list(node_ids)
 
     if not isinstance(inds, np.ndarray):
@@ -821,7 +821,7 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     positive.  So, this was updated to return the max value, not the 
     min.
     """
-    node_id = self.node_index_at_cells[cell_id]
+    node_id = self.node_at_cell[cell_id]
     neighbor_nodes = self.get_neighbor_list(node_id)
 
     grads = (u[node_id] - u[neighbor_nodes]) / self.node_spacing

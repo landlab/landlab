@@ -18,7 +18,7 @@ grid = RasterModelGrid(53,67,10.)
 elev = np.load('elevation_NS.npy')
 grid['node']['Elevation'] = elev
 
-ids = grid.node_index_at_cells
+ids = grid.node_at_cell
 # Burroughs
 slope_Burrough, aspect_Burrough = \
     grid.calculate_slope_aspect_at_nodes_Burrough(ids,vals = 'Elevation')

@@ -433,26 +433,26 @@ def active_cell_node(shape):
     For many instances, core_cell_node() may be preferred.
     Indices of the nodes belonging to each active (core + open boundary) cell.
     Since all cells are active in the default case, this is the same as
-    node_index_at_cells.
+    node_at_cell.
 
     >>> from landlab.utils.structured_grid import active_cell_node
     >>> active_cell_node((4,3))
     array([4, 7])
     """
-    return node_index_at_cells(shape)
+    return node_at_cell(shape)
 
 
 def core_cell_node(shape):
     """
     Indices of the nodes belonging to each core cell.
     Since all cells are core in the default case, this is the same as
-    node_index_at_cells.
+    node_at_cell.
 
     >>> from landlab.utils.structured_grid import core_cell_node
     >>> core_cell_node((4,3))
     array([4, 7])
     """
-    return node_index_at_cells(shape)
+    return node_at_cell(shape)
 
 
 def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
@@ -530,12 +530,12 @@ def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     return node_ids
 
 
-def node_index_at_cells(shape):
+def node_at_cell(shape):
     """
     Indices of the nodes belonging to each cell.
 
-    >>> from landlab.utils.structured_grid import node_index_at_cells
-    >>> node_index_at_cells((4, 3))
+    >>> from landlab.utils.structured_grid import node_at_cell
+    >>> node_at_cell((4, 3))
     array([4, 7])
     """
     node_ids = np.arange(node_count(shape))

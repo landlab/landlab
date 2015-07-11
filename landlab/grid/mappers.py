@@ -122,7 +122,7 @@ def map_values_from_cell_node_to_cell(mg, var_name):
     values_at_nodes = mg.at_node[var_name]
     mg.add_empty('cell', var_name)
     values_at_cells = mg.at_cell[var_name]
-    values_at_cells[:] = values_at_nodes[mg.node_index_at_cells]
+    values_at_cells[:] = values_at_nodes[mg.node_at_cell]
 
 def map_inlink_sums_to_node(mg, var_name):
     '''
@@ -293,4 +293,3 @@ def map_average_all_links_to_node(mg, var_name):
     number_of_links = number_of_links.flatten()
     number_of_links.astype(float)
     values_at_nodes[:] = (values_at_links[north]+values_at_links[east]+values_at_links[south]+values_at_links[west])/(number_of_links)
-
