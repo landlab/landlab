@@ -21,7 +21,7 @@ class RasterCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.cellular_automata.celllab_cts import Transition
+    >>> from landlab.components.cellular_automata.landlab_ca import Transition
     >>> from landlab.components.cellular_automata.raster_cts import RasterCTS
 
     >>> mg = RasterModelGrid(3, 4, 1.0)
