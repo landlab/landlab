@@ -425,6 +425,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a float.
 
+        >>> from __future__ import print_function
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
@@ -432,7 +433,7 @@ class ModelParameterDictionary(dict):
         ... MY_FLOAT:
         ... 3.14
         ... '''))
-        >>> round(params.read_float('MY_FLOAT'), 3)
+        >>> print('%.2f' % params.read_float('MY_FLOAT'))
         3.14
 
         An error is generated if *key* isn't in the dictionary or

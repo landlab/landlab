@@ -21,7 +21,7 @@ def get_flexure_parameter(h, E, n_dim):
 
     Example
     -------
-
+    >>> from __future__ import print_function
     >>> from landlab.components.flexure.funcs import get_flexure_parameter
 
     >>> eet = 65000.
@@ -31,7 +31,7 @@ def get_flexure_parameter(h, E, n_dim):
     120542.629
 
     >>> alpha = get_flexure_parameter(eet, youngs, 2)
-    >>> round(alpha,2)
+    >>> print('%.2f' % alpha)
     85236.51
     """
     D = E * pow(h, 3) / 12. / (1. - pow(_POISSON, 2))
