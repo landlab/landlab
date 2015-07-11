@@ -83,25 +83,25 @@ def grid_flow_directions(grid, elevations):
     array([-1., -1.,  0., -2., -2., -1.])
 
     If a cell has no surrounding neighbors lower than itself, it is a sink.
-    Use :attr:`~landlab.grid.base.ModelGrid.node_index_at_cells` to get the
+    Use :attr:`~landlab.grid.base.ModelGrid.node_at_cell` to get the
     nodes associated with the cells.
 
     >>> sink_cells = np.where(slope >= 0)[0]
     >>> list(sink_cells)
     [2]
-    >>> mg.node_index_at_cells[sink_cells] # Sink nodes
+    >>> mg.node_at_cell[sink_cells] # Sink nodes
     array([8])
 
     The source/destination node pairs for the flow.
 
-    >>> list(zip(mg.node_index_at_cells, recv_nodes))
+    >>> list(zip(mg.node_at_cell, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
     slope, receiver = calculate_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
     (sink_cell, ) = np.where(slope >= 0.)
-    receiver[sink_cell] = grid.node_index_at_cells[sink_cell]
+    receiver[sink_cell] = grid.node_at_cell[sink_cell]
     slope[sink_cell] = 0.
 
     return receiver, slope

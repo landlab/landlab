@@ -446,7 +446,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = sgrid.node_index_at_cells(self.shape)
+        self.cell_node = sgrid.node_at_cell(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
@@ -4089,14 +4089,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             s, a len(ids) array of slopes at each node provided.
             a, a len(ids) array of aspects at each node provided.
         """
-        if ids==None:
-            ids = self.node_index_at_cells
+        if ids == None:
+            ids = self.node_at_cell
         if type(ids) != np.ndarray:
             ids = np.array([ids])
         if type(vals) == str:
             vals = self.at_node[vals]
         else:
-            if not (len(vals)==self.number_of_nodes):
+            if len(vals) != self.number_of_nodes:
                 raise IndexError('*vals* was not of a compatible length!')
 
         neighbors = np.zeros([ids.shape[0],4], dtype = int)
