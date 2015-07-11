@@ -600,7 +600,7 @@ class ModelGrid(ModelDataFields):
         return self.core_cells
 
     @property
-    def node_index_at_link_head(self):
+    def node_at_link_head(self):
         """Node ID that defines the start of a link"""
         return self.link_fromnode
 
@@ -1653,9 +1653,9 @@ class ModelGrid(ModelDataFields):
         """
         if not hasattr(self, '_link_length'):
             self._link_length = self.empty(centering='link')
-        dx = (self.node_x[self.node_index_at_link_head] -
+        dx = (self.node_x[self.node_at_link_head] -
               self.node_x[self.node_index_at_link_tail])
-        dy = (self.node_y[self.node_index_at_link_head] -
+        dy = (self.node_y[self.node_at_link_head] -
               self.node_y[self.node_index_at_link_tail])
         numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
         return self._link_length

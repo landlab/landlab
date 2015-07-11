@@ -551,7 +551,7 @@ def node_index_at_link_ends(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
 
-    return (node_index_at_link_head(node_ids),
+    return (node_at_link_head(node_ids),
             node_index_at_link_tail(node_ids))
 
 
@@ -569,7 +569,7 @@ def node_index_at_link_tail(node_ids):
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def node_index_at_link_head(node_ids):
+def node_at_link_head(node_ids):
     vertical_links = node_ids[:-1, :]
     horizontal_links = node_ids[:, :-1]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
