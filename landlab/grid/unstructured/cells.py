@@ -1,4 +1,5 @@
 import numpy as np
+from six.moves import range
 
 from ...utils.jaggedarray import JaggedArray
 
@@ -52,8 +53,8 @@ class CellGrid(object):
         if node_at_cell:
             self._node_at_cell = np.array(node_at_cell)
             self._cell_at_node = np.ma.masked_all(max(node_at_cell) + 1, dtype=int)
-            self._cell_at_node[self._node_at_cell] = xrange(len(node_at_cell))
-            #self._cell_id_map = dict(zip(node_at_cell, xrange(len(node_at_cell))))
+            self._cell_at_node[self._node_at_cell] = range(len(node_at_cell))
+            #self._cell_id_map = dict(zip(node_at_cell, range(len(node_at_cell))))
 
     @property
     def number_of_cells(self):
@@ -81,7 +82,7 @@ class CellGrid(object):
         ndarray :
             Nodes entering and leaving each node
         """
-        for cell in xrange(self.number_of_cells):
+        for cell in range(self.number_of_cells):
             yield self.vertices_at_cell(cell)
 
     @property

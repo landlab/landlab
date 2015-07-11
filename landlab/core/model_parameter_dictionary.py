@@ -10,7 +10,7 @@ particular parameters by key name.
 
 The format of the input file looks like::
 
-    >>> from StringIO import StringIO
+    >>> from six import StringIO
     >>> param_file = StringIO('''
     ... PI: the text "PI" is an example of a KEY
     ... 3.1416
@@ -74,8 +74,8 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 
 import warnings
-import types
- 
+import six
+
 import scipy.io
 import numpy as np
 
@@ -153,7 +153,7 @@ class ModelParameterDictionary(dict):
 
     Create a file-like object that contains a model parameter dictionary.
 
-    >>> from StringIO import StringIO
+    >>> from six import StringIO
     >>> test_file = StringIO('''
     ... INT_VAL:
     ... 1
@@ -179,27 +179,27 @@ class ModelParameterDictionary(dict):
     The returned ModelParameterDictionary can now be used just like a
     regular Python dictionary to get items, keys, etc.
 
-    >>> print sorted(params.keys())
+    >>> sorted(params.keys())
     ['BOOL_VAL', 'DBL_ARRAY', 'DBL_VAL', 'INT_ARRAY', 'INT_VAL', 'STR_VAL']
 
-    >>> print params['INT_VAL']
+    >>> params['INT_VAL']
     1
-    >>> print params['DBL_VAL']
+    >>> params['DBL_VAL']
     1.2
-    >>> print params['BOOL_VAL']
+    >>> params['BOOL_VAL']
     True
-    >>> print params['STR_VAL']
-    landlab is awesome!
+    >>> params['STR_VAL']
+    'landlab is awesome!'
 
     Lines containing commas are converted to numpy arrays. The type of the
     array is determined by the values.
 
     >>> isinstance(params['DBL_ARRAY'], np.ndarray)
     True
-    >>> print params['INT_ARRAY']
-    [1 2 3]
-    >>> print params['DBL_ARRAY']
-    [ 1.  2.  3.]
+    >>> params['INT_ARRAY']
+    array([1, 2, 3])
+    >>> params['DBL_ARRAY']
+    array([ 1.,  2.,  3.])
     """
     def __init__(self, from_file=None, auto_type=False):
         super(ModelParameterDictionary, self).__init__()
@@ -226,7 +226,7 @@ class ModelParameterDictionary(dict):
             - The key must be followed by a space, colon, or eol
             - The parameter can be numeric or text
         """
-        if isinstance(param_file, types.StringTypes):
+        if isinstance(param_file, six.string_types):
             try:
                 with open(param_file, 'r') as opened_file:
                     self._read_from_file_like(opened_file)
@@ -324,7 +324,7 @@ class ModelParameterDictionary(dict):
         argument after *key* is provided, use it as a default in case *key*
         is not contained in the ModelParameterDictionary.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -362,7 +362,7 @@ class ModelParameterDictionary(dict):
             >>> bool('')
             False
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_BOOL:
@@ -406,7 +406,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as an integer.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -425,14 +425,15 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a float.
 
-        >>> from StringIO import StringIO
+        >>> from __future__ import print_function
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_FLOAT:
         ... 3.14
         ... '''))
-        >>> print round(params.read_float('MY_FLOAT'), 6)
+        >>> print('%.2f' % params.read_float('MY_FLOAT'))
         3.14
 
         An error is generated if *key* isn't in the dictionary or
@@ -451,7 +452,7 @@ class ModelParameterDictionary(dict):
         """
         Locate *key* in the input file and return it as a string.
 
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -471,7 +472,7 @@ class ModelParameterDictionary(dict):
 
     def read_bool(self, key):
         """
-        >>> from StringIO import StringIO
+        >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3 import TransportLimitedEroder
 #from landlab.components.transport_limited_fluvial.tl_fluvial_polydirectional import TransportLimitedEroder
@@ -29,7 +31,7 @@ dt = inputs.read_float('dt')
 
 nt = int(runtime//dt)
 uplift_per_step = uplift_rate * dt
-print 'uplift per step: ', uplift_per_step
+print('uplift per step: ', uplift_per_step)
 
 #instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
@@ -45,10 +47,10 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 #set up grid's boundary conditions (bottom, left, top, right is inactive)
 mg.set_inactive_boundaries(False, True, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic__elevation')
-print 'fixed vals in grid: ', mg.fixed_value_node_properties['values']
+print('fixed vals in grid: ', mg.fixed_value_node_properties['values'])
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -70,9 +72,9 @@ for i in xrange(nt):
     mg_copy = deepcopy(mg)
     mg,_ = tl.erode(mg,dt,stability_condition='loose')
     if i%20 == 0:
-        print 'loop ', i
-        print 'subdivisions of dt used: ', tl.iterations_in_dt
-        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes])
+        print('loop ', i)
+        print('subdivisions of dt used: ', tl.iterations_in_dt)
+        print('max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes]))
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                         mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
@@ -83,7 +85,7 @@ for i in xrange(nt):
     #vid.add_frame(mg, 'topographic__elevation')
     
  
-print 'Completed the simulation. Plotting...'
+print('Completed the simulation. Plotting...')
 
 time_off = time()
 
@@ -93,7 +95,7 @@ elev = mg['node']['topographic__elevation']
 #imshow.imshow_node_grid(mg, elev)
 
 print('Done.')
-print 'Time: ', time_off-time_on
+print('Time: ', time_off-time_on)
 
 #pylab.show()
 

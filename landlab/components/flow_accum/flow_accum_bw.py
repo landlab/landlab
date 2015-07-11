@@ -24,7 +24,7 @@ If you simply want the ordered list by itself, use:
 
 Created: GT Nov 2013
 """
-
+from six.moves import range
 
 import numpy
 
@@ -69,7 +69,7 @@ class _DrainageStack():
         delta_l = int(numpy.take(delta,l))
         delta_lplus1 = int(numpy.take(delta,l+1))
 
-        for n in xrange(delta_l, delta_lplus1):
+        for n in range(delta_l, delta_lplus1):
             m = self.D[n]
             if m != l:
                 self.add_to_stack(m)
@@ -105,7 +105,7 @@ def _make_number_of_donors_array(r):
     # Vectorized, DEJH, 5/20/14
 #    np = len(r)
 #    nd = numpy.zeros(np, dtype=int)
-#    for i in xrange(np):
+#    for i in range(np):
 #        nd[r[i]] += 1
 
     nd = numpy.zeros(r.size, dtype=int)
@@ -138,7 +138,7 @@ def _make_delta_array(nd):
     #np = len(nd)
     #delta = numpy.zeros(np+1, dtype=int)
     #delta[np] = np   # not np+1 as in B&W because here we number from 0
-    #for i in xrange(np-1, -1, -1):
+    #for i in range(np-1, -1, -1):
     #    delta[i] = delta[i+1] - nd[i]
     #return delta
 
@@ -175,7 +175,7 @@ def _make_array_of_donors(r, delta):
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
 
-    for i in xrange(np):
+    for i in range(np):
         ri = r[i]
         D[delta[ri]+w[ri]] = i
         w[ri] += 1
@@ -286,7 +286,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
     num_pts = len(s)
-    for i in xrange(np-1, -1, -1):
+    for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
         if donor != recvr:

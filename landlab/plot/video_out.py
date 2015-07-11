@@ -22,7 +22,7 @@ PYTHONPATH to allow .mp4 compilation (try a google search for the warning raised
 by this method for some hints). These (known) issues are apparently likely to 
 resolve themselves in a future release of matplotlib.
 """
-
+import six
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -122,14 +122,14 @@ class VideoPlotter(object):
 
         if self.step_control_tuple[0]<=elapsed_t<self.step_control_tuple[1]: #we're between start & stop
             if not self.step_control_tuple[2]: #no step provided
-                print 'Adding frame to video at elapsed time ', elapsed_t
+                six.print_('Adding frame to video at elapsed time %f' % elapsed_t)
                 self.data_list.append(data_in.copy())
             else:
                 excess_fraction = normalized_elapsed_t%self.step_control_tuple[2]
                 # Problems with rounding errors make this double check
                 # necessary
                 if excess_fraction < self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]):
-                    print 'Adding frame to video at elapsed time ', elapsed_t
+                    six.print_('Adding frame to video at elapsed time %f' % elapsed_t)
                     self.data_list.append(data_in.copy())
                 self.last_remainder = excess_fraction
         self.last_t = elapsed_t
@@ -147,7 +147,7 @@ class VideoPlotter(object):
         override_min_max allows the user to set their own maximum and minimum
             for the scale on the plot. Use a len-2 tuple, (min, max).
         """
-        print "Assembling video output, may take a while..."
+        six.print_("Assembling video output, may take a while...")
         plt.figure(self.randomized_name)
         #find the limits for the plot:
         if not override_min_max:

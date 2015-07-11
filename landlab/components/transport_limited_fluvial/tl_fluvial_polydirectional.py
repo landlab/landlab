@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 from landlab import ModelParameterDictionary
 from time import sleep
@@ -164,7 +166,7 @@ class TransportLimitedEroder(object):
         try:
             self.shields_crit = inputs.read_float('threshold_shields')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a threshold to use: ", self.shields_crit
+            print("Found a threshold to use: ", self.shields_crit)
             assert self.lamb_flag == False
         except MissingKeyError:
             if not self.lamb_flag:
@@ -215,7 +217,7 @@ class TransportLimitedEroder(object):
         self.k_w = inputs.read_float('k_w')
         mannings_n = inputs.read_float('mannings_n')
         if mannings_n<0. or mannings_n>0.2:
-            print "***STOP. LOOK. THINK. You appear to have set Manning's n outside it's typical range. Did you mean it? Proceeding...***"
+            print("***STOP. LOOK. THINK. You appear to have set Manning's n outside it's typical range. Did you mean it? Proceeding...***")
             sleep(2)
         self.depth_prefactor = self.rho_g*mannings_n*(self.k_Q**(1.-self._b)/self.k_w)**0.6
         ##Note the depth_prefactor we store already holds rho*g   

@@ -96,7 +96,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.empty(self.size, **kwds)
@@ -126,7 +126,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.ones(self.size, **kwds)
@@ -154,7 +154,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.zeros(self.size, **kwds)
@@ -225,7 +225,7 @@ class ScalarDataFields(dict):
         >>> field = ScalarDataFields(4)
         >>> field.add_ones('topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
-        >>> field.keys()
+        >>> list(field.keys())
         ['topographic__elevation']
         >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])

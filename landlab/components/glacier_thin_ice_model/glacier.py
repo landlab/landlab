@@ -5,6 +5,7 @@ import numpy as np
 import datetime as datetime
 from scipy.sparse import csr_matrix
 from scipy.sparse import linalg
+import six
 
 
 class Glacier(Component):
@@ -76,8 +77,8 @@ class Glacier(Component):
 			# print self.S[0:5]
 			self.ALPHA_I = 100*np.sum(self.S > self.B)/float(self.N)
 			
-			print 'BKS: At t={:8.2f} yr ALPHA_I={:.2f}% and maxima are: H({:d}) = {:f} \
-			S({:d})={:f}\n'.format(self.t, self.ALPHA_I, self.k_H_max, self.H_max, self.k_S_max, self.S_max)
+			six.print_('BKS: At t={:8.2f} yr ALPHA_I={:.2f}% and maxima are: H({:d}) = {:f} \
+			S({:d})={:f}\n'.format(self.t, self.ALPHA_I, self.k_H_max, self.H_max, self.k_S_max, self.S_max))
 
 			### Stop iterating until the final timestep
 			if self.t > self.t_STOP:
@@ -99,7 +100,7 @@ class Glacier(Component):
 				self.grid['node']['ice_thickness'] = H_map
 				now = datetime.datetime.now().strftime('%H:%M:%S')
 				file_str = 'S_map.txt'
-				print 'main(): Output stored in file "{:s}" at time {:s} \n'.format(file_str,now)
+				six.print_('main(): Output stored in file "{:s}" at time {:s} \n'.format(file_str,now))
 				break
 
 	def step(self): 
@@ -174,7 +175,7 @@ class Glacier(Component):
 			self.D_ic_JC = A_tilde*H_ic_JC_up*np.power(H_ic_JC,npl)*np.power(S2_ic_JC,nm_half) \
 					+ C_tilde*H_ic_JC_up*np.power(H_ic_JC,ml)*np.power(S2_ic_JC,mm_half)
 		else:
-			print 'diffusion(): C_tilde is undefined or incorrectly defined'
+			six.print_('diffusion(): C_tilde is undefined or incorrectly defined')
 			
 		self.D_IP_jc  = self.D_IC_jc[self.ip_jc]
 		self.D_ic_JP  = self.D_ic_JC[self.ic_jp]

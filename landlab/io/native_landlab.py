@@ -6,7 +6,7 @@ Read data from an ESRI ASCII file into a RasterModelGrid
 import os
 import types
 import re
-import cPickle
+from six.moves import cPickle
 from landlab import ModelGrid
 import numpy as np
 
@@ -53,7 +53,8 @@ def save_grid(grid, path, clobber=False):
         ext = ext+'.grid'
     path = base+ext
 
-    cPickle.dump(grid, open(path, 'wb'))
+    with open(path, 'wb') as fp:
+        cPickle.dump(grid, fp)
 
 
 def load_grid(path):
@@ -90,7 +91,8 @@ def load_grid(path):
     if ext != '.grid':
         ext = ext+'.grid'
     path = base+ext
-    loaded_grid = cPickle.load(open(path,'rb'))       
+    with open(path, 'rb') as fp:
+        loaded_grid = cPickle.load(fp)
     assert issubclass(type(loaded_grid), ModelGrid)
     return loaded_grid
 

@@ -3,6 +3,7 @@
 just a little script for testing the d8 flow routing class 
 and drainage area calculation 
 """
+from __future__ import print_function
 
 from landlab import RasterModelGrid
 import flow_routing_D8
@@ -70,14 +71,14 @@ def main():
     #for i in range(0,nr):
     #    flipped_elev_raster[i,:] = elev_raster[(nr-i-1),:]
     #imshow(flipped_elev_raster)
-    print 'elevation raster'
-    print elev_raster
+    print('elevation raster')
+    print(elev_raster)
     #imshow(elev_raster)
     #colorbar()
     #show()
     
-    print 'flow direction raster'
-    print fd_raster
+    print('flow direction raster')
+    print(fd_raster)
     
     da_raster = rg.node_vector_to_raster(drain_area)
     #contour(elev_raster)

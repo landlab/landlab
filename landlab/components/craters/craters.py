@@ -17,6 +17,7 @@ import scipy.optimize as opt
 from sympy import Symbol
 from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
+import six
 
 from landlab import RasterModelGrid #this is the tMesh equivalent module
 
@@ -174,7 +175,7 @@ class impactor(object):
         self._radius = self._minimum_crater*(random())**-0.345
         if self._radius > self._max_complex_cr_radius:
             data.craters_over_max_radius_not_plotted.append(self._radius)
-            print 'Drew a crater above the maximum permitted size. Drawing a new crater...'
+            six.print_('Drew a crater above the maximum permitted size. Drawing a new crater...')
             self.set_size(data)
 
 
@@ -217,7 +218,7 @@ class impactor(object):
         self._radius = 0.5 * self.solve_ivanov_for_crater_diam(random())
         if self._radius > self._max_complex_cr_radius:
             data.craters_over_max_radius_not_plotted.append(self._radius)
-            print 'Drew a crater above the maximum permitted size. Drawing a new crater...'
+            six.print_('Drew a crater above the maximum permitted size. Drawing a new crater...')
             self.set_size(data)
 
     
@@ -247,7 +248,7 @@ class impactor(object):
             self._complex_peak_radius = self.get_complex_peak_radius()
             self._complex_peak_str_uplift = self.get_complex_peak_str_uplift()
         
-        print 'Depth: ', self._depth
+        six.print_('Depth: ', self._depth)
 
                 
     def set_crater_volume(self):
@@ -308,8 +309,8 @@ class impactor(object):
         except:
             self.surface_slope = 1.e-10
             self.surface_dip_direction = self._azimuth_of_travel
-            print 'Unable to assign crater slope by this method. Is crater of size comparable with grid?'
-            print 'Setting slope to zero'
+            six.print_('Unable to assign crater slope by this method. Is crater of size comparable with grid?')
+            six.print_('Setting slope to zero')
         else:
             #print 'Slope array: ', slope_array
             if hi_mag_slope > 0.: #i.e., dips WEST (or dead S)
@@ -319,7 +320,7 @@ class impactor(object):
             else: #dips EAST
                 self._surface_dip_direction = numpy.pi*hi_mag_slope_index/float(divisions)    
             self._surface_slope = numpy.fabs(hi_mag_slope)
-            print 'The slope under the crater cavity footprint is: ', self._surface_slope
+            six.print_('The slope under the crater cavity footprint is: ', self._surface_slope)
 
     def set_elev_change_crawler(self, grid, data):
         """
@@ -351,15 +352,15 @@ class impactor(object):
         
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
-        print 'Crater shape exponent: ', crater_bowl_exp
+        six.print_('Crater shape exponent: ', crater_bowl_exp)
 
         #Derive the effective angle for impact, relative to the surface normal, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
         while 1:
             #epsilon is the angle between the surface normal and the impactor angle to vertical, projected along the line of travel.
             rake_in_surface_plane = _surface_dip_direction - _azimuth_of_travel
-            print '_surface_dip_direction: ', _surface_dip_direction
-            print '_azimuth_of_travel: ', _azimuth_of_travel
-            print '_angle_to_vertical: ', _angle_to_vertical
+            six.print_('_surface_dip_direction: ', _surface_dip_direction)
+            six.print_('_azimuth_of_travel: ', _azimuth_of_travel)
+            six.print_('_angle_to_vertical: ', _angle_to_vertical)
             absolute_rake = numpy.fabs(rake_in_surface_plane)
             if not _surface_slope:
                 epsilon = 0.
@@ -374,7 +375,7 @@ class impactor(object):
                     beta_eff = _angle_to_vertical + epsilon
                 else:
                     beta_eff = _angle_to_vertical + epsilon - pi
-            print 'Beta effective: ', beta_eff
+            six.print_('Beta effective: ', beta_eff)
             #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
             if 0. <= beta_eff <= 90.:
                 _ejecta_azimuth = _azimuth_of_travel
@@ -385,7 +386,7 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -397,7 +398,7 @@ class impactor(object):
         
         unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness()
         thickness_at_rim = unique_expression_for_local_thickness(_radius)
-        print 'thickness_at_rim: ', thickness_at_rim
+        six.print_('thickness_at_rim: ', thickness_at_rim)
 
         #This code crawls out iteratively over the grid under the crater footprint, away from the centerpoint.
         while 1:
@@ -516,9 +517,9 @@ class impactor(object):
         while 1:
             #epsilon is the angle between the surface normal and the impactor angle to vertical, projected along the line of travel.
             rake_in_surface_plane = _surface_dip_direction - _azimuth_of_travel
-            print '_surface_dip_direction: ', _surface_dip_direction
-            print '_azimuth_of_travel: ', _azimuth_of_travel
-            print '_angle_to_vertical: ', _angle_to_vertical
+            six.print_('_surface_dip_direction: ', _surface_dip_direction)
+            six.print_('_azimuth_of_travel: ', _azimuth_of_travel)
+            six.print_('_angle_to_vertical: ', _angle_to_vertical)
             absolute_rake = numpy.fabs(rake_in_surface_plane)
             if not _surface_slope:
                 epsilon = 0.
@@ -533,7 +534,7 @@ class impactor(object):
                     beta_eff = _angle_to_vertical + epsilon
                 else:
                     beta_eff = _angle_to_vertical + epsilon - pi
-            print 'Beta effective: ', beta_eff
+            six.print_('Beta effective: ', beta_eff)
             #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
             if 0. <= beta_eff <= 90.:
                 _ejecta_azimuth = _azimuth_of_travel
@@ -544,7 +545,7 @@ class impactor(object):
                 _ejecta_azimuth = (_azimuth_of_travel+pi)%twopi
                 break
             else:
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -562,8 +563,8 @@ class impactor(object):
         #Should it actually just be r? -> no, use the MEAN: see Furbish para 27? For now, just use the max radius - this will be conservative, at least.
         #solve the ejecta radial thickness equ w. the min thickness to get the max radius:
         max_radius_ejecta_on_flat = _radius * (thickness_at_rim/self._minimum_ejecta_thickness)**0.3636
-        print 'thickness_at_rim: ', thickness_at_rim
-        print 'max_radius_ejecta: ', max_radius_ejecta_on_flat
+        six.print_('thickness_at_rim: ', thickness_at_rim)
+        six.print_('max_radius_ejecta: ', max_radius_ejecta_on_flat)
         footprint_center_x = self._xcoord+sin(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
         footprint_center_y = self._ycoord+cos(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
         distances_to_footprint_center = grid.get_distances_of_nodes_to_point((footprint_center_x,footprint_center_y))
@@ -629,7 +630,7 @@ class impactor(object):
         #imshow(whole_grid), colorbar()
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
-        print 'Vol of crater cavity: ', self._cavity_volume
+        six.print_('Vol of crater cavity: ', self._cavity_volume)
         #print 'Vol below ground: ', -numpy.sum(elev_diff[elev_diff<0.])
         #print 'Vol above ground: ', numpy.sum(elev_diff[elev_diff>0.])
         #print 'Total mass balance: ', numpy.sum(elev_diff)
@@ -649,28 +650,28 @@ class impactor(object):
         try:
             self._radius = kwds['forced_radius']
         except:
-            print 'Randomly generating impact radius...'
+            six.print_('Randomly generating impact radius...')
             self.set_cr_radius_from_shoemaker(data)
-        print 'Radius: ', self._radius
+        six.print_('Radius: ', self._radius)
         self.set_depth_from_size()
         self.set_crater_volume()
         try:
             self._xcoord = kwds['forced_pos'][0]*grid.get_grid_xdimension()
         except:
-            print 'Randomly generating impact site...'
+            six.print_('Randomly generating impact site...')
             self.set_coords(grid, data)
         else:
             try:
                 self._ycoord = kwds['forced_pos'][1]*grid.get_grid_ydimension()
-                print self._xcoord, self._ycoord
+                six.print_(self._xcoord, self._ycoord)
                 self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
                 self.closest_node_elev = data.elev[self.closest_node_index]
             except:
-                print 'Could not set specified position. Was a 2 item iterable provided?'
+                six.print_('Could not set specified position. Was a 2 item iterable provided?')
         try:
             self._angle_to_vertical = kwds['forced_angle']*numpy.pi/180.
         except:
-            print 'Randomly generating impactor angle...'
+            six.print_('Randomly generating impactor angle...')
             self.set_impactor_angles()
         else:
             #assert 0. <= self._angle_to_vertical <= 90.
@@ -682,13 +683,13 @@ class impactor(object):
         
         self.set_crater_mean_slope_v2(grid, data)
         if numpy.isnan(self._surface_slope):
-            print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+            six.print_('Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.')
         else:
             self.set_elev_change_only_beneath_footprint(grid, data)
             #self.set_elev_change_crawler(grid, data)
-        print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-        print 'Mass balance in impact: ', self.mass_balance_in_impact
-        print '*****'
+        six.print_('Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal)
+        six.print_('Mass balance in impact: ', self.mass_balance_in_impact)
+        six.print_('*****')
         #Record the data:
         #Is this making copies, or just by reference? Check output.
         data.impact_sequence.append({'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact})
@@ -728,14 +729,14 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, 
             mg = use_existing_grid[0]
             vectors = use_existing_grid[1]
         except:
-            print 'Could not set variables for existing grid!'
+            six.print_('Could not set variables for existing grid!')
     
     if not 'cr' in locals():
         cr = impactor()
 
     #Update until
     for i in xrange(0,nt):
-        print 'Crater number ', i
+        six.print_('Crater number ', i)
         cr.excavate_a_crater(mg, vectors, **kwds)
         
     #Finalize
@@ -762,7 +763,7 @@ def dig_one_crater_then_degrade(loops=1, step=500):
         crater_time_sequ[i+1] = copy(vectors.impact_sequence)
         numpy.savetxt('saved_elevs'+str(i+1), vectors.viewing_raster)
     #end_time = time.time()
-    #print('Elapsed time was %g seconds' % (end_time - start_time))
+    #six.print_('Elapsed time was %g seconds' % (end_time - start_time))
     return crater_time_sequ
 
 def ten_times_reduction(mg_in, vectors_in, loops=25):
@@ -822,7 +823,7 @@ def plot_hypsometry(plotting_rasters):
         try:
             plot_a_hypsometry_curve(plotting_rasters.viewing_raster)
         except:
-            print 'Input type not recognised!'
+            six.print_('Input type not recognised!')
 
 
 def mass_balance_tests():

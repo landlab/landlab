@@ -8,6 +8,7 @@ state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
 '''
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
@@ -65,7 +66,7 @@ try:
     #raise NameError
     mg = copy.deepcopy(mg_mature)
 except NameError:
-    print 'building a new grid...'
+    print('building a new grid...')
     out_interval = 50000.
     last_trunc = time_to_run #we use this to trigger taking an output plot
     #run to a steady state:
@@ -80,7 +81,7 @@ except NameError:
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
-            print 'made it to loop ', out_interval*this_trunc
+            print('made it to loop ', out_interval*this_trunc)
             last_trunc=this_trunc
 
     mg_mature = copy.deepcopy(mg)
@@ -106,7 +107,7 @@ if True:
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
-            print 'saving a plot at perturbed loop ', out_interval*this_trunc
+            print('saving a plot at perturbed loop ', out_interval*this_trunc)
             pylab.figure("long_profiles")
             profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])

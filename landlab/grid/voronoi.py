@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 import numpy
+import six
+from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 from scipy.spatial import Voronoi
@@ -162,7 +164,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       specify a subset of cells as active)
         #
         self._num_nodes = len(x)
-        #print x, y
         self._node_x = x
         self._node_y = y
         [self.node_status, self._core_nodes, self._boundary_nodes] = \
@@ -420,7 +421,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # a given vertex; in other words, two triangles are sharing an edge).
         #
         num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
-        num_links = 3*tri.nsimplex - num_shared_links/2
+        num_links = 3 * tri.nsimplex - num_shared_links // 2
         link_fromnode = numpy.zeros(num_links, dtype=int)
         link_tonode = numpy.zeros(num_links, dtype=int)
         
@@ -498,7 +499,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> al
         array([ 2,  4,  5,  7, 10, 11])
         >>> fw
-        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  , 0.57836419])
+        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
+                0.57836419])
         """
         # Each Voronoi "ridge" corresponds to a link. The Voronoi object has an
         # attribute ridge_points that contains the IDs of the nodes on either
@@ -520,7 +522,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # vertex.
         num_active_links = num_links \
                     - numpy.count_nonzero(numpy.array(vor.ridge_vertices)==-1)
-        #print 'num_links=', num_links,'num_active_links=',num_active_links
         
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
@@ -542,16 +543,17 @@ class VoronoiDelaunayGrid(ModelGrid):
                 dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
                 face_width[j] = numpy.sqrt(dx*dx+dy*dy)
                 if abs(face_width[j])>=40000.0:
-                    print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
-                    print vor.ridge_vertices[i]
-                    print vor.vertices[vor.ridge_vertices[i]]
+                    six.print_('link ' + i + ' from ' + link_fromnode[i] +
+                               ' to ' + link_tonode[i] + ' has face width ' +
+                               face_width[j])
+                    six.print_(vor.ridge_vertices[i])
+                    six.print_(vor.vertices[vor.ridge_vertices[i]])
+
                     from scipy.spatial import voronoi_plot_2d
                     voronoi_plot_2d(vor)
                 assert face_width[j] < 40000., 'face width must be less than earth circumference!'
                 active_links[j] = i
                 j += 1
-        #print 'active links:',active_links
-        #print 'vor ridge points:',vor.ridge_points
         
         #save the data
         #self.link_fromnode = link_fromnode
@@ -643,12 +645,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         #need to build a squared off, masked array of the node_patches
         #the max number of patches for a node in the grid is the max sides of
         #the side-iest voronoi region.
-        for i in xrange(len(vor.regions)):
+        for i in range(len(vor.regions)):
             if len(vor.regions[i])>max_dimension:
                 max_dimension=len(vor.regions[i])
         _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
         _node_patches.fill(nodata)
-        for i in xrange(self.number_of_nodes):
+        for i in range(self.number_of_nodes):
             if not self.is_boundary(i, boundary_flag=4): #don't include closed nodes
                 patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
                 _node_patches[i,:patches_with_node.size] = patches_with_node[:]
@@ -695,7 +697,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> os.remove('mytestsave.grid') #to remove traces of this test
         """
         import os
-        import cPickle
+        from six.moves import cPickle
 
         if os.path.exists(path) and not clobber:
             raise ValueError('file exists')
@@ -705,6 +707,5 @@ class VoronoiDelaunayGrid(ModelGrid):
             ext = ext+'.grid'
         path = base+ext
 
-        cPickle.dump(self, open(path, 'wb'))
-
-
+        with open(path, 'wb') as fp:
+            cPickle.dump(self, fp)

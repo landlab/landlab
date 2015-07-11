@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 from pylab import show, imshow, colorbar, plot
 from landlab import RasterModelGrid
@@ -49,9 +51,9 @@ def main():
     #initial flow accumulation
     drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
     
-    print "elevations ", rg.node_vector_to_raster(z)
-    print "flowdirs ", rg.node_vector_to_raster(flowdirs)
-    print "drain_area ", rg.node_vector_to_raster(drain_area)
+    print("elevations ", rg.node_vector_to_raster(z))
+    print("flowdirs ", rg.node_vector_to_raster(flowdirs))
+    print("drain_area ", rg.node_vector_to_raster(drain_area))
     
     
 if __name__ == '__main__':

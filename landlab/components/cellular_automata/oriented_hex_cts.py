@@ -12,8 +12,9 @@ Created GT Sep 2014
 """
 
 from numpy import zeros
-from celllab_cts import CellLabCTSModel
-import landlab
+
+from .celllab_cts import CellLabCTSModel
+from ...grid import HexModelGrid
 
 
 class OrientedHexCTS(CellLabCTSModel):
@@ -25,10 +26,11 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> from landlab import HexModelGrid
     >>> from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
     >>> from landlab.components.cellular_automata.celllab_cts import Transition
+
     >>> mg = HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
-    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
+    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
     >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
@@ -57,8 +59,8 @@ class OrientedHexCTS(CellLabCTSModel):
         """
         
         # Make sure caller has sent the right grid type        
-        assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
-               'model_grid must be a Landlab HexModelGrid'
+        if not isinstance(model_grid, HexModelGrid):
+            raise TypeError('model_grid must be a Landlab HexModelGrid')
                
         # Somehow test to make sure the grid links have been re-oriented to
         # point up/right (-45 to +135 degrees clockwise relative to vertical).
