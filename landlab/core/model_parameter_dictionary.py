@@ -432,7 +432,7 @@ class ModelParameterDictionary(dict):
         ... MY_FLOAT:
         ... 3.14
         ... '''))
-        >>> round(params.read_float('MY_FLOAT'), 6)
+        >>> round(params.read_float('MY_FLOAT'), 3)
         3.14
 
         An error is generated if *key* isn't in the dictionary or
