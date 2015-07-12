@@ -51,7 +51,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_link_tail_node_to_link(rmg, 'values')
+        maps.map_values_from_link_head_node_to_link(rmg, 'values')
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
@@ -70,7 +70,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_link_head_node_to_link(rmg, 'values')
+        maps.map_values_from_link_tail_node_to_link(rmg, 'values')
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,

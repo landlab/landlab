@@ -191,9 +191,7 @@ class DepressionFinderAndRouter(Component):
                         self.is_pit[t] = False
                     elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
                         self.is_pit[h] = False
-                    
-        
-        
+
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = numpy.count_nonzero(self.is_pit)
         (self.pit_node_ids, ) = numpy.where(self.is_pit)
