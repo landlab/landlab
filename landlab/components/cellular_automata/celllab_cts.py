@@ -420,6 +420,7 @@ class CellLabCTSModel(object):
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
+            self.last_update_time = numpy.zeros(self.grid.number_of_nodes)
         
 
     def set_node_state_grid(self, node_states):
@@ -932,6 +933,12 @@ class CellLabCTSModel(object):
             # If this event involves an exchange of properties (i.e., the event involves
             # motion of an object that posses properties we want to track), implement
             # the swap.
+            #   If the event requires a call to a user-defined callback function,
+            # we handle that here too. Finally, we update the last_update_time
+            # for the two nodes. This allows the user, in their callback 
+            # function, to calculate the elapsed time between events at the
+            # affected nodes (for example, to calculate accumulations or losses
+            # of material associated with moving particles).
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
@@ -941,7 +948,9 @@ class CellLabCTSModel(object):
                 if self.grid.node_status[head_node]!=landlab.grid.base.CORE_NODE:
                     self.prop_data[self.propid[head_node]] = self.prop_reset_value
                 if event.prop_update_fn is not None:
-                    event.prop_update_fn(self, tail_node, head_node)
+                    event.prop_update_fn(self, tail_node, head_node, event.time)
+                self.last_update_time[tail_node] = event.time
+                self.last_update_time[head_node] = event.time
                
             if _DEBUG:
                 n = self.grid.number_of_nodes
