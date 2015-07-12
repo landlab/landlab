@@ -269,7 +269,7 @@ class SedDepEroder(object):
         
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.cell_node] = grid.cell_areas
+        self.cell_areas[grid.node_at_cell] = grid.cell_areas
         #new 11/12/14
         self.point6onelessb = 0.6*(1.-self._b)
         self.shear_stress_prefactor = self.fluid_density*self.g*(self.mannings_n/self.k_w)**0.6

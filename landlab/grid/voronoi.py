@@ -172,10 +172,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_core_nodes = len(self.core_nodes)
         self._num_cells = len(self.core_nodes)
         self._num_active_cells = self.number_of_cells
-        [self.node_cell, self.cell_node] = self.setup_node_cell_connectivity(
+        [self.node_cell, self._node_at_cell] = self.setup_node_cell_connectivity(
             self.node_status, self.number_of_cells)
         self.node_activecell = self.node_cell
-        self.activecell_node = self.cell_node
+        self.activecell_node = self._node_at_cell
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
@@ -333,7 +333,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[core_nodes] = self.core_cells
         self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
-        self.cell_node = core_nodes
+        self._node_at_cell = core_nodes
         self.activecell_node = core_nodes
         self.corecell_node = core_nodes
         self._boundary_nodes = boundary_nodes
@@ -383,10 +383,6 @@ class VoronoiDelaunayGrid(ModelGrid):
                 cell_node[cell] = node
                 cell += 1
                 
-        #save the arrays
-        #self.node_cell = node_cell
-        #self.cell_node = cell_node
-        
         return node_cell, cell_node
         
     @staticmethod

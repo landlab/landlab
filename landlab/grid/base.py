@@ -452,7 +452,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_at_cell(self):
         """Node ID associated with grid cells"""
-        return self.cell_node
+        return self._node_at_cell
 
     @property
     def active_nodes(self):

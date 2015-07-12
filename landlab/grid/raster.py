@@ -345,7 +345,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 -1, -1, -1],
                [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1, -1,
                 -1, -1, -1]])
-        >>> rmg.cell_node
+        >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
         >>> rmg.link_fromnode
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
@@ -446,13 +446,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = sgrid.node_at_cell(self.shape)
+        self._node_at_cell = sgrid.node_at_cell(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
         self.core_cells = sgrid.core_cell_index(self.shape)
-        self.activecell_node = self.cell_node.copy()
-        self.corecell_node = self.cell_node
+        self.activecell_node = self._node_at_cell.copy()
+        self.corecell_node = self._node_at_cell
         #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
@@ -1117,7 +1117,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError()
 
-        node_ids = self.cell_node[cell_ids]
+        node_ids = self.node_at_cell[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
