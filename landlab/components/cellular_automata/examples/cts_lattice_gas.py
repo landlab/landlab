@@ -5,6 +5,7 @@ automaton model.
 
 GT Sep 2014
 """
+from __future__ import print_function
 
 _DEBUG = False
 
@@ -114,10 +115,10 @@ def setup_transition_list():
     xn_list.append( Transition((7,6,2), (5,7,2), 0.5, 'rest') )
 
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -193,7 +194,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step

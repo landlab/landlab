@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 import os
 import warnings
-import types
-
+import six
 
 try:
     import netCDF4 as nc4
@@ -110,7 +109,7 @@ def _add_spatial_variables(root, grid, **kwds):
 
 
 def _add_variables_at_points(root, fields, names=None):
-    if isinstance(names, types.StringTypes):
+    if isinstance(names, six.string_types):
         names = [names]
     names = names or fields['node'].keys()
 
@@ -199,6 +198,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.netcdf import write_netcdf
 
@@ -231,7 +231,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     False
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
-           22.])
+            22.])
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')

@@ -1,5 +1,6 @@
-
 import numpy as np
+from six.moves import range
+
 
 def resolve_values_on_active_links(grid, active_link_values, out=None):
     """
@@ -128,7 +129,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     #       attached to a node, so should be of order 6 or 7 and won't
     #       generally increase with the number of nodes in the grid.
     # 
-    for i in xrange(np.size(grid.node_active_inlink_matrix, 0)):
+    for i in range(np.size(grid.node_active_inlink_matrix, 0)):
         net_unit_flux += flux[grid.node_active_outlink_matrix[i][:]]
         net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
         

@@ -5,6 +5,7 @@ test_script_for_fastscape_stream_power.py:
     
 Tests and illustrates use of route_flow_dn component.
 """
+from __future__ import print_function
 
 from landlab import RasterModelGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
@@ -43,8 +44,8 @@ flow_router = FlowRouter(grid)
 grid = flow_router.route_flow()
 
 for i in range(grid.number_of_nodes):
-    print i, grid.node_x[i], grid.node_y[i], z[i], grid.node_status[i], \
-          r[i], a[i], q[i], ss[i], rl[i]
+    print(i, grid.node_x[i], grid.node_y[i], z[i], grid.node_status[i], \
+          r[i], a[i], q[i], ss[i], rl[i])
 
 # Let's take a look for debugging
 #print 'node  receiver  flow_link'
@@ -54,7 +55,7 @@ for i in range(grid.number_of_nodes):
 # Calculate lengths of flow links
 flow_link_length = ones(size(z))
 flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
-print 'fll:', flow_link_length
+print('fll:', flow_link_length)
 
 # Get a 2D array version of the elevations
 ar = grid.node_vector_to_raster(a)
@@ -111,7 +112,7 @@ for t in range(num_time_steps):
     for i in s:  # for each node ID, in order from downstream to upstream
         
         j = r[i]   # receiver (downstream node) of i
-        print i, j
+        print(i, j)
         if i != j:  # if sender and receiver are same, it's a boundary node
             z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
 

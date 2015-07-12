@@ -8,6 +8,7 @@ across a subwatershed in Chiricahua Mountains, Arizona.
 Written by Jordan Adams, Greg Tucker and Nicole Gasparini.
 
 """
+from __future__ import print_function
 
 from landlab.components.overland_flow.generate_overland_flow_DEM import OverlandFlow
 from landlab.io import read_esri_ascii
@@ -40,7 +41,7 @@ dem_name = 'chiri_10.asc'
 DATA_FILE = os.path.join(os.path.dirname(__file__), dem_name)
 
 # This print statement verifies that we are opening the data file.
-print('Reading data from "'+str(DATA_FILE)+'"')
+print(('Reading data from "'+str(DATA_FILE)+'"'))
 
 # Now the ASCII is read, assuming that it it standard ESRI format.
 (rg, z) = read_esri_ascii(DATA_FILE)
@@ -53,10 +54,10 @@ rg.set_nodata_nodes_to_inactive(z, nodata_val)
 
 # This prints standard grid characteristics (rows, columns and cell size)
 
-print('DEM has ' +
+print(('DEM has ' +
         str(rg.number_of_node_rows) + ' rows, ' +
         str(rg.number_of_node_columns) + ' columns, and cell size ' +
-        str(rg.dx))
+        str(rg.dx)))
 
 # Right now, the outlet must be explicitly set for boundary conditions
 # using the row and column from the DEM.
@@ -120,5 +121,5 @@ imshow_grid(rg, of.total_dzdt, show=True)
 
 
 endtime = time.time()
-print endtime - start_time, "seconds"
+print(endtime - start_time, "seconds")
 

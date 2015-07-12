@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 from time import sleep
 from landlab import ModelParameterDictionary
@@ -143,15 +145,15 @@ class SedDepEroder(object):
         try:
             self.thresh = inputs.read_float('threshold_shear_stress')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a shear stress threshold to use: ", self.thresh
+            print("Found a shear stress threshold to use: ", self.thresh)
         except MissingKeyError:
-            print "Found no incision threshold to use."
+            print("Found no incision threshold to use.")
             self.thresh = 0.
             self.set_threshold = False
         try:
             self._a = inputs.read_float('a_sp')
         except:
-            print "a not supplied. Setting power on shear stress to 1..."
+            print("a not supplied. Setting power on shear stress to 1...")
             self._a = 1.
         try:
             self._b = inputs.read_float('b_sp')
@@ -195,7 +197,7 @@ class SedDepEroder(object):
         mannings_n = inputs.read_float('mannings_n')
         self.mannings_n = mannings_n
         if mannings_n<0. or mannings_n>0.2:
-            print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
+            print("***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***")
             sleep(2)
 
         self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
@@ -235,7 +237,7 @@ class SedDepEroder(object):
                 self.nu = 1.13
                 self.phi = 4.24
                 self.c = 0.00181
-                print 'Adopting inbuilt parameters for the humped function form...'
+                print('Adopting inbuilt parameters for the humped function form...')
                 
         try:
             self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
@@ -250,20 +252,20 @@ class SedDepEroder(object):
                 assert self.thresh > 0., "Can't automatically set characteristic grain size if threshold is 0 or unset!"
                 #remember the threshold getting set is already tau**a
                 self.Dchar_in = self.thresh/self.g/(self.sed_density-self.fluid_density)/self.shields_crit
-                print 'Setting characteristic grain size from the Shields criterion...'
-                print 'Characteristic grain size is: ', self.Dchar_in
+                print('Setting characteristic grain size from the Shields criterion...')
+                print('Characteristic grain size is: ', self.Dchar_in)
             try:
                 self.C_MPM = inputs.read_float('C_MPM')
             except MissingKeyError:
                 self.C_MPM = 1.
         
         if self.override_threshold:
-            print "Overriding any supplied threshold..."
+            print("Overriding any supplied threshold...")
             try:
                 self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar_in
             except AttributeError:
                 self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar')
-            print "Threshold derived from grain size and Shields number is: ", self.thresh
+            print("Threshold derived from grain size and Shields number is: ", self.thresh)
         
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))

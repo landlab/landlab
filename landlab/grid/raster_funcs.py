@@ -1,4 +1,6 @@
 import numpy as np
+import six
+from six.moves import range
 
 from .base import CLOSED_BOUNDARY
 from .base import BAD_INDEX_VALUE
@@ -416,7 +418,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -496,7 +498,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
         #node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -529,7 +531,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return links[xrange(len(cell_ids)), inds]
+    return links[range(len(cell_ids)), inds]
 
 
 def node_id_of_cell_neighbor(grid, inds, *args):
@@ -584,9 +586,9 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    #return neighbors[xrange(len(cell_ids)), 3 - inds]
+    #return neighbors[range(len(cell_ids)), 3 - inds]
     return (
-        np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
 
 
@@ -638,9 +640,9 @@ def node_id_of_cell_corner(grid, inds, *args):
         inds = np.array(inds)
 
     return (
-        np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
-    #return diagonals[xrange(len(cell_ids)), 3 - inds]
+    #return diagonals[range(len(cell_ids)), 3 - inds]
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
@@ -765,42 +767,29 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
-        #print '\n', cell_id
-        #print '\n', a
         single_slope = (u[cell_id] - u[a])/grid.dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', grid.is_interior(cell_id), grid.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
         if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
+            six.print_('NaNs present in the grid!')
             
     for a in diagonal_cells:
         single_slope = (u[cell_id] - u[a])/(diagonal_dx)
-        #print single_slope
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
-    #print 'Slopes list: ', slopes
+            six.print_('NaNs present in the grid!')
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
-    #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 8
     
@@ -843,8 +832,6 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     #We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = self.get_neighbor_list(cell_id)
     neighbor_cells.sort()
-    #print 'Node is internal: ', self.is_interior(cell_id)
-    #print 'Neighbor cells: ', neighbor_cells
 
     slopes = []
     for a in neighbor_cells:
@@ -855,33 +842,24 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
         #if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
         #    slopes.append(single_slope)
         #else:
         #    print 'NaNs present in the grid!'
         slopes.append(single_slope)
             
-    #print 'Slopes list: ', slopes
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
     #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 4
         

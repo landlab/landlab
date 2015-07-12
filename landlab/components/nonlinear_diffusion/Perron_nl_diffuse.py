@@ -75,7 +75,7 @@ class PerronNLDiffuse(object):
         try:
             self.timestep_in = inputs.read_float('dt')  
         except:
-            print 'No fixed timestep supplied, it must be set dynamically somewhere else. Be sure to call input_timestep(timestep_in) as part of your run loop.'
+            six.print_('No fixed timestep supplied, it must be set dynamically somewhere else. Be sure to call input_timestep(timestep_in) as part of your run loop.')
         
         self._delta_x = grid.node_spacing
         self._delta_y = self._delta_x
@@ -236,7 +236,7 @@ class PerronNLDiffuse(object):
         self.operating_matrix_top_int_IDs = self.realIDtointerior(operating_matrix_ID_map[self.top_interior_IDs,:][:,self.top_mask])
         self.operating_matrix_left_int_IDs = self.realIDtointerior(operating_matrix_ID_map[self.left_interior_IDs,:][:,self.left_mask])
         self.operating_matrix_right_int_IDs = self.realIDtointerior(operating_matrix_ID_map[self.right_interior_IDs,:][:,self.right_mask])
-        print "setup complete"
+        six.print_("setup complete")
 
     def input_timestep(self, timestep_in):
         """
@@ -290,7 +290,7 @@ class PerronNLDiffuse(object):
         try:
             elev = grid['node'][self.values_to_diffuse]
         except:
-            print 'elevations not found in grid!'
+            six.print_('elevations not found in grid!')
         try:
             _delta_t = self._delta_t
         except:
@@ -660,7 +660,7 @@ class PerronNLDiffuse(object):
         ncols = self.ncols
         interior_ID = (ID//ncols - 1)*(ncols-2) + (ID%ncols) - 1
         if numpy.any(interior_ID < 0) or numpy.any(interior_ID >= self.ninteriornodes):
-            print "One of the supplied nodes was outside the interior grid!"
+            six.print_("One of the supplied nodes was outside the interior grid!")
             raise NameError()
         else:
             return interior_ID.astype(int)
@@ -675,7 +675,7 @@ class PerronNLDiffuse(object):
         ncols = self.ncols
         core_ID = (ID//ncols - 2)*(ncols-4) + (ID%ncols) - 2
         if numpy.any(core_ID < 0) or numpy.any(core_ID >= self.ncorenodes):
-            print "One of the supplied nodes was outside the core grid!"
+            six.print_("One of the supplied nodes was outside the core grid!")
             raise NameError()
         else:
             return core_ID.astype(int)
@@ -690,7 +690,7 @@ class PerronNLDiffuse(object):
         IGW = self.interior_grid_width
         core_ID = (ID//IGW - 1)*(self.ncols-4) + (ID%IGW) - 1
         if numpy.any(core_ID < 0) or numpy.any(core_ID >= self.ncorenodes):
-            print "One of the supplied nodes was outside the core grid!"
+            six.print_("One of the supplied nodes was outside the core grid!")
             raise NameError()
         else:
             return core_ID.astype(int)

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary
 
@@ -38,7 +40,7 @@ param_collection = np.empty_like(params_from_first_try)
 slope_values = np.arange(0., 51.)/100.
 beta = []
 
-print 'Beginning loop...'
+print('Beginning loop...')
 
 repeats = 1
 work_with = slope_values
@@ -78,7 +80,7 @@ for i in range(repeats):
     synthetic_solution = fitFunc(work_with, fitParams[0], fitParams[1], fitParams[2], fitParams[3], fitParams[4], fitParams[5], fitParams[6])
     #first_synthetic_solution = fitFunc(slope_values, params_from_first_try[0], params_from_first_try[1], params_from_first_try[2], params_from_first_try[3], params_from_first_try[4], params_from_first_try[5], params_from_first_try[6])
     
-    print('Done ', i)
+    print(('Done ', i))
     
     pylab.figure(2)
     pylab.plot(mass_balance)

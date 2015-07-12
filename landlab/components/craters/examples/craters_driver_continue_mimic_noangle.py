@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary
 
@@ -54,7 +56,7 @@ for i in xrange(loops):
         slope[j] = craters_component.impact_property_dict['surface_slope']
         mass_balance[j] = craters_component.impact_property_dict['mass_balance']
         redug_crater[j] = craters_component.impact_property_dict['redug_crater']
-        print 'Completed loop ', j
+        print('Completed loop ', j)
     mystring = 'craterssave'+str((i+1)*nt)
     np.save(mystring,mg['node']['topographic__elevation'])
     #Save the properties
@@ -74,6 +76,6 @@ elev_r = mg.node_vector_to_raster(elev)
 #pylab.title('Topography')
 
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))
 
 #pylab.show()

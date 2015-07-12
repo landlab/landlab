@@ -6,6 +6,7 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
@@ -118,7 +119,7 @@ SEs = (slice(0,-2),slice(2,ncols+2))
 
 for i in xrange(nt):
     if i%100==0:
-        print i
+        print(i)
     qsedE.fill(0.)
     qsedW.fill(0.)
     qsedN.fill(0.)

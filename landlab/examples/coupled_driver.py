@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
@@ -39,7 +41,7 @@ mg.at_node[ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -64,9 +66,9 @@ for i in xrange(nt):
             profile_IDs, mg.at_node['links_to_flow_receiver'])
     prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
 
-    print 'Completed loop ', i
+    print('Completed loop ', i)
  
-print 'Completed the simulation. Plotting...'
+print('Completed the simulation. Plotting...')
 
 
 #Finalize and plot

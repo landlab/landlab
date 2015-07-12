@@ -8,6 +8,7 @@ state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
 '''
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
@@ -58,9 +59,9 @@ except NameError:
     #We're going to cheat by running Fastscape SP for the first part of the solution
     elapsed_time = 0. #total time in simulation
     while elapsed_time < time_to_run:
-        print elapsed_time
+        print(elapsed_time)
         if elapsed_time+dt>time_to_run:
-            print "Short step!"
+            print("Short step!")
             dt = time_to_run - elapsed_time
         mg = fr.route_flow()
         #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
@@ -87,10 +88,10 @@ time_to_run = 50.
 dt=0.5
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     vid.add_frame(mg, 'topographic__elevation', elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])

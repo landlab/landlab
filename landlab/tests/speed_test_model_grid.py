@@ -2,6 +2,7 @@
 simple script to run speed tests of various functions in model grid
 """
 
+from __future__ import print_function
 import landlab as ll
 import time
 
@@ -53,12 +54,12 @@ def main():
 
     time6 = time.time()
       
-    print('Elapsed time with fast gradient algo: '+str(time1-start_time))
-    print('Elapsed time with slow gradient algo: '+str(time2-time1))
-    print('Elapsed time with fast node-divergence algo: '+str(time3-time2))
-    print('Elapsed time with slow node-divergence algo: '+str(time4-time3))
-    print('Elapsed time with fast activecell-divergence algo: '+str(time5-time4))
-    print('Elapsed time with slow activecell-divergence algo: '+str(time6-time5))
+    print('Elapsed time with fast gradient algo: ' + str(time1-start_time))
+    print('Elapsed time with slow gradient algo: ' + str(time2-time1))
+    print('Elapsed time with fast node-divergence algo: ' + str(time3-time2))
+    print('Elapsed time with slow node-divergence algo: ' + str(time4-time3))
+    print('Elapsed time with fast activecell-divergence algo: ' + str(time5-time4))
+    print('Elapsed time with slow activecell-divergence algo: ' + str(time6-time5))
 
 
 if __name__ == '__main__':

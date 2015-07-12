@@ -137,8 +137,8 @@ def read_netcdf(nc_file, just_grid=False):
     True
     >>> grid.node_spacing
     1.0
-    >>> grid.at_node.keys()
-    [u'surface__elevation']
+    >>> [str(k) for k in grid.at_node.keys()]
+    ['surface__elevation']
     >>> grid.at_node['surface__elevation']
     array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
             11.])

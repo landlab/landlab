@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 from landlab.components.diffusion.diffusion import LinearDiffuser #...the two different diffusion formulations
 from landlab import ModelParameterDictionary #handles input from the input file
@@ -38,7 +40,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
@@ -61,9 +63,9 @@ for i in xrange(nt):
     elev_r = mg.node_vector_to_raster(mg['node']['topographic__elevation'])
     im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
 
-    print 'Completed loop ', i
+    print('Completed loop ', i)
 
-print 'Completed the simulation. Plotting...'
+print('Completed the simulation. Plotting...')
 
 #Finalize and plot:
 #put a title on figure 1
