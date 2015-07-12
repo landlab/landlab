@@ -575,8 +575,7 @@ def node_at_link_head(node_ids):
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def face_index_at_links(shape, actives=None,
-                        inactive_link_index=BAD_INDEX_VALUE):
+def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     """
     Returns an array that maps link ids to face ids. For inactive links,
     which do not have associated faces, set their ids to
@@ -585,8 +584,8 @@ def face_index_at_links(shape, actives=None,
     that only the perimeter nodes are inactive.
 
 
-    >>> from landlab.utils.structured_grid import face_index_at_links
-    >>> faces = face_index_at_links((3, 4), inactive_link_index=-1)
+    >>> from landlab.utils.structured_grid import face_at_link
+    >>> faces = face_at_link((3, 4), inactive_link_index=-1)
     >>> faces # doctest: +NORMALIZE_WHITESPACE
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])

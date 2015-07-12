@@ -610,7 +610,7 @@ class ModelGrid(ModelDataFields):
         return self.link_tonode
 
     @property
-    def face_index_at_links(self):
+    def face_at_link(self):
         """ID of the face associated with a link between two grid nodes"""
         return self.link_face
         
