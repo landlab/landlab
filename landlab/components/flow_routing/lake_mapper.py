@@ -156,17 +156,17 @@ class DepressionFinderAndRouter(Component):
         # than the other, the higher one is not a pit. Also, if they have
         # equal elevations and one is an open boundary, the other is not a pit.
         for link in active_links:
-            h = self._grid.node_at_link_head[link]
-            t = self._grid.node_at_link_tail[link]
-            if self._elev[h] > self._elev[t]:
-                self.is_pit[h] = False
-            elif self._elev[t] > self._elev[h]:
-                self.is_pit[t] = False
-            elif self._elev[h] == self._elev[t]:
-                if self._grid.node_boundary_status[h]==FIXED_VALUE_BOUNDARY:
-                    self.is_pit[t] = False
-                elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
-                    self.is_pit[h] = False
+            start = self._grid.node_at_link_tail[link]
+            end = self._grid.node_at_link_head[link]
+            if self._elev[start] > self._elev[end]:
+                self.is_pit[start] = False
+            elif self._elev[end] > self._elev[start]:
+                self.is_pit[end] = False
+            elif self._elev[start] == self._elev[end]:
+                if self._grid.node_boundary_status[start]==FIXED_VALUE_BOUNDARY:
+                    self.is_pit[end] = False
+                elif self._grid.node_boundary_status[end]==FIXED_VALUE_BOUNDARY:
+                    self.is_pit[start] = False
         
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = numpy.count_nonzero(self.is_pit)

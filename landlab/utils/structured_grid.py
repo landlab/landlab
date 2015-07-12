@@ -551,8 +551,8 @@ def node_index_at_link_ends(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
 
-    return (node_at_link_head(node_ids),
-            node_at_link_tail(node_ids))
+    return (node_at_link_tail(node_ids),
+            node_at_link_head(node_ids))
 
 
 def inlink_index_at_node(shape):
@@ -563,13 +563,15 @@ def outlink_index_at_node(shape):
     return outlinks(shape, return_count=False)
 
 
-def node_at_link_tail(node_ids):
+def node_at_link_head(node_ids):
+    """Grid node at the end of a link"""
     vertical_links = node_ids[1:, :]
     horizontal_links = node_ids[:, 1:]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def node_at_link_head(node_ids):
+def node_at_link_tail(node_ids):
+    """Grid node at the start of a link"""
     vertical_links = node_ids[:-1, :]
     horizontal_links = node_ids[:, :-1]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
