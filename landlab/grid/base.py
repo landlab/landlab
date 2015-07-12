@@ -607,7 +607,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_at_link_tail(self):
         """Node ID that defines the end of a link"""
-        return self.node_at_link_tail
+        return self._node_at_link_tail
 
     @property
     def face_at_link(self):
