@@ -189,8 +189,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        (self.link_fromnode,
-         self.link_tonode,
+        (self._node_at_link_tail,
+         self._node_at_link_head,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
         
@@ -199,14 +199,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         if reorient_links:
             self.reorient_links_upper_right()
 
-        #[self.link_fromnode, self.link_tonode, self.active_links, self.face_width] \
+        #[self.node_at_link_tail, self.node_at_link_head, self.active_links, self.face_width] \
         #        = self.create_links_and_faces_from_voronoi_diagram(vor)
-        self._num_links = len(self.link_fromnode)
+        self._num_links = len(self.node_at_link_tail)
         self._num_faces = self._num_links # temporary: to be done right!
                     
         # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(pts, self.link_fromnode,
-                                                  self.link_tonode)
+        self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
+                                                  self.node_at_link_head)
                                                        
         # LINKS: inlink and outlink matrices
         self._setup_inlink_and_outlink_matrices()
@@ -444,8 +444,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
         
         #save the results
-        #self.link_fromnode = link_fromnode
-        #self.link_tonode = link_tonode
+        #self.node_at_link_tail = link_fromnode
+        #self.node_at_link_head = link_tonode
         #self._num_links = num_links
     
         # Return the results
@@ -552,8 +552,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                 j += 1
         
         #save the data
-        #self.link_fromnode = link_fromnode
-        #self.link_tonode = link_tonode
+        #self.node_at_link_tail = link_fromnode
+        #self.node_at_link_head = link_tonode
         #self.active_link_ids = active_links
         #self._face_widths = face_width
         #self._num_faces = face_width.size
@@ -580,15 +580,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         --------
         >>> from landlab.grid import HexModelGrid
         >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
-        >>> hg.link_fromnode
+        >>> hg.node_at_link_tail
         array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
-        >>> hg.link_tonode
+        >>> hg.node_at_link_head
         array([6, 5, 3, 3, 4, 3, 6, 6, 5, 2, 1, 4])
         """
         
         # Calculate the horizontal (dx) and vertical (dy) link offsets
-        link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
-        link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        link_dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
+        link_dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
         
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
@@ -609,11 +609,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         if len(flip_locs)>0:
             
             # Temporarily story the fromnode for these
-            fromnode_temp = self.link_fromnode[flip_locs]
+            fromnode_temp = self.node_at_link_tail[flip_locs]
             
             # The fromnodes now become the tonodes, and vice versa
-            self.link_fromnode[flip_locs] = self.link_tonode[flip_locs]
-            self.link_tonode[flip_locs] = fromnode_temp
+            self._node_at_link_tail[flip_locs] = self.node_at_link_head[flip_locs]
+            self._node_at_link_head[flip_locs] = fromnode_temp
             
     def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
         """

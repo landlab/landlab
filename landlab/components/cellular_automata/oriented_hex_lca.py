@@ -100,8 +100,8 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
         for j in range(self.grid.number_of_active_links):
             i = self.grid.active_links[j]
-            dy = self.grid.node_y[self.grid.link_tonode[i]]-self.grid.node_y[self.grid.link_fromnode[i]]
-            dx = self.grid.node_x[self.grid.link_tonode[i]]-self.grid.node_x[self.grid.link_fromnode[i]]
+            dy = self.grid.node_y[self.grid.node_at_link_head[i]]-self.grid.node_y[self.grid.node_at_link_tail[i]]
+            dx = self.grid.node_x[self.grid.node_at_link_head[i]]-self.grid.node_x[self.grid.node_at_link_tail[i]]
             if dx <= 0.:
                 self.active_link_orientation[j] = 0
             elif dy<=0.:

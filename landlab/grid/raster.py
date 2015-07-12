@@ -347,10 +347,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 -1, -1, -1]])
         >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
-        >>> rmg.link_fromnode
+        >>> rmg.node_at_link_tail
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
                 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
-        >>> rmg.link_tonode
+        >>> rmg.node_at_link_head
         array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
                 3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
         >>> rmg.link_face[20]
@@ -481,8 +481,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  *--15-->*--16-->*--17-->*--18-->*
         #
         #   create the fromnode and tonode lists
-        (self.link_fromnode,
-         self.link_tonode) = sgrid.node_index_at_link_ends(self.shape)
+        (self._node_at_link_tail,
+         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
@@ -2987,8 +2987,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         #determine the grid corners. This method has to be clever enough to realize when it's been given them!
         corner_nodes = self.corner_nodes
-        tonodes = self.link_tonode[link_IDs]
-        fromnodes = self.link_fromnode[link_IDs]
+        tonodes = self.node_at_link_head[link_IDs]
+        fromnodes = self.node_at_link_tail[link_IDs]
         tonode_boundaries = self.node_status[tonodes] != 0
         fromnode_boundaries = self.node_status[fromnodes] != 0
         edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
