@@ -377,8 +377,8 @@ class TransportLimitedEroder(object):
             node_at_link_end = np.empty_like(all_node_links, dtype=int)
             upslope_links[:,:2] = link_gradients[all_node_links[:,:2]]>=0.
             upslope_links[:,2:] = link_gradients[all_node_links[:,2:]]<=0.
-            node_at_link_end[:,:2] = grid.link_tonode[all_node_links[:,:2]]
-            node_at_link_end[:,2:] = grid.link_fromnode[all_node_links[:,2:]]
+            node_at_link_end[:,:2] = grid.node_at_link_head[all_node_links[:,:2]]
+            node_at_link_end[:,2:] = grid.node_at_link_tail[all_node_links[:,2:]]
             node_at_link_end_down = np.ma.array(node_at_link_end, mask = upslope_links) #...only the downslope links
             nodes_receiving = np.equal(flow_receiver.reshape((flow_receiver.size,1)),node_at_link_end_down)
             nodes_not_receiving = np.logical_not(np.ma.make_mask(nodes_receiving)) #still in the (N,4) format; now just a logical array of downslope inactive links

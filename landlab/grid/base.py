@@ -602,12 +602,12 @@ class ModelGrid(ModelDataFields):
     @property
     def node_at_link_head(self):
         """Node ID that defines the start of a link"""
-        return self.link_tonode
+        return self._node_at_link_head
 
     @property
     def node_at_link_tail(self):
         """Node ID that defines the end of a link"""
-        return self.link_fromnode
+        return self.node_at_link_tail
 
     @property
     def face_at_link(self):
@@ -1123,8 +1123,8 @@ class ModelGrid(ModelDataFields):
         active_link_id = 0
         for link_id in self.active_link_ids:
             gradient[active_link_id] = (
-                (s[self.link_tonode[link_id]] -
-                 s[self.link_fromnode[link_id]]) / self.link_length[link_id])
+                (s[self.node_at_link_head[link_id]] -
+                 s[self.node_at_link_tail[link_id]]) / self.link_length[link_id])
             active_link_id += 1
         
         return gradient
@@ -1464,8 +1464,8 @@ class ModelGrid(ModelDataFields):
         # into the "to" cell.
         active_link_id = 0
         for link_id in self.active_link_ids:
-            from_cell = self.node_activecell[self.link_fromnode[link_id]]
-            to_cell = self.node_activecell[self.link_tonode[link_id]]
+            from_cell = self.node_activecell[self.node_at_link_tail[link_id]]
+            to_cell = self.node_activecell[self.node_at_link_head[link_id]]
             total_flux = active_link_flux[active_link_id] * \
                          self.face_width[self.link_face[link_id]]
             #print('Flux '+str(total_flux)+' from '+str(from_cell) \
@@ -1715,8 +1715,8 @@ class ModelGrid(ModelDataFields):
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid._reset_list_of_active_links')
             
-        fromnode_status = self.node_status[self.link_fromnode]
-        tonode_status = self.node_status[self.link_tonode]
+        fromnode_status = self.node_status[self.node_at_link_tail]
+        tonode_status = self.node_status[self.node_at_link_head]
 
         active_links = (((fromnode_status == CORE_NODE) & ~
                          (tonode_status == CLOSED_BOUNDARY)) |
@@ -1728,8 +1728,8 @@ class ModelGrid(ModelDataFields):
 
         self._num_active_links = len(self.active_link_ids)
         self._num_active_faces = self._num_active_links
-        self.activelink_fromnode = self.link_fromnode[self.active_link_ids]
-        self.activelink_tonode = self.link_tonode[self.active_link_ids]
+        self.activelink_fromnode = self.node_at_link_tail[self.active_link_ids]
+        self.activelink_tonode = self.node_at_link_head[self.active_link_ids]
         
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
@@ -1892,8 +1892,8 @@ class ModelGrid(ModelDataFields):
         Calculates the number of neighboring nodes for each node, and returns
         the result as a 1D numpy array. Used to find the maximum number of
         neighbors, so that inlink and outlink matrices can be dimensioned
-        accordingly. Assumes that self.number_of_nodes, self.link_fromnode, and
-        self.link_tonode have already been set up.
+        accordingly. Assumes that self.number_of_nodes, self.node_at_link_tail, and
+        self.node_at_link_head have already been set up.
         
         Algorithm works by simply looping through all links; for each, the 
         endpoints are neighbors of one another, so we increment the number of
@@ -1901,8 +1901,8 @@ class ModelGrid(ModelDataFields):
         """
         num_nbrs = numpy.zeros(self.number_of_nodes, dtype=int)
         for link in range(self.number_of_links):
-            num_nbrs[self.link_fromnode[link]] += 1
-            num_nbrs[self.link_tonode[link]] += 1
+            num_nbrs[self.node_at_link_tail[link]] += 1
+            num_nbrs[self.node_at_link_head[link]] += 1
         return num_nbrs
 
 
@@ -1946,19 +1946,19 @@ class ModelGrid(ModelDataFields):
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
-        tonodes = self.link_tonode
+        tonodes = self.node_at_link_head
         self.node_numinlink = numpy.bincount(tonodes,
                                              minlength=self.number_of_nodes)
 
-        counts = count_repeated_values(self.link_tonode)
+        counts = count_repeated_values(self.node_at_link_head)
         for (count, (tonodes, link_ids)) in enumerate(counts):
             self.node_inlink_matrix[count][tonodes] = link_ids
 
         # Set up the outlink arrays
-        fromnodes = self.link_fromnode
+        fromnodes = self.node_at_link_tail
         self.node_numoutlink = numpy.bincount(fromnodes,
                                               minlength=self.number_of_nodes)
-        counts = count_repeated_values(self.link_fromnode)
+        counts = count_repeated_values(self.node_at_link_tail)
         for (count, (fromnodes, link_ids)) in enumerate(counts):
             self.node_outlink_matrix[count][fromnodes] = link_ids
                 
@@ -2035,7 +2035,7 @@ class ModelGrid(ModelDataFields):
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
             
         # Set up the inlink arrays
-        tonodes = self.link_tonode[self.active_links]
+        tonodes = self.node_at_link_head[self.active_links]
         self.node_numactiveinlink = numpy.bincount(
             tonodes, minlength=self.number_of_nodes).astype(numpy.int,
                                                             copy=False)
@@ -2046,12 +2046,12 @@ class ModelGrid(ModelDataFields):
         # DO THIS BY CHANGING active_link_ids TO
         # self.active_links[active_link_ids] BUT HAVEN'T MADE THIS CHANGE YET.
         # NEED TO WORK THROUGH EXAMPLE 3,2 HMG
-        counts = count_repeated_values(self.link_tonode[self.active_links])
+        counts = count_repeated_values(self.node_at_link_head[self.active_links])
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
             self.node_active_inlink_matrix2[count][tonodes] = self.active_links[active_link_ids]
 
         # Set up the outlink arrays
-        fromnodes = self.link_fromnode[self.active_links]
+        fromnodes = self.node_at_link_tail[self.active_links]
         self.node_numactiveoutlink = numpy.bincount(
             fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
                                                               copy=False)
@@ -2131,8 +2131,8 @@ class ModelGrid(ModelDataFields):
     
         # Calculate the unit vectors using triangle similarity and the Pythagorean
         # Theorem.
-        dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
-        dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
+        dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
+        dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
         self.link_unit_vec_x[:self.number_of_links] = dx / self.link_length
         self.link_unit_vec_y[:self.number_of_links] = dy / self.link_length
                 
@@ -2349,17 +2349,17 @@ class ModelGrid(ModelDataFields):
                  
         # Draw links
         for i in range(self.number_of_links):
-            plt.plot([self._node_x[self.link_fromnode[i]],
-                     self._node_x[self.link_tonode[i]]],
-                     [self._node_y[self.link_fromnode[i]],
-                     self._node_y[self.link_tonode[i]]], 'k-')
+            plt.plot([self._node_x[self.node_at_link_tail[i]],
+                     self._node_x[self.node_at_link_head[i]]],
+                     [self._node_y[self.node_at_link_tail[i]],
+                     self._node_y[self.node_at_link_head[i]]], 'k-')
                      
         # Draw active links
         for link in self.active_link_ids:
-            plt.plot([self._node_x[self.link_fromnode[link]],
-                     self._node_x[self.link_tonode[link]]],
-                     [self._node_y[self.link_fromnode[link]],
-                     self._node_y[self.link_tonode[link]]], 'g-')
+            plt.plot([self._node_x[self.node_at_link_tail[link]],
+                     self._node_x[self.node_at_link_head[link]]],
+                     [self._node_y[self.node_at_link_tail[link]],
+                     self._node_y[self.node_at_link_head[link]]], 'g-')
                      
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi:
