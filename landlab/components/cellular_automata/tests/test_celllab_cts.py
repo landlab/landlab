@@ -14,15 +14,17 @@ from heapq import heappush
 from heapq import heappop
 
 
-def callback_function(ca, node1, node2):
+def callback_function(ca, node1, node2, time_now):
     """
     This function is passed as an argument to a transition event, and then
     called automatically by CellLabCTSModel's do_event() method.
     """
+    elapsed_time = time_now - ca.last_update_time[node1]
     if ca.node_state[node1]==1:
-        ca.prop_data[ca.propid[node1]]+=100
+        ca.prop_data[ca.propid[node1]]+=100*elapsed_time
+    elapsed_time = time_now - ca.last_update_time[node2]
     if ca.node_state[node2]==1:
-        ca.prop_data[ca.propid[node2]]+=100
+        ca.prop_data[ca.propid[node2]]+=100*elapsed_time
     
 
 def test_raster_cts():
