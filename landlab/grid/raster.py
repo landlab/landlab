@@ -506,8 +506,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.face_index_at_links(self.shape,
-                                                   actives=self.active_link_ids)
+        self.link_face = sgrid.face_at_link(self.shape,
+                                            actives=self.active_link_ids)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or

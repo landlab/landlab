@@ -575,7 +575,7 @@ def test_active_faces():
 
 #class TestLinkFaces(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_4_by_5():
-    link_faces = sgrid.face_index_at_links((4, 5))
+    link_faces = sgrid.face_at_link((4, 5))
 
     BAD = sgrid.BAD_INDEX_VALUE
 
@@ -590,7 +590,7 @@ def test_4_by_5():
 def test_with_active_links():
     active_links = sgrid.active_links((4, 5))
     active_links = active_links[:-1]
-    link_faces = sgrid.face_index_at_links((4, 5), actives=active_links)
+    link_faces = sgrid.face_at_link((4, 5), actives=active_links)
 
     BAD = sgrid.BAD_INDEX_VALUE
 
