@@ -558,13 +558,13 @@ class ModelGrid(ModelDataFields):
 
         .. note:: Deprecated since version 0.6.
             Uses out-of-date terminology; 
-            use :func:`node_index_at_core_cells` for an exact equivalent.
+            use :func:`node_at_core_cell` for an exact equivalent.
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return active_cell_ids.astype(numpy.int, copy=False)
 
     @property
-    def node_index_at_core_cells(self):
+    def node_at_core_cell(self):
         """Node ID associated with core grid cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return core_cell_ids.astype(numpy.int, copy=False)
@@ -595,9 +595,9 @@ class ModelGrid(ModelDataFields):
         return self.node_corecell
         
     @property
-    def core_cell_index(self):
+    def core_cells(self):
         """IDs of core cells."""
-        return self.core_cells
+        return self._core_cells
 
     @property
     def node_at_link_head(self):
@@ -1758,10 +1758,10 @@ class ModelGrid(ModelDataFields):
         self._num_active_nodes = self.activecell_node.size
         self._num_active_cells = self._num_core_cells
         self.active_cells = numpy.arange(self._num_active_cells)
-        self.core_cells = numpy.arange(self._num_core_cells)
+        self._core_cells = numpy.arange(self._num_core_cells)
         self.node_corecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_corecell.fill(BAD_INDEX_VALUE)
-        self.node_corecell[self.corecell_node] = self.core_cells
+        self.node_corecell[self.corecell_node] = self._core_cells
         self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
