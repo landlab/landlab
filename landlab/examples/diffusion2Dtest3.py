@@ -7,6 +7,8 @@ version 3 same as 2 but uses source as a dvector
 
 GT, July 2010
 """
+from __future__ import print_function
+
 import numpy as np
 from pylab import plot, draw, show, contour
 
@@ -70,7 +72,7 @@ def main():
 
     for i in range(0, nt):
 
-        print i
+        print(i)
         g = mg.calculate_face_gradients(u)  # Thermal gradients
         q = -k*g  # Heat flux across faces
         dqds = mg.calculate_flux_divergences(q)  # Divergence of heat flux

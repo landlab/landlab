@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
@@ -9,6 +11,7 @@ import numpy as np
 import pylab
 
 from time import time
+
 
 #get the needed properties to build the grid:
 input_file = './stream_power_params.txt'
@@ -39,7 +42,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -59,9 +62,9 @@ for i in xrange(nt):
     dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
             profile_IDs, mg.at_node['links_to_flow_receiver'])
     prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
-    print 'Completed loop ', i
+    print('Completed loop ', i)
  
-print 'Completed the simulation. Plotting...'
+print('Completed the simulation. Plotting...')
 
 time_off = time()
 
@@ -93,6 +96,6 @@ pylab.xlabel('Upstream drainage area, m^2')
 pylab.ylabel('Maximum slope')
 
 print('Done.')
-print 'Time: ', time_off-time_on
+print('Time: ', time_off-time_on)
 
 pylab.show()

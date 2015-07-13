@@ -132,7 +132,7 @@ the :meth:`~.ModelGrid.ones` method.
 
 >>> grid.ones(centering='node')
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
->>> grid.at_node.keys() # Nothing has been added to the grid
+>>> list(grid.at_node.keys()) # Nothing has been added to the grid
 []
 
 Add Field Arrays
@@ -143,14 +143,14 @@ where values are associated and the second the name of the quantity. The
 quantity name must be unique within a group but the same quantity can appear
 in multiple goups.
 
->>> grid.at_node.keys() # There a no values defined at grid nodes
+>>> list(grid.at_node.keys()) # There a no values defined at grid nodes
 []
 >>> z = grid.add_ones('node', 'topographic__elevation')
 
 We now see that the array has been added to the grid as a reference to the
 array returned by ``add_ones``.
 
->>> grid.at_node.keys()
+>>> list(grid.at_node.keys())
 ['topographic__elevation']
 >>> grid.at_node['topographic__elevation']
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
@@ -177,6 +177,9 @@ True
 
 import numpy
 import warnings
+
+import six
+from six.moves import range
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
@@ -1306,7 +1309,8 @@ class ModelGrid(ModelDataFields):
                                 numpy.radians(slp), numpy.radians(asp))
             elif unit=='radians':
                 if alt>numpy.pi/2. or az>2.*numpy.pi:
-                    print 'Assuming your solar properties are in degrees, but your slopes and aspects are in radians...'
+                    six.print_('Assuming your solar properties are in degrees, '
+                               'but your slopes and aspects are in radians...')
                     (alt, az) = (numpy.radians(alt), numpy.radians(az))
                     #...because it would be super easy to specify radians, but leave the default params alone...
             else:
@@ -1409,7 +1413,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_core_nodes'
+            six.print_('ModelGrid.calculate_flux_divergence_at_core_nodes')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1443,7 +1447,7 @@ class ModelGrid(ModelDataFields):
         """
         
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.calculate_flux_divergence_at_active_cells'
+            six.print_('ModelGrid.calculate_flux_divergence_at_active_cells')
             
         assert (len(active_link_flux) == self.number_of_active_links), \
                "incorrect length of active_link_flux array"
@@ -1599,7 +1603,7 @@ class ModelGrid(ModelDataFields):
         array([2])
         """
         active_link = BAD_INDEX_VALUE
-        for alink in xrange(0, self.number_of_active_links):
+        for alink in range(0, self.number_of_active_links):
             link_connects_nodes = (
                 (self.activelink_fromnode[alink] == node1 and
                 self.activelink_tonode[alink] == node2) or
@@ -1689,11 +1693,11 @@ class ModelGrid(ModelDataFields):
 
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
-            for i in xrange(0, self.number_of_active_links):
+            for i in range(0, self.number_of_active_links):
                 fv[i] = max(u[self.activelink_fromnode[i]], 
                             u[self.activelink_tonode[i]] )
         else:
-            for i in xrange(0, self.number_of_active_links):
+            for i in range(0, self.number_of_active_links):
                 if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
                     fv[i] = u[self.activelink_fromnode[i]]
                 else:
@@ -1709,7 +1713,7 @@ class ModelGrid(ModelDataFields):
         the other is an active boundary.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid._reset_list_of_active_links'
+            six.print_('ModelGrid._reset_list_of_active_links')
             
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
@@ -2483,7 +2487,7 @@ class ModelGrid(ModelDataFields):
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4], dtype=int8)
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_inactive_boundaries'
+            six.print_('ModelGrid.set_inactive_boundaries')
             
         [left_edge, right_edge, top_edge, bottom_edge] = \
                 self._assign_boundary_nodes_to_grid_sides()
@@ -2628,9 +2632,6 @@ class ModelGrid(ModelDataFields):
                 #new code to replace below ***
                 div_by_zero_cases = azimuths_as_displacements[0,:len_subset]==0.
                 not_div_by_zero_cases = numpy.logical_not(div_by_zero_cases)
-                #print azimuths_as_displacements[0,:len_subset]
-                #print azimuths_as_displacements[1,:len_subset]
-                #print not_div_by_zero_cases
                 dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1,:len_subset][not_div_by_zero_cases],
                                  azimuths_as_displacements[0,:len_subset][not_div_by_zero_cases])
                 dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(dummy_nodes_1[:len_subset][not_div_by_zero_cases]) #"angle_to_xaxis"
@@ -2715,7 +2716,8 @@ class ModelGrid(ModelDataFields):
                 else:
                     return out_distance, out_azimuth
             else:
-                print "Option set for get_az not recognised. Should be 'displacements' or 'angles'."
+                six.print_("Option set for get_az not recognised. Should be "
+                           "'displacements' or 'angles'.")
         else:
             return out_distance
             
@@ -2752,7 +2754,7 @@ class ModelGrid(ModelDataFields):
         node_coords[:,0] = self.node_x
         node_coords[:,1] = self.node_y
         
-        for i in xrange(self.number_of_nodes):
+        for i in range(self.number_of_nodes):
             self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point((node_coords[i,0],node_coords[i,1]), get_az='angles')
 
         assert numpy.all(self.all_node_distances_map >= 0.)

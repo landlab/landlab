@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
@@ -42,7 +44,7 @@ z = mg.create_node_array_zeros()
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
-print 'Running ...' 
+print('Running ...') 
 
 # MN: Loop over several changes in the outlet position
 for t in xrange(5):
@@ -56,7 +58,7 @@ for t in xrange(5):
     # MN: Set the elevation of that random outlet boundary node to zero
     #mg['node'][ 'topographic__elevation'][random_boundary_node] = 0
     
-    print 'Random boundary node',  random_boundary_node   
+    print('Random boundary node',  random_boundary_node)   
     
 
     #instantiate the components:
@@ -83,7 +85,7 @@ for t in xrange(5):
 
     
      
-    print 'Completed the simulation. Plotting...'
+    print('Completed the simulation. Plotting...')
     
     #Finalize and plot
     elev = fr.node_water_discharge
@@ -122,5 +124,5 @@ pylab.show()
 time_off = time()
 
 print('Done.')
-print 'Time: ', time_off-time_on
+print('Time: ', time_off-time_on)
 

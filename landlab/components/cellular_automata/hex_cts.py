@@ -11,8 +11,8 @@ raster. Hex grids are often used in CA models because of their symmetry.
 Created GT Sep 2014
 """
 
-from celllab_cts import CellLabCTSModel
-import landlab
+from .celllab_cts import CellLabCTSModel
+from ...grid import HexModelGrid
 
 
 class HexCTS(CellLabCTSModel):
@@ -24,10 +24,11 @@ class HexCTS(CellLabCTSModel):
     >>> from landlab import HexModelGrid
     >>> from landlab.components.cellular_automata.celllab_cts import Transition
     >>> from landlab.components.cellular_automata.hex_cts import HexCTS
+
     >>> mg = HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
-    >>> xnlist.append( Transition( (0,1,0), (1,1,0), 1.0, 'frogging' ) )
+    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
     >>> hcts = HexCTS(mg, nsd, xnlist, nsg)
     """
@@ -56,8 +57,8 @@ class HexCTS(CellLabCTSModel):
         """
         
         # Make sure caller has sent the right grid type        
-        assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
-               'model_grid must be a Landlab HexModelGrid'
+        if not isinstance(model_grid, HexModelGrid):
+            raise TypeError('model_grid must be a Landlab HexModelGrid')
                
         # Define the number of distinct cell-pair orientations: here just 1,
         # because HexCTS represents a non-oriented CA model.

@@ -4,8 +4,8 @@ Read data from an ESRI ASCII file into a RasterModelGrid
 """
 
 import os
-import types
 import re
+import six
 
 import numpy as np
 
@@ -227,7 +227,7 @@ def read_esri_ascii(asc_file, reshape=False, name=None):
     """
     from ..grid import RasterModelGrid
 
-    if isinstance(asc_file, types.StringTypes):
+    if isinstance(asc_file, six.string_types):
         file_name = asc_file
         with open(file_name, 'r') as asc_file:
             header = read_asc_header(asc_file)
@@ -299,7 +299,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError('file exists')
 
-    if isinstance(names, types.StringTypes):
+    if isinstance(names, six.string_types):
         names = [names]
 
     names = names or fields.at_node.keys()
@@ -325,11 +325,10 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     }
 
     for path, name in zip(paths, names):
-        with open(path, 'w') as fp:
-            for key, val in header.items():
-                fp.write('%s %s%s' % (key, str(val), os.linesep))
-            data = fields.at_node[name].reshape(header['nrows'],
-                                                header['ncols'])
-            np.savetxt(fp, np.flipud(data))
+        header_lines = ['%s %s' % (key, str(val))
+                        for key, val in list(header.items())]
+        data = fields.at_node[name].reshape(header['nrows'], header['ncols'])
+        np.savetxt(path, np.flipud(data), header=os.linesep.join(header_lines),
+                   comments='')
 
     return paths

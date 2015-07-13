@@ -6,6 +6,7 @@ Continuous-time stochastic CA lattice grain model configured as a silo.
 
 GT Oct 2014
 """
+from __future__ import print_function
 
 _DEBUG = False
 
@@ -205,10 +206,10 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((7,6,2), (7,5,2), g, 'left up to left down') )
     
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -223,6 +224,7 @@ def main():
     g = 0.8
     f = 1.0
     silo_y0 = 30.0
+    silo_opening_half_width = 6
     plot_interval = 1.0
     run_duration = 80.0
     report_interval = 5.0  # report interval, in real-time seconds
@@ -282,8 +284,46 @@ def main():
     ca_plotter.update_plot()
 
     # RUN
+    
+    # Run with closed silo
     current_time = 0.0
     while current_time < run_duration:
+        
+        # Once in a while, print out simulation and real time to let the user
+        # know that the sim is running ok
+        current_real_time = time.time()
+        if current_real_time >= next_report:
+            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            next_report = current_real_time + report_interval
+        
+        # Run the model forward in time until the next output step
+        ca.run(current_time+plot_interval, ca.node_state, 
+               plot_each_transition=plot_every_transition, plotter=ca_plotter)
+        current_time += plot_interval
+        
+        # Plot the current grid
+        ca_plotter.update_plot()
+
+    # Open the silo
+    xmid = nc*0.866*0.5
+    for i in range(hmg.number_of_nodes):
+        if node_state_grid[i]==8 and hmg.node_x[i]>(xmid-silo_opening_half_width) \
+           and hmg.node_x[i]<(xmid+silo_opening_half_width) \
+           and hmg.node_y[i]>0:
+               node_state_grid[i]=0
+        
+    # Create the CA model
+    ca = OrientedHexLCA(hmg, ns_dict, xn_list, node_state_grid)
+    
+    # Create a CAPlotter object for handling screen display
+    ca_plotter = CAPlotter(ca)
+    
+    # Plot the initial grid
+    ca_plotter.update_plot()
+
+    # Re-run with open silo
+    current_time = 0.0
+    while current_time < 5*run_duration:
         
         # Once in a while, print out simulation and real time to let the user
         # know that the sim is running ok

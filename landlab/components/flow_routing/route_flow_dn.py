@@ -12,6 +12,7 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 Created GT Nov 2013
 Modified to save data to grid directly, DEJH March 2014
 """
+from __future__ import print_function
 
 import landlab
 #from landlab import RasterModelGrid
@@ -134,7 +135,7 @@ class FlowRouter(Component):
             except (KeyError, UnboundLocalError):
                 pass
             else:
-                print "WARNING: Both a field and input parameter are available for runoff value. Was this intentional?? Taking the input parameter value..."
+                print("WARNING: Both a field and input parameter are available for runoff value. Was this intentional?? Taking the input parameter value...")
         
         # Keep track of the following variables:
         #   - drainage area at each node

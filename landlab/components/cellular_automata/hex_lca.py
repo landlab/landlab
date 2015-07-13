@@ -10,14 +10,30 @@ raster. Hex grids are often used in CA models because of their symmetry.
 
 Created GT Sep 2014
 """
+import six
 
-from landlab_ca import LandlabCellularAutomaton
-import landlab
+import warnings
+
+from .landlab_ca import LandlabCellularAutomaton
+from ...grid import HexModelGrid
 
 
 class HexLCA(LandlabCellularAutomaton):
     """
     Class HexLCA implements a non-oriented hex-grid CellLab-CTS model.
+    
+    Example
+    -------
+    >>> from landlab import HexModelGrid
+    >>> from landlab.components.cellular_automata.landlab_ca import Transition
+    >>> from landlab.components.cellular_automata.hex_lca import HexLCA
+
+    >>> mg = HexModelGrid(4, 3, 1.0)
+    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> xnlist = []
+    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
+    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> hlca = HexLCA(mg, nsd, xnlist, nsg)
     """
     
     def __init__(self, model_grid, node_state_dict, transition_list,
@@ -42,12 +58,11 @@ class HexLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        
-        print 'WARNING: Use of HexLCA is deprecated. Use HexCTS instead.'        
+        warnings.warn('Use of HexLCA is deprecated. Use HexCTS instead.')
         
         # Make sure caller has sent the right grid type        
-        assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
-               'model_grid must be a Landlab HexModelGrid'
+        if not isinstance(model_grid, HexModelGrid):
+            raise TypeError('model_grid must be a Landlab HexModelGrid')
                
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.

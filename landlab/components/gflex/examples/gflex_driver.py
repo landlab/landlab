@@ -6,6 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 from landlab.components.gflex.flexure import gFlex
 import numpy as np
@@ -40,9 +41,9 @@ gf = gFlex(mg, './AW_gflex_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     gf.flex_lithosphere()
     elapsed_time += dt

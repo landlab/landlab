@@ -1,1 +1,1 @@
-from Perron_nl_diffuse import PerronNLDiffuse
+from .Perron_nl_diffuse import PerronNLDiffuse

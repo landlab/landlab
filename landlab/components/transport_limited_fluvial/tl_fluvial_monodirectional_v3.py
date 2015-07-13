@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import inspect
 from landlab import ModelParameterDictionary
@@ -161,7 +163,7 @@ class TransportLimitedEroder(object):
         try:
             self.shields_crit = inputs.read_float('threshold_shields')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print "Found a threshold to use: ", self.shields_crit
+            print("Found a threshold to use: ", self.shields_crit)
             assert self.lamb_flag == False
         except MissingKeyError:
             if not self.lamb_flag:
@@ -213,7 +215,7 @@ class TransportLimitedEroder(object):
         mannings_n = inputs.read_float('mannings_n')
         self.mannings_n = mannings_n
         if mannings_n<0. or mannings_n>0.2:
-            print "***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***"
+            print("***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***")
             sleep(2)
 
         try:

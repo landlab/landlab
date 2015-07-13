@@ -5,6 +5,7 @@ A simple driver implementing Braun-Willett flow routing and then a
 fastscape stream power component.
 DEJH, 09/15/14
 '''
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
@@ -48,9 +49,9 @@ fsp = Fsc(mg, './drive_sp_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
@@ -72,7 +73,7 @@ pylab.close()
 # Plot topography
 pylab.figure(1)
 im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
-print elev_r
+print(elev_r)
 
 pylab.figure(2)
 im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a colored image

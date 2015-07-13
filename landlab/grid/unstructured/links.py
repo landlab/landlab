@@ -1,5 +1,5 @@
 import numpy as np
-
+from six.moves import range
 
 from ...utils.jaggedarray import JaggedArray
 from .status import CORE_NODE, CLOSED_BOUNDARY
@@ -17,20 +17,14 @@ def _split_link_ends(link_ends):
     >>> _split_link_ends((0, 3))
     (array([0]), array([3]))
     """
-    if len(link_ends) < 2:
-        raise ValueError('Link array must be at least of length 2')
-    elif len(link_ends) == 2:
-        start, end = link_ends
-    else:
-        start, end = zip(*link_ends)
+    links = np.array(list(link_ends), ndmin=2, dtype=np.int)
+    if len(links) != 2:
+        links = links.transpose()
 
-    try:
-        if len(start) == len(end):
-            return np.array(start).ravel(), np.array(end).ravel()
-        else:
-            raise ValueError('Link arrays must be the same length')
-    except TypeError:
-        return np.array(start).ravel(), np.array(end).ravel()
+    if links.size == 0:
+        return (np.array([], dtype=np.int), np.array([], dtype=np.int))
+    else:
+        return links[0], links[1]
 
 
 def link_is_active(status_at_link_ends):
@@ -123,7 +117,6 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     #if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
-
     return np.bincount(node_at_link_end, minlength=number_of_nodes).astype(np.int, copy=False)
 
 
@@ -387,6 +380,8 @@ class LinkGrid(object):
         >>> lgrid.nodes_at_link_id(1)
         array([0, 2])
         """
+        link_ends = _split_link_ends(link_ends)
+
         self._in_link_at_node = JaggedArray(
             *in_link_ids_at_node(link_ends, link_ids=link_ids,
                                  number_of_nodes=number_of_nodes)
@@ -398,7 +393,7 @@ class LinkGrid(object):
         )
         self._link_ends = np.array(link_ends)
         if link_ids is not None:
-            self._link_id_map = dict(zip(link_ids, xrange(len(link_ids))))
+            self._link_id_map = dict(zip(link_ids, range(len(link_ids))))
             self._link_ids = link_ids
 
         self._number_of_links = len(link_ends[0])
@@ -435,7 +430,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_in_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_in_links_at_node(node) for node in range(4)]
         [0, 1, 1, 2]
         """
         return self._in_link_at_node.length_of_row(node)
@@ -457,7 +452,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_out_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_out_links_at_node(node) for node in range(4)]
         [2, 1, 1, 0]
         """
         return self._out_link_at_node.length_of_row(node)
@@ -479,7 +474,7 @@ class LinkGrid(object):
         --------
         >>> from landlab.grid.unstructured.links import LinkGrid
         >>> lgrid = LinkGrid([(0, 1, 0, 2), (2, 3, 1, 3)], 4)
-        >>> [lgrid.number_of_links_at_node(node) for node in xrange(4)]
+        >>> [lgrid.number_of_links_at_node(node) for node in range(4)]
         [2, 2, 2, 2]
         """
         return (self.number_of_in_links_at_node(node) +
@@ -577,7 +572,7 @@ class LinkGrid(object):
         array([0, 3])
         array([1, 3])
         """
-        for node in xrange(self.number_of_nodes):
+        for node in range(self.number_of_nodes):
             yield np.concatenate((
                 self.in_link_at_node(node),
                 self.out_link_at_node(node),

@@ -6,6 +6,8 @@ grids for 2D numerical models in Landlab.
 """
 
 import numpy as np
+import six
+from six.moves import range
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
@@ -357,8 +359,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid._initialize('+str(num_rows)+', ' \
-                   +str(num_cols)+', '+str(dx)+')'
+            six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
+                       + str(num_cols) + ', ' + str(dx) + ')')
 
         # Basic info about raster size and shape
         self._nrows = num_rows
@@ -1564,14 +1566,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #    if not np.all(self.is_point_on_grid(xcoord, ycoord)):
         #        raise LookupError('One or more pairs of coordinates specified are outside the grid area')
         vertices_array = self.get_nodes_around_point(xcoord, ycoord)
-        #print vertices_array
         #vertices_array.reshape((4,-1))
-        #print self.node_x[vertices_array], self.node_y[vertices_array]
         xdir_displacement = np.tile(xcoord,(4,1)) - self.node_x[vertices_array]
         ydir_displacement = np.tile(ycoord,(4,1)) - self.node_y[vertices_array]
         distances_to_vertices = np.sqrt(xdir_displacement*xdir_displacement + ydir_displacement*ydir_displacement)
         try:
-            return vertices_array[(np.argmin(distances_to_vertices, axis=0), xrange(distances_to_vertices.shape[1]))]
+            return vertices_array[(np.argmin(distances_to_vertices, axis=0), range(distances_to_vertices.shape[1]))]
         except:
             return vertices_array[np.argmin(distances_to_vertices)]
         #...per fancy indexing
@@ -2073,8 +2073,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #We have poor functionality if these are closed boundary nodes!
         neighbor_nodes = self.get_neighbor_list(node_id)
         neighbor_nodes.sort()
-        #print 'Node is internal: ', self.is_interior(cell_id)
-        #print 'Neighbor cells: ', neighbor_cells
         diagonal_nodes = []
         #NG also think that this won't happen if you are always sending this
         #function an id of an interior node.  But maybe there is a case where
@@ -2092,38 +2090,27 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 single_slope = (u[node_id] - u[a])/self.dx
             else:
                 single_slope = -9999
-            #print 'cell id: ', cell_id
-            #print 'neighbor id: ', a
-            #print 'status: ', self.node_status[a]
-            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-            #print 'cell elev: ', u[cell_id]
-            #print 'neighbor elev: ', u[a]
-            #print single_slope
             if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
+                six.print_('NaNs present in the grid!')
         for a in diagonal_nodes:
             if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/diagonal_dx
             else:
                 single_slope = -9999
-            #print single_slope
             if not np.isnan(single_slope):
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
-        #print 'Slopes list: ', slopes
+                six.print_('NaNs present in the grid!')
         if slopes:
             max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
         else:
-            print u
-            print 'Returning NaN angle and direction...'
+            six.print_('Returning NaN angle and direction...')
             max_slope = np.nan
             index_max = 8
 
         all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
-        #print 'all_neighbor_cells ', all_neighbor_cells
 
         #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
         #This remains extremely ad-hoc. An internal node points to itself, but this should never
@@ -2164,37 +2151,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #We have poor functionality if these are closed boundary nodes!
         neighbor_nodes = self.get_neighbor_list(node_id)
         neighbor_nodes.sort()
-        #print 'Node is internal: ', self.is_interior(cell_id)
-        #print 'Neighbor cells: ', neighbor_cells
         slopes = []
         for a in neighbor_nodes:
             if self.node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a])/self.dx
             else:
                 single_slope = -9999
-            #print 'cell id: ', cell_id
-            #print 'neighbor id: ', a
-            #print 'status: ', self.node_status[a]
-            #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-            #print 'cell elev: ', u[cell_id]
-            #print 'neighbor elev: ', u[a]
-            #print single_slope
             if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
                 slopes.append(single_slope)
             else:
-                print 'NaNs present in the grid!'
+                six.print_('NaNs present in the grid!')
 
-        #print 'Slopes list: ', slopes
         if slopes:
             max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
         else:
-            print u
-            print 'Returning NaN angle and direction...'
+            six.print_('Returning NaN angle and direction...')
             max_slope = np.nan
             index_max = 4
 
         #all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
-        #print 'all_neighbor_cells ', all_neighbor_cells
 
         #Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
         #This remains extremely ad-hoc. An internal node points to itself, but this should never
@@ -2267,7 +2242,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This scheme is necessary for internal consistency with looped boundaries.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_inactive_boundaries'
+            six.print_('ModelGrid.set_inactive_boundaries')
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -2375,7 +2350,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
+            six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -2479,7 +2454,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This scheme is necessary for internal consistency with looped boundaries.
         """
         if self._DEBUG_TRACK_METHODS:
-            print 'ModelGrid.set_closed_boundaries_at_grid_edges'
+            six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(2*self.number_of_node_columns - 1,
@@ -2528,7 +2503,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.fixed_value_node_properties['internal_flag'] = True
 
         if not self.has_field('node', value_of):
-            print """
+            six.print_("""
                 *************************************************
                 WARNING: set_fixed_value_boundaries_at_grid_edges
                 has not been provided with a grid field name to
@@ -2539,7 +2514,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 after loading the starting conditions into the
                 grid fields.
                 *************************************************
-                """
+                """)
             #set a flag to indicate no internal values
             self.fixed_value_node_properties['internal_flag'] = False
         else:
@@ -2819,31 +2794,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         # Added DEJH Jan 2014
 
-        bottom_edge = range(0, self.number_of_node_columns)
-        if type(bottom_edge) != list:
-            bottom_edge = np.array([bottom_edge])
-        else:
-            bottom_edge = np.array(bottom_edge)
-        right_edge = range(2*self.number_of_node_columns - 1,
-                           self.number_of_nodes - 1,
-                           self.number_of_node_columns)
-        if type(right_edge) != list:
-            right_edge = np.array([right_edge])
-        else:
-            right_edge = np.array(right_edge)
-        top_edge = range((self.number_of_node_rows - 1) *
-                         self.number_of_node_columns, self.number_of_nodes)
-        if type(top_edge) != list:
-            top_edge = np.array([top_edge])
-        else:
-            top_edge = np.array(top_edge)
-        left_edge = range(self.number_of_node_columns,
-                          self.number_of_nodes - self.number_of_node_columns,
-                          self.number_of_node_columns)
-        if type(left_edge) != list:
-            left_edge = np.array([left_edge])
-        else:
-            left_edge = np.array(left_edge)
+        bottom_edge = np.arange(0, self.number_of_node_columns)
+        right_edge = np.arange(2 * self.number_of_node_columns - 1,
+                               self.number_of_nodes - 1,
+                               self.number_of_node_columns)
+        top_edge = np.arange((self.number_of_node_rows - 1) *
+                             self.number_of_node_columns, self.number_of_nodes)
+        left_edge = np.arange(self.number_of_node_columns,
+                              self.number_of_nodes - self.number_of_node_columns,
+                              self.number_of_node_columns)
 
         fixed_gradient_nodes = np.array([], dtype=int)
         fixed_gradient_linked_nodes = np.array([], dtype=int)
@@ -2891,7 +2850,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             no_val_provided = False
         if no_val_provided:
             #Set the gradients by reference to existing data on grid
-            print 'Fixed gradients will be set according to existing data in the grid...'
+            six.print_('Fixed gradients will be set according to existing data '
+                       'in the grid...')
             fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links] #this grid func gives slopes UP as positive
             fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
 
@@ -2907,10 +2867,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 fixed_gradient_values_to_add = self['node'][gradient_of][fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
             else:
                 if fixed_gradient > 0.:
-                    print '***********************************************'
-                    print '*** You supplied a positive gradient value. ***'
-                    print '* Did you remember gradients are positive up? *'
-                    print '***********************************************'
+                    six.print_('**********************************************')
+                    six.print_('*** You supplied a positive gradient value. **')
+                    six.print_('* Did you remember gradients are positive up? ')
+                    six.print_('**********************************************')
 
                 #the supplied gradient was a single number
                 fixed_gradient_array = np.array([], dtype=float)
@@ -3095,7 +3055,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                       self.number_of_node_rows - 3)
 
         if bottom:
-            for id in xrange(1, self.number_of_node_columns - 1):   # Bottom
+            for id in range(1, self.number_of_node_columns - 1):   # Bottom
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = id + self.number_of_node_columns
             bc.boundary_code[lower_left] = bc.TRACKS_CELL_BOUNDARY
@@ -3104,14 +3064,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bc.tracks_cell[lower_right] = lower_right-1
         if right:
             nbr = 2 * self.number_of_node_columns - 2
-            for id in xrange( lower_right+1, upper_right ):   # Right
+            for id in range( lower_right+1, upper_right ):   # Right
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr += self.number_of_node_columns
         if top:
             ncells = self.number_of_node_rows * self.number_of_node_columns
             nbr = ncells - (self.number_of_node_columns + 2)
-            for id in xrange( upper_right+1, upper_left ):   # Top
+            for id in range( upper_right+1, upper_left ):   # Top
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - 1
@@ -3123,13 +3083,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             n_boundary_cells = (2 * (self.num_rows - 2) +
                                 2 * (self.num_cols - 2) + 4)
             nbr = (self.number_of_node_rows - 2) * self.number_of_node_columns + 1
-            for id in xrange( upper_left+1, n_boundary_cells ):   # Left
+            for id in range( upper_left+1, n_boundary_cells ):   # Left
                 bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
                 bc.tracks_cell[id] = nbr
                 nbr = nbr - self.number_of_node_columns
 
         if self._DEBUG_VERBOSE:
-            print 'tracks_cell:',bc.tracks_cell
+            six.print_('tracks_cell: ' + bc.tracks_cell)
 
 
     def update_boundary_nodes(self):
@@ -3253,7 +3213,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_steepest_descent_on_nodes'
+            six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
 
         assert (len(link_gradients)==self.number_of_active_links), \
                "incorrect length of active_link_gradients array"
@@ -3289,33 +3249,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         slopes_diagonal_nodes = ((elevs[diagonal_nodes])-np.tile(elevs_in, (4,1)))/(1.41421356*self.dx)
         #Debug:
-        #print 'Shape of node_links: ', node_links.shape
-        #print 'Shape of diagonal array: ', slopes_diagonal_nodes.shape
         gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         #The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
         max_slope_indices = np.argmin(gradients_all_nodes, axis=0)
-        max_slope = -gradients_all_nodes[max_slope_indices, xrange(gradients_all_nodes.shape[1])]
+        max_slope = -gradients_all_nodes[max_slope_indices, range(gradients_all_nodes.shape[1])]
         #...per fancy indexing
-        #print gradients_all_nodes
-        #print max_slope_indices
-        #print max_slope.reshape((5,5))
         #Assemble a node index array which corresponds to this gradients array from which to draw the dstr IDs:
         neighbors_ENWS = (self.get_neighbor_list()).T
-        #print neighbors_ENWS.shape
-        #print diagonal_nodes.shape
         dstr_id_source_array = np.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][:], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
-        #print dstr_id_source_array.shape
-        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, xrange(dstr_id_source_array.shape[1])]
-        #print np.array([range(24),])
-        #print dstr_id_source_array[:,:-1]
-        #print most_negative_gradient_node_ids.reshape((5,5))
+        most_negative_gradient_node_ids = dstr_id_source_array[max_slope_indices, range(dstr_id_source_array.shape[1])]
         #But we only want to return an id if the "dstr" node is actually downstream! So ->
         downslope_nodes = np.where(max_slope > 0)
-        #print downslope_nodes
         dstr_node_ids[downslope_nodes] = most_negative_gradient_node_ids[downslope_nodes]
         #Local topo lows will retain the -1 index in dstr_node_ids
-        #print 'dstr node ids: '
-        #print dstr_node_ids.reshape((5,5))
 
         return max_slope, dstr_node_ids
 
@@ -3381,8 +3327,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         if self._DEBUG_TRACK_METHODS:
-            print 'RasterModelGrid.calculate_flux_divergence here with cell',id
-            print 'q:',q[self.faces[id,0:4]]
+            six.print_('RasterModelGrid.calculate_flux_divergence here with '
+                       'cell ' +id)
+            six.print_('q: ' + q[self.faces[id,0:4]])
+
         fd = ( -( q[self.faces[id,2]]   # left face (positive=in)
             + q[self.faces[id,3]] )           # bottom face (positive=in)
             + q[self.faces[id,0]]             # right face (positive=out)

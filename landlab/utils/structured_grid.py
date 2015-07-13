@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
 import itertools
+from six.moves import range
 
 from ..grid.base import (CORE_NODE, FIXED_GRADIENT_BOUNDARY,
                          FIXED_VALUE_BOUNDARY, TRACKS_CELL_BOUNDARY,
@@ -206,28 +207,28 @@ def top_index_iter(shape):
     """
     Iterator for the top boundary indices of a structured grid.
     """
-    return xrange(shape[1] * (shape[0] - 1), shape[0] * shape[1])
+    return range(shape[1] * (shape[0] - 1), shape[0] * shape[1])
 
 
 def bottom_index_iter(shape):
     """
     Iterator for the bottom boundary indices of a structured grid.
     """
-    return xrange(0, shape[1])
+    return range(0, shape[1])
 
 
 def left_index_iter(shape):
     """
     Iterator for the left boundary indices of a structured grid.
     """
-    return xrange(0, shape[0] * shape[1], shape[1])
+    return range(0, shape[0] * shape[1], shape[1])
 
 
 def right_index_iter(shape):
     """
     Iterator for the right boundary indices of a structured grid.
     """
-    return xrange(shape[1] - 1, shape[0] * shape[1], shape[1])
+    return range(shape[1] - 1, shape[0] * shape[1], shape[1])
 
 
 def left_right_iter(shape, *args):
@@ -248,13 +249,13 @@ def left_right_iter(shape, *args):
     array([ 3,  5,  9, 11])
     """
     if len(args) == 0:
-        iter_rows = xrange(0, shape[0], 1)
+        iter_rows = range(0, shape[0], 1)
     elif len(args) == 1:
-        iter_rows = xrange(0, args[0], 1)
+        iter_rows = range(0, args[0], 1)
     elif len(args) == 2:
-        iter_rows = xrange(args[0], args[1], 1)
+        iter_rows = range(args[0], args[1], 1)
     elif len(args) == 3:
-        iter_rows = xrange(args[0], args[1], args[2])
+        iter_rows = range(args[0], args[1], args[2])
 
     for row in iter_rows:
         yield row * shape[1]
@@ -362,8 +363,8 @@ def interior_iter(shape):
     """
     interiors = []
     interiors_per_row = shape[1] - 2
-    for row in xrange(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
-        interiors.append(xrange(row , row + interiors_per_row))
+    for row in range(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
+        interiors.append(range(row , row + interiors_per_row))
     return itertools.chain(*interiors)
 
 
@@ -1479,7 +1480,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     (interiors, boundaries) = (interior_nodes(shape_with_halo),
                                boundary_nodes(shape_with_halo))
 
-    ids.flat[interiors] = xrange(interior_node_count(shape_with_halo))
+    ids.flat[interiors] = range(interior_node_count(shape_with_halo))
     ids.flat[boundaries] = halo_indices
 
     return ids
@@ -1742,8 +1743,8 @@ def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
     (nrows, ncols) = shape
     ncells = shape[0] * shape[1]
     diagonal_cells = - np.ones([ncells, 4], dtype=np.int)
-    for r in xrange( 1, nrows-1 ):
-        for c in xrange( 1, ncols-1 ):
+    for r in range( 1, nrows-1 ):
+        for c in range( 1, ncols-1 ):
             cell_id = r * ncols + c
             diagonal_cells[cell_id,2] = cell_id - ncols - 1 # bottom left
             diagonal_cells[cell_id,0] = cell_id + ncols + 1 # top right
@@ -1904,7 +1905,6 @@ def node_id_to_interior_node_id(shape, node_ids):
     ncols = shape[1]
     interior_ID = (node_ids//ncols - 1)*(ncols-2) + (node_ids%ncols) - 1
     if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
-        print "One of the supplied nodes was outside the interior grid!"
-        raise NameError()
+        raise IndexError("A supplied node was outside the interior grid")
     else:
         return interior_ID.astype(int)

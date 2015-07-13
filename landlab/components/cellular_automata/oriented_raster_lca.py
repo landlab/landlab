@@ -10,9 +10,13 @@ stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
+import warnings
 
 from numpy import zeros
 from landlab_ca import LandlabCellularAutomaton
+import six
+
+from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
 _DEBUG = False
@@ -43,11 +47,11 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        print 'WARNING: use of OrientedRasterLCA is deprecated.'
-        print 'Use OrientedRasterCTS instead.'
+        warnings.warn('use of OrientedRasterLCA is deprecated. '
+                      'Use OrientedRasterCTS instead.')
                 
         if _DEBUG:
-            print 'OrientedRasterLCA.__init__ here'
+            six.print_('OrientedRasterLCA.__init__ here')
 
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
@@ -63,10 +67,10 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
             transition_list, initial_node_states, prop_data, prop_reset_value)
             
         if _DEBUG:
-            print 'ORLCA:'
-            print self.n_xn
-            print self.xn_to
-            print self.xn_rate
+            six.print_('ORLCA:')
+            six.print_(self.n_xn)
+            six.print_(self.xn_to)
+            six.print_(self.xn_rate)
         
 
     def setup_array_of_orientation_codes(self):
@@ -102,7 +106,7 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         self.active_link_orientation = dy.astype(int)
         
         if _DEBUG:
-            print self.active_link_orientation
+            six.print_(self.active_link_orientation)
             
             
 if __name__=='__main__':

@@ -8,6 +8,7 @@ which simulates weathering of rock into saprolite.
 
 GT, August 2014 (adapted to new Landlab cellular automata framework Sep 2014)
 """
+from __future__ import print_function
 
 _DEBUG = False
 
@@ -50,10 +51,10 @@ def setup_transition_list():
     xn_list.append( Transition(2, 3, 1., 'weathering') ) # sap-rock to sap-sap
         
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -104,8 +105,8 @@ def main():
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print '{0:.0f}'.format(ca.node_state[n]),
-            print
+                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+            print()
 
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca)
@@ -121,7 +122,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step
@@ -138,8 +139,8 @@ def main():
             for r in range(ca.grid.number_of_node_rows):
                 for c in range(ca.grid.number_of_node_columns):
                     n -= 1
-                    print '{0:.0f}'.format(ca.node_state[n]),
-                print
+                    print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                print()
 
 
     # FINALIZE

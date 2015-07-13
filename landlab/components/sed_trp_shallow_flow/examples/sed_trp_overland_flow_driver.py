@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow import SurfaceFlowTransport
@@ -61,8 +63,8 @@ while elapsed_time < time_to_run:
 zm = mg.at_node['topographic__elevation']
 h = mg.at_node['planet_surface__water_depth']
 ddz=zm-zinit
-print ddz[np.where(ddz!=0.)]
-print np.amax(ddz)
+print(ddz[np.where(ddz!=0.)])
+print(np.amax(ddz))
     
 # Get a 2D array version of the water depths and elevations
 hr = mg.node_vector_to_raster(h)
@@ -99,4 +101,4 @@ pylab.title('Water depth')
 # Display the plots
 pylab.show()
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))

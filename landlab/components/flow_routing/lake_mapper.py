@@ -4,6 +4,7 @@ Created on Sat May 30 14:01:10 2015
 
 @author: gtucker
 """
+from __future__ import print_function
 
 from landlab import ModelParameterDictionary, Component, FieldError, FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -68,23 +69,23 @@ class DepressionFinderAndRouter(Component):
             try:
                 topo_field_name = inputs.read_string('ELEVATION_FIELD_NAME')
             except AttributeError:
-                print 'Error: Because your grid does not have a node field called'
-                print '"topographic__elevation", you need to pass the name of'
-                print 'a text input file or ModelParameterDictionary, and this'
-                print 'file or dictionary needs to include the name of another'
-                print 'field in your grid that contains your elevation data.'
+                print('Error: Because your grid does not have a node field called')
+                print('"topographic__elevation", you need to pass the name of')
+                print('a text input file or ModelParameterDictionary, and this')
+                print('file or dictionary needs to include the name of another')
+                print('field in your grid that contains your elevation data.')
                 raise AttributeError
             except MissingKeyError:
-                print 'Error: Because your grid does not have a node field called'
-                print '"topographic__elevation", your input file (or'
-                print 'ModelParameterDictionary) must include an entry with the'
-                print 'key "ELEVATION_FIELD_NAME", which gives the name of a'
-                print 'field in your grid that contains your elevation data.'
+                print('Error: Because your grid does not have a node field called')
+                print('"topographic__elevation", your input file (or')
+                print('ModelParameterDictionary) must include an entry with the')
+                print('key "ELEVATION_FIELD_NAME", which gives the name of a')
+                print('field in your grid that contains your elevation data.')
                 raise MissingKeyError('ELEVATION_FIELD_NAME')
             try:
                 self._elev = self._grid.at_node[topo_field_name]
             except AttributeError:
-                print 'Your grid does not seem to include a node field called',topo_field_name
+                print('Your grid does not seem to include a node field called',topo_field_name)
                 
         # Create output variables.
         #
@@ -105,7 +106,7 @@ class DepressionFinderAndRouter(Component):
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = numpy.concatenate((self._node_nbrs, diag_nbrs), 1)
-            #print 'NN',self._node_nbrs
+            print('NN',self._node_nbrs)
                 
                 
     def find_pits(self):
@@ -360,13 +361,13 @@ class DepressionFinderAndRouter(Component):
         for r in range(self._grid.number_of_node_rows):
             for c in range(self._grid.number_of_node_columns):
                 if is_outlet[n]:
-                    print 'o',
+                    print('o', end=' ')
                 elif self.flood_status[n]==_UNFLOODED:
-                    print '.',
+                    print('.', end=' ')
                 else:
-                    print '~',
+                    print('~', end=' ')
                 n+=1
-            print
+            print()
         
         
         
@@ -376,34 +377,33 @@ def main():
     """
     temporary: test.
     """
-    #print 'howdy'
+    print('howdy')
     from landlab import RasterModelGrid
     from numpy.random import rand
     grid = RasterModelGrid(4, 5, 1.0)
     z = grid.add_zeros('node', 'topographic__elevation')
     z[:] = rand(len(z))*100
-    print z
-    dep_finder = DepressionFinderAndRouter(grid)
-    #dep_finder = DepressionFinderAndRouter(grid, '/Users/gtucker/Dev/Landlab/gt_tests/test_inputs_for_depression_mapper.txt')
+    print(z)
+    dep_finder = DepressionFinderAndRouter(grid, '/Users/gtucker/Dev/Landlab/gt_tests/test_inputs_for_depression_mapper.txt')
     #dep_finder.initialize()
     dep_finder.map_depressions()
     
     n=0
     for r in range(grid.number_of_node_rows-1, -1, -1):
         for c in range(grid.number_of_node_columns):
-            print int(z[n]),'(',dep_finder.is_pit[n],')',
+            print(int(z[n]),'(',dep_finder.is_pit[n],')', end=' ')
             n+=1
-        print
+        print()
         
     n=0
     for r in range(grid.number_of_node_rows):
         for c in range(grid.number_of_node_columns):
             if dep_finder.depression_outlet[n]==BAD_INDEX_VALUE:
-                print dep_finder.depression_depth[n],'( X )',
+                print(dep_finder.depression_depth[n],'( X )', end=' ')
             else:
-                print dep_finder.depression_depth[n],'(',dep_finder.depression_outlet[n],')',
+                print(dep_finder.depression_depth[n],'(',dep_finder.depression_outlet[n],')', end=' ')
             n+=1
-        print
+        print()
 
     dep_finder.display_depression_map()
     
@@ -411,9 +411,9 @@ def main():
     # First, find flow dirs without lakes. Then, adjust.
     from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
     (rcvr, ss) = grid_flow_directions(grid, z)
-    print z
-    print rcvr
-    print ss
+    print(z)
+    print(rcvr)
+    print(ss)
                     
     
     
