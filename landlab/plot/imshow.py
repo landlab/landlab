@@ -244,7 +244,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     value found on any active cell in the grid.
     """
 
-    active_cells = grid.node_index_at_active_cells
+    active_cells = grid.node_at_core_cell
     
     try:
         assert_array_size_matches(values, active_cells.size,
