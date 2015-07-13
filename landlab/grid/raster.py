@@ -450,7 +450,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
-        self.core_cells = sgrid.core_cell_index(self.shape)
+        self._core_cells = sgrid.core_cell_index(self.shape)
         self.activecell_node = self._node_at_cell.copy()
         self.corecell_node = self._node_at_cell
         #self.active_faces = sgrid.active_face_index(self.shape)
