@@ -134,8 +134,12 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 - To ensure that your version of **pip** (a package installer) is up-to-date, enter the following command::
 
   > pip install --upgrade pip
-  
-- Once the correct version is installed, now install **netCDF4**.  (Note the ``conda`` command below handles Anaconda-supported package installation and updates)::
+
+- Next, make sure the necessary dependencies are up-to-date. The following conda command will update all Anaconda packages (Note the ``conda`` command below handles Anaconda-supported package installation and updates)::
+
+  > conda update --all
+
+- Once the correct version is installed, now install **netCDF4**::
 
   > conda install netCDF4
 
@@ -143,7 +147,7 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
   > pip install landlab
 
-- Once Landlab has been successfully installed, on the python shell line, check to make sure it is up-to-date (note that those are double underscores around version)
+- Once Landlab has been successfully installed, on the **Python shell line**, check to make sure it is up-to-date (note that those are double underscores around version)
 
   >>> import landlab
   >>> landlab.__version__
