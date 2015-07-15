@@ -1723,8 +1723,444 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, BAD_INDEX_VALUE=-1):
     
     # Output neighbor array. For each input ID, returns [S,W,N,E]
     return neighbor_array                
-                                     
-                                                                                                                                                                                                       
+
+def bottom_edge_horizontal_ids(shape):
+    """Link IDs of bottom edge horizontal links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of bottom edge horizontal links. Length is (rmg.number_of_columns-1)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import bottom_edge_horizontal_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> bottom_edge_horizontal_ids(shape)
+    array([15, 16, 17, 18])
+
+
+    Example grid: Indicies are given for horizontal links along the bottom edge of
+                  the 4x5 grid space. Only horizontal links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *------>*------>*------>*------>*
+       
+       
+            
+          *------>*------>*------>*------>*
+    
+    
+    
+          *------>*------>*------>*------>*
+
+
+              
+          *--15-->*--16-->*--17-->*--18-->*
+    """
+    
+    #First, we find all horizontal link ids for the RasterModelGrid shape.
+    horizontal_id_array = horizontal_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our bottom edge
+    # horizontal ids. This array should be equal in length to (number of columns-1)
+    bottom_edge_horizontal_ids = horizontal_id_array[0]
+
+    return bottom_edge_horizontal_ids
+
+def left_edge_horizontal_ids(shape):
+    """Link IDs of left edge horizontal links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of left edge horizontal links. Length is (rmg.number_of_rows)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import left_edge_horizontal_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> left_edge_horizontal_ids(shape)
+    array([15, 19, 23, 27])
+
+
+    Example grid: Indicies are given for horizontal links along the left edge of
+                  the 4x5 grid space. Only horizontal links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+          *--27-->*------>*------>*------>*
+       
+       
+            
+          *--23-->*------>*------>*------>*
+    
+    
+    
+          *--19-->*------>*------>*------>*
+
+
+              
+          *--15-->*------>*------>*------>*
+    """
+    
+    #First, we find all horizontal link ids for the RasterModelGrid shape.
+    horizontal_id_array = horizontal_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our left edge
+    # horizontal ids. This array should be equal in length to (number of rows)
+    left_edge_horizontal_ids = horizontal_id_array[:,0]
+
+    return left_edge_horizontal_ids
+
+def top_edge_horizontal_ids(shape):
+    """Link IDs of top edge horizontal links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of top edge horizontal links. Length is (rmg.number_of_columns-1)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import top_edge_horizontal_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> top_edge_horizontal_ids(shape)
+    array([27, 28, 29, 30])
+
+
+    Example grid: Indicies are given for horizontal links along the top edge of
+                  the 4x5 grid space. Only horizontal links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *--27-->*--28-->*--29-->*--30-->*
+       
+       
+            
+          *------>*------>*------>*------>*
+    
+    
+    
+          *------>*------>*------>*------>*
+
+
+              
+          *------>*------>*------>*------>*
+    """
+    #First, we find all horizontal link ids for the RasterModelGrid shape.
+    horizontal_id_array = horizontal_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our top edge
+    # horizontal ids. This array should be equal in length to (number of columns-1)
+    top_edge_horizontal_ids = horizontal_id_array[(shape[0]-1)]
+
+    return top_edge_horizontal_ids
+
+def right_edge_horizontal_ids(shape):
+    """Link IDs of right edge horizontal links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of left edge horizontal links. Length is (rmg.number_of_rows)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import right_edge_horizontal_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> right_edge_horizontal_ids(shape)
+    array([18, 22, 26, 30])
+
+
+    Example grid: Indicies are given for horizontal links along the right edge of
+                  the 4x5 grid space. Only horizontal links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+          *------>*------>*------>*--30-->*
+       
+       
+            
+          *------>*------>*------>*--26-->*
+    
+    
+    
+          *------>*------>*------>*--22-->*
+
+
+              
+          *------>*------>*------>*--18-->*
+    """
+    
+    #First, we find all horizontal link ids for the RasterModelGrid shape.
+    horizontal_id_array = horizontal_link_ids(shape)    
+    
+    # Then we slice the last column and return it. This has our right edge
+    # horizontal ids. This array should be equal in length to (number of rows - 1)
+    right_edge_horizontal_ids = horizontal_id_array[:,(shape[0]-1)]
+
+    return right_edge_horizontal_ids
+                          
+def bottom_edge_vertical_ids(shape):
+    """Link IDs of bottom edge vertical links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of bottom edge vertical links. Length is (rmg.number_of_columns)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import bottom_edge_vertical_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> bottom_edge_vertical_ids(shape)
+    array([0, 1, 2, 3, 4])
+
+
+    Example grid: Indicies are given for vertical links along the bottom edge of
+                  the 4x5 grid space. Only vertical links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          |       |       |       |       |      
+          |       |       |       |       |         
+          *       *       *       *       *
+          ^       ^       ^       ^       ^       
+          |       |       |       |       |       
+          |       |       |       |       |       
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          0       1       2       3       4       
+          |       |       |       |       |       
+          *       *       *       *       *
+    """
+    
+    #First, we find all vertical link ids for the RasterModelGrid shape.
+    vertical_id_array = vertical_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our bottom edge
+    # vertical ids. This array should be equal in length to (number of columns)
+    bottom_edge_vertical_ids = vertical_id_array[0]
+
+    return bottom_edge_vertical_ids
+
+def left_edge_vertical_ids(shape):
+    """Link IDs of left edge vertical links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of left edge vertical links. Length is (rmg.number_of_rows - 1)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import left_edge_vertical_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> left_edge_vertical_ids(shape)
+    array([0, 5, 10])
+
+
+    Example grid: Indicies are given for vertical links along the left edge of
+                  the 4x5 grid space. Only vertical links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          10      |       |       |       |      
+          |       |       |       |       |         
+          *       *       *       *       *
+          ^       ^       ^       ^       ^       
+          5       |       |       |       |       
+          |       |       |       |       |       
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          0       |       |       |       |       
+          |       |       |       |       |       
+          *       *       *       *       *
+    """
+    
+    #First, we find all vertical link ids for the RasterModelGrid shape.
+    vertical_id_array = vertical_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our left edge
+    # vertical ids. This array should be equal in length to (number of rows - 1)
+    left_edge_vertical_ids = vertical_id_array[:,0]
+
+    return left_edge_vertical_ids
+
+def top_edge_vertical_ids(shape):
+    """Link IDs of top edge vertical links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of top edge vertical links. Length is (rmg.number_of_columns)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import top_edge_vertical_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> top_edge_vertical_ids(shape)
+    array([0, 1, 2, 3, 4])
+
+
+    Example grid: Indicies are given for vertical links along the top edge of
+                  the 4x5 grid space. Only vertical links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          10      11      12      13      14      
+          |       |       |       |       |         
+          *       *       *       *       *
+          ^       ^       ^       ^       ^       
+          |       |       |       |       |       
+          |       |       |       |       |       
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          |       |       |       |       |      
+          |       |       |       |       |       
+          *       *       *       *       *
+    """
+    #First, we find all vertical link ids for the RasterModelGrid shape.
+    vertical_id_array = vertical_link_ids(shape)    
+    
+    # Then we slice the first column and return it. This has our top edge
+    # vertical ids. This array should be equal in length to (number of columns)
+    top_edge_vertical_ids = vertical_id_array[(shape[0]-2)]
+
+    return top_edge_vertical_ids
+
+def right_edge_vertical_ids(shape):
+    """Link IDs of right edge vertical links
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid, given as (rows, columns) of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs of left edge vertical links. Length is (rmg.number_of_rows - 1)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import right_edge_vertical_ids
+
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> shape = rmg.shape()
+
+    >>> right_edge_vertical_ids(shape)
+    array([4, 9, 14])
+
+
+    Example grid: Indicies are given for vertical links along the right edge of
+                  the 4x5 grid space. Only vertical links are shown, asterisks (*) 
+                  represent nodes.
+
+    ::
+
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          |       |       |       |       14      
+          |       |       |       |       |         
+          *       *       *       *       *
+          ^       ^       ^       ^       ^       
+          |       |       |       |       9       
+          |       |       |       |       |       
+          *       *       *       *       *
+          ^       ^       ^       ^       ^   
+          |       |       |       |       4       
+          |       |       |       |       |       
+          *       *       *       *       *
+    """
+    
+    #First, we find all vertical link ids for the RasterModelGrid shape.
+    vertical_id_array = vertical_link_ids(shape)    
+    
+    # Then we slice the last column and return it. This has our right edge
+    # vertical ids. This array should be equal in length to (number of rows - 1)
+    right_edge_vertical_ids = vertical_id_array[:,(shape[1]-1)]
+
+    return right_edge_vertical_ids
+
+
 class StructuredQuadLinkGrid(LinkGrid):
     def __init__(self, shape):
         link_ends = (node_id_at_link_start(shape), node_id_at_link_end(shape))
