@@ -2073,7 +2073,7 @@ def top_edge_vertical_ids(shape):
     >>> shape = rmg.shape
 
     >>> top_edge_vertical_ids(shape)
-   array([10, 11, 12, 13, 14])
+    array([10, 11, 12, 13, 14])
 
 
     Example grid: Indicies are given for vertical links along the top edge of
