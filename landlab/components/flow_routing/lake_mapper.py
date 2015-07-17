@@ -328,6 +328,8 @@ class DepressionFinderAndRouter(Component):
         
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+
         >>> rg = RasterModelGrid(5, 5)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = np.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
