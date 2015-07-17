@@ -6,6 +6,7 @@ Unit tests for landlab.io.netcdf module.
 import os
 import numpy as np
 from nose.tools import assert_equal, assert_true, assert_raises
+from nose import SkipTest
 try:
     from nose import assert_list_equal
 except ImportError:
