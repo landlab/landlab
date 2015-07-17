@@ -326,10 +326,11 @@ class DepressionFinderAndRouter(Component):
         --------
         Test #1: 5x5 raster grid with a diagonal lake.
         
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid(5, 5)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
-        >>> z[:] = numpy.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
+        >>> z[:] = np.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
         >>> df = DepressionFinderAndRouter(rg)
         >>> df.map_depressions()
         >>> df.display_depression_map()
