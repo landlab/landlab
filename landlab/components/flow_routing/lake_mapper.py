@@ -106,7 +106,7 @@ class DepressionFinderAndRouter(Component):
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = numpy.concatenate((self._node_nbrs, diag_nbrs), 1)
-            print('NN',self._node_nbrs)
+            #print('NN',self._node_nbrs)
                 
                 
     def find_pits(self):
