@@ -2018,7 +2018,7 @@ def left_edge_vertical_ids(shape):
     >>> shape = rmg.shape
 
     >>> left_edge_vertical_ids(shape)
-    array([0, 5, 10])
+    array([ 0,  5, 10])
 
 
     Example grid: Indicies are given for vertical links along the left edge of
@@ -2073,7 +2073,7 @@ def top_edge_vertical_ids(shape):
     >>> shape = rmg.shape
 
     >>> top_edge_vertical_ids(shape)
-    array([0, 1, 2, 3, 4])
+   array([10, 11, 12, 13, 14])
 
 
     Example grid: Indicies are given for vertical links along the top edge of
@@ -2127,7 +2127,7 @@ def right_edge_vertical_ids(shape):
     >>> shape = rmg.shape
 
     >>> right_edge_vertical_ids(shape)
-    array([4, 9, 14])
+    array([ 4,  9, 14])
 
 
     Example grid: Indicies are given for vertical links along the right edge of
