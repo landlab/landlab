@@ -2,6 +2,7 @@ language: python
 python:
   - "2.6"
   - "2.7"
+  - "3.3"
   - "3.4"
 
 os:
@@ -15,7 +16,7 @@ install:
   - pip install coveralls
   - python setup.py install
 
-script: 
+script:
   - (cd docs && make html 2> /dev/null)
   - bash .ci/travis/run_travis_test.sh
 
@@ -24,3 +25,12 @@ virtualenv:
 
 after_success:
   coveralls
+
+deploy:
+  provider: pypi
+  user: landlab
+  password:
+    secure: Ba/spYvhJuoXB9Kv78xwU2AMEcQe4USIbSX5S2d8ytmjKNFwYSOGZ8W4snyoq/txkPhaz97joKp8uFJd0YITf6A6feP5vEatZWKQQ8qKf68eo9AaK+vSxUQuoPBnEt0EZ/l/77t6XYWtYCB2+m6jD8/rxO2x+LG9PQ3IBk80sNQ=
+  on:
+    tags: true
+    repo: landlab/landlab
