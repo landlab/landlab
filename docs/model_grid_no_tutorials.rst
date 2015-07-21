@@ -550,7 +550,10 @@ See `the matplotlib reference guide
 <http://matplotlib.org/examples/color/colormaps_reference.html>`_ for more options. 
 Note that imshow_node_grid takes many of the same keyword arguments as, and is designed
 to resemble, the standard matplotlib function `imshow 
-<http://matplotlib.org/users/image_tutorial.html>`_.
+<http://matplotlib.org/users/image_tutorial.html>`_. See also the method help for more
+details.
+Note you can set the maximum and minimum you want for your colorbar using the keyword 
+*limits=(min, max)*.
 
 
 Visualising transects through your data
