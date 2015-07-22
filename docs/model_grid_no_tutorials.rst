@@ -552,8 +552,8 @@ Note that imshow_node_grid takes many of the same keyword arguments as, and is d
 to resemble, the standard matplotlib function `imshow 
 <http://matplotlib.org/users/image_tutorial.html>`_. See also the method help for more
 details.
-Note you can set the maximum and minimum you want for your colorbar using the keyword 
-*limits=(min, max)*.
+In particular, note you can set the maximum and minimum you want for your colorbar using
+the keywords *vmin* and *vmax*, much as in similar functions in the matplotlib library.
 
 
 Visualising transects through your data

@@ -25,7 +25,9 @@ def imshow_node_grid(grid, values, **kwds):
 
     Data is plotted with the surrounding cell shaded with the value
     at the node at its center. Outer edges of perimeter cells are
-    extrapolated.
+    extrapolated. Closed nodes are colored uniformly (default black,
+    overridden with kwd 'color_for_closed'); other open boundary nodes get
+    their actual values.
 
     Parameters
     ----------
@@ -55,7 +57,7 @@ def imshow_node_grid(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str
-        Color to use for closed nodes
+        Color to use for closed nodes (default 'black')
 
     Use matplotlib functions like xlim, ylim to modify your
     plot after calling imshow_node_grid, as desired.
