@@ -158,4 +158,23 @@ more information on the PATHs used by Canopy if you're still struggling.
 Note that modifying the User Variables will only affect the current user account. Add the
 text - carefully!! - to the System Variables if you want the changes for all users.
 
+Other issues
+============
 
+1. Other install issues often mean that some component of your Python distribution is out
+of date. A very common culprit is setuptools, which - extremely frustratingly - isn't 
+updated by a *conda update -all* call for Anaconda. Other packages can also cause this
+kind of problem if out of date. An example of a setuptools related error we've seen
+recently ends with::
+    
+    error: unknown file type '.pyx' (from 'landlab/components/flexure/cfuncs.pyx')
+
+...combined with warnings referencing a problem with PEP 440.
+
+To our knowledge, this issue only arises for developer installs.
+
+Resolve the issue by updating your distribution. For Anaconda, from a terminal just run::
+
+    > conda update --all
+    > conda update setuptools
+    
