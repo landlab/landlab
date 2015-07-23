@@ -113,6 +113,8 @@ Installing Landlab in developer mode
 **Before you start:** Ensure you have installed with Xcode from the Apple app store 
 (macs) or :ref:`installed a working C++ compiler on your machine <compile_in_windows>`
 (PCs) before proceeding with your developer install.
+**You should also update your Python distribution!** For Anaconda, use 
+*conda update --all* (two dashes) from your terminal.
 
 .. note::
 
