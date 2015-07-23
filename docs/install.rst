@@ -143,8 +143,7 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
   > conda update --all
   
-- Installing also requires a fully up-to-date version of setuptools, which (irritatingly)
-is not updated by the *--all* call above. So also run::
+- Installing also requires a fully up-to-date version of setuptools, which (irritatingly) is not updated by the *--all* call above. So also run::
 
   > conda update setuptools
 
