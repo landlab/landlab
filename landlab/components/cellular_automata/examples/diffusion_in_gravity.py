@@ -16,8 +16,8 @@ _DEBUG = False
 import time
 from numpy import where, bitwise_and
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_raster_lca import OrientedRasterLCA
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
 
 
 def setup_transition_list():
@@ -104,7 +104,7 @@ def main():
     node_state_grid[middle_rows] = 1    
     
     # Create the CA model
-    ca = OrientedRasterLCA(mg, ns_dict, xn_list, node_state_grid)
+    ca = OrientedRasterCTS(mg, ns_dict, xn_list, node_state_grid)
     
     # Debug output if needed    
     if _DEBUG:
