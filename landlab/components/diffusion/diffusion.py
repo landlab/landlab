@@ -269,7 +269,6 @@ class LinearDiffuser(Component):
         core_nodes = self._grid.get_core_cell_node_ids()
 
         for i in xrange(repeats+1):
-            print(repeats, extra_time)
             # Calculate the gradients and sediment fluxes
             self.g[self._grid.active_links] = self._grid.calculate_gradients_at_active_links(z)
             self.qs[self._grid.active_links] = -self.kd*self.g[self._grid.active_links]
@@ -292,7 +291,6 @@ class LinearDiffuser(Component):
             else:
                 add_uplift = 0.
             self._grid.at_node[self.values_to_diffuse][core_nodes] += add_uplift + dzdt[core_nodes] * timestep
-            print(timestep)
 
             #check the BCs, update if fixed gradient
             if self._grid.fixed_gradient_boundary_nodes:
