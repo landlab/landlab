@@ -44,9 +44,11 @@ pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 interior_nodes = mg.core_nodes
 
 # do the loop
-for i in xrange(1000):
+for i in xrange(2000):
+    if i%50==0:
+        print('loop '+str(i))
     mg.at_node['topographic__elevation'][inlet_node] = 1.
-    pfr.route_flow()
+    pfr.route_flow(route_on_diagonals=True)
     #imshow(mg, 'water__volume_flux_magnitude')
     #show()
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
