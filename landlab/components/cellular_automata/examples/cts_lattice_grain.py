@@ -13,8 +13,8 @@ _DEBUG = False
 import time
 import random
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_lca import OrientedHexLCA
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
 
 
 def setup_transition_list(g=1.0, f=0.0):
@@ -281,7 +281,7 @@ def main():
             node_state_grid[i] = random.randint(1, 7)
     
     # Create the CA model
-    ca = OrientedHexLCA(hmg, ns_dict, xn_list, node_state_grid)
+    ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
     
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca)

@@ -98,7 +98,9 @@ Installing Landlab
     remember to update both the distribution itself and its internal packages
     before attempting a Landlab install, to make sure the necessary dependencies
     are up to date. Do this from the command prompt
-    for Anaconda, using: *conda update --all* (two dashes) (or through the GUI in Canopy).
+    for Anaconda, using: *conda update --all* (two dashes), then also
+    *conda update setuptools* (or through the GUI in Canopy). 
+    Also update or install netCDF4 through conda if you need to.
 
 
 Here we describe how to install the latest release package of Landlab.  Note that this method of installation hides the code behind Landlab.  If you are an experienced Landlab user and want to actually edit existing Landlab code and add to the Landlab repository, please follow the developers' installation instructions :ref:`here 
@@ -114,6 +116,8 @@ Quick Landlab Install Instructions (For Experienced Python Users)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>`.  Otherwise, if you don't like details, continue!
+
+- Make sure your Python distribution is up to date, especially setuptools.
 
 - Open a terminal (or the command prompt) and type the following::
 
@@ -138,6 +142,10 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 - Next, make sure the necessary dependencies are up-to-date. The following conda command will update all Anaconda packages (Note the ``conda`` command below handles Anaconda-supported package installation and updates)::
 
   > conda update --all
+  
+- Installing also requires a fully up-to-date version of setuptools, which (irritatingly) is not updated by the *--all* call above. So also run::
+
+  > conda update setuptools
 
 - Once the Anaconda packages are updated and the correct version of pip is installed, now install **netCDF4**::
 
