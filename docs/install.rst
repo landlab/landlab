@@ -214,7 +214,7 @@ To take advantage of new features and new library additions, we recommend you
     Python package! For Anaconda, use the conda package manager from a
     command prompt:
 
-    > *conda update --all* (two dashes)
+    > conda update --all #(two dashes)
 
     (From Canopy, use the GUI to update all the available new packages listed.)
 
