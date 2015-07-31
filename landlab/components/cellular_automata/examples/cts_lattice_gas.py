@@ -128,8 +128,8 @@ def main():
     # INITIALIZE
     
     # User-defined parameters
-    nr = 41
-    nc = 61
+    nr = 52
+    nc = 120
     plot_interval = 1.0
     run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
@@ -176,8 +176,21 @@ def main():
     # Create the CA model
     ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
     
+    # Set up a color map for plotting
+    import matplotlib
+    clist = [ (1.0, 1.0, 1.0),   # empty = white
+              (1.0, 0.0, 0.0),   # up = red
+              (1.0, 1.0, 0.0),   # right-up = yellow
+              (0.0, 1.0, 0.0),   # down-up = green
+              (0.0, 1.0, 1.0),   # down = cyan
+              (0.0, 0.0, 1.0),   # left-down = blue
+              (1.0, 0.0, 1.0),   # left-up = magenta
+              (0.5, 0.5, 0.5),   # resting = gray
+              (0.0, 0.0, 0.0) ]   # wall = black
+    my_cmap = matplotlib.colors.ListedColormap(clist)
+    
     # Create a CAPlotter object for handling screen display
-    ca_plotter = CAPlotter(ca)
+    ca_plotter = CAPlotter(ca, cmap=my_cmap)
     
     # Plot the initial grid
     ca_plotter.update_plot()
@@ -204,6 +217,7 @@ def main():
         
         # Plot the current grid
         ca_plotter.update_plot()
+        axis('off')
         
         # Record numbers in each state
         nstates[:,k] = bincount(node_state_grid)
@@ -217,7 +231,7 @@ def main():
     # Display the numbers of each state
     fig, ax = subplots()
     for i in range(1, 8):
-        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i])
+        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i], color=clist[i])
     ax.legend()
     xlabel('Time')
     ylabel('Number of particles in state')
