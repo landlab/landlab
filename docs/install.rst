@@ -210,9 +210,12 @@ To take advantage of new features and new library additions, we recommend you
 
 .. note::
 
-    Whenever you update Landlab, use this as a good time to also update your
+    Whenever you update Landlab, we **strongly** recommend you also update your
     Python package! For Anaconda, use the conda package manager from a
-    command prompt: *conda update --all* (two dashes)
+    command prompt:
+
+    > conda update --all #(two dashes)
+
     (From Canopy, use the GUI to update all the available new packages listed.)
 
 If you installed Landlab through the instructions on this page, this is trivial.
