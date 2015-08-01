@@ -30,7 +30,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 #modify the fields in the grid
 z = mg.create_node_array_zeros() + init_elev
-mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
+z_slope = (49000. - mg.node_y)/mg.node_y.max()/20.
+mg.at_node['topographic__elevation'] = z + z_slope #+ np.random.rand(len(z))/1000.
 mg.create_node_array_zeros('water__volume_flux_in')
 
 #Set boundary conditions
@@ -51,7 +52,7 @@ interior_nodes = mg.core_nodes
 section_downfan = []
 
 # do the loop
-for i in xrange(2000):
+for i in xrange(3000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
@@ -72,10 +73,29 @@ for i in xrange(2000):
         print('loop '+str(i))
         section_downfan.append(mg.node_vector_to_raster(mg.at_node['topographic__elevation'])[1:-1,section_col].copy())
 
+for i in xrange(3000):
+    mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
+    #now pull down hard on the BL:
+    mg.at_node['topographic__elevation'][mg.top_edge_node_ids()[mg.number_of_node_columns//2]] =- 10.
+    pfr.route_flow(route_on_diagonals=True)
+    kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
+    # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
+    dt = 0.5
+    g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
+    map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
+    kd_link = 1.e6*mg.at_link['water__volume_flux_magnitude'][mg.active_links]
+    qs = -kd_link*g
+    dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
+    dzdt = -dqsdx
+    mg.at_node['topographic__elevation'][interior_nodes] += dzdt[interior_nodes]*dt
+    if i%50==0:
+        print('loop '+str(i))
+        section_downfan.append(mg.node_vector_to_raster(mg.at_node['topographic__elevation'])[1:-1,section_col].copy())
+
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
-imshow_node_grid(mg, 'water__depth')
+imshow_node_grid(mg, mg.hillshade(), cmap='bone')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)
