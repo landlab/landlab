@@ -336,11 +336,11 @@ class DepressionFinderAndRouter(Component):
         >>> df = DepressionFinderAndRouter(rg)
         >>> df.map_depressions()
         >>> df.display_depression_map()
-        . . . . .
-        . . . ~ .
-        . . ~ . .
-        . ~ . . .
-        o . . . .
+        . . . . . 
+        . . . ~ . 
+        . . ~ . . 
+        . ~ . . . 
+        o . . . . 
         """
         # Locate nodes with pits
         self.find_pits()
