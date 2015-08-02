@@ -227,9 +227,10 @@ Landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
 testing. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
 shows the latest testing results. A new set of tests are executed whenever
 any changes are pushed to the Landlab repository and with every pull request.
-We currently run test suites for Python versions 2.6, 2.7, 3.3, and 3.4 (for
-Python 3 versions we use the `2to3 <https://docs.python.org/2/library/2to3.html>`_
-tool).
+We currently run test suites for Python versions 2.6, 2.7, 3.3, and 3.4.
+
+Continuous integration for Windows is done on `Appveyor <https://appveyor.com>`
+and also tests with Python 2.6, 2.7, 3.3, and 3.4.
 
 Once you send a pull request from GitHub, you will be taken to the Landlab
 pull request page and all unit tests are run. You will see the status
@@ -240,11 +241,15 @@ responsible for the failures, please fix them until the tests pass. Note that
 you do not need to send a new pull request after committing for fixes. They
 will be added to the current pull request and the tests automatically rerun.
 
-You can also run unit tests locally with `nose
-<https://nose.readthedocs.org>`_. From the top-level Landlab folder (landlab with a lowercase *l* and the folder
-that contains `setup.py`) run::
+You can also run unit tests locally with the `test-installed-landlab.py` script
+found in the `scripts` folder::
 
-  > nosetests
+    > python test-installed-landlab.py --doctest
+
+If you don't want to run the doctests, you can drop the `--doctest` option.
+Note that this script will test whatever version of landlab you have installed,
+which may or may not be the one you are working on in your current working
+directory.
 
 
 Troubleshooting
