@@ -215,7 +215,7 @@ Coding Style
   in the :ref:`component development guide <dev_components>`.
 
 If you want to check how well you are doing, please look at our
-`Landscape page <https://landscape.io>`. Landscape will grade the health of
+`Landscape page <https://landscape.io>`_. Landscape will grade the health of
 the landlab code with every push to GitHub.
 
 
@@ -233,8 +233,8 @@ shows the latest testing results. A new set of tests are executed whenever
 any changes are pushed to the Landlab repository and with every pull request.
 We currently run test suites for Python versions 2.6, 2.7, 3.3, and 3.4.
 
-Continuous integration for Windows is done on `Appveyor <https://appveyor.com>`
-and also tests with Python 2.6, 2.7, 3.3, and 3.4.
+Continuous integration for Windows is done on
+`Appveyor <https://ci.appveyor.com>`_ and also tests with Python 2.6, 2.7, 3.3, and 3.4.
 
 Once you send a pull request from GitHub, you will be taken to the Landlab
 pull request page and all unit tests are run. You will see the status
