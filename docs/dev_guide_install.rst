@@ -214,6 +214,10 @@ Coding Style
 * Further, Landlab-specific advice for developing your own components can be found
   in the :ref:`component development guide <dev_components>`.
 
+If you want to check how well you are doing, please look at our
+`Landscape page <https://landscape.io>`. Landscape will grade the health of
+the landlab code with every push to GitHub.
+
 
 Testing
 =======
