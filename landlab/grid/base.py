@@ -566,8 +566,17 @@ class ModelGrid(ModelDataFields):
         try:
             return self.active_link_ids
         except AttributeError:
-            self._reset_list_of_active_links()
+            self._reset_link_status_array()
             return self.active_link_ids
+
+    @property
+    def fixed_links(self):
+        """Link IDs of all fixed links"""
+        try:
+            return self.fixed_link_ids
+        except AttributeError:
+            self._reset_link_status_array()
+            return self.fixed_link_ids
 
     @property
     def node_index_at_active_cells(self):
@@ -677,12 +686,38 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_active_links(self):
         """Number of active links in the grid"""
-        return self._num_active_links
+        try:
+            return self._num_active_links
+        except AttributeError:
+            self._reset_link_status_array()
+            return self._num_active_links
 
     @property
     def number_of_active_faces(self):
         """Number of active faces in the grid"""
-        return self._num_active_faces
+        try:
+            return self._num_active_faces
+        except AttributeError:
+            self._reset_link_status_array()
+            return self._num_active_faces
+
+    @property
+    def number_of_fixed_links(self):
+        """Number of fixed links in the grid"""
+        try:
+            return self._num_fixed_links
+        except AttributeError:
+            self._reset_link_status_array()
+            return self._num_fixed_links
+
+    @property
+    def number_of_fixed_faces(self):
+        """Number of fixed faces in the grid"""
+        try:
+            return self._num_fixed_faces
+        except AttributeError:
+            self._reset_link_status_array()
+            return self._num_fixed_faces
 
     def number_of_elements(self, element_name):
         """Number of instances of an element.
@@ -1770,7 +1805,7 @@ class ModelGrid(ModelDataFields):
         link status are internally consistent.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid._reset_list_of_active_links')
+            six.print_('ModelGrid._reset_link_status_array')
 
         try:
             already_fixed = self.link_status == FIXED_LINK
@@ -1815,7 +1850,9 @@ class ModelGrid(ModelDataFields):
 
         self.link_status[fixed_links] = 2
 
-        active_links = self.active_link_ids == 0  # now it's correct
+        active_links = self.link_status == 0  # now it's correct
+        self.active_link_ids = np.where(active_links)
+        self.fixed_link_ids = np.where(fixed_links)
 
         self._num_active_links = (active_links).sum()
         self._num_active_faces = self._num_active_links
@@ -1870,7 +1907,7 @@ class ModelGrid(ModelDataFields):
         node statuses. Call it if your method or driver makes changes to the
         boundary conditions of nodes in the grid.
         """
-        self._reset_list_of_active_links()
+        self._reset_link_status_array()
         self._reset_lists_of_nodes_cells()
         try:
             if self.diagonal_list_created:
