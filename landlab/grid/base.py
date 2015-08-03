@@ -224,6 +224,17 @@ TRACKS_CELL_BOUNDARY = 3
 #: Indicates a boundary node is closed
 CLOSED_BOUNDARY = 4
 
+# Define the link types
+
+#: Indicates a link is *active*, and can carry flux
+ACTIVE_LINK = 0
+
+#: Indicates a link has a fixed (gradient) value, & behaves as a boundary
+FIXED_LINK = 2
+
+#: Indicates a link is *inactive*, and cannot carry flux
+INACTIVE_LINK = 4
+
 BOUNDARY_STATUS_FLAGS_LIST = [
     FIXED_VALUE_BOUNDARY,
     FIXED_GRADIENT_BOUNDARY,
@@ -232,6 +243,12 @@ BOUNDARY_STATUS_FLAGS_LIST = [
 ]
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
+LINK_STATUS_FLAGS_LIST = [
+    ACTIVE_LINK,
+    FIXED_LINK,
+    INACTIVE_LINK,
+]
+LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
 
 def _sort_points_into_quadrants(x, y, nodes):
     """
@@ -1706,11 +1723,13 @@ class ModelGrid(ModelDataFields):
 
     def _reset_list_of_active_links(self):
         """
+        .. deprecated:: 0.1.27
+           Use :func: `_reset_link_status_list` instead.
+
         Creates or resets a list of active links. We do this by sweeping
         through the given lists of from and to nodes, and checking the status
         of these as given in the node_status list. A link is active if both its
-        nodes are active interior points, or if one is an active interior and
-        the other is an active boundary.
+        nodes are core, or if one is core and the other is an active boundary.
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid._reset_list_of_active_links')
@@ -1733,6 +1752,81 @@ class ModelGrid(ModelDataFields):
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+
+    def _reset_link_status_list(self):
+        """
+        Creates or resets a list of link statuses. We do this by sweeping
+        through the given lists of from and to nodes, and checking the status
+        of these as given in the node_status list. A link is active if both its
+        nodes are core, or if one is core and the other is fixed value.
+        A link is inactive if either node is closed.
+        A link is fixed if either node is fixed gradient.
+
+        Note that any link which has been previously set as fixed will remain
+        so, and if a closed-core node pair is found at each of its ends, the
+        closed node will be converted to a fixed gradient node.
+
+        A further test is performed to ensure that the final maps of node and
+        link status are internally consistent.
+        """
+        if self._DEBUG_TRACK_METHODS:
+            six.print_('ModelGrid._reset_list_of_active_links')
+
+        try:
+            already_fixed = self.link_status == FIXED_LINK
+        except AttributeError:
+            already_fixed = np.zeros(self.number_of_links, dtype=bool)
+
+        fromnode_status = self.node_status[self.link_fromnode]
+        tonode_status = self.node_status[self.link_tonode]
+
+        if not np.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
+                (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
+            assert np.all(fromnode_status[already_fixed] == CLOSED_NODE !=
+                    tonode_status[already_fixed] == CLOSED_NODE)
+            fromnode_status[already_fixed] = np.where(
+                                 fromnode_status[already_fixed] == CLOSED_NODE,
+                                 FIXED_GRADIENT_BOUNDARY,
+                                 fromnode_status[already_fixed])
+            tonode_status[already_fixed] = np.where(
+                                   tonode_status[already_fixed] == CLOSED_NODE,
+                                   FIXED_GRADIENT_BOUNDARY,
+                                   tonode_status[already_fixed])
+
+        active_links = (((fromnode_status == CORE_NODE) & ~
+                         (tonode_status == CLOSED_BOUNDARY)) |
+                        ((tonode_status == CORE_NODE) & ~
+                         (fromnode_status == CLOSED_BOUNDARY)))
+        #...this still includes things that will become fixed_link
+
+        fixed_links = ((((fromnode_status == FIXED_GRADIENT_BOUNDARY) &
+                         (tonode_status == CORE_NODE)) |
+                        ((tonode_status == FIXED_GRADIENT_BOUNDARY) &
+                         (fromnode_status == CORE_NODE))) |
+                       already_fixed)
+
+        try:
+            self.link_status.fill(4)
+        except AttributeError:
+            self.link_status = np.empty(self.number_of_links, dtype=int)
+            self.link_status.fill(4)
+
+        self.link_status[active_links] = 0
+
+        self.link_status[fixed_links] = 2
+
+        active_links = self.active_link_ids == 0  # now it's correct
+
+        self._num_active_links = (active_links).sum()
+        self._num_active_faces = self._num_active_links
+        self._num_fixed_links = fixed_links.sum()
+        self._num_fixed_faces = self._num_fixed_links
+        self.activelink_fromnode = self.link_fromnode[active_links]
+        self.activelink_tonode = self.link_tonode[active_links]
+
+        # Set up active inlink and outlink matrices
+        self._setup_active_inlink_and_outlink_matrices()
+
 
     def _reset_lists_of_nodes_cells(self):
         """
