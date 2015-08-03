@@ -70,7 +70,7 @@ for i in xrange(2000):
     mg.at_node['topographic__elevation'][interior_nodes] += dzdt[interior_nodes]*dt
     if i%50==0:
         print('loop '+str(i))
-        section_downfan.append(mg.node_vector_to_raster(mg.at_node['topographic__elevation'])[1:-1,section_col].copy())
+        section_downfan.append(mg.node_vector_to_raster(mg.at_node['topographic__elevation'])[1:,section_col].copy())
 
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
