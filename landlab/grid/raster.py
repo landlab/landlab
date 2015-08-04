@@ -17,11 +17,12 @@ from .base import ModelGrid
 from . import grid_funcs as gfuncs
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
+                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK, )
 from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
+from landlab.grid.structured_quad import links
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -997,18 +998,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diag_fromnode_status = self.node_status[self._diag_link_fromnode]
         diag_tonode_status = self.node_status[self._diag_link_tonode]
 
-        if not np.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
-                (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
-            assert np.all(fromnode_status[already_fixed] == CLOSED_NODE !=
-                    tonode_status[already_fixed] == CLOSED_NODE)
-            fromnode_status[already_fixed] = np.where(
-                                 fromnode_status[already_fixed] == CLOSED_NODE,
+        if not np.all((diag_fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
+                (diag_tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
+            assert np.all(diag_fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
+                    diag_tonode_status[already_fixed] == CLOSED_BOUNDARY)
+            diag_fromnode_status[already_fixed] = np.where(
+                                 diag_fromnode_status[already_fixed] == CLOSED_BOUNDARY,
                                  FIXED_GRADIENT_BOUNDARY,
-                                 fromnode_status[already_fixed])
-            tonode_status[already_fixed] = np.where(
-                                   tonode_status[already_fixed] == CLOSED_NODE,
+                                 diag_fromnode_status[already_fixed])
+            diag_tonode_status[already_fixed] = np.where(
+                                   diag_tonode_status[already_fixed] == CLOSED_BOUNDARY,
                                    FIXED_GRADIENT_BOUNDARY,
-                                   tonode_status[already_fixed])
+                                   diag_tonode_status[already_fixed])
 
         diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
                               (diag_tonode_status == CLOSED_BOUNDARY)) |
@@ -1027,7 +1028,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         _diag_active_links = _diag_active_links.astype(np.int, copy=False)
 
         self._num_diag_active_links = len(_diag_active_links)
-        self._num_diag_fixed_links = np.sum(_diag_fixed_links).astype(int)
+        self._num_diag_fixed_links = np.sum(diag_fixed_links).astype(int)
         self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
         self._diag_activelink_tonode = self._diag_link_tonode[_diag_active_links]
         self._diag_active_links = _diag_active_links + self.number_of_links
