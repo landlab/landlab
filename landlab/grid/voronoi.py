@@ -213,7 +213,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
-        self._reset_link_status_array()
+        self._reset_link_status_list()
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()

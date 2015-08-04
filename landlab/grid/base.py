@@ -566,7 +566,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self.active_link_ids
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self.active_link_ids
 
     @property
@@ -575,7 +575,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self.fixed_link_ids
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self.fixed_link_ids
 
     @property
@@ -689,7 +689,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self._num_active_links
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self._num_active_links
 
     @property
@@ -698,7 +698,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self._num_active_faces
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self._num_active_faces
 
     @property
@@ -707,7 +707,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self._num_fixed_links
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self._num_fixed_links
 
     @property
@@ -716,7 +716,7 @@ class ModelGrid(ModelDataFields):
         try:
             return self._num_fixed_faces
         except AttributeError:
-            self._reset_link_status_array()
+            self._reset_link_status_list()
             return self._num_fixed_faces
 
     def number_of_elements(self, element_name):
@@ -1805,25 +1805,25 @@ class ModelGrid(ModelDataFields):
         link status are internally consistent.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid._reset_link_status_array')
+            six.print_('ModelGrid._reset_link_status_list')
 
         try:
             already_fixed = self.link_status == FIXED_LINK
         except AttributeError:
-            already_fixed = np.zeros(self.number_of_links, dtype=bool)
+            already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
 
         fromnode_status = self.node_status[self.link_fromnode]
         tonode_status = self.node_status[self.link_tonode]
 
-        if not np.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
+        if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
                 (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
-            assert np.all(fromnode_status[already_fixed] == CLOSED_NODE !=
+            assert numpy.all(fromnode_status[already_fixed] == CLOSED_NODE !=
                     tonode_status[already_fixed] == CLOSED_NODE)
-            fromnode_status[already_fixed] = np.where(
+            fromnode_status[already_fixed] = numpy.where(
                                  fromnode_status[already_fixed] == CLOSED_NODE,
                                  FIXED_GRADIENT_BOUNDARY,
                                  fromnode_status[already_fixed])
-            tonode_status[already_fixed] = np.where(
+            tonode_status[already_fixed] = numpy.where(
                                    tonode_status[already_fixed] == CLOSED_NODE,
                                    FIXED_GRADIENT_BOUNDARY,
                                    tonode_status[already_fixed])
@@ -1843,7 +1843,7 @@ class ModelGrid(ModelDataFields):
         try:
             self.link_status.fill(4)
         except AttributeError:
-            self.link_status = np.empty(self.number_of_links, dtype=int)
+            self.link_status = numpy.empty(self.number_of_links, dtype=int)
             self.link_status.fill(4)
 
         self.link_status[active_links] = 0
@@ -1851,8 +1851,8 @@ class ModelGrid(ModelDataFields):
         self.link_status[fixed_links] = 2
 
         active_links = self.link_status == 0  # now it's correct
-        self.active_link_ids = np.where(active_links)
-        self.fixed_link_ids = np.where(fixed_links)
+        self.active_link_ids = numpy.where(active_links)
+        self.fixed_link_ids = numpy.where(fixed_links)
 
         self._num_active_links = (active_links).sum()
         self._num_active_faces = self._num_active_links
@@ -1907,7 +1907,7 @@ class ModelGrid(ModelDataFields):
         node statuses. Call it if your method or driver makes changes to the
         boundary conditions of nodes in the grid.
         """
-        self._reset_link_status_array()
+        self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         try:
             if self.diagonal_list_created:

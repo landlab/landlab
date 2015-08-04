@@ -491,7 +491,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diagonal_links_created = False
 
         #   set up the list of active links
-        self._reset_link_status_array()
+        self._reset_link_status_list()
 
         #   set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
