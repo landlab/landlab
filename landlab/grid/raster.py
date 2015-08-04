@@ -24,7 +24,7 @@ from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 
 
-def node_has_boundary_neighbor(mg, id):
+def node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
     .. note:: Deprecated since version 0.6.
@@ -38,6 +38,9 @@ def node_has_boundary_neighbor(mg, id):
         Source grid
     node_id : int
         ID of node to test.
+    method: string, optional
+        default is d8 neighbor, other method is 'd4'
+    
 
     Returns
     -------
@@ -50,14 +53,14 @@ def node_has_boundary_neighbor(mg, id):
                 return True
         except IndexError:
             return True
-    for neighbor in mg.get_diagonal_list(id):
-        try:
-            if mg.node_status[neighbor] != CORE_NODE:
+    if method == 'd8':
+        for neighbor in mg.get_diagonal_list(id):
+            try:
+                if mg.node_status[neighbor] != CORE_NODE:
+                    return True
+            except IndexError:
                 return True
-        except IndexError:
-            return True
     return False
-
 
 def _make_arg_into_array(arg):
     """
@@ -85,7 +88,6 @@ def _make_arg_into_array(arg):
 
 has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                         excluded=['mg'])
-
 
 class RasterModelGridPlotter(object):
     """MixIn that provides plotting functionality.
@@ -3652,7 +3654,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.neighbor_list_created = True
         return neighbor_nodes
 
-    def has_boundary_neighbor(self, ids):
+    def has_boundary_neighbor(self, ids, method='d8'):
         """
         Checks to see if one of the eight neighbor nodes of node(s) with
         *id* has a boundary node.  Returns True if a node has a boundary node,
@@ -3674,7 +3676,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-        ans = has_boundary_neighbor(self, ids)
+
+        ans = has_boundary_neighbor(self, ids, method=method)
+
         if ans.ndim == 0:
             return bool(ans)
         else:
