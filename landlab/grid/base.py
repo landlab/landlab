@@ -1817,14 +1817,14 @@ class ModelGrid(ModelDataFields):
 
         if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
                 (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
-            assert numpy.all(fromnode_status[already_fixed] == CLOSED_NODE !=
-                    tonode_status[already_fixed] == CLOSED_NODE)
+            assert numpy.all(fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
+                    tonode_status[already_fixed] == CLOSED_BOUNDARY)
             fromnode_status[already_fixed] = numpy.where(
-                                 fromnode_status[already_fixed] == CLOSED_NODE,
+                                 fromnode_status[already_fixed] == CLOSED_BOUNDARY,
                                  FIXED_GRADIENT_BOUNDARY,
                                  fromnode_status[already_fixed])
             tonode_status[already_fixed] = numpy.where(
-                                   tonode_status[already_fixed] == CLOSED_NODE,
+                                   tonode_status[already_fixed] == CLOSED_BOUNDARY,
                                    FIXED_GRADIENT_BOUNDARY,
                                    tonode_status[already_fixed])
 
