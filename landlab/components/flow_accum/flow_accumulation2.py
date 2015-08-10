@@ -6,14 +6,12 @@
     
     Created DEJH, 8/2013
 """
+from __future__ import print_function
 
-#from scipy import weave
 import landlab
 from landlab import ModelParameterDictionary
 import numpy as np
 
-#weave.test()
-#import flow_routing_D8
 
 class AccumFlow(object):
     """
@@ -37,12 +35,12 @@ class AccumFlow(object):
         try:
             height_order_active_cells = np.argsort(z[active_cell_ids])[::-1] #descending order
         except:
-            print 'Cells could not be sorted by elevation. Does the data object contain the elevation vector?'
+            print('Cells could not be sorted by elevation. Does the data object contain the elevation vector?')
 
         try:
             sorted_flowdirs = (flowdirs[active_cell_ids])[height_order_active_cells]
         except:
-            print 'Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?'
+            print('Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?')
         #print grid.cell_areas
         self.flow_accum_by_area[active_cell_ids] = grid.cell_areas #This is only the active nodes == cells by definition
 

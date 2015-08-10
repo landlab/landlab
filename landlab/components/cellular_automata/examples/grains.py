@@ -13,14 +13,15 @@ simply to demonstrate the capability of an oriented hex grid.
 
 GT Sep 2014
 """
+from __future__ import print_function
 
 _DEBUG = False
 
 import time
 from landlab import HexModelGrid
 from numpy import where, logical_and, sqrt
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_lca import OrientedHexLCA
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
 
 
 def setup_transition_list():
@@ -64,10 +65,10 @@ def setup_transition_list():
     xn_list.append( Transition((1,0,2), (0,1,2), 1., 'falling') )
         
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -107,7 +108,7 @@ def main():
     node_state_grid[where(is_middle_cols)[0]] = 1
     
     # Create the CA model
-    ca = OrientedHexLCA(hmg, ns_dict, xn_list, node_state_grid)
+    ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
     
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca)
@@ -123,7 +124,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step

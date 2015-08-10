@@ -5,6 +5,7 @@ automaton model.
 
 GT Sep 2014
 """
+from __future__ import print_function
 
 _DEBUG = False
 
@@ -13,8 +14,8 @@ import random
 from numpy import zeros, bincount, arange
 from pylab import subplots, plot, show, xlabel, ylabel, title, axis
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_lca import OrientedHexLCA
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
 
 
 def setup_transition_list():
@@ -114,10 +115,10 @@ def setup_transition_list():
     xn_list.append( Transition((7,6,2), (5,7,2), 0.5, 'rest') )
 
     if _DEBUG:
-        print
-        print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+        print()
+        print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
-            print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
         
     return xn_list
     
@@ -127,8 +128,8 @@ def main():
     # INITIALIZE
     
     # User-defined parameters
-    nr = 41
-    nc = 61
+    nr = 52
+    nc = 120
     plot_interval = 1.0
     run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
@@ -173,10 +174,23 @@ def main():
             node_state_grid[i] = random.randint(1, 7)
     
     # Create the CA model
-    ca = OrientedHexLCA(hmg, ns_dict, xn_list, node_state_grid)
+    ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
+    
+    # Set up a color map for plotting
+    import matplotlib
+    clist = [ (1.0, 1.0, 1.0),   # empty = white
+              (1.0, 0.0, 0.0),   # up = red
+              (1.0, 1.0, 0.0),   # right-up = yellow
+              (0.0, 1.0, 0.0),   # down-up = green
+              (0.0, 1.0, 1.0),   # down = cyan
+              (0.0, 0.0, 1.0),   # left-down = blue
+              (1.0, 0.0, 1.0),   # left-up = magenta
+              (0.5, 0.5, 0.5),   # resting = gray
+              (0.0, 0.0, 0.0) ]   # wall = black
+    my_cmap = matplotlib.colors.ListedColormap(clist)
     
     # Create a CAPlotter object for handling screen display
-    ca_plotter = CAPlotter(ca)
+    ca_plotter = CAPlotter(ca, cmap=my_cmap)
     
     # Plot the initial grid
     ca_plotter.update_plot()
@@ -193,7 +207,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step
@@ -203,6 +217,7 @@ def main():
         
         # Plot the current grid
         ca_plotter.update_plot()
+        axis('off')
         
         # Record numbers in each state
         nstates[:,k] = bincount(node_state_grid)
@@ -216,7 +231,7 @@ def main():
     # Display the numbers of each state
     fig, ax = subplots()
     for i in range(1, 8):
-        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i])
+        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i], color=clist[i])
     ax.legend()
     xlabel('Time')
     ylabel('Number of particles in state')

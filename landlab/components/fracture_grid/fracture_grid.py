@@ -28,8 +28,8 @@ Created: September 2013 by Greg Tucker
 Last significant modification: August 2014 GT
 """
 
-from numpy import *
-from numpy.random import *
+from numpy import tan, pi, size, zeros
+from numpy.random import rand
 import random
 import pylab as plt
 

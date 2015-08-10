@@ -7,10 +7,12 @@ version 3 same as 2 but uses source as a dvector
 
 GT, July 2010
 """
+from __future__ import print_function
+
+import numpy as np
+from pylab import plot, draw, show, contour
 
 from landlab import RasterModelGrid
-
-from pylab import plot, draw, show, contour
 
 
 def set_flux_coefficients(mg, dx):
@@ -32,8 +34,8 @@ def set_flux_coefficients(mg, dx):
     yf = yf - dx/2.0
     x0 = 0.5 * (mg.number_of_node_columns - 2) * dx
     y0 = (mg.number_of_node_columns - 2) * dx
-    dist = sqrt((xf-x0)**2.0 + (yf-y0)**2.0)
-    K = Kmax * exp(-dist / decay_scale)
+    dist = np.sqrt((xf - x0) ** 2.0 + (yf - y0) ** 2.0)
+    K = Kmax * np.exp(-dist / decay_scale)
 
     return K
 
@@ -70,7 +72,7 @@ def main():
 
     for i in range(0, nt):
 
-        print i
+        print(i)
         g = mg.calculate_face_gradients(u)  # Thermal gradients
         q = -k*g  # Heat flux across faces
         dqds = mg.calculate_flux_divergences(q)  # Divergence of heat flux

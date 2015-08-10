@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary
 
@@ -21,8 +23,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('planet_surface__elevation')
-mg['node'][ 'planet_surface__elevation'] = np.load('init.npy')
+mg.create_node_array_zeros('topographic__elevation')
+mg['node'][ 'topographic__elevation'] = np.load('init.npy')
 
 # Display a message
 print( 'Running ...' )
@@ -52,15 +54,15 @@ for i in xrange(loops):
         mg = craters_component.excavate_a_crater_furbish(mg)
         slope[j] = craters_component.impact_property_dict['surface_slope']
         mass_balance[j] = craters_component.impact_property_dict['mass_balance']
-        print 'Completed loop ', j
+        print('Completed loop ', j)
     mystring = 'craterssave'+str((i+1)*nt)
-    np.save(mystring,mg['node']['planet_surface__elevation'])
+    np.save(mystring,mg['node']['topographic__elevation'])
     #Save the properties
     np.save(('slope_'+str((i+1)*nt)),slope)
     np.save(('mass_balance_'+str((i+1)*nt)),mass_balance)
 
 #Finalize and plot
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 #pylab.figure(1)
@@ -71,6 +73,6 @@ elev_r = mg.node_vector_to_raster(elev)
 #pylab.title('Topography')
 
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))
 
 #pylab.show()

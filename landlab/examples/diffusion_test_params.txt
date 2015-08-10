@@ -26,5 +26,5 @@ S_crit:
 0.56
 
 #the linear diffuser uses this kappa term
-DIFMOD_KD:
+linear_diffusivity:
 0.01

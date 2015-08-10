@@ -1,16 +1,11 @@
 #! /usr/bin/env python
-
-
 import numpy as np
 import itertools
+from six.moves import range
 
-from ..grid.base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                         FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                         CLOSED_BOUNDARY,BAD_INDEX_VALUE)
-
-#BAD_INDEX_VALUE = np.iinfo(np.int).max
-
-from landlab.utils import count_repeated_values
+from ..grid.base import (CORE_NODE, FIXED_GRADIENT_BOUNDARY,
+                         FIXED_VALUE_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                         CLOSED_BOUNDARY, BAD_INDEX_VALUE)
 
 
 def node_count(shape):
@@ -19,6 +14,7 @@ def node_count(shape):
     by the tuple, *shape*. Where *shape* is the number of node rows and
     node columns.
 
+    >>> from landlab.utils.structured_grid import node_count
     >>> node_count((3, 4))
     12
     """
@@ -31,6 +27,8 @@ def interior_node_count(shape):
     Return the count of the number of interior nodes of a structured grid
     of dimensions, *shape*.
 
+    >>> from landlab.utils.structured_grid import (node_count,
+    ...                                            interior_node_count)
     >>> node_count((2, 4))
     8
     >>> interior_node_count((2, 4))
@@ -55,6 +53,7 @@ def cell_count(shape):
     Where *shape* is a tuple that gives the dimensions of the grid as number
     of rows of nodes followed by number of columns of nodes.
 
+    >>> from landlab.utils.structured_grid import cell_count
     >>> cell_count((3, 4))
     2
     >>> cell_count((1, 4))
@@ -87,6 +86,7 @@ def active_link_count(shape):
     Number of active links in a structured grid with dimensions, *shape*.
     A link is active if it connects to at least one active node.
 
+    >>> from landlab.utils.structured_grid import link_count, active_link_count
     >>> link_count((3, 2))
     7
     >>> active_link_count((3, 2))
@@ -109,6 +109,7 @@ def link_count(shape):
     dimensions, *shape*. This is the number of to-links and from-links, not
     the total of the two.
 
+    >>> from landlab.utils.structured_grid import link_count
     >>> link_count((3,2))
     7
     """
@@ -136,6 +137,14 @@ def boundary_cell_count(shape):
     boundary nodes are not really cells. If they were, though, this is how
     many there would be.
 
+    **** Shouldn't be deprecated. This routine returns the cells on the
+    boundary. Not the cells surrounding boundary nodes because there aren't
+    cells around boundary nodes by definition as previously understood.
+      - SN  30Nov14  ****
+
+    Examples
+    --------
+    >>> from landlab.utils.structured_grid import boundary_cell_count
     >>> boundary_cell_count((3, 4))
     10
     """
@@ -148,6 +157,7 @@ def perimeter_node_count(shape):
     Number of nodes that are on the perimeter of a structured grid with
     dimensions, *shape*, and thus boundary nodes.
 
+    >>> from landlab.utils.structured_grid import perimeter_node_count
     >>> perimeter_node_count((3, 4))
     10
     """
@@ -168,6 +178,7 @@ def face_count(shape):
     Total number of faces in a structured grid with dimensions, *shape*. Each
     cell has four faces, and shared faces only count once.
 
+    >>> from landlab.utils.structured_grid import face_count
     >>> face_count((3, 4))
     7
     """
@@ -185,6 +196,7 @@ def active_face_count(shape):
     *shape*. Each cell has four faces, and shared faces only count once.
     An active face is one that has a corresponing active link.
 
+    >>> from landlab.utils.structured_grid import active_face_count
     >>> active_face_count((3, 4))
     7
     """
@@ -195,28 +207,28 @@ def top_index_iter(shape):
     """
     Iterator for the top boundary indices of a structured grid.
     """
-    return xrange(shape[1] * (shape[0] - 1), shape[0] * shape[1])
+    return range(shape[1] * (shape[0] - 1), shape[0] * shape[1])
 
 
 def bottom_index_iter(shape):
     """
     Iterator for the bottom boundary indices of a structured grid.
     """
-    return xrange(0, shape[1])
+    return range(0, shape[1])
 
 
 def left_index_iter(shape):
     """
     Iterator for the left boundary indices of a structured grid.
     """
-    return xrange(0, shape[0] * shape[1], shape[1])
+    return range(0, shape[0] * shape[1], shape[1])
 
 
 def right_index_iter(shape):
     """
     Iterator for the right boundary indices of a structured grid.
     """
-    return xrange(shape[1] - 1, shape[0] * shape[1], shape[1])
+    return range(shape[1] - 1, shape[0] * shape[1], shape[1])
 
 
 def left_right_iter(shape, *args):
@@ -226,6 +238,7 @@ def left_right_iter(shape, *args):
     the left boundary and then all of the right boundary.
 
     >>> import numpy as np
+    >>> from landlab.utils.structured_grid import left_right_iter
     >>> np.fromiter(left_right_iter((4, 3)), dtype=np.int)
     array([ 0,  2,  3,  5,  6,  8,  9, 11])
     >>> np.fromiter(left_right_iter((4, 3), 2), dtype=np.int)
@@ -236,13 +249,13 @@ def left_right_iter(shape, *args):
     array([ 3,  5,  9, 11])
     """
     if len(args) == 0:
-        iter_rows = xrange(0, shape[0], 1)
+        iter_rows = range(0, shape[0], 1)
     elif len(args) == 1:
-        iter_rows = xrange(0, args[0], 1)
+        iter_rows = range(0, args[0], 1)
     elif len(args) == 2:
-        iter_rows = xrange(args[0], args[1], 1)
+        iter_rows = range(args[0], args[1], 1)
     elif len(args) == 3:
-        iter_rows = xrange(args[0], args[1], args[2])
+        iter_rows = range(args[0], args[1], args[2])
 
     for row in iter_rows:
         yield row * shape[1]
@@ -255,6 +268,7 @@ def bottom_top_iter(shape):
     grid.
 
     >>> import numpy as np
+    >>> from landlab.utils.structured_grid import bottom_top_iter
     >>> np.fromiter(bottom_top_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  9, 10, 11])
     """
@@ -271,6 +285,7 @@ def boundary_iter(shape):
     order.
 
     >>> import numpy as np
+    >>> from landlab.utils.structured_grid import boundary_iter
     >>> np.fromiter(boundary_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
@@ -284,6 +299,7 @@ def perimeter_iter(shape):
     order.
 
     >>> import numpy as np
+    >>> from landlab.utils.structured_grid import perimeter_iter
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
@@ -298,6 +314,7 @@ def boundary_nodes(shape):
     (see below).
     An array of the indices of the boundary nodes.
 
+    >>> from landlab.utils.structured_grid import boundary_nodes
     >>> boundary_nodes((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
     """
@@ -307,11 +324,12 @@ def perimeter_nodes(shape):
     """
     An array of the indices of the perimeter nodes of a structured grid.
 
-    >>> boundary_nodes((3, 4))
+    >>> from landlab.utils.structured_grid import perimeter_nodes
+    >>> perimeter_nodes((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
-        
+
 def corners(shape):
     """
     An array of the indices of the grid corner nodes.
@@ -339,13 +357,14 @@ def interior_iter(shape):
     Iterate over the interior nodes of a structured grid.
 
     >>> import numpy as np
+    >>> from landlab.utils.structured_grid import interior_iter
     >>> np.fromiter(interior_iter((4, 3)), dtype=np.int)
     array([4, 7])
     """
     interiors = []
     interiors_per_row = shape[1] - 2
-    for row in xrange(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
-        interiors.append(xrange(row , row + interiors_per_row))
+    for row in range(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
+        interiors.append(range(row , row + interiors_per_row))
     return itertools.chain(*interiors)
 
 
@@ -359,6 +378,7 @@ def node_coords(shape, *args):
     *shape*. Use the optional argument *spacing* to give the spacing in each
     dimension, and *origin* the start of the coordinates in each dimension.
 
+    >>> from landlab.utils.structured_grid import node_coords
     >>> (cols, rows) = node_coords((3, 2))
     >>> rows
     array([ 0.,  0.,  1.,  1.,  2.,  2.])
@@ -381,7 +401,7 @@ def node_coords(shape, *args):
 
     node_count = np.prod(shape)
 
-    row_y = np.arange(shape[0]) * spacing[0] + origin[0] 
+    row_y = np.arange(shape[0]) * spacing[0] + origin[0]
     col_x = np.arange(shape[1]) * spacing[1] + origin[1]
 
     (node_x, node_y) = np.meshgrid(col_x, row_y)
@@ -395,7 +415,7 @@ def node_coords(shape, *args):
 def active_cell_index(shape):
     """
     For many instances, core_cell_index() may be preferred.
-    Ordered indices of the active (core+open boundary) cells of a structured 
+    Ordered indices of the active (core+open boundary) cells of a structured
     grid.
     """
     return np.arange(active_cell_count(shape))
@@ -412,10 +432,11 @@ def active_cell_node(shape):
     """
     For many instances, core_cell_node() may be preferred.
     Indices of the nodes belonging to each active (core + open boundary) cell.
-    Since all cells are active in the default case, this is the same as 
+    Since all cells are active in the default case, this is the same as
     node_index_at_cells.
 
-    >>> node_index_at_cells((4,3))
+    >>> from landlab.utils.structured_grid import active_cell_node
+    >>> active_cell_node((4,3))
     array([4, 7])
     """
     return node_index_at_cells(shape)
@@ -424,9 +445,10 @@ def active_cell_node(shape):
 def core_cell_node(shape):
     """
     Indices of the nodes belonging to each core cell.
-    Since all cells are core in the default case, this is the same as 
+    Since all cells are core in the default case, this is the same as
     node_index_at_cells.
 
+    >>> from landlab.utils.structured_grid import core_cell_node
     >>> core_cell_node((4,3))
     array([4, 7])
     """
@@ -444,6 +466,7 @@ def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
 
     Note that all three functions [X_]cell_index_at_nodes are equivalent.
 
+    >>> from landlab.utils.structured_grid import active_cell_index_at_nodes
     >>> active_cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
     array([-1, -1, -1, -1,
            -1,  0,  1, -1,
@@ -467,6 +490,7 @@ def core_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
 
     Note that all three functions [X_]cell_index_at_nodes are equivalent.
 
+    >>> from landlab.utils.structured_grid import core_cell_index_at_nodes
     >>> core_cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
     array([-1, -1, -1, -1,
            -1,  0,  1, -1,
@@ -487,10 +511,11 @@ def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     For nodes that don't have a cell (that is, boundary nodes) set indices
     to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
-    
+
     Note that all three functions [X_]cell_index_at_nodes are equivalent.
 
-    >>> core_cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
+    >>> from landlab.utils.structured_grid import cell_index_at_nodes
+    >>> cell_index_at_nodes((3, 4), boundary_node_index=-1) # doctest: +NORMALIZE_WHITESPACE
     array([-1, -1, -1, -1,
            -1,  0,  1, -1,
            -1, -1, -1, -1])
@@ -509,6 +534,7 @@ def node_index_at_cells(shape):
     """
     Indices of the nodes belonging to each cell.
 
+    >>> from landlab.utils.structured_grid import node_index_at_cells
     >>> node_index_at_cells((4, 3))
     array([4, 7])
     """
@@ -559,11 +585,12 @@ def face_index_at_links(shape, actives=None,
     that only the perimeter nodes are inactive.
 
 
+    >>> from landlab.utils.structured_grid import face_index_at_links
     >>> faces = face_index_at_links((3, 4), inactive_link_index=-1)
     >>> faces # doctest: +NORMALIZE_WHITESPACE
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
-    
+
     """
     if actives is None:
         actives = active_links(shape)
@@ -592,9 +619,45 @@ def node_status(shape, boundary_status=FIXED_VALUE_BOUNDARY):
 
 
 def active_links(shape, node_status_array=None, link_nodes=None):
-    """
+    """Link IDs for active links of a structured quad grid.
+
+    Return the link IDs for links that are *active* in a structured grid of quadrilaterals. Use the
+    *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each of the
+    perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+
+    Use the *link_nodes* keyword to provide, as a tuple of arrays, that give the *from-node* and the *to-node*
+    for each for each link in the grid.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of grid as number of node rows and columns.
+    node_status_array : array_like, optional
+        Status of each grid node.
+    link_nodes : array_like, optional
+
+    Examples
+    --------
+    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes, only links attached to the
+    interior nodes are *active*.
+
+    >>> from landlab.utils.structured_grid import active_links
+    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
+
+    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link is between the two core nodes.
+
+    >>> node_status = np.ones(3 * 4) * CLOSED_BOUNDARY
+    >>> node_status[5:7] = CORE_NODE
+    >>> active_links((3, 4), node_status_array=node_status)
+    array([12])
+
+    You can also provide a list of all the *from_nodes* and *to_nodes* for the grid. The following describes
+    a grid with only a single link (between nodes 5 and 6).
+
+    >>> active_links((3, 4), link_nodes=(np.array([5]), np.array([6])))
+    array([0])
     """
     if node_status_array is None:
         node_status_array = node_status(shape)
@@ -614,7 +677,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
 
     (active_links, ) = np.where(active_links)
 
-    return active_links
+    return active_links.astype(np.int)
 
 
 def active_face_index(shape):
@@ -640,9 +703,83 @@ def active_inlinks(shape, node_status=None, return_count=True):
     return links
 
 
+def active_inlinks2(shape, node_status=None):
+    """
+    Finds and returns the link IDs of active links coming in to each node
+    (that is, active links for which the node is the link head).
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status (optional) : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    2d numpy array of int (2 x number of grid nodes)
+        Link ID of incoming links to each node
+        
+    Example
+    -------
+    >>> from landlab.utils.structured_grid import active_inlinks2
+    >>> active_inlinks2((3,4))
+    array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
+           [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
+           
+    Notes
+    -----
+    There are at most two inlinks for each node. The first row in the returned
+    array gives the ID of the vertical incoming link from below (south), or -1
+    if there is none. The second row gives the link ID of the horizontal link
+    coming in from the left (or -1).
+    """
+    links = np.vstack((active_south_links2(shape, node_status),
+                       active_west_links2(shape, node_status)))
+    links.shape = (2, node_count(shape))
+    return links
+
+
 def active_outlinks(shape, node_status=None, return_count=True):
     links = np.vstack((active_north_links(shape, node_status),
                        active_east_links(shape, node_status)))
+    links.shape = (2, node_count(shape))
+    return links
+
+
+def active_outlinks2(shape, node_status=None):
+    """
+    Finds and returns the link IDs of active links going out of each node
+    (that is, active links for which the node is the link tail).
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status (optional) : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    2d numpy array of int (2 x number of grid nodes)
+        Link ID of outgoing links from each node
+        
+    Example
+    -------
+    >>> from landlab.utils.structured_grid import active_outlinks2
+    >>> active_outlinks2((3,4))
+    array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
+           
+    Notes
+    -----
+    There are at most two outlinks for each node. The first row in the returned
+    array gives the ID of the vertical outgoing link to above (north), or -1
+    if there is none. The second row gives the link ID of the horizontal link
+    going out to the right (east) (or -1).
+    """
+    links = np.vstack((active_north_links2(shape, node_status),
+                       active_east_links2(shape, node_status)))
     links.shape = (2, node_count(shape))
     return links
 
@@ -691,12 +828,47 @@ def horizontal_active_link_count(shape, node_status=None):
 
 
 def vertical_inactive_link_mask(shape, node_status):
-    is_inactive = (node_status == 0)
-    is_inactive.shape = shape
+    """
+    Creates and returns a boolean 2D array dimensioned as the number of
+    vertical links in the grid, not including the left and right boundaries.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of ints
+        Number of rows and columns in the grid
+    node_status : numpy array of bool (x # of nodes)
+        False where node is a closed boundary; True elsewhere
+        
+    Returns
+    -------
+    (NR-1,NC-2) array of bool (NR=# of rows, NC=# of columns)
+        Flags indicating whether the corresponding vertical link is inactive
+        
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.utils.structured_grid import vertical_inactive_link_mask
+    >>> ns = np.ones(12, dtype=bool)  # case of no closed boundary nodes
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False, False],
+           [False, False]], dtype=bool)
+    >>> ns[2] = False    # node 2 is a closed boundary
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False,  True],
+           [False, False]], dtype=bool)
+    >>> ns[9] = False    # node 9 is also a closed boundary
+    >>> vertical_inactive_link_mask((3,4), ns)
+    array([[False,  True],
+           [ True, False]], dtype=bool)
+    """
+    
+    # Create a 2D boolean matrix indicating whether NODES are closed boundaries
+    is_closed_node = (node_status == 0) # GT thinks this should be False, not 0
+    is_closed_node.shape = shape
 
-    inactive_outlinks = is_inactive[:-1, 1:-1]
-    inactive_inlinks = is_inactive[1:, 1:-1]
-    return inactive_outlinks | inactive_inlinks
+    inactive_outlinks = is_closed_node[:-1, 1:-1] # middle cols, all but top row
+    inactive_inlinks = is_closed_node[1:, 1:-1] # middle cols, all but bottom row
+    return inactive_outlinks | inactive_inlinks # if either node is closed, the link is inactive
 
 
 def horizontal_inactive_link_mask(shape, node_status):
@@ -732,6 +904,54 @@ def vertical_active_link_ids(shape, node_status=None):
     return link_ids
 
 
+def vertical_active_link_ids2(shape, node_status=None):
+    """
+    Returns the link IDs of vertical active links as an (R-1) x (C-2) array.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array (x number of nodes) of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link IDs of vertical active links, not including vertical links on the
+        left and right grid edges. If a vertical link is inactive, its ID is
+        given as -1.
+    
+    Examples
+    --------
+    >>> from landlab.utils.structured_grid import vertical_active_link_ids2
+    >>> vertical_active_link_ids2((3,4))
+    array([[1, 2],
+           [5, 6]])
+    >>> ns = np.ones(12, dtype=bool)
+    >>> ns[1] = False
+    >>> ns[10] = False
+    >>> vertical_active_link_ids2((3,4), ns)
+    array([[-1,  2],
+           [ 5, -1]])
+           
+    Notes
+    -----
+    Same as vertical_active_link_ids() but returns "link IDs" for active links
+    rather than "active link IDs" for active links. Designed to ultimately
+    replace the original vertical_active_link_ids().
+    """
+    vert_link_ids = np.arange((shape[0]-1)*shape[1])
+    vert_link_ids.shape = (shape[0]-1, shape[1]) 
+    link_ids = vert_link_ids[:, 1:-1]
+    
+    if node_status is not None:
+        inactive_links = vertical_inactive_link_mask(shape, node_status)
+        link_ids[inactive_links] = -1
+        
+    return link_ids
+    
+
 def horizontal_active_link_ids(shape, node_status=None):
     if node_status is None:
         link_id_offset = vertical_active_link_count(shape)
@@ -755,8 +975,56 @@ def horizontal_active_link_ids(shape, node_status=None):
     return link_ids
 
 
+def horizontal_active_link_ids2(shape, node_status=None):
+    """
+    Returns the link IDs of horizontal active links as an (R-2) x (C-1) array.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array (x number of nodes) of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link IDs of horizontal active links, not including horizontal links on
+        top and bottom grid edges. If a horizontal link is inactive, its ID is
+        given as -1.
+    
+    Examples
+    --------
+    >>> from landlab.utils.structured_grid import horizontal_active_link_ids2
+    >>> horizontal_active_link_ids2((3,4))
+    array([[11, 12, 13]])
+    >>> ns = np.ones(12, dtype=bool)
+    >>> ns[4] = False
+    >>> ns[7] = False
+    >>> horizontal_active_link_ids2((3,4), ns)
+    array([[-1, 12, -1]])
+           
+    Notes
+    -----
+    Same as horizontal_active_link_ids() but returns "link IDs" for active links
+    rather than "active link IDs" for active links. Designed to ultimately
+    replace the original horizontal_active_link_ids().
+    """
+
+    horiz_link_ids = np.arange(shape[0]*(shape[1]-1)) + (shape[0]-1)*shape[1]
+    horiz_link_ids.shape = (shape[0], shape[1]-1) 
+    link_ids = horiz_link_ids[1:-1, :]
+    
+    if node_status is not None:
+        inactive_links = horizontal_inactive_link_mask(shape, node_status)
+        link_ids[inactive_links] = -1
+        
+    return link_ids
+
+
 def west_links(shape):
     """
+    >>> from landlab.utils.structured_grid import west_links
     >>> west_links((3, 4))
     array([[-1,  8,  9, 10],
            [-1, 11, 12, 13],
@@ -769,6 +1037,7 @@ def west_links(shape):
 
 def north_links(shape):
     """
+    >>> from landlab.utils.structured_grid import north_links
     >>> north_links((3, 4))
     array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
@@ -781,6 +1050,7 @@ def north_links(shape):
 
 def south_links(shape):
     """
+    >>> from landlab.utils.structured_grid import south_links
     >>> south_links((3, 4))
     array([[-1, -1, -1, -1],
            [ 0,  1,  2,  3],
@@ -792,6 +1062,7 @@ def south_links(shape):
 
 def east_links(shape):
     """
+    >>> from landlab.utils.structured_grid import east_links
     >>> east_links((3, 4))
     array([[ 8,  9, 10, -1],
            [11, 12, 13, -1],
@@ -804,6 +1075,7 @@ def east_links(shape):
 
 def active_north_links(shape, node_status=None):
     """
+    >>> from landlab.utils.structured_grid import active_north_links
     >>> active_north_links((3, 4))
     array([[-1,  0,  1, -1],
            [-1,  2,  3, -1],
@@ -822,8 +1094,30 @@ def active_north_links(shape, node_status=None):
     return active_north_links
 
 
+def active_north_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_north_links2
+    >>> active_north_links2((3, 4))
+    array([[-1,  1,  2, -1],
+           [-1,  5,  6, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_north_links = np.empty(shape, dtype=int)
+    try:
+        links = vertical_active_link_ids2(shape, node_status=node_status)
+    except ValueError:
+        pass
+    links.shape = (shape[0] - 1, shape[1] - 2)
+    active_north_links[:-1, 1:-1] = links
+    active_north_links[:, (0, -1)] = -1
+    active_north_links[-1, :] = -1
+
+    return active_north_links
+
+
 def active_south_links(shape, node_status=None):
     """
+    >>> from landlab.utils.structured_grid import active_south_links
     >>> active_south_links((3, 4))
     array([[-1, -1, -1, -1],
            [-1,  0,  1, -1],
@@ -839,8 +1133,46 @@ def active_south_links(shape, node_status=None):
     return active_south_links
 
 
+def active_south_links2(shape, node_status=None):
+    """
+    Finds and returns link IDs of active links that enter each node from the
+    south (bottom), or -1 where no such active link exists.
+    
+    Parameters
+    ----------
+    shape : 2-element tuple of int
+        number of rows and columns in grid
+    node_status (optional) : 1d numpy array of bool
+        False where node is a closed boundary, True otherwise
+        
+    Returns
+    -------
+    2d numpy array of int
+        Link ID of active link connecting to a node from the south, or -1
+
+    Example
+    -------
+    >>> from landlab.utils.structured_grid import active_south_links2
+    >>> active_south_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1,  1,  2, -1],
+           [-1,  5,  6, -1]])
+           
+    Notes
+    -----
+    Like active_south_links, but returns link IDs rather than (now deprecated)
+    active-link IDs.
+    """
+    active_south_links = -np.ones(shape, dtype=int)
+    links = vertical_active_link_ids2(shape, node_status=node_status)
+    active_south_links[1:, 1:-1] = links
+
+    return active_south_links
+
+
 def active_west_links(shape, node_status=None):
     """
+    >>> from landlab.utils.structured_grid import active_west_links
     >>> active_west_links((3, 4))
     array([[-1, -1, -1, -1],
            [-1,  4,  5,  6],
@@ -858,8 +1190,24 @@ def active_west_links(shape, node_status=None):
     return active_west_links
 
 
+def active_west_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_west_links2
+    >>> active_west_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [-1, 11, 12, 13],
+           [-1, -1, -1, -1]])
+    """
+    active_west_links = -np.ones(shape, dtype=int)
+    active_west_links[1:-1, 1:] = horizontal_active_link_ids2(
+            shape, node_status=node_status)
+
+    return active_west_links
+
+
 def active_east_links(shape, node_status=None):
     """
+    >>> from landlab.utils.structured_grid import active_east_links
     >>> active_east_links((3, 4))
     array([[-1, -1, -1, -1],
            [ 4,  5,  6, -1],
@@ -874,6 +1222,21 @@ def active_east_links(shape, node_status=None):
         pass
     active_east_links[(0, -1), :] = -1
     active_east_links[:, -1] = -1
+
+    return active_east_links
+
+
+def active_east_links2(shape, node_status=None):
+    """
+    >>> from landlab.utils.structured_grid import active_east_links2
+    >>> active_east_links2((3, 4))
+    array([[-1, -1, -1, -1],
+           [11, 12, 13, -1],
+           [-1, -1, -1, -1]])
+    """
+    active_east_links = -np.ones(shape, dtype=int)
+    active_east_links[1:-1, :-1] = horizontal_active_link_ids2(
+            shape, node_status=node_status)
 
     return active_east_links
 
@@ -924,7 +1287,7 @@ def active_inlink_count_per_node(shape):
     return np.ravel(link_count)
 
 
-def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
+def setup_outlink_matrix(shape, return_count=True):
     links = outlinks(shape)
     if return_count:
         return (links, outlink_count_per_node(shape))
@@ -932,7 +1295,7 @@ def setup_outlink_matrix(shape, fromnodes=None, return_count=True):
         return links
 
 
-def setup_inlink_matrix(shape, tonodes=None, return_count=True):
+def setup_inlink_matrix(shape, return_count=True):
     links = inlinks(shape)
     if return_count:
         return (links, inlink_count_per_node(shape))
@@ -943,21 +1306,167 @@ def setup_inlink_matrix(shape, tonodes=None, return_count=True):
 def setup_active_outlink_matrix(shape, node_status=None, return_count=True):
     links = active_outlinks(shape, node_status=node_status)
     if return_count:
-        return (links, active_outlink_count_per_node(shape))
+        return links, active_outlink_count_per_node(shape)
+    else:
+        return links
+
+
+def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
+    """Active links leaving nodes.
+
+    Return the link IDs of the active links that leave each node of a grid. The 
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
+    the grid. The first row contains the link ID exiting the node to the 
+    top, and the second row the link exiting the node to the right.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    number of active links attached to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the 
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
+    lists links entering nodes from the bottom, and the second links entering 
+    from the left.
+
+    >>> from landlab.utils.structured_grid import setup_active_outlink_matrix2
+    >>> setup_active_outlink_matrix2((3, 4), return_count=False)
+    array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
+    >>> _, count = setup_active_outlink_matrix2((3, 4))
+    >>> count
+    array([0, 1, 1, 0, 1, 2, 2, 0, 0, 0, 0, 0])
+    """
+    links = active_outlinks2(shape, node_status=node_status)
+    if return_count:
+        return links, active_outlink_count_per_node(shape)
     else:
         return links
 
 
 def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
+    """Active links entering nodes.
+
+    Return the IDs of the active links that enter each node of a grid. The shape of the returned array is
+    (2, *N*) where *N* is the number of nodes in the grid. The first row contains the link ID entering the
+    node from the bottom, and the second row the link entering the node from the left.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the number of active links attached
+    to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each
+    of the perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row list links entering nodes from the
+    bottom, and the second links entering from the left.
+
+    >>> from landlab.utils.structured_grid import setup_active_inlink_matrix
+    >>> setup_active_inlink_matrix((3, 4), return_count=False)
+    array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
+           [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1]])
+    >>> _, count = setup_active_inlink_matrix((3, 4))
+    >>> count
+    array([0, 0, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0])
+    """
     links = active_inlinks(shape, node_status=node_status)
     if return_count:
-        return (links, active_inlink_count_per_node(shape))
+        return links, active_inlink_count_per_node(shape)
+    else:
+        return links
+
+
+def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
+    """Active links entering nodes.
+
+    Return the link IDs of the active links that enter each node of a grid. The 
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
+    the grid. The first row contains the link ID entering the node from the 
+    bottom, and the second row the link entering the node from the left.
+
+    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    number of active links attached to each grid node.
+
+    Use the *node_status_array* keyword to specify the status for each of the 
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    `FIXED_VALUE_BOUNDARY`.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the structured grid
+    node_status : array_like, optional
+        Status of each node in the grid.
+    return_count : boolean, optional
+        If `True`, also return an array of active link counts per node.
+
+    Returns
+    -------
+    links : (2, N) ndarray
+        Active link IDs for each node.
+    count : ndarray
+        Number of active links per node.
+
+    Examples
+    --------
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
+    lists links entering nodes from the bottom, and the second links entering 
+    from the left.
+
+    >>> from landlab.utils.structured_grid import setup_active_inlink_matrix2
+    >>> setup_active_inlink_matrix2((3, 4), return_count=False)
+    array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
+           [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
+    >>> _, count = setup_active_inlink_matrix2((3, 4))
+    >>> count
+    array([0, 0, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0])
+    """
+    links = active_inlinks2(shape, node_status=node_status)
+    if return_count:
+        return links, active_inlink_count_per_node(shape)
     else:
         return links
 
 
 def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     """
+    >>> from landlab.utils.structured_grid import node_index_with_halo
     >>> node_index_with_halo((2, 3), halo_indices=-1)
     array([[-1, -1, -1, -1, -1],
            [-1,  0,  1,  2, -1],
@@ -969,9 +1478,9 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     ids = np.empty(shape_with_halo, dtype=np.int)
 
     (interiors, boundaries) = (interior_nodes(shape_with_halo),
-                               boundary_nodes(shape_with_halo)) 
+                               boundary_nodes(shape_with_halo))
 
-    ids.flat[interiors] = xrange(interior_node_count(shape_with_halo))
+    ids.flat[interiors] = range(interior_node_count(shape_with_halo))
     ids.flat[boundaries] = halo_indices
 
     return ids
@@ -980,6 +1489,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
                         inactive_indices=None):
     """
+    >>> from landlab.utils.structured_grid import cell_index_with_halo
     >>> cell_index_with_halo((2, 3), halo_indices=-1)
     array([[-1, -1, -1, -1, -1],
            [-1,  0,  1,  2, -1],
@@ -1040,8 +1550,11 @@ def neighbor_node_ids(shape, inactive=BAD_INDEX_VALUE):
 
 
 def linked_neighbor_node_ids(shape, closed_boundary_nodes,
-                             open_boundary_nodes=[],
+                             open_boundary_nodes=None,
                              inactive=BAD_INDEX_VALUE):
+    if open_boundary_nodes is None:
+        open_boundary_nodes = []
+
     ids_with_halo = node_index_with_halo(shape, halo_indices=inactive)
 
     # Everything that touches a closed boundary is inactive
@@ -1068,7 +1581,7 @@ def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
     nodes = np.choose(is_open_boundary_neighbor, (open_boundary_neighbors,
                                                   value))
     neighbors[:, open_boundary_nodes] = nodes
-    
+
 
 def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
@@ -1081,6 +1594,7 @@ def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
 
 def neighbor_node_array(shape, **kwds):
     """
+    >>> from landlab.utils.structured_grid import neighbor_node_array
     >>> neighbors = neighbor_node_array((2, 3), inactive=-1)
     >>> neighbors.T
     array([[ 1,  3, -1, -1],
@@ -1104,9 +1618,10 @@ def neighbor_node_array(shape, **kwds):
 
 def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     """
+    >>> from landlab.utils.structured_grid import neighbor_cell_array
     >>> neighbors = neighbor_cell_array((2, 3), out_of_bounds=-1)
-    >>> neighbors
-    array([], dtype=int64)
+    >>> len(neighbors) == 0
+    True
 
     >>> neighbors = neighbor_cell_array((3, 3), out_of_bounds=-1)
     >>> neighbors
@@ -1130,7 +1645,7 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         if contiguous:
             return neighbors.copy()
         else:
-            return neighbors 
+            return neighbors
     else:
         return np.array([], dtype=np.int)
 
@@ -1138,13 +1653,14 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
 def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
                         boundary_node_mask=None):
     """
-    Creates a list of IDs of the diagonal cells to each cell, as a 2D array. 
+    Creates a list of IDs of the diagonal cells to each cell, as a 2D array.
     Only interior cells are assigned neighbors; boundary cells get -1 for
     each neighbor.  The order of the diagonal cells is [topright, topleft,
     bottomleft, bottomright].
-    
+
     NG didn't touch this, but she thinks this should be nodes, not cells.
 
+    >>> from landlab.utils.structured_grid import diagonal_node_array
     >>> diags = diagonal_node_array((2, 3), out_of_bounds=-1)
     >>> diags
     array([[ 4, -1, -1, -1],
@@ -1185,9 +1701,10 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     index for that neighbor to *out_of_bounds*.
 
     An grid without any cells returns an empty array.
+    >>> from landlab.utils.structured_grid import diagonal_cell_array
     >>> diags = diagonal_cell_array((2, 3), out_of_bounds=-1)
-    >>> diags
-    array([], dtype=int64)
+    >>> len(diags) == 0
+    True
 
     A grid that has only one cell does not have any neighbors so all of its
     diagonals are set to *out_of_bounds*.
@@ -1226,8 +1743,8 @@ def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
     (nrows, ncols) = shape
     ncells = shape[0] * shape[1]
     diagonal_cells = - np.ones([ncells, 4], dtype=np.int)
-    for r in xrange( 1, nrows-1 ):
-        for c in xrange( 1, ncols-1 ):
+    for r in range( 1, nrows-1 ):
+        for c in range( 1, ncols-1 ):
             cell_id = r * ncols + c
             diagonal_cells[cell_id,2] = cell_id - ncols - 1 # bottom left
             diagonal_cells[cell_id,0] = cell_id + ncols + 1 # top right
@@ -1247,32 +1764,33 @@ def has_boundary_neighbor(neighbors, diagonals,
 
 
 def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
-        #nbr_nodes=self.get_neighbor_list(id)
-        #diag_nbrs=self.get_diagonal_list(id)
-        
-        i=0
-        while i < 4 and neighbors[i] != out_of_bounds:
-            i += 1
-        
-        if i < 4:
-            return True
-        else:
-            r = 0
-            while r < 4 and diagonals[r] != out_of_bounds:
-                r += 1
-        
-        if r < 4 :
-            return True
-        else:
-            return False
+    # nbr_nodes=self.get_neighbor_list(id)
+    # diag_nbrs=self.get_diagonal_list(id)
+
+    i=0
+    while i < 4 and neighbors[i] != out_of_bounds:
+        i += 1
+
+    if i < 4:
+        return True
+    else:
+        r = 0
+        while r < 4 and diagonals[r] != out_of_bounds:
+            r += 1
+
+    if r < 4 :
+        return True
+    else:
+        return False
 
 
 def reshape_array(shape, u, flip_vertically=False, copy=False):
     """
+    >>> from landlab.utils.structured_grid import reshape_array
     >>> x = np.arange(12.)
     >>> y = reshape_array((3, 4), x)
-    >>> y.shape
-    (3, 4)
+    >>> y.shape == (3, 4)
+    True
     >>> y
     array([[  0.,   1.,   2.,   3.],
            [  4.,   5.,   6.,   7.],
@@ -1314,11 +1832,13 @@ def reshape_array(shape, u, flip_vertically=False, copy=False):
         else:
             return reshaped_u
 
+
 def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     """
     Returns the nodes around a point on a structured grid with unit spacing
     and zero origin.
 
+    >>> from landlab.utils.structured_grid import nodes_around_points_on_unit_grid
     >>> nodes_around_points_on_unit_grid((3, 3), (.1, .1))
     array([0, 3, 4, 1])
 
@@ -1330,12 +1850,10 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     else:
         (rows, cols) = (int(coords[0]), int(coords[1]))
 
-    try:
-        return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
-                                     (cols, cols, cols + 1, cols + 1)),
-                                    shape, mode=mode).T
-    except ValueError as e:
-        raise
+    return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
+                                 (cols, cols, cols + 1, cols + 1)),
+                                shape, mode=mode).T.astype(np.int, copy=False)
+
 
 def nodes_around_points(shape, coords, spacing=(1., 1.),
                         origin=(0., 0.)):
@@ -1343,6 +1861,7 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
     Returns the nodes around a point on a structured grid with row and column
     *spacing*, and *origin*.
 
+    >>> from landlab.utils.structured_grid import nodes_around_points
     >>> x = np.array([.9, 1.])
     >>> y = np.array([.1, 1.])
     >>> nodes_around_points((3, 3), (y, x))
@@ -1354,13 +1873,11 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
         ...
     ValueError: invalid entry in coordinates array
     """
-    try:
-        return nodes_around_points_on_unit_grid(
-            shape,
-            ((coords[0] - origin[0]) / spacing[0],
-             (coords[1] - origin[1]) / spacing[1]))
-    except ValueError as e:
-        raise
+    return nodes_around_points_on_unit_grid(
+        shape,
+        ((coords[0] - origin[0]) / spacing[0],
+         (coords[1] - origin[1]) / spacing[1])).astype(np.int, copy=False)
+
 
 def nodes_around_point(shape, coords, spacing=(1., 1.)):
     node_id = int(coords[0] // spacing[0] * shape[1] + coords[1] // spacing[1])
@@ -1369,7 +1886,7 @@ def nodes_around_point(shape, coords, spacing=(1., 1.)):
 
     return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
                      node_id + 1])
-                     
+
 def interior_node_id_to_node_id(shape, core_node_ids):
     """
     Converts the id of an interior node ID (i.e., if just the interior nodes
@@ -1379,16 +1896,15 @@ def interior_node_id_to_node_id(shape, core_node_ids):
     real_ID = (core_node_ids//IGW + 1) * shape[1] + (core_node_ids%IGW) + 1
     assert np.all(real_ID < shape[0]*shape[1])
     return real_ID.astype(int)
-    
+
 def node_id_to_interior_node_id(shape, node_ids):
     """
-    Converts a node ID to the id of an interior node ID (i.e., if just the 
+    Converts a node ID to the id of an interior node ID (i.e., if just the
     interior nodes were numbered)
     """
     ncols = shape[1]
     interior_ID = (node_ids//ncols - 1)*(ncols-2) + (node_ids%ncols) - 1
     if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
-        print "One of the supplied nodes was outside the interior grid!"
-        raise NameError()
+        raise IndexError("A supplied node was outside the interior grid")
     else:
         return interior_ID.astype(int)

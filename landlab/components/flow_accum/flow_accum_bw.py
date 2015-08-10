@@ -24,7 +24,7 @@ If you simply want the ordered list by itself, use:
 
 Created: GT Nov 2013
 """
-
+from six.moves import range
 
 import numpy
 
@@ -49,17 +49,27 @@ class _DrainageStack():
         """
         Adds node l to the stack and increments the current index (j).
         
-        Example:
-            >>> delta = numpy.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
-            >>> D = numpy.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
-            >>> ds = _DrainageStack(delta, D)
-            >>> ds.add_to_stack(4)
-            >>> ds.s
-            array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
+        >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+        >>> D = np.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+        >>> ds = _DrainageStack(delta, D)
+        >>> ds.add_to_stack(4)
+        >>> ds.s
+        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
         self.s[self.j] = l
         self.j += 1
-        for n in range(self.delta[l], self.delta[l+1]):
+        #make some aliases to make the weave faster & better
+        delta = self.delta
+        D = self.D
+        add_it = self.add_to_stack
+        delta_l = int(numpy.take(delta,l))
+        delta_lplus1 = int(numpy.take(delta,l+1))
+
+        for n in range(delta_l, delta_lplus1):
             m = self.D[n]
             if m != l:
                 self.add_to_stack(m)
@@ -85,7 +95,9 @@ def _make_number_of_donors_array(r):
     The example below is from Braun and Willett (2012); nd corresponds to their
     d_i in Table 1.
     
-    >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
@@ -93,10 +105,10 @@ def _make_number_of_donors_array(r):
     # Vectorized, DEJH, 5/20/14
 #    np = len(r)
 #    nd = numpy.zeros(np, dtype=int)
-#    for i in xrange(np):
+#    for i in range(np):
 #        nd[r[i]] += 1
 
-    nd = numpy.zeros(r.size, dtype=numpy.int)
+    nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
     nd[:(max_index + 1)] = numpy.bincount(r)
     return nd
@@ -114,16 +126,19 @@ def _make_delta_array(nd):
     \delta_i in their Table 1. Here, the numbers are all one less than in their
     table because here we number indices from 0 rather than 1.
     
-    Example:
-        >>> nd = numpy.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
-        >>> delta = _make_delta_array(nd)
-        >>> delta
-        array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
+    >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
+    >>> delta = _make_delta_array(nd)
+    >>> delta
+    array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
     #np = len(nd)
     #delta = numpy.zeros(np+1, dtype=int)
     #delta[np] = np   # not np+1 as in B&W because here we number from 0
-    #for i in xrange(np-1, -1, -1):
+    #for i in range(np-1, -1, -1):
     #    delta[i] = delta[i+1] - nd[i]
     #return delta
 
@@ -146,20 +161,25 @@ def _make_array_of_donors(r, delta):
     
     Vectorized - inefficiently! - DEJH, 5/20/14
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> delta = numpy.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
-        >>> D = _make_array_of_donors(r, delta)
-        >>> D
-        array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    >>> D = _make_array_of_donors(r, delta)
+    >>> D
+    array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """    
     np = len(r)
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
-    for i in xrange(np):
+
+    for i in range(np):
         ri = r[i]
         D[delta[ri]+w[ri]] = i
         w[ri] += 1
+
     return D
     
     #DEJH notes that for reasons he's not clear on, this looped version is
@@ -184,20 +204,25 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     The lack of a leading underscore is meant to signal that this operation
     could be useful outside of this module!
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> b = numpy.array([4])
-        >>> s = make_ordered_node_array(r, b)
-        >>> s
-        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import make_ordered_node_array
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> b = np.array([4])
+    >>> s = make_ordered_node_array(r, b)
+    >>> s
+    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     nd = _make_number_of_donors_array(receiver_nodes)
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
+    len_bl_nodes = baselevel_nodes.size
+    s = numpy.zeros(D.size, dtype=int)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
-        add_it(k)
+        add_it(k) #don't think this is a bottleneck, so no C++
     return dstack.s
     
     
@@ -229,14 +254,17 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
           just at each CELL. This means you need to include entries for the
           perimeter nodes too. They can be zeros.
           
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> s = numpy.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
-        >>> a, q = find_drainage_area_and_discharge(s, r)
-        >>> a
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> q
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import find_drainage_area_and_discharge
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    >>> a, q = find_drainage_area_and_discharge(s, r)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
         
     """
     
@@ -247,8 +275,8 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
     # rate times the cell's surface area.
-    drainage_area = numpy.zeros(np) + node_cell_area
-    discharge = numpy.zeros(np) + node_cell_area*runoff
+    drainage_area = numpy.zeros(np, dtype=int) + node_cell_area
+    discharge = numpy.zeros(np, dtype=int) + node_cell_area*runoff
     
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -257,14 +285,14 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
+    num_pts = len(s)
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
-        #DEJH: this loop may not be removable... Could use weave?
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge[recvr] += discharge[donor]
-      
+
     return drainage_area, discharge
     
 
@@ -274,19 +302,25 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
     
-    Example:
-        >>> r = numpy.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-        >>> b = numpy.array([4])
-        >>> a, q, s = flow_accumulation(r, b)
-        >>> a
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> q
-        array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-        >>> s
-        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_bw import flow_accumulation
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> b = np.array([4])
+    >>> a, q, s = flow_accumulation(r, b)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> s
+    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     
     s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+    #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't! 
+    #But as we don't have a copy of the grid accessible here, we'll solve this
+    #problem as part of route_flow_dn.
     
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
                                             runoff_rate, boundary_nodes)

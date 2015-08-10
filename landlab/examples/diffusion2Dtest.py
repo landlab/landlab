@@ -7,6 +7,7 @@
 #
 # GT, July 2010
 #-----------------------------------------------------------------------
+from __future__ import print_function
 
 import numpy as np
 
@@ -26,7 +27,7 @@ def main():
     s = 0.001  # source
     k = 0.01   # flux coefficient
     dt = 0.25*dx**2.0/k   # time step
-    print 'dt=', dt
+    print('dt=', dt)
     nt = 40000    # number of iterations
 
     # Setup
@@ -40,7 +41,7 @@ def main():
 
     # Process
     for i in range(0, nt):
-        print i
+        print(i)
         g = mg.calculate_face_gradients(u)
         q = -k*g
         dqds = mg.calculate_flux_divergences(q)
@@ -51,7 +52,7 @@ def main():
 
     # Finalize
     ur = mg.cell_vector_to_raster(u)
-    print 'Max u = ', max(u)
+    print('Max u = ', max(u))
     contour(ur)
     show()
 

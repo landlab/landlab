@@ -6,6 +6,7 @@ Examples
 Create a JaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
 
+>>> from landlab.utils.jaggedarray import JaggedArray
 >>> links_at_node = JaggedArray([
 ...     [0, 6],
 ...     [1, 7, 0],
@@ -37,6 +38,7 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
+from six.moves import range
 
 
 class JaggedArray(object):
@@ -48,6 +50,7 @@ class JaggedArray(object):
         --------
         Create a JaggedArray with an array of arrays.
 
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.array
         array([0, 1, 2, 3, 4])
@@ -80,6 +83,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.array
         array([0, 1, 2, 3, 4])
@@ -101,6 +105,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.offset
         array([0, 3, 5])
@@ -129,6 +134,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.size
         5
@@ -146,6 +152,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.number_of_rows
         2
@@ -179,6 +186,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.length_of_row(0)
         3
@@ -202,6 +210,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.row(0)
         array([0, 1, 2])
@@ -220,12 +229,13 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> for row in x: row
         array([0, 1, 2])
         array([3, 4])
         """
-        for n in xrange(self._number_of_rows):
+        for n in range(self._number_of_rows):
             yield self.row(n)
 
     def foreach_row(self, func, out=None):
@@ -233,6 +243,7 @@ class JaggedArray(object):
 
         Examples
         --------
+        >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
         >>> x.foreach_row(sum)
         array([3, 7])

@@ -1,11 +1,14 @@
+from __future__ import print_function
+
 import os
 import sys
-import nose
 from numpy.testing import Tester
 
 
 def show_system_info():
     import landlab
+    import nose
+
     print('landlab version %s' % landlab.__version__)
     landlab_dir = os.path.dirname(landlab.__file__)
     print('landlab is installed in %s' % landlab_dir)
@@ -15,7 +18,7 @@ def show_system_info():
 
 
 class LandlabTester(Tester):
-    excludes = []
+    excludes = ['examples']
 
     def __init__(self, package=None, raise_warnings='develop'):
         package_name = None
@@ -32,7 +35,7 @@ class LandlabTester(Tester):
         else:
             package_path = str(package)
 
-        self.package_path = package_path
+        self.package_path = os.path.abspath(package_path)
         
         # Find the package name under test; this name is used to limit coverage
         # reporting (if enabled).
@@ -46,5 +49,9 @@ class LandlabTester(Tester):
 
 
     def test(self, **kwds):
+        kwds.setdefault('verbose', 2)
+        kwds.setdefault('doctests', 1)
+        kwds.setdefault('coverage', 1)
+        kwds.setdefault('extra_argv', ['-x'])
         show_system_info()
-        super(LandlabTester, self).test(**kwds)
+        return super(LandlabTester, self).test(**kwds)

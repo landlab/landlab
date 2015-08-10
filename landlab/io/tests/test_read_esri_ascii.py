@@ -4,16 +4,18 @@ Unit tests for landlab.io.esri_ascii module.
 """
 import os
 import numpy as np
-from StringIO import StringIO
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_equal, assert_true, assert_raises
 try:
-    from nose.tools import assert_is_instance, assert_list_equal
+    from nose.tools import assert_is_instance, assert_list_equal, assert_is
 except ImportError:
-    from landlab.testing.tools import assert_is_instance, assert_list_equal
+    from landlab.testing.tools import (assert_is_instance, assert_list_equal,
+                                       assert_is)
+from six import StringIO
 
 from landlab.io import read_esri_ascii, read_asc_header
-from landlab.io import MissingRequiredKeyError, KeyTypeError, DataSizeError
+from landlab.io import (MissingRequiredKeyError, KeyTypeError, DataSizeError,
+                        BadHeaderLineError, KeyValueError)
 from landlab import RasterModelGrid
 
 
@@ -131,6 +133,47 @@ NODATA_value  -9999
     assert_raises(MissingRequiredKeyError, read_asc_header, asc_file)
 
 
+def test_header_unknown_key():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+invalid_key   1
+        """)
+    assert_raises(BadHeaderLineError, read_asc_header, asc_file)
+
+
+def test_header_missing_value():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      
+NODATA_value  -9999
+invalid_key   1
+        """)
+    assert_raises(BadHeaderLineError, read_asc_header, asc_file)
+
+
+def test_header_bad_values():
+    asc_file = StringIO(
+        """
+nrows         -4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+        """)
+    assert_raises(KeyValueError, read_asc_header, asc_file)
+
+
 def test_header_missing_mutex_key():
     asc_file = StringIO(
         """
@@ -201,6 +244,7 @@ NODATA_value  -999
                 'nodata_value']:
         assert_true(key in header)
 
+
 def test_header_wrong_type():
     asc_file = StringIO(
         """
@@ -212,6 +256,23 @@ CELLSIZE      10.
 NODATA_value  -999
         """)
     assert_raises(KeyTypeError, read_asc_header, asc_file)
+
+
+def test_name_keyword():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
+                                                 '4_x_3.asc'),
+                                   name='air__temperature')
+
+    assert_is_instance(grid, RasterModelGrid)
+
+    assert_is_instance(field, np.ndarray)
+    assert_array_equal(field,
+                       np.array([9., 10., 11.,
+                                 6.,  7.,  8.,
+                                 3.,  4.,  5.,
+                                 0.,  1.,  2.]))
+    assert_array_almost_equal(grid.at_node['air__temperature'], field)
+    assert_is(grid.at_node['air__temperature'], field)
 
 
 if __name__ == '__main__':

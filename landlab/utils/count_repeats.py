@@ -19,7 +19,8 @@ def count_repeated_values(x):
     just returns a copy of *x*, and the indices to each element.
     
     >>> import numpy as np
-    >>> counts = count_repeated_values(np.array([20, 30, 40]))
+    >>> from landlab.utils.count_repeats import count_repeated_values
+    >>> counts = count_repeated_values(np.array([20, 30, 40], dtype=np.int))
     >>> len(counts)
     1
     >>> counts[0]
@@ -30,7 +31,7 @@ def count_repeated_values(x):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeated_values(np.array([20, 30, 40, 30]))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30], dtype=np.int))
     >>> len(counts)
     2
     >>> counts[0]
@@ -44,7 +45,7 @@ def count_repeated_values(x):
     (unique_values, unique_inds) = np.unique(x, return_index=True)
     if len(unique_values) > 0:
         x_inds = np.arange(len(x))
-        counts.append((unique_values, unique_inds))
+        counts.append((unique_values, unique_inds.astype(np.int, copy=False)))
 
         while 1:
             x = np.delete(x, unique_inds)
@@ -52,7 +53,8 @@ def count_repeated_values(x):
             (unique_values, unique_inds) = np.unique(x, return_index=True)
 
             if len(unique_values) > 0:
-                counts.append((unique_values, x_inds[unique_inds]))
+                counts.append((unique_values,
+                               x_inds[unique_inds].astype(np.int, copy=False)))
             else:
                 break
 

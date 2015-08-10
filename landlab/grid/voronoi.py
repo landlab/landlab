@@ -1,18 +1,35 @@
 #! /usr/bin/env python
 
 import numpy
+import six
+from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 from scipy.spatial import Voronoi
 
 def simple_poly_area(x, y):
-    """
-    Calculates and returns the area of a 2-D simple polygon.  Input vertices
-    must be in sequence (clockwise or counterclockwise). *x* and *y* are
-    arrays that give the x- and y-axis coordinates of the polygon's
-    vertices.
-        
+    """Calculates and returns the area of a 2-D simple polygon.
+    
+    Input vertices must be in sequence (clockwise or counterclockwise). *x*
+    and *y* are arrays that give the x- and y-axis coordinates of the
+    polygon's vertices.
+
+    Parameters
+    ----------
+    x : ndarray
+        x-coordinates of of polygon vertices.
+    y : ndarray
+        y-coordinates of of polygon vertices.
+
+    Returns
+    -------
+    out : float
+        Area of the polygon
+
+    Examples
+    --------
     >>> import numpy as np
+    >>> from landlab.grid.voronoi import simple_poly_area
     >>> x = np.array([3., 1., 1., 3.])
     >>> y = np.array([1.5, 1.5, 0.5, 0.5])
     >>> simple_poly_area(x, y)
@@ -37,24 +54,30 @@ def simple_poly_area(x, y):
 
 
 def calculate_link_lengths(pts, link_from, link_to):
-    """
-    Calculates and returns length of links between nodes.
-    
-    Inputs: pts - Nx2 numpy array containing (x,y) values
-            link_from - 1D numpy array containing index numbers of nodes at 
-                        starting point ("from") of links
-            link_to - 1D numpy array containing index numbers of nodes at 
-                      ending point ("to") of links
+    """Calculates and returns length of links between nodes.
+
+    Parameters
+    ----------
+    pts : Nx2 numpy array containing (x,y) values
+    link_from : 1D numpy array containing index numbers of nodes at starting
+                point ("from") of links
+    link_to : 1D numpy array containing index numbers of nodes at ending point
+              ("to") of links
                       
-    Returns: 1D numpy array containing horizontal length of each link
+    Returns
+    -------
+    out : ndarray
+        1D numpy array containing horizontal length of each link
     
-    Example:
-        
-        >>> pts = numpy.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
-        >>> lfrom = numpy.array([0,1,2])
-        >>> lto = numpy.array([1,2,0])
-        >>> calculate_link_lengths(pts, lfrom, lto)
-        array([ 3.,  4.,  5.])
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.voronoi import calculate_link_lengths
+    >>> pts = np.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
+    >>> lfrom = np.array([0,1,2])
+    >>> lto = np.array([1,2,0])
+    >>> calculate_link_lengths(pts, lfrom, lto)
+    array([ 3.,  4.,  5.])
     """
     dx = pts[link_to, 0] - pts[link_from, 0]
     dy = pts[link_to, 1] - pts[link_from, 1]
@@ -71,6 +94,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     Examples
     --------
     >>> from numpy.random import rand
+    >>> from landlab.grid import VoronoiDelaunayGrid
     >>> x, y = rand(25), rand(25)
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
@@ -97,6 +121,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         Examples
         --------
         >>> from numpy.random import rand
+        >>> from landlab.grid import VoronoiDelaunayGrid
         >>> x, y = rand(25), rand(25)
         >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
         >>> vmg.number_of_nodes
@@ -139,7 +164,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       specify a subset of cells as active)
         #
         self._num_nodes = len(x)
-        #print x, y
         self._node_x = x
         self._node_y = y
         [self.node_status, self._core_nodes, self._boundary_nodes] = \
@@ -285,7 +309,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # points. We include these in our set of boundary nodes.
         convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:,0]
-        boundary_nodes = numpy.concatenate((convex_hull_nodes, coplanar_nodes))
+        boundary_nodes = numpy.concatenate(
+            (convex_hull_nodes, coplanar_nodes)).astype(numpy.int, copy=False)
     
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
@@ -296,18 +321,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
-        core_nodes = numpy.where(node_status==0)[0]
+        core_nodes = numpy.where(node_status==0)[0].astype(numpy.int, copy=False)
         
         #save the arrays and update the properties
         self.node_status = node_status
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
         self._num_core_cells = len(core_nodes)
-        self.core_cells = numpy.arange(len(core_nodes))
-        self.node_corecell = numpy.empty(node_status.size)
+        self.core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
+        self.node_corecell = numpy.empty(node_status.size, dtype=numpy.int)
         self.node_corecell.fill(BAD_INDEX_VALUE)
         self.node_corecell[core_nodes] = self.core_cells
-        self.active_cells = numpy.arange(node_status.size)
+        self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self.cell_node = core_nodes
         self.activecell_node = core_nodes
         self.corecell_node = core_nodes
@@ -318,28 +343,33 @@ class VoronoiDelaunayGrid(ModelGrid):
 
     @staticmethod
     def setup_node_cell_connectivity(node_status, ncells):
-        """
+        """Setup node connectivity
+
         Creates and returns the following arrays:
-            1) for each node, the ID of the corresponding cell, or
-                BAD_INDEX_VALUE if the node has no cell.
-            2) for each cell, the ID of the corresponding node.
+        1. For each node, the ID of the corresponding cell, or
+           BAD_INDEX_VALUE if the node has no cell.
+        2. For each cell, the ID of the corresponding node.
             
-        Inputs:
-            node_status: 1D numpy array containing the boundary status code
-                         for each node
-            ncells: the number of cells (must equal the number of occurrences of
-                    CORE_NODE in node_status)
+        Parameters
+        ----------
+        node_status : ndarray of ints
+            1D array containing the boundary status code for each node.
+        ncells : ndarray of ints
+            Number of cells (must equal the number of occurrences of CORE_NODE
+            in node_status).
                     
-        Example:
-            
-            >>> ns = numpy.array([1,0,0,1,0])  # 3 interior, 2 boundary nodes
-            >>> [node_cell,cell_node] = VoronoiDelaunayGrid.setup_node_cell_connectivity(ns, 3)
-            >>> node_cell[1:3]
-            array([0, 1])
-            >>> node_cell[0]==BAD_INDEX_VALUE
-            True
-            >>> cell_node
-            array([1, 2, 4])
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.grid import VoronoiDelaunayGrid, BAD_INDEX_VALUE
+        >>> ns = np.array([1, 0, 0, 1, 0])  # 3 interior, 2 boundary nodes
+        >>> [node_cell, cell_node] = VoronoiDelaunayGrid.setup_node_cell_connectivity(ns, 3)
+        >>> node_cell[1:3]
+        array([0, 1])
+        >>> node_cell[0] == BAD_INDEX_VALUE
+        True
+        >>> cell_node
+        array([1, 2, 4])
         """
         assert ncells==numpy.count_nonzero(node_status==CORE_NODE), \
                'ncells must equal number of CORE_NODE values in node_status'
@@ -370,13 +400,16 @@ class VoronoiDelaunayGrid(ModelGrid):
         
         Examples
         --------
-        >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1., 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
         >>> from scipy.spatial import Delaunay
+        >>> import numpy as np
+        >>> from landlab.grid import VoronoiDelaunayGrid
+        >>> pts = np.array([[ 0., 0.], [ 1., 0.], [ 1., 0.87],
+        ...                 [-0.5, 0.87], [ 0.5, 0.87], [ 0., 1.73],
+        ...                 [ 1., 1.73]])
         >>> dt = Delaunay(pts)
         >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
         >>> print myfrom, myto, nl # doctest: +SKIP
         [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
-        
         """
     
         # Calculate how many links there will be and create the arrays.
@@ -388,7 +421,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # a given vertex; in other words, two triangles are sharing an edge).
         #
         num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
-        num_links = 3*tri.nsimplex - num_shared_links/2
+        num_links = 3 * tri.nsimplex - num_shared_links // 2
         link_fromnode = numpy.zeros(num_links, dtype=int)
         link_tonode = numpy.zeros(num_links, dtype=int)
         
@@ -434,35 +467,40 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
-            1) Arrays of link "from" and "to" nodes
-            2) Array of link IDs for each active link
-            3) Array containing with of each face
+        1. Arrays of link "from" and "to" nodes
+        2. Array of link IDs for each active link
+        3. Array containing with of each face
         
-        Inputs: vor = a scipy.spatial.Voronoi() object that was initialized
-                      with the grid nodes.
-                      
-        Returns four 1D numpy arrays:
-            
-            link_fromnode = "from" node for each link (len=num_links)
-            link_tonode   = "to" node for each link (len=num_links)
-            active_links  = link ID for each active link (len=num_active_links)
-            face_width    = width of each face (len=num_active_links
-        
-        Example:
-            
-            >>> pts = numpy.array([[ 0., 0.],[  1., 0.],[  1.5, 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
-            >>> from scipy.spatial import Voronoi
-            >>> vor = Voronoi(pts)
-            >>> [fr,to,al,fw] = VoronoiDelaunayGrid.create_links_and_faces_from_voronoi_diagram(vor)
-            >>> fr
-            array([0, 0, 0, 1, 1, 3, 3, 6, 6, 6, 4, 4])
-            >>> to
-            array([3, 1, 4, 2, 4, 4, 5, 4, 2, 5, 2, 5])
-            >>> al
-            array([ 2,  4,  5,  7, 10, 11])
-            >>> fw
-            array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
-                    0.57836419])
+        Parameters
+        ----------
+        vor : scipy.spatial.Voronoi
+            Voronoi object initialized with the grid nodes.
+
+        Returns
+        -------
+        out : tuple of ndarrays
+            - link_fromnode = "from" node for each link (len=num_links)
+            - link_tonode   = "to" node for each link (len=num_links)
+            - active_links  = link ID for each active link (len=num_active_links)
+            - face_width    = width of each face (len=num_active_links
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.grid import VoronoiDelaunayGrid
+        >>> pts = np.array([[ 0., 0.],[  1., 0.],[  1.5, 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from scipy.spatial import Voronoi
+        >>> vor = Voronoi(pts)
+        >>> [fr,to,al,fw] = VoronoiDelaunayGrid.create_links_and_faces_from_voronoi_diagram(vor)
+        >>> fr
+        array([0, 0, 0, 1, 1, 3, 3, 6, 6, 6, 4, 4])
+        >>> to
+        array([3, 1, 4, 2, 4, 4, 5, 4, 2, 5, 2, 5])
+        >>> al
+        array([ 2,  4,  5,  7, 10, 11])
+        >>> fw
+        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
+                0.57836419])
         """
         # Each Voronoi "ridge" corresponds to a link. The Voronoi object has an
         # attribute ridge_points that contains the IDs of the nodes on either
@@ -484,7 +522,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # vertex.
         num_active_links = num_links \
                     - numpy.count_nonzero(numpy.array(vor.ridge_vertices)==-1)
-        #print 'num_links=', num_links,'num_active_links=',num_active_links
         
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
@@ -506,16 +543,17 @@ class VoronoiDelaunayGrid(ModelGrid):
                 dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
                 face_width[j] = numpy.sqrt(dx*dx+dy*dy)
                 if abs(face_width[j])>=40000.0:
-                    print 'link',i,'from',link_fromnode[i],'to',link_tonode[i],'has face width',face_width[j]
-                    print vor.ridge_vertices[i]
-                    print vor.vertices[vor.ridge_vertices[i]]
+                    six.print_('link ' + i + ' from ' + link_fromnode[i] +
+                               ' to ' + link_tonode[i] + ' has face width ' +
+                               face_width[j])
+                    six.print_(vor.ridge_vertices[i])
+                    six.print_(vor.vertices[vor.ridge_vertices[i]])
+
                     from scipy.spatial import voronoi_plot_2d
                     voronoi_plot_2d(vor)
                 assert face_width[j] < 40000., 'face width must be less than earth circumference!'
                 active_links[j] = i
                 j += 1
-        #print 'active links:',active_links
-        #print 'vor ridge points:',vor.ridge_points
         
         #save the data
         #self.link_fromnode = link_fromnode
@@ -542,9 +580,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         never point down and left, or up-but-mostly-left, or 
         right-but-mostly-down.
         
-        Example
-        -------
-        >>> from landlab import HexModelGrid
+        Examples
+        --------
+        >>> from landlab.grid import HexModelGrid
         >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
         >>> hg.link_fromnode
         array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
@@ -607,15 +645,67 @@ class VoronoiDelaunayGrid(ModelGrid):
         #need to build a squared off, masked array of the node_patches
         #the max number of patches for a node in the grid is the max sides of
         #the side-iest voronoi region.
-        for i in xrange(len(vor.regions)):
+        for i in range(len(vor.regions)):
             if len(vor.regions[i])>max_dimension:
                 max_dimension=len(vor.regions[i])
         _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
         _node_patches.fill(nodata)
-        for i in xrange(self.number_of_nodes):
-            patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
-            _node_patches[i,:patches_with_node.size] = patches_with_node[:]
+        for i in range(self.number_of_nodes):
+            if not self.is_boundary(i, boundary_flag=4): #don't include closed nodes
+                patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
+                _node_patches[i,:patches_with_node.size] = patches_with_node[:]
         #mask it
         self._node_patches = numpy.ma.array(_node_patches, mask=numpy.equal(_node_patches, -1))
+
+    def save(self, path, clobber=False):
+        """Save a grid and fields.
+
+        This method uses cPickle to save a Voronoi grid as a cPickle file.
+        At the time of coding, this is the only convenient output format
+        for Voronoi grids, but support for netCDF is likely coming.
         
+        All fields will be saved, along with the grid.
+
+        The recommended suffix for the save file is '.grid'. This will
+        be added to your save if you don't include it.
         
+        This method is equivalent to
+        :py:func:`~landlab.io.native_landlab.save_grid`, and
+        :py:func:`~landlab.io.native_landlab.load_grid` can be used to
+        load these files.
+
+        Caution: Pickling can be slow, and can produce very large files.
+        Caution 2: Future updates to Landlab could potentially render old
+        saves unloadable.
+
+        Parameters
+        ----------
+        path : str
+            Path to output file.
+        clobber : bool (defaults to false)
+            Set to true to allow overwriting
+
+        Examples
+        --------
+        >>> from landlab import VoronoiDelaunayGrid
+        >>> import numpy as np
+        >>> import os
+        >>> x = np.random.rand(20)
+        >>> y = np.random.rand(20)
+        >>> vmg = VoronoiDelaunayGrid(x,y)
+        >>> vmg.save('./mytestsave.grid')
+        >>> os.remove('mytestsave.grid') #to remove traces of this test
+        """
+        import os
+        from six.moves import cPickle
+
+        if os.path.exists(path) and not clobber:
+            raise ValueError('file exists')
+
+        (base, ext) = os.path.splitext(path)
+        if ext != '.grid':
+            ext = ext+'.grid'
+        path = base+ext
+
+        with open(path, 'wb') as fp:
+            cPickle.dump(self, fp)

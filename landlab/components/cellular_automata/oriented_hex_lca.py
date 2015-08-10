@@ -10,16 +10,42 @@ raster. Hex grids are often used in CA models because of their symmetry.
 
 Created GT Sep 2014
 """
+import warnings
 
 from numpy import zeros
-from landlab_ca import LandlabCellularAutomaton, Transition
+from .landlab_ca import LandlabCellularAutomaton, Transition
 import landlab
 
 
 class OrientedHexLCA(LandlabCellularAutomaton):
+    """
+    Class OrientedHexLCA implements an oriented hex-grid CellLab-CTS model.
+    """
     
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states):
+                 initial_node_states, prop_data=None, prop_reset_value=None):
+        """
+        OrientedHexLCA constructor: sets number of orientations to 3 and calls
+        base-class constructor.
+        
+        Parameters
+        ----------
+        model_grid : Landlab ModelGrid object
+            Reference to the model's grid
+        node_state_dict : dict
+            Keys are node-state codes, values are the names associated with
+            these codes
+        transition_list : list of Transition objects
+            List of all possible transitions in the model
+        initial_node_states : array of ints (x number of nodes in grid)
+            Starting values for node-state grid
+        prop_data : array (x number of nodes in grid) (optional)
+            Array of properties associated with each node/cell
+        prop_reset_value : (scalar; same type as entries in prop_data) (optional)
+            Default or initial value for a node/cell property (e.g., 0.0)
+        """
+        warnings.warn('use of OrientedHexLCA is deprecated. '
+                      'Use OrientedHexCTS instead.')
         
         # Make sure caller has sent the right grid type        
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
@@ -37,7 +63,7 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
         super(OrientedHexLCA, self).__init__(model_grid, node_state_dict, 
-            transition_list, initial_node_states)
+            transition_list, initial_node_states, prop_data, prop_reset_value)
             
 
     def setup_array_of_orientation_codes(self):
@@ -87,18 +113,5 @@ class OrientedHexLCA(LandlabCellularAutomaton):
 
 
 if __name__=='__main__':
-    print 'main here'
-    from landlab import HexModelGrid
-    mg = HexModelGrid(2, 3, 1.0, orientation='vertical', reorient_links=True)
-    print mg.number_of_active_links
-    nsd = {0 : 'yes', 1 : 'no'}
-    xnlist = []
-    xnlist.append( Transition( (0,1,0), (1,0,0), 1.0, 'falling' ) )
-    nsg = mg.add_zeros('node', 'node_state_grid')
-    ohlca = OrientedHexLCA(mg, nsd, xnlist, nsg)
-    for i in range(mg.number_of_active_links):
-        j = mg.active_links[i]
-        print i,j,'(',mg.node_x[mg.link_fromnode[j]],',',mg.node_y[mg.link_fromnode[j]],\
-            ')','(',mg.node_x[mg.link_tonode[j]],',',mg.node_y[mg.link_tonode[j]],\
-            ')',ohlca.active_link_orientation[i]
-
+    import doctest
+    doctest.testmod()

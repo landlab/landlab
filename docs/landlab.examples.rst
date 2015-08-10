@@ -68,10 +68,18 @@ landlab.examples.flowRoutingD8 module
     :undoc-members:
     :show-inheritance:
 
-landlab.examples.germany_test_driver module
--------------------------------------------
+landlab.examples.plotter_test module
+------------------------------------
 
-.. automodule:: landlab.examples.germany_test_driver
+.. automodule:: landlab.examples.plotter_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.examples.slope_aspect_routines_comparison module
+--------------------------------------------------------
+
+.. automodule:: landlab.examples.slope_aspect_routines_comparison
     :members:
     :undoc-members:
     :show-inheritance:

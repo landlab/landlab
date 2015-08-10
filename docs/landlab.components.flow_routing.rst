@@ -4,6 +4,14 @@ landlab.components.flow_routing package
 Submodules
 ----------
 
+landlab.components.flow_routing.cfuncs module
+---------------------------------------------
+
+.. automodule:: landlab.components.flow_routing.cfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.flow_routing.flow_direction_DN module
 --------------------------------------------------------
 
@@ -24,6 +32,14 @@ landlab.components.flow_routing.route_flow_dn module
 ----------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.route_flow_dn
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.flow_routing.weavefuncs module
+-------------------------------------------------
+
+.. automodule:: landlab.components.flow_routing.weavefuncs
     :members:
     :undoc-members:
     :show-inheritance:

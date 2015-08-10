@@ -1,6 +1,9 @@
 import numpy as np
+import six
+from six.moves import range
 
 from .base import CLOSED_BOUNDARY
+from .base import BAD_INDEX_VALUE
 
 
 _VALID_ROUTING_METHODS = set(['d8', 'd4'])
@@ -34,6 +37,9 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
     ordered as right, top, left, and bottom.
+    
+    Note that the returned gradients are masked to exclude neighbor nodes which
+    are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
     Parameters
     ----------
@@ -58,23 +64,36 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_gradient_across_cell_faces
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([0., 0., 0., 0., 0., 0., 1., 1., 3., 3., 3., 3.])
 
     A decrease in quantity across a face is a negative gradient.
     
     >>> calculate_gradient_across_cell_faces(grid, x)
-    array([[ 1.,  3.,  0.,  0.],
-           [ 0.,  2., -1., -1.]])
+    masked_array(data =
+     [[ 1.  3.  0.  0.]
+     [ 0.  2. -1. -1.]],
+                 mask =
+     False,
+           fill_value = 1e+20)
+    <BLANKLINE>
     """
+    padded_node_values = np.empty(node_values.size+1,dtype=float)
+    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[:-1] = node_values
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_index_at_cells[cell_ids]
 
-    values_at_neighbors = node_values[grid.get_neighbor_list(node_ids)]
+    neighbors = grid.get_neighbor_list(node_ids)
+    if BAD_INDEX_VALUE!=-1:
+        neighbors = np.where(neighbors==BAD_INDEX_VALUE, -1, neighbors)
+    values_at_neighbors = padded_node_values[neighbors]
+    masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
-    out = np.subtract(values_at_neighbors, values_at_nodes, **kwds)
-    out *= 1. / grid.node_spacing
+    out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
+    out = np.multiply(out, 1. / grid.node_spacing, out=out)
 
     return out
 
@@ -110,6 +129,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_gradient_across_cell_corners
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
 
@@ -131,6 +151,91 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
 
     return out
 
+
+def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
+    """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
+    Gradients along links touching a node.
+
+    Calculate gradient of the value field provided by *node_values* across
+    each of the faces of the nodes of a grid. The returned gradients are
+    ordered as right, top, left, and bottom. All returned values follow our
+    standard sign convention, where a link pointing N or E and increasing in
+    value is positive, a link pointing S or W and increasing in value is
+    negative.
+    
+    Note that the returned gradients are masked to exclude neighbor nodes which
+    are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        Source grid.
+    node_values : array_link
+        Quantity to take the gradient of defined at each node.
+    node_ids : array_like, optional
+        If provided, node ids to measure gradients. Otherwise, find gradients
+        for all nodes.
+    out : array_like, optional
+        Alternative output array in which to place the result.  Must
+        be of the same shape and buffer length as the expected output.
+
+    Returns
+    -------
+    (N, 4) ndarray
+        Gradients for each link of the node. Ordering is E,N,W,S.
+
+    Examples
+    --------
+    Create a grid with nine nodes.
+
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_gradient_along_node_links
+    >>> grid = RasterModelGrid(3, 3)
+    >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
+
+    A decrease in quantity across a face is a negative gradient.
+    
+    >>> calculate_gradient_along_node_links(grid, x)
+    masked_array(data =
+     [[-- -- -- --]
+     [-- 1.0 -- --]
+     [-- -- -- --]
+     [1.0 -- -- --]
+     [1.0 1.0 1.0 1.0]
+     [-- -- 1.0 --]
+     [-- -- -- --]
+     [-- -- -- 1.0]
+     [-- -- -- --]],
+                 mask =
+     [[ True  True  True  True]
+     [ True False  True  True]
+     [ True  True  True  True]
+     [False  True  True  True]
+     [False False False False]
+     [ True  True False  True]
+     [ True  True  True  True]
+     [ True  True  True False]
+     [ True  True  True  True]],
+           fill_value = 1e+20)
+    <BLANKLINE> 
+    """
+    padded_node_values = np.empty(node_values.size+1,dtype=float)
+    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[:-1] = node_values
+    node_ids = _make_optional_arg_into_array(grid.number_of_nodes, *args)
+
+    neighbors = grid.get_neighbor_list(node_ids, bad_index=-1)
+    values_at_neighbors = padded_node_values[neighbors]
+    masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
+    values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
+
+    out = np.ma.empty_like(masked_neighbor_values, dtype=float)
+    np.subtract(masked_neighbor_values[:,:2], values_at_nodes, out=out[:,:2], **kwds)
+    np.subtract(values_at_nodes, masked_neighbor_values[:,2:], out=out[:,2:], **kwds)
+    out *= 1. / grid.node_spacing
+
+    return out
+    
 
 def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
                                                      **kwds):
@@ -182,6 +287,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     centered around node 4.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_steepest_descent_across_adjacent_cells
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.array([-3., -1., 0., 0., 1., 0., 0., 0., 0.])
 
@@ -191,10 +297,16 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     >>> from math import sqrt
     >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
     ...     method='d4')
-    array([-2.])
+    masked_array(data = [-2.],
+                 mask = False,
+           fill_value = 1e+20)
+    <BLANKLINE> 
     >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
     ...     method='d8') * sqrt(2.)
-    array([-4.])
+    masked_array(data = [-4.],
+                 mask = False,
+           fill_value = 1e+20)
+    <BLANKLINE> 
 
     With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
 
@@ -277,6 +389,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
     centered around node 4.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_corners
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
 
@@ -305,7 +418,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         node_ids = grid.diagonal_cells[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -354,6 +467,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     centered around node 4.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
     >>> rmg = RasterModelGrid(3, 3)
     >>> values_at_nodes = np.arange(9.)
 
@@ -361,7 +475,10 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     lowest node.
 
     >>> calculate_steepest_descent_across_cell_faces(rmg, values_at_nodes)
-    array([-3.])
+    masked_array(data = [-3.],
+                 mask = False,
+           fill_value = 1e+20)
+    <BLANKLINE>
 
     The steepest gradient is to node with id 1.
 
@@ -377,10 +494,11 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
+        node_ids = grid.get_neighbor_list()[grid.node_index_at_cells[cell_ids],ind]
+        #node_ids = grid.neighbor_nodes[grid.node_index_at_cells[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
-        out[:] = grads[xrange(len(cell_ids)), ind]
+        out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
         #return (out, 3 - ind)
     else:
@@ -413,7 +531,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    return links[xrange(len(cell_ids)), inds]
+    return links[range(len(cell_ids)), inds]
 
 
 def node_id_of_cell_neighbor(grid, inds, *args):
@@ -442,6 +560,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import node_id_of_cell_neighbor
     >>> grid = RasterModelGrid(4, 5, 1.0)
     >>> node_id_of_cell_neighbor(grid, 0, 0)
     array([1])
@@ -467,9 +586,9 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    #return neighbors[xrange(len(cell_ids)), 3 - inds]
+    #return neighbors[range(len(cell_ids)), 3 - inds]
     return (
-        np.take(np.take(neighbors, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
 
 
@@ -494,6 +613,7 @@ def node_id_of_cell_corner(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import node_id_of_cell_corner
     >>> grid = RasterModelGrid(4, 5, 1.0)
     >>> node_id_of_cell_corner(grid, 0, 0)
     array([2])
@@ -520,9 +640,9 @@ def node_id_of_cell_corner(grid, inds, *args):
         inds = np.array(inds)
 
     return (
-        np.take(np.take(diagonals, xrange(len(cell_ids)), axis=0),
+        np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
-    #return diagonals[xrange(len(cell_ids)), 3 - inds]
+    #return diagonals[range(len(cell_ids)), 3 - inds]
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
@@ -600,8 +720,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     assert(len(net_unit_flux) == grid.number_of_nodes)
     
     flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid._dx
-    
+    flux[:len(active_link_flux)] = active_link_flux * grid.dx
+
     net_unit_flux[:] = (
         (flux[grid.node_active_outlink_matrix[0][:]] +
          flux[grid.node_active_outlink_matrix[1][:]]) -
@@ -643,46 +763,33 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     if neighbor_cells[3]!=-1:
         diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
     slopes = []
-    diagonal_dx = np.sqrt(2.) * grid._dx  # Corrected (multiplied grid._dx) SN 05Nov13
+    diagonal_dx = np.sqrt(2.) * grid.dx
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
-        #print '\n', cell_id
-        #print '\n', a
-        single_slope = (u[cell_id] - u[a])/grid._dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', grid.is_interior(cell_id), grid.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
+        single_slope = (u[cell_id] - u[a])/grid.dx
         if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
+            six.print_('NaNs present in the grid!')
             
     for a in diagonal_cells:
         single_slope = (u[cell_id] - u[a])/(diagonal_dx)
-        #print single_slope
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
-            print 'NaNs present in the grid!'
-    #print 'Slopes list: ', slopes
+            six.print_('NaNs present in the grid!')
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
-    #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 8
     
@@ -725,45 +832,34 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     #We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = self.get_neighbor_list(cell_id)
     neighbor_cells.sort()
-    #print 'Node is internal: ', self.is_interior(cell_id)
-    #print 'Neighbor cells: ', neighbor_cells
 
     slopes = []
     for a in neighbor_cells:
         #ng I think this is actually slope as defined by a geomorphologist,
         #that is -dz/dx and not the gradient (dz/dx)
         if self.node_status[a] != CLOSED_BOUNDARY:
-            single_slope = (u[cell_id] - u[a])/self._dx
+            single_slope = (u[cell_id] - u[a])/self.dx
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
-        #print 'cell id: ', cell_id
-        #print 'neighbor id: ', a
-        #print 'cell, neighbor are internal: ', self.is_interior(cell_id), self.is_interior(a)
-        #print 'cell elev: ', u[cell_id]
-        #print 'neighbor elev: ', u[a]
-        #print single_slope
         #if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
         #    slopes.append(single_slope)
         #else:
         #    print 'NaNs present in the grid!'
         slopes.append(single_slope)
             
-    #print 'Slopes list: ', slopes
     #ng thinks that the maximum slope should be found here, not the 
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
     #else:
-    #    print u
     #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
         max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
     else:
-        print u
-        print 'Returning NaN angle and direction...'
+        six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 4
         
@@ -804,7 +900,7 @@ def calculate_slope_aspect_BFP(xs, ys, zs):
     # in python, the unit normal to the best fit plane is
     # given by the third column of the U matrix.
     mat = np.vstack((x, y, z))
-    U, s, V = np.linalg.svd(mat)
+    U, _, V = np.linalg.svd(mat)
     normal = U[:, 2]
       
     # step 3: calculate the aspect   
@@ -850,6 +946,7 @@ def find_nearest_node(rmg, coords, mode='raise'):
     Create a grid of 4 by 5 nodes with unit spacing. 
 
     >>> import landlab
+    >>> from landlab.grid.raster_funcs import find_nearest_node
     >>> rmg = landlab.RasterModelGrid(4, 5)
 
     The points can be either a tuple of scalars or of arrays.
@@ -879,13 +976,10 @@ def find_nearest_node(rmg, coords, mode='raise'):
 
 
 def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
-    column_indices, row_indices = (np.empty(coords[0].shape, dtype=np.int),
-                                   np.empty(coords[1].shape, dtype=np.int))
-
-    np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing,
-              out=column_indices)
-    np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing,
-              out=row_indices)
+    column_indices = np.int_(
+        np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing))
+    row_indices = np.int_(
+        np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 
@@ -918,6 +1012,7 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     Create a grid that ranges from x=0 to x=4, and y=0 to y=3.
 
     >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_funcs import is_coord_on_grid
     >>> grid = RasterModelGrid(4, 5)
     >>> is_coord_on_grid(grid, (3.999, 2.999))
     True
@@ -940,54 +1035,3 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
                                                      axis)
 
     return is_in_bounds
-
-
-def is_point_on_grid(self, xcoord, ycoord):
-    """Check if a point is on a rectilinear grid.
-
-    .. note:: Deprecated since version 0.5.
-              Replaced by the more flexible and faster `is_coord_on_grid`.
-
-    This method takes x,y coordinates and tests whether they lie within the
-    grid. The limits of the grid are taken to be links connecting the 
-    boundary nodes. We perform a special test to detect looped boundaries.
-        
-    Coordinates can be ints or arrays of ints. If arrays, will return an
-    array of the same length of truth values.
-
-    Parameters
-    ----------
-    xcoord : float
-        x-coordinate of the point.
-    ycoord : float
-        y-coordinate of the point.
-
-    Returns
-    -------
-    boolean :
-        True if the point is on the grid. Otherwise, False.
-    """
-    x_condition = numpy.logical_and(
-        numpy.less(0., xcoord),
-        numpy.less(xcoord, (self.get_grid_xdimension() - self._dx)))
-    y_condition = numpy.logical_and(
-        numpy.less(0., ycoord),
-        numpy.less(ycoord, (self.get_grid_ydimension() - self._dx)))
-
-    if (numpy.all(
-        self.node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or
-        numpy.all(self.node_status[sgrid.right_edge_node_ids(self.shape)] == 3)):
-        try:
-            x_condition[:] = 1
-        except:
-            x_condition = 1
-
-    if (numpy.all(
-        self.node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or
-        numpy.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3)):
-        try:
-            y_condition[:] = 1
-        except:
-            y_condition = 1
-
-    return numpy.logical_and(x_condition, y_condition)

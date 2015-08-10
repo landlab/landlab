@@ -1,6 +1,13 @@
 landlab.field package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.field.tests
+
 Submodules
 ----------
 

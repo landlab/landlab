@@ -88,6 +88,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.empty() # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
@@ -95,7 +96,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.empty(self.size, **kwds)
@@ -116,6 +117,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.ones()
         array([ 1.,  1.,  1.,  1.])
@@ -124,7 +126,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.ones(self.size, **kwds)
@@ -145,13 +147,14 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.zeros()
         array([ 0.,  0.,  0.,  0.])
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.zeros(self.size, **kwds)
@@ -218,12 +221,13 @@ class ScalarDataFields(dict):
         --------
         Add a new, named field to a collection of fields.
 
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
-        >>> field.add_ones('planet_surface__elevation')
+        >>> field.add_ones('topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
-        >>> field.keys()
-        ['planet_surface__elevation']
-        >>> field['planet_surface__elevation']
+        >>> list(field.keys())
+        ['topographic__elevation']
+        >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
         return self.add_field(name, self.ones(**kwds), units=units)
@@ -295,15 +299,16 @@ class ScalarDataFields(dict):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('planet_surface__elevation', values)
+        >>> field.add_field('topographic__elevation', values)
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field['planet_surface__elevation'] is values
+        >>> field['topographic__elevation'] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -311,13 +316,13 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('planet_surface__elevation', values, copy=True)
+        >>> field.add_field('topographic__elevation', values, copy=True)
         array([1, 1, 1, 1])
-        >>> field['planet_surface__elevation'] is values
+        >>> field['topographic__elevation'] is values
         False
-        >>> field.add_field('planet_surface__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('topographic__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        FieldError: planet_surface__elevation
+        FieldError: topographic__elevation
         """
         if noclobber and name in self:
             raise FieldError(name)

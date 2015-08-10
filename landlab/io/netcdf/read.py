@@ -17,7 +17,6 @@ import re
 
 import numpy as np
 
-from landlab import RasterModelGrid
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
@@ -45,7 +44,7 @@ def _read_netcdf_coordinate_values(root):
     values = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
         try:
-            values.append(root.variables[coordinate_name][:])
+            values.append(root.variables[coordinate_name][:].copy())
         except KeyError:
             pass
     return values
@@ -100,13 +99,62 @@ def _get_raster_spacing(coords):
         return spacing[0]
 
 
-def read_netcdf(nc_file, reshape=False, just_grid=False):
+def read_netcdf(nc_file, just_grid=False):
+    """Create a :class:`~.RasterModelGrid` from a netcdf file.
+
+    Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
+    If the netcdf file also contains data, add that data to the grid's fields.
+    To create a new grid without any associated data from the netcdf file,
+    set the *just_grid* keyword to ``True``.
+
+    Parameters
+    ----------
+    nc_file : str
+        Name of a netcdf file.
+    just_grid : boolean, optional
+        Create a new grid but don't add value data.
+
+    Returns
+    -------
+    :class:`~.RasterModelGrid`
+        A newly-created :class:`~.RasterModelGrid`.
+
+    Examples
+    --------
+    Import :func:`read_netcdf` and the path to an example netcdf file included
+    with landlab.
+
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> from landlab.io.netcdf import NETCDF4_EXAMPLE_FILE
+
+    Create a new grid from the netcdf file. The example grid is a uniform
+    rectilinear grid with 4 rows and 3 columns of nodes with unit spacing.
+    The data file also contains data defined at the nodes for the grid for
+    a variable called, *surface__elevation*.
+
+    >>> grid = read_netcdf(NETCDF4_EXAMPLE_FILE)
+    >>> grid.shape == (4, 3)
+    True
+    >>> grid.node_spacing
+    1.0
+    >>> [str(k) for k in grid.at_node.keys()]
+    ['surface__elevation']
+    >>> grid.at_node['surface__elevation']
+    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+            11.])
+
+    :func:`read_netcdf` will try to determine the format of the netcdf file.
+    For example, the same call will also work for *netcdf3*-formatted files.
+
+    >>> from landlab.io.netcdf import NETCDF3_64BIT_EXAMPLE_FILE
+    >>> grid = read_netcdf(NETCDF3_64BIT_EXAMPLE_FILE)
+    >>> grid.shape == (4, 3)
+    True
+    >>> grid.node_spacing
+    1.0
     """
-    Reads the NetCDF file *nc_file*, and writes it to the fields of a new
-    RasterModelGrid, which it then returns.
-    Check the names of the fields in the returned grid with
-    grid.at_nodes.keys().
-    """
+    from landlab import RasterModelGrid
+
     try:
         root = nc.netcdf_file(nc_file, 'r', version=2)
     except TypeError:

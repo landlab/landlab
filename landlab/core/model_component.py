@@ -5,7 +5,8 @@ class Component(object):
     _output_var_names = set()
     _var_units = dict()
 
-    def __init__(self, grid, map_vars={}):
+    def __init__(self, grid, map_vars=None):
+        map_vars = map_vars or {}
         self._grid = grid
 
         for (location, vars) in map_vars.items():
@@ -28,6 +29,21 @@ class Component(object):
     @property
     def units(self):
         return self._var_units
+    
+    @property
+    def var_units(self):
+        return self._var_units
+        
+    @property
+    def var_definitions(self):
+        return self._var_defs
+    
+    @property
+    def var_mapping(self):
+        """var_mapping
+        This is 'node', 'cell', 'active_link', etc.
+        """
+        return self._var_mapping
 
     @property
     def shape(self):

@@ -1,1 +1,3 @@
-from diffusion import DiffusionComponent
+from .diffusion import LinearDiffuser
+
+__all__ = ['LinearDiffuser']

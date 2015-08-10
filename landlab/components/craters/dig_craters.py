@@ -27,8 +27,9 @@ from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
 #import pylab
 from time import sleep
-from itertools import izip
 import pandas as pd
+import six
+from six.moves import zip
 
 from landlab import ModelParameterDictionary
 
@@ -46,9 +47,9 @@ class impactor(object):
         
         #test the necessary fields are all already present:
         try:
-            self.elev = grid.at_node['planet_surface__elevation']
+            self.elev = grid.at_node['topographic__elevation']
         except:
-            print 'elevations not found in grid!'
+            six.print_('elevations not found in grid!')
 
         #User sets:
         self._minimum_crater = inputs.read_float('min_radius') #km. This is the smallest modelled crater radius. 10m diameter is the strict cutoff for known cr distns
@@ -58,7 +59,7 @@ class impactor(object):
         try:
             self._radius = inputs.read_float('forced_radius')
         except:
-            print 'Impact radii will be randomly generated.'
+            six.print_('Impact radii will be randomly generated.')
             self.radius_auto_flag = 1
             self.set_cr_radius_from_shoemaker()
         else:
@@ -67,7 +68,7 @@ class impactor(object):
             self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
             self._ycoord = 0.5*grid.dx + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dx)
         except:
-            print 'Impact sites will be randomly generated.'
+            six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
             self.set_coords()
         else:
@@ -78,7 +79,7 @@ class impactor(object):
             self._angle_to_vertical = inputs.read_float('forced_angle')*numpy.pi/180.
             assert self._angle_to_vertical <= 0.5*numpy.pi
         except:
-            print 'Impactor angles will be randomly generated.'
+            six.print_('Impactor angles will be randomly generated.')
             self.angle_auto_flag = 1
             self.set_impactor_angles()
         else:
@@ -104,11 +105,11 @@ class impactor(object):
         #perform a BC condition check:
         if not numpy.all(numpy.equal(grid.node_status[numpy.nonzero(grid.node_status)], 3)):
             self.looped_BCs = False
-            print '*****-----*****-----*****'
-            print 'This module is designed to run with looped boundary conditions.'
-            print 'Proceed at your own risk!'
-            print 'Significant mass leaks are likely to develop.'
-            print '*****-----*****-----*****'
+            six.print_('*****-----*****-----*****')
+            six.print_('This module is designed to run with looped boundary conditions.')
+            six.print_('Proceed at your own risk!')
+            six.print_('Significant mass leaks are likely to develop.')
+            six.print_('*****-----*****-----*****')
             sleep(3.)
         else:
             self.looped_BCs = True
@@ -124,7 +125,7 @@ class impactor(object):
         self.dummy_int = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype=int)
         self.dummy_bool = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype=bool)
         self.double_dummy = numpy.empty((2,self.grid.number_of_node_rows*self.grid.number_of_node_columns), dtype=float)
-        #this is a dummy parameter to store intermediate node id refs in, notably in create_square_footprint(). It is designed to stop memory management blowing up
+        #this is a dummy parameter to store intermediate node id refs in, notably in create_square_footsix.print_(). It is designed to stop memory management blowing up
         self.crater_footprint_max = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = int)
         self.footprint_max = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = int)
         self._vec_r_to_center = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = float)
@@ -144,14 +145,14 @@ class impactor(object):
         #full length arrays for memory management
         
         #Build the permanent maps for the distances and azimuths between nodes:
-        ###The resulting matrix is too big in practical cases (GB of memory use). Need to take another apporach - see set_elevation_change_only_beneath_footprint()
+        ###The resulting matrix is too big in practical cases (GB of memory use). Need to take another apporach - see set_elevation_change_only_beneath_footsix.print_()
         #print 'Building the distances map for the grid... may take some time...'
         #self.all_node_distances_map, self.all_node_azimuths_map = grid.build_all_node_distances_azimuths_maps()
         #print '...Done.'
         
         self.impact_property_dict = {}
         
-        print 'Craters component setup complete!'
+        six.print_('Craters component setup complete!')
 
     def draw_new_parameters(self):
         '''
@@ -243,7 +244,7 @@ class impactor(object):
         impact_at_edge = False
         counter = 0
         while not_done and counter<30:
-            print '...'
+            six.print_('...')
             if sin_alpha<0.: #travelling east
                 line_horiz = -(x-0.5*dx) #...so line extends TO THE WEST
             else: #travelling W
@@ -266,7 +267,7 @@ class impactor(object):
                 self.dummy_1[:1] = numpy.array((0.,))
                 num_divisions = 1
                 impact_at_edge = True
-                print 'AD HOC FIX'
+                six.print_('AD HOC FIX')
             numpy.multiply(self.dummy_1[:(num_divisions)], sin_alpha, out=self.dummy_2[:(num_divisions)])
             numpy.add(self.dummy_2[:(num_divisions)], x, out=self.dummy_5[:(num_divisions)])
             #line_xcoords = x + sin_alpha*line_points
@@ -292,7 +293,7 @@ class impactor(object):
                     intersect_pt_node_status = self.grid.node_status[self.dummy_2[(num_divisions-1)::-1][reversed_index]]
                     #intersect_pt_node_status = self.grid.node_status[snapped_pts_along_line[::-1][reversed_index]]
                 except IndexError: #only one item in array
-                    print len(self.dummy_4[:(num_divisions)])
+                    six.print_(len(self.dummy_4[:(num_divisions)]))
                     assert len(self.dummy_4[:(num_divisions)]) == 1
                     numpy.less_equal(self.dummy_4[:(num_divisions)], self.elev[self.dummy_2[:(num_divisions)].astype(int, copy=False)], out=self.dummy_int[:(num_divisions)])
                     #points_under_surface_reversed = impactor_elevs_along_line<=self.elev[snapped_pts_along_line]
@@ -307,7 +308,7 @@ class impactor(object):
                     #If reversed_index is 0, the impact NEVER makes it above ground on the grid, and needs to be discarded.
                     #BUT, if boundaries are looped, we need to keep going!!
                     if (reversed_index and intersect_pt_node_status != 3) and not impact_at_edge: #not the final point (i.e., closest to edge), and not a looped boundary node
-                        print 'migrating...'
+                        six.print_('migrating...')
                         index_of_impact = num_divisions - reversed_index
                         self._xcoord = self.dummy_5[:(num_divisions)][index_of_impact]
                         self._ycoord = self.dummy_6[:(num_divisions)][index_of_impact]
@@ -319,7 +320,7 @@ class impactor(object):
                         not_done = False
                     else:
                         if self.looped_BCs:
-                            print 'Need to loop the impact trajectory...'
+                            six.print_('Need to loop the impact trajectory...')
                             shorter_edge = numpy.argmin(numpy.array([hyp_line_vert,hyp_line_horiz]))
                             if shorter_edge: #the horizontal line is shorter, line makes contact with a side
                                 if sin_alpha>0.: #the RHS
@@ -342,12 +343,12 @@ class impactor(object):
                             #...& no break!
                             x = horiz_coord
                             y = vert_coord
-                            print x/gridx,y/gridy
+                            six.print_(x/gridx,y/gridy)
                             counter += 1
                             if counter >= 30:
                                 #This is a duff crater; kill it by setting r=0
                                 self._radius = 0.000001
-                                print 'Aborted this crater. Its trajectory was not physically plausible!'
+                                six.print_('Aborted this crater. Its trajectory was not physically plausible!')
                         elif self.position_auto_flag == 1:
                             self.draw_new_parameters()
                             self.check_coords_and_angles_for_grazing()
@@ -355,7 +356,7 @@ class impactor(object):
                         else:
                             #This is a duff crater; kill it by setting r=0
                             self._radius = 0.000001
-                            print 'Aborted this crater. Its trajectory was not physically plausible!'
+                            six.print_('Aborted this crater. Its trajectory was not physically plausible!')
                             not_done = False
                 else:
                     not_done = False
@@ -490,8 +491,8 @@ class impactor(object):
         except:
             self._surface_slope = 1.e-10
             #self_direction = self._azimuth_of_travel
-            print 'Unable to assign crater slope by this method. Is crater of size comparable with grid?'
-            print 'Setting slope to zero'
+            six.print_('Unable to assign crater slope by this method. Is crater of size comparable with grid?')
+            six.print_('Setting slope to zero')
         else:
             #print 'Slope array: ', slope_array
             if hi_mag_slope > 0.: #i.e., dips WEST (or dead S)
@@ -649,7 +650,7 @@ class impactor(object):
 #        ###Here's the oh-so-ugly ad-hoc fix to address the mass balance problems
 #        #We're calculating the approx excavated volume directly to feed the ejecta thickness calculator...
 #        crater_edge_type_flag, crater_num_repeats = self.footprint_edge_type((self._xcoord,self._ycoord),4.*_radius)
-#        crater_footprint_iterator = self.create_square_footprint((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag) #Arbitrary increase in radius to try to catch the additional excavated material
+#        crater_footprint_iterator = self.create_square_footsix.print_((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag) #Arbitrary increase in radius to try to catch the additional excavated material
 #        #sharp lips w/i the grid are CATASTROPHIC (=>get super-steep slopes) - this 4* really has to be sufficient.
 #        crater_center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), crater_edge_type_flag, crater_num_repeats)
 #        excavated_volume = 0.
@@ -693,7 +694,7 @@ class impactor(object):
 #        footprint_center_x = self._xcoord+x_impact_offset
 #        footprint_center_y = self._ycoord+y_impact_offset
 #        edge_type_flag, num_repeats = self.footprint_edge_type((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
-#        footprint_iterator = self.create_square_footprint((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat, edge_type_flag)
+#        footprint_iterator = self.create_square_footsix.print_((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat, edge_type_flag)
 #        center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), edge_type_flag, num_repeats)
 #        
 #        for footprint_nodes,center_tuple in izip(footprint_iterator, center_offset_iterator):
@@ -842,7 +843,7 @@ class impactor(object):
                     beta_eff = _angle_to_vertical + epsilon
                 else:
                     beta_eff = _angle_to_vertical + epsilon - pi
-            print 'Beta effective: ', beta_eff
+            six.print_('Beta effective: ', beta_eff)
             #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
             if 0. <= beta_eff <= 0.5*numpy.pi:
                 _ejecta_azimuth = _azimuth_of_travel
@@ -854,7 +855,7 @@ class impactor(object):
                 break
             else:
                 #Note this situation should now be forbidden as we correct for grazing impacts
-                print 'Impact geometry was not possible! Refreshing the impactor angle...'
+                six.print_('Impact geometry was not possible! Refreshing the impactor angle...')
                 self.set_impactor_angles()
                 _azimuth_of_travel = self._azimuth_of_travel
                 _angle_to_vertical = self._angle_to_vertical
@@ -884,11 +885,11 @@ class impactor(object):
         ###Here's the oh-so-ugly ad-hoc fix to address the mass balance problems
         #We're calculating the approx excavated volume directly to feed the ejecta thickness calculator...
         crater_edge_type_flag, crater_num_repeats = self.footprint_edge_type((self._xcoord,self._ycoord),4.*_radius)
-        crater_footprint_iterator = self.create_square_footprint((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag, self.crater_footprint_max) #Arbitrary increase in radius to try to catch the additional excavated material
+        crater_footprint_iterator = self.create_square_footsix.print_((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag, self.crater_footprint_max) #Arbitrary increase in radius to try to catch the additional excavated material
         #sharp lips w/i the grid are CATASTROPHIC (=>get super-steep slopes) - this 4* really has to be sufficient.
         crater_center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), crater_edge_type_flag, crater_num_repeats)
         excavated_volume = 0.
-        for footprint_tuple,j in izip(crater_footprint_iterator,crater_center_offset_iterator):
+        for footprint_tuple,j in six.moves.zip(crater_footprint_iterator,crater_center_offset_iterator):
             i = footprint_tuple[0]
             self.crater_footprint_max = footprint_tuple[1]
             grid.get_distances_of_nodes_to_point(j, get_az='angles', node_subset=self.crater_footprint_max[:i], out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
@@ -917,13 +918,13 @@ class impactor(object):
         if thickness_at_rim<0.:
             #raise ValueError
             thickness_at_rim = 0. #this shouldn't be a problem anymore
-        print 'First pass thickness: ', thickness_at_rim
-        print 'dist above ground: ', thickness_at_rim - self._depth
+        six.print_('First pass thickness: ', thickness_at_rim)
+        six.print_('dist above ground: ', thickness_at_rim - self._depth)
 
         #now repeat the loop to improve precision on mass balance:
         if crater_edge_type_flag=='C' or crater_edge_type_flag=='X': #cases with only 1 loop; can reuse previous variables for speed
             self._vec_new_z[:i].fill(self.closest_node_elev + thickness_at_rim - self._depth)
-            print 'dist above ground: ', thickness_at_rim - self._depth
+            six.print_('dist above ground: ', thickness_at_rim - self._depth)
             numpy.add(self.dummy_2[:i], self._vec_new_z[:i], out=self._vec_new_z[:i])
             numpy.subtract(self.pre_impact_elev[self.crater_footprint_max[:i]], self._vec_new_z[:i], out=self.elevs_ground_less_new_z[:i])
             volume_to_fill_inner_crater_divots = 0.
@@ -934,12 +935,12 @@ class impactor(object):
             thickness_at_rim = unique_expression_for_local_thickness(_radius)
         else:
             crater_edge_type_flag, crater_num_repeats = self.footprint_edge_type((self._xcoord,self._ycoord),4.*_radius)
-            crater_footprint_iterator = self.create_square_footprint((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag, self.crater_footprint_max) #Arbitrary increase in radius to try to catch the additional excavated material
+            crater_footprint_iterator = self.create_square_footsix.print_((self._xcoord,self._ycoord),4.*_radius, crater_edge_type_flag, self.crater_footprint_max) #Arbitrary increase in radius to try to catch the additional excavated material
             crater_center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), crater_edge_type_flag, crater_num_repeats)
             volume_to_remove_highs = 0.
-            for footprint_tuple,center_tuple in izip(crater_footprint_iterator,crater_center_offset_iterator):
+            for footprint_tuple,center_tuple in zip(crater_footprint_iterator,crater_center_offset_iterator):
 #####is this right to do every loop?
-                print 'recalc values...'
+                six.print_('recalc values...')
                 i = footprint_tuple[0]
                 self.crater_footprint_max = footprint_tuple[1]
                 footprint_nodes = self.crater_footprint_max[:i]
@@ -957,8 +958,8 @@ class impactor(object):
             unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID((volume_to_remove_highs-volume_to_fill_inner_crater_divots)*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical*mass_bal_corrector_for_size)
             thickness_at_rim = unique_expression_for_local_thickness(_radius)
         
-        print volume_to_remove_highs
-        print volume_to_fill_inner_crater_divots
+        six.print_(volume_to_remove_highs)
+        six.print_(volume_to_fill_inner_crater_divots)
         if thickness_at_rim<0.:
             thickness_at_rim = 0. #this shouldn't be a problem anymore
         self.rim_thickness = thickness_at_rim
@@ -977,25 +978,25 @@ class impactor(object):
         y_impact_offset = cos(_azimuth_of_travel)*displacement_distance
         #enlarge the area all round if the crater itself peeks out of the ejecta area at low angles:
         if x_impact_offset+4*self._radius > max_radius_ejecta_on_flat:
-            print 'A low-angle crater!'
+            six.print_('A low-angle crater!')
             max_radius_ejecta_on_flat = x_impact_offset+4.*self._radius
         if y_impact_offset+4*self._radius > max_radius_ejecta_on_flat:
-            print 'A low-angle crater!'
+            six.print_('A low-angle crater!')
             max_radius_ejecta_on_flat = y_impact_offset+4.*self._radius
         
         footprint_center_x = self._xcoord+x_impact_offset
         footprint_center_y = self._ycoord+y_impact_offset
         edge_type_flag, num_repeats = self.footprint_edge_type((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
-        print edge_type_flag
-        footprint_iterator = self.create_square_footprint((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat, edge_type_flag, self.crater_footprint_max)
+        six.print_(edge_type_flag)
+        footprint_iterator = self.create_square_footsix.print_((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat, edge_type_flag, self.crater_footprint_max)
         center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), edge_type_flag, num_repeats)
         total_elev_diffs = 0.
         elev_diffs_below_ground = 0.
         
-        for footprint_tuple,center_tuple in izip(footprint_iterator, center_offset_iterator):
+        for footprint_tuple,center_tuple in zip(footprint_iterator, center_offset_iterator):
             i = footprint_tuple[0]
             self.crater_footprint_max = footprint_tuple[1]
-            print 'looping... effective center is at ', center_tuple
+            six.print_('looping... effective center is at ', center_tuple)
             footprint_nodes = self.crater_footprint_max[:i]
             #print footprint_nodes
             #self._vec_r_to_center[:i], self._vec_theta[:i] = grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes)
@@ -1049,11 +1050,11 @@ class impactor(object):
             numpy.square(self.dummy_3[:i], out=self.dummy_1[:i])
             numpy.multiply(self.dummy_1[:i], tan_beta_sqd, out=self.dummy_4[:i])
             if tan_beta_sqd > 1.:
-                print 'tan_beta_sqd error!', beta_eff, tan_beta_sqd, epsilon
+                six.print_('tan_beta_sqd error!', beta_eff, tan_beta_sqd, epsilon)
                 raise ValueError
             numpy.subtract(1., self.dummy_4[:i], out=self.dummy_3[:i])
             if numpy.any(numpy.less(self.dummy_3[:i], 0.)):
-                print 'about to crash...', numpy.sum(numpy.less(self.dummy_3[:i], 0.)), self.dummy_3[:i][numpy.where(numpy.less(self.dummy_3[:i], 0.))]
+                six.print_('about to crash...', numpy.sum(numpy.less(self.dummy_3[:i], 0.)), self.dummy_3[:i][numpy.where(numpy.less(self.dummy_3[:i], 0.))])
                 raise ValueError
             numpy.sqrt(self.dummy_3[:i], out=self.dummy_4[:i])
             numpy.multiply(self.dummy_2[:i], tan_beta, out=self.dummy_3[:i])
@@ -1095,8 +1096,8 @@ class impactor(object):
             numpy.less(self.final_elev_diffs[:i], 0., out=self.dummy_bool[:i])
             elev_diffs_below_ground += -numpy.sum(self.final_elev_diffs[:i][self.dummy_bool[:i]])
         
-        print total_elev_diffs
-        print elev_diffs_below_ground
+        six.print_(total_elev_diffs)
+        six.print_(elev_diffs_below_ground)
         self.mass_balance_in_impact = total_elev_diffs / elev_diffs_below_ground #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
                 
         self.ejecta_azimuth = _ejecta_azimuth
@@ -1109,7 +1110,7 @@ class impactor(object):
     def footprint_edge_type(self, center, eff_radius):
         '''
         Returns the edge type of a given node footprint to be build with create_
-        square_footprint()  around the given center.
+        square_footsix.print_()  around the given center.
         Returns 2 values:
         * One of N,S,E,W,NW,NE,SW,SE, if the footprint overlaps a single edge or
           corner; 'C' for an entirely enclosed footprint; 'I' if it intersects 
@@ -1123,7 +1124,7 @@ class impactor(object):
         assert len(center) == 2
         grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
         grid_y = self.grid.get_grid_ydimension()-self.grid.dx
-        print 'center, r, x', center[0], eff_radius, grid_x
+        six.print_('center, r, x', center[0], eff_radius, grid_x)
         left_repeats = -int((center[0]-eff_radius)//grid_x)
         right_repeats = int((center[0]+eff_radius)//grid_x)
         top_repeats = int((center[1]+eff_radius)//grid_y)
@@ -1644,7 +1645,7 @@ class impactor(object):
         ***This is one of the primary interface method of this class.***
         '''
         self.grid = grid
-        self.elev = grid.at_node['planet_surface__elevation']
+        self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
@@ -1656,11 +1657,11 @@ class impactor(object):
 
         if self._radius !=1e-6:
             if numpy.isnan(self._surface_slope):
-                print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+                six.print_('Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.')
             else:
                 self.set_elev_change_only_beneath_footprint_no_angular_BAND_AID()
             #print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-            print 'Mass balance in impact: ', self.mass_balance_in_impact
+            six.print_('Mass balance in impact: ', self.mass_balance_in_impact)
             #print '*****'
             #Record the data:
             #Is this making copies, or just by reference? Check output. Should be copies, as these are floats, not more complex objects.
@@ -1681,7 +1682,7 @@ class impactor(object):
         ***This is one of the primary interface method of this class.***
         '''
         self.grid = grid
-        self.elev = grid.at_node['planet_surface__elevation']
+        self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
         #These get updated in set_crater_mean_slope_v3()
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
@@ -1697,26 +1698,26 @@ class impactor(object):
         
         if self._radius !=1e-6:
             if numpy.isnan(self._surface_slope):
-                print 'Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.'
+                six.print_('Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.')
             else:
                 self.set_elev_change_only_beneath_footprint_BAND_AID_memory_save()
-                print 'Rim thickness: ', self.rim_thickness
+                six.print_('Rim thickness: ', self.rim_thickness)
             #print 'Impactor angle to ground normal: ', self.impactor_angle_to_surface_normal
-            print 'Mass balance in impact: ', self.mass_balance_in_impact
+            six.print_('Mass balance in impact: ', self.mass_balance_in_impact)
             if self.mass_balance_in_impact<-0.9 or numpy.isnan(self.mass_balance_in_impact):
-                print 'radius: ', self._radius
-                print 'location: ', self._xcoord, self._ycoord
-                print 'surface dip dir: ', self._surface_dip_direction
-                print 'surface slope: ', self._surface_slope
-                print 'travel azimuth: ', self._azimuth_of_travel
-                print 'angle to normal: ', self.impactor_angle_to_surface_normal
-                print 'Cavity volume: ', self._cavity_volume
+                six.print_('radius: ', self._radius)
+                six.print_('location: ', self._xcoord, self._ycoord)
+                six.print_('surface dip dir: ', self._surface_dip_direction)
+                six.print_('surface slope: ', self._surface_slope)
+                six.print_('travel azimuth: ', self._azimuth_of_travel)
+                six.print_('angle to normal: ', self.impactor_angle_to_surface_normal)
+                six.print_('Cavity volume: ', self._cavity_volume)
                 #print 'Excavated volume: ', self.excavated_volume
-                print 'Rim thickness: ', self.rim_thickness
+                six.print_('Rim thickness: ', self.rim_thickness)
                 #pylab.imshow(self.grid.node_vector_to_raster(self.elev))
                 #pylab.colorbar()
                 #pylab.show()
-            print '*****'
+            six.print_('*****')
             #Record the data:
             #Is this making copies, or just by reference? Check output. Should be copies, as these are floats, not more complex objects.
         #    self.impact_property_dict = {'x': self._xcoord, 'y': self._ycoord, 'r': self._radius, 'volume': self._cavity_volume, 'surface_slope': self._surface_slope, 'normal_angle': self.impactor_angle_to_surface_normal, 'impact_az': self._azimuth_of_travel, 'ejecta_az': self.ejecta_azimuth, 'mass_balance': self.mass_balance_in_impact, 'redug_crater': self.cheater_flag}
@@ -1768,7 +1769,7 @@ class impactor(object):
         means = []
         stderrs = []
         for i in window_sizes:
-            print 'calculating window size ', i
+            six.print_('calculating window size ', i)
             mean_relief, stderr_relief = self.crawl_roughness(i)
             means.append(mean_relief)
             stderrs.append(stderr_relief)

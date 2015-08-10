@@ -8,7 +8,7 @@ only intended for model post-analysis or DEM analysis. Do not loop this class!!
 This is part of the NSF funded project investigating fault scarp degradation,
 Tucker, Hobley, McCoy.
 """
-
+from __future__ import print_function
 import numpy as np
 import sys
 from pylab import plot, colorbar, figure, show
@@ -18,7 +18,7 @@ from landlab.utils import structured_grid as sgrid
 
 class find_facets(object):
     
-    def __init__(self, grid, elev_field='planet_surface__elevation', 
+    def __init__(self, grid, elev_field='topographic__elevation', 
                 fault_azimuth=None):
         """
         Note that this class assumes the grid does not change during the model
@@ -55,7 +55,7 @@ class find_facets(object):
     
     def set_slopes_aspects(self):
         self.slopes, self.aspect = self.grid.calculate_slope_aspect_at_nodes_horn(vals=self.elevs)
-        print 'Calculated and stored slopes and aspects...'
+        print('Calculated and stored slopes and aspects...')
         
     
     def define_aspect_node_subset(self, angle_tolerance=5.):
@@ -96,7 +96,7 @@ class find_facets(object):
             condition_opposite_dip = np.logical_and(greater_condition_2, lesser_condition_2)
             
         self.aspect_close_nodes = np.logical_or(condition_first_dip, condition_opposite_dip)
-        print 'Calculated and stored nodes with aspects compatible with fault trace...'
+        print('Calculated and stored nodes with aspects compatible with fault trace...')
         return self.aspect_close_nodes
         
     def define_aspect_node_subset_local(self, dist_tolerance=4., angle_tolerance=15., dip_dir='E'):
@@ -104,10 +104,10 @@ class find_facets(object):
         """
         grid=self.grid
         try:
-            print 'using subset'
+            print('using subset')
             subset = np.where(self.steep_nodes)[0] #remember, steep_nodes is already core_nodes.size long
         except NameError:
-            print 'using all nodes'
+            print('using all nodes')
             subset = np.arange(grid.core_nodes.size)
         closest_ft_node = np.empty(subset.size, dtype=int)
         angle_to_ft = np.empty_like(closest_ft_node, dtype=float)
@@ -165,7 +165,7 @@ class find_facets(object):
         #gridshow.imshow_core_node_grid(self.grid, core_nodes_size_condition)
         #show()
         self.aspect_close_nodes = core_nodes_size_condition
-        print 'Calculated and stored nodes with aspects compatible with fault trace...'
+        print('Calculated and stored nodes with aspects compatible with fault trace...')
         return self.aspect_close_nodes
         
         
@@ -183,7 +183,7 @@ class find_facets(object):
         """
         threshold_in_rads = threshold_in_degrees*np.pi/180.
         self.steep_nodes = np.greater(self.slopes, threshold_in_rads)
-        print 'Calculated and stored nodes with slopes exceeding slope threshold...'
+        print('Calculated and stored nodes with slopes exceeding slope threshold...')
         #gridshow.imshow_core_node_grid(self.grid, self.steep_nodes)
         #show()
         return self.steep_nodes
@@ -268,7 +268,7 @@ class find_facets(object):
         count = 0
         for i in unique_starting_pts:
             count += 1
-            print "Running ", count, " of ", unique_starting_pts.size
+            print("Running ", count, " of ", unique_starting_pts.size)
             #set the local angle of the ft trace:
             ft_pt_distances_to_node = self.grid.get_distances_of_nodes_to_point((grid.node_x[i],grid.node_y[i]),
                                                                                     node_subset=self.ft_trace_node_ids)
@@ -278,7 +278,7 @@ class find_facets(object):
             (grad, offset) = np.polyfit(x,y,1)
             condition = np.equal(self.closest_ft_node[pcn], i)
             nodes_possible = pcn[condition]
-            print nodes_possible.size, " nodes"
+            print(nodes_possible.size, " nodes")
             if nodes_possible.size>10.:
                 #their_az = self.angle_to_ft[nodes_possible]
                 #their_diff_angles = self.diff_angles[nodes_possible]
@@ -298,8 +298,8 @@ class find_facets(object):
                 #We assume there will be one big "bunched" plane, then a load of outliers
                 dist_order = np.argsort(dists_along_profile)
                 dist_diffs = np.diff(dists_along_profile[dist_order])
-                print "dists along profile sorted: ", dists_along_profile[dist_order]
-                print "dist diffs: ", dist_diffs
+                print("dists along profile sorted: ", dists_along_profile[dist_order])
+                print("dist diffs: ", dist_diffs)
                 #max_diff = 3.*np.median(dist_diffs) #######this might need attention if there's a heavy tail on the distances
                 if grad<1:
                     mod = np.sqrt(1.+grad**2.)

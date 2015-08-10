@@ -6,12 +6,15 @@ Decorators for TheLandlab package.
 import inspect
 import types
 
+import six
+
 
 def camel_case(text, sep=None):
     """
     Convert *text* to camel case. Use the *sep* keyword to specify the word
     separator. The default is to split on whitespace.
 
+    >>> from landlab.framework.decorators import camel_case
     >>> camel_case('camel case')
     'CamelCase'
     >>> camel_case('camel_case', sep='_')
@@ -54,19 +57,19 @@ def is_implementation(cls, interface):
                 cls_args = inspect.getargspec(getattr(cls, name))
                 interface_args = inspect.getargspec(value)
             except AttributeError:
-                print 'Missing attribute %s' % name
+                six.print_('Missing attribute %s' % name)
                 return False
             try:
                 assert(len(cls_args.args) == len(interface_args.args))
             except AssertionError:
-                print 'Mismatch in number of args for %s' % name
+                six.print_('Mismatch in number of args for %s' % name)
                 return False
         else:
             try:
                 assert(type(getattr(cls, name)) ==
                        type(getattr(interface, name)))
             except (AttributeError, AssertionError):
-                print 'Missing member or type mismatch for %s' % name
+                six.print_('Missing member or type mismatch for %s' % name)
                 return False
     return True
 

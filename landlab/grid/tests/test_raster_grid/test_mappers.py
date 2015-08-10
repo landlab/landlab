@@ -55,13 +55,13 @@ class TestNodeToLinkMappers():
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
-                           np.array([ 5,  6,  7,  8,  9,
+                           np.array([ 0,  1,  2,  3,  4,
+                                      5,  6,  7,  8,  9,
                                      10, 11, 12, 13, 14,
-                                     15, 16, 17, 18, 19,
-                                      1,  2,  3,  4,
-                                      6,  7,  8,  9,
-                                     11, 12, 13, 14,
-                                     16, 17, 18, 19]))
+                                      0, 1,  2,  3,
+                                      5, 6,  7,  8,
+                                     10, 11, 12, 13,
+                                     15, 16, 17, 18]))
 
     def test_from_node(self):
         rmg = RasterModelGrid(4, 5, 1.)
@@ -74,13 +74,13 @@ class TestNodeToLinkMappers():
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
-                           np.array([0,  1,  2,  3,  4,
-                                     5,  6,  7,  8,  9,
+                           np.array([5,  6,  7,  8,  9,
                                      10, 11, 12, 13, 14,
-                                      0, 1,  2,  3,
-                                      5, 6,  7,  8,
-                                     10, 11, 12, 13,
-                                     15, 16, 17, 18]))
+                                     15, 16, 17, 18, 19,
+                                      1,  2,  3, 4,
+                                      6,  7,  8, 9,
+                                     11, 12, 13, 14,
+                                     16, 17, 18, 19]))
 
     def test_mean_node(self):
         rmg = RasterModelGrid(4, 5, 1.)
