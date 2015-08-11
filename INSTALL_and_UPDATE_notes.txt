@@ -1,0 +1,35 @@
+LandLab/Python updating
+
+Updating python
+Best practice do this every month
+
+conda update --all
+
+It asked me to install andaconda-client
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!!  The 'binstar' conda package has been renamed to 'anaconda-client'.
+!!  Please run:
+!!
+!!    conda install anaconda-client
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+we ignored for not
+
+
+Initial install - 
+Update seuptools - just do this once.
+
+conda update setuptools
+
+This didn't do anything - it said setuptools 18.0.1 was already in and up to date
+
+Then we installed netcdf4
+
+conda install netcdf4
+
+
+Landlab setup
+python setup.py develop
