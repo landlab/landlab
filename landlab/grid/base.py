@@ -1966,7 +1966,7 @@ class ModelGrid(ModelDataFields):
         nodata_value : float
             Value that indicates an invalid value.
 
-        Examples
+        Code Example
         --------
         >>> import numpy as np
         >>> import landlab as ll
@@ -1982,6 +1982,75 @@ class ModelGrid(ModelDataFields):
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
+
+        # Recreate the list of active cell IDs
+        self.update_links_nodes_cells_to_new_BCs()
+
+    def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
+        """Make no-data nodes fixed gradient boundaries.
+
+        Sets self.node_status to FIXED_GRADIENT_BOUNDARY for all nodes whose value
+        of node_data is equal to the nodata_value.
+        
+        Any links between FIXED_GRADIENT_BOUNDARY nodes and CORE_NODES are 
+        automatically set to FIXED_LINK boundary status. 
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+            
+            
+        Example grid:
+
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--X--->o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       |       |       |       |       |       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--X--->o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
+          
+          X indicates the links that are set to link_status==2 (FIXED_LINK)
+          I indicates the links that are set to link_status==4 (INACTIVE_LINK)
+          
+          ~ Links with link_status==0 (ACTIVE_LINK) are not shown in this diagram. ~           
+          
+          o indicates the nodes that are set to node_status==0 (CORE_NODE)
+          * indicates the nodes that are set to node_status==2 (FIXED_GRADIENT)
+        
+        Code Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 9)
+        >>> mg.node_status
+        array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
+        
+
+        >>> z = rmg.create_node_array_zeros()
+        >>> z = np.array([-9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999.,     0.,     0.,     0.,     0.,     0., -9999., -9999., -9999., -9999.,     0.,     0.,     0.,     0.,     0., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+        
+        >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -9999)
+        >>> rmg.node_status
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+
+        >>> rmg.link_status
+        array([4, 4, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 0, 0, 0, 0, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        """
+        
+        # Find locations where value equals the NODATA code and set these nodes
+        # as inactive boundaries.
+        nodata_locations = numpy.nonzero(node_data==nodata_value)
+        self.node_status[nodata_locations] = FIXED_GRADIENT_BOUNDARY
 
         # Recreate the list of active cell IDs
         self.update_links_nodes_cells_to_new_BCs()
