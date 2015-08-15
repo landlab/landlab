@@ -14,8 +14,8 @@ import time
 import matplotlib
 from numpy import where
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.raster_lca import RasterLCA
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.raster_cts import RasterCTS
 
 
 def setup_transition_list():
@@ -104,8 +104,9 @@ def main():
     node_state_grid[mg.closed_boundary_nodes] = 0
     
     # Create the CA model
-    ca = RasterLCA(mg, ns_dict, xn_list, node_state_grid)
+    ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid)
     
+    # Set up colors for plotting
     grain = '#5F594D'
     fluid = '#D0E4F2'
     clist = [fluid,grain]
@@ -125,7 +126,7 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print 'Current sim time',current_time,'(',100*current_time/run_duration,'%)'
+            print('Current simulation time '+str(current_time)+' ('+str(int(100*current_time/run_duration))+'%)')
             next_report = current_real_time + report_interval
         
         # Run the model forward in time until the next output step
