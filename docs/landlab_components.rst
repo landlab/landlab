@@ -37,7 +37,7 @@ The current library includes the following components in essentially full workin
 * a transport-limited fluvial component: :class:`~landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3.TransportLimitedEroder`
 * a sediment-flux dependent shear stress based fluvial incision component: :class:`~landlab.components.stream_power.sed_flux_dep_incision.SedDepEroder`
 * a generator for storms over a landscape: :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`
-* A powerful, generalized, continuous-time stochastic cellular automaton, that can be specialized for many other tasks: :class:`~landlab.components.cellular_automata.landlab_ca.LandlabCellularAutomaton`
+* A powerful, generalized, continuous-time stochastic cellular automaton, that can be specialized for many other tasks, AKA ":ref:`CellLab-CTS <celllab>`": :class:`~landlab.components.cellular_automata.landlab_ca.LandlabCellularAutomaton`
 
 Under active development are:
 

@@ -1,3 +1,5 @@
+.. _celllab:
+
 CellLab-CTS 2015 Users Manual
 =============================
 
