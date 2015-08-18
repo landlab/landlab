@@ -1,9 +1,11 @@
 #! /usr/bin/env python
+from __future__ import division
 
 import numpy as np
+from landlab.grid.structured_quad import links
 
 ''' 
-Functions which can map data contained on links  onto their neighboring nodes.
+Functions which can map data contained on nodes to the connecting links.
 
 Each link has a "from" and "to" node. The "from" nodes are located at the link 
 tail, while the "to" nodes are located at link heads.
@@ -121,3 +123,174 @@ def map_values_from_cell_node_to_cell(mg, var_name):
     mg.add_empty('cell', var_name)
     values_at_cells = mg.at_cell[var_name]
     values_at_cells[:] = values_at_nodes[mg.node_index_at_cells]
+
+def map_inlink_sums_to_node(mg, var_name):
+    '''
+    map_inlink_sums_to_node takes a field *at the links* and finds the
+    inlink values for each node in the grid. it sums the inlinks and returns
+    a field at the nodes with the same var_name as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    south, west = links._node_in_link_ids(mg.shape)
+    south = south.flatten()
+    west = west.flatten()
+    values_at_nodes[:] = values_at_links[south]+values_at_links[west] 
+    
+def map_inlink_average_to_node(mg, var_name):
+    '''
+    map_inlink_average_to_node takes a field *at the links* and finds the
+    inlink values for each node in the grid. it finds the average of
+    the inlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    south, west = links._node_in_link_ids(mg.shape)
+    south = south.flatten()
+    west = west.flatten()
+    values_at_nodes[:] = 0.5 * (values_at_links[south]+values_at_links[west])
+
+def map_max_inlink_value_to_node(mg, var_name):
+    '''
+    map_max_inlink_value_to_node takes a field *at the links* and finds the
+    inlink values for each node in the grid. it finds the maximum value at the
+    the inlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    south, west = links._node_in_link_ids(mg.shape)
+    south = south.flatten()
+    west = west.flatten()
+    values_at_nodes[:] = np.maximum(values_at_links[south], values_at_links[west])
+    
+def map_min_inlink_value_to_node(mg, var_name):
+    '''
+    map_min_inlink_value_to_node takes a field *at the links* and finds the
+    inlink values for each node in the grid. it finds the minimum value at the
+    the inlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    south, west = links._node_in_link_ids(mg.shape)
+    south = south.flatten()
+    west = west.flatten()
+    values_at_nodes[:] = np.minimum(values_at_links[south], values_at_links[west])
+
+def map_outlink_sums_to_node(mg, var_name):
+    '''
+    map_outlink_sums_to_node takes a field *at the links* and finds the
+    outlink values for each node in the grid. it sums the outlinks and returns
+    a field at the nodes with the same var_name as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    north, east = links._node_out_link_ids(mg.shape)
+    north = north.flatten()
+    east = east.flatten()
+    values_at_nodes[:] = values_at_links[north]+values_at_links[east] 
+    
+def map_outlink_average_to_node(mg, var_name):
+    '''
+    map_outlink_average_to_node takes a field *at the links* and finds the
+    outlink values for each node in the grid. it finds the average of
+    the outlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    north, east = links._node_out_link_ids(mg.shape)
+    north = north.flatten()
+    east = east.flatten()
+    values_at_nodes[:] = 0.5 * (values_at_links[north]+values_at_links[east])
+
+def map_max_outlink_value_to_node(mg, var_name):
+    '''
+    map_max_outlink_value_to_node takes a field *at the links* and finds the
+    outlink values for each node in the grid. it finds the maximum value at the
+    the outlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    north, east = links._node_out_link_ids(mg.shape)
+    north = north.flatten()
+    east = east.flatten()
+    values_at_nodes[:] = np.maximum(values_at_links[north], values_at_links[east])
+    
+def map_min_outlink_value_to_node(mg, var_name):
+    '''
+    map_min_outlink_value_to_node takes a field *at the links* and finds the
+    outlink values for each node in the grid. it finds the minimum value at the
+    the outlinks and returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    This considers all inactive links to have a value of 0.
+    '''    
+    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    north, east = links._node_out_link_ids(mg.shape)
+    north = north.flatten()
+    east = east.flatten()
+    values_at_nodes[:] = np.minimum(values_at_links[north], values_at_links[east])
+
+
+def map_average_all_links_to_node(mg, var_name):
+    '''
+    map_average_all_links_to_node takes a field *at the links* and finds the
+    average of all ~existing~ link neighbor values for each node in the grid. 
+    it returns a field at the nodes with the same var_name
+    as the link field. 
+    
+    When calculating the average, no inactive links are considered.
+    '''    
+    
+    values_at_links = mg.at_link[var_name]
+    values_at_links = np.append(values_at_links, 0)
+    mg.add_empty('node', var_name)
+    values_at_nodes = mg.at_node[var_name]  
+    north, east = links._node_out_link_ids(mg.shape)
+    south, west = links._node_in_link_ids(mg.shape)
+    south = south.flatten()
+    west = west.flatten()
+    north = north.flatten()
+    east = east.flatten()
+    number_of_links = links.number_of_links_per_node(mg.shape)
+    number_of_links = number_of_links.flatten()
+    number_of_links.astype(float)
+    values_at_nodes[:] = (values_at_links[north]+values_at_links[east]+values_at_links[south]+values_at_links[west])/(number_of_links)
+
