@@ -24,6 +24,44 @@ except ImportError:
     pass
 
 
+def test_netcdf_write_int64_field_netcdf4():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic__elevation',
+                    np.arange(12, dtype=np.int64))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, format='NETCDF4')
+
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
+
+        for name in ['topographic__elevation']:
+            assert_true(name in root.variables)
+            assert_array_equal(root.variables[name][:].flat,
+                               field.at_node[name])
+            assert_equal(root.variables[name][:].dtype, 'int64')
+
+        root.close()
+
+
+def test_netcdf_write_uint8_field_netcdf4():
+    field = RasterModelGrid(4, 3)
+    field.add_field('node', 'topographic__elevation',
+                    np.arange(12, dtype=np.uint8))
+
+    with cdtemp() as _:
+        write_netcdf('test.nc', field, format='NETCDF4')
+
+        root = nc.Dataset('test.nc', 'r', format='NETCDF4')
+
+        for name in ['topographic__elevation']:
+            assert_true(name in root.variables)
+            assert_array_equal(root.variables[name][:].flat,
+                               field.at_node[name])
+            assert_equal(root.variables[name][:].dtype, 'uint8')
+
+        root.close()
+
+
 def test_netcdf_write_as_netcdf3_64bit():
     from scipy.io import netcdf
 

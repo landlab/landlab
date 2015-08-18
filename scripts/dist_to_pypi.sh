@@ -43,6 +43,8 @@ done
 
 conda create -n dist python=2.7
 source activate dist
+conda install numpy
+conda install six
 
 python setup.py sdist
 
