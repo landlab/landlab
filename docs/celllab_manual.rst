@@ -110,12 +110,22 @@ Sequence matters!
 
 A particular pair state is described by the two node states, and optionally by the pair's orientation. A key thing to understand here is that any particular pair sequence, such as 0 and 1, is *different from the sequence in reverse*. The pair 0-1 is not the same as the pair 1-0! This is true for all four types of model. So then which is which? To answer this question, we first need to recall that each pair corresponds to the two ends of a *link* in the Landlab grid. A link is simply a directed line segment that connects two neighboring nodes. Every link has a *tail* and a *head* (like the head of an arrow); the direction of the link is from tail to head. The rule for CellLab-CTS pairs is that the first number refers to the tail of the corresponding link, and the second refers to its head. Thus, the pair state 0-1 means that the tail node has state 0 and the head node has state 1. 
 
-By default, the links in a raster grid always run either from down to up (for vertical links) or left to right (for horizontal links). For example, with a 0-1 pair in a raster grid, the 0 is either the left-hand node (if it's a horizontal pair) or the bottom node (if the pair is vertical). In a default hex grid, the links point either (1) upward, (2) angling right and up 30 degrees, or (3) angling right and down 30 degrees. (Note that you also have the option of switching the grid orientation so that one of the principal axes is horizontal instead of vertical; in that case, the three orientations are horizontal, 30 degrees clockwise from vertical, and 30 degrees counter-clockwise from vertical).
+By default, the links in a raster grid always run either from down to up (for vertical links) or left to right (for horizontal links) (Figure 3). For example, with a 0-1 pair in a raster grid, the 0 is either the left-hand node (if it's a horizontal pair) or the bottom node (if the pair is vertical). In a default hex grid, the links point either (1) upward, (2) angling right and up 30 degrees, or (3) angling right and down 30 degrees. (Note that you also have the option of switching the grid orientation so that one of the principal axes is horizontal instead of vertical; in that case, the three orientations are horizontal, 30 degrees clockwise from vertical, and 30 degrees counter-clockwise from vertical).
+
+.. figure:: images/grid_schematic2.png
+    :align: center
+
+    Figure 3: Illustration of nodes, links, and cells in a raster and hex grids. Note directions of links, which always "point" toward the upper-right hemisphere. The hex illustration shows a hex grid cell in vertical orientation; in horizontal orientation, links point rightward, up and right, and up and left.
 
 How transitions are represented
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-Each transition type is described by the states of the starting and ending pairs, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation. In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a horizontal pair in which the left node has state 0 and the right state 1. 
+Each transition type is described by the states of the starting and ending pairs, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a horizontal pair in which the left node has state 0 and the right state 1. 
+
+.. figure:: images/cell_pair_orientation.png
+    :align: center
+
+    Figure 4: Pair orientation codes in a raster (top 2 panels) and vertical hex (bottom 3 panels) grid.
 
 In an oriented hex, the orientation codes depend on the orientation of the grid itself. A Landlab ``HexModelGrid`` can be oriented such that one of the three principal axes is either horizontal (the default) or vertical. The choice is controlled by the optional keyword argument ``orientation`` (either ``'vertical'`` or ``'horizontal'``) in the ``HexModelGrid`` initialization function. For a vertically aligned hex grid, the CellLab-CTS orientation codes are: 0 for vertical, 1 for right and upward, and 2 for right and downward. For example, the code (1, 0, 2) would represent a down-and-right pair, with a state of 1 in the upper-left node and 0 in the lower-right node. For a horizontally aligned hex grid, the CellLab-CTS orientation codes are: 0 for upward and left, 1 for upward and right, and 2 for right. For example, the code (1, 0, 2) would represent a left-to-right pair, with a state of 1 in the left node and 0 in the right node.
 
@@ -389,32 +399,32 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 ``xn_rate`` : 2d array of floats (# possible link states x max. # transitions)
     Rate associated with each link-state transition.
 
-Methods and Internal Documentation for CellLabCTS 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Methods and Internal Documentation for the base class: CellLabCTSModel
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: landlab.components.cellular_automata.celllab_cts.CellLabCTSModel
 	:members:
 
-Methods and Internal Documentation for RasterCTS 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Methods and Internal Documentation for the RasterCTS class 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: landlab.components.cellular_automata.raster_cts.RasterCTS
 	:members:
 
-Methods and Internal Documentation for OrientedRasterCTS 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Methods and Internal Documentation for the OrientedRasterCTS class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: landlab.components.cellular_automata.oriented_raster_cts.OrientedRasterCTS
 	:members:
 
-Methods and Internal Documentation for HexCTS 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Methods and Internal Documentation for the HexCTS class 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: landlab.components.cellular_automata.hex_cts.HexCTS
 	:members:
 
-Methods and Internal Documentation for OrientedHexCTS 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Methods and Internal Documentation for the OrientedHexCTS class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: landlab.components.cellular_automata.oriented_hex_cts.OrientedHexCTS
 	:members:
