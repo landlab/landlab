@@ -777,7 +777,6 @@ class CellLabCTSModel(object):
         return self.node_state[tail_node]!=old_tail_node_state, \
                self.node_state[head_node]!=old_head_node_state
                
-    @profile
     def update_link_state(self, link, new_link_state, current_time):
         """
         Implements a link transition by updating the current state of the link
