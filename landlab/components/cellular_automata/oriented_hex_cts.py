@@ -96,7 +96,7 @@ class OrientedHexCTS(CellLabCTSModel):
         
         Notes
         -----
-        This overrides the method of the same name in landlab_ca.py. If the hex
+        This overrides the method of the same name in celllab_cts.py. If the hex
         grid is oriented such that one of the 3 axes is vertical (a 'vertical'
         grid), then the three orientations are:
             0 = vertical (0 degrees clockwise from vertical)
