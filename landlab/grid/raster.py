@@ -3778,62 +3778,51 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                  assume_unique=True)
 
     def get_link_connecting_node_pair(self, node_a, node_b):
-        '''
-        Returns an array of link indices that *node_a* and *node_b* share.
-        If the nodes do not share any links, returns an empty array.
-        The link does not have to be active.
-        '''
-        node_links_a = self.node_links(node_a)
-        node_links_b = self.node_links(node_b)
-        return np.intersect1d(node_links_a, node_links_b, assume_unique=True)
+        """Get the link that connects two nodes.
 
-    def get_active_link_connecting_node_pair(self, node_a, node_b):
-        """Returns an array of active link indices that *node_a* and *node_b*
-        share.
+        Returns the link ID that connects *node_a* and *node_b*.
+        If the nodes do not share any links, raises `ValueError`.
 
         Parameters
         ----------
-        node_a, node_b : ints, or lists or arrays of ints of equal length.
-                         IDs of the node pairs of interest
+        node_a : int or array_like of int
+            Node or nodes of one of the link ends.
+        node_b : int or array_like of int
+            Node or nodes of one of the link ends.
 
         Returns
         -------
-        1D numpy array
-            IDs of active link(s) connecting given node pair(s), or BAD_INDEX_VALUE if none found.
+        ndarray
+            Links that connect the nodes pairs.
 
+        Raises
+        ------
+        ValueError
+            If the given nodes are not connected by a link.
+            
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 4)
-        >>> rmg.get_active_link_connecting_node_pair(5, 6)
-        array([5])
+        >>> rmg = RasterModelGrid((4, 5))
+
+        Nodes 6 and 7 are connected by link 20.
+
+        >>> rmg.get_link_connecting_node_pair(6, 7)
+        20
+
+        Nodes 6 and 8 are not connected by a link, so raise an exception.
+
+        >>> rmg.get_link_connecting_node_pair(6, 8) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: disconnected nodes
         """
+        links_at_a = self.node_links(node_a)
+        links_at_b = self.node_links(node_b)
 
-        # Get arrays containing active links attached to each of the two nodes.
-        # The method node_activelinks() returns a 2D array, with each column containing
-        # the active links for a particular node, so we need to flatten it to a 1D array.
-        node_links_a = self.node_activelinks(node_a)
-        node_links_b = self.node_activelinks(node_b)
-
-        # Create the array, which has as many columns entries as there are columns in node_links_a
-        # (which is the number of nodes of interest)
-        connecting_links_ids = BAD_INDEX_VALUE + np.zeros(node_links_a.shape[1], dtype=int)
-
-        # Iterate over the number of columns, which is equal to the number of nodes of interest.
-        # Yes, this uses a loop, which is generally to be avoided. However, this is the sort
-        # of method that isn't likely to be called for large numbers of node pairs repeatedly.
-        for i in range(node_links_a.shape[1]):
-
-            # Find any node IDs that the two links have in common.
-            common = np.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
-
-            # Remove any -1 values from the list of common node IDs
-            # (-1 just means "no active link at this slot")
-            common = common[common!=-1]
-
-            connecting_links_ids[i] = common
-
-        return connecting_links_ids
+        try:
+            return np.intersect1d(links_at_a, links_at_b)[0]
+        except IndexError:
+            raise ValueError('disconnected nodes')
 
     def top_edge_node_ids(self):
         """Nodes along the top edge.
