@@ -3785,10 +3785,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_a : int or array_like of int
-            Node or nodes of one of the link ends.
-        node_b : int or array_like of int
-            Node or nodes of one of the link ends.
+        node_a : int
+            Node ID
+        node_b : int
+            Node ID
 
         Returns
         -------
@@ -3798,7 +3798,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Raises
         ------
         ValueError
-            If the given nodes are not connected by a link.
+            If the given nodes are not connected by a link or the nodes are
+            the same.
             
         Examples
         --------
@@ -3815,7 +3816,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.get_link_connecting_node_pair(6, 8) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: disconnected nodes
+
+        If *node_a* and *node_b* are the same node, also raise a `ValueError`.
+
+        >>> rmg.get_link_connecting_node_pair(6, 6) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: nodes are the same
         """
+        if node_a == node_b:
+            raise ValueError('nodes are the same')
+
         links_at_a = self.node_links(node_a)
         links_at_b = self.node_links(node_b)
 
