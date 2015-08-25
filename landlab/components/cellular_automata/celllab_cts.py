@@ -621,9 +621,9 @@ class CellLabCTSModel(object):
         orientation = self.link_orientation[link_id]
         
         # Return the corresponding state code.
-        #assert self.link_state_dict[(tail_node_state,head_node_state,orientation)]==orientation*self.num_node_states_sq+tail_node_state*self.num_link_states+head_node_state, 'ooops'
+        #assert self.link_state_dict[(tail_node_state,head_node_state,orientation)]==orientation*self.num_node_states_sq+tail_node_state*self.num_node_states+head_node_state, 'ooops'
         #return self.link_state_dict[(tail_node_state,head_node_state,orientation)]
-        return orientation*self.num_node_states_sq+tail_node_state*self.num_link_states+head_node_state
+        return orientation*self.num_node_states_sq+tail_node_state*self.num_node_states+head_node_state
         
         
     def update_link_states_and_transitions(self, current_time):
@@ -885,11 +885,11 @@ class CellLabCTSModel(object):
                         this_link_fromnode = self.grid.link_fromnode[link]
                         this_link_tonode = self.grid.link_tonode[link]
                         orientation = self.link_orientation[link]
-                        #current_pair = (self.node_state[this_link_fromnode], 
-                        #                self.node_state[this_link_tonode], orientation)
-                        #new_link_state = self.link_state_dict[current_pair]
-                        new_link_state = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
-                        #assert new_link_state==new_link_state2, 'oops'
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
+                        new_link_state = self.link_state_dict[current_pair]
+                        new_link_state2 = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
+                        assert new_link_state==new_link_state2, 'oops'
                         self.update_link_state(link, new_link_state, event.time)
 
             if head_changed:
@@ -906,11 +906,11 @@ class CellLabCTSModel(object):
                         this_link_fromnode = self.grid.link_fromnode[link]
                         this_link_tonode = self.grid.link_tonode[link]
                         orientation = self.link_orientation[link]
-                        #current_pair = (self.node_state[this_link_fromnode], 
-                        #                self.node_state[this_link_tonode], orientation)
-                        #new_link_state = self.link_state_dict[current_pair]
-                        new_link_state = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
-                        #assert new_link_state==new_link_state2, 'oops'
+                        current_pair = (self.node_state[this_link_fromnode], 
+                                        self.node_state[this_link_tonode], orientation)
+                        new_link_state = self.link_state_dict[current_pair]
+                        new_link_state2 = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
+                        assert new_link_state==new_link_state2, 'oops'
                         self.update_link_state(link, new_link_state, event.time)
 
 		# If requested, display a plot of the grid
