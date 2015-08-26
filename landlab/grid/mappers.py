@@ -124,6 +124,7 @@ def map_values_from_cell_node_to_cell(mg, var_name):
     values_at_cells = mg.at_cell[var_name]
     values_at_cells[:] = values_at_nodes[mg.node_at_cell]
 
+
 def map_inlink_sums_to_node(mg, var_name):
     '''
     map_inlink_sums_to_node takes a field *at the links* and finds the

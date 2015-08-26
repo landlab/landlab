@@ -902,7 +902,6 @@ class CellLabCTSModel(object):
                     if _DEBUG:
                         print('t checking link',link)
                     if link!=-1 and link!=event.link:
-
                         this_link_fromnode = self.grid.node_at_link_tail[link]
                         this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
