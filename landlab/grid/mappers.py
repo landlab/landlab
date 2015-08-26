@@ -1,20 +1,15 @@
 #! /usr/bin/env python
-from __future__ import division
+"""Map values from one grid element to another.
 
-import numpy as np
-from landlab.grid.structured_quad import links
+Each link has a *tail* and *head* node. The *tail* nodes are located at the
+start of a link, while the head nodes are located at end of a link.
 
-''' 
-Functions which can map data contained on nodes to the connecting links.
-
-Each link has a "from" and "to" node. The "from" nodes are located at the link 
-tail, while the "to" nodes are located at link heads.
-
-Below, the numbering scheme for links in RasterModelGrid is illustrated with an
-example of a four-row by five column grid (4x5). In this example, each * (or X)
-is a node, the lines represent links, and the ^ and > symbols indicate the
-direction and "head" of each link. Link heads in the RasterModelGrid always
-point in the cardinal directions North (N) or East (E).
+Below, the numbering scheme for links in `RasterModelGrid` is illustrated
+with an example of a four-row by five column grid (4x5). In this example,
+each * (or X) is a node, the lines represent links, and the ^ and > symbols
+indicate the direction and *head* of each link. Link heads in the
+`RasterModelGrid` always point in the cardinal directions North (N) or East
+(E).::
 
     *--27-->*--28-->*--29-->*--30-->*
     ^       ^       ^       ^       ^
@@ -30,11 +25,15 @@ point in the cardinal directions North (N) or East (E).
     |       |       |       |       |
     *--15-->*--16-->*--17-->*--18-->*
   
-
 For example, node 'X' has four link-neighbors. From south and going clockwise,
-these neighbors are [2, 20, 7, 21]. Both link 2 and link 20 have node 'X' as their
-'to' node, while links 7 and 21 have node 'X' as their from node. 
-'''
+these neighbors are [2, 20, 7, 21]. Both link 2 and link 20 have node 'X' as
+their 'head' node, while links 7 and 21 have node 'X' as their tail node. 
+"""
+from __future__ import division
+
+import numpy as np
+from landlab.grid.structured_quad import links
+
 def map_values_from_link_head_node_to_link(mg, var_name):
     '''
     map_values_from_link_head_node_to_link iterates across the grid and
