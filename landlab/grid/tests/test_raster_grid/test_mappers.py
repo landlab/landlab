@@ -12,7 +12,7 @@ class TestLinkEndsToLink():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_link_end_node_max_value_to_link(rmg, 'values')
+        maps.map_max_of_link_nodes_to_link(rmg, 'values')
 
         assert_array_equal(
             rmg.at_link['values'],
@@ -30,7 +30,7 @@ class TestLinkEndsToLink():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_link_end_node_min_value_to_link(rmg, 'values')
+        maps.map_min_of_link_nodes_to_link(rmg, 'values')
 
         assert_array_equal(
             rmg.at_link['values'],
@@ -51,7 +51,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_link_head_node_to_link(rmg, 'values')
+        maps.map_link_tail_node_to_link(rmg, 'values')
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
@@ -70,7 +70,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_link_tail_node_to_link(rmg, 'values')
+        maps.map_link_head_node_to_link(rmg, 'values')
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
@@ -89,7 +89,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_link_end_nodes_to_link(rmg, 'values')
+        maps.map_mean_of_link_nodes_to_link(rmg, 'values')
 
         link_values = rmg.at_link['values']
         assert_array_equal(link_values,
@@ -108,7 +108,7 @@ class TestNodeToLinkMappers():
         node_values = rmg.at_node['values']
         node_values[:] = np.arange(rmg.number_of_nodes)
 
-        maps.map_values_from_cell_node_to_cell(rmg, 'values')
+        maps.map_node_to_cell(rmg, 'values')
 
         cell_values = rmg.at_cell['values']
         assert_array_equal(np.array([6., 7., 8., 11., 12., 13.]), cell_values)

@@ -34,7 +34,7 @@ from __future__ import division
 import numpy as np
 from landlab.grid.structured_quad import links
 
-def map_values_from_link_head_node_to_link(mg, var_name):
+def map_link_head_node_to_link(mg, var_name):
     '''
     map_values_from_link_head_node_to_link iterates across the grid and
     identifies the node at the "head", or the "to" node for each link. For
@@ -50,7 +50,7 @@ def map_values_from_link_head_node_to_link(mg, var_name):
     values_at_links[:] = values_at_nodes[mg.node_at_link_tail]
 
 
-def map_values_from_link_tail_node_to_link(mg, var_name):
+def map_link_tail_node_to_link(mg, var_name):
     '''
     map_values_from_link_tail_node_to_link iterates across the grid and
     identifies the node at the "tail", or the "from" node for each link. For
@@ -66,7 +66,7 @@ def map_values_from_link_tail_node_to_link(mg, var_name):
     values_at_links[:] = values_at_nodes[mg.node_at_link_head]
 
 
-def map_link_end_node_min_value_to_link(mg, var_name):
+def map_min_of_link_nodes_to_link(mg, var_name):
     '''
     map_link_end_node_min_value_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
@@ -81,7 +81,7 @@ def map_link_end_node_min_value_to_link(mg, var_name):
                out=values_at_links)
 
 
-def map_link_end_node_max_value_to_link(mg, var_name):
+def map_max_of_link_nodes_to_link(mg, var_name):
     '''
     map_link_end_node_max_value_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
@@ -96,7 +96,7 @@ def map_link_end_node_max_value_to_link(mg, var_name):
                out=values_at_links)
 
 
-def map_values_from_link_end_nodes_to_link(mg, var_name):
+def map_mean_of_link_nodes_to_link(mg, var_name):
     '''
     map_values_from_link_end_nodes_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
@@ -110,7 +110,8 @@ def map_values_from_link_end_nodes_to_link(mg, var_name):
     values_at_links[:] = 0.5 * (values_at_nodes[mg.node_at_link_head] +
                                 values_at_nodes[mg.node_at_link_tail])
 
-def map_values_from_cell_node_to_cell(mg, var_name):
+
+def map_node_to_cell(mg, var_name):
     '''
     map_values_from_cell_node_to_cell iterates across the grid and
     identifies the all node values of 'var_name'.  
@@ -124,7 +125,8 @@ def map_values_from_cell_node_to_cell(mg, var_name):
     values_at_cells[:] = values_at_nodes[mg.node_at_cell]
 
 
-def map_inlink_sums_to_node(mg, var_name):
+
+def map_sum_of_inlinks_to_node(mg, var_name):
     '''
     map_inlink_sums_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it sums the inlinks and returns
@@ -140,8 +142,9 @@ def map_inlink_sums_to_node(mg, var_name):
     south = south.flatten()
     west = west.flatten()
     values_at_nodes[:] = values_at_links[south]+values_at_links[west] 
-    
-def map_inlink_average_to_node(mg, var_name):
+
+
+def map_sum_of_inlinks_to_node(mg, var_name):
     '''
     map_inlink_average_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the average of
@@ -159,7 +162,8 @@ def map_inlink_average_to_node(mg, var_name):
     west = west.flatten()
     values_at_nodes[:] = 0.5 * (values_at_links[south]+values_at_links[west])
 
-def map_max_inlink_value_to_node(mg, var_name):
+
+def map_max_of_inlinks_to_node(mg, var_name):
     '''
     map_max_inlink_value_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the maximum value at the
@@ -176,8 +180,9 @@ def map_max_inlink_value_to_node(mg, var_name):
     south = south.flatten()
     west = west.flatten()
     values_at_nodes[:] = np.maximum(values_at_links[south], values_at_links[west])
-    
-def map_min_inlink_value_to_node(mg, var_name):
+
+
+def map_min_of_inlinks_to_node(mg, var_name):
     '''
     map_min_inlink_value_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the minimum value at the
@@ -196,7 +201,8 @@ def map_min_inlink_value_to_node(mg, var_name):
     west = west.flatten()
     values_at_nodes[:] = np.minimum(values_at_links[south], values_at_links[west])
 
-def map_outlink_sums_to_node(mg, var_name):
+
+def map_sum_of_outlinks_to_node(mg, var_name):
     '''
     map_outlink_sums_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it sums the outlinks and returns
@@ -213,7 +219,8 @@ def map_outlink_sums_to_node(mg, var_name):
     east = east.flatten()
     values_at_nodes[:] = values_at_links[north]+values_at_links[east] 
     
-def map_outlink_average_to_node(mg, var_name):
+    
+def map_mean_of_outlinks_to_node(mg, var_name):
     '''
     map_outlink_average_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it finds the average of
@@ -231,7 +238,8 @@ def map_outlink_average_to_node(mg, var_name):
     east = east.flatten()
     values_at_nodes[:] = 0.5 * (values_at_links[north]+values_at_links[east])
 
-def map_max_outlink_value_to_node(mg, var_name):
+
+def map_max_of_outlinks_to_node(mg, var_name):
     '''
     map_max_outlink_value_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it finds the maximum value at the
@@ -248,8 +256,9 @@ def map_max_outlink_value_to_node(mg, var_name):
     north = north.flatten()
     east = east.flatten()
     values_at_nodes[:] = np.maximum(values_at_links[north], values_at_links[east])
-    
-def map_min_outlink_value_to_node(mg, var_name):
+
+
+def map_min_of_outlinks_to_node(mg, var_name):
     '''
     map_min_outlink_value_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it finds the minimum value at the
@@ -269,7 +278,7 @@ def map_min_outlink_value_to_node(mg, var_name):
     values_at_nodes[:] = np.minimum(values_at_links[north], values_at_links[east])
 
 
-def map_average_all_links_to_node(mg, var_name):
+def map_mean_of_links_to_node(mg, var_name):
     '''
     map_average_all_links_to_node takes a field *at the links* and finds the
     average of all ~existing~ link neighbor values for each node in the grid. 
