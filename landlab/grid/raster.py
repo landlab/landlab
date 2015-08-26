@@ -345,12 +345,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 -1, -1, -1],
                [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1, -1,
                 -1, -1, -1]])
-        >>> rmg.cell_node
+        >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
-        >>> rmg.link_fromnode
+        >>> rmg.node_at_link_tail
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
                 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
-        >>> rmg.link_tonode
+        >>> rmg.node_at_link_head
         array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
                 3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
         >>> rmg.link_face[20]
@@ -446,13 +446,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = sgrid.node_index_at_cells(self.shape)
+        self._node_at_cell = sgrid.node_at_cell(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
-        self.core_cells = sgrid.core_cell_index(self.shape)
-        self.activecell_node = self.cell_node.copy()
-        self.corecell_node = self.cell_node
+        self._core_cells = sgrid.core_cell_index(self.shape)
+        self.activecell_node = self._node_at_cell.copy()
+        self.corecell_node = self._node_at_cell
         #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
@@ -481,8 +481,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  *--15-->*--16-->*--17-->*--18-->*
         #
         #   create the fromnode and tonode lists
-        (self.link_fromnode,
-         self.link_tonode) = sgrid.node_index_at_link_ends(self.shape)
+        (self._node_at_link_tail,
+         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
@@ -506,8 +506,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.face_index_at_links(self.shape,
-                                                   actives=self.active_link_ids)
+        self.link_face = sgrid.face_at_link(self.shape,
+                                            actives=self.active_link_ids)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
@@ -1117,7 +1117,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError()
 
-        node_ids = self.cell_node[cell_ids]
+        node_ids = self.node_at_cell[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
@@ -2987,8 +2987,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         #determine the grid corners. This method has to be clever enough to realize when it's been given them!
         corner_nodes = self.corner_nodes
-        tonodes = self.link_tonode[link_IDs]
-        fromnodes = self.link_fromnode[link_IDs]
+        tonodes = self.node_at_link_head[link_IDs]
+        fromnodes = self.node_at_link_tail[link_IDs]
         tonode_boundaries = self.node_status[tonodes] != 0
         fromnode_boundaries = self.node_status[fromnodes] != 0
         edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
@@ -4088,14 +4088,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             s, a len(ids) array of slopes at each node provided.
             a, a len(ids) array of aspects at each node provided.
         """
-        if ids==None:
-            ids = self.node_index_at_cells
+        if ids == None:
+            ids = self.node_at_cell
         if type(ids) != np.ndarray:
             ids = np.array([ids])
         if type(vals) == str:
             vals = self.at_node[vals]
         else:
-            if not (len(vals)==self.number_of_nodes):
+            if len(vals) != self.number_of_nodes:
                 raise IndexError('*vals* was not of a compatible length!')
 
         neighbors = np.zeros([ids.shape[0],4], dtype = int)

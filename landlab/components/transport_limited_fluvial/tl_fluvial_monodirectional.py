@@ -225,7 +225,7 @@ class TransportLimitedEroder(object):
 
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.cell_node] = grid.cell_areas
+        self.cell_areas[grid.node_at_cell] = grid.cell_areas
         
         
     def sed_capacity_equation(self, grid, shields_stress, slopes_at_nodes=None, areas_at_node=None):
@@ -414,7 +414,7 @@ class TransportLimitedEroder(object):
                     node_z = grid.at_node[slopes_from_elevs]
                 else:
                     node_z = slopes_from_elevs
-                S_links = (node_z[grid.node_index_at_link_head]-node_z[grid.node_index_at_link_tail])/grid.link_length
+                S_links = (node_z[grid.node_at_link_tail]-node_z[grid.node_at_link_head])/grid.link_length
             else:
                 if link_slopes:
                     if type(link_slopes)==str:

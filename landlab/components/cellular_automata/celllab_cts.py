@@ -338,7 +338,7 @@ class CellLabCTSModel(object):
         # node
         self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
         for link_id in range(self.grid.number_of_links):
-            if self.grid.node_status[self.grid.link_fromnode[link_id]]!=_CORE or self.grid.node_status[self.grid.link_tonode[link_id]]!=_CORE:
+            if self.grid.node_status[self.grid.node_at_link_tail[link_id]]!=_CORE or self.grid.node_status[self.grid.node_at_link_head[link_id]]!=_CORE:
                 self.bnd_lnk[link_id] = True
 
         # Set up the initial node-state grid
@@ -527,8 +527,8 @@ class CellLabCTSModel(object):
     
         for i in self.grid.active_links:
             orientation = self.link_orientation[i]
-            node_pair = (self.node_state[self.grid.link_fromnode[i]], \
-                         self.node_state[self.grid.link_tonode[i]], \
+            node_pair = (self.node_state[self.grid.node_at_link_tail[i]],
+                         self.node_state[self.grid.node_at_link_head[i]],
                          orientation)
             self.link_state[i] = self.link_state_dict[node_pair]
                     
@@ -616,8 +616,8 @@ class CellLabCTSModel(object):
         ###tail_node_state = self.node_state[self.grid.activelink_fromnode[link_id]]
         ###head_node_state = self.node_state[self.grid.activelink_tonode[link_id]]
         ###orientation = self.active_link_orientation[link_id]
-        tail_node_state = self.node_state[self.grid.link_fromnode[link_id]]
-        head_node_state = self.node_state[self.grid.link_tonode[link_id]]
+        tail_node_state = self.node_state[self.grid.node_at_link_tail[link_id]]
+        head_node_state = self.node_state[self.grid.node_at_link_head[link_id]]
         orientation = self.link_orientation[link_id]
         
         # Return the corresponding state code.
@@ -801,8 +801,8 @@ class CellLabCTSModel(object):
         #if self.grid.node_status[self.grid.link_fromnode[link]]!=_CORE or \
         #   self.grid.node_status[self.grid.link_tonode[link]]!=_CORE:
         if self.bnd_lnk[link]:
-            fns = self.node_state[self.grid.link_fromnode[link]]
-            tns = self.node_state[self.grid.link_tonode[link]]
+            fns = self.node_state[self.grid.node_at_link_tail[link]]
+            tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
             ##actual_pair = (fns,tns,orientation)
             ##new_link_state = self.link_state_dict[actual_pair]
@@ -862,8 +862,8 @@ class CellLabCTSModel(object):
             if _DEBUG:
                 print('  event time =',event.time)
             
-            tail_node = self.grid.link_fromnode[event.link]
-            head_node = self.grid.link_tonode[event.link]
+            tail_node = self.grid.node_at_link_tail[event.link]
+            head_node = self.grid.node_at_link_head[event.link]
             tail_changed, head_changed = self.update_node_states(tail_node, head_node, 
                                                           event.xn_to)
             self.update_link_state(event.link, event.xn_to, event.time)
@@ -882,8 +882,8 @@ class CellLabCTSModel(object):
                         print('f checking link',link)
                     if link!=-1 and link!=event.link:
                     
-                        this_link_fromnode = self.grid.link_fromnode[link]
-                        this_link_tonode = self.grid.link_tonode[link]
+                        this_link_fromnode = self.grid.node_at_link_tail[link]
+                        this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)
@@ -902,9 +902,8 @@ class CellLabCTSModel(object):
                     if _DEBUG:
                         print('t checking link',link)
                     if link!=-1 and link!=event.link:
-                    
-                        this_link_fromnode = self.grid.link_fromnode[link]
-                        this_link_tonode = self.grid.link_tonode[link]
+                        this_link_fromnode = self.grid.node_at_link_tail[link]
+                        this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode], 
                                         self.node_state[this_link_tonode], orientation)

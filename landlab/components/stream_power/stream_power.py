@@ -261,7 +261,7 @@ class StreamPowerEroder(object):
                 raise TypeError('slopes_at_nodes input not recognised')
         except FieldError:
             if slopes_from_elevs==True:
-                S_links = (node_z[grid.node_index_at_link_head]-node_z[grid.node_index_at_link_tail])/grid.link_length
+                S_links = (node_z[grid.node_at_link_tail]-node_z[grid.node_at_link_head])/grid.link_length
             else:
                 if link_slopes:
                     if type(link_slopes)==str:

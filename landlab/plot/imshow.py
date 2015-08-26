@@ -199,7 +199,7 @@ def imshow_cell_grid(grid, values, **kwds):
     which the cell values will be extracted. Alternatively, can be a field
     name (string) from which to draw the data from the grid.
     """
-    cells = grid.node_index_at_cells
+    cells = grid.node_at_cell
 
     if type(values) == str:
         value_str = values
@@ -248,8 +248,8 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     value found on any active cell in the grid.
     """
 
-    active_cells = grid.node_index_at_active_cells
-
+    active_cells = grid.node_at_core_cell
+    
     try:
         assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')
@@ -266,7 +266,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     else:
         data.fill(np.min(values_to_use))
     data[active_cells] = values_to_use
-    data = data[grid.node_index_at_cells]
+    data = data[grid.node_at_cell]
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
