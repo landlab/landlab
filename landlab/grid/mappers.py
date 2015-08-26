@@ -34,6 +34,7 @@ from __future__ import division
 import numpy as np
 from landlab.grid.structured_quad import links
 
+
 def map_link_head_node_to_link(mg, var_name, out=None):
     """Map values from a link head nodes to links.
 
@@ -66,17 +67,20 @@ def map_link_head_node_to_link(mg, var_name, out=None):
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z', np.arange(12.))
-    >>> link_values = map_link_head_node_to_link(rmg, 'z')
-    >>> link_values
+    >>> map_link_head_node_to_link(rmg, 'z')
     array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
              5.,   6.,   7.,   9.,  10.,  11.])
-    >>> link_values is rmg.at_link['z']
-    True
+
+    >>> values_at_links = rmg.empty(centering='link')
+    >>> _ = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
+    >>> values_at_links
+    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
+             5.,   6.,   7.,   9.,  10.,  11.])
     """
     values_at_nodes = mg.at_node[var_name]
     if out is None:
-        out = mg.empty('link')
-    out[:] = values_at_nodes[mg.node_at_link_tail]
+        out = mg.empty(centering='link')
+    out[:] = values_at_nodes[mg.node_at_link_head]
 
     return out
 
@@ -94,7 +98,7 @@ def map_link_tail_node_to_link(mg, var_name):
     values_at_nodes = mg.at_node[var_name]
     mg.add_empty('link', var_name)
     values_at_links = mg.at_link[var_name]
-    values_at_links[:] = values_at_nodes[mg.node_at_link_head]
+    values_at_links[:] = values_at_nodes[mg.node_at_link_tail]
 
 
 def map_min_of_link_nodes_to_link(mg, var_name):
