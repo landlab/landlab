@@ -34,20 +34,51 @@ from __future__ import division
 import numpy as np
 from landlab.grid.structured_quad import links
 
-def map_link_head_node_to_link(mg, var_name):
-    '''
-    map_values_from_link_head_node_to_link iterates across the grid and
-    identifies the node at the "head", or the "to" node for each link. For
-    each link, the value of 'var_name' at the "to" node is mapped to the corresponding
+def map_link_head_node_to_link(mg, var_name, out=None):
+    """Map values from a link head nodes to links.
+
+    Iterate over a grid and identify the node at the *head*. For each link,
+    the value of *var_name* at the *head* node is mapped to the corresponding
     link. 
     
-    In a RasterModelGrid, each one node has two adjacent "link heads". This means
-    each node value is mapped to two corresponding links. 
-    '''
+    In a RasterModelGrid, each one node has two adjacent "link heads". This
+    means each node value is mapped to two corresponding links. 
+
+    Parameters
+    ----------
+    mg : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at nodes.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_link_head_node_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> link_values = map_link_head_node_to_link(rmg, 'z')
+    >>> link_values
+    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
+             5.,   6.,   7.,   9.,  10.,  11.])
+    >>> link_values is rmg.at_link['z']
+    True
+    """
     values_at_nodes = mg.at_node[var_name]
-    mg.add_empty('link', var_name)
-    values_at_links = mg.at_link[var_name]
-    values_at_links[:] = values_at_nodes[mg.node_at_link_tail]
+    if out is None:
+        out = mg.empty('link')
+    out[:] = values_at_nodes[mg.node_at_link_tail]
+
+    return out
 
 
 def map_link_tail_node_to_link(mg, var_name):
