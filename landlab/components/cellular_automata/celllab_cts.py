@@ -338,7 +338,7 @@ class CellLabCTSModel(object):
         # node
         self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
         for link_id in range(self.grid.number_of_links):
-            if self.grid.node_status[self.grid.link_fromnode[link_id]]!=_CORE or self.grid.node_status[self.grid.link_tonode[link_id]]!=_CORE:
+            if self.grid.node_status[self.grid.node_at_link_tail[link_id]]!=_CORE or self.grid.node_status[self.grid.node_at_link_head[link_id]]!=_CORE:
                 self.bnd_lnk[link_id] = True
 
         # Set up the initial node-state grid
