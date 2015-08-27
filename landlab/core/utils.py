@@ -24,11 +24,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     (module, _) = os.path.splitext(os.path.basename(module))
 
-    try:
-        mod = imp.load_module(module, *imp.find_module(module, [path]))
-    except ImportError:
-        print path, module
-        raise
+    mod = imp.load_module(module, *imp.find_module(module, [path]))
 
     funcs = get_functions_from_module(mod, pattern=pattern)
     add_functions_to_class(cls, funcs)
