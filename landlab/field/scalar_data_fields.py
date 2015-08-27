@@ -327,8 +327,13 @@ class ScalarDataFields(dict):
         if noclobber and name in self:
             raise FieldError(name)
 
+        if not isinstance(value_array, np.ndarray):
+            value_array = np.array(value_array)
+            value_array.shape = (value_array.size, )
+
         if copy:
             value_array = value_array.copy()
+            value_array.shape = (value_array.size, )
 
         self[name] = value_array
 
