@@ -76,7 +76,7 @@ link_state_dict : dictionary
     link-state codes. Allows you to look up the link-state code corresponding
     to a particular pair of adjacent nodes with a particular orientation.
 
-cell_pair : list (x number of possible link states)
+node_pair : list (x number of possible link states)
     List of 3-element tuples representing all the various link states. Allows
     you to look up the node states and orientation corresponding to a particular 
     link-state ID.
@@ -470,14 +470,14 @@ class CellLabCTSModel(object):
         values are integer codes representing the link state numbers.
         """
         self.link_state_dict = {}
-        self.cell_pair = []
+        self.node_pair = []
         k=0
         for orientation in range(self.number_of_orientations):
             for tail_state in range(self.num_node_states):
                 for head_state in range(self.num_node_states):
                     self.link_state_dict[(tail_state,head_state,orientation)] = k
                     k+=1
-                    self.cell_pair.append((tail_state,head_state,orientation))
+                    self.node_pair.append((tail_state,head_state,orientation))
     
         if False and _DEBUG:
             print()
