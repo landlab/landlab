@@ -2762,6 +2762,10 @@ class ModelGrid(ModelDataFields):
         return self.all_node_distances_map, self.all_node_azimuths_map
 
 
+from ..core.utils import add_module_functions_to_class
+
+
+add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
 
 
 if __name__ == '__main__':
