@@ -765,9 +765,9 @@ class CellLabCTSModel(object):
     
         # Change to the new states
         if self.grid.node_status[tail_node]==_CORE:
-            self.node_state[tail_node] = self.cell_pair[new_link_state][0]
+            self.node_state[tail_node] = self.node_pair[new_link_state][0]
         if self.grid.node_status[head_node]==_CORE: #landlab.grid.base.CORE_NODE:
-            self.node_state[head_node] = self.cell_pair[new_link_state][1]
+            self.node_state[head_node] = self.node_pair[new_link_state][1]
     
         if _DEBUG:
             print('update_node_states() for',tail_node,'and',head_node)
