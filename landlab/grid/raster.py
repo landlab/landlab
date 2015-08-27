@@ -4578,3 +4578,10 @@ def from_dict(param_dict):
 
     # Return the created and initialized grid
     return mg
+
+
+from ..core.utils import add_module_functions_to_class
+
+
+add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
+                              pattern='map_*')
