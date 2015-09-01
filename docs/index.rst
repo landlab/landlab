@@ -96,6 +96,8 @@ Start with the :ref:`10 minute Landlab introduction tutorial <getting_started>`,
 Simple guides to functionality
 ------------------------------
 
+These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
+
 .. toctree::
    :maxdepth: 1
 
@@ -114,6 +116,8 @@ Simple guides to functionality
    
 CellLab-CTS
 -----------
+
+CellLab-CTS is a Landlab module for building pairwise, continuous-time stochastic (CTS) cellular automata.
 
 .. toctree::
 	:maxdepth: 1
