@@ -4690,8 +4690,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Put some arbitrary values in the grid fields:
 
         >>> import numpy as np
-        >>> z = numpy.arange(0, rmg.number_of_nodes)
-        >>> s = numpy.arange(0, rmg.number_of_links)
+        >>> z = np.arange(0, rmg.number_of_nodes)
+        >>> s = np.arange(0, rmg.number_of_links)
 
         >>> rmg['node']['topographic__elevation'] = z
         >>> rmg['link']['topographic__slope'] = s

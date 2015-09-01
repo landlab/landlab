@@ -2,7 +2,7 @@ import numpy as np
 
 
 from . import nodes
-from ..base import CORE_NODE, CLOSED_BOUNDARY
+from ..base import CORE_NODE, CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from ..unstructured.links import LinkGrid
 
 
@@ -541,10 +541,8 @@ def is_active_link(shape, node_status):
     status_at_link_start = node_status.flat[node_id_at_link_start(shape)]
     status_at_link_end = node_status.flat[node_id_at_link_end(shape)]
 
-    return (((status_at_link_start == CORE_NODE) &
-             ~ (status_at_link_end == CLOSED_BOUNDARY)) |
-            ((status_at_link_end == CORE_NODE) &
-             ~ (status_at_link_start == CLOSED_BOUNDARY)))
+    
+    return(((status_at_link_start == CORE_NODE) & (status_at_link_end==CORE_NODE)) | ((status_at_link_end==CORE_NODE) & (status_at_link_start==CORE_NODE)))
 
 
 def active_link_ids(shape, node_status):
@@ -573,7 +571,67 @@ def active_link_ids(shape, node_status):
     return np.where(is_active_link(shape, node_status))[0].astype(np.int,
                                                                   copy=False)
 
+def is_fixed_link(shape, node_status):
+    """IDs of active links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    node_status : array_link
+        Status of nodes in grid.
+
+    Returns
+    -------
+    ndarray :
+        Links IDs at the active links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> from landlab.grid.structured_quad.links import is_active_link
+    >>> status = status_with_perimeter_as_boundary((3, 4))
+    >>> is_active_link((3, 4), status)
+    array([False,  True,  True, False, False,  True,  True, False, False,
+           False, False,  True,  True,  True, False, False, False], dtype=bool)
+    """
+    if np.prod(shape) != node_status.size:
+        raise ValueError('node status array does not match size of grid '
+                         '(%d != %d)' % (np.prod(shape), len(node_status)))
+
+    status_at_link_start = node_status.flat[node_id_at_link_start(shape)]
+    status_at_link_end = node_status.flat[node_id_at_link_end(shape)]
+
     
+    return(((status_at_link_start == CORE_NODE) & (status_at_link_end==FIXED_GRADIENT_BOUNDARY)) | ((status_at_link_end==CORE_NODE) & (status_at_link_start==FIXED_GRADIENT_BOUNDARY)))
+
+
+def fixed_link_ids(shape, node_status):
+    """IDs of active links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    node_status : array_link
+        Status of nodes in grid.
+
+    Returns
+    -------
+    ndarray :
+        Links IDs at the active links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> from landlab.grid.structured_quad.links import active_link_ids
+    >>> status = status_with_perimeter_as_boundary((3, 4))
+    >>> active_link_ids((3, 4), status)
+    array([ 1,  2,  5,  6, 11, 12, 13])
+    """
+    return np.where(is_fixed_link(shape, node_status))[0].astype(np.int,
+                                                                  copy=False)
+                                                                  
 def horizontal_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
     """Get IDs of horizontal active links.
 
@@ -651,11 +709,91 @@ def horizontal_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
     horizontal_links = horizontal_links.astype(int)
     
     # Return an array with length of number_of_vertical_links that has '-1' for
-    # inactive links and the active link id for active links
+    # inactive/fixed links and the active link id for active links
     return horizontal_links
 
+def horizontal_fixed_link_ids(shape, fixed_link_ids, BAD_INDEX_VALUE=-1):
+    """Get IDs of horizontal fixed links.
 
-def vertical_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    fixed_link_ids : array of int
+        Array of all fixed link ids
+    BAD_INDEX_VALUE: int, optional
+        Value assigned to inactive indicies in the array.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs at the HORIZONTAL fixed links. Length of number_of_horizontal_links.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import fixed_link_ids, horizontal_fixed_link_ids
+    >>>
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> rmg['node']['topographic__elevation'] = numpy.arange(0, rmg.number_of_nodes)
+    >>> rmg['link']['topographic__slope'] = numpy.arange(0, rmg.number_of_links)
+    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> status = rmg.node_status 
+    >>> 
+    >>> fixed_link_ids = fixed_link_ids((4,5), status)
+    >>> horizontal_fixed_link_ids((4,5), fixed_link_ids)
+    array([-1, -1, -1, -1, 19, -1, -1, 22, 23, -1, -1, 26, -1, -1, -1, -1])
+    
+
+    Example grid: Indicies are given for fixed horizontal links in the 4x5 grid space.
+                "X" indicates inactive links, "V" indicates vertical ids
+
+    ::
+
+          *---X-->*---X-->*---X-->*---X-->*
+          ^       ^       ^       ^       ^   
+          X       X       X       X       X      
+          |       |       |       |       |         
+          *---23-->*------>*----->*--26-->*
+          ^       ^       ^       ^       ^       
+          X       V       V       V       X       
+          |       |       |       |       |       
+          *---19-->*------>*----->*--22-->*
+          ^       ^       ^       ^       ^   
+          X       X       X       X       X       
+          |       |       |       |       |       
+          *---X-->*---X-->*---X-->*---X-->*
+    """
+    # For horizontal links, we need to start with a list of '-1' indices with 
+    # length of number_of_links
+    horizontal_links = np.ones(number_of_links(shape))*BAD_INDEX_VALUE
+    
+    # We will need the number of rows and columns from input argument 'shape'
+    rows = shape[0]
+    cols = shape[1]
+    
+    # In a structured quad, the minimum horizontal link id is equal to the 
+    # number of columns * (number of rows - 1)
+    min_hori_id = cols*(rows-1)
+    
+    # We will use list comprehension to get *just* the horizontal link ids
+    # from the fixed_link_ids input argument.
+    horizontal_ids = [i for i in fixed_link_ids if i>= min_hori_id]
+    
+    # In the array of '-1' we input the horizontal fixed link ids
+    horizontal_links[horizontal_ids] = horizontal_ids
+    
+    # To get an array of len number_of_horizontal_links, we need to clip off the 
+    # number of vertical links. We do this by starting at the "minimum horizontal
+    # link id" found above and going to the end of the list. 
+    horizontal_links = horizontal_links[min_hori_id:]
+    horizontal_links = horizontal_links.astype(int)
+    
+    # Return an array with length of number_of_vertical_links that has '-1' for
+    # inactive or active links and the fixed link id for fixed links
+    return horizontal_links
+    
+def vertical_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):#, include_fixed_links = False):
     """Get IDs of vertical active links.
 
     Parameters
@@ -723,11 +861,86 @@ def vertical_active_link_ids(shape, active_link_ids, BAD_INDEX_VALUE=-1):
     # In the array of '-1's, we input the active link ids. 
     vertical_links[vertical_ids] = vertical_ids
     vertical_links = vertical_links.astype(int)
+        
+    # Return an array with length of number_of_vertical_links that has '-1' for
+    # inactive links and the active link id for active links
+    return vertical_links
+
+def vertical_fixed_link_ids(shape, fixed_link_ids, BAD_INDEX_VALUE=-1):
+    """Get IDs of vertical fixed links.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    fixed_link_ids : array of int
+        Array of all fixed link ids
+    BAD_INDEX_VALUE: int, optional
+        Value assigned to inactive indicies in the array.
+
+    Returns
+    -------
+    ndarray :
+        Link IDs at the VERTICAL fixed links. Length of number_of_vertical_links.
+
+    Examples
+    --------
+    
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.structured_quad.links import fixed_link_ids, vertical_fixed_link_ids
+    >>>
+    >>> rmg = RasterModelGrid(4, 5)
+    >>> rmg['node']['topographic__elevation'] = numpy.arange(0, rmg.number_of_nodes)
+    >>> rmg['link']['topographic__slope'] = numpy.arange(0, rmg.number_of_links)
+    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> status = rmg.node_status 
+    >>> 
+    >>> fixed_link_ids = fixed_link_ids((4,5), status)
+    >>> horizontal_fixed_link_ids((4,5), fixed_link_ids)
+    array([-1,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, 11, 12, 13, -1])
+    
+    Example grid: Indicies are given for active vertical links in the 4x5 grid space.
+                "X" indicates inactive/active links, "H" indicates horizontal ids
+                
+    ::
+
+          *---X-->*---X-->*---X-->*---X-->*
+          ^       ^       ^       ^       ^   
+          X      11      12      13       X      
+          |       |       |       |       |         
+          *---X-->*---H-->*---H-->*---X-->*
+          ^       ^       ^       ^       ^       
+          X       |       |       |       X       
+          |       |       |       |       |       
+          *---X-->*---H-->*---H-->*---X-->*
+          ^       ^       ^       ^       ^   
+          X       1       2       3       X       
+          |       |       |       |       |       
+          *---X-->*---X-->*---X-->*---X-->*
+    """
+    # Set up an array of '-1' indices with length of number_of_vertical_links
+    vertical_links = np.ones(number_of_vertical_links(shape))*BAD_INDEX_VALUE
+    
+    # We will need the number of rows and columns from input argument 'shape'
+    rows = shape[0]
+    cols = shape[1]
+    
+    # In a structured quad, the maximum vertical link id is one less than the 
+    # number of columns * (number of rows - 1)
+    max_vert_id = cols*(rows-1)
+    
+    # We will use list comprehension to get *just* the vertical link ids
+    # from the active_link_ids input argument.
+    vertical_ids = [i for i in fixed_link_ids if i < max_vert_id]
+    
+    # In the array of '-1's, we input the active link ids. 
+    vertical_links[vertical_ids] = vertical_ids
+    vertical_links = vertical_links.astype(int)
 
     # Return an array with length of number_of_vertical_links that has '-1' for
     # inactive links and the active link id for active links
     return vertical_links
-    
+        
 def find_horizontal_south_neighbor(shape, horizontal_link_ids, BAD_INDEX_VALUE=-1):
     """Get IDs of SOUTH, horizontal link neighbor
 

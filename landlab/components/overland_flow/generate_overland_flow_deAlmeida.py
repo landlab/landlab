@@ -83,7 +83,7 @@ class OverlandFlow(Component):
      'water_discharge_at_nodes': 'The water discharge from surrounding links mapped onto nodes.',
      'water_surface_slope_at_nodes': 'The slope of the water surface at each node.'}
 
-    def __init__(self, grid, input_file = None, **kwds):
+    def __init__(self, grid, input_file = None, use_fixed_links=False, **kwds):
         
         super(OverlandFlow, self).__init__(grid, **kwds)
         
@@ -172,6 +172,14 @@ class OverlandFlow(Component):
         # does NOT need to reinitalize the neighbors and saves computation time.
         self.neighbor_flag = False
         
+        # When looking for neighbors, we automatically ignore inactive links by default.
+        # However, what about when we want to look at fixed links too? By default,
+        # we ignore these, but if they are important to your model and will be updated in
+        # your driver loop, they can be used by setting the flag in the initialization of
+        # the class to 'True'
+        
+        self.use_fixed_links = use_fixed_links
+        
         # Assigning a class variable to the water depth field and adding the initial thin water depth
         self.h = self._grid['node']['water_depth'] = self._grid['node']['water_depth'] + self.h_init
         
@@ -204,21 +212,29 @@ class OverlandFlow(Component):
         
         # Find all horizontal active link ids
         self.horizontal_active_link_ids = links.horizontal_active_link_ids(grid.shape, self.active_ids)
-        
-        # Using the horizontal active link ids, we can find the west and east neighbors
-        self.west_neighbors = links.find_horizontal_west_neighbor(grid.shape, self.horizontal_active_link_ids)
-        self.east_neighbors = links.find_horizontal_east_neighbor(grid.shape, self.horizontal_active_link_ids)
-       
+         
         # Now we repeat this process for the vertical links. 
         # First find the vertical link ids and reshape it into a 1-D array
         self.vertical_ids = links.vertical_link_ids(grid.shape).flatten()
         
         # Find the *active* verical link ids
         self.vertical_active_link_ids = links.vertical_active_link_ids(grid.shape, self.active_ids)
-        
+                
+        if self.use_fixed_links==True:
+            
+            fixed_link_ids = links.fixed_link_ids(grid.shape, grid.node_status)            
+            fixed_horizontal_links = links.horizontal_fixed_link_ids(grid.shape, fixed_link_ids) 
+            fixed_vertical_links = links.vertical_fixed_link_ids(grid.shape, fixed_link_ids)
+            self.horizontal_active_link_ids= np.maximum(self.horizontal_active_link_ids, fixed_horizontal_links)
+            self.vertical_active_link_ids= np.maximum(self.vertical_active_link_ids, fixed_vertical_links)
+               
         # Using the active vertical link ids we can find the north and south vertical neighbors
         self.north_neighbors = links.find_vertical_north_neighbor(grid.shape, self.vertical_active_link_ids)
         self.south_neighbors = links.find_vertical_south_neighbor(grid.shape, self.vertical_active_link_ids)
+        
+        # Using the horizontal active link ids, we can find the west and east neighbors
+        self.west_neighbors = links.find_horizontal_west_neighbor(grid.shape, self.horizontal_active_link_ids)
+        self.east_neighbors = links.find_horizontal_east_neighbor(grid.shape, self.horizontal_active_link_ids)
         
         # Set up arrays for discharge in the horizontal and vertical directions.
         self.q_horizontal = np.zeros(links.number_of_horizontal_links(grid.shape))
