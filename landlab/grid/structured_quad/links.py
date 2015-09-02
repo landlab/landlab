@@ -2149,7 +2149,6 @@ def right_edge_horizontal_ids(shape):
     horizontal_id_array = horizontal_link_ids(shape)    
     
     # Then we slice the last column and return it. This has our right edge
-
     # horizontal ids. This array should be equal in length to (number of columns - 2)
 
     right_edge_horizontal_ids = horizontal_id_array[:,(shape[1]-2)]
