@@ -1812,8 +1812,8 @@ class ModelGrid(ModelDataFields):
         except AttributeError:
             already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
 
-        fromnode_status = self.node_status[self.link_fromnode]
-        tonode_status = self.node_status[self.link_tonode]
+        fromnode_status = self.node_status[self.node_at_link_tail]
+        tonode_status = self.node_status[self.node_at_link_head]
 
         if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
                 (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
@@ -1858,8 +1858,8 @@ class ModelGrid(ModelDataFields):
         self._num_active_faces = self._num_active_links
         self._num_fixed_links = fixed_links.sum()
         self._num_fixed_faces = self._num_fixed_links
-        self.activelink_fromnode = self.link_fromnode[active_links]
-        self.activelink_tonode = self.link_tonode[active_links]
+        self.activelink_fromnode = self.node_at_link_tail[active_links]
+        self.activelink_tonode = self.node_at_link_head[active_links]
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
