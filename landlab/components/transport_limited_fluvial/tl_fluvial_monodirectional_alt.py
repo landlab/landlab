@@ -245,7 +245,7 @@ class TransportLimitedEroder(object):
 
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.cell_node] = grid.cell_areas
+        self.cell_areas[grid.node_at_cell] = grid.cell_areas
         self.dx2 = grid.node_spacing_horizontal**2
         self.dy2 = grid.node_spacing_vertical**2
         self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
@@ -377,8 +377,8 @@ class TransportLimitedEroder(object):
             node_at_link_end = np.empty_like(all_node_links, dtype=int)
             upslope_links[:,:2] = link_gradients[all_node_links[:,:2]]>=0.
             upslope_links[:,2:] = link_gradients[all_node_links[:,2:]]<=0.
-            node_at_link_end[:,:2] = grid.link_tonode[all_node_links[:,:2]]
-            node_at_link_end[:,2:] = grid.link_fromnode[all_node_links[:,2:]]
+            node_at_link_end[:,:2] = grid.node_at_link_head[all_node_links[:,:2]]
+            node_at_link_end[:,2:] = grid.node_at_link_tail[all_node_links[:,2:]]
             node_at_link_end_down = np.ma.array(node_at_link_end, mask = upslope_links) #...only the downslope links
             nodes_receiving = np.equal(flow_receiver.reshape((flow_receiver.size,1)),node_at_link_end_down)
             nodes_not_receiving = np.logical_not(np.ma.make_mask(nodes_receiving)) #still in the (N,4) format; now just a logical array of downslope inactive links

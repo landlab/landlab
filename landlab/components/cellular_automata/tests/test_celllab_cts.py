@@ -7,9 +7,14 @@ Created on Thu Jul  9 08:20:06 2015
 @author: gtucker
 """
 
-from landlab import RasterModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition
+from nose.tools import assert_equal
+from numpy.testing import assert_array_equal
+from landlab import RasterModelGrid, HexModelGrid
+from landlab.components.cellular_automata.celllab_cts import Transition, Event
 from landlab.components.cellular_automata.raster_cts import RasterCTS
+from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+from landlab.components.cellular_automata.hex_cts import HexCTS
+from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
 from heapq import heappush
 from heapq import heappop
 
@@ -27,6 +32,37 @@ def callback_function(ca, node1, node2, time_now):
 #    if ca.node_state[node2]==1:
 #        ca.prop_data[ca.propid[node2]]+=100*elapsed_time
 #    
+
+
+
+def test_transition():
+    """Test instantiation of Transition() object."""
+    t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test', 
+                   swap_properties=False, prop_update_fn=None)
+    assert_equal(t.from_state, (0,0,0))
+    assert_equal(t.to_state, (1,1,0))
+    assert_equal(t.rate, 1.0)
+    assert_equal(t.name, 'test')
+    assert_equal(t.swap_properties, False)
+    assert_equal(t.prop_update_fn, None)
+    
+    
+def test_event_init():
+    """Test instantiation of Event() object"""
+    e = Event(2.0, 3, 4, propswap=False, prop_update_fn=None)
+    assert_equal(e.time, 2.0)
+    assert_equal(e.link, 3)
+    assert_equal(e.xn_to, 4)
+    assert_equal(e.propswap, False)
+    assert_equal(e.prop_update_fn, None)
+
+
+def test_event_lt():
+    """Test Event.__lt__()"""
+    e1 = Event(2.0, 3, 4)
+    e2 = Event(5.0, 2, 3)
+    assert_equal(e1<e2, True)
+
 
 def test_raster_cts():
     """
@@ -59,7 +95,7 @@ def test_raster_cts():
     assert (ca.link_orientation[-1]==0), 'error in link orientation array'
     assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'
     assert (ca.n_xn[2]==1), 'error in n_xn'
-    assert (ca.cell_pair[1]==(0, 1, 0)), 'error in cell_pair list'
+    assert (ca.node_pair[1]==(0, 1, 0)), 'error in cell_pair list'
     
     # Manipulate the data in the event queue for testing:
     
@@ -93,6 +129,45 @@ def test_raster_cts():
     #assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
     
 
+def test_oriented_raster_cts():
+    """Tests instantiation of an OrientedRasterCTS() object"""
+    mg = RasterModelGrid(3, 3, 1.0)
+    nsd = {0 : 'oui', 1 : 'non'}
+    xnlist = []
+    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'hopping'))
+    nsg = mg.add_zeros('node', 'node_state_grid')
+    orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
+    
+    assert_equal(orcts.num_link_states, 8)
+    assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+
+    
+def test_hex_cts():
+    """Tests instantiation of a HexCTS() object"""
+    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
+    nsd = {0 : 'zero', 1 : 'one'}
+    xnlist = []
+    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
+    nsg = mg.add_zeros('node', 'node_state_grid')
+    hcts = HexCTS(mg, nsd, xnlist, nsg)
+    
+    assert_equal(hcts.num_link_states, 4)
+    assert_array_equal(hcts.link_orientation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    
+def test_oriented_hex_cts():
+    """Tests instantiation of an OrientedHexCTS() object"""
+    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
+    nsd = {0 : 'zero', 1 : 'one'}
+    xnlist = []
+    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
+    nsg = mg.add_zeros('node', 'node_state_grid')
+    ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
+    
+    assert_equal(ohcts.num_link_states, 12)
+    assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
+
+
 if __name__=='__main__':
-    test_raster_cts()
+    test_oriented_hex_cts()
     

@@ -75,19 +75,19 @@ def test_round_off_error():
 
 
 def test_2d_shape_2_by_3():
-    cell_nodes = sgrid.node_index_at_cells((2, 3))
+    cell_nodes = sgrid.node_at_cell((2, 3))
 
     assert_array_equal(cell_nodes, np.array([]))
 
 
 def test_2d_shape_3_by_3():
-    cell_nodes = sgrid.node_index_at_cells((3, 3))
+    cell_nodes = sgrid.node_at_cell((3, 3))
 
     assert_array_equal(cell_nodes, np.array([4]))
 
 
 def test_shape_4_by_5():
-    cell_nodes = sgrid.node_index_at_cells((4, 5))
+    cell_nodes = sgrid.node_at_cell((4, 5))
 
     assert_array_equal(cell_nodes, np.array([ 6,  7,  8,
                                              11, 12, 13]))
@@ -575,7 +575,7 @@ def test_active_faces():
 
 #class TestLinkFaces(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_4_by_5():
-    link_faces = sgrid.face_index_at_links((4, 5))
+    link_faces = sgrid.face_at_link((4, 5))
 
     BAD = sgrid.BAD_INDEX_VALUE
 
@@ -590,7 +590,7 @@ def test_4_by_5():
 def test_with_active_links():
     active_links = sgrid.active_links((4, 5))
     active_links = active_links[:-1]
-    link_faces = sgrid.face_index_at_links((4, 5), actives=active_links)
+    link_faces = sgrid.face_at_link((4, 5), actives=active_links)
 
     BAD = sgrid.BAD_INDEX_VALUE
 

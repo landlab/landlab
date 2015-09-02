@@ -28,12 +28,12 @@ def resolve_values_on_links(grid, link_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='link')
-    return np.multiply(((grid.node_x[grid.link_tonode] - 
-                         grid.node_x[grid.link_fromnode]) / 
+    return np.multiply(((grid.node_x[grid.node_at_link_head] - 
+                         grid.node_x[grid.node_at_link_tail]) / 
                          grid.link_length),
                          link_values, out=out), np.multiply(
-                       ((grid.node_y[grid.link_tonode] - 
-                         grid.node_y[grid.link_fromnode]) / 
+                       ((grid.node_y[grid.node_at_link_head] - 
+                         grid.node_y[grid.node_at_link_tail]) / 
                          grid.link_length),
                          link_values, out=out)
 
@@ -58,8 +58,8 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='link')
-    return np.divide(node_values[grid.link_tonode] -
-                     node_values[grid.link_fromnode],
+    return np.divide(node_values[grid.node_at_link_head] -
+                     node_values[grid.node_at_link_tail],
                      grid.link_length, out=out)
 
 
@@ -83,8 +83,8 @@ def calculate_diff_at_links(grid, node_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='link')
-    return np.subtract(node_values[grid.link_tonode],
-                       node_values[grid.link_fromnode], out=out)
+    return np.subtract(node_values[grid.node_at_link_head],
+                       node_values[grid.node_at_link_tail], out=out)
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):

@@ -155,7 +155,7 @@ This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Lin
 
   > pip install landlab
 
-- Once Landlab has been successfully installed, on the **Python shell line**, check to make sure it is up-to-date (note that those are double underscores around version)::
+- Once Landlab has been successfully installed, on the **Python shell line**, check to make sure it is up-to-date (note that those are double underscores around version; also note that you may need to close and reopen Anaconda before typing the below commands)::
 
   >>> import landlab
   >>> landlab.__version__

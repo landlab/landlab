@@ -349,12 +349,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 -1, -1, -1],
                [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1, -1,
                 -1, -1, -1]])
-        >>> rmg.cell_node
+        >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
-        >>> rmg.link_fromnode
+        >>> rmg.node_at_link_tail
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
                 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
-        >>> rmg.link_tonode
+        >>> rmg.node_at_link_head
         array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
                 3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
         >>> rmg.link_face[20]
@@ -450,13 +450,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self.cell_node = sgrid.node_index_at_cells(self.shape)
+        self._node_at_cell = sgrid.node_at_cell(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
         self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
-        self.core_cells = sgrid.core_cell_index(self.shape)
-        self.activecell_node = self.cell_node.copy()
-        self.corecell_node = self.cell_node
+        self._core_cells = sgrid.core_cell_index(self.shape)
+        self.activecell_node = self._node_at_cell.copy()
+        self.corecell_node = self._node_at_cell
         #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
@@ -485,8 +485,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  *--15-->*--16-->*--17-->*--18-->*
         #
         #   create the fromnode and tonode lists
-        (self.link_fromnode,
-         self.link_tonode) = sgrid.node_index_at_link_ends(self.shape)
+        (self._node_at_link_tail,
+         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
@@ -510,8 +510,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.face_index_at_links(self.shape,
-                                                   actives=self.active_link_ids)
+        self.link_face = sgrid.face_at_link(self.shape,
+                                            actives=self.active_link_ids)
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
@@ -1197,7 +1197,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError()
 
-        node_ids = self.cell_node[cell_ids]
+        node_ids = self.node_at_cell[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
@@ -3067,8 +3067,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         #determine the grid corners. This method has to be clever enough to realize when it's been given them!
         corner_nodes = self.corner_nodes
-        tonodes = self.link_tonode[link_IDs]
-        fromnodes = self.link_fromnode[link_IDs]
+        tonodes = self.node_at_link_head[link_IDs]
+        fromnodes = self.node_at_link_tail[link_IDs]
         tonode_boundaries = self.node_status[tonodes] != 0
         fromnode_boundaries = self.node_status[fromnodes] != 0
         edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
@@ -3860,62 +3860,61 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                  assume_unique=True)
 
     def get_link_connecting_node_pair(self, node_a, node_b):
-        '''
-        Returns an array of link indices that *node_a* and *node_b* share.
-        If the nodes do not share any links, returns an empty array.
-        The link does not have to be active.
-        '''
-        node_links_a = self.node_links(node_a)
-        node_links_b = self.node_links(node_b)
-        return np.intersect1d(node_links_a, node_links_b, assume_unique=True)
+        """Get the link that connects two nodes.
 
-    def get_active_link_connecting_node_pair(self, node_a, node_b):
-        """Returns an array of active link indices that *node_a* and *node_b*
-        share.
+        Returns the link ID that connects *node_a* and *node_b*.
+        If the nodes do not share any links, raises `ValueError`.
 
         Parameters
         ----------
-        node_a, node_b : ints, or lists or arrays of ints of equal length.
-                         IDs of the node pairs of interest
+        node_a : int
+            Node ID
+        node_b : int
+            Node ID
 
         Returns
         -------
-        1D numpy array
-            IDs of active link(s) connecting given node pair(s), or BAD_INDEX_VALUE if none found.
+        ndarray
+            Links that connect the nodes pairs.
 
+        Raises
+        ------
+        ValueError
+            If the given nodes are not connected by a link or the nodes are
+            the same.
+            
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 4)
-        >>> rmg.get_active_link_connecting_node_pair(5, 6)
-        array([5])
+        >>> rmg = RasterModelGrid((4, 5))
+
+        Nodes 6 and 7 are connected by link 20.
+
+        >>> rmg.get_link_connecting_node_pair(6, 7)
+        20
+
+        Nodes 6 and 8 are not connected by a link, so raise an exception.
+
+        >>> rmg.get_link_connecting_node_pair(6, 8) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: disconnected nodes
+
+        If *node_a* and *node_b* are the same node, also raise a `ValueError`.
+
+        >>> rmg.get_link_connecting_node_pair(6, 6) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: nodes are the same
         """
+        if node_a == node_b:
+            raise ValueError('nodes are the same')
 
-        # Get arrays containing active links attached to each of the two nodes.
-        # The method node_activelinks() returns a 2D array, with each column containing
-        # the active links for a particular node, so we need to flatten it to a 1D array.
-        node_links_a = self.node_activelinks(node_a)
-        node_links_b = self.node_activelinks(node_b)
+        links_at_a = self.node_links(node_a)
+        links_at_b = self.node_links(node_b)
 
-        # Create the array, which has as many columns entries as there are columns in node_links_a
-        # (which is the number of nodes of interest)
-        connecting_links_ids = BAD_INDEX_VALUE + np.zeros(node_links_a.shape[1], dtype=int)
-
-        # Iterate over the number of columns, which is equal to the number of nodes of interest.
-        # Yes, this uses a loop, which is generally to be avoided. However, this is the sort
-        # of method that isn't likely to be called for large numbers of node pairs repeatedly.
-        for i in range(node_links_a.shape[1]):
-
-            # Find any node IDs that the two links have in common.
-            common = np.intersect1d(node_links_a[:,i], node_links_b[:,i], assume_unique=True)
-
-            # Remove any -1 values from the list of common node IDs
-            # (-1 just means "no active link at this slot")
-            common = common[common!=-1]
-
-            connecting_links_ids[i] = common
-
-        return connecting_links_ids
+        try:
+            return np.intersect1d(links_at_a, links_at_b)[0]
+        except IndexError:
+            raise ValueError('disconnected nodes')
 
     def top_edge_node_ids(self):
         """Nodes along the top edge.
@@ -4171,14 +4170,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             s, a len(ids) array of slopes at each node provided.
             a, a len(ids) array of aspects at each node provided.
         """
-        if ids==None:
-            ids = self.node_index_at_cells
+        if ids == None:
+            ids = self.node_at_cell
         if type(ids) != np.ndarray:
             ids = np.array([ids])
         if type(vals) == str:
             vals = self.at_node[vals]
         else:
-            if not (len(vals)==self.number_of_nodes):
+            if len(vals) != self.number_of_nodes:
                 raise IndexError('*vals* was not of a compatible length!')
 
         neighbors = np.zeros([ids.shape[0],4], dtype = int)
@@ -4954,3 +4953,10 @@ def from_dict(param_dict):
 
     # Return the created and initialized grid
     return mg
+
+
+from ..core.utils import add_module_functions_to_class
+
+
+add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
+                              pattern='map_*')

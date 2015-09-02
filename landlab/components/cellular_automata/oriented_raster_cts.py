@@ -111,8 +111,8 @@ class OrientedRasterCTS(CellLabCTSModel):
         # Set its value according to the different in y coordinate between each
         # link's TO and FROM nodes (the numpy "astype" method turns the
         # resulting array into integer format)
-        dy = self.grid.node_y[self.grid.link_tonode] \
-             - self.grid.node_y[self.grid.link_fromnode]
+        dy = (self.grid.node_y[self.grid.node_at_link_head] -
+              self.grid.node_y[self.grid.node_at_link_tail])
         self.link_orientation = dy.astype(int)
         
         if _DEBUG:

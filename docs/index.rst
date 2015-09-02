@@ -110,6 +110,15 @@ Simple guides to functionality
    :maxdepth: 1
 
    standard_names
+   
+   
+CellLab-CTS
+-----------
+
+.. toctree::
+	:maxdepth: 1
+	
+	celllab_manual.rst
 
 
 Frequently Asked Questions

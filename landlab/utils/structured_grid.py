@@ -433,26 +433,26 @@ def active_cell_node(shape):
     For many instances, core_cell_node() may be preferred.
     Indices of the nodes belonging to each active (core + open boundary) cell.
     Since all cells are active in the default case, this is the same as
-    node_index_at_cells.
+    node_at_cell.
 
     >>> from landlab.utils.structured_grid import active_cell_node
     >>> active_cell_node((4,3))
     array([4, 7])
     """
-    return node_index_at_cells(shape)
+    return node_at_cell(shape)
 
 
 def core_cell_node(shape):
     """
     Indices of the nodes belonging to each core cell.
     Since all cells are core in the default case, this is the same as
-    node_index_at_cells.
+    node_at_cell.
 
     >>> from landlab.utils.structured_grid import core_cell_node
     >>> core_cell_node((4,3))
     array([4, 7])
     """
-    return node_index_at_cells(shape)
+    return node_at_cell(shape)
 
 
 def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
@@ -530,12 +530,12 @@ def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     return node_ids
 
 
-def node_index_at_cells(shape):
+def node_at_cell(shape):
     """
     Indices of the nodes belonging to each cell.
 
-    >>> from landlab.utils.structured_grid import node_index_at_cells
-    >>> node_index_at_cells((4, 3))
+    >>> from landlab.utils.structured_grid import node_at_cell
+    >>> node_at_cell((4, 3))
     array([4, 7])
     """
     node_ids = np.arange(node_count(shape))
@@ -551,8 +551,8 @@ def node_index_at_link_ends(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
 
-    return (node_index_at_link_head(node_ids),
-            node_index_at_link_tail(node_ids))
+    return (node_at_link_tail(node_ids),
+            node_at_link_head(node_ids))
 
 
 def inlink_index_at_node(shape):
@@ -563,20 +563,21 @@ def outlink_index_at_node(shape):
     return outlinks(shape, return_count=False)
 
 
-def node_index_at_link_tail(node_ids):
+def node_at_link_head(node_ids):
+    """Grid node at the end of a link"""
     vertical_links = node_ids[1:, :]
     horizontal_links = node_ids[:, 1:]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def node_index_at_link_head(node_ids):
+def node_at_link_tail(node_ids):
+    """Grid node at the start of a link"""
     vertical_links = node_ids[:-1, :]
     horizontal_links = node_ids[:, :-1]
     return np.concatenate((vertical_links.flat, horizontal_links.flat))
 
 
-def face_index_at_links(shape, actives=None,
-                        inactive_link_index=BAD_INDEX_VALUE):
+def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     """
     Returns an array that maps link ids to face ids. For inactive links,
     which do not have associated faces, set their ids to
@@ -585,8 +586,8 @@ def face_index_at_links(shape, actives=None,
     that only the perimeter nodes are inactive.
 
 
-    >>> from landlab.utils.structured_grid import face_index_at_links
-    >>> faces = face_index_at_links((3, 4), inactive_link_index=-1)
+    >>> from landlab.utils.structured_grid import face_at_link
+    >>> faces = face_at_link((3, 4), inactive_link_index=-1)
     >>> faces # doctest: +NORMALIZE_WHITESPACE
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
