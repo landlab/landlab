@@ -719,17 +719,16 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
         
     assert(len(net_unit_flux) == grid.number_of_nodes)
     
-    flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid.dx
+    flux = np.zeros(grid.number_of_links + 1)
+    flux[grid.active_links] = active_link_flux * grid.dx
 
     net_unit_flux[:] = (
-        (flux[grid.node_active_outlink_matrix[0][:]] +
-         flux[grid.node_active_outlink_matrix[1][:]]) -
-        (flux[grid.node_active_inlink_matrix[0][:]] +
-         flux[grid.node_active_inlink_matrix[1][:]])) / grid.cellarea
+        (flux[grid.node_active_outlink_matrix2[0][:]] +
+         flux[grid.node_active_outlink_matrix2[1][:]]) -
+        (flux[grid.node_active_inlink_matrix2[0][:]] +
+         flux[grid.node_active_inlink_matrix2[1][:]])) / grid.cellarea
 
     return net_unit_flux
-
 
 # TODO: Functions below here still need to be refactored for speed and to
 # conform to the interface standards.
