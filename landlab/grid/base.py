@@ -1851,8 +1851,8 @@ class ModelGrid(ModelDataFields):
         self.link_status[fixed_links] = 2
 
         active_links = self.link_status == 0  # now it's correct
-        self.active_link_ids = numpy.where(active_links)
-        self.fixed_link_ids = numpy.where(fixed_links)
+        (self.active_link_ids, ) = numpy.where(active_links)
+        (self.fixed_link_ids, ) = numpy.where(fixed_links)
 
         self._num_active_links = (active_links).sum()
         self._num_active_faces = self._num_active_links
