@@ -2,7 +2,7 @@ import numpy as np
 
 
 from . import nodes
-from ..base import CORE_NODE, CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+from ..base import CORE_NODE, CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from ..unstructured.links import LinkGrid
 
 
@@ -531,8 +531,8 @@ def is_active_link(shape, node_status):
     >>> from landlab.grid.structured_quad.links import is_active_link
     >>> status = status_with_perimeter_as_boundary((3, 4))
     >>> is_active_link((3, 4), status)
-    array([False,  True,  True, False, False,  True,  True, False, False,
-           False, False,  True,  True,  True, False, False, False], dtype=bool)
+    array([False, False, False, False, False, False, False, False, False,
+           False, False, False,  True, False, False, False, False], dtype=bool)
     """
     if np.prod(shape) != node_status.size:
         raise ValueError('node status array does not match size of grid '
@@ -562,11 +562,13 @@ def active_link_ids(shape, node_status):
 
     Examples
     --------
-    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
+    >>> from landlab.grid import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import active_link_ids
-    >>> status = status_with_perimeter_as_boundary((3, 4))
+    >>> rmg = RasterModelGrid(3, 4)
+    >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> status = rmg.node_status
     >>> active_link_ids((3, 4), status)
-    array([ 1,  2,  5,  6, 11, 12, 13])
+    array([12]
     """
     return np.where(is_active_link(shape, node_status))[0].astype(np.int,
                                                                   copy=False)
@@ -1304,22 +1306,23 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, BAD_INDEX_VALUE=-1):
     >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
     >>> horizontal_active_ids = horizontal_active_link_ids((4,5), active_link_ids)
     >>> find_d4_horizontal_neighbors((4,5), horizontal_active_ids)
-    array([[-1, -1, 19, -1],
+    array([[-1, -1, -1, -1],
            [-1, -1, 20, -1],
            [-1, -1, 21, -1],
-           [-1, -1, 22, -1],
-           [-1, -1, 23, 20],
-           [-1, 19, 24, 21],
-           [-1, 20, 25, 22],
-           [-1, 21, 26, -1],
-           [19, -1, -1, 24],
-           [20, 23, -1, 25],
-           [21, 24, -1, 26],
-           [22, 25, -1, -1],
-           [23, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, 20],
+           [-1, -1, 24, 21],
+           [-1, 20, 25, -1],
+           [-1, 21, -1, -1],
+           [-1, -1, -1, 24],
+           [20, -1, -1, 25],
+           [21, 24, -1, -1],
+           [-1, 25, -1, -1],
+           [-1, -1, -1, -1],
            [24, -1, -1, -1],
            [25, -1, -1, -1],
-           [26, -1, -1, -1]])
+           [-1, -1, -1, -1]])
+    
 
     
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
@@ -1396,14 +1399,10 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_ids, BAD_INDEX_VALUE=-
     >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
     >>> horizontal_active_ids = horizontal_active_link_ids((4,5), active_link_ids)
     >>> find_d4_horizontal_neighbors_active((4,5), horizontal_active_ids)
-    array([[-1, -1, 23, 20],
-           [-1, 19, 24, 21],
-           [-1, 20, 25, 22],
-           [-1, 21, 26, -1],
-           [19, -1, -1, 24],
-           [20, 23, -1, 25],
-           [21, 24, -1, 26],
-           [22, 25, -1, -1]])
+    array([[-1, -1, 24, 21],
+           [-1, 20, 25, -1],
+           [20, -1, -1, 25],
+           [21, 24, -1, -1]]
 
 
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
@@ -1806,23 +1805,22 @@ def find_d4_vertical_neighbors(shape, vertical_ids, BAD_INDEX_VALUE=-1):
     >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
     >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
     >>> find_d4_vertical_neighbors((4,5), vertical_active_ids)
-    array([[-1, -1, -1,  1],
-           [-1, -1,  6,  2],
-           [-1,  1,  7,  3],
-           [-1,  2,  8, -1],
-           [-1,  3, -1, -1],
+    array([[-1, -1, -1, -1],
+           [-1, -1,  6, -1],
+           [-1, -1,  7, -1],
+           [-1, -1,  8, -1],
+           [-1, -1, -1, -1],
            [-1, -1, -1,  6],
-           [ 1, -1, 11,  7],
-           [ 2,  6, 12,  8],
-           [ 3,  7, 13, -1],
+           [-1, -1, -1,  7],
+           [-1,  6, -1,  8],
+           [-1,  7, -1, -1],
            [-1,  8, -1, -1],
-           [-1, -1, -1, 11],
-           [ 6, -1, -1, 12],
-           [ 7, 11, -1, 13],
-           [ 8, 12, -1, -1],
-           [-1, 13, -1, -1]])
-    
-    
+           [-1, -1, -1, -1],
+           [ 6, -1, -1, -1],
+           [ 7, -1, -1, -1],
+           [ 8, -1, -1, -1],
+           [-1, -1, -1, -1]]
+        
     Example grid: Indicies are given for active vertical links in the 4x5 grid space.
                   Only vertical links are shown, asterisks (*) represent nodes.
                   
@@ -1886,15 +1884,9 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, BAD_INDEX_VALUE=-1):
     >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
     >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
     >>> find_d4_vertical_neighbors_active((4,5), vertical_active_ids)
-    array([[-1, -1,  6,  2],
-           [-1,  1,  7,  3],
-           [-1,  2,  8, -1],
-           [ 1, -1, 11,  7],
-           [ 2,  6, 12,  8],
-           [ 3,  7, 13, -1],
-           [ 6, -1, -1, 12],
-           [ 7, 11, -1, 13],
-           [ 8, 12, -1, -1]])
+    array([[-1, -1, -1,  7],
+           [-1,  6, -1,  8],
+           [-1,  7, -1, -1]]
 
     
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
@@ -2373,7 +2365,6 @@ def right_edge_vertical_ids(shape):
     right_edge_vertical_ids = vertical_id_array[:,(shape[1]-1)]
 
     return right_edge_vertical_ids
-
 
 class StructuredQuadLinkGrid(LinkGrid):
     def __init__(self, shape):
