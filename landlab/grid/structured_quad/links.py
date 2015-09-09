@@ -591,7 +591,7 @@ def is_fixed_link(shape, node_status):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.structured_quad.links import fixed_link_ids
+    >>> from landlab.grid.structured_quad.links import is_fixed_link
     >>> import numpy as np
     >>> rmg = RasterModelGrid(4, 5)
     >>> z = np.arange(0, rmg.number_of_nodes)

@@ -18,7 +18,7 @@ def test_perimeter_nodes():
 
 def test_perimeter_status_default():
     node_status = nodes.status_with_perimeter_as_boundary((4, 5))
-    F, C = FIXED_VALUE_BOUNDARY, CORE_NODE
+    F, C = CLOSED_BOUNDARY, CORE_NODE
     assert_array_equal(node_status,
                        [[F, F, F, F, F],
                         [F, C, C, C, F],
