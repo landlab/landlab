@@ -4704,7 +4704,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         37
         
         >>> rmg.link_status
-        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4]
        
         >>> rmg.fixed_link_properties['fixed_gradient_of']
         'topographic__slope'
@@ -4789,8 +4789,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # This allows us to make sure that all link boundaries follow 
         # the convention that FIXED_LINKs only occur between core and
         # fixed gradient nodes
-        fromnode_status = self.node_status[self.link_fromnode]
-        tonode_status = self.node_status[self.link_tonode] 
+        fromnode_status = self.node_status[self.node_at_link_tail]
+        tonode_status = self.node_status[self.node_at_link_head] 
         
         # Make sure the IDs are the correct type (Int, not Float)
         fixed_links = fixed_links.astype(int)

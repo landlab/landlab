@@ -2032,7 +2032,7 @@ class ModelGrid(ModelDataFields):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9)
-        >>> mg.node_status
+        >>> rmg.node_status
         array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
         
 
