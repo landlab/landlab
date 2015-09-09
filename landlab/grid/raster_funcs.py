@@ -730,7 +730,6 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     return net_unit_flux
 
-
 # TODO: Functions below here still need to be refactored for speed and to
 # conform to the interface standards.
 

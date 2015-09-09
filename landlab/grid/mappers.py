@@ -89,7 +89,7 @@ def map_link_head_node_to_link(mg, var_name, out=None):
 def map_link_tail_node_to_link(mg, var_name, out=None):
     """Map values from a link tail nodes to links.
 
-    map_values_from_link_tail_node_to_link iterates across the grid and
+    map_link_tail_node_to_link iterates across the grid and
     identifies the node at the "tail", or the "from" node for each link. For
     each link, the value of 'var_name' at the "from" node is mapped to the 
     corresponding link. 
@@ -143,7 +143,7 @@ def map_link_tail_node_to_link(mg, var_name, out=None):
 def map_min_of_link_nodes_to_link(mg, var_name, out=None):
     """Map the minimum of a link's nodes to the link.
 
-    map_link_end_node_min_value_link iterates across the grid and
+    map_min_of_link_nodes_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
     This function evaluates the value of 'var_name' at both the "to" and "from" node.
     The minimum value of the two node values is then mapped to the link.
@@ -196,7 +196,7 @@ def map_min_of_link_nodes_to_link(mg, var_name, out=None):
 def map_max_of_link_nodes_to_link(mg, var_name, out=None):
     """Map the maximum of a link's nodes to the link.
 
-    map_link_end_node_max_value_link iterates across the grid and
+    map_max_of_link_nodes_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
     This function evaluates the value of 'var_name' at both the "to" and "from" node.
     The maximum value of the two node values is then mapped to the link.
@@ -248,8 +248,8 @@ def map_max_of_link_nodes_to_link(mg, var_name, out=None):
 
 def map_mean_of_link_nodes_to_link(mg, var_name, out=None):
     """Map the mean of a link's nodes to the link.
-
-    map_values_from_link_end_nodes_to_link iterates across the grid and
+    
+    map_mean_of_link_nodes_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.  
     This function takes the sum of the two values of 'var_name' at both the "to"
     and "from" node. The average value of the two node values of 'var_name'
@@ -301,8 +301,8 @@ def map_mean_of_link_nodes_to_link(mg, var_name, out=None):
 
 def map_node_to_cell(mg, var_name, out=None):
     """Map values for nodes to cells.
-
-    map_values_from_cell_node_to_cell iterates across the grid and
+    
+    map_node_to_cell iterates across the grid and
     identifies the all node values of 'var_name'.  
     
     This function takes node values of 'var_name' and mapes that value to the
