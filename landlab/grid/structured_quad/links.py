@@ -599,7 +599,7 @@ def is_fixed_link(shape, node_status):
     >>> rmg['node']['topographic__elevation'] = z
     >>> rmg['link']['topographic__slope'] = s
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-    >>> fixed_link_ids(rmg.shape, rmg.node_status)
+    >>> is_fixed_link(rmg.shape, rmg.node_status)
     array([False,  True,  True,  True, False, False, False, False, False,
            False, False,  True,  True,  True, False, False, False, False,
            False,  True, False, False,  True,  True, False, False,  True,
@@ -1154,6 +1154,9 @@ def find_horizontal_north_neighbor(shape, horizontal_link_ids, BAD_INDEX_VALUE=-
     >>> horizontal_active_ids = horizontal_active_link_ids((4,5), active_link_ids)
     >>> find_horizontal_north_neighbor((4,5), horizontal_active_ids)
     array([-1, 20, 21, -1, -1, 24, 25, -1, -1, -1, -1, -1, -1, -1, -1, -1])
+    
+    
+    
     Example grid: Indicies are given for active horizontal links in the 4x5 grid space.
                   Only horizontal links are shown, asterisks (*) represent nodes.
                   In this example, link 20 has one north neighbor, link 24. In the 

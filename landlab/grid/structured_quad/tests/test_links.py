@@ -23,7 +23,7 @@ def test_active_links_ids():
 def test_active_links_with_edge_boundaries():
     status = status_with_perimeter_as_boundary((3, 4))
     link_ids = active_link_ids((3, 4), status)
-    assert_array_equal(link_ids, [1, 2, 5, 6, 11, 12, 13])
+    assert_array_equal(link_ids, [12])
     assert_array_is_int(link_ids)
 
 
