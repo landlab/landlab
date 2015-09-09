@@ -382,15 +382,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                 node_cell[node] = cell
                 cell_node[cell] = node
                 cell += 1
-<<<<<<< HEAD
 
-        #save the arrays
-        #self.node_cell = node_cell
-        #self.cell_node = cell_node
-
-=======
-                
->>>>>>> master
         return node_cell, cell_node
 
     @staticmethod
@@ -595,15 +587,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
 
         # Calculate the horizontal (dx) and vertical (dy) link offsets
-<<<<<<< HEAD
-        link_dx = self.node_x[self.link_tonode] - self.node_x[self.link_fromnode]
-        link_dy = self.node_y[self.link_tonode] - self.node_y[self.link_fromnode]
-
-=======
         link_dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
         link_dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
         
->>>>>>> master
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
         link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
@@ -623,21 +609,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         if len(flip_locs)>0:
 
             # Temporarily story the fromnode for these
-<<<<<<< HEAD
-            fromnode_temp = self.link_fromnode[flip_locs]
-
-            # The fromnodes now become the tonodes, and vice versa
-            self.link_fromnode[flip_locs] = self.link_tonode[flip_locs]
-            self.link_tonode[flip_locs] = fromnode_temp
-
-=======
             fromnode_temp = self.node_at_link_tail[flip_locs]
             
             # The fromnodes now become the tonodes, and vice versa
             self._node_at_link_tail[flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
             
->>>>>>> master
     def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
         """
         Uses a delaunay diagram drawn from the provided points to
