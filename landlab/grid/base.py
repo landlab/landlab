@@ -541,7 +541,7 @@ class ModelGrid(ModelDataFields):
         """Node id of all closed boundary nodes.
         """
         (closed_boundary_node_ids, ) = numpy.where(
-            self.node_status == CLOSED_BOUNDARY)
+            self.node_status =set_= CLOSED_BOUNDARY)
         return closed_boundary_node_ids.astype(numpy.int, copy=False)
 
     @property
@@ -1956,9 +1956,12 @@ class ModelGrid(ModelDataFields):
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
 
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
-        of node_data is equal to the nodata_value.
-
+        Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose value
+        of *node_data* is equal to the *nodata_value*.
+        
+        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically 
+        set to :any:`INACTIVE_LINK` boundary.
+        
         Parameters
         ----------
         node_data : ndarray
@@ -1966,8 +1969,31 @@ class ModelGrid(ModelDataFields):
         nodata_value : float
             Value that indicates an invalid value.
 
-        Code Example
+        Examples
         --------
+        
+        The following example uses the following grid::
+        
+          *--I--->o------>o------>o
+          ^       ^       ^       ^ 
+          I       I       |       |
+          |       |       |       |
+          *--I--->*--I--->o------>o
+          ^       ^       ^       ^
+          I       I       I       I 
+          |       |       |       |
+          *--I--->*--I--->*--I--->*
+     
+        .. note::         
+          
+          Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
+          
+        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`    
+     
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+            
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)

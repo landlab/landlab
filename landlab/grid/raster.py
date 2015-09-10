@@ -4655,7 +4655,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         value_of : string.
             The name of the grid field containing the values of interest.
 
-        Example grid:
+        Example
+        ----------
+        
+        The following grid is used in the example::
 
           *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
           ^       ^       ^       ^       ^       ^       ^       ^       ^
@@ -4671,43 +4674,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
           |       |       |       |       |       |       |       |       |
           *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
           
-          X indicates the links that are set to link_status==2 (FIXED_LINK)
-          I indicates the links that are set to link_status==4 (INACTIVE_LINK)
+        .. note::         
           
-          ~ Links with link_status==0 (ACTIVE_LINK) are not shown in this diagram. ~           
+          Links set to :any:`ACTIVE_LINK` are not indicated in this diagram.
           
-          o indicates the nodes that are set to node_status==0 (CORE_NODE)
-          * indicates the nodes that are set to node_status==2 (FIXED_GRADIENT)
-        
-        Example code:
-        --------
+        ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT BOUNDARY`    
+     
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+                    
+        ``x`` indicates the links that are set to :any:`FIXED_LINK`
+
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9, 1.0) # rows, columns, spacing
-        >>> rmg.number_of_links
-        59
-
-        Put some arbitrary values in the grid fields:
-
         >>> import numpy as np
         >>> z = np.arange(0, rmg.number_of_nodes)
         >>> s = np.arange(0, rmg.number_of_links)
-
         >>> rmg['node']['topographic__elevation'] = z
         >>> rmg['link']['topographic__slope'] = s
-
         >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-
         >>> rmg.node_status
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
-        
-        >>> rmg.number_of_active_links
-        19
-        
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 
+               0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
         >>> rmg.link_status
         array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2,
                2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 
                0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
-       
         >>> rmg.fixed_link_properties['fixed_gradient_of']
         'topographic__slope'
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
