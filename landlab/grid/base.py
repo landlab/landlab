@@ -1989,11 +1989,12 @@ class ModelGrid(ModelDataFields):
     def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
         """Make no-data nodes fixed gradient boundaries.
 
-        Sets self.node_status to FIXED_GRADIENT_BOUNDARY for all nodes whose value
-        of node_data is equal to the nodata_value.
-        
-        Any links between FIXED_GRADIENT_BOUNDARY nodes and CORE_NODES are 
-        automatically set to FIXED_LINK boundary status. 
+        Set node status to :any:`FIXED_GRADIENT_BOUNDARY` for all nodes
+        whose value of *node_data* is equal to *nodata_value*.
+
+        Any links between :any:`FIXED_GRADIENT_BOUNDARY` nodes and
+        :any:`CORE_NODES` are automatically set to :any:`FIXED_LINK` boundary
+        status. 
 
         Parameters
         ----------
@@ -2001,9 +2002,11 @@ class ModelGrid(ModelDataFields):
             Data values.
         nodata_value : float
             Value that indicates an invalid value.
-            
-            
-        Example grid:
+
+        Examples
+        --------
+
+        The following examples use this grid::
 
           *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
           ^       ^       ^       ^       ^       ^       ^       ^       ^
@@ -2019,34 +2022,49 @@ class ModelGrid(ModelDataFields):
           |       |       |       |       |       |       |       |       |
           *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
           
-          X indicates the links that are set to link_status==2 (FIXED_LINK)
-          I indicates the links that are set to link_status==4 (INACTIVE_LINK)
+        .. note::
+
+            Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
           
-          ~ Links with link_status==0 (ACTIVE_LINK) are not shown in this diagram. ~           
+        ``X`` indicates the links that are set to :any:`FIXED_LINK`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
           
-          o indicates the nodes that are set to node_status==0 (CORE_NODE)
-          * indicates the nodes that are set to node_status==2 (FIXED_GRADIENT)
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT_BOUNDARY`
         
-        Code Examples
-        --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9)
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
-        
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 1, 1, 1,
+               1, 0, 0, 0, 0, 0, 0, 0, 1,
+               1, 0, 0, 0, 0, 0, 0, 0, 1,
+               1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
 
         >>> z = rmg.create_node_array_zeros()
-        >>> z = np.array([-9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999.,     0.,     0.,     0.,     0.,     0., -9999., -9999., -9999., -9999.,     0.,     0.,     0.,     0.,     0., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+        >>> z = np.array([-99., -99., -99., -99., -99., -99., -99., -99., -99.,
+        ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
+        ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
+        ...               -99., -99., -99., -99., -99., -99., -99., -99., -99.])
         
-        >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -9999)
-        >>> rmg.node_status
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+        >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2,
+               2, 2, 2, 0, 0, 0, 0, 0, 2,
+               2, 2, 2, 0, 0, 0, 0, 0, 2,
+               2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
 
-        >>> rmg.link_status
-        array([4, 4, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 0, 0, 0, 0, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        array([4, 4, 4, 2, 2, 2, 2, 2, 4,
+               4, 4, 4, 0, 0, 0, 0, 0, 4,
+               4, 4, 4, 2, 2, 2, 2, 2, 4,
+               4, 4, 4, 4, 4, 4, 4, 4,
+               4, 4, 2, 0, 0, 0, 0, 2,
+               4, 4, 2, 0, 0, 0, 0, 2,
+               4, 4, 4, 4, 4, 4, 4, 4])
         """
-        
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
