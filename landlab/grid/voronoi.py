@@ -310,7 +310,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:,0]
         boundary_nodes = numpy.concatenate(
-            (convex_hull_nodes, coplanar_nodes)).astype(numpy.int, copy=True)
+            (convex_hull_nodes, coplanar_nodes)).astype(int, copy=False)
     
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
