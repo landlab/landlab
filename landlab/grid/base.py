@@ -1853,10 +1853,10 @@ class ModelGrid(ModelDataFields):
         active_links = self.link_status == 0  # now it's correct
         (self.active_link_ids, ) = numpy.where(active_links)
         (self.fixed_link_ids, ) = numpy.where(fixed_links)
-        self.active_link_ids = self.active_links_ids.astype(numpy.int,
-                                                            copy=False)
-        self.fixed_link_ids = self.active_links_ids.astype(numpy.int,
-                                                            copy=False)
+        self.active_link_ids = self.active_link_ids.astype(numpy.int,
+                                                           copy=False)
+        self.fixed_link_ids = self.active_link_ids.astype(numpy.int,
+                                                           copy=False)
 
         self._num_active_links = (active_links).sum()
         self._num_active_faces = self._num_active_links
