@@ -126,6 +126,7 @@ from heapq import heappop
 import landlab
 import numpy
 import pylab as plt
+from numpy import zeros
 
 _NEVER = 1e50
 
@@ -468,6 +469,10 @@ class CellLabCTSModel(object):
         dictionary keys are 3-element tuples, each of which represents the state
         of the TAIL node, the HEAD node, and the orientation of the link. The 
         values are integer codes representing the link state numbers.
+        
+        (Performance note: making self.node_pair a tuple does not appear to 
+        change time to lookup values in update_node_states. Changing it to a
+        2D array of int actually slows it down.)
         """
         self.link_state_dict = {}
         self.node_pair = []
@@ -476,9 +481,9 @@ class CellLabCTSModel(object):
             for tail_state in range(self.num_node_states):
                 for head_state in range(self.num_node_states):
                     self.link_state_dict[(tail_state,head_state,orientation)] = k
-                    k+=1
                     self.node_pair.append((tail_state,head_state,orientation))
-    
+                    k+=1
+                    
         if False and _DEBUG:
             print()
             print('create_link_state_dict_and_pair_list(): dict is:')
@@ -737,7 +742,7 @@ class CellLabCTSModel(object):
             for e in self.event_queue:
                 print('    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to)
             
-            
+    #@profile
     def update_node_states(self, tail_node, head_node, new_link_state):
         """
         Updates the states of the two nodes in the given link.
