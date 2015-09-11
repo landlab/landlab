@@ -541,7 +541,7 @@ class ModelGrid(ModelDataFields):
         """Node id of all closed boundary nodes.
         """
         (closed_boundary_node_ids, ) = numpy.where(
-            self.node_status =set_= CLOSED_BOUNDARY)
+            self.node_status == CLOSED_BOUNDARY)
         return closed_boundary_node_ids.astype(numpy.int, copy=False)
 
     @property
