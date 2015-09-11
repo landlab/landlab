@@ -168,6 +168,4 @@ def test_oriented_hex_cts():
     assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
 
 
-if __name__=='__main__':
-    test_oriented_hex_cts()
     
