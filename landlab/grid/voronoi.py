@@ -321,7 +321,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
-        core_nodes = numpy.where(node_status==0)[0].astype(numpy.int, copy=False)
+        core_nodes = numpy.where(node_status==0)[0].astype(numpy.int64, copy=False)
         
         #save the arrays and update the properties
         self.node_status = node_status
