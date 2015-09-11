@@ -5,8 +5,7 @@ import numpy as np
 
 
 def count_repeated_values(x):
-    """
-    Count how many times in an array values repeat and where they appear.
+    """Count how many times in an array values repeat and where they appear.
 
     Return a list of length *n* that gives the values and indices of repeated
     values. The first element of the list will be the values and indices of
@@ -15,8 +14,21 @@ def count_repeated_values(x):
     length of the returned list will be the maximum number that any value is
     repeated in *x*.
 
-    For example, for an array that contains no repeated values, this function
-    just returns a copy of *x*, and the indices to each element.
+    Parameters
+    ----------
+    x : array_like
+        Input array to count repeated values.
+
+    Returns
+    -------
+    list of tuple
+        List of tuples of (*repeated_values*, *indices*).
+
+    Examples
+    --------
+
+    For an array that contains no repeated values, this function just returns
+    a copy of *x*, and the indices to each element.
     
     >>> import numpy as np
     >>> from landlab.utils.count_repeats import count_repeated_values
@@ -31,20 +43,21 @@ def count_repeated_values(x):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeated_values(np.array([20, 30, 40, 30], dtype=np.int))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30], dtype=np.int))
     >>> len(counts)
-    2
+    3
     >>> counts[0]
     (array([20, 30, 40]), array([0, 1, 2]))
     >>> counts[1]
     (array([30]), array([3]))
-
+    >>> counts[2]
+    (array([30]), array([4]))
     """
     counts = []
 
     (unique_values, unique_inds) = np.unique(x, return_index=True)
     if len(unique_values) > 0:
-        x_inds = np.arange(len(x))
+        x_inds = np.arange(len(x), dtype=np.int)
         counts.append((unique_values, unique_inds.astype(np.int, copy=False)))
 
         while 1:
@@ -53,8 +66,7 @@ def count_repeated_values(x):
             (unique_values, unique_inds) = np.unique(x, return_index=True)
 
             if len(unique_values) > 0:
-                counts.append((unique_values,
-                               x_inds[unique_inds].astype(np.int, copy=False)))
+                counts.append((unique_values, x_inds[unique_inds]))
             else:
                 break
 
