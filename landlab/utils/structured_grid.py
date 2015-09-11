@@ -1853,7 +1853,7 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
 
     return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
                                  (cols, cols, cols + 1, cols + 1)),
-                                shape, mode=mode).T.astype(np.int, copy=False)
+                                shape, mode=mode).T.astype(np.int, copy=True)
 
 
 def nodes_around_points(shape, coords, spacing=(1., 1.),
