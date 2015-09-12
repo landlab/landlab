@@ -21,7 +21,6 @@ def as_id_array(x):
 
     Examples
     --------
-
     >>> import numpy as np
     >>> from landlab.core.utils import as_id_array
     >>> x = np.arange(5)
@@ -35,16 +34,22 @@ def as_id_array(x):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
+    >>> y.dtype == np.int
+    True
 
     >>> x = np.arange(5, dtype=np.int64)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
+    >>> y.dtype == np.int
+    True
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
+    >>> y.dtype == np.int
+    True
     """
     if x.dtype != np.int or x.itemsize != SIZEOF_INT:
         id_array = x.astype(np.int, copy=True)
