@@ -41,9 +41,12 @@ def as_id_array(x):
     >>> y
     array([0, 1, 2, 3, 4])
     """
-    id_array = x.astype(np.int, copy=False)
-    if id_array.dtype.itemsize != SIZEOF_INT:
-        raise RuntimeError('id array is of type {dtype}'.format(dtype=id_array.dtype))
+    if x.dtype != np.int and x.itemsize != SIZEOF_INT:
+        id_array = x.astype(np.int, copy=True)
+        if id_array.dtype.itemsize != SIZEOF_INT:
+            raise RuntimeError('id array is of type {dtype}'.format(dtype=id_array.dtype))
+    else:
+        id_array = x
     return id_array
 
 
