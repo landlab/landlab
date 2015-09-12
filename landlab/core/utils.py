@@ -60,15 +60,7 @@ def as_id_array(x):
     if x.dtype == np.int:
         return x.view(np.int)
     else:
-        return x.astype(np.int, copy=True)
-
-    if x.dtype != np.int or x.itemsize != SIZEOF_INT:
-        id_array = x.astype(np.int, copy=True)
-        if id_array.dtype.itemsize != SIZEOF_INT:
-            raise RuntimeError('id array is of type {dtype}'.format(dtype=id_array.dtype))
-    else:
-        id_array = x
-    return id_array
+        return x.astype(np.int)
 
 
 def get_functions_from_module(mod, pattern=None):
