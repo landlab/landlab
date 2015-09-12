@@ -40,6 +40,11 @@ def as_id_array(x):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
+
+    >>> x = np.arange(5, dtype=np.intp)
+    >>> y = as_id_array(x)
+    >>> y
+    array([0, 1, 2, 3, 4])
     """
     if x.dtype != np.int and x.itemsize != SIZEOF_INT:
         id_array = x.astype(np.int, copy=True)
