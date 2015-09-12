@@ -27,8 +27,6 @@ def as_id_array(x):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> x is y
-    True
 
     >>> x = np.arange(5, dtype=np.int)
     >>> y = as_id_array(x)
