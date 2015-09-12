@@ -1,5 +1,48 @@
 #! /usr/bin/env python
 
+import numpy as np
+
+
+def as_id_array(x):
+    """Convert an array to an array of ids.
+
+    Parameters
+    ----------
+    x : ndarray
+        Array of IDs.
+
+    Returns
+    -------
+    ndarray
+        A, possibly new, array of IDs.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> from landlab.core.utils import as_id_array
+    >>> x = np.arange(5)
+    >>> y = as_id_array(x)
+    >>> y
+    array([0, 1, 2, 3, 4])
+    >>> x is y
+    True
+
+    >>> x = np.arange(5, dtype=np.int32)
+    >>> y = as_id_array(x)
+    >>> y
+    array([0, 1, 2, 3, 4])
+
+    >>> x = np.arange(5, dtype=np.int64)
+    >>> y = as_id_array(x)
+    >>> y
+    array([0, 1, 2, 3, 4])
+    """
+    id_array = x.astype(np.int, copy=False)
+    if id_array.dtype != np.int:
+        raise RuntimeError('id array is of type {dtype}'.format(dtype=id_array.dtype))
+    return id_array
+
 
 def get_functions_from_module(mod, pattern=None):
     import inspect, re
