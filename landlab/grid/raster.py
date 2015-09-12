@@ -22,6 +22,7 @@ from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
+from ..core.utils import as_id_array
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -3935,10 +3936,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([13,  4])
         """
         ids = np.ravel_multi_index((row, col), self.shape, **kwds)
-        try:
-            return ids.astype(np.int, copy=False)
-        except TypeError:
-            return ids.astype(np.int)
+        return as_id_array(ids)
 
     def _setup_face_widths(self):
         """
