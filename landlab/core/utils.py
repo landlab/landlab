@@ -30,6 +30,13 @@ def as_id_array(x):
     >>> x is y
     True
 
+    >>> x = np.arange(5, dtype=np.int)
+    >>> y = as_id_array(x)
+    >>> y
+    array([0, 1, 2, 3, 4])
+    >>> x is y
+    True
+
     >>> x = np.arange(5, dtype=np.int32)
     >>> y = as_id_array(x)
     >>> y
@@ -45,6 +52,8 @@ def as_id_array(x):
     True
 
     >>> x = np.arange(5, dtype=np.intp)
+    >>> x.dtype
+    >>> np.dtype(np.intp) != np.int
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
