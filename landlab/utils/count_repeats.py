@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from ..core.utils import as_id_array
+
 
 def count_repeated_values(x):
     """Count how many times in an array values repeat and where they appear.
@@ -58,7 +60,8 @@ def count_repeated_values(x):
     (unique_values, unique_inds) = np.unique(x, return_index=True)
     if len(unique_values) > 0:
         x_inds = np.arange(len(x), dtype=np.int)
-        counts.append((unique_values, unique_inds.astype(np.int, copy=True)))
+        #counts.append((unique_values, unique_inds.astype(np.int, copy=True)))
+        counts.append((unique_values, as_id_array(unique_inds)))
 
         while 1:
             x = np.delete(x, unique_inds)
