@@ -3,6 +3,9 @@
 import numpy as np
 
 
+SIZEOF_INT = np.dtype(np.int).itemsize
+
+
 def as_id_array(x):
     """Convert an array to an array of ids.
 
@@ -39,7 +42,7 @@ def as_id_array(x):
     array([0, 1, 2, 3, 4])
     """
     id_array = x.astype(np.int, copy=False)
-    if id_array.dtype != np.int:
+    if id_array.dtype.itemsize != SIZEOF_INT:
         raise RuntimeError('id array is of type {dtype}'.format(dtype=id_array.dtype))
     return id_array
 
