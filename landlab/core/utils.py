@@ -61,7 +61,9 @@ def as_id_array(x):
     True
     """
     if x.dtype == np.intp and np.dtype(np.intp) == np.int:
-        return np.array(x, dtype=np.int)
+        id_array = x.view(np.int)
+        return id_array
+        #return np.array(x, dtype=np.int)
 
     if x.dtype != np.int or x.itemsize != SIZEOF_INT:
         id_array = x.astype(np.int, copy=True)
