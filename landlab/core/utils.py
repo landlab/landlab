@@ -34,8 +34,6 @@ def as_id_array(x):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> x is y
-    True
 
     >>> x = np.arange(5, dtype=np.int32)
     >>> y = as_id_array(x)
@@ -52,8 +50,6 @@ def as_id_array(x):
     True
 
     >>> x = np.arange(5, dtype=np.intp)
-    >>> x.dtype
-    >>> np.dtype(np.intp) == np.int
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
@@ -61,9 +57,12 @@ def as_id_array(x):
     True
     """
     if x.dtype == np.intp and np.dtype(np.intp) == np.int:
-        id_array = x.view(np.int)
-        return id_array
-        #return np.array(x, dtype=np.int)
+        return x.view(np.int)
+
+    if x.dtype == np.int:
+        return x.view(np.int)
+    else:
+        return x.astype(np.int, copy=True)
 
     if x.dtype != np.int or x.itemsize != SIZEOF_INT:
         id_array = x.astype(np.int, copy=True)
