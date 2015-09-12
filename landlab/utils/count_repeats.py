@@ -50,6 +50,14 @@ def count_repeated_values(x):
     3
     >>> counts[0]
     (array([20, 30, 40]), array([0, 1, 2]))
+    >>> counts[0][0].dtype
+    dtype('int64')
+    >>> counts[0][0].dtype.itemsize
+    8
+    >>> counts[0][1].dtype
+    dtype('int64')
+    >>> counts[0][1].dtype.itemsize
+    8
     >>> counts[1]
     (array([30]), array([3]))
     >>> counts[2]
