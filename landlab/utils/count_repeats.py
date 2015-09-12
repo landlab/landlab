@@ -50,14 +50,6 @@ def count_repeated_values(x):
     3
     >>> counts[0]
     (array([20, 30, 40]), array([0, 1, 2]))
-    >>> counts[0][0].dtype
-    dtype('int64')
-    >>> counts[0][0].dtype.itemsize
-    8
-    >>> counts[0][1].dtype
-    dtype('int64')
-    >>> counts[0][1].dtype.itemsize
-    8
     >>> counts[1]
     (array([30]), array([3]))
     >>> counts[2]
@@ -66,22 +58,6 @@ def count_repeated_values(x):
     counts = []
 
     (unique_values, unique_inds) = np.unique(x, return_index=True)
-    #if len(unique_values) > 0:
-    #    x_inds = np.arange(len(x), dtype=np.int)
-    #    #counts.append((unique_values, unique_inds.astype(np.int, copy=True)))
-    #    #counts.append((unique_values, as_id_array(unique_inds)))
-    #    counts.append((unique_values, x_inds[unique_ids]))
-
-    #    while 1:
-    #        x = np.delete(x, unique_inds)
-    #        x_inds = np.delete(x_inds, unique_inds)
-    #        (unique_values, unique_inds) = np.unique(x, return_index=True)
-
-    #        if len(unique_values) > 0:
-    #            counts.append((unique_values, x_inds[unique_inds]))
-    #        else:
-    #            break
-
     x_inds = np.arange(len(x), dtype=np.int)
     while len(unique_values) > 0:
         counts.append((unique_values, x_inds[unique_inds]))
