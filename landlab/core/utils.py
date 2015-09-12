@@ -53,14 +53,14 @@ def as_id_array(x):
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> x.dtype
-    >>> np.dtype(np.intp) != np.int
+    >>> np.dtype(np.intp) == np.int
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
     >>> y.dtype == np.int
     True
     """
-    if x.dtype == np.intp and np.dtype(np.intp) != np.int:
+    if x.dtype == np.intp and np.dtype(np.intp) == np.int:
         return np.array(x, dtype=np.int)
 
     if x.dtype != np.int or x.itemsize != SIZEOF_INT:
