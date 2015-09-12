@@ -66,19 +66,27 @@ def count_repeated_values(x):
     counts = []
 
     (unique_values, unique_inds) = np.unique(x, return_index=True)
-    if len(unique_values) > 0:
-        x_inds = np.arange(len(x), dtype=np.int)
-        #counts.append((unique_values, unique_inds.astype(np.int, copy=True)))
-        counts.append((unique_values, as_id_array(unique_inds)))
+    #if len(unique_values) > 0:
+    #    x_inds = np.arange(len(x), dtype=np.int)
+    #    #counts.append((unique_values, unique_inds.astype(np.int, copy=True)))
+    #    #counts.append((unique_values, as_id_array(unique_inds)))
+    #    counts.append((unique_values, x_inds[unique_ids]))
 
-        while 1:
-            x = np.delete(x, unique_inds)
-            x_inds = np.delete(x_inds, unique_inds)
-            (unique_values, unique_inds) = np.unique(x, return_index=True)
+    #    while 1:
+    #        x = np.delete(x, unique_inds)
+    #        x_inds = np.delete(x_inds, unique_inds)
+    #        (unique_values, unique_inds) = np.unique(x, return_index=True)
 
-            if len(unique_values) > 0:
-                counts.append((unique_values, x_inds[unique_inds]))
-            else:
-                break
+    #        if len(unique_values) > 0:
+    #            counts.append((unique_values, x_inds[unique_inds]))
+    #        else:
+    #            break
+
+    x_inds = np.arange(len(x), dtype=np.int)
+    while len(unique_values) > 0:
+        counts.append((unique_values, x_inds[unique_inds]))
+        x = np.delete(x, unique_inds)
+        x_inds = np.delete(x_inds, unique_inds)
+        (unique_values, unique_inds) = np.unique(x, return_index=True)
 
     return counts
