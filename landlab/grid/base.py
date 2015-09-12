@@ -188,6 +188,7 @@ from landlab.field import ModelDataFields, ScalarDataFields
 from landlab.field.scalar_data_fields import FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
+from ..core.utils import as_id_array
 
 
 #: Indicates an index is, in some way, *bad*.
@@ -461,7 +462,7 @@ class ModelGrid(ModelDataFields):
         core_nodes will return just core nodes.
         """
         (active_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        return active_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(active_node_ids)
 
     @property
     def core_nodes(self):
@@ -472,7 +473,7 @@ class ModelGrid(ModelDataFields):
             return self._core_nodes
         except:
             (core_node_ids, ) = numpy.where(self.node_status == CORE_NODE)
-            return core_node_ids.astype(numpy.int, copy=False)
+            return as_id_array(core_node_ids)
 
     @property
     def boundary_nodes(self):
@@ -483,7 +484,7 @@ class ModelGrid(ModelDataFields):
             return self._boundary_nodes
         except:
             (boundary_node_ids, ) = numpy.where(self.node_status != CORE_NODE)
-            return boundary_node_ids.astype(numpy.int, copy=False)
+            return as_id_array(boundary_node_ids)
 
     @property
     def node_boundary_status(self):
@@ -509,7 +510,7 @@ class ModelGrid(ModelDataFields):
         Node id for all nodes not marked as a closed boundary
         """
         (open_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        return open_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(open_node_ids)
 
     @property
     def open_boundary_nodes(self):
@@ -517,7 +518,7 @@ class ModelGrid(ModelDataFields):
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
-        return open_boundary_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(open_boundary_node_ids)
 
     @property
     def closed_boundary_nodes(self):
@@ -525,7 +526,7 @@ class ModelGrid(ModelDataFields):
         """
         (closed_boundary_node_ids, ) = numpy.where(
             self.node_status == CLOSED_BOUNDARY)
-        return closed_boundary_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(closed_boundary_node_ids)
 
     @property
     def fixed_gradient_boundary_nodes(self):
@@ -533,7 +534,7 @@ class ModelGrid(ModelDataFields):
         """
         (fixed_gradient_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_GRADIENT_BOUNDARY)
-        return fixed_gradient_boundary_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(fixed_gradient_boundary_node_ids)
 
     @property
     def fixed_value_boundary_nodes(self):
@@ -541,7 +542,7 @@ class ModelGrid(ModelDataFields):
         """
         (fixed_value_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_VALUE_BOUNDARY)
-        return fixed_value_boundary_node_ids.astype(numpy.int, copy=False)
+        return as_id_array(fixed_value_boundary_node_ids)
 
     @property
     def active_links(self):
@@ -561,13 +562,13 @@ class ModelGrid(ModelDataFields):
             use :func:`node_at_core_cell` for an exact equivalent.
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return active_cell_ids.astype(numpy.int, copy=False)
+        return as_id_array(active_cell_ids)
 
     @property
     def node_at_core_cell(self):
         """Node ID associated with core grid cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return core_cell_ids.astype(numpy.int, copy=False)
+        return as_id_array(core_cell_ids)
 
     @property
     def active_cell_index_at_nodes(self):
@@ -697,7 +698,7 @@ class ModelGrid(ModelDataFields):
             Deprecated due to outdated terminology;
             use :func:`get_core_nodes` instead.
         """
-        return numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int, copy=False)
+        return as_id_array(numpy.where(self.node_status == CORE_NODE)[0])
 
     def get_core_nodes(self):
         """Node IDs of core nodes.
@@ -1724,7 +1725,7 @@ class ModelGrid(ModelDataFields):
                          (fromnode_status == CLOSED_BOUNDARY)))
 
         (self.active_link_ids, ) = numpy.where(active_links)
-        self.active_link_ids = self.active_link_ids.astype(numpy.int, copy=False)
+        self.active_link_ids = as_id_array(self.active_link_ids)
 
         self._num_active_links = len(self.active_link_ids)
         self._num_active_faces = self._num_active_links
@@ -1751,8 +1752,8 @@ class ModelGrid(ModelDataFields):
             node_corecell
             _boundary_nodes
         """
-        self.activecell_node = numpy.where(self.node_status != CLOSED_BOUNDARY)[0].astype(numpy.int, copy=False)
-        self.corecell_node = numpy.where(self.node_status == CORE_NODE)[0].astype(numpy.int, copy=False)
+        self.activecell_node = as_id_array(numpy.where(self.node_status != CLOSED_BOUNDARY)[0])
+        self.corecell_node = as_id_array(numpy.where(self.node_status == CORE_NODE)[0])
         self._num_core_cells = self.corecell_node.size
         self._num_core_nodes = self._num_core_cells
         self._num_active_nodes = self.activecell_node.size
@@ -1765,7 +1766,7 @@ class ModelGrid(ModelDataFields):
         self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
-        self._boundary_nodes = numpy.where(self.node_status != CORE_NODE)[0].astype(numpy.int, copy=False)
+        self._boundary_nodes = as_id_array(numpy.where(self.node_status != CORE_NODE)[0])
 
 
     def update_links_nodes_cells_to_new_BCs(self):
@@ -2001,9 +2002,8 @@ class ModelGrid(ModelDataFields):
 
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
-        self.node_numactiveinlink = numpy.bincount(
-            tonodes, minlength=self.number_of_nodes).astype(numpy.int,
-                                                            copy=False)
+        self.node_numactiveinlink = as_id_array(numpy.bincount(
+            tonodes, minlength=self.number_of_nodes))
 
         counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
@@ -2011,9 +2011,8 @@ class ModelGrid(ModelDataFields):
 
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
-        self.node_numactiveoutlink = numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
-                                                              copy=False)
+        self.node_numactiveoutlink = as_id_array(numpy.bincount(
+            fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
@@ -2036,9 +2035,8 @@ class ModelGrid(ModelDataFields):
 
         # Set up the inlink arrays
         tonodes = self.node_at_link_head[self.active_links]
-        self.node_numactiveinlink = numpy.bincount(
-            tonodes, minlength=self.number_of_nodes).astype(numpy.int,
-                                                            copy=False)
+        self.node_numactiveinlink = as_id_array(numpy.bincount(
+            tonodes, minlength=self.number_of_nodes))
 
         # OK, HERE WE HAVE TO MAKE A CHANGE, BECAUSE THE INDICES RETURNED BY
         # count_repeated_values ARE "ACTIVE LINK INDICES", WHICH WE ARE NO
@@ -2052,9 +2050,8 @@ class ModelGrid(ModelDataFields):
 
         # Set up the outlink arrays
         fromnodes = self.node_at_link_tail[self.active_links]
-        self.node_numactiveoutlink = numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes).astype(numpy.int,
-                                                              copy=False)
+        self.node_numactiveoutlink = as_id_array(numpy.bincount(
+            fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix2[count][fromnodes] = self.active_links[active_link_ids]
@@ -2406,7 +2403,7 @@ class ModelGrid(ModelDataFields):
         ndarray
             IDs of boundary nodes.
         """
-        return numpy.where(self.node_status != 0)[0].astype(numpy.int, copy=False)
+        return as_id_array(numpy.where(self.node_status != 0)[0])
 
     def _assign_boundary_nodes_to_grid_sides(self):
         """
