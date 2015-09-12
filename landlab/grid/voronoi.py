@@ -5,6 +5,8 @@ import six
 from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
+from landlab.core.utils import as_id_array
+
 from scipy.spatial import Voronoi
 
 def simple_poly_area(x, y):
@@ -312,6 +314,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         boundary_nodes = numpy.concatenate(
             (convex_hull_nodes.astype(numpy.int, copy=True),
              coplanar_nodes.astype(numpy.int, copy=True)))
+        boundary_nodes = as_id_array(numpy.concatenate(
+            (convex_hull_nodes, coplanar_nodes)))
 
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
