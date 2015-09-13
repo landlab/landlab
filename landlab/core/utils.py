@@ -54,13 +54,24 @@ def as_id_array(x):
     >>> y.dtype == np.int
     True
     """
-    if x.dtype == np.intp and np.dtype(np.intp) == np.int:
-        return x.view(np.int)
-
     if x.dtype == np.int:
         return x.view(np.int)
     else:
         return x.astype(np.int)
+
+
+if np.dtype(np.intp) == np.int:
+    def _as_id_array(x):
+        if x.dtype == np.intp or x.dtype == np.int:
+            return x.view(np.int)
+        else:
+            return x.astype(np.int)
+else:
+    def _as_id_array(x):
+        if x.dtype == np.int:
+            return x.view(np.int)
+        else:
+            return x.astype(np.int)
 
 
 def get_functions_from_module(mod, pattern=None):
