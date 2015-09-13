@@ -1,8 +1,8 @@
-scipy>=0.14
+scipy
 numpy
-nose>=1.3
+nose
 matplotlib
-netCDF4
+numpydoc
 sympy
 pandas
 cython>=0.22
