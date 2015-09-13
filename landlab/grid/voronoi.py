@@ -311,9 +311,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # points. We include these in our set of boundary nodes.
         convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:,0]
-        boundary_nodes = numpy.concatenate(
-            (convex_hull_nodes.astype(numpy.int, copy=True),
-             coplanar_nodes.astype(numpy.int, copy=True)))
         boundary_nodes = as_id_array(numpy.concatenate(
             (convex_hull_nodes, coplanar_nodes)))
 
@@ -326,7 +323,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         node_status[boundary_nodes] = 1
         
         # It's also useful to have a list of interior nodes
-        core_nodes = numpy.where(node_status==0)[0].astype(numpy.int, copy=False)
+        core_nodes = as_id_array(numpy.where(node_status==0)[0])
         
         #save the arrays and update the properties
         self.node_status = node_status
