@@ -22,6 +22,7 @@ from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
+from ..core.utils import as_id_array
 
 
 def node_has_boundary_neighbor(mg, id):
@@ -963,7 +964,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                               (diag_fromnode_status == CLOSED_BOUNDARY)))
 
         (_diag_active_links, ) = np.where(diag_active_links)
-        _diag_active_links = _diag_active_links.astype(np.int, copy=False)
+        _diag_active_links = as_id_array(_diag_active_links)
 
         self._num_diag_active_links = len(_diag_active_links)
         self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
@@ -1544,7 +1545,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             ID = int(ID)
         except:
-            ID = ID.astype(np.int, copy=False)
+            ID = as_id_array(ID)
         return np.array([ID, ID + self.number_of_node_columns,
                          ID + self.number_of_node_columns + 1, ID + 1])
 
@@ -2482,7 +2483,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #save some internal data to speed updating:
         self.fixed_value_node_properties = {}
-        self.fixed_value_node_properties['boundary_node_IDs'] = np.where(self.node_status==FIXED_VALUE_BOUNDARY)[0].astype(np.int, copy=False)
+        self.fixed_value_node_properties['boundary_node_IDs'] = as_id_array(
+            np.where(self.node_status == FIXED_VALUE_BOUNDARY)[0])
+
         if value:
             if type(value) == float or type(value) == int:
                 values_to_use = float(value)
@@ -2613,8 +2616,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties = {}
         all_the_IDs = np.concatenate((these_boundary_IDs, existing_IDs))
         ID_ordering = np.argsort(all_the_IDs)
-        self.looped_node_properties['boundary_node_IDs'] = all_the_IDs[ID_ordering].astype(np.int, copy=False)
-        self.looped_node_properties['linked_node_IDs'] = np.concatenate((these_linked_nodes,existing_links))[ID_ordering].astype(np.int, copy=False)
+        self.looped_node_properties['boundary_node_IDs'] = as_id_array(all_the_IDs[ID_ordering])
+        self.looped_node_properties['linked_node_IDs'] = as_id_array(np.concatenate((these_linked_nodes,existing_links))[ID_ordering])
 
         if np.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
             raise AttributeError('Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
@@ -2907,10 +2910,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
             self.fixed_gradient_node_properties['fixed_gradient_of'] = gradient_of
-            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(np.int, copy=False)
-            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(np.int, copy=False)
+            self.fixed_gradient_node_properties['boundary_node_IDs'] = as_id_array(fixed_gradient_nodes)
+            self.fixed_gradient_node_properties['anchor_node_IDs'] = as_id_array(fixed_gradient_linked_nodes)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links.astype(np.int, copy=False)
+            self.fixed_gradient_link_properties['boundary_link_IDs'] = as_id_array(boundary_links)
             #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
             self.fixed_gradient_link_properties['boundary_link_gradients'] = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 
@@ -2935,10 +2938,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
             self.fixed_gradient_node_properties['fixed_gradient_of'] = gradient_of
-            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_gradient_nodes.astype(np.int, copy=False)
-            self.fixed_gradient_node_properties['anchor_node_IDs'] = fixed_gradient_linked_nodes.astype(np.int, copy=False)
+            self.fixed_gradient_node_properties['boundary_node_IDs'] = as_id_array(fixed_gradient_nodes)
+            self.fixed_gradient_node_properties['anchor_node_IDs'] = as_id_array(fixed_gradient_linked_nodes)
             self.fixed_gradient_node_properties['values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties['boundary_link_IDs'] = boundary_links.astype(np.int, copy=False)
+            self.fixed_gradient_link_properties['boundary_link_IDs'] = as_id_array(boundary_links)
             #Update the link gradients over whole grid, as if there's values in the grid already, there could be compatibility issues...
             self.fixed_gradient_link_properties['boundary_link_gradients'] = self.calculate_gradients_at_links(self['node'][gradient_of])[boundary_links]
 
@@ -3935,10 +3938,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([13,  4])
         """
         ids = np.ravel_multi_index((row, col), self.shape, **kwds)
-        try:
-            return ids.astype(np.int, copy=False)
-        except TypeError:
-            return ids.astype(np.int)
+        return as_id_array(ids)
 
     def _setup_face_widths(self):
         """

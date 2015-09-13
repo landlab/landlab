@@ -1,6 +1,7 @@
 import numpy as np
 from six.moves import range
 
+from ...core.utils import as_id_array
 from ...utils.jaggedarray import JaggedArray
 from .status import CORE_NODE, CLOSED_BOUNDARY
 
@@ -87,7 +88,7 @@ def find_active_links(node_status, node_at_link_ends):
 
     (active_link_ids, ) = np.where(link_is_active(status_at_link_ends))
 
-    return active_link_ids.astype(np.int, copy=False)
+    return as_id_array(active_link_ids)
 
 
 def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -117,7 +118,7 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
     #if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
-    return np.bincount(node_at_link_end, minlength=number_of_nodes).astype(np.int, copy=False)
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
 
 
 def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -148,7 +149,8 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
     if len(node_at_link_end) != len(node_at_link_start):
         raise ValueError('Link arrays must be the same length')
-    return np.bincount(node_at_link_start, minlength=number_of_nodes).astype(np.int, copy=False)
+    return as_id_array(np.bincount(node_at_link_start,
+                                   minlength=number_of_nodes))
 
 
 def link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -194,7 +196,7 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
     if link_ids is not None:
         return np.array(link_ids, dtype=np.int)[sorted_links]
     else:
-        return sorted_links.astype(np.int, copy=False)
+        return as_id_array(sorted_links)
 
 
 def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
