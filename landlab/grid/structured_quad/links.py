@@ -999,7 +999,7 @@ def find_horizontal_south_neighbor(shape, horizontal_link_ids, bad_index_value=-
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    horizontal_active_ids : array of int
+    horizontal_link_ids : array of int
         Array of all horizontal link ids - MUST BE ARRAY OF LEN(HORIZONTAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
@@ -1079,7 +1079,7 @@ def find_horizontal_west_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    horizontal_active_ids : array of int
+    horizontal_link_ids : array of int
         Array of all horizontal link ids - MUST BE ARRAY OF LEN(HORIZONTAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
@@ -1160,7 +1160,7 @@ def find_horizontal_north_neighbor(shape, horizontal_link_ids, bad_index_value=-
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    horizontal_active_ids : array of int
+    horizontal_link_ids : array of int
         Array of all horizontal link ids - MUST BE ARRAY OF LEN(HORIZONTAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
@@ -1240,7 +1240,7 @@ def find_horizontal_east_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    horizontal_active_ids : array of int
+    horizontal_link_ids : array of int
         Array of all horizontal link ids - MUST BE ARRAY OF LEN(HORIZONTAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
@@ -1322,7 +1322,7 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    horizontal_active_ids : array of int
+    horizontal_link_ids : array of int
         Array of all horizontal link ids - MUST BE ARRAY OF LEN(HORIZONTAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
@@ -1685,8 +1685,8 @@ def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
-    >>> vertical_active_ids = vertical_link_ids(rmg.shape)
-    >>> find_vertical_north_neighbor(rmg.shape, vertical_active_ids)
+    >>> vertical_link_ids = vertical_link_ids(rmg.shape)
+    >>> find_vertical_north_neighbor(rmg.shape, vertical_link_ids)
     array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1])
 
     """
@@ -1765,8 +1765,8 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
-    >>> vertical_active_ids = vertical_link_ids(rmg.shape)
-    >>> find_vertical_east_neighbor(rmg.shape)
+    >>> vertical_links = vertical_link_ids(rmg.shape)
+    >>> find_vertical_east_neighbor(rmg.shape, vertical_links)
     array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1805,7 +1805,7 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
     ----------
     shape : tuple of int
         Shape of grid of nodes.
-    vertical_active_ids : array of int
+    vertical_ids : array of int
         Array of all vertical link ids - MUST BE ARRAY OF LEN(VERTICAL_LINKS)
     bad_index_value: int, optional
         Value assigned to inactive indicies in the array.
