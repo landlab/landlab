@@ -5,7 +5,7 @@ CellLab-CTS 2015 Users Manual
 
 Created: August 2015, Greg Tucker
 
-Last updated: August 2015
+Last updated: September 2015
 
 Introduction
 ------------
@@ -14,9 +14,9 @@ CellLab-CTS is a Landlab module for building pairwise, continuous-time stochasti
 
 This Users Manual provides instructions on how to write a model using CellLab-CTS, along with reference information about the classes and methods that CellLab-CTS provides. For further information about the theory, implementation, and design of CellLab-CTS, see Tucker et al. (2015 in prep). For background information on the theory of pairwise CTS models and example applications, see Narteau et al. (2001, 2009) and Rozier and Narteau (2014). For background on cellular automata in general, see Chopard and Droz (1998).
 
-*Note on terminology:* In a CellLab-CTS model, the computational points---the objects that are normally called **cells** in a cellular automaton model---actually correspond with the **nodes** in a Landlab grid. Although Landlab grids also contain *cells*, which are defined as polygons that contains a node, Landlab grids do not have cells along the outmost ring of nodes around the grid. For example, a 4-row by 5-column Landlab raster grid has 20 nodes but only 6 cells (2 inner rows x 3 inner columns). For CellLab-CTS models, it is useful to include the perimeter nodes as "cells" for the purpose of handling boundary conditions. Therefore, CellLab-CTS treats all the **nodes** in the grid as if they were cells in a cellular automaton. This includes the perimeter nodes, for which Landlab does not formally define cells. For practical purposes, the distinction doesn't make much difference, but it is important to understand that CellLab-CTS works with arrays of grid nodes rather than the (shorter) arrays of grid cells. Henceforth, to avoid confusion, we will refer to **nodes**, which you should read as being synonymous with the usual meaning of "cell" in a cellular automaton.
+*Note on terminology:* In a CellLab-CTS model, the computational points---the objects that are normally called **cells** in a cellular automaton model---actually correspond with the **nodes** in a Landlab grid. Although Landlab grids also contain *cells*, which are defined as polygons that contain a node, Landlab grids do not have cells along the outmost ring of nodes around the grid. For example, a 4-row by 5-column Landlab raster grid has 20 nodes but only 6 cells (2 inner rows x 3 inner columns). For CellLab-CTS models, it is useful to include the perimeter nodes as "cells" for the purpose of handling boundary conditions. Therefore, CellLab-CTS treats all the **nodes** in the grid as if they were cells in a cellular automaton. This includes the perimeter nodes, for which Landlab does not formally define cells. For practical purposes, the distinction doesn't make much difference, but it is important to understand that CellLab-CTS works with arrays of grid nodes rather than the (shorter) arrays of grid cells. Henceforth, to avoid confusion, we will refer to **nodes**, which you should read as being synonymous with the usual meaning of "cell" in a cellular automaton.
 
-*Prerequisites:* This manual assumes working knowledge of the Python programming language (any version), including basic familiarity with Python classes and objects. It is also helpful to have some familiarity with the Matplotlib and/or Pylab plotting libraries.
+*Prerequisites:* This manual assumes working knowledge of the Python programming language (any version), including basic familiarity with Python classes and objects. It also assumes a basic familiarity with Landlab grids. In addition, it will be helpful to have some familiarity with the Matplotlib and/or Pylab plotting libraries.
 
 
 Writing a CellLab-CTS model
@@ -25,7 +25,7 @@ Writing a CellLab-CTS model
 What is a CellLab-CTS model?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A CellLab-CTS model is a Python code that creates and initializes a ``CellLabCTSModel`` object, defines the possible cell states and transition rules, and calls the ``run`` method to execute the model. A CellLab-CTS model can be written in one of two basic ways. The first option is to write a simple Python script that imports the necessary ingredients. This approach is easy and versatile, and is recommended for first-time users, and/or those who are relatively unfamiliar with Python classes. The second option is to write your model as a subclass of one of the four existing CellLabModel subclasses (more on these below). The subclass approach is useful when you wish to use the *dynamic property updating* capability of CellLab-CTS---that is, for example, when you want to attach some form of additional data to the grid, and update the data at each transition event according to the state of the grid. In this manual, we will focus on the example of a simple script-based model.
+A CellLab-CTS model is a Python code that creates and initializes one of four types of ``CellLabCTSModel`` object, defines the possible cell states and transition rules, and calls the ``run`` method to execute the model. A CellLab-CTS model can be written in one of two basic ways. The first option is to write a simple Python script that imports the necessary ingredients. This approach is easy and versatile, and is recommended for first-time users, and/or those who are relatively unfamiliar with Python classes. The second option is to write your model as a subclass of one of the four existing CellLabModel subclasses (more on these below). The subclass approach is useful when you wish to use the *dynamic property updating* capability of CellLab-CTS---that is, for example, when you want to attach some form of additional data to the grid, and update the data at each transition event according to the state of the grid. In this manual, we will focus on the example of a simple script-based model.
 
 Basic ingredients of a CellLab-CTS model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,14 +63,14 @@ With these different possibilities in mind, the four CellLab-CTS model types are
 1. ``RasterCTS:`` A non-oriented grid of square cells.
 2. ``OrientedRasterCTS:`` An oriented grid of square cells, with two orientations (horizontal and vertical).
 3. ``HexCTS``: A non-oriented grid of hexagons.
-4. ``OrientedHexCTS:`` An oriented grid of hexagons, with three orientations. These default to: (1) vertical, (2) +30 degrees from horizontal (angling down/left to up/right), and (3) -30 degrees from horizontal (angling up/left to down/right).
+4. ``OrientedHexCTS:`` An oriented grid of hexagons, with three orientations. These can be: (1) vertical, (2) +30 degrees from horizontal (angling down/left to up/right), and (3) -30 degrees from horizontal (angling up/left to down/right). Or, alternatively, the three axes can be horizontal and +/-30 degrees from vertical (one determines this when instantiating the grid object, as illustrated below).
 
 These four types are implemented as subclasses of the base class ``CellLabCTSModel``, as illustrated in Figure 2.
 
 .. figure:: images/ca_class_hierarchy.png
     :align: center
 
-    Figure 2: CellLab-CTS class hierarchy and main data structures. N = number of grid nodes, L = number of grid links, NL =number of possible link (node pair) states, NT = maximum number of transitions for any link state.
+    Figure 2: CellLab-CTS class hierarchy and main data structures. N = number of grid nodes, L = number of grid links, NL = number of possible link (node pair) states, NT = maximum number of transitions for any link state.
 
 
 Step 1: Importing CellLab-CTS
@@ -99,7 +99,7 @@ A CellLab-CTS application normally starts by importing the appropriate type of C
 	from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
 	from landlab.components.cellular_automata.raster_cts import RasterCTS
 
-Here, we're using a non-oriented raster model, so we import the RasterCTS class. We also import the CAPlotter class for help with graphical display (more on that below), as well as the Transition class. We need the Transition class to set up our pair transitions, which we explore next.
+Here, we're using a raster model, so we import Landlab's ``RasterModelGrid`` class. It will be a non-oriented raster model, so we import the ``RasterCTS`` class (rather than  ``OrientedRasterCTS``). We also import the ``CAPlotter`` class for help with graphical display (more on that below), as well as the ``Transition`` class. We need the Transition class to set up our pair transitions, which we explore next.
 
 
 Setting up transitions
@@ -110,7 +110,7 @@ Sequence matters!
 
 A particular pair state is described by the two node states, and optionally by the pair's orientation. A key thing to understand here is that any particular pair sequence, such as 0 and 1, is *different from the sequence in reverse*. The pair 0-1 is not the same as the pair 1-0! This is true for all four types of model. So then which is which? To answer this question, we first need to recall that each pair corresponds to the two ends of a *link* in the Landlab grid. A link is simply a directed line segment that connects two neighboring nodes. Every link has a *tail* and a *head* (like the head of an arrow); the direction of the link is from tail to head. The rule for CellLab-CTS pairs is that the first number refers to the tail of the corresponding link, and the second refers to its head. Thus, the pair state 0-1 means that the tail node has state 0 and the head node has state 1. 
 
-By default, the links in a raster grid always run either from down to up (for vertical links) or left to right (for horizontal links) (Figure 3). For example, with a 0-1 pair in a raster grid, the 0 is either the left-hand node (if it's a horizontal pair) or the bottom node (if the pair is vertical). In a default hex grid, the links point either (1) upward, (2) angling right and up 30 degrees, or (3) angling right and down 30 degrees. (Note that you also have the option of switching the grid orientation so that one of the principal axes is horizontal instead of vertical; in that case, the three orientations are horizontal, 30 degrees clockwise from vertical, and 30 degrees counter-clockwise from vertical).
+By default, the links in a raster grid always run from down to up (for vertical links) or left to right (for horizontal links) (Figure 3). For example, with a 0-1 pair in a raster grid, the 0 is either the left-hand node (if it's a horizontal pair) or the bottom node (if the pair is vertical). In a default hex grid, the links point either (1) upward, (2) angling right and up 30 degrees, or (3) angling right and down 30 degrees. (Note that you also have the option of switching the grid orientation so that one of the principal axes is horizontal instead of vertical; in that case, the three orientations are horizontal, 30 degrees clockwise from vertical, and 30 degrees counter-clockwise from vertical).
 
 .. figure:: images/grid_schematic2.png
     :align: center
@@ -120,19 +120,19 @@ By default, the links in a raster grid always run either from down to up (for ve
 How transitions are represented
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-Each transition type is described by the states of the starting and ending pairs, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a horizontal pair in which the left node has state 0 and the right state 1. 
+Each transition type is described by the states of the tail and head nodes, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a vertical pair in which the left node has state 0 and the right state 1. 
 
 .. figure:: images/cell_pair_orientation.png
     :align: center
 
     Figure 4: Pair orientation codes in a raster (top 2 panels) and vertical hex (bottom 3 panels) grid.
 
-In an oriented hex, the orientation codes depend on the orientation of the grid itself. A Landlab ``HexModelGrid`` can be oriented such that one of the three principal axes is either horizontal (the default) or vertical. The choice is controlled by the optional keyword argument ``orientation`` (either ``'vertical'`` or ``'horizontal'``) in the ``HexModelGrid`` initialization function. For a vertically aligned hex grid, the CellLab-CTS orientation codes are: 0 for vertical, 1 for right and upward, and 2 for right and downward. For example, the code (1, 0, 2) would represent a down-and-right pair, with a state of 1 in the upper-left node and 0 in the lower-right node. For a horizontally aligned hex grid, the CellLab-CTS orientation codes are: 0 for upward and left, 1 for upward and right, and 2 for right. For example, the code (1, 0, 2) would represent a left-to-right pair, with a state of 1 in the left node and 0 in the right node.
+In an oriented hex, the orientation codes depend on the orientation of the grid itself. A Landlab ``HexModelGrid`` can be oriented such that one of the three principal axes is either horizontal (the default) or vertical. The choice is controlled by the optional keyword argument ``orientation`` (either ``'vertical'`` or ``'horizontal'``) in the ``HexModelGrid`` initialization function. For a vertically aligned hex grid, the CellLab-CTS orientation codes are: 0 for vertical, 1 for right and upward, and 2 for right and downward (Figure 4). For example, the code (1, 0, 2) would represent a down-and-right pair, with a state of 1 in the upper-left node and 0 in the lower-right node. For a horizontally aligned hex grid, the CellLab-CTS orientation codes are: 0 for upward and left, 1 for upward and right, and 2 for right. For example, the code (1, 0, 2) would represent a left-to-right pair, with a state of 1 in the left node and 0 in the right node.
 
 Example of a transition setup function
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-It can be helpful to put the transition setup procedure inside a function of its own. Here is the transition setup function for our turbulent suspension example (note that the function itself has only four lines of code; all the rest is documentation):
+It can be helpful to put the transition setup procedure inside a function of its own. Here is the transition setup function for our turbulent suspension example (notice that the function itself has only four lines of code; all the rest is documentation):
 
 .. code-block:: python
 
@@ -185,7 +185,7 @@ It can be helpful to put the transition setup procedure inside a function of its
 
 In this example, state 0 represents the fluid and state 1 represents a particle. Motion is represented by a transition from a 0-1 pair to a 1-0, or vice versa.
 
-Your transition setup function should create and return a list of ``Transition`` objects. A Transition object contains (and is initialized with) the 3-element tuples for the starting and ending transitions, a transition rate (in units of cells per time), and (optionally) a name. Two other optional parameters are used when you want to track properties associated with moving particles: a boolean flag (``swap_properties``) indicating whether the transition involves an exchange of properties, and the name of a user-defined callback function (``prop_update_fn``) to invoke whenever a transition of that type occurs.
+Your transition setup function should create and return a list of ``Transition`` objects. A Transition object contains (and is initialized with) the 3-element tuples for the starting and ending transitions, a transition rate (in units of cell-widths per time), and (optionally) a name. Two other optional parameters are used when you want to track properties associated with moving particles: a boolean flag (``swap_properties``) indicating whether the transition involves an exchange of properties, and the name of a user-defined callback function (``prop_update_fn``) to invoke whenever a transition of that type occurs.
 
 (Note that it is also possible to specify a single-integer code for the link state, instead of 3-element tuple. This is a bit more of a headache, however, since it requires you to work out the link-state code corresponding to each pair, and is not recommended.)
 
@@ -317,7 +317,7 @@ If you wish to pause occasionally to plot and/or write data to file, a natural a
     current_time = 0.0
     while current_time < run_duration:
         
-        # Once in a while, print out simulation and real time to let the user
+        # Once in a while, print out simulation real time to let the user
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
@@ -353,13 +353,7 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 ``node_state`` : 1d array (x number of nodes in grid)    
 	Node-based grid of node-state codes. This is the grid of cell (sic) states.
     
-``link_state_dict`` : dictionary
-    Keys are 3-element tuples that represent the cell-state pairs and 
-    orientation code for each possible link type; values are the corresponding
-    link-state codes. Allows you to look up the link-state code corresponding
-    to a particular pair of adjacent nodes with a particular orientation.
-
-``cell_pair`` : list (x number of possible link states)
+``node_pair`` : list (x number of possible link states)
     List of 3-element tuples representing all the various link states. Allows
     you to look up the node states and orientation corresponding to a particular 
     link-state ID.
@@ -378,7 +372,7 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
     compare its time with the corresponding transition time in the *next_update*
     array. If they are different, the event is discarded.
 
-``active_link_orientation`` : 1d array of ints (x number of active links)
+``link_orientation`` : 1d array of ints (x number of active links)
     Orientation code for each link.
     
 ``link_state`` : 1d array of ints (x number of active links)
@@ -452,6 +446,6 @@ Narteau, C., Zhang, D., Rozier, O., & Claudin, P. (2009). Setting the length and
 
 Rozier, O., & Narteau, C. (2014). A real‐space cellular automaton laboratory. Earth Surface Processes and Landforms, 39(1), 98-109.
 
-Tucker, G.E., Hobley, D.E.J., et al. (2015 in prep) CellLab-CTS 2015: A Python library for continuous-time stochastic cellular automaton modeling using Landlab.
+Tucker, G.E., Hobley, D.E.J., Hutton, E., Gasparini, N.M., Istanbulluoglu, E., Adams, J.M., and Nudurupati, S.S. (in review) CellLab-CTS 2015: A Python library for continuous-time stochastic cellular automaton modeling using Landlab. Submitted to Geoscientific Model Development, September 2015.
 
 
