@@ -1315,7 +1315,7 @@ def horizontal_east_link_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     return east_horizontal_neighbors   
                
                
-def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
+def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
     """Give IDs of all 4 horizontal link neighbors. [S,W,N,E]
 
     Parameters
@@ -1365,7 +1365,7 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import * 
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
-    >>> find_d4_horizontal_neighbors(rmg.shape, horizontal_links)
+    >>> d4_horizontal_link_neighbors(rmg.shape, horizontal_links)
     array([[-1, -1, 19, 16],
            [-1, 15, 20, 17],
            [-1, 16, 21, 18],
@@ -1406,7 +1406,7 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
     return neighbor_array            
        
        
-def find_d4_horizontal_neighbors_active(shape, horizontal_active_ids, bad_index_value=-1):
+def d4_horizontal_active_link_neighbors(shape, horizontal_active_ids, bad_index_value=-1):
     """Give IDs of all 4 horizontal link neighbors. [S,W,N,E]
 
     Parameters
@@ -1458,7 +1458,7 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_active_ids, bad_index_
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> active_link_ids = active_link_ids(rmg.shape, rmg.node_status)
     >>> horizontal_active_ids = horizontal_active_link_ids(rmg.shape, active_link_ids)
-    >>> find_d4_horizontal_neighbors_active(rmg.shape, horizontal_active_ids)
+    >>> d4_horizontal_active_link_neighbors(rmg.shape, horizontal_active_ids)
     array([[-1, -1, 24, 21],
            [-1, 20, 25, -1],
            [20, -1, -1, 25],
@@ -1467,7 +1467,7 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_active_ids, bad_index_
     # To do this we simply call the find_d4_horizontal_neighbors() function 
     # which gives the neighbors for ALL horizontal links in an array, even 
     # inactive links. 
-    d4_neigh = find_d4_horizontal_neighbors(shape, horizontal_active_ids,
+    d4_neigh = d4_horizontal_link_neighbors(shape, horizontal_active_ids,
                                             bad_index_value)
     
     # Now we will just focus on indices that are ACTIVE...
@@ -1798,7 +1798,7 @@ def vertical_east_link_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     return east_vertical_neighbors    
     
     
-def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
+def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     """Give IDs of all 4 vertical link neighbors. [S,W,N,E]
 
     Parameters
@@ -1846,7 +1846,7 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
-    >>> find_d4_vertical_neighbors(rmg.shape, vertical_ids)
+    >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids)
     array([[-1, -1,  5,  1],
            [-1,  0,  6,  2],
            [-1,  1,  7,  3],
@@ -1872,7 +1872,7 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
     return neighbor_array            
 
 
-def find_d4_vertical_neighbors_active(shape, vertical_ids, bad_index_value=-1):
+def d4_vertical_active_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     """Give IDs of all 4 vertical link neighbors. [S,W,N,E]
 
     Parameters
@@ -1919,11 +1919,11 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, bad_index_value=-1):
             
     
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, find_d4_vertical_neighbors_active
+    >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, d4_vertical_active_link_neighbors
     >>> rmg = RasterModelGrid(4, 5)
     >>> active_link_ids = active_link_ids(rmg.shape, rmg.node_status)
     >>> vertical_active_ids = vertical_active_link_ids(rmg.shape, active_link_ids)
-    >>> find_d4_vertical_neighbors_active(rmg.shape, vertical_active_ids)
+    >>> d4_vertical_active_link_neighbors(rmg.shape, vertical_active_ids)
     array([[-1, -1,  6,  2],
            [-1,  1,  7,  3],
            [-1,  2,  8, -1],
@@ -1937,7 +1937,7 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, bad_index_value=-1):
     # To do this we simply call the find_d4_vertical_neighbors() function 
     # which gives the neighbors for ALL vertical links in an array, even 
     # inactive links. 
-    d4_all_neighbors = find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value)
+    d4_all_neighbors = d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value)
 
     # Now we will just focus on indices that are ACTIVE...
     active_links = np.where(vertical_ids != bad_index_value)
