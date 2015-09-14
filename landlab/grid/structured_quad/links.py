@@ -1607,8 +1607,7 @@ def find_vertical_west_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> find_vertical_west_neighbor(rmg.shape, vertical_links)
-    array([-1,  0,  1,  2,  3, -1,  5,  6,  7,  8, -1, 10, 11, 12, 13]
-
+    array([-1,  0,  1,  2,  3, -1,  5,  6,  7,  8, -1, 10, 11, 12, 13])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1654,23 +1653,23 @@ def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     Returns
     -------
     ndarray :
-        Link IDs of *north* vertical neighbor active links. Length of number_of_vertical_links.
+        Link IDs of *north* vertical neighbor links. Length of number_of_vertical_links.
 
     Examples
     --------
-       The following example uses this grid::
+        The following example uses this grid::
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       11      12      13      |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       6       7       8       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       1       2       3       |       
+          0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
           
@@ -1680,16 +1679,16 @@ def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     
             ``*`` indicates nodes    
      
-            Numeric values correspond to the vertical :any:`ACTIVE_LINK` IDs.   
+            Numeric values correspond to the vertical IDs.   
             
     
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, find_vertical_north_neighbor
+    >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
-    >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
-    >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
-    >>> find_vertical_north_neighbor((4,5), vertical_active_ids)
-    array([-1,  6,  7,  8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1])
+    >>> vertical_active_ids = vertical_link_ids(rmg.shape)
+    >>> find_vertical_north_neighbor(rmg.shape, vertical_active_ids)
+    array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1])
+
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1734,7 +1733,7 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     Returns
     -------
     ndarray :
-        Link IDs of *east* vertical neighbor active links. Length of number_of_vertical_links.
+        Link IDs of *east* vertical neighbor links. Length of number_of_vertical_links.
 
     Examples
     --------
@@ -1742,15 +1741,15 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       6       7       8       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       |       
+          0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
           
@@ -1760,18 +1759,14 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     
             ``*`` indicates nodes    
      
-            Numeric values correspond to the vertical :any:`ACTIVE_LINK` IDs.   
+            Numeric values correspond to the vertical IDs.   
             
     
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, find_vertical_east_neighbor
-    >>> rmg = RasterModelGrid(4, 5)
-    >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status 
-    >>> active_link_ids = active_link_ids((4,5), status)
-    >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
-    >>> find_vertical_east_neighbor((4,5), vertical_active_ids)
-    array([-1, -1, -1, -1, -1,  6,  7,  8, -1, -1, -1, -1, -1, -1, -1])
+    >>> from landlab.grid.structured_quad.links import *
+    >>> vertical_active_ids = vertical_link_ids(rmg.shape)
+    >>> find_vertical_east_neighbor(rmg.shape)
+    array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1822,19 +1817,19 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
 
     Examples
     --------
-    Sample grid finding neighbors for every vertical link::    
-    
+        The following example uses this grid::
+
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       11      12     13       |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       6       7       8       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       1       2       3       |       
+          0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
           
@@ -1844,30 +1839,28 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
     
             ``*`` indicates nodes    
      
-            Numeric values correspond to the vertical :any:`ACTIVE_LINK` IDs.   
+            Numeric values correspond to the vertical IDs.   
             
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, find_d4_vertical_neighbors
+    >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
-    >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
-    >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
-    >>> find_d4_vertical_neighbors((4,5), vertical_active_ids)
-    array([[-1, -1, -1, -1],
-           [-1, -1,  6, -1],
-           [-1, -1,  7, -1],
-           [-1, -1,  8, -1],
-           [-1, -1, -1, -1],
-           [-1, -1, -1,  6],
-           [-1, -1, -1,  7],
-           [-1,  6, -1,  8],
-           [-1,  7, -1, -1],
-           [-1,  8, -1, -1],
-           [-1, -1, -1, -1],
-           [ 6, -1, -1, -1],
-           [ 7, -1, -1, -1],
-           [ 8, -1, -1, -1],
-           [-1, -1, -1, -1]])
-
+    >>> vertical_ids = vertical_link_ids(rmg.shape)
+    >>> find_d4_vertical_neighbors(rmg.shape, vertical_ids)
+    array([[-1, -1,  5,  1],
+           [-1,  0,  6,  2],
+           [-1,  1,  7,  3],
+           [-1,  2,  8,  4],
+           [-1,  3,  9, -1],
+           [ 0, -1, 10,  6],
+           [ 1,  5, 11,  7],
+           [ 2,  6, 12,  8],
+           [ 3,  7, 13,  9],
+           [ 4,  8, 14, -1],
+           [ 5, -1, -1, 11],
+           [ 6, 10, -1, 12],
+           [ 7, 11, -1, 13],
+           [ 8, 12, -1, 14],
+           [ 9, 13, -1, -1]])
     """
     south = find_vertical_south_neighbor(shape, vertical_ids, bad_index_value)
     west = find_vertical_west_neighbor(shape, vertical_ids, bad_index_value) 
@@ -1899,19 +1892,19 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, bad_index_value=-1):
     Examples
     --------
     
-    The following example uses this grid::
+        The following example uses this grid::
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       11      12     13       |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       6       7       8       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       1       2       3       |       
+          0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
           
@@ -1921,19 +1914,24 @@ def find_d4_vertical_neighbors_active(shape, vertical_ids, bad_index_value=-1):
     
             ``*`` indicates nodes    
      
-            Numeric values correspond to the vertical :any:`ACTIVE_LINK` IDs.   
+            Numeric values correspond to the vertical IDs.   
             
     
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import active_link_ids, vertical_active_link_ids, find_d4_vertical_neighbors_active
     >>> rmg = RasterModelGrid(4, 5)
-    >>> active_link_ids = active_link_ids((4,5), rmg.node_status)
-    >>> vertical_active_ids = vertical_active_link_ids((4,5), active_link_ids)
-    >>> find_d4_vertical_neighbors_active((4,5), vertical_active_ids)
-    array([[-1, -1, -1,  7],
-           [-1,  6, -1,  8],
-           [-1,  7, -1, -1]])
-
+    >>> active_link_ids = active_link_ids(rmg.shape, rmg.node_status)
+    >>> vertical_active_ids = vertical_active_link_ids(rmg.shape, active_link_ids)
+    >>> find_d4_vertical_neighbors_active(rmg.shape, vertical_active_ids)
+    array([[-1, -1,  6,  2],
+           [-1,  1,  7,  3],
+           [-1,  2,  8, -1],
+           [ 1, -1, 11,  7],
+           [ 2,  6, 12,  8],
+           [ 3,  7, 13, -1],
+           [ 6, -1, -1, 12],
+           [ 7, 11, -1, 13],
+           [ 8, 12, -1, -1]])
     """
     # To do this we simply call the find_d4_vertical_neighbors() function 
     # which gives the neighbors for ALL vertical links in an array, even 
@@ -1962,25 +1960,34 @@ def bottom_edge_horizontal_ids(shape):
     ndarray :
         Link IDs of bottom edge horizontal links. Length is (rmg.number_of_columns-1)
 
+    
     Examples
     --------
     
-    The following example grid is used:: 
+        The following example uses this grid::
     
-          *------>*------>*------>*------>*
+          *--28-->*--29-->*--30-->*--31-->*
        
        
             
-          *------>*------>*------>*------>*
+          *--24-->*--25-->*--26-->*--27-->*
     
     
     
-          *------>*------>*------>*------>*
+          *--20-->*--21-->*--22-->*--23-->*
 
 
               
           *--15-->*--16-->*--17-->*--18-->*
-          
+         
+         .. note::    
+
+             Only horizontal links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the horizontal IDs.   
+                 
           
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import bottom_edge_horizontal_ids
@@ -2015,23 +2022,29 @@ def left_edge_horizontal_ids(shape):
 
     Examples
     --------
+        The following example uses this grid::
     
-    The following example uses this grid::
-    
-          *--27-->*------>*------>*------>*
+          *--28-->*--29-->*--30-->*--31-->*
        
        
             
-          *--23-->*------>*------>*------>*
+          *--24-->*--25-->*--26-->*--27-->*
     
     
     
-          *--19-->*------>*------>*------>*
+          *--20-->*--21-->*--22-->*--23-->*
 
 
               
-          *--15-->*------>*------>*------>*
-          
+          *--15-->*--16-->*--17-->*--18-->*
+         
+         .. note::    
+
+             Only horizontal links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the horizontal IDs.   
           
     
     >>> from landlab import RasterModelGrid
@@ -2066,22 +2079,29 @@ def top_edge_horizontal_ids(shape):
 
     Examples
     --------
+        The following example uses this grid::
     
-   The following example uses this grid::
-   
-          *--27-->*--28-->*--29-->*--30-->*
+          *--28-->*--29-->*--30-->*--31-->*
        
        
             
-          *------>*------>*------>*------>*
+          *--24-->*--25-->*--26-->*--27-->*
     
     
     
-          *------>*------>*------>*------>*
+          *--20-->*--21-->*--22-->*--23-->*
 
 
               
-          *------>*------>*------>*------>*   
+          *--15-->*--16-->*--17-->*--18-->*
+         
+         .. note::    
+
+             Only horizontal links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the horizontal IDs.   
    
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import top_edge_horizontal_ids
@@ -2116,21 +2136,29 @@ def right_edge_horizontal_ids(shape):
     Examples
     --------
     
-    The following example uses this grid::
+        The following example uses this grid::
     
-          *------>*------>*------>*--30-->*
+          *--28-->*--29-->*--30-->*--31-->*
        
        
             
-          *------>*------>*------>*--26-->*
+          *--24-->*--25-->*--26-->*--27-->*
     
     
     
-          *------>*------>*------>*--22-->*
+          *--20-->*--21-->*--22-->*--23-->*
 
 
               
-          *------>*------>*------>*--18-->*    
+          *--15-->*--16-->*--17-->*--18-->*
+         
+         .. note::    
+
+             Only horizontal links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the horizontal IDs.   
     
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import right_edge_horizontal_ids
@@ -2165,21 +2193,30 @@ def bottom_edge_vertical_ids(shape):
 
     Examples
     --------
-    The following example uses this grid::
+        The following example uses this grid::
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       |       |       |       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
           0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
+          
+          .. note::    
+
+             Only vertical links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the vertical IDs.   
+            
 
     
     >>> from landlab import RasterModelGrid
@@ -2219,18 +2256,26 @@ def left_edge_vertical_ids(shape):
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          10      |       |       |       |      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          5       |       |       |       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          0       |       |       |       |       
+          0       1       2       3       4       
           |       |       |       |       |       
           *       *       *       *       *
           
+          .. note::    
+
+             Only vertical links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the vertical IDs.   
+            
           
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import left_edge_vertical_ids
@@ -2265,21 +2310,29 @@ def top_edge_vertical_ids(shape):
     Examples
     --------
 
-    The following example uses this sample grid::
+        The following example uses this grid::
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          10      11      12      13      14      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       |       |       |       |       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       |      
+          0       1       2       3       4       
           |       |       |       |       |       
-          *       *       *       *       *    
+          *       *       *       *       *
+          
+          .. note::    
+
+             Only vertical links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the vertical IDs.   
     
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import top_edge_vertical_ids
@@ -2313,21 +2366,29 @@ def right_edge_vertical_ids(shape):
     Examples
     --------
     
-    The following example uses this sample grid:::
+        The following example uses this grid::
 
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       14      
+         10       11      12      13      14      
           |       |       |       |       |         
           *       *       *       *       *
           ^       ^       ^       ^       ^       
-          |       |       |       |       9       
+          5       6       7       8       9       
           |       |       |       |       |       
           *       *       *       *       *
           ^       ^       ^       ^       ^   
-          |       |       |       |       4       
+          0       1       2       3       4       
           |       |       |       |       |       
-          *       *       *       *       *    
+          *       *       *       *       *
+          
+          .. note::    
+
+             Only vertical links are shown. 
+    
+            ``*`` indicates nodes    
+     
+            Numeric values correspond to the vertical IDs.   
     
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import right_edge_vertical_ids
