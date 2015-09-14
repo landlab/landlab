@@ -1282,7 +1282,7 @@ def find_horizontal_east_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> find_horizontal_east_neighbor(rmg.shape, horizontal_links)
-    array([16, 17, 18, -1, 20, 21, 22, -1, 24, 25, 26, -1, 28, 29, 30, -1]
+    array([16, 17, 18, -1, 20, 21, 22, -1, 24, 25, 26, -1, 28, 29, 30, -1])
     """
     
     # First, we find the shape of the horizontal link array given the shape
@@ -1381,7 +1381,7 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
            [23, -1, -1, 28],
            [24, 27, -1, 29],
            [25, 28, -1, 30],
-           [26, 29, -1, -1]]
+           [26, 29, -1, -1]])
 
     """
     ### First we find *south* neighbors...
@@ -1530,7 +1530,7 @@ def find_vertical_south_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> find_vertical_south_neighbor(rmg.shape, vertical_links)
-    array([-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9]
+    array([-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1764,6 +1764,7 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
+    >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_active_ids = vertical_link_ids(rmg.shape)
     >>> find_vertical_east_neighbor(rmg.shape)
     array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
