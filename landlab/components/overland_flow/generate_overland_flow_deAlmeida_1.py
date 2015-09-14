@@ -221,6 +221,7 @@ class OverlandFlow(Component):
         # Find the *active* verical link ids
         self.vertical_active_link_ids = links.vertical_active_link_ids(grid.shape, self.active_ids)
                 
+                
         if self.use_fixed_links==True:
             
             fixed_link_ids = links.fixed_link_ids(grid.shape, grid.node_status)            
@@ -304,7 +305,7 @@ class OverlandFlow(Component):
         self.q = np.append(self.q, [0])
         
         # Now we calculate discharge in the horizontal direction
-        self.q_horizontal = (self.theta * self.q_horizontal + (1 - self.theta) / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) - self.g * self.h_links[self.horizontal_ids] * dt * self.slope[self.horizontal_ids]) / (1 + self.g * dt * self.mannings_n_squared * abs(self.q_horizontal) / self.h_links[self.horizontal_ids] ** self.seven_over_three)
+        self.q[self.horizontal_active_link_ids] = (self.theta * self.q[self.horizontal_active_link_ids] + (1 - self.theta) / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) - self.g * self.h_links[self.horizontal_active_link_ids] * dt * self.slope[self.horizontal_active_link_ids]) / (1 + self.g * dt * self.mannings_n_squared * abs(self.q[self.horizontal_active_link_ids]) / self.h_links[self.horizontal_active_link_ids] ** self.seven_over_three)
         
         # ... and in the vertical direction
         self.q_vertical = (self.theta * self.q_vertical + (1 - self.theta) / 2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) - self.g * self.h_links[self.vertical_ids] * dt * self.slope[self.vertical_ids]) / (1 + self.g * dt * self.mannings_n_squared * abs(self.q_vertical) / self.h_links[self.vertical_ids] ** self.seven_over_three)
@@ -314,13 +315,24 @@ class OverlandFlow(Component):
         self.q = np.delete(self.q, len(self.q) - 1)
         
         # And put the horizontal and vertical arrays back together, to create the discharge array.
-        self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
-        
+        #self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
+        self.q[self.vertical_ids] = self.q_vertical#np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
         # Update our water depths
-        dhdt = self.rainfall_intensity - self._grid.calculate_flux_divergence_at_nodes(self.q[self.active_links])
-        
-        self.h[self.core_nodes] = self.h[self.core_nodes] + dhdt[self.core_nodes] * dt
-        
+        self.dhdt = self.rainfall_intensity - self._grid.calculate_flux_divergence_at_nodes(self.q[self.active_links])
+        if np.amin(self.dhdt) < 0.:
+                shallowing_locations = np.where(self.dhdt<0.)
+                time_to_drain = -self.h[shallowing_locations]/self.dhdt[shallowing_locations]
+                dtmax2 = self.alpha*np.amin(time_to_drain)
+                dt = np.min([dt, dtmax2])
+                print('edited dt: ', dt)
+        else:
+                dt = dt
+        #_threshold_depth = 10**-6
+        #depth = np.where(self.h >= _threshold_depth)
+        print('dhdt: ', self.dhdt[7])
+        self.h[self.core_nodes] = self.h[self.core_nodes] + self.dhdt[self.core_nodes] * dt
+        #self.h[depth] = self.h[depth] + self.dhdt[depth] * dt
+
         # And reset our field values with the newest water depth and discharge.
         self._grid.at_node['water_depth'] = self.h
         self._grid.at_link['water_discharge'] = self.q

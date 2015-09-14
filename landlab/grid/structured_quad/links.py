@@ -992,7 +992,7 @@ def vertical_fixed_link_ids(shape, fixed_link_ids, bad_index_value=-1):
 
     return as_id_array(vertical_links)
     
-def find_horizontal_south_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
+def horizontal_south_link_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
     """Get IDs of SOUTH, horizontal link neighbor
 
     Parameters
@@ -1041,7 +1041,7 @@ def find_horizontal_south_neighbor(shape, horizontal_link_ids, bad_index_value=-
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
-    >>> find_horizontal_south_neighbor(rmg.shape, horizontal_links)
+    >>> horizontal_south_link_neighbor(rmg.shape, horizontal_links)
     array([-1, -1, -1, -1, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26])
     """
 
@@ -1072,7 +1072,7 @@ def find_horizontal_south_neighbor(shape, horizontal_link_ids, bad_index_value=-
     
     return south_horizontal_neighbors   
     
-def find_horizontal_west_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
+def horizontal_west_link_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
     """Get IDs of west, horizontal link neighbor
 
     Parameters
@@ -1120,7 +1120,7 @@ def find_horizontal_west_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
-    >>> find_horizontal_west_neighbor(rmg.shape, horizontal_links)
+    >>> horizontal_west_link_neighbor(rmg.shape, horizontal_links)
     array([-1, 15, 16, 17, -1, 19, 20, 21, -1, 23, 24, 25, -1, 27, 28, 29])
     """
     
@@ -1153,7 +1153,7 @@ def find_horizontal_west_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     return west_horizontal_neighbors
 
 
-def find_horizontal_north_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
+def horizontal_north_link_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
     """Get IDs of NORTH, horizontal link neighbor
 
     Parameters
@@ -1201,7 +1201,7 @@ def find_horizontal_north_neighbor(shape, horizontal_link_ids, bad_index_value=-
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
-    >>> find_horizontal_north_neighbor(rmg.shape, horizontal_links)
+    >>> horizontal_north_link_neighbor(rmg.shape, horizontal_links)
     array([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, -1, -1, -1, -1])
     """
 
@@ -1233,7 +1233,7 @@ def find_horizontal_north_neighbor(shape, horizontal_link_ids, bad_index_value=-
     return north_horizontal_neighbors   
 
 
-def find_horizontal_east_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
+def horizontal_east_link_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
     """Get IDs of east, horizontal link neighbor
 
     Parameters
@@ -1281,7 +1281,7 @@ def find_horizontal_east_neighbor(shape, horizontal_link_ids, bad_index_value=-1
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
-    >>> find_horizontal_east_neighbor(rmg.shape, horizontal_links)
+    >>> horizontal_east_link_neighbor(rmg.shape, horizontal_links)
     array([16, 17, 18, -1, 20, 21, 22, -1, 24, 25, 26, -1, 28, 29, 30, -1])
     """
     
@@ -1385,16 +1385,16 @@ def find_d4_horizontal_neighbors(shape, horizontal_ids, bad_index_value=-1):
 
     """
     ### First we find *south* neighbors...
-    south = find_horizontal_south_neighbor(shape, horizontal_ids, bad_index_value)
+    south = horizontal_south_link_neighbor(shape, horizontal_ids, bad_index_value)
     
     ### Then *west* neighbors...
-    west = find_horizontal_west_neighbor(shape, horizontal_ids, bad_index_value) 
+    west = horizontal_west_link_neighbor(shape, horizontal_ids, bad_index_value) 
 
     ### Then *north* neighbors...
-    north = find_horizontal_north_neighbor(shape, horizontal_ids, bad_index_value)
+    north = horizontal_north_link_neighbor(shape, horizontal_ids, bad_index_value)
 
     ### Finally, *east* neighbors...
-    east = find_horizontal_east_neighbor(shape, horizontal_ids, bad_index_value)
+    east = horizontal_east_link_neighbor(shape, horizontal_ids, bad_index_value)
    
     ### Combine all 4 neighbor arrays into one large array (4 x len_horizontal_links)
     neighbor_array = np.array([south, west, north, east])
@@ -1480,7 +1480,7 @@ def find_d4_horizontal_neighbors_active(shape, horizontal_active_ids, bad_index_
     return neighbor_array                                  
 
 
-def find_vertical_south_neighbor(shape, vertical_link_ids, bad_index_value=-1):
+def vertical_south_link_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     """Link IDs of south, vertical link neighbor
 
     Parameters
@@ -1529,7 +1529,7 @@ def find_vertical_south_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> find_vertical_south_neighbor(rmg.shape, vertical_links)
+    >>> vertical_south_link_neighbor(rmg.shape, vertical_links)
     array([-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9])
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1559,7 +1559,7 @@ def find_vertical_south_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     
     return south_vertical_neighbors      
 
-def find_vertical_west_neighbor(shape, vertical_link_ids, bad_index_value=-1):
+def vertical_west_link_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     """Link IDs of west, vertical link neighbor
 
     Parameters
@@ -1606,7 +1606,7 @@ def find_vertical_west_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> find_vertical_west_neighbor(rmg.shape, vertical_links)
+    >>> vertical_west_link_neighbor(rmg.shape, vertical_links)
     array([-1,  0,  1,  2,  3, -1,  5,  6,  7,  8, -1, 10, 11, 12, 13])
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1638,7 +1638,7 @@ def find_vertical_west_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     return west_vertical_neighbors
 
 
-def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
+def vertical_north_link_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     """Link IDs of north, vertical link neighbor
 
     Parameters
@@ -1686,7 +1686,7 @@ def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_link_ids = vertical_link_ids(rmg.shape)
-    >>> find_vertical_north_neighbor(rmg.shape, vertical_link_ids)
+    >>> vertical_north_link_neighbor(rmg.shape, vertical_link_ids)
     array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1])
 
     """
@@ -1718,7 +1718,7 @@ def find_vertical_north_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     return north_vertical_neighbors
     
     
-def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
+def vertical_east_link_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     """Link IDs of east, vertical link neighbor
 
     Parameters
@@ -1766,7 +1766,7 @@ def find_vertical_east_neighbor(shape, vertical_link_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> find_vertical_east_neighbor(rmg.shape, vertical_links)
+    >>> vertical_east_link_neighbor(rmg.shape, vertical_links)
     array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1863,10 +1863,10 @@ def find_d4_vertical_neighbors(shape, vertical_ids, bad_index_value=-1):
            [ 8, 12, -1, 14],
            [ 9, 13, -1, -1]])
     """
-    south = find_vertical_south_neighbor(shape, vertical_ids, bad_index_value)
-    west = find_vertical_west_neighbor(shape, vertical_ids, bad_index_value) 
-    north = find_vertical_north_neighbor(shape, vertical_ids, bad_index_value)
-    east = find_vertical_east_neighbor(shape, vertical_ids, bad_index_value)   
+    south = vertical_south_link_neighbor(shape, vertical_ids, bad_index_value)
+    west = vertical_west_link_neighbor(shape, vertical_ids, bad_index_value) 
+    north = vertical_north_link_neighbor(shape, vertical_ids, bad_index_value)
+    east = vertical_east_link_neighbor(shape, vertical_ids, bad_index_value)   
     neighbor_array = np.array([south, west, north, east])
     neighbor_array = np.transpose(neighbor_array)
     return neighbor_array            
