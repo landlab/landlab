@@ -6,6 +6,7 @@ from six.moves import range
 from ..grid.base import (CORE_NODE, FIXED_GRADIENT_BOUNDARY,
                          FIXED_VALUE_BOUNDARY, TRACKS_CELL_BOUNDARY,
                          CLOSED_BOUNDARY, BAD_INDEX_VALUE)
+from ..core.utils import as_id_array
 
 
 def node_count(shape):
@@ -678,7 +679,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
 
     (active_links, ) = np.where(active_links)
 
-    return active_links.astype(np.int)
+    return as_id_array(active_links)
 
 
 def active_face_index(shape):
@@ -1847,13 +1848,13 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     array([4, 7, 8, 5])
     """
     if isinstance(coords[0], np.ndarray):
-        (rows, cols) = (coords[0].astype(np.int), coords[1].astype(np.int))
+        (rows, cols) = (as_id_array(coords[0]), as_id_array(coords[1]))
     else:
         (rows, cols) = (int(coords[0]), int(coords[1]))
 
-    return np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
-                                 (cols, cols, cols + 1, cols + 1)),
-                                shape, mode=mode).T.astype(np.int, copy=False)
+    return as_id_array(np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
+                                             (cols, cols, cols + 1, cols + 1)),
+                                            shape, mode=mode).T)
 
 
 def nodes_around_points(shape, coords, spacing=(1., 1.),
@@ -1874,10 +1875,10 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
         ...
     ValueError: invalid entry in coordinates array
     """
-    return nodes_around_points_on_unit_grid(
+    return as_id_array(nodes_around_points_on_unit_grid(
         shape,
         ((coords[0] - origin[0]) / spacing[0],
-         (coords[1] - origin[1]) / spacing[1])).astype(np.int, copy=False)
+         (coords[1] - origin[1]) / spacing[1])))
 
 
 def nodes_around_point(shape, coords, spacing=(1., 1.)):
@@ -1888,6 +1889,7 @@ def nodes_around_point(shape, coords, spacing=(1., 1.)):
     return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
                      node_id + 1])
 
+
 def interior_node_id_to_node_id(shape, core_node_ids):
     """
     Converts the id of an interior node ID (i.e., if just the interior nodes
@@ -1896,7 +1898,8 @@ def interior_node_id_to_node_id(shape, core_node_ids):
     IGW = shape[1]-2
     real_ID = (core_node_ids//IGW + 1) * shape[1] + (core_node_ids%IGW) + 1
     assert np.all(real_ID < shape[0]*shape[1])
-    return real_ID.astype(int)
+    return as_id_array(real_ID)
+
 
 def node_id_to_interior_node_id(shape, node_ids):
     """
@@ -1908,4 +1911,4 @@ def node_id_to_interior_node_id(shape, node_ids):
     if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
         raise IndexError("A supplied node was outside the interior grid")
     else:
-        return interior_ID.astype(int)
+        return as_id_array(interior_ID)

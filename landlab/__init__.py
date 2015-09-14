@@ -21,7 +21,7 @@ The Landlab
 
 from __future__ import absolute_import
 
-__version__ = '0.1.28'
+__version__ = '0.1.29'
 
 
 import os

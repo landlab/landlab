@@ -4,6 +4,7 @@ import numpy as np
 from . import nodes
 from ..base import CORE_NODE, FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from ..unstructured.links import LinkGrid
+from ...core.utils import as_id_array
 
 
 def shape_of_vertical_links(shape):
@@ -570,8 +571,7 @@ def active_link_ids(shape, node_status):
     >>> active_link_ids((3, 4), status)
     array([12])
     """
-    return np.where(is_active_link(shape, node_status))[0].astype(np.int,
-                                                                  copy=False)
+    return as_id_array(np.where(is_active_link(shape, node_status))[0])
 
 def is_fixed_link(shape, node_status):
     """IDs of active links.
@@ -821,13 +821,13 @@ def horizontal_fixed_link_ids(shape, fixed_link_ids, bad_index_value=-1):
     # number of vertical links. We do this by starting at the "minimum horizontal
     # link id" found above and going to the end of the list. 
     horizontal_links = horizontal_links[min_hori_id:]
-    horizontal_links = horizontal_links.astype(int)
     
     # Return an array with length of number_of_vertical_links that has '-1' for
-    # inactive or active links and the fixed link id for fixed links
-    return horizontal_links
-    
-def vertical_active_link_ids(shape, active_link_ids, bad_index_value=-1):#, include_fixed_links = False):
+    # inactive links and the active link id for active links
+    return as_id_array(horizontal_links)
+
+
+def vertical_active_link_ids(shape, active_link_ids, bad_index_value=-1):
     """Get IDs of vertical active links.
 
     Parameters
@@ -986,12 +986,12 @@ def vertical_fixed_link_ids(shape, fixed_link_ids, bad_index_value=-1):
     
     # In the array of '-1's, we input the active link ids. 
     vertical_links[vertical_ids] = vertical_ids
-    vertical_links = vertical_links.astype(int)
 
     # Return an array with length of number_of_vertical_links that has '-1' for
     # inactive links and the active link id for active links
-    return vertical_links
-        
+
+    return as_id_array(vertical_links)
+    
 def find_horizontal_south_neighbor(shape, horizontal_link_ids, bad_index_value=-1):
     """Get IDs of SOUTH, horizontal link neighbor
 

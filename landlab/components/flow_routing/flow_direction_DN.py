@@ -13,6 +13,8 @@ import inspect
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE
 from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
+from landlab.core.utils import as_id_array
+
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 
@@ -249,7 +251,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
     (sink, ) = np.where(node_id==receiver)
-    sink = sink.astype(np.int, copy=False)
+    sink = as_id_array(sink)
     
     return receiver, steepest_slope, sink, receiver_link
     
