@@ -86,17 +86,20 @@ _VALID_BOOLEAN_VALUES = _VALID_TRUE_VALUES | _VALID_FALSE_VALUES
 
 
 class Error(Exception):
-    """
-    Base class for exceptions raised from this module.
-    """
+
+    """Base class for exceptions raised from this module."""
+
     pass
 
 
 class MissingKeyError(Error):
-    """
+
+    """Error to indicate a missing parameter key.
+
     Raise this error if the parameter dictionary file does not contain a
     requested *key*.
     """
+
     def __init__(self, key):
         self._key = key
 
@@ -105,10 +108,13 @@ class MissingKeyError(Error):
 
 
 class ParameterValueError(Error):
-    """
+
+    """Error to indicate a bad parameter values.
+
     Raise this error if a parameter value given by *key* is not of the
     expected type.
     """
+
     def __init__(self, key, val, expected_type):
         self._key = key
         self._val = val
@@ -138,8 +144,11 @@ _CONVERT_FROM_STR = {
 
 _VALID_VALUE_TYPES = set(_CONVERT_FROM_STR)
 
+
 class ModelParameterDictionary(dict):
-    """
+
+    """Model parameter file as specified as key/value pairs.
+
     Reads model parameters from an input file to a dictionary
     and provides functions for the user to look up particular parameters
     by key name.
@@ -148,9 +157,8 @@ class ModelParameterDictionary(dict):
     Use *from_file* to read in a parameter file from a file-like object or a
     file with the given file name.
 
-    Example
-    =======
-
+    Examples
+    --------
     Create a file-like object that contains a model parameter dictionary.
 
     >>> from six import StringIO
@@ -209,7 +217,8 @@ class ModelParameterDictionary(dict):
             self.read_from_file(from_file)
 
     def read_from_file(self, param_file):
-        """
+        """Read parameters for a file.
+
         Read and parse parameter dictionary information from a file or
         file-like object in *param_file*.
 
@@ -220,11 +229,17 @@ class ModelParameterDictionary(dict):
             1.234
 
         In other words, the rules are:
-            - Comments are preceded by hash characters
-            - Each parameter has two consecutive lines, one for the
-                key and one for the value
-            - The key must be followed by a space, colon, or eol
-            - The parameter can be numeric or text
+
+        - Comments are preceded by hash characters
+        - Each parameter has two consecutive lines, one for the key and one
+          for the value
+        - The key must be followed by a space, colon, or eol
+        - The parameter can be numeric or text
+
+        Parameters
+        ----------
+        param_file : str or file_like
+            Name of parameter file (or file_like)
         """
         if isinstance(param_file, six.string_types):
             try:
@@ -237,12 +252,24 @@ class ModelParameterDictionary(dict):
 
     @staticmethod
     def _get_stripped_lines(param_file):
-        """
+        """Strip whitespace for the lines of a parameter file.
+
         Strip lines from the iterable, *param_file*. Ignore lines, that upon
         being stripped, are either blank or only contain a comment.
         Comments are lines that contain a hash preceeded only by whitespace.
 
         Returns a list of the stripped lines.
+
+        Parameters
+        ----------
+        param_file : file_like
+            A parameter file.
+
+        Returns
+        -------
+        list
+            The lines of the parameter file with leading and trailing
+            whitespace stripped off.
         """
         stripped_line_list = []
         for line in param_file:
@@ -280,14 +307,24 @@ class ModelParameterDictionary(dict):
 
     @staticmethod
     def _auto_type_value(line):
-        """
+        """Guess the data type of a parameter value.
+
         Read a value from a string and try to guess its type. If the line
         contains any commas, try to convert it to a numpy array of ints and,
         if that doesn't work, an array of floats, otherwise it's just a
         string. 
 
-        If there are no commas, the order of types is bool, int, float, and
-        str.
+        If there are no commas, the order of types is ``bool``, ``int``,
+        ``float``, and ``str``.
+
+        Parameters
+        ----------
+        line : str
+            A line from a parameter file.
+
+        Returns
+        -------
+        The value converted to the guessed data type.
         """
         if ',' in line:
             try:
@@ -310,13 +347,18 @@ class ModelParameterDictionary(dict):
                         return line
 
     def params(self):
-        """
-        Return a list of all the parameters names in the parameter dictionary.
+        """List of all the parameters names in the parameter dictionary.
+        
+        Returns
+        -------
+        list of str
+            The names of parameters in the file.
         """
         return self.keys()
 
     def get(self, key, *args, **kwds):
         """get(key, [default], ptype=str)
+        Get a value by key name.
 
         Get a value from a model parameter dictionary. Use the *ptype*
         keyword to convert the value to a given type. *ptype* is a function
@@ -324,6 +366,17 @@ class ModelParameterDictionary(dict):
         argument after *key* is provided, use it as a default in case *key*
         is not contained in the ModelParameterDictionary.
 
+        Parameters
+        ----------
+        key : str
+            A parameter name.
+        default : str or number, optional
+            A default value if the key is missing.
+        ptype : str, optional
+            The data type of the paramter.
+
+        Examples
+        --------
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
@@ -341,26 +394,27 @@ class ModelParameterDictionary(dict):
         Be careful when dealing with booleans. If you want to be returned
         a boolean value, *DO NOT* set the *ptype* keyword to the builtin
         *bool*. This will not work as the Python *bool* function does not
-        convert strings to booleans as you might expect. For example,
+        convert strings to booleans as you might expect. For example::
 
-        >>> bool('True')
-        True
-        >>> bool('False')
-        True
+            >>> bool('True')
+            True
+            >>> bool('False')
+            True
 
-        If you would like to get a boolean, use *ptype='bool'*.
+        If you would like to get a boolean, use ``ptype='bool'``.
 
-        .. note:: Use *ptype='bool'* not *ptype=bool*.
+        .. note:: Use ``ptype='bool'`` not ``ptype=bool``.
+
             If you use *bool* to convert a string the returned boolean will
-            be `True` for *any* non-empty string. This is just how the
-            Python built-in *bool* works,
+            be ``True`` for *any* non-empty string. This is just how the
+            Python built-in ``bool`` works::
 
-            >>> bool('0')
-            True
-            >>> bool('1')
-            True
-            >>> bool('')
-            False
+                >>> bool('0')
+                True
+                >>> bool('1')
+                True
+                >>> bool('')
+                False
 
         >>> from six import StringIO
         >>> params = ModelParameterDictionary(StringIO(
@@ -403,9 +457,30 @@ class ModelParameterDictionary(dict):
 
 
     def read_int(self, key, *args):
-        """
+        """read_int(key, [default])
         Locate *key* in the input file and return it as an integer.
 
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
+        default : int
+            The default value if the key is missing.
+
+        Returns
+        -------
+        int
+            The value type cast to an ``int``.
+
+        Raises
+        ------
+        MissingKeyError
+            If *key* isn't in the dictionary or if its value is not an integer.
+        ParameterValueError
+            If the value is not an integer.
+
+        Examples
+        --------
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
@@ -415,16 +490,34 @@ class ModelParameterDictionary(dict):
         ... '''))
         >>> params.read_int('MY_INT')
         1
-
-        Raise an error if *key* isn't in the dictionary or if its value is
-        not an integer.
         """
         return self.get(key, *args, ptype=int)
 
     def read_float(self, key):
-        """
+        """read_float(key, [default])
         Locate *key* in the input file and return it as a float.
 
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
+        default : float
+            The default value if the key is missing.
+
+        Returns
+        -------
+        float
+            The value type cast to a ``float``.
+
+        Raises
+        ------
+        MissingKeyError
+            If *key* isn't in the dictionary or if its value is not an integer.
+        ParameterValueError
+            If the value is not a float.
+
+        Examples
+        --------
         >>> from __future__ import print_function
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
@@ -435,9 +528,6 @@ class ModelParameterDictionary(dict):
         ... '''))
         >>> print('%.2f' % params.read_float('MY_FLOAT'))
         3.14
-
-        An error is generated if *key* isn't in the dictionary or
-        if its value is not a number.
         """
         try:
             my_float = float(self[key])
@@ -449,9 +539,27 @@ class ModelParameterDictionary(dict):
             return my_float
 
     def read_string(self, key):
-        """
-        Locate *key* in the input file and return it as a string.
+        """Locate *key* in the input file and return it as a string.
 
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
+        default : str
+            The default value if the key is missing.
+
+        Returns
+        -------
+        str
+            The value type cast to a ``str``.
+
+        Raises
+        ------
+        MissingKeyError
+            If *key* isn't in the dictionary or if its value is not an integer.
+
+        Examples
+        --------
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
@@ -461,8 +569,6 @@ class ModelParameterDictionary(dict):
         ... '''))
         >>> params.read_string('MY_STRING')
         'landlab'
-
-        An error is generated if *key* isn't in the dictionary.
         """
         try:
             my_value = self[key]
@@ -471,7 +577,29 @@ class ModelParameterDictionary(dict):
         return str(my_value)
 
     def read_bool(self, key):
-        """
+        """Locate *key* in the input file and return it as a boolean.
+
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
+        default : bool
+            The default value if the key is missing.
+
+        Returns
+        -------
+        bool
+            The value type cast to a ``bool``.
+
+        Raises
+        ------
+        MissingKeyError
+            If *key* isn't in the dictionary or if its value is not an integer.
+        ParameterValueError
+            If the value is not a boolean.
+
+        Examples
+        --------
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
@@ -481,8 +609,6 @@ class ModelParameterDictionary(dict):
         ... '''))
         >>> params.read_bool('MY_BOOL')
         True
-
-        An error is generated if MY_BOOL isn't 0, 1, True or False
         """
         try:
             my_value = self[key]
@@ -497,13 +623,25 @@ class ModelParameterDictionary(dict):
             raise ParameterValueError(key, my_value, 'boolean')
 
     def read_int_cmdline(self, key):
-        """
+        """Read an integer from the command line.
+
         Read an integer from the command line and use it as a value for
         *key* in the dictonary.
 
-        Usage: i = read_int_cmdline('MY_INT')
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
 
-        An error is generated if *key* is not an integer.
+        Returns
+        -------
+        int
+            The parameter value.
+
+        Raises
+        ------
+        ParameterValueError
+            If the value is not an int.
         """
         my_value = input(key + ': ')
         self[key] = my_value
@@ -512,13 +650,25 @@ class ModelParameterDictionary(dict):
         return my_value
 
     def read_float_cmdline(self, key):
-        """
+        """Read a float from the command line.
+
         Read a float from the command line and use it as a value for
         *key* in the dictonary.
 
-        Usage: f = read_float_cmdline('MY_FLOAT')
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
 
-        An error is generated if *key* is not a float.
+        Returns
+        -------
+        float
+            The parameter value.
+
+        Raises
+        ------
+        ParameterValueError
+            If the value is not an float.
         """
         my_value = input(key + ': ')
         self[key] = my_value
@@ -530,23 +680,40 @@ class ModelParameterDictionary(dict):
             return my_float
 
     def read_string_cmdline(self, key):
-        """
+        """Read a string from the command line.
+
         Read a string from the command line and use it as a value for
         *key* in the dictonary.
 
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
+
+        Returns
+        -------
+        str
+            The parameter value.
         """
         my_str = raw_input(key + ': ')
         self[key] = my_str
         return my_str
 
     def read_bool_cmdline(self, key):
-        """
+        """Read a boolean from the command line.
+
         Read a boolean from the command line and use it as a value for
         *key* in the dictonary.
 
-        Usage: f = read_bool_cmdline('MY_BOOL')
+        Parameters
+        ----------
+        key : str
+            The name of a parameter.
 
-        An error is generated if *key* is not a boolean.
+        Returns
+        -------
+        bool
+            The parameter value.
         """
         my_value = raw_input(key + ': ')
         if my_value.upper() in _VALID_TRUE_VALUES:
