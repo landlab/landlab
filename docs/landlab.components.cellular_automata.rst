@@ -11,6 +11,22 @@ Subpackages
 Submodules
 ----------
 
+landlab.components.cellular_automata.celllab_cts module
+-------------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.celllab_cts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.cellular_automata.hex_cts module
+---------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.hex_cts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.cellular_automata.hex_lattice_tectonicizer module
 --------------------------------------------------------------------
 
@@ -35,6 +51,22 @@ landlab.components.cellular_automata.landlab_ca module
     :undoc-members:
     :show-inheritance:
 
+landlab.components.cellular_automata.little_ca_test module
+----------------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.little_ca_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.cellular_automata.oriented_hex_cts module
+------------------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.oriented_hex_cts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.cellular_automata.oriented_hex_lca module
 ------------------------------------------------------------
 
@@ -43,10 +75,26 @@ landlab.components.cellular_automata.oriented_hex_lca module
     :undoc-members:
     :show-inheritance:
 
+landlab.components.cellular_automata.oriented_raster_cts module
+---------------------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.oriented_raster_cts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.cellular_automata.oriented_raster_lca module
 ---------------------------------------------------------------
 
 .. automodule:: landlab.components.cellular_automata.oriented_raster_lca
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.cellular_automata.raster_cts module
+------------------------------------------------------
+
+.. automodule:: landlab.components.cellular_automata.raster_cts
     :members:
     :undoc-members:
     :show-inheritance:

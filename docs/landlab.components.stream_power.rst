@@ -36,14 +36,6 @@ landlab.components.stream_power.stream_power module
     :undoc-members:
     :show-inheritance:
 
-landlab.components.stream_power.weavefuncs module
--------------------------------------------------
-
-.. automodule:: landlab.components.stream_power.weavefuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------
