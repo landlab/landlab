@@ -27,8 +27,10 @@ class OverlandFlow(Component):
     "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
 
-    The OverlandFlow component contains necessary and optional inputs. If not
-    given, default input file and values is used.
+    The :class:`OverlandFlow` component contains necessary and optional
+    inputs (read from a :class:`~landlab.ModelParameterDictionary` file). If
+    not given, default input file and values is used.
+    
     - Manning's n is needed, default value of 0.01 (`MANNINGS_N`).
     - Storm duration is needed IF rainfall_duration is not passed in the
       initialization (`STORM_DURATION`).
@@ -42,20 +44,22 @@ class OverlandFlow(Component):
     grid : RasterModelGrid
         A RasterGridModel.
     input_file : str, optional
-        Name of component input file (as a :any:`ModelParameterDictionary`).
-        If not provided, default values will be used.
+        Name of component input file (as a
+        :class:`~landlab.ModelParameterDictionary`).  If not provided,
+        default values will be used.
     use_fixed_links : boolean
         Use fixed links.
 
     Notes
     -----
-    Some constants used in the OverlandFlow component:
-    - *h_init* (float): Initial depth in the channels. Default = 0.001 m
-    - *g* (float): Gravitational acceleration, \x0crac{m}{s^2}
-    - *alpha* (float): Non-dimensional time step factor from Bates et al.,
+    Some constants used in the :class:`OverlandFlow` component:
+
+    - ``h_init`` (float): Initial depth in the channels. Default = 0.001 m
+    - ``g`` (float): Gravitational acceleration [m s^2]
+    - ``alpha`` (float): Non-dimensional time step factor from Bates et al.,
       (2010)
-    - *rho* (integer): Density of water, \x0crac{kg}{m^3}
-    - *ten_thirds* (float): Precalculated value of \x0crac{10}{3} which is
+    - ``rho`` (integer): Density of water, [kg m^3]
+    - ``ten_thirds`` (float): Precalculated value of [10 / 3] which is
       used in the implicit shallow water equation.
 
     Examples

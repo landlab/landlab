@@ -28,18 +28,18 @@ landlab.components.flow_routing.flow_routing_D8 module
     :undoc-members:
     :show-inheritance:
 
-landlab.components.flow_routing.route_flow_dn module
-----------------------------------------------------
+landlab.components.flow_routing.lake_mapper module
+--------------------------------------------------
 
-.. automodule:: landlab.components.flow_routing.route_flow_dn
+.. automodule:: landlab.components.flow_routing.lake_mapper
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.components.flow_routing.weavefuncs module
--------------------------------------------------
+landlab.components.flow_routing.route_flow_dn module
+----------------------------------------------------
 
-.. automodule:: landlab.components.flow_routing.weavefuncs
+.. automodule:: landlab.components.flow_routing.route_flow_dn
     :members:
     :undoc-members:
     :show-inheritance:

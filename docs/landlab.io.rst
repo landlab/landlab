@@ -22,6 +22,14 @@ landlab.io.esri_ascii module
     :undoc-members:
     :show-inheritance:
 
+landlab.io.native_landlab module
+--------------------------------
+
+.. automodule:: landlab.io.native_landlab
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

@@ -77,6 +77,14 @@ landlab.grid.raster_funcs module
     :undoc-members:
     :show-inheritance:
 
+landlab.grid.raster_mappers module
+----------------------------------
+
+.. automodule:: landlab.grid.raster_mappers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.grid.voronoi module
 ---------------------------
 
