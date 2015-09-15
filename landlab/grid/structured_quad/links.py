@@ -1447,7 +1447,7 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> active_ids = active_link_ids(rmg.shape, rmg.node_status)
     >>> horizontal_ids = horizontal_active_link_ids(
-    ...     rmg.shape, active_link_ids)
+    ...     rmg.shape, active_ids)
     >>> d4_horizontal_active_link_neighbors(rmg.shape, horizontal_ids)
     array([[-1, -1, 24, 21],
            [-1, 20, 25, -1],
