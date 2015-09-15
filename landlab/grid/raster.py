@@ -17,15 +17,18 @@ from .base import ModelGrid
 from . import grid_funcs as gfuncs
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, )
+                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK, 
+                   ACTIVE_LINK, INACTIVE_LINK )
 from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
+from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
 
 
-def node_has_boundary_neighbor(mg, id):
+
+def node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
     .. note:: Deprecated since version 0.6.
@@ -39,6 +42,9 @@ def node_has_boundary_neighbor(mg, id):
         Source grid
     node_id : int
         ID of node to test.
+    method: string, optional
+        default is d8 neighbor, other method is 'd4'
+    
 
     Returns
     -------
@@ -51,14 +57,14 @@ def node_has_boundary_neighbor(mg, id):
                 return True
         except IndexError:
             return True
-    for neighbor in mg.get_diagonal_list(id):
-        try:
-            if mg.node_status[neighbor] != CORE_NODE:
+    if method == 'd8':
+        for neighbor in mg.get_diagonal_list(id):
+            try:
+                if mg.node_status[neighbor] != CORE_NODE:
+                    return True
+            except IndexError:
                 return True
-        except IndexError:
-            return True
     return False
-
 
 def _make_arg_into_array(arg):
     """
@@ -86,7 +92,6 @@ def _make_arg_into_array(arg):
 
 has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                         excluded=['mg'])
-
 
 class RasterModelGridPlotter(object):
     """MixIn that provides plotting functionality.
@@ -492,7 +497,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diagonal_links_created = False
 
         #   set up the list of active links
-        self._reset_list_of_active_links()
+        self._reset_link_status_list()
 
         #   set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
@@ -518,12 +523,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
         self.diagonal_list_created = False
-        
-        # List of looped neighbor cells (all 8 neighbors) for 
-        # given *cell ids* can be created if requested by the user. 
+
+        # List of looped neighbor cells (all 8 neighbors) for
+        # given *cell ids* can be created if requested by the user.
         self.looped_cell_neighbor_list_created = False
 
-        # List of second ring looped neighbor cells (all 16 neighbors) for 
+        # List of second ring looped neighbor cells (all 16 neighbors) for
         # given *cell ids* can be created if requested by the user.
         self.looped_second_ring_cell_neighbor_list_created = False
 
@@ -607,7 +612,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         2.0
         """
         return self._dx
-    
+
     @property
     def dy(self):
         """
@@ -630,7 +635,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         2.0
         """
         return self._dx
-        
+
 
     def node_links(self, *args):
         """node_links([node_ids])
@@ -971,9 +976,73 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_tonode = self._diag_link_tonode[_diag_active_links]
         self._diag_active_links = _diag_active_links + self.number_of_links
 
+    def _reset_diagonal_link_statuses(self):
+        '''
+        Assuming the diagonal links have already been created elsewhere, this
+        helper method checks their statuses (active/inactive/fixed) for internal
+        consistency after the BC status of some nodes has been changed.
+        Note that the IDs of the diagonal links need to be compatible with the
+        "normal" links - so we add self.number_links to these IDs.
+        Assumes _setup_diagonal_links() has been called, either explicitly or by
+        another grid method (e.g., d8_active_links()).
+        '''
+
+        assert(self._diagonal_links_created), 'Diagonal links not created'
+
+        self._diagonal_active_links = []
+        self._diag_activelink_fromnode = []
+        self._diag_activelink_tonode = []
+
+        try:
+            already_fixed = self.link_status == FIXED_LINK
+        except AttributeError:
+            already_fixed = np.zeros(self.number_of_links, dtype=bool)
+
+        diag_fromnode_status = self.node_status[self._diag_link_fromnode]
+        diag_tonode_status = self.node_status[self._diag_link_tonode]
+
+        if not np.all((diag_fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
+                (diag_tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
+            assert np.all(diag_fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
+                    diag_tonode_status[already_fixed] == CLOSED_BOUNDARY)
+            diag_fromnode_status[already_fixed] = np.where(
+                                 diag_fromnode_status[already_fixed] == CLOSED_BOUNDARY,
+                                 FIXED_GRADIENT_BOUNDARY,
+                                 diag_fromnode_status[already_fixed])
+            diag_tonode_status[already_fixed] = np.where(
+                                   diag_tonode_status[already_fixed] == CLOSED_BOUNDARY,
+                                   FIXED_GRADIENT_BOUNDARY,
+                                   diag_tonode_status[already_fixed])
+
+        diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
+                              (diag_tonode_status == CLOSED_BOUNDARY)) |
+                             ((diag_tonode_status == CORE_NODE) & ~
+                              (diag_fromnode_status == CLOSED_BOUNDARY)))
+        #...this still includes things that will become fixed_link
+
+        diag_fixed_links = ((((diag_fromnode_status == FIXED_GRADIENT_BOUNDARY) &
+                              (diag_tonode_status == CORE_NODE)) |
+                            ((diag_tonode_status == FIXED_GRADIENT_BOUNDARY) &
+                             (diag_fromnode_status == CORE_NODE))) |
+                            already_fixed)
+
+        _diag_active_links = np.where(np.logical_and(diag_active_links,
+                                                     np.logical_not(diag_fixed_links)))
+        _diag_active_links = _diag_active_links.astype(np.int, copy=False)
+
+        self._num_diag_active_links = len(_diag_active_links)
+        self._num_diag_fixed_links = np.sum(diag_fixed_links).astype(int)
+        self._diag_activelink_fromnode = self._diag_link_fromnode[_diag_active_links]
+        self._diag_activelink_tonode = self._diag_link_tonode[_diag_active_links]
+        self._diag_active_links = _diag_active_links + self.number_of_links
+        self._diag_fixed_links = diag_fixed_links + self.number_of_links
+
 
     def _reset_list_of_active_links(self):
         '''
+        .. deprecated:: 0.1.27
+           Use :func: `_reset_link_status_list` instead.
+
         Assuming the active link list has already been created elsewhere, this
         helper method checks link statuses (active/inactive) for internal
         consistency after the BC status of some nodes has been changed.
@@ -981,6 +1050,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self)._reset_list_of_active_links()
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
+
+
+    def _reset_link_status_list(self):
+        '''
+        Assuming the link_status array has already been created elsewhere, this
+        helper method checks link statuses for internal
+        consistency after the BC status of some nodes has been changed.
+        '''
+        super(RasterModelGrid, self)._reset_link_status_list()
+        if self._diagonal_links_created:
+            self._reset_list_of_active_diagonal_links()
+
 
     def _make_link_unit_vectors(self):
         """Makes arrays to store the unit vectors associated with each link.
@@ -1477,7 +1558,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([0, 2, 3, 5])
         """
         return sgrid.corners(self.cell_grid_shape)
-        
+
     def is_point_on_grid(self, xcoord, ycoord):
         """Check if a point is on a grid.
 
@@ -3579,7 +3660,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.neighbor_list_created = True
         return neighbor_nodes
 
-    def has_boundary_neighbor(self, ids):
+    def has_boundary_neighbor(self, ids, method='d8'):
         """
         Checks to see if one of the eight neighbor nodes of node(s) with
         *id* has a boundary node.  Returns True if a node has a boundary node,
@@ -3601,7 +3682,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-        ans = has_boundary_neighbor(self, ids)
+
+        ans = has_boundary_neighbor(self, ids, method=method)
+
         if ans.ndim == 0:
             return bool(ans)
         else:
@@ -4350,11 +4433,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def save(self, path, names=None, format=None):
         """Save a grid and fields.
-        
+
         If more than one field name is specified for names when saving to ARC
         ascii, multiple files will be produced, suffixed with the field names.
-        
-        When saving to netCDF (.nc), the fields are incorporated into the 
+
+        When saving to netCDF (.nc), the fields are incorporated into the
         single named .nc file.
 
         Parameters
@@ -4386,12 +4469,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def get_looped_cell_neighbor_list(self, *args):
         """Get list of looped neighbor cell IDs (all 8 neighbors).
-        
+
         Returns lists of looped neighbor cell IDs of given *cell ids*.
         If *cell ids* are not given, it returns a 2D array of size
-        ( self.number_of_cells, 8 ). 
+        ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
-        """    
+        """
         if self.looped_cell_neighbor_list_created:
             if len(args) == 0:
                 return self.looped_cell_neighbor_list
@@ -4403,18 +4486,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.looped_cell_neighbor_list =                                 \
                                     self.create_looped_cell_neighbor_list()
             return(self.get_looped_cell_neighbor_list( *args ))
-                
+
     def create_looped_cell_neighbor_list(self):
-        """Create a list of looped immediate cell neighbors (8 adjacent cells). 
-        
-        Creates a list of looped immediate cell neighbors (*cell ids*) for each 
+        """Create a list of looped immediate cell neighbors (8 adjacent cells).
+
+        Creates a list of looped immediate cell neighbors (*cell ids*) for each
         cell as a 2D array of size ( self.number_of_cells, 8 ).
-        Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]        
+        Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
         """
-        
+
         # CAUTION: Some terminology concerning cells in this module
-        # is asynchronous to general understanding. This is intentionally 
-        # left as is until further discussion among dev group. 
+        # is asynchronous to general understanding. This is intentionally
+        # left as is until further discussion among dev group.
         # Any such instances are marked with (*TC - Terminoly Caution)
         r, c = self.cell_grid_shape
         interior_cells = sgrid.interior_nodes(self.cell_grid_shape)   # *TC
@@ -4431,19 +4514,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         left_edge_cells = [x for x in sgrid.left_edge_node_ids(
                               self.cell_grid_shape) if x not in corner_cells ]
                                                                       # *TC
-            
+
         looped_cell_neighbors = np.empty([self.number_of_cells,8], dtype = int)
 
         # order = [E,NE,N,NW,W,SW,S,SE]
         for cell in range(0,self.number_of_cells):
             if cell in interior_cells:
-                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1, 
+                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1,
                                 cell-c-1, cell-c, cell-c+1]
             elif cell in bottom_edge_cells:
-                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1, 
+                neighbor_ = [cell+1, cell+1+c, cell+c, cell+c-1, cell-1,
                                 cell+(r-1)*c-1, cell+(r-1)*c, cell+(r-1)*c+1]
             elif cell in top_edge_cells:
-                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c, 
+                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c,
                                 cell-(r-1)*c-1, cell-1, cell-c-1,
                                     cell-c, cell-c+1]
             elif cell in right_edge_cells:
@@ -4453,30 +4536,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 neighbor_ = [cell+1, cell+c+1, cell+c, cell+2*c-1, cell+c-1,
                                 cell-1, cell-c, cell-c+1]
             elif cell == corner_cells[0]:  # SW corner
-                neighbor_ = [cell+1, cell+c+1, cell+c, cell+2*c-1, cell+c-1, 
+                neighbor_ = [cell+1, cell+c+1, cell+c, cell+2*c-1, cell+c-1,
                                 cell+r*c-1, cell+(r-1)*c, cell+(r-1)*c+1]
             elif cell == corner_cells[1]:  # SE corner
-                neighbor_ = [cell-c+1, cell+1, cell+c, cell+c-1, cell-1, 
+                neighbor_ = [cell-c+1, cell+1, cell+c, cell+c-1, cell-1,
                                 cell+(r-1)*c-1, cell+(r-1)*c, cell+(r-2)*c+1]
             elif cell == corner_cells[2]:  # NW corner
-                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c, 
-                                cell-(r-2)*c-1, cell+c-1, cell-1, 
+                neighbor_ = [cell+1, cell-(r-1)*c+1, cell-(r-1)*c,
+                                cell-(r-2)*c-1, cell+c-1, cell-1,
                                     cell-c, cell-c+1]
             elif cell == corner_cells[3]:  # NE corner
                 neighbor_ = [cell-c+1, cell-r*c+1, cell-(r-1)*c, cell-(r-1)*c-1,
                                 cell-1, cell-c-1, cell-c, cell-2*c+1]
             looped_cell_neighbors[cell] = neighbor_
-        
+
         self.looped_cell_neighbor_list_created = True
         return looped_cell_neighbors
 
     def get_second_ring_looped_cell_neighbor_list( self, *args ):
         """
         Get list of second ring looped neighbor cell IDs (all 16 neighbors).
-        
-        Returns lists of looped second ring neighbor cell IDs of 
-        given *cell ids*. If *cell ids* are not given, it returns 
-        a 2D array of size ( self.number_of_cells, 16 ). 
+
+        Returns lists of looped second ring neighbor cell IDs of
+        given *cell ids*. If *cell ids* are not given, it returns
+        a 2D array of size ( self.number_of_cells, 16 ).
         Order or neighbors: Starts with E and goes counter clockwise
         """
         if self.looped_second_ring_cell_neighbor_list_created:
@@ -4493,28 +4576,316 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def create_second_ring_looped_cell_neighbor_list( self ):
         """
-        Creates list of looped second ring cell neighbors (16 cells). 
-        
-        Creates a list of looped immediate cell neighbors for each cell as a 
+        Creates list of looped second ring cell neighbors (16 cells).
+
+        Creates a list of looped immediate cell neighbors for each cell as a
         2D array of size ( self.number_of_cells, 16 ).
         Order or neighbors: Starts with E and goes counter clockwise
         """
-        inf = self.get_looped_cell_neighbor_list()        
+        inf = self.get_looped_cell_neighbor_list()
         second_ring = np.empty([self.number_of_cells,16], dtype = int)
         order = np.arange(-1,15)
         order[0] = 15
         for cell in range(0,self.number_of_cells):
-            cell1, cell2, cell3, cell4 = (inf[cell][1], inf[cell][3], 
+            cell1, cell2, cell3, cell4 = (inf[cell][1], inf[cell][3],
                                             inf[cell][5], inf[cell][7])
             ring_tw = np.concatenate((inf[cell1][0:4],inf[cell2][2:6],
                                         inf[cell3][4:8],inf[cell4][6:8],
                                             inf[cell4][0:2]))[order]
             second_ring[cell] = ring_tw
-        
+
         self.looped_second_ring_cell_neighbor_list_created = True
         return second_ring
-    
 
+    def set_fixed_link_boundaries_at_grid_edges(self, bottom_is_fixed,
+                                                 left_is_fixed,
+                                                 top_is_fixed,
+                                                 right_is_fixed, link_value=None,
+                                                 node_value=None,
+                                                 fixed_node_value_of='topographic__elevation',
+                                                 fixed_link_value_of='topographic__slope'):
+        """Create fixed link boundaries at the grid edges.
+
+        Sets the status of links along the specified side(s) of a raster
+        grid--- bottom vertical links, right horizontal, top vertical links,
+        and/or left horizontal links ---to FIXED_LINK.
+        
+        By definition, fixed links exist between fixed gradient nodes (node_status==2)
+        and core nodes (node_status==0). Because the outer ring of nodes are
+        fixed gradient (node_status==2), the links between them are inactive
+        (link_status==4) and are not set using this function (the inactive links
+        are the top and bottom horizontal edge links, and left and right edge
+        vertical edge links.)
+
+        Arguments are booleans indicating whether the bottom, right, top, and
+        left sides are to be set (True) or not (False).
+
+        *value* controls what values are held constant at these nodes. It can be
+        either a float, an array of length number_of_fixed_nodes or
+        number_of_nodes (total), or left blank. If left blank, the values will
+        be set from the those already in the grid fields, according to
+        'value_of'.
+
+        *value_of* controls the name of the model field that contains the
+        values. Remember, if you don't set value, the fixed values will be set
+        from the field values ***at the time you call this method***. If no
+        values are present in the field, the module will complain but accept
+        this, warning that it will be unable to automatically update boundary
+        conditions (and such methods, e.g., ``RasterModelGrid.update_boundary_nodes()``,
+        will raise exceptions if you try).
+
+        The following example sets the bottom and right link boundaries as
+        fixed-value in a four-row by five-column grid that initially has all
+        boundaries closed (i.e., flagged as link_status=2)
+        
+        ## THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
+        ## IF NOT ALREADY SET. 
+
+        Parameters
+        ----------
+        bottom_is_fixed : boolean
+            Set bottom edge vertical links as fixed boundary.
+        left_is_fixed : boolean
+            Set left edge horizontal links as fixed boundary.
+        top_is_fixed : boolean
+            Set top edge vertical links as fixed boundary.
+        right_is_fixed : boolean
+            Set right edge  horizontal links as fixed boundary.
+        value : float, array or None (default).
+            Override value to be kept constant at nodes.
+        value_of : string.
+            The name of the grid field containing the values of interest.
+
+        Example
+        ----------
+        
+        The following grid is used in the example::
+
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       X       X       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--X--->o       o       o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       |       |       |       |       |       |       |       I
+          |       |       |       |       |       |       |       |       |
+          *--X--->o       o       o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       X       X       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
+          
+        .. note::         
+          
+          Links set to :any:`ACTIVE_LINK` are not indicated in this diagram.
+          
+        ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT BOUNDARY`    
+     
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+                    
+        ``x`` indicates the links that are set to :any:`FIXED_LINK`
+
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 9, 1.0) # rows, columns, spacing
+        >>> import numpy as np
+        >>> z = np.arange(0, rmg.number_of_nodes)
+        >>> s = np.arange(0, rmg.number_of_links)
+        >>> rmg['node']['topographic__elevation'] = z
+        >>> rmg['link']['topographic__slope'] = s
+        >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> rmg.node_status
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 
+               0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+        >>> rmg.link_status
+        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2,
+               2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 
+               0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        >>> rmg.fixed_link_properties['fixed_gradient_of']
+        'topographic__slope'
+        >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
+        'topographic__elevation'
+    
+        """
+
+        if self._DEBUG_TRACK_METHODS:
+            six.print_('ModelGrid.set_fixed_link_boundaries_at_grid_edges')
+        
+        # Fixed link boundaries are found between core nodes (node_status==0) 
+        # and fixed gradient nodes (node_status==2). To assure these conditions
+        # are met, we store link and node boundary IDs in arrays...
+        fixed_nodes = np.array([])        
+        fixed_links = np.array([])
+        
+        # Based on the inputs, we then assign boundary status. Starting
+        # from the bottom edge (South edge) we look to see if the boolean input
+        # is True or False. If true, we find the appropriate links and nodes and
+        # set them to the boundary condition of FIXED_GRADIENT_BOUNDARY for nodes
+        # and FIXED_LINK for links.
+        if bottom_is_fixed:
+            
+            # Finding the link and node IDs along the bottom edge of the raster grid.
+            bottom_edge = links.bottom_edge_vertical_ids(self.shape)
+            bottom_nodes = self.bottom_edge_node_ids()
+        
+            # Set the node and link boundary statuses to FIXED_GRADIENT_BOUNDARY
+            # and FIXED_LINK respectively.
+            self.node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
+            self.link_status[bottom_edge] = FIXED_LINK
+            
+            # Append the node and link ids to the array created earlier to
+            # track boundary statuses
+            fixed_nodes = np.append(fixed_nodes, bottom_nodes)
+            fixed_links = np.append(fixed_links, bottom_edge)
+            
+        if right_is_fixed:
+
+            # Find the IDs...
+            right_edge = links.right_edge_horizontal_ids(self.shape)
+            right_nodes = self.right_edge_node_ids()
+            
+            # Set the new boundary statuses
+            self.link_status[right_edge] = FIXED_LINK
+            self.node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
+            
+            # Add the IDs to the array...
+            fixed_nodes = np.append(fixed_nodes, right_nodes)
+            fixed_links = np.append(fixed_links, right_edge)
+
+        if top_is_fixed:
+            
+            # Find the IDs...
+            top_edge = links.top_edge_vertical_ids(self.shape)
+            top_nodes = self.top_edge_node_ids()
+           
+            # Set the new boundary statuses
+            self.link_status[top_edge] = FIXED_LINK
+            self.node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
+            
+            # Add the IDs to the array...
+            fixed_nodes = np.append(fixed_nodes, top_nodes)
+            fixed_links = np.append(fixed_links, top_edge)
+            
+        if left_is_fixed:
+            
+            # Find the IDs...
+            left_edge = links.left_edge_horizontal_ids(self.shape)
+            left_nodes = self.left_edge_node_ids()            
+            
+            # Set the new boundary statuses
+            self.link_status[left_edge] = FIXED_LINK
+            self.node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
+            
+            # Add the IDs to the array...
+            fixed_nodes= np.append(fixed_nodes, left_nodes)
+            fixed_links = np.append(fixed_links, left_edge)
+        
+        # Get the fromnode and tonode statuses for each link. 
+        # This allows us to make sure that all link boundaries follow 
+        # the convention that FIXED_LINKs only occur between core and
+        # fixed gradient nodes
+        fromnode_status = self.node_status[self.node_at_link_tail]
+        tonode_status = self.node_status[self.node_at_link_head] 
+        
+        # Make sure the IDs are the correct type (Int, not Float)
+        fixed_links = fixed_links.astype(int)
+
+        # Make sure that all fixed links have a core neighbor AND a fixed_gradient
+        # node neighbor
+        try :
+            assert np.all(((fromnode_status[fixed_links] == CORE_NODE) & ~
+                              (tonode_status[fixed_links] == FIXED_GRADIENT_BOUNDARY)) |
+                             ((tonode_status[fixed_links] == CORE_NODE) & ~
+                              (fromnode_status[fixed_links] == FIXED_GRADIENT_BOUNDARY)))
+        except AssertionError:
+             # If there are links that DON'T follow the correct convention, it 
+             # is likely there is a FIXED_LINK between two FIXED_GRADIENT_BOUNDARY_nodes
+        
+             # Finding inactive links between two FIXED_GRADIENT_BOUNDARY nodes
+             inactive_links = np.where((fromnode_status == FIXED_GRADIENT_BOUNDARY) & (tonode_status ==FIXED_GRADIENT_BOUNDARY))
+
+             # ... and setting their status to INACTIVE_LINK             
+             self.link_status[inactive_links] = INACTIVE_LINK
+
+             # Anywhere there are still FIXED_LINK statuses are our boundary links
+             fixed_links = np.where(self.link_status == FIXED_LINK)             
+             self.link_status[fixed_links] = FIXED_LINK
+    
+        # Readjust the fixed_nodes array to make sure entries are ints, aren't 
+        # duplicated and sorted from lowest value to highest.
+        fixed_nodes = fixed_nodes.astype(int)
+        fixed_nodes = np.unique(fixed_nodes)
+        fixed_nodes = np.sort(fixed_nodes)
+
+        # Now we are testing to see what values will be assigned to these boundaries
+
+        # For links, the default is topographic slope ('topographic__slope')
+        # First, see if there is a scalar value...
+        if link_value== None:
+            
+            # if not, we assign the link values from the field of 'topographic_slope'.
+            # If it does not exists, an error will be kicked out. 
+            assigned_link_values = self['link'][fixed_link_value_of][fixed_links]
+            
+        else:
+            
+            # If there IS a scalar link value, it is instead set here. 
+            assigned_link_values = np.ones(fixed_links.size) * link_value
+            
+        # For nodes, the default value is 'topographic__elevation'.
+        if node_value == None:
+            
+            # If no scalar is found, the field values for 'topographic__elevation'
+            # are used. If this field does not exist, an error will be returned.
+            assigned_node_values = self['node'][fixed_node_value_of][fixed_nodes]
+        else:
+            
+            # If there is a scalar, it is instead set here. 
+            assigned_node_values = np.ones(fixed_nodes.size) *node_value
+        
+        # Now we will set the attributes using a Python dictionary.
+        # First, nodes. 
+        try:
+            # Simply testing to make sure no boundary conditions exist...
+            self.fixed_gradient_node_properties['boundary_node_IDs']
+        except AttributeError: 
+            
+            # If they don't exist, we set them here. 
+            self.fixed_gradient_node_properties ={}
+            
+            # Setting the node ids in the dictionary. 
+            self.fixed_gradient_node_properties['boundary_node_IDs'] = fixed_nodes
+            
+            # What gradient was assigned to the nodes? That is set here. 
+            self.fixed_gradient_node_properties['fixed_gradient_of'] = fixed_node_value_of
+            
+            # Assigned gradient values at the nodes set in the dictionary. 
+            self.fixed_gradient_node_properties['boundary_node_gradients'] = assigned_node_values
+        
+        # Then, links
+        try: 
+            # First, test to make sure no boundary conditions exist. 
+            self.fixed_link_properties['boundary_link_IDs']
+            
+        except AttributeError:
+            
+            # If they don't exist, we set them here
+            self.fixed_link_properties = {}
+            
+            # Setting the link IDs in the dictionary
+            self.fixed_link_properties['boundary_link_IDs'] = fixed_links
+            
+            # What gradient are we assigning to the links? That is set here. 
+            self.fixed_link_properties['fixed_gradient_of'] = fixed_link_value_of
+            
+            # Assigned gradient values at the links set in the dictionary
+            self.fixed_link_properties['boundary_link_gradients'] = assigned_link_values    
+            
+        self._reset_link_status_list()
+        self._reset_lists_of_nodes_cells()
+
+        
 def _is_closed_boundary(boundary_string):
     """
     Helper function, probably depreciated due to changes in BC handling

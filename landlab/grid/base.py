@@ -225,6 +225,17 @@ TRACKS_CELL_BOUNDARY = 3
 #: Indicates a boundary node is closed
 CLOSED_BOUNDARY = 4
 
+# Define the link types
+
+#: Indicates a link is *active*, and can carry flux
+ACTIVE_LINK = 0
+
+#: Indicates a link has a fixed (gradient) value, & behaves as a boundary
+FIXED_LINK = 2
+
+#: Indicates a link is *inactive*, and cannot carry flux
+INACTIVE_LINK = 4
+
 BOUNDARY_STATUS_FLAGS_LIST = [
     FIXED_VALUE_BOUNDARY,
     FIXED_GRADIENT_BOUNDARY,
@@ -233,6 +244,12 @@ BOUNDARY_STATUS_FLAGS_LIST = [
 ]
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
+LINK_STATUS_FLAGS_LIST = [
+    ACTIVE_LINK,
+    FIXED_LINK,
+    INACTIVE_LINK,
+]
+LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
 
 def _sort_points_into_quadrants(x, y, nodes):
     """
@@ -550,8 +567,17 @@ class ModelGrid(ModelDataFields):
         try:
             return self.active_link_ids
         except AttributeError:
-            self._reset_list_of_active_links()
+            self._reset_link_status_list()
             return self.active_link_ids
+
+    @property
+    def fixed_links(self):
+        """Link IDs of all fixed links"""
+        try:
+            return self.fixed_link_ids
+        except AttributeError:
+            self._reset_link_status_list()
+            return self.fixed_link_ids
 
     @property
     def node_index_at_active_cells(self):
@@ -661,12 +687,38 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_active_links(self):
         """Number of active links in the grid"""
-        return self._num_active_links
+        try:
+            return self._num_active_links
+        except AttributeError:
+            self._reset_link_status_list()
+            return self._num_active_links
 
     @property
     def number_of_active_faces(self):
         """Number of active faces in the grid"""
-        return self._num_active_faces
+        try:
+            return self._num_active_faces
+        except AttributeError:
+            self._reset_link_status_list()
+            return self._num_active_faces
+
+    @property
+    def number_of_fixed_links(self):
+        """Number of fixed links in the grid"""
+        try:
+            return self._num_fixed_links
+        except AttributeError:
+            self._reset_link_status_list()
+            return self._num_fixed_links
+
+    @property
+    def number_of_fixed_faces(self):
+        """Number of fixed faces in the grid"""
+        try:
+            return self._num_fixed_faces
+        except AttributeError:
+            self._reset_link_status_list()
+            return self._num_fixed_faces
 
     def number_of_elements(self, element_name):
         """Number of instances of an element.
@@ -1707,11 +1759,13 @@ class ModelGrid(ModelDataFields):
 
     def _reset_list_of_active_links(self):
         """
+        .. deprecated:: 0.1.27
+           Use :func: `_reset_link_status_list` instead.
+
         Creates or resets a list of active links. We do this by sweeping
         through the given lists of from and to nodes, and checking the status
         of these as given in the node_status list. A link is active if both its
-        nodes are active interior points, or if one is an active interior and
-        the other is an active boundary.
+        nodes are core, or if one is core and the other is an active boundary.
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid._reset_list_of_active_links')
@@ -1734,6 +1788,85 @@ class ModelGrid(ModelDataFields):
         
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+
+    def _reset_link_status_list(self):
+        """
+        Creates or resets a list of link statuses. We do this by sweeping
+        through the given lists of from and to nodes, and checking the status
+        of these as given in the node_status list. A link is active if both its
+        nodes are core, or if one is core and the other is fixed value.
+        A link is inactive if either node is closed.
+        A link is fixed if either node is fixed gradient.
+
+        Note that any link which has been previously set as fixed will remain
+        so, and if a closed-core node pair is found at each of its ends, the
+        closed node will be converted to a fixed gradient node.
+
+        A further test is performed to ensure that the final maps of node and
+        link status are internally consistent.
+        """
+        if self._DEBUG_TRACK_METHODS:
+            six.print_('ModelGrid._reset_link_status_list')
+
+        try:
+            already_fixed = self.link_status == FIXED_LINK
+        except AttributeError:
+            already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
+
+        fromnode_status = self.node_status[self.node_at_link_tail]
+        tonode_status = self.node_status[self.node_at_link_head]
+
+        if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
+                (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
+            assert numpy.all(fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
+                    tonode_status[already_fixed] == CLOSED_BOUNDARY)
+            fromnode_status[already_fixed] = numpy.where(
+                                 fromnode_status[already_fixed] == CLOSED_BOUNDARY,
+                                 FIXED_GRADIENT_BOUNDARY,
+                                 fromnode_status[already_fixed])
+            tonode_status[already_fixed] = numpy.where(
+                                   tonode_status[already_fixed] == CLOSED_BOUNDARY,
+                                   FIXED_GRADIENT_BOUNDARY,
+                                   tonode_status[already_fixed])
+
+        active_links = (((fromnode_status == CORE_NODE) & ~
+                         (tonode_status == CLOSED_BOUNDARY)) |
+                        ((tonode_status == CORE_NODE) & ~
+                         (fromnode_status == CLOSED_BOUNDARY)))
+        #...this still includes things that will become fixed_link
+
+        fixed_links = ((((fromnode_status == FIXED_GRADIENT_BOUNDARY) &
+                         (tonode_status == CORE_NODE)) |
+                        ((tonode_status == FIXED_GRADIENT_BOUNDARY) &
+                         (fromnode_status == CORE_NODE))) |
+                       already_fixed)
+
+        try:
+            self.link_status.fill(4)
+        except AttributeError:
+            self.link_status = numpy.empty(self.number_of_links, dtype=int)
+            self.link_status.fill(4)
+
+        self.link_status[active_links] = 0
+
+        self.link_status[fixed_links] = 2
+
+        active_links = self.link_status == 0  # now it's correct
+        (self.active_link_ids, ) = numpy.where(active_links)
+        (self.fixed_link_ids, ) = numpy.where(fixed_links)
+        self.active_link_ids = as_id_array(self.active_link_ids)
+        self.fixed_link_ids = as_id_array(self.active_link_ids)
+
+        self._num_active_links = (active_links).sum()
+        self._num_active_faces = self._num_active_links
+        self._num_fixed_links = fixed_links.sum()
+        self._num_fixed_faces = self._num_fixed_links
+        self.activelink_fromnode = self.node_at_link_tail[active_links]
+        self.activelink_tonode = self.node_at_link_head[active_links]
+
+        # Set up active inlink and outlink matrices
+        self._setup_active_inlink_and_outlink_matrices()
+
 
     def _reset_lists_of_nodes_cells(self):
         """
@@ -1777,7 +1910,7 @@ class ModelGrid(ModelDataFields):
         node statuses. Call it if your method or driver makes changes to the
         boundary conditions of nodes in the grid.
         """
-        self._reset_list_of_active_links()
+        self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         try:
             if self.diagonal_list_created:
@@ -1826,9 +1959,12 @@ class ModelGrid(ModelDataFields):
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
 
-        Sets self.node_status to CLOSED_BOUNDARY for all nodes whose value
-        of node_data is equal to the nodata_value.
-
+        Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose value
+        of *node_data* is equal to the *nodata_value*.
+        
+        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically 
+        set to :any:`INACTIVE_LINK` boundary.
+        
         Parameters
         ----------
         node_data : ndarray
@@ -1838,6 +1974,29 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
+        
+        The following example uses the following grid::
+        
+          *--I--->o------>o------>o
+          ^       ^       ^       ^ 
+          I       I       |       |
+          |       |       |       |
+          *--I--->*--I--->o------>o
+          ^       ^       ^       ^
+          I       I       I       I 
+          |       |       |       |
+          *--I--->*--I--->*--I--->*
+     
+        .. note::         
+          
+          Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
+          
+        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`    
+     
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+            
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)
@@ -1852,6 +2011,93 @@ class ModelGrid(ModelDataFields):
         # as inactive boundaries.
         nodata_locations = numpy.nonzero(node_data==nodata_value)
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
+
+        # Recreate the list of active cell IDs
+        self.update_links_nodes_cells_to_new_BCs()
+
+    def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
+        """Make no-data nodes fixed gradient boundaries.
+
+        Set node status to :any:`FIXED_GRADIENT_BOUNDARY` for all nodes
+        whose value of *node_data* is equal to *nodata_value*.
+
+        Any links between :any:`FIXED_GRADIENT_BOUNDARY` nodes and
+        :any:`CORE_NODES` are automatically set to :any:`FIXED_LINK` boundary
+        status. 
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+
+        The following examples use this grid::
+
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--X--->o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       |       |       |       |       |       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--X--->o       o       o       o       o--X--->*
+          ^       ^       ^       ^       ^       ^       ^       ^       ^
+          I       I       I       X       X       X       X       X       I
+          |       |       |       |       |       |       |       |       |
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
+          
+        .. note::
+
+            Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
+          
+        ``X`` indicates the links that are set to :any:`FIXED_LINK`
+
+        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+          
+        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+
+        ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT_BOUNDARY`
+        
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(4, 9)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 1, 1, 1,
+               1, 0, 0, 0, 0, 0, 0, 0, 1,
+               1, 0, 0, 0, 0, 0, 0, 0, 1,
+               1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
+
+        >>> z = rmg.create_node_array_zeros()
+        >>> z = np.array([-99., -99., -99., -99., -99., -99., -99., -99., -99.,
+        ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
+        ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
+        ...               -99., -99., -99., -99., -99., -99., -99., -99., -99.])
+        
+        >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2,
+               2, 2, 2, 0, 0, 0, 0, 0, 2,
+               2, 2, 2, 0, 0, 0, 0, 0, 2,
+               2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+
+        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        array([4, 4, 4, 2, 2, 2, 2, 2, 4,
+               4, 4, 4, 0, 0, 0, 0, 0, 4,
+               4, 4, 4, 2, 2, 2, 2, 2, 4,
+               4, 4, 4, 4, 4, 4, 4, 4,
+               4, 4, 2, 0, 0, 0, 0, 2,
+               4, 4, 2, 0, 0, 0, 0, 2,
+               4, 4, 4, 4, 4, 4, 4, 4])
+        """
+        # Find locations where value equals the NODATA code and set these nodes
+        # as inactive boundaries.
+        nodata_locations = numpy.nonzero(node_data==nodata_value)
+        self.node_status[nodata_locations] = FIXED_GRADIENT_BOUNDARY
 
         # Recreate the list of active cell IDs
         self.update_links_nodes_cells_to_new_BCs()

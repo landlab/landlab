@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 from six.moves import range
 
-from ..base import CORE_NODE, FIXED_VALUE_BOUNDARY
+from ..base import CORE_NODE, CLOSED_BOUNDARY
 
 
 def number_of_nodes(shape):
@@ -274,7 +274,7 @@ def perimeter(shape):
 
 
 def status_with_perimeter_as_boundary(shape,
-                                      node_status=FIXED_VALUE_BOUNDARY):
+                                      node_status=CLOSED_BOUNDARY):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
@@ -293,9 +293,9 @@ def status_with_perimeter_as_boundary(shape,
     --------
     >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
     >>> status_with_perimeter_as_boundary((3, 4))
-    array([[1, 1, 1, 1],
-           [1, 0, 0, 1],
-           [1, 1, 1, 1]])
+    array([[4, 4, 4, 4],
+           [4, 0, 0, 4],
+           [4, 4, 4, 4]])
     >>> status_with_perimeter_as_boundary((3, 4), node_status=-1)
     array([[-1, -1, -1, -1],
            [-1,  0,  0, -1],
