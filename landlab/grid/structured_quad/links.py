@@ -29,6 +29,7 @@ def shape_of_vertical_links(shape):
     """
     return (shape[0] - 1, shape[1])
 
+
 def shape_of_horizontal_links(shape):
     """Shape of horizontal link grid.
 
@@ -54,6 +55,7 @@ def shape_of_horizontal_links(shape):
     """
     return (shape[0], shape[1] - 1)
 
+
 def number_of_vertical_links(shape):
     """Number of vertical links in a structured quad grid.
 
@@ -74,6 +76,7 @@ def number_of_vertical_links(shape):
     8
     """
     return np.prod(shape_of_vertical_links(shape))
+
 
 def number_of_horizontal_links(shape):
     """Number of horizontal links in a structured quad grid.
@@ -119,6 +122,7 @@ def number_of_links(shape):
     """
     return number_of_vertical_links(shape) + number_of_horizontal_links(shape)
 
+
 def vertical_link_ids(shape):
     """Returns IDs of vertical links in a structured quad grid.
 
@@ -141,6 +145,7 @@ def vertical_link_ids(shape):
     """
     link_ids = np.arange(number_of_vertical_links(shape), dtype=np.int)
     return link_ids.reshape(shape_of_vertical_links(shape))
+
 
 def horizontal_link_ids(shape):
     """Returns IDs  of horizontal links in a structured quad grid.
@@ -166,6 +171,7 @@ def horizontal_link_ids(shape):
     link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
                 number_of_vertical_links(shape))
     return link_ids.reshape(shape_of_horizontal_links(shape))
+
 
 def number_of_links_per_node(shape):
     """Returns number of links touching each node.
@@ -202,6 +208,7 @@ def number_of_links_per_node(shape):
     link_count[(0, 0, -1, -1), (0, -1, 0, -1)] = 2
     return link_count
 
+
 def number_of_in_links_per_node(shape):
     """Returns number of links entering each node.
 
@@ -231,6 +238,7 @@ def number_of_in_links_per_node(shape):
     link_count[1:, 0] = 1
     return link_count
 
+
 def number_of_out_links_per_node(shape):
     """Returns number of links leaving each node.
 
@@ -259,6 +267,7 @@ def number_of_out_links_per_node(shape):
     link_count[-1, :-1] = 1
     link_count[:-1, -1] = 1
     return link_count
+
 
 def _node_out_link_ids(shape):
     """Returns link IDs for links leaving each node.
@@ -296,6 +305,7 @@ def _node_out_link_ids(shape):
 
     return node_vertical_link_ids, node_horizontal_link_ids
 
+
 def _node_in_link_ids(shape):
     """Returns link IDs for links entering each node.
 
@@ -331,6 +341,7 @@ def _node_in_link_ids(shape):
     node_vertical_link_ids[0, :] = -1
 
     return node_vertical_link_ids, node_horizontal_link_ids
+
 
 def node_in_link_ids(shape):
     """Returns link IDs for links entering each node.
@@ -372,6 +383,7 @@ def node_in_link_ids(shape):
     offset[0] = 0
     return _node_link_ids[_node_link_ids >= 0], offset
 
+
 def node_out_link_ids(shape):
     """Returns link IDs for links leaving each node.
 
@@ -409,6 +421,7 @@ def node_out_link_ids(shape):
     np.cumsum(number_of_out_links_per_node(shape), out=offset[1:])
     offset[0] = 0
     return _node_link_ids[_node_link_ids >= 0], offset
+
 
 def node_link_ids(shape):
     """Returns link IDs for links entering and leaving each node.
@@ -454,6 +467,7 @@ def node_link_ids(shape):
 
     return _node_link_ids[_node_link_ids >= 0], offset
 
+
 def node_id_at_link_start(shape):
     """Returns node ID at start of links.
 
@@ -477,6 +491,7 @@ def node_id_at_link_start(shape):
     return np.concatenate((all_node_ids[:-1, :].flat,
                            all_node_ids[:, :-1].flat))
 
+
 def node_id_at_link_end(shape):
     """Returns node ID at end of links.
 
@@ -498,6 +513,7 @@ def node_id_at_link_end(shape):
     """
     all_node_ids = nodes.node_ids(shape)
     return np.concatenate((all_node_ids[1:, :].flat, all_node_ids[:, 1:].flat))
+
 
 def is_active_link(shape, node_status):
     """Returns link IDs of active links.
@@ -540,6 +556,7 @@ def is_active_link(shape, node_status):
             ((status_at_link_end == FIXED_VALUE_BOUNDARY) &
              (status_at_link_start == CORE_NODE)))
 
+
 def active_link_ids(shape, node_status):
     """returns link ids of active links.
 
@@ -566,6 +583,7 @@ def active_link_ids(shape, node_status):
     array([12])
     """
     return as_id_array(np.where(is_active_link(shape, node_status))[0])
+
 
 def is_fixed_link(shape, node_status):
     """Returns IDs of active links.
@@ -611,6 +629,7 @@ def is_fixed_link(shape, node_status):
             ((status_at_link_end == CORE_NODE) &
              (status_at_link_start == FIXED_GRADIENT_BOUNDARY)))
 
+
 def fixed_link_ids(shape, node_status):
     """Returns IDs of fixed links.
 
@@ -642,6 +661,7 @@ def fixed_link_ids(shape, node_status):
     array([ 1,  2,  3, 11, 12, 13, 19, 22, 23, 26])
     """
     return as_id_array(np.where(is_fixed_link(shape, node_status))[0])
+
 
 def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     """Returns IDs of horizontal active links.
@@ -728,6 +748,7 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     # Return an array with length of number_of_vertical_links that has '-1' for
     # inactive/fixed links and the active link id for active links
     return horizontal_links
+
 
 def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     """Returns IDs of horizontal fixed links.
@@ -818,6 +839,7 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     # inactive links and the active link id for active links
     return as_id_array(horizontal_links)
 
+
 def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     """Returns IDs of vertical active links.
 
@@ -895,6 +917,7 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     # Return an array with length of number_of_vertical_links that has '-1' for
     # inactive links and the active link id for active links
     return vertical_links
+
 
 def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     """Returns IDs of vertical fixed links.
@@ -982,6 +1005,7 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
 
     return as_id_array(vertical_links)
 
+
 def horizontal_south_link_neighbor(shape, horizontal_ids,
                                    bad_index_value=-1):
     """Returns IDs of south horizontal link neighbor.
@@ -1060,6 +1084,7 @@ def horizontal_south_link_neighbor(shape, horizontal_ids,
     south_horizontal_neighbors = link_ids.flatten()
 
     return south_horizontal_neighbors
+
 
 def horizontal_west_link_neighbor(shape, horizontal_ids,
                                   bad_index_value=-1):
@@ -1143,6 +1168,7 @@ def horizontal_west_link_neighbor(shape, horizontal_ids,
 
     return west_horizontal_neighbors
 
+
 def horizontal_north_link_neighbor(shape, horizontal_ids,
                                    bad_index_value=-1):
     """Returns IDs of NORTH, horizontal link neighbor.
@@ -1222,6 +1248,7 @@ def horizontal_north_link_neighbor(shape, horizontal_ids,
     north_horizontal_neighbors = link_ids.flatten()
 
     return north_horizontal_neighbors
+
 
 def horizontal_east_link_neighbor(shape, horizontal_ids,
                                   bad_index_value=-1):
@@ -1304,6 +1331,7 @@ def horizontal_east_link_neighbor(shape, horizontal_ids,
     east_horizontal_neighbors = link_ids.flatten()
 
     return east_horizontal_neighbors
+
 
 def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
     """Returns IDs of all 4 horizontal link neighbors. 
@@ -1396,6 +1424,7 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
 
     # Output neighbor array. For each input ID, returns [S,W,N,E]
     return neighbor_array
+
 
 def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
                                         bad_index_value=-1):
@@ -1548,6 +1577,7 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
     return south_vertical_neighbors
 
+
 def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     """Returns link IDs of west, vertical link neighbor.
 
@@ -1630,6 +1660,7 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
     return west_vertical_neighbors
 
+
 def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     """Returns link IDs of north, vertical link neighbor.
 
@@ -1711,6 +1742,7 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
     return north_vertical_neighbors
 
+
 def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     """Returns link IDs of east, vertical link neighbor.
 
@@ -1791,6 +1823,7 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     east_vertical_neighbors = link_ids.flatten()
 
     return east_vertical_neighbors
+
 
 def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     """Returns IDs of all 4 vertical link neighbors.
@@ -1997,6 +2030,7 @@ def bottom_edge_horizontal_ids(shape):
 
     return bottom_edge_hori_ids
 
+
 def left_edge_horizontal_ids(shape):
     """Returns link IDs of left edge horizontal links.
 
@@ -2050,6 +2084,7 @@ def left_edge_horizontal_ids(shape):
     left_edge_hori_ids = horizontal_id_array[:, 0]
 
     return left_edge_hori_ids
+
 
 def top_edge_horizontal_ids(shape):
     """Returns IDs of top edge horizontal links.
@@ -2107,6 +2142,7 @@ def top_edge_horizontal_ids(shape):
 
     return top_edge_hori_ids
 
+
 def right_edge_horizontal_ids(shape):
     """Returns IDs of right edge horizontal links.
 
@@ -2163,6 +2199,7 @@ def right_edge_horizontal_ids(shape):
 
     return right_edge_hori_ids
 
+
 def bottom_edge_vertical_ids(shape):
     """Returns link IDs of bottom edge vertical links.
 
@@ -2216,6 +2253,7 @@ def bottom_edge_vertical_ids(shape):
     bottom_edge_vert_ids = vertical_id_array[0]
 
     return bottom_edge_vert_ids
+
 
 def left_edge_vertical_ids(shape):
     """Returns link IDs of left edge vertical links.
@@ -2271,6 +2309,7 @@ def left_edge_vertical_ids(shape):
 
     return left_edge_vert_ids
 
+
 def top_edge_vertical_ids(shape):
     """Returns link IDs of top edge vertical links.
 
@@ -2322,6 +2361,7 @@ def top_edge_vertical_ids(shape):
     top_edge_vert_ids = vertical_id_array[(shape[0] - 2)]
 
     return top_edge_vert_ids
+
 
 def right_edge_vertical_ids(shape):
     """Returns link IDs of right edge vertical links. 
@@ -2376,6 +2416,7 @@ def right_edge_vertical_ids(shape):
     right_edge_vert_ids = vertical_id_array[:, (shape[1] - 1)]
 
     return right_edge_vert_ids
+
 
 class StructuredQuadLinkGrid(LinkGrid):
     def __init__(self, shape):
