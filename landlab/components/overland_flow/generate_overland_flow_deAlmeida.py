@@ -274,7 +274,7 @@ class OverlandFlow(Component):
 
         # Using the horizontal active link ids, we can find the west and east
         # neighbors
-        self.west_neighbors = links.vertical_west_link_neighbor(
+        self.west_neighbors = links.horizontal_west_link_neighbor(
             grid.shape, self.horizontal_active_link_ids)
         self.east_neighbors = links.horizontal_east_link_neighbor(
             grid.shape, self.horizontal_active_link_ids)

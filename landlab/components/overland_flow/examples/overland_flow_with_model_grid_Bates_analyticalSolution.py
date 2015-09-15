@@ -68,12 +68,10 @@ active_links = mg.active_links
 print( 'Running ...' )
 start_time = time.time()
 
-
+dtmax = 1.0 # a dt to start things off...
 # Main loop
 while elapsed_time <= run_time:
 
-    # Calculate time-step size for this iteration (Bates et al., eq 14)
-    dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
     
     # First we calculate our updated boundary water depth
     h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m) 
@@ -110,7 +108,10 @@ while elapsed_time <= run_time:
     # And now we add it to the second column, in all rows that are not boundary rows.
     h[(leftside)[1:len(leftside)-1]] = h_boundary
 
-    # Print and update current time
+    # Calculate time-step size for this iteration (Bates et al., eq 14)
+    dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
+   
+   # Print and update current time
     print elapsed_time
     elapsed_time += dtmax
 

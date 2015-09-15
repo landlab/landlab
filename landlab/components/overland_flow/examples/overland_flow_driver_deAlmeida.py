@@ -70,7 +70,7 @@ of.set_up_neighbor_arrays(rmg)
 all_horizontal_ids = links.horizontal_link_ids(rmg.shape)
 
 # from there, we are going to reset our west neighbor array...
-of.west_neighbors = links.find_horizontal_west_neighbor(rmg.shape, all_horizontal_ids)
+of.west_neighbors = links.horizontal_west_link_neighbor(rmg.shape, all_horizontal_ids)
 
 # and find the ids of the arrays along the west edge of the grid. We actually
 # will set the discharge values here at every time step in the loop.

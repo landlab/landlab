@@ -70,7 +70,7 @@ while elapsed_time < run_time:
     dt = of.gear_time_step(rmg)
 
     # Now, we generate overland flow.
-    of.overland_flow(rmg, dt)
+    of.overland_flow(rmg)
     
     # Recalculate water depth at the boundary ...
     h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m) 
