@@ -2707,7 +2707,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def set_fixed_gradient_boundaries(
         self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
         gradient_in=np.nan, gradient_of='topographic__elevation'):
-        """Create fixed gradient boundaries.
+        """
+        *Deprecated(?)*.
+
+        .. deprecated:: 0.29
+            Use :func:`set_fixed_link_boundaries_at_grid_edges` instead
+                
+        
+        Create fixed gradient boundaries.
 
         Handles boundary conditions by setting each of the four sides of the
         rectangular grid to 'active (fixed gradient)' (==2) status.
