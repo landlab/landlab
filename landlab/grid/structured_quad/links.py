@@ -646,9 +646,9 @@ def fixed_link_ids(shape, node_status):
     >>> fixed_link_ids(rmg.shape, rmg.node_status)
     array([ 1,  2,  3, 11, 12, 13, 19, 22, 23, 26])
     """
-    return np.where(is_fixed_link(shape, node_status))[0].astype(np.int,
-                                                                  copy=False)
-                                                                  
+    return as_id_array(np.where(is_fixed_link(shape, node_status))[0])
+
+
 def horizontal_active_link_ids(shape, active_link_ids, bad_index_value=-1):
     """Get IDs of horizontal active links.
 
