@@ -1887,6 +1887,7 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     Examples
     --------
     The following example uses this grid::
+
         *       *       *       *       *
         ^       ^       ^       ^       ^
        10       11      12      13      14
