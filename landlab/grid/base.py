@@ -584,7 +584,7 @@ class ModelGrid(ModelDataFields):
         """Node ID associated with active grid cells.
 
         .. note:: Deprecated since version 0.6.
-            Uses out-of-date terminology; 
+            Uses out-of-date terminology;
             use :func:`node_at_core_cell` for an exact equivalent.
         """
         (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
@@ -1769,7 +1769,7 @@ class ModelGrid(ModelDataFields):
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid._reset_list_of_active_links')
-            
+
         fromnode_status = self.node_status[self.node_at_link_tail]
         tonode_status = self.node_status[self.node_at_link_head]
 
@@ -1785,7 +1785,7 @@ class ModelGrid(ModelDataFields):
         self._num_active_faces = self._num_active_links
         self.activelink_fromnode = self.node_at_link_tail[self.active_link_ids]
         self.activelink_tonode = self.node_at_link_head[self.active_link_ids]
-        
+
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
 
@@ -1855,7 +1855,7 @@ class ModelGrid(ModelDataFields):
         (self.active_link_ids, ) = numpy.where(active_links)
         (self.fixed_link_ids, ) = numpy.where(fixed_links)
         self.active_link_ids = as_id_array(self.active_link_ids)
-        self.fixed_link_ids = as_id_array(self.active_link_ids)
+        self.fixed_link_ids = as_id_array(self.fixed_link_ids)
 
         self._num_active_links = (active_links).sum()
         self._num_active_faces = self._num_active_links
@@ -1961,10 +1961,10 @@ class ModelGrid(ModelDataFields):
 
         Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose value
         of *node_data* is equal to the *nodata_value*.
-        
-        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically 
+
+        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically
         set to :any:`INACTIVE_LINK` boundary.
-        
+
         Parameters
         ----------
         node_data : ndarray
@@ -1974,29 +1974,29 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
-        
+
         The following example uses the following grid::
-        
+
           *--I--->o------>o------>o
-          ^       ^       ^       ^ 
+          ^       ^       ^       ^
           I       I       |       |
           |       |       |       |
           *--I--->*--I--->o------>o
           ^       ^       ^       ^
-          I       I       I       I 
+          I       I       I       I
           |       |       |       |
           *--I--->*--I--->*--I--->*
-     
-        .. note::         
-          
+
+        .. note::
+
           Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
-          
-        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`    
-     
+
+        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`
+
         ``o`` indicates the nodes that are set to :any:`CORE_NODE`
 
         ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
-            
+
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)
@@ -2023,7 +2023,7 @@ class ModelGrid(ModelDataFields):
 
         Any links between :any:`FIXED_GRADIENT_BOUNDARY` nodes and
         :any:`CORE_NODES` are automatically set to :any:`FIXED_LINK` boundary
-        status. 
+        status.
 
         Parameters
         ----------
@@ -2049,20 +2049,20 @@ class ModelGrid(ModelDataFields):
           ^       ^       ^       ^       ^       ^       ^       ^       ^
           I       I       I       X       X       X       X       X       I
           |       |       |       |       |       |       |       |       |
-          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->* 
-          
+          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+
         .. note::
 
             Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
-          
+
         ``X`` indicates the links that are set to :any:`FIXED_LINK`
 
         ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
-          
+
         ``o`` indicates the nodes that are set to :any:`CORE_NODE`
 
         ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT_BOUNDARY`
-        
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9)
@@ -2077,7 +2077,7 @@ class ModelGrid(ModelDataFields):
         ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
         ...               -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
         ...               -99., -99., -99., -99., -99., -99., -99., -99., -99.])
-        
+
         >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
         >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -2141,8 +2141,8 @@ class ModelGrid(ModelDataFields):
         neighbors, so that inlink and outlink matrices can be dimensioned
         accordingly. Assumes that self.number_of_nodes, self.node_at_link_tail, and
         self.node_at_link_head have already been set up.
-        
-        Algorithm works by simply looping through all links; for each, the 
+
+        Algorithm works by simply looping through all links; for each, the
         endpoints are neighbors of one another, so we increment the number of
         neighbors for both the endpoint nodes.
         """
@@ -2596,14 +2596,14 @@ class ModelGrid(ModelDataFields):
                      self._node_x[self.node_at_link_head[i]]],
                      [self._node_y[self.node_at_link_tail[i]],
                      self._node_y[self.node_at_link_head[i]]], 'k-')
-                     
+
         # Draw active links
         for link in self.active_link_ids:
             plt.plot([self._node_x[self.node_at_link_tail[link]],
                      self._node_x[self.node_at_link_head[link]]],
                      [self._node_y[self.node_at_link_tail[link]],
                      self._node_y[self.node_at_link_head[link]]], 'g-')
-                     
+
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
