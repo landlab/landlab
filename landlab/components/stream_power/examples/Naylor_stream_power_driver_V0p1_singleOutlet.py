@@ -44,7 +44,7 @@ z = mg.create_node_array_zeros()
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 # MN: Loop over several changes in the outlet position
 for t in xrange(5):
@@ -54,25 +54,25 @@ for t in xrange(5):
     #mg.set_closed_boundaries_at_grid_edges(True,True,True,True)
     random_boundary_node = random.choice(boundary_node_list)
     mg.set_fixed_value_boundaries(random_boundary_node)
-    
+
     # MN: Set the elevation of that random outlet boundary node to zero
     #mg['node'][ 'topographic__elevation'][random_boundary_node] = 0
-    
-    print('Random boundary node',  random_boundary_node)   
-    
+
+    print('Random boundary node',  random_boundary_node)
+
 
     #instantiate the components:
     fr = FlowRouter(mg)
     sp = SPEroder(mg, input_file)
-    
+
     time_on = time()
-    
+
     #perform the inner time loops:
     for i in xrange(nt):
         mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg = sp.erode(mg)
-    
+
         #plot long profiles along channels
         pylab.figure(6)
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
@@ -83,10 +83,10 @@ for t in xrange(5):
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
         # print 'Completed loop ', i
 
-    
-     
+
+
     print('Completed the simulation. Plotting...')
-    
+
     #Finalize and plot
     elev = fr.node_water_discharge
     elev_r = mg.node_vector_to_raster(elev)
@@ -97,14 +97,14 @@ for t in xrange(5):
     #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
     #pylab.colorbar(im)
     #pylab.title('Water discharge')
-    
+
     elev = mg['node']['topographic__elevation']
     elev_r = mg.node_vector_to_raster(elev)
     pylab.figure(t)
     im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
     pylab.colorbar(im)
     pylab.title('Topography')
-    
+
     #pylab.figure(3)
     #im = pylab.plot(mg.dx*np.arange(nrows), elev_r[:,int(ncols//2)])
     #pylab.title('N-S cross_section')

@@ -30,14 +30,14 @@ class PotentialityFlowRouter(Component):
     the depth, and does not assume channelization. You will need to back-
     calculate channel depths for yourself using known widths at each node
     if that is what you want.
-    
+
     """
     _name = 'PotentialityFlowRouter'
-    
+
     _input_var_names = set(['topographic__elevation',
                             'water__volume_flux_in',
                             ])
-    
+
     _output_var_names = set(['water__volume_flux_magnitude',
                              'water__volume_flux_xcomponent',
                              'water__volume_flux_ycomponent',
@@ -45,7 +45,7 @@ class PotentialityFlowRouter(Component):
                              'water__depth',
                              'water__volume_flux',
                              ])
-                             
+
     _var_units = {'topographic__elevation' : 'm',
                   'water__volume_flux_in' : 'm**3/s',
                   'water__volume_flux_magnitude' : 'm**3/s',
@@ -55,7 +55,7 @@ class PotentialityFlowRouter(Component):
                   'water__depth': 'm',
                   'water__volume_flux' : 'm**3/s',
                   }
-    
+
     _var_mapping = {'topographic__elevation' : 'node',
                   'water__volume_flux_in' : 'node',
                   'water__volume_flux_magnitude' : 'node',
@@ -65,7 +65,7 @@ class PotentialityFlowRouter(Component):
                   'water__depth': 'node',
                   'water__volume_flux' : 'link',
                   }
-    
+
     _var_defs = {'topographic__elevation' : 'Land surface topographic elevation',
                   'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
                   'water__volume_flux_magnitude' : 'Magnitude of volumetric water flux through each node',
@@ -75,14 +75,14 @@ class PotentialityFlowRouter(Component):
                   'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
                   'water__volume_flux' : 'Water fluxes on links',
                   }
-    
+
     _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
 
-    
+
     def __init__(self, grid, params):
         self.initialize(grid, params)
-    
-    
+
+
     def initialize(self, grid, params):
         """
         Optional input parameters are:
@@ -94,15 +94,15 @@ class PotentialityFlowRouter(Component):
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         assert grid.number_of_node_rows >= 3
         assert grid.number_of_node_columns >= 3
-        
+
         self._grid = grid
-        
+
         if type(params) == str:
             input_dict = ModelParameterDictionary(params)
         else:
             assert type(params) == dict
             input_dict = params
-        
+
         #ingest the inputs
         try:
             self.equation = input_dict['flow_equation']
@@ -113,7 +113,7 @@ class PotentialityFlowRouter(Component):
             self.chezy_C = float(input_dict["Chezys_C"])
         if self.equation == 'Manning':
             self.manning_n = float(input_dict["Mannings_n"])
-        
+
         ncols = grid.number_of_node_columns
         nrows = grid.number_of_node_rows
         #create the blank node maps; assign the topo to an internally held 2D map with dummy edges:
@@ -136,7 +136,7 @@ class PotentialityFlowRouter(Component):
         self._uSE = np.zeros_like(self.elev_raster)
         self._uSW = np.zeros_like(self.elev_raster)
         self._K = np.zeros_like(self.elev_raster)
-        
+
         #extras for diagonal routing:
         self._aNWNW = np.zeros_like(self.elev_raster)
         self._aNWP = np.zeros_like(self.elev_raster)
@@ -152,7 +152,7 @@ class PotentialityFlowRouter(Component):
         self._ydirfluxout = np.zeros_like(self._totalfluxout)
         self._xdirfluxin = np.zeros_like(self._totalfluxout)
         self._ydirfluxin = np.zeros_like(self._totalfluxout)
-        
+
         #setup slices for use in IDing the neighbors
         self._Es = (slice(1,-1),slice(2,ncols+2))
         self._NEs = (slice(2,nrows+2),slice(2,ncols+2))
@@ -164,7 +164,7 @@ class PotentialityFlowRouter(Component):
         self._SEs = (slice(0,-2),slice(2,ncols+2))
         self._core = (slice(1,-1),slice(1,-1))
         self._corecore = (slice(2,-2),slice(2,-2)) #the actual, LL-sense core (interior) nodes of the grid
-        
+
         for out_field in self._output_var_names:
             if self._var_mapping[out_field]=='node':
                 try:
@@ -176,7 +176,7 @@ class PotentialityFlowRouter(Component):
                     self._grid.at_link[out_field]
                 except FieldError:
                     self._grid.at_link[out_field] = np.empty(self._grid.number_of_links, dtype=float)
-        
+
         #make and store a 2d reference for node BCs
         self._BCs = 4*np.ones_like(self.elev_raster)
         self._BCs[self._core].flat = self._grid.get_node_status()
@@ -191,11 +191,11 @@ class PotentialityFlowRouter(Component):
         self.boundaryboundarySE = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SEs]>0), np.logical_or(BCR[self._SEs]==4, BCR[self._core]==4))
         self.boundaryboundarySW = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._SWs]>0), np.logical_or(BCR[self._SWs]==4, BCR[self._core]==4))
         self.notboundaries = BCR[self._core] == 0
-        
+
         self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
         #this is the equivalent seen CSWidth of a cell for a flow in a generic 360 direction
-        
-    
+
+
     def route_flow(self, route_on_diagonals=True, return_components=False):
         """
         """
@@ -237,7 +237,7 @@ class PotentialityFlowRouter(Component):
         bbW = self.boundaryboundaryW
         if return_components:
             flux_error = np.zeros_like(self._totalfluxout)
-        
+
         if route_on_diagonals:
             #extras for diagonal routing:
             aNWNW = self._aNWNW
@@ -248,15 +248,15 @@ class PotentialityFlowRouter(Component):
             aSEP = self._aSEP
             aSWSW = self._aSWSW
             aSWP = self._aSWP
-            
+
             bbNE = self.boundaryboundaryNE
             bbNW = self.boundaryboundaryNW
             bbSE = self.boundaryboundarySE
-            bbSW = self.boundaryboundarySW            
-            
+            bbSW = self.boundaryboundarySW
+
         #paste in the elevs
         hR[1:-1,1:-1].flat = self._grid.at_node['topographic__elevation']
-        
+
         #update the dummy edges of our variables - these all act as closed nodes (the inner, true boundaries are handled elsewhere... or they should be closed anyway!):
         #note this isn't sufficient of we have diagonals turned on, as flow can still occur on them
         hR[0,1:-1] = hR[1,1:-1]
@@ -264,7 +264,7 @@ class PotentialityFlowRouter(Component):
         hR[1:-1,0] = hR[1:-1,1]
         hR[1:-1,-1] = hR[1:-1,-2]
         hR[(0,-1,0,-1),(0,-1,-1,0)] = hR[(1,-2,1,-2),(1,-2,-2,1)]
-        
+
         aNN[core] = (-hR[core]+hR[Ns]).clip(0.)
         aNP[core] =  (hR[core]-hR[Ns]).clip(0.)
         aSS[core] = (-hR[core]+hR[Ss]).clip(0.)
@@ -281,7 +281,7 @@ class PotentialityFlowRouter(Component):
         aEP[core] *= one_over_dx
         aWW[core] *= one_over_dx
         aWP[core] *= one_over_dx
-        
+
         #disable lateral flow betw boundary nodes:
         aEE[core][bbE] = 0.
         aEP[core][bbE] = 0.
@@ -292,11 +292,11 @@ class PotentialityFlowRouter(Component):
         aSS[core][bbS] = 0.
         aSP[core][bbS] = 0.
         #diag correction happens below
-        
+
         if self.equation != 'default':
             for grad in (aEE,aEP,aWW,aWP,aNN,aNP,aSS,aSP):
                 np.sqrt(grad[core], out=grad[core]) #...because both Manning and Chezy actually follow sqrt slope, not slope
-        
+
         if route_on_diagonals:
             #adding diagonals
             aNENE[core] = (-hR[core]+hR[NEs]).clip(0.)
@@ -315,7 +315,7 @@ class PotentialityFlowRouter(Component):
             aSWP[core] *= one_over_diagonal
             aNWNW[core] *= one_over_diagonal
             aNWP[core] *= one_over_diagonal
-            
+
             #disable lateral flow betw boundaries...
             aNENE[core][bbNE] = 0.
             aNEP[core][bbNE] = 0.
@@ -325,21 +325,21 @@ class PotentialityFlowRouter(Component):
             aSEP[core][bbSE] = 0.
             aSWSW[core][bbSW] = 0.
             aSWP[core][bbSW] = 0.
-            
+
             if self.equation != 'default':
                 for grad in (aNENE,aNEP,aNWNW,aNWP,aSESE,aSEP,aSWSW,aSWP):
                     np.sqrt(grad[core], out=grad[core]) #...because both Manning and Chezy actually follow sqrt slope, not slope
-                
+
         if not route_on_diagonals:
             aPP[core] = aWP[core]+aEP[core]+aSP[core]+aNP[core]+self._min_slope_thresh
         else:
             aPP[core] = (aWP[core]+aEP[core]+aSP[core]+aNP[core]
                         +aNEP[core]+aSEP[core]+aSWP[core]+aNWP[core])+self._min_slope_thresh
-                        
+
         mismatch = 10000.
         self.loops_needed = 0
 
-        #this explicit solution could easily be replaced with a better solver        
+        #this explicit solution could easily be replaced with a better solver
         while mismatch>1.e-3:
             if not route_on_diagonals:
                 K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
@@ -354,27 +354,27 @@ class PotentialityFlowRouter(Component):
             self.loops_needed += 1
             prev_K = K.copy()
             #print mismatch
-            
+
             for BC in (K,):
                 BC[0,1:-1] = BC[1,1:-1]
                 BC[-1,1:-1] = BC[-2,1:-1]
                 BC[1:-1,0] = BC[1:-1,1]
                 BC[1:-1,-1] = BC[1:-1,-2]
                 BC[(0,-1,0,-1),(0,-1,-1,0)] = BC[(1,-2,1,-2),(1,-2,-2,1)]
-        
+
         if route_on_diagonals:
             outdirs = (aNP,aSP,aEP,aWP,aNWP,aNEP,aSWP,aSEP)
             indirs = ((aNN,K[Ns]),(aSS,K[Ss]),(aEE,K[Es]),(aWW,K[Ws]),(aNWNW,K[NWs]),(aNENE,K[NEs]),(aSWSW,K[SWs]),(aSESE,K[SEs]))
         else:
             outdirs = (aNP,aSP,aEP,aWP)
             indirs = ((aNN,K[Ns]),(aSS,K[Ss]),(aEE,K[Es]),(aWW,K[Ws]))
-        
+
         totalfluxout.fill(0.)
         for array in outdirs:
             totalfluxout += array[core]
-        totalfluxout *= K[core]        
+        totalfluxout *= K[core]
         no_outs = np.equal(totalfluxout,0.)
-        #this WON'T work if there is no out flux, i.e., a BC, so - 
+        #this WON'T work if there is no out flux, i.e., a BC, so -
         if np.any(no_outs):
             for (inarray, inK) in indirs:
                 totalfluxout[no_outs] += inarray[core][no_outs]*inK[no_outs]
@@ -383,8 +383,8 @@ class PotentialityFlowRouter(Component):
         meanflux[yes_outs] -= 0.5*qwater_in[yes_outs]
         #so note the BC nodes get the value of the fluxes they RECEIVE, without any addition of flux
         #& also, nodes at the TOP of the network, with no explicit ins, get averaged values, not just their out values
-            
-        
+
+
         if return_components:
             #this takes a nontrivial number of additional calculations, so is optional
             #we aim to return the MEAN flow direction.
@@ -440,7 +440,7 @@ class PotentialityFlowRouter(Component):
                 flux_error[:] = meanflux/apparent_flux
                 self._grid.at_node['water__volume_flux_ycomponent'][:] = (mean_y*flux_error).flat
                 self._grid.at_node['water__volume_flux_xcomponent'][:] = (mean_x*flux_error).flat
-            
+
         #save the output
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[0]] = uS[core].flat #[S,W,N,E], (4,nnodes)
         self._grid.at_link['water__volume_flux'][self._grid.node_links()[1]] = uW[core].flat
@@ -449,7 +449,7 @@ class PotentialityFlowRouter(Component):
         self._grid.at_node['potentiality_field'][:] = K[core].flat
         self._grid.at_node['water__volume_flux_magnitude'][:] = meanflux.flat
         #the x,y components are created above, in the if statement
-        
+
         #now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
             #Chezy: Q = C*Area*sqrt(depth*slope)

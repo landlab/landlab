@@ -31,7 +31,7 @@ def count_repeated_values(x):
 
     For an array that contains no repeated values, this function just returns
     a copy of *x*, and the indices to each element.
-    
+
     >>> import numpy as np
     >>> from landlab.utils.count_repeats import count_repeated_values
     >>> counts = count_repeated_values(np.array([20, 30, 40], dtype=np.int))

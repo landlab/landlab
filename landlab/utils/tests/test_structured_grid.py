@@ -194,8 +194,8 @@ def test_no_active_cells():
                   BAD_INDEX_VALUE, BAD_INDEX_VALUE,
                   BAD_INDEX_VALUE, BAD_INDEX_VALUE])
     )
-                                     
-                                     
+
+
 #class TestActiveCells(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_one_active_cell():
     active_cells = sgrid.active_cell_index((3, 3))
@@ -275,7 +275,7 @@ def test_no_interiors():
 |       |       |       |       |
 *--23-->*--24-->*--25-->*--26-->*
 ^       ^       ^       ^       ^
-5       6       7       8       9   
+5       6       7       8       9
 |       |       |       |       |
 *--19-->*--20-->*--21-->*--22-->*
 ^       ^       ^       ^       ^
@@ -691,7 +691,7 @@ def test_boundary_node_mask_no_actives():
 def test_boundary_node_mask():
     diags = sgrid.diagonal_node_array((3, 3), out_of_bounds=-1,
                                       boundary_node_mask=-2)
-    assert_array_equal(diags, 
+    assert_array_equal(diags,
                        np.array([[-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2],
                                  [-2, -2, -2, -2], [ 8,  6,  0,  2], [-2, -2, -2, -2],
                                  [-2, -2, -2, -2], [-2, -2, -2, -2], [-2, -2, -2, -2]]))

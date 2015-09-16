@@ -4,8 +4,8 @@ Created on Mon Jul 13 15:51:25 2015
 
 Simple driver showing how to use the Bates' overland flow component in Landlab.
 This driver sets up their test case from de Almeida et al., 2012, where output
-from the Bates et al., 2010, de Almeida et al., 2012 and analytical solutions 
-are compared. 
+from the Bates et al., 2010, de Almeida et al., 2012 and analytical solutions
+are compared.
 
 This is a componentized version of the driver example
 overland_flow_with_model_grid_Bates_analyticalSolution.py
@@ -30,7 +30,7 @@ dx = 25.                  # grid spacing, (m)
 run_time = 9000           # duration of run, (s)
 h_init = 0.001            # initial thin layer of water (m)
 n = 0.01                  # roughness coefficient, (s/m^(1/3))
-g = 9.8                   # gravity (m/s^2) 
+g = 9.8                   # gravity (m/s^2)
 alpha = 0.7               # time-step factor (nondimensional; from Bates et al., 2010)
 u = 0.4                   # constant velocity (m/s, de Almeida et al., 2012)
 
@@ -54,7 +54,7 @@ rmg.create_node_array_zeros('water_depth')                   # water depth (m)
 rmg.add_zeros('active_link', 'water_discharge')              # unit discharge (m2/s)
 
 # Add our initial thin layer of water to the field of water depth.
-rmg['node']['water_depth'] += h_init 
+rmg['node']['water_depth'] += h_init
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those nodes.
 leftside = rmg.left_edge_node_ids()
@@ -71,19 +71,19 @@ while elapsed_time < run_time:
 
     # Now, we generate overland flow.
     of.overland_flow(rmg)
-    
+
     # Recalculate water depth at the boundary ...
-    h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m) 
-    
+    h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m)
+
     # And now we input that water depth along the left-most interior column, in all rows that are not boundary rows.
     rmg['node']['water_depth'][(leftside)[1:len(leftside)-1]] = h_boundary
-    
+
     # Print time
     #print(elapsed_time)
 
-    # Increased elapsed time 
+    # Increased elapsed time
     elapsed_time += dt
-    
+
 # End time...
 endtime = time()
 
@@ -105,7 +105,7 @@ x = np.arange(0, ((numcols)*dx), dx)
 h_analytical = (-seven_over_three*n*n*u*u*(x-(u*run_time)))
 
 # We can only solve the analytical solution where water depth is positive... so we weed out negative
-# values to avoid NaN errors. 
+# values to avoid NaN errors.
 h_analytical[np.where(h_analytical>0)] = h_analytical[np.where(h_analytical>0)]**three_over_seven
 h_analytical[np.where(h_analytical<0)] = 0.0
 

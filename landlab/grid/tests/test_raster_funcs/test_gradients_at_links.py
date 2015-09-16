@@ -35,8 +35,8 @@ def test_unit_spacing():
                  dtype=float))
     diffs = _GRID.calculate_diff_at_links(_VALUES_AT_NODES)
     assert_array_equal(grads, diffs)
-    
-    
+
+
 @with_setup(setup_non_unit_grid)
 def test_non_unit_spacing():
     grads = _GRID.calculate_gradients_at_links(_VALUES_AT_NODES)

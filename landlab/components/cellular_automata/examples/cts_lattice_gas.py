@@ -1,6 +1,6 @@
 #!/usr/env/python
 """
-cts_lattice_gas.py: continuous-time stochastic version of a lattice-gas cellular 
+cts_lattice_gas.py: continuous-time stochastic version of a lattice-gas cellular
 automaton model.
 
 GT Sep 2014
@@ -22,18 +22,18 @@ def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for simple granular mechanics model.
-    
+
     Parameters
     ----------
     (none)
-    
+
     Returns
     -------
     xn_list : list of Transition objects
         List of objects that encode information about the link-state transitions.
     """
     xn_list = []
-    
+
     # Transitions for particle movement into an empty cell
     xn_list.append( Transition((1,0,0), (0,1,0), 1., 'motion') )
     xn_list.append( Transition((2,0,1), (0,2,1), 1., 'motion') )
@@ -41,7 +41,7 @@ def setup_transition_list():
     xn_list.append( Transition((0,4,0), (4,0,0), 1., 'motion') )
     xn_list.append( Transition((0,5,1), (5,0,1), 1., 'motion') )
     xn_list.append( Transition((0,6,2), (6,0,2), 1., 'motion') )
-    
+
     # Transitions for wall impact
     xn_list.append( Transition((1,8,0), (4,8,0), 1.0, 'wall rebound') )
     xn_list.append( Transition((2,8,1), (5,8,1), 1.0, 'wall rebound') )
@@ -49,7 +49,7 @@ def setup_transition_list():
     xn_list.append( Transition((8,4,0), (8,1,0), 1.0, 'wall rebound') )
     xn_list.append( Transition((8,5,1), (8,2,1), 1.0, 'wall rebound') )
     xn_list.append( Transition((8,6,2), (8,3,2), 1.0, 'wall rebound') )
-    
+
     # Transitions for head-on collision
     xn_list.append( Transition((1,4,0), (3,6,0), 0.5, 'head-on collision') )
     xn_list.append( Transition((1,4,0), (5,2,0), 0.5, 'head-on collision') )
@@ -57,7 +57,7 @@ def setup_transition_list():
     xn_list.append( Transition((2,5,1), (6,3,1), 0.5, 'head-on collision') )
     xn_list.append( Transition((3,6,2), (1,4,2), 0.5, 'head-on collision') )
     xn_list.append( Transition((3,6,2), (5,2,2), 0.5, 'head-on collision') )
-    
+
     # Transitions for glancing collision
     xn_list.append( Transition((1,3,0), (3,1,0), 1.0, 'glancing collision') )
     xn_list.append( Transition((1,5,0), (5,1,0), 1.0, 'glancing collision') )
@@ -85,7 +85,7 @@ def setup_transition_list():
     xn_list.append( Transition((3,4,2), (4,3,2), 1.0, 'oblique') )
     xn_list.append( Transition((1,6,2), (6,1,2), 1.0, 'oblique') )
     xn_list.append( Transition((5,6,2), (6,5,2), 1.0, 'oblique') )
-    
+
     # Transitions for direct-from-behind collisions
     xn_list.append( Transition((1,1,0), (2,6,0), 0.5, 'behind') )
     xn_list.append( Transition((1,1,0), (6,2,0), 0.5, 'behind') )
@@ -99,7 +99,7 @@ def setup_transition_list():
     xn_list.append( Transition((3,3,2), (4,2,2), 0.5, 'behind') )
     xn_list.append( Transition((6,6,2), (1,5,2), 0.5, 'behind') )
     xn_list.append( Transition((6,6,2), (5,1,2), 0.5, 'behind') )
-    
+
     # Transitions for collision with stationary (resting) particle
     xn_list.append( Transition((1,7,0), (7,2,0), 0.5, 'rest') )
     xn_list.append( Transition((1,7,0), (7,6,0), 0.5, 'rest') )
@@ -119,14 +119,14 @@ def setup_transition_list():
         print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
             print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
-        
+
     return xn_list
-    
-    
+
+
 def main():
-    
+
     # INITIALIZE
-    
+
     # User-defined parameters
     nr = 52
     nc = 120
@@ -135,7 +135,7 @@ def main():
     report_interval = 5.0  # report interval, in real-time seconds
     p_init = 0.1  # probability that a cell is occupied at start
     plot_every_transition = False
-    
+
     # Remember the clock time, and calculate when we next want to report
     # progress.
     current_real_time = time.time()
@@ -143,15 +143,15 @@ def main():
 
     # Create a grid
     hmg = HexModelGrid(nr, nc, 1.0, orientation='vertical', reorient_links=True)
-    
+
     # Close the grid boundaries
     #hmg.set_closed_nodes(hmg.open_boundary_nodes)
-    
+
     # Set up the states and pair transitions.
     # Transition data here represent particles moving on a lattice: one state
     # per direction (for 6 directions), plus an empty state, a stationary
     # state, and a wall state.
-    ns_dict = { 0 : 'empty', 
+    ns_dict = { 0 : 'empty',
                 1 : 'moving up',
                 2 : 'moving right and up',
                 3 : 'moving right and down',
@@ -164,18 +164,18 @@ def main():
 
     # Create data and initialize values.
     node_state_grid = hmg.add_zeros('node', 'node_state_grid', dtype=int)
-    
+
     # Make the grid boundary all wall particles
     node_state_grid[hmg.boundary_nodes] = 8
-    
+
     # Seed the grid interior with randomly oriented particles
     for i in hmg.core_nodes:
         if random.random()<p_init:
             node_state_grid[i] = random.randint(1, 7)
-    
+
     # Create the CA model
     ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
-    
+
     # Set up a color map for plotting
     import matplotlib
     clist = [ (1.0, 1.0, 1.0),   # empty = white
@@ -188,13 +188,13 @@ def main():
               (0.5, 0.5, 0.5),   # resting = gray
               (0.0, 0.0, 0.0) ]   # wall = black
     my_cmap = matplotlib.colors.ListedColormap(clist)
-    
+
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca, cmap=my_cmap)
-    
+
     # Plot the initial grid
     ca_plotter.update_plot()
-    
+
     # Create an array to store the numbers of states at each plot interval
     nstates = zeros((9, int(run_duration/plot_interval)))
     k = 0
@@ -202,23 +202,23 @@ def main():
     # RUN
     current_time = 0.0
     while current_time < run_duration:
-        
+
         # Once in a while, print out simulation and real time to let the user
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
             print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
             next_report = current_real_time + report_interval
-        
+
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state, 
+        ca.run(current_time+plot_interval, ca.node_state,
                plot_each_transition=plot_every_transition, plotter=ca_plotter)
         current_time += plot_interval
-        
+
         # Plot the current grid
         ca_plotter.update_plot()
         axis('off')
-        
+
         # Record numbers in each state
         nstates[:,k] = bincount(node_state_grid)
         k += 1
@@ -227,7 +227,7 @@ def main():
 
     # Plot
     ca_plotter.finalize()
-    
+
     # Display the numbers of each state
     fig, ax = subplots()
     for i in range(1, 8):

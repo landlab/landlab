@@ -709,26 +709,26 @@ def active_inlinks2(shape, node_status=None):
     """
     Finds and returns the link IDs of active links coming in to each node
     (that is, active links for which the node is the link head).
-    
+
     Parameters
     ----------
     shape : 2-element tuple of ints
         Number of rows and columns in the grid
     node_status (optional) : numpy array of bool (x # of nodes)
         False where node is a closed boundary; True elsewhere
-        
+
     Returns
     -------
     2d numpy array of int (2 x number of grid nodes)
         Link ID of incoming links to each node
-        
+
     Example
     -------
     >>> from landlab.utils.structured_grid import active_inlinks2
     >>> active_inlinks2((3,4))
     array([[-1, -1, -1, -1, -1,  1,  2, -1, -1,  5,  6, -1],
            [-1, -1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1]])
-           
+
     Notes
     -----
     There are at most two inlinks for each node. The first row in the returned
@@ -753,26 +753,26 @@ def active_outlinks2(shape, node_status=None):
     """
     Finds and returns the link IDs of active links going out of each node
     (that is, active links for which the node is the link tail).
-    
+
     Parameters
     ----------
     shape : 2-element tuple of ints
         Number of rows and columns in the grid
     node_status (optional) : numpy array of bool (x # of nodes)
         False where node is a closed boundary; True elsewhere
-        
+
     Returns
     -------
     2d numpy array of int (2 x number of grid nodes)
         Link ID of outgoing links from each node
-        
+
     Example
     -------
     >>> from landlab.utils.structured_grid import active_outlinks2
     >>> active_outlinks2((3,4))
     array([[-1,  1,  2, -1, -1,  5,  6, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, 11, 12, 13, -1, -1, -1, -1, -1]])
-           
+
     Notes
     -----
     There are at most two outlinks for each node. The first row in the returned
@@ -833,19 +833,19 @@ def vertical_inactive_link_mask(shape, node_status):
     """
     Creates and returns a boolean 2D array dimensioned as the number of
     vertical links in the grid, not including the left and right boundaries.
-    
+
     Parameters
     ----------
     shape : 2-element tuple of ints
         Number of rows and columns in the grid
     node_status : numpy array of bool (x # of nodes)
         False where node is a closed boundary; True elsewhere
-        
+
     Returns
     -------
     (NR-1,NC-2) array of bool (NR=# of rows, NC=# of columns)
         Flags indicating whether the corresponding vertical link is inactive
-        
+
     Examples
     --------
     >>> import numpy as np
@@ -863,7 +863,7 @@ def vertical_inactive_link_mask(shape, node_status):
     array([[False,  True],
            [ True, False]], dtype=bool)
     """
-    
+
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
     is_closed_node = (node_status == 0) # GT thinks this should be False, not 0
     is_closed_node.shape = shape
@@ -909,21 +909,21 @@ def vertical_active_link_ids(shape, node_status=None):
 def vertical_active_link_ids2(shape, node_status=None):
     """
     Returns the link IDs of vertical active links as an (R-1) x (C-2) array.
-    
+
     Parameters
     ----------
     shape : 2-element tuple of int
         number of rows and columns in grid
     node_status (optional) : 1d numpy array (x number of nodes) of bool
         False where node is a closed boundary, True otherwise
-        
+
     Returns
     -------
     2d numpy array of int
         Link IDs of vertical active links, not including vertical links on the
         left and right grid edges. If a vertical link is inactive, its ID is
         given as -1.
-    
+
     Examples
     --------
     >>> from landlab.utils.structured_grid import vertical_active_link_ids2
@@ -936,7 +936,7 @@ def vertical_active_link_ids2(shape, node_status=None):
     >>> vertical_active_link_ids2((3,4), ns)
     array([[-1,  2],
            [ 5, -1]])
-           
+
     Notes
     -----
     Same as vertical_active_link_ids() but returns "link IDs" for active links
@@ -944,15 +944,15 @@ def vertical_active_link_ids2(shape, node_status=None):
     replace the original vertical_active_link_ids().
     """
     vert_link_ids = np.arange((shape[0]-1)*shape[1])
-    vert_link_ids.shape = (shape[0]-1, shape[1]) 
+    vert_link_ids.shape = (shape[0]-1, shape[1])
     link_ids = vert_link_ids[:, 1:-1]
-    
+
     if node_status is not None:
         inactive_links = vertical_inactive_link_mask(shape, node_status)
         link_ids[inactive_links] = -1
-        
+
     return link_ids
-    
+
 
 def horizontal_active_link_ids(shape, node_status=None):
     if node_status is None:
@@ -980,21 +980,21 @@ def horizontal_active_link_ids(shape, node_status=None):
 def horizontal_active_link_ids2(shape, node_status=None):
     """
     Returns the link IDs of horizontal active links as an (R-2) x (C-1) array.
-    
+
     Parameters
     ----------
     shape : 2-element tuple of int
         number of rows and columns in grid
     node_status (optional) : 1d numpy array (x number of nodes) of bool
         False where node is a closed boundary, True otherwise
-        
+
     Returns
     -------
     2d numpy array of int
         Link IDs of horizontal active links, not including horizontal links on
         top and bottom grid edges. If a horizontal link is inactive, its ID is
         given as -1.
-    
+
     Examples
     --------
     >>> from landlab.utils.structured_grid import horizontal_active_link_ids2
@@ -1005,7 +1005,7 @@ def horizontal_active_link_ids2(shape, node_status=None):
     >>> ns[7] = False
     >>> horizontal_active_link_ids2((3,4), ns)
     array([[-1, 12, -1]])
-           
+
     Notes
     -----
     Same as horizontal_active_link_ids() but returns "link IDs" for active links
@@ -1014,13 +1014,13 @@ def horizontal_active_link_ids2(shape, node_status=None):
     """
 
     horiz_link_ids = np.arange(shape[0]*(shape[1]-1)) + (shape[0]-1)*shape[1]
-    horiz_link_ids.shape = (shape[0], shape[1]-1) 
+    horiz_link_ids.shape = (shape[0], shape[1]-1)
     link_ids = horiz_link_ids[1:-1, :]
-    
+
     if node_status is not None:
         inactive_links = horizontal_inactive_link_mask(shape, node_status)
         link_ids[inactive_links] = -1
-        
+
     return link_ids
 
 
@@ -1139,14 +1139,14 @@ def active_south_links2(shape, node_status=None):
     """
     Finds and returns link IDs of active links that enter each node from the
     south (bottom), or -1 where no such active link exists.
-    
+
     Parameters
     ----------
     shape : 2-element tuple of int
         number of rows and columns in grid
     node_status (optional) : 1d numpy array of bool
         False where node is a closed boundary, True otherwise
-        
+
     Returns
     -------
     2d numpy array of int
@@ -1159,7 +1159,7 @@ def active_south_links2(shape, node_status=None):
     array([[-1, -1, -1, -1],
            [-1,  1,  2, -1],
            [-1,  5,  6, -1]])
-           
+
     Notes
     -----
     Like active_south_links, but returns link IDs rather than (now deprecated)
@@ -1316,16 +1316,16 @@ def setup_active_outlink_matrix(shape, node_status=None, return_count=True):
 def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
     """Active links leaving nodes.
 
-    Return the link IDs of the active links that leave each node of a grid. The 
-    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
-    the grid. The first row contains the link ID exiting the node to the 
+    Return the link IDs of the active links that leave each node of a grid. The
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in
+    the grid. The first row contains the link ID exiting the node to the
     top, and the second row the link exiting the node to the right.
 
-    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    Use the *return_count* keyword to, in addition to the link IDs, return the
     number of active links attached to each grid node.
 
-    Use the *node_status_array* keyword to specify the status for each of the 
-    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    Use the *node_status_array* keyword to specify the status for each of the
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be
     `FIXED_VALUE_BOUNDARY`.
 
     Parameters
@@ -1346,8 +1346,8 @@ def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
 
     Examples
     --------
-    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
-    lists links entering nodes from the bottom, and the second links entering 
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row
+    lists links entering nodes from the bottom, and the second links entering
     from the left.
 
     >>> from landlab.utils.structured_grid import setup_active_outlink_matrix2
@@ -1417,16 +1417,16 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
 def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
     """Active links entering nodes.
 
-    Return the link IDs of the active links that enter each node of a grid. The 
-    shape of the returned array is (2, *N*) where *N* is the number of nodes in 
-    the grid. The first row contains the link ID entering the node from the 
+    Return the link IDs of the active links that enter each node of a grid. The
+    shape of the returned array is (2, *N*) where *N* is the number of nodes in
+    the grid. The first row contains the link ID entering the node from the
     bottom, and the second row the link entering the node from the left.
 
-    Use the *return_count* keyword to, in addition to the link IDs, return the 
+    Use the *return_count* keyword to, in addition to the link IDs, return the
     number of active links attached to each grid node.
 
-    Use the *node_status_array* keyword to specify the status for each of the 
-    grid's nodes. If not given, each of the perimeter nodes is assumed to be 
+    Use the *node_status_array* keyword to specify the status for each of the
+    grid's nodes. If not given, each of the perimeter nodes is assumed to be
     `FIXED_VALUE_BOUNDARY`.
 
     Parameters
@@ -1447,8 +1447,8 @@ def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
 
     Examples
     --------
-    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row 
-    lists links entering nodes from the bottom, and the second links entering 
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row
+    lists links entering nodes from the bottom, and the second links entering
     from the left.
 
     >>> from landlab.utils.structured_grid import setup_active_inlink_matrix2

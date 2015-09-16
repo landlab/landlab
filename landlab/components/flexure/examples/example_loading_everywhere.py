@@ -35,7 +35,7 @@ def main():
 
     shape = (args.shape, args.shape)
     spacing = (args.spacing, args.spacing)
-    
+
     load_sizes = get_random_load_magnitudes(args.shape * args.shape)
 
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
@@ -48,7 +48,7 @@ def main():
 
     if args.plot:
         grid.imshow('node', 'lithosphere__elevation',
-                    symmetric_cbar=False, cmap='spectral', show=True) 
+                    symmetric_cbar=False, cmap='spectral', show=True)
 
 if __name__ == '__main__':
     main()

@@ -69,7 +69,7 @@ print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 #time_to_run = inputs.read_float('run_time')
 #uplift = inputs.read_float('uplift_rate')
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
-##make some K values in a field to test 
+##make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+np.random.rand(nrows*ncols)/10.
 ##elapsed_time = 0. #total time in simulation
 ##while elapsed_time < time_to_run:
@@ -82,7 +82,7 @@ print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 ##    mg = fr.route_flow(grid=mg)
 ##    mg,_,_ = sp.erode(mg)
 ##    elapsed_time += dt
-    
+
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
 nrows = 200#inputs.read_int('nrows')
 ncols = 200#inputs.read_int('ncols')
@@ -100,7 +100,7 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some K values in a field to test 
+#make some K values in a field to test
 mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
 #mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)

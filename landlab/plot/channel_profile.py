@@ -10,7 +10,7 @@ that channel.
 
 This module selects channels by taking the largest possible drainages crossing
 the grid boundaries. You can specify how many different channels it handles
-using the number_of_channels parameter in the channel_nodes function (default 
+using the number_of_channels parameter in the channel_nodes function (default
 is 1). This may lead to strange outputs if the drainage structure of the output
 changes mid-run (e.g., channel piracy). This may be modified in the future.
 
@@ -31,7 +31,7 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
     #top_two_pc = len(boundary_nodes)//50
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
     starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-number_of_channels:]]
-    
+
     profile_IDs = []
     for i in starting_nodes:
         j=i
@@ -68,38 +68,38 @@ def plot_profiles(distances_upstream, profile_IDs, elevations):
     for i in xrange(len(profile_IDs)):
         the_nodes = profile_IDs[i]
         plt.plot(distances_upstream[i], elevations[the_nodes])
-        
-def analyze_channel_network_and_plot(grid, elevations='topographic__elevation', 
-                                     drainage_area='drainage_area', 
-                                     flow_receiver='flow_receiver', 
+
+def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
+                                     drainage_area='drainage_area',
+                                     flow_receiver='flow_receiver',
                                      links_to_flow_receiver='links_to_flow_receiver',
-                                     number_of_channels=1, 
+                                     number_of_channels=1,
                                      starting_nodes=None,
                                      threshold=None):
-                                         
-    """analyze_channel_network_and_plot(grid, elevations='topographic__elevation', 
-                                     drainage_area='drainage_area', 
-                                     flow_receiver='flow_receiver', 
+
+    """analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
+                                     drainage_area='drainage_area',
+                                     flow_receiver='flow_receiver',
                                      links_to_flow_receiver='links_to_flow_receiver',
-                                     number_of_channels=1, 
+                                     number_of_channels=1,
                                      starting_nodes=None,
                                      threshold=None)
-    
+
     This function wraps the other three present here, and allows a single-line
     call to plot long profiles.
     As typical elsewhere, the inputs can be field names or arrays.
-    
-    Note the key new parameter starting_nodes. This (optionally) can be a 
-    Python list of node IDs marking the start of each profile. If it is not 
+
+    Note the key new parameter starting_nodes. This (optionally) can be a
+    Python list of node IDs marking the start of each profile. If it is not
     provided, the profiles with the largest terminal drainage area will be used
     instead.
-    
+
     Returns a tuple, containing:
         - the list of arrays profile_IDs.
-        - the list of arrays dists_upstr, the distances from the final, lowest 
+        - the list of arrays dists_upstr, the distances from the final, lowest
             node in the network.
         Both lists are number_of_channels long.
-        - 
+        -
     """
     internal_list = [0,0,0,0] #we're going to put the input arrays in here; must be a better way but this will do
     inputs = (elevations, drainage_area, flow_receiver, links_to_flow_receiver)
@@ -110,7 +110,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
         else:
             assert j.size == grid.number_of_nodes, "Inputs must be field names or nnode-long numpy arrays!"
             internal_list[i] = j
-    
+
     if starting_nodes==None:
         profile_IDs = channel_nodes(grid, None, internal_list[1], internal_list[2], number_of_channels, threshold)
     else:
@@ -131,8 +131,8 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                 else:
                     j = supplying_nodes[max_drainage]
             profile_IDs.append(numpy.array(data_store))
-            
+
     dists_upstr = get_distances_upstream(grid, internal_list[1].size, profile_IDs, internal_list[3])
     plot_profiles(dists_upstr, profile_IDs, internal_list[0])
-    
+
     return (profile_IDs, dists_upstr)

@@ -42,12 +42,12 @@ def assemble_vtk_document(element):
             pass
     grid.appendChild(piece)
     root.appendChild(grid)
-  
+
     try:
         root.appendChild(element['AppendedData'])
     except KeyError:
         pass
-  
+
     return root
 
 
@@ -59,8 +59,8 @@ def assert_format_is_valid(format_string):
 def assert_encoding_is_valid(encoding_string):
     if encoding not in _VALID_ENCODINGS:
         raise InvalidEncodingError(encoding)
-  
-  
+
+
 class VtkWriter(xml.dom.minidom.Document):
     def __init__(self, **kwds):
         self._format = kwds.pop('format', 'ascii')
@@ -76,7 +76,7 @@ class VtkWriter(xml.dom.minidom.Document):
             self._data = VtkAppendedDataElement('', encoding=self.encoding)
         else:
             self._data = None
-  
+
         xml.dom.minidom.Document.__init__(self)
 
     @property
@@ -103,7 +103,7 @@ class VtkWriter(xml.dom.minidom.Document):
 
         self.appendChild(assemble_vtk_document(elements))
         self.to_xml(path)
-  
+
     def to_xml(self, path):
         with open(path, 'w') as xml_file:
             xml_file.write(self.toprettyxml())

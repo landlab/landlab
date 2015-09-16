@@ -2,7 +2,7 @@
 """
 raster_lca.py: simple raster Landlab cellular automaton
 
-This file defines the RasterLCA class, which is a sub-class of 
+This file defines the RasterLCA class, which is a sub-class of
 LandlabCellularAutomaton that implements a simple, non-oriented, raster-grid
 CA. Like its parent class, RasterLCA implements a continuous-time, stochastic,
 pair-based CA.
@@ -37,7 +37,7 @@ class RasterLCA(LandlabCellularAutomaton):
         """
         RasterLCA constructor: sets number of orientations to 1 and calls
         base-class constructor.
-        
+
         Parameters
         ----------
         model_grid : Landlab ModelGrid object
@@ -55,20 +55,20 @@ class RasterLCA(LandlabCellularAutomaton):
             Default or initial value for a node/cell property (e.g., 0.0)
         """
         warnings.warn('use of RasterLCA is deprecated. Use RasterCTS instead.')
-        
-        # Make sure caller has sent the right grid type        
+
+        # Make sure caller has sent the right grid type
         if not isinstance(model_grid, RasterModelGrid):
             raise TypeError('model_grid must be a Landlab RasterModelGrid')
 
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.
         self.number_of_orientations = 1
-        
+
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(RasterLCA, self).__init__(model_grid, node_state_dict, 
+        super(RasterLCA, self).__init__(model_grid, node_state_dict,
             transition_list, initial_node_states, prop_data, prop_reset_value)
-        
+
 
 if __name__=='__main__':
     import doctest

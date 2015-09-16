@@ -1,5 +1,5 @@
 #########################################################
-##  
+##
 ##    Example for single_vegetation_field.py
 ##
 ##    Sai Nudurupati and Erkan Istanbulluoglu - 16May2014

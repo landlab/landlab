@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 """
-This class is designed to provide functions to allow the automated 
+This class is designed to provide functions to allow the automated
 identification of planar facet surfaces above fault traces.
 Module is SLOW (e.g., minutes+ per full analysis of a "large" data set). It is
 only intended for model post-analysis or DEM analysis. Do not loop this class!!
@@ -17,27 +17,27 @@ from landlab.plot import imshow as gridshow
 from landlab.utils import structured_grid as sgrid
 
 class find_facets(object):
-    
-    def __init__(self, grid, elev_field='topographic__elevation', 
+
+    def __init__(self, grid, elev_field='topographic__elevation',
                 fault_azimuth=None):
         """
         Note that this class assumes the grid does not change during the model
         run. Changes to data stored in the grid should (?) update automatically.
-        
+
         If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
         we don't consider fault dip, even if it's known).
         """
-        self.grid = grid 
+        self.grid = grid
         self.elevs = self.grid.at_node[elev_field]
         self.az = fault_azimuth
-                            
-    
+
+
     def analyse_fault_trace(self, fault_trace_node_ids):
         """
-        This method takes the grid and an array listing the (contiguous) node 
+        This method takes the grid and an array listing the (contiguous) node
         ids of cells that contain a single fault segment trace of interest.
-        
-        It sets and returns the azimuth of the fault trace, az, 
+
+        It sets and returns the azimuth of the fault trace, az,
         -pi/2 < az <= pi/2.
         (i.e., smallest angle between north and the trace).
         """
@@ -50,27 +50,27 @@ class find_facets(object):
             self.az = np.pi/2.-angle
         else:
             self.az = -np.pi/2.-angle
-        
+
         return self.az
-    
+
     def set_slopes_aspects(self):
         self.slopes, self.aspect = self.grid.calculate_slope_aspect_at_nodes_horn(vals=self.elevs)
         print('Calculated and stored slopes and aspects...')
-        
-    
+
+
     def define_aspect_node_subset(self, angle_tolerance=5.):
         """
-        This method sets and returns a list of all nodes in the landscape which 
+        This method sets and returns a list of all nodes in the landscape which
         have an
         aspect within 5 degrees of perpendicular to the fault trace.
-        
+
         It assumes self.az, the angle between north and the fault trace, has
-        already been set, and also that self.slopes and self.aspect are also 
+        already been set, and also that self.slopes and self.aspect are also
         set.
         The returned boolean array is num_core_nodes long.
         *angle_tolerance* is the angle in degrees that the aspect must be within
         from the fault trace angle.
-        NB: this version is too discriminating on the aspect restriction, 
+        NB: this version is too discriminating on the aspect restriction,
         presumably because we use only a single ft angle for what's really
         a 2d trace. Need to work with local aspect.
         """
@@ -80,7 +80,7 @@ class find_facets(object):
         perp_minus_five = (perp_to_az - five_degrees)%(2.*np.pi)
         other_dip_plus_five = (perp_to_az + np.pi + five_degrees)%(2.*np.pi)
         other_dip_minus_five = (perp_to_az + np.pi - five_degrees)%(2.*np.pi)
-        
+
         #need to be careful near the 2pi->0 discontinuity...
         greater_condition = np.greater(self.aspect,perp_minus_five)
         lesser_condition = np.less(self.aspect,perp_plus_five)
@@ -94,11 +94,11 @@ class find_facets(object):
             condition_opposite_dip = np.logical_or(greater_condition_2, lesser_condition_2)
         else:
             condition_opposite_dip = np.logical_and(greater_condition_2, lesser_condition_2)
-            
+
         self.aspect_close_nodes = np.logical_or(condition_first_dip, condition_opposite_dip)
         print('Calculated and stored nodes with aspects compatible with fault trace...')
         return self.aspect_close_nodes
-        
+
     def define_aspect_node_subset_local(self, dist_tolerance=4., angle_tolerance=15., dip_dir='E'):
         """
         """
@@ -117,7 +117,7 @@ class find_facets(object):
         new_distance_to_ft = np.empty_like(closest_ft_node, dtype=float)
         for i in self.ft_trace_node_ids:
             grid.get_distances_of_nodes_to_point((grid.node_x[i],grid.node_y[i]),
-                    node_subset=grid.core_nodes[subset], get_az='angles', 
+                    node_subset=grid.core_nodes[subset], get_az='angles',
                     out_distance=new_distance_to_ft, out_azimuth=new_angle_to_ft)
             closer_nodes = new_distance_to_ft<distance_to_ft
             distance_to_ft[closer_nodes] = new_distance_to_ft[closer_nodes]
@@ -139,9 +139,9 @@ class find_facets(object):
         #show()
         #the relevant condition is now that the local aspect and angle to fault
         #are the same...
-        #We need to bias the five degrees against distant points, as it's easier 
-        #to have similar angles in the far field. Rule should be in px - the 
-        #two angles should be within *angle_tol* px of each other at the ft 
+        #We need to bias the five degrees against distant points, as it's easier
+        #to have similar angles in the far field. Rule should be in px - the
+        #two angles should be within *angle_tol* px of each other at the ft
         #trace.
         divergence_at_ft = distance_to_ft * np.tan((angle_to_ft-self.aspect[subset])%np.pi)
         condition = np.less(np.fabs(divergence_at_ft),grid.node_spacing*dist_tolerance) #might be *too* forgiving for close-in nodes
@@ -167,16 +167,16 @@ class find_facets(object):
         self.aspect_close_nodes = core_nodes_size_condition
         print('Calculated and stored nodes with aspects compatible with fault trace...')
         return self.aspect_close_nodes
-        
-        
-        
+
+
+
     def define_steep_nodes(self, threshold_in_degrees=5.):
         """
         This method sets and returns a list of all nodes in the landscape which
         are "steep" and could be part of a facet.
-        The critical hillslope angle is set by *threshold_in_degrees*, and 
+        The critical hillslope angle is set by *threshold_in_degrees*, and
         defaults to 5.
-        
+
         This assumes you have already called define_aspect_node_subset, in
         which self.slope is set.
         The returned boolean array is num_core_nodes long.
@@ -187,8 +187,8 @@ class find_facets(object):
         #gridshow.imshow_core_node_grid(self.grid, self.steep_nodes)
         #show()
         return self.steep_nodes
-        
-        
+
+
     def show_possible_nodes(self):
         """
         Once the subsets by aspect and slope have been set, call this function
@@ -205,18 +205,18 @@ class find_facets(object):
         figure(4)
         gridshow.imshow_core_node_grid(self.grid, possible_core_nodes)
         show()
-        
-        
+
+
     def find_coherent_facet_patches(self, tolerance=3., threshold_num_px=12):
         """
-        This method searches the (already determined) possible pixels for 
+        This method searches the (already determined) possible pixels for
         patches with coherent slope angles, within a *tolerance* (in degrees).
         A patch is only recorded if it consists of at least *threshold_num_px*.
-        
+
         The method records and returns:
-        1. a ragged array of lists, where each list is the pixels comprising 
+        1. a ragged array of lists, where each list is the pixels comprising
            each facet patch, and
-        2. a (num_patches, 2) array recording the mean slope and and its stdev 
+        2. a (num_patches, 2) array recording the mean slope and and its stdev
            for each patch.
         """
         self.possible_core_nodes =  np.where(np.logical_and(self.steep_nodes, self.aspect_close_nodes))[0]
@@ -244,8 +244,8 @@ class find_facets(object):
         #(i.e., all patches containing a given px should all be identical)
         self.consistent_slope_patches = consistent_slope_patches
         return consistent_slope_patches
-        
-        
+
+
     def find_slope_lines(self, tolerance=1.):
         """
         This method attempts to find slope-consistent line profiles up facets,
@@ -349,7 +349,7 @@ class find_facets(object):
                     figure(5)
                     plot(dists_to_sorted_pts, elevs_of_sorted_pts)
                     #dirty, but effective code!
-                
+
         self.profile_ft_node_id = profile_ft_node_id
         self.profile_ft_node_x = profile_ft_node_x
         self.profile_ft_node_y = profile_ft_node_y
@@ -358,10 +358,10 @@ class find_facets(object):
         self.profile_x_facet_pts = profile_x_facet_pts
         self.profile_z_facet_pts = profile_z_facet_pts
         self.profile_S_facet_pts = profile_S_facet_pts
-        
+
     def fit_slopes_to_facet_lines(self,polynomial_degree=4, curvature_threshold=0.0004):
         """
-        Fits (linear) lines of best fit to extracted profiles, already stored as 
+        Fits (linear) lines of best fit to extracted profiles, already stored as
         class properties.
         """
         avg_slopes_linear = []

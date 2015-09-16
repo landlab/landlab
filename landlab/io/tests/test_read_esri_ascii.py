@@ -154,7 +154,7 @@ nrows         4
 ncols         3
 xllcorner     1.
 yllcorner     2.
-cellsize      
+cellsize
 NODATA_value  -9999
 invalid_key   1
         """)

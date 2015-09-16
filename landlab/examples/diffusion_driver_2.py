@@ -40,7 +40,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
@@ -53,7 +53,7 @@ for i in xrange(nt):
     #***NB: both diffusers contain an "automatic" element of uplift.
     #You can suppress this for the linear diffuser with the *internal_uplift* keyword, =False
     #See the docstrings for both classes for more details.
-    
+
     #Switch these lines to switch between diffusion styles:
     #mg = diffuse.diffuse(mg, i*dt) #nonlinear diffusion
     lin_diffuse.diffuse(dt) #linear diffusion

@@ -253,5 +253,5 @@ def test_1d_non_unit_spacing():
 def test_1d_uneven_spacing():
     (x, y) = np.meshgrid(np.logspace(0., 2., num=5), np.arange(4.))
 
-    assert_raises(NotRasterGridError, _get_raster_spacing, 
+    assert_raises(NotRasterGridError, _get_raster_spacing,
                   (np.logspace(0., 2., num=5), ))

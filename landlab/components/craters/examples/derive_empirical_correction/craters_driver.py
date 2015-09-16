@@ -65,9 +65,9 @@ for i in range(repeats):
         z = mg.create_node_array_zeros() + leftmost_elev
         z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
         mg.at_node[ 'topographic__elevation'] = z #+ np.random.rand(len(z))/10000.
-    
+
         #craters_component.grid = mg
-    
+
         mg = craters_component.excavate_a_crater_furbish(mg)
         mass_balance.append(craters_component.mass_balance)
         beta.append(craters_component.impact_angle_to_normal)
@@ -77,18 +77,18 @@ for i in range(repeats):
         #pylab.imshow(elev_r)
         #pylab.colorbar()
         #pylab.show()
-        
+
     list_of_mass_bals += list(mass_balance)
-                
+
     fitParams, fitCovariances = curve_fit(fitFunc, work_with, mass_balance)
-        
+
     param_collection = np.vstack((param_collection, fitParams))
-    
+
     synthetic_solution = fitFunc(work_with, fitParams[0], fitParams[1], fitParams[2], fitParams[3], fitParams[4], fitParams[5], fitParams[6])
     #first_synthetic_solution = fitFunc(slope_values, params_from_first_try[0], params_from_first_try[1], params_from_first_try[2], params_from_first_try[3], params_from_first_try[4], params_from_first_try[5], params_from_first_try[6])
-    
+
     print(('Done ', i))
-    
+
     pylab.figure(2)
     pylab.plot(mass_balance)
     pylab.plot(synthetic_solution)
@@ -98,7 +98,7 @@ fitParams, fitCovariances = curve_fit(fitFunc, np.tile(work_with, repeats), list
 
 #fitParams = np.mean(param_collection, axis=0)
 
-aggregate_solution = fitFunc(work_with, fitParams[0], fitParams[1], fitParams[2], fitParams[3], fitParams[4], fitParams[5], fitParams[6])    
+aggregate_solution = fitFunc(work_with, fitParams[0], fitParams[1], fitParams[2], fitParams[3], fitParams[4], fitParams[5], fitParams[6])
 
 pylab.figure(2)
 pylab.plot(aggregate_solution, 'x')

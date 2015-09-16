@@ -65,7 +65,7 @@ h = mg.at_node['planet_surface__water_depth']
 ddz=zm-zinit
 print(ddz[np.where(ddz!=0.)])
 print(np.amax(ddz))
-    
+
 # Get a 2D array version of the water depths and elevations
 hr = mg.node_vector_to_raster(h)
 zr = mg.node_vector_to_raster(zm)
@@ -83,21 +83,21 @@ pylab.subplot(131)
 im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
 pylab.colorbar(im)
 pylab.title('Topography')
-    
+
 # Plot change in topo
 pylab.figure(1)
 pylab.subplot(132)
 im = pylab.imshow(dzr, cmap=pylab.cm.RdBu)  # display a colored image
 pylab.colorbar(im)
 pylab.title('Topo change')
-    
+
 # Plot water depth
 pylab.subplot(133)
 im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu)  # display a colored image
 #pylab.clim(0, 0.25)
 pylab.colorbar(im2)
 pylab.title('Water depth')
-    
+
 # Display the plots
 pylab.show()
 print('Done.')

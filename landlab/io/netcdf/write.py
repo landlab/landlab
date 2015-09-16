@@ -69,7 +69,7 @@ def _set_netcdf_structured_dimensions(root, shape):
 
 def _set_netcdf_variables(root, fields, **kwds):
     """Set the field variables.
-    
+
     First set the variables that define the grid and then the variables at
     the grid nodes and cells.
     """

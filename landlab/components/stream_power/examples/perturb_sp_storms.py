@@ -3,7 +3,7 @@ simple_sp_driver.py
 
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
-This version runs the model to something approximating steady 
+This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
@@ -45,7 +45,7 @@ z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 mg.add_zeros('node', 'water__volume_flux_in')
 
-#make some K values in a field to test 
+#make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 mg.at_node['K_values'] = numpy.empty(nrows*ncols, dtype=float)
 #mg.at_node['K_values'].fill(0.1+numpy.random.rand()/10.)
@@ -103,7 +103,7 @@ if True:
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
-    
+
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
@@ -115,7 +115,7 @@ if True:
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
-    
+
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
@@ -147,4 +147,4 @@ pylab.show()
 
 print('Done.')
 
-    
+

@@ -2,7 +2,7 @@
 """
 oriented_hex_lca.py: simple hexagonal Landlab cellular automaton
 
-This file defines the OrientedHexLCA class, which is a sub-class of 
+This file defines the OrientedHexLCA class, which is a sub-class of
 LandlabCellularAutomaton that implements a simple, non-oriented, hex-grid
 CA. Like its parent class, OrientedHexLCA implements a continuous-time, stochastic,
 pair-based CA. The hex grid has 3 principal directions, rather than 2 for a
@@ -21,13 +21,13 @@ class OrientedHexLCA(LandlabCellularAutomaton):
     """
     Class OrientedHexLCA implements an oriented hex-grid CellLab-CTS model.
     """
-    
+
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
         """
         OrientedHexLCA constructor: sets number of orientations to 3 and calls
         base-class constructor.
-        
+
         Parameters
         ----------
         model_grid : Landlab ModelGrid object
@@ -46,43 +46,43 @@ class OrientedHexLCA(LandlabCellularAutomaton):
         """
         warnings.warn('use of OrientedHexLCA is deprecated. '
                       'Use OrientedHexCTS instead.')
-        
-        # Make sure caller has sent the right grid type        
+
+        # Make sure caller has sent the right grid type
         assert (type(model_grid) is landlab.grid.hex.HexModelGrid), \
                'model_grid must be a Landlab HexModelGrid'
-               
+
         # Somehow test to make sure the grid links have been re-oriented to
         # point up/right (-45 to +135 degrees clockwise relative to vertical).
         # Such orientation is ensured when the argument reorient_grid=True is
         # passed to the hex grid constructor.
-               
+
         # Define the number of distinct cell-pair orientations: here 3,
         # representing
         self.number_of_orientations = 3
-        
+
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(OrientedHexLCA, self).__init__(model_grid, node_state_dict, 
+        super(OrientedHexLCA, self).__init__(model_grid, node_state_dict,
             transition_list, initial_node_states, prop_data, prop_reset_value)
-            
+
 
     def setup_array_of_orientation_codes(self):
         """
-        Creates and configures an array that contain the orientation code for 
+        Creates and configures an array that contain the orientation code for
         each active link (and corresponding cell pair).
-        
+
         Parameters
         ----------
         (none)
-        
+
         Returns
         -------
         (none)
-        
+
         Creates
         -------
         self.active_link_orientation : 1D numpy array
-        
+
         Notes
         -----
         This overrides the method of the same name in landlab_ca.py. If the hex

@@ -3,9 +3,9 @@ from numpy.testing import assert_array_equal
 from nose import with_setup
 from nose.tools import assert_equal, raises
 try:
-    from nose.tools import assert_is 
+    from nose.tools import assert_is
 except ImportError:
-    from landlab.testing.tools import assert_is 
+    from landlab.testing.tools import assert_is
 
 from landlab.grid import raster_funcs as rfuncs
 

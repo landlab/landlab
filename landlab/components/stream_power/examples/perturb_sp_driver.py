@@ -3,7 +3,7 @@ simple_sp_driver.py
 
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
-This version runs the model to something approximating steady 
+This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
@@ -142,4 +142,4 @@ pylab.show()
 
 print('Done.')
 
-    
+

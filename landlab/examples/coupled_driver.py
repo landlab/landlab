@@ -41,7 +41,7 @@ mg.at_node[ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -57,7 +57,7 @@ for i in xrange(nt):
     mg = fr.route_flow()
     mg = sp.erode(mg)
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
-    
+
     ##plot long profiles along channels
     pylab.figure(6)
     profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
@@ -67,7 +67,7 @@ for i in xrange(nt):
     prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
 
     print('Completed loop ', i)
- 
+
 print('Completed the simulation. Plotting...')
 
 

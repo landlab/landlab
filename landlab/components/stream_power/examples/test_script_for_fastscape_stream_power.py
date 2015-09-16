@@ -1,8 +1,8 @@
 #! /usr/env/python
 
 """
-test_script_for_fastscape_stream_power.py: 
-    
+test_script_for_fastscape_stream_power.py:
+
 Tests and illustrates use of route_flow_dn component.
 """
 from __future__ import print_function
@@ -70,11 +70,11 @@ im = pylab.imshow(ar, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
 # add contour lines with labels
 cset = pylab.contour(ar, extent=[0,numcols*dx,numrows*dx,0])
 pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
-    
+
 # add a color bar on the side
 cb = pylab.colorbar(im)
 cb.set_label('Drainage area, sq meters')
-    
+
 # add a title and axis labels
 pylab.title('DEM')
 pylab.xlabel('Distance (m)')
@@ -98,7 +98,7 @@ Kdt = K*dt  # saves lots of multiplying later
 
 # Time loop
 for t in range(num_time_steps):
-    
+
     # Update baselevel nodes if applicable
     # (to be added)
 
@@ -107,10 +107,10 @@ for t in range(num_time_steps):
     Am = numpy.power(a, m)
     alpha = Kdt*Am/flow_link_length
 
-    # Loop over nodes from downstream to upstream, updating elevations using 
+    # Loop over nodes from downstream to upstream, updating elevations using
     # analytical solution (implicit)
     for i in s:  # for each node ID, in order from downstream to upstream
-        
+
         j = r[i]   # receiver (downstream node) of i
         print(i, j)
         if i != j:  # if sender and receiver are same, it's a boundary node

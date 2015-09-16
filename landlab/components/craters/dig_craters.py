@@ -36,15 +36,15 @@ from landlab import ModelParameterDictionary
 class impactor(object):
     '''
     This class holds all parameters decribing properties of a single impact
-    structure, and contains methods for recalculating fresh and internally 
+    structure, and contains methods for recalculating fresh and internally
     consistent data describing such a impact structure.
     Built DEJH Winter 2013, after an earlier version, Spring 2013.
     '''
-    
+
     def __init__(self, grid, input_stream):
         self.grid = grid
         inputs = ModelParameterDictionary(input_stream)
-        
+
         #test the necessary fields are all already present:
         try:
             self.elev = grid.at_node['topographic__elevation']
@@ -85,14 +85,14 @@ class impactor(object):
         else:
             self.angle_auto_flag = 0
             self._azimuth_of_travel = 0.5*numpy.pi
-        
+
         self.cheater_flag = 0
 
         #The user has no control over the following inbuilt parameters describing crater scaling:
         self.tan_repose = numpy.tan(32.*numpy.pi/180.)
         self._beta_factor = 0.5 #this is the arbitrary term that controls how "stretched out" the ejecta field is. <+0.5 prevents "outside the ejecta field" regions forming
         self._simple_radius_depth_ratio_Pike = 2.55 #Pike thru Holsapple, tho Garvin (2011) gives 2.0 as "typically cited"
-                
+
         self.V = Symbol('V') #Crater cavity vol
         self.r0 = Symbol('r0') #Crater rim radius
         self.T = Symbol('T') #Crater rim ejecta thickness
@@ -101,7 +101,7 @@ class impactor(object):
         #...gives a list of 3 sympy expressions, f(V,r), for T
         self.expression_for_local_thickness = self.T*(self.r/self.r0)**-2.75
         self.loop_dict = {} #this holds information on how looped BCs execute - see set_slope()
-        
+
         #perform a BC condition check:
         if not numpy.all(numpy.equal(grid.node_status[numpy.nonzero(grid.node_status)], 3)):
             self.looped_BCs = False
@@ -113,7 +113,7 @@ class impactor(object):
             sleep(3.)
         else:
             self.looped_BCs = True
-            
+
         self.grid = grid
         self.twod_node_store = numpy.empty((self.grid.number_of_node_rows,self.grid.number_of_node_columns), dtype=int)
         self.dummy_1 = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype=float)
@@ -141,17 +141,17 @@ class impactor(object):
         self.final_elev_diffs = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = float)
         self.elev_diff = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = float)
         self.pre_impact_elev = self.elev.copy()
-                        
+
         #full length arrays for memory management
-        
+
         #Build the permanent maps for the distances and azimuths between nodes:
         ###The resulting matrix is too big in practical cases (GB of memory use). Need to take another apporach - see set_elevation_change_only_beneath_footsix.print_()
         #print 'Building the distances map for the grid... may take some time...'
         #self.all_node_distances_map, self.all_node_azimuths_map = grid.build_all_node_distances_azimuths_maps()
         #print '...Done.'
-        
+
         self.impact_property_dict = {}
-        
+
         six.print_('Craters component setup complete!')
 
     def draw_new_parameters(self):
@@ -166,7 +166,7 @@ class impactor(object):
             self.set_coords()
         if self.angle_auto_flag == 1:
             self.set_impactor_angles()
-        
+
     def get_crater_shape_exp(self):
         '''
         This method assumes the max depth and radius of a crater are known.
@@ -360,8 +360,8 @@ class impactor(object):
                             not_done = False
                 else:
                     not_done = False
-                            
-        
+
+
 
     def set_impactor_angles(self):
         '''
@@ -392,13 +392,13 @@ class impactor(object):
         This method uses known crater depth and radius and sets the volume of
         the excavated cavity.
         Note this is is the cavity volume, not the subsurface excavation vol.
-        The true excavated volume is used to set the ejecta volumes in the 
+        The true excavated volume is used to set the ejecta volumes in the
         ..._BAND_AID methods.
         '''
         radius = self._radius
         depth = self._depth
         self._cavity_volume = 0.51 * numpy.pi * depth * radius*radius*radius / (0.51*radius + 2.*depth)
-        
+
     def create_lambda_fn_for_ejecta_thickness(self):
         """
         This method takes the complicated equation that relates "flat" ejecta
@@ -455,7 +455,7 @@ class impactor(object):
         pts N and W on the rim are in the grid, so is the point NW.
         This version is vectorized, and so hopefully faster.
         This method is largely superceded by set_crater_mean_slope_v3(), which
-        uses an GIS-style routine to set slopes. However, it may still be 
+        uses an GIS-style routine to set slopes. However, it may still be
         preferable for grid-marginal craters.
         DEJH, Sept 2013.
         '''
@@ -485,7 +485,7 @@ class impactor(object):
         slope_array = numpy.where(distance_array, (self.elev[radial_points1]-self.elev[radial_points2])/distance_array, numpy.nan)
         slope_array = numpy.arctan(slope_array)
         #if slope  is negative, it means the surface slopes broadly EAST
-        try:    
+        try:
             hi_mag_slope_index = numpy.nanargmax(numpy.fabs(slope_array))
             hi_mag_slope = slope_array[hi_mag_slope_index]
         except:
@@ -500,7 +500,7 @@ class impactor(object):
             elif not hi_mag_slope: #i.e., FLAT, dip dir is arbitrary; set to the travel direction of the impactor
                 self._surface_dip_direction = self._azimuth_of_travel
             else: #dips EAST
-                self._surface_dip_direction = numpy.pi*hi_mag_slope_index/float(divisions)    
+                self._surface_dip_direction = numpy.pi*hi_mag_slope_index/float(divisions)
             self._surface_slope = numpy.fabs(hi_mag_slope)
             #print 'The slope under the crater cavity footprint is: ', self._surface_slope
 
@@ -508,7 +508,7 @@ class impactor(object):
     def set_crater_mean_slope_v3(self):
         '''
         Runs on a square which encapsulates the crater.
-        If some of the nodes are off the grid AND the boundaries aren't looped, 
+        If some of the nodes are off the grid AND the boundaries aren't looped,
         it falls back on v2.
         If they are, it will freely loo the nodes back onto the grid, and return
         a real slope.
@@ -555,31 +555,31 @@ class impactor(object):
 #    #@profile
 #    def set_elev_change_only_beneath_footprint_BAND_AID(self):
 #        '''
-#        This is a method to take an existing impact properties and a known 
-#        nearest node to the impact site, and alter the topography to model the 
-#        impact. It assumes crater radius and depth are known, models cavity 
-#        shape as a power law where n is a function of R/D, and models ejecta 
-#        thickness as an exponential decay,sensitive to both ballistic range from 
-#        tilting and momentum transfer in impact (after Furbish). We DO NOT yet 
-#        model transition to peak ring craters, or enhanced diffusion by ejecta 
-#        in the strength regime. All craters are dug perpendicular to the geoid, 
+#        This is a method to take an existing impact properties and a known
+#        nearest node to the impact site, and alter the topography to model the
+#        impact. It assumes crater radius and depth are known, models cavity
+#        shape as a power law where n is a function of R/D, and models ejecta
+#        thickness as an exponential decay,sensitive to both ballistic range from
+#        tilting and momentum transfer in impact (after Furbish). We DO NOT yet
+#        model transition to peak ring craters, or enhanced diffusion by ejecta
+#        in the strength regime. All craters are dug perpendicular to the geoid,
 #        not the surface.
-#        This version of the code does NOT correct for slope dip direction - 
-#        because Furbish showed momentum almost always wins, and these impactors 
+#        This version of the code does NOT correct for slope dip direction -
+#        because Furbish showed momentum almost always wins, and these impactors
 #        have a lot of momentum!
-#        NB - this function ASSUMES that the "beta factor" in the model is <=0.5, 
-#        i.e., nonlinearities can't develop in the ejecta field, and the impact 
+#        NB - this function ASSUMES that the "beta factor" in the model is <=0.5,
+#        i.e., nonlinearities can't develop in the ejecta field, and the impact
 #        point is always within the (circular) ejecta footprint.
-#        This version of this method ("_band_aid"!) uses a quick and dirty fix 
-#        which substitutes the actual excavated volume into the equn to derive 
-#        ejecta thicknesses. It also digs craters perpendicular to the local 
-#        surface, mimicking some aspects of a "strength dominated" impact - 
+#        This version of this method ("_band_aid"!) uses a quick and dirty fix
+#        which substitutes the actual excavated volume into the equn to derive
+#        ejecta thicknesses. It also digs craters perpendicular to the local
+#        surface, mimicking some aspects of a "strength dominated" impact -
 #        unless doing so would create extremely strongly tilted craters, excavate
 #        large sheets of material, or otherwise destabilize the mass balance of
 #        the component.
 #        It pays no regard for the inefficiency of doing that!
 #        Created DEJH Dec 2013
-#        '''     
+#        '''
 #        #Load in the data, for speed and conciseness:
 #        _angle_to_vertical=self._angle_to_vertical
 #        _surface_slope=self._surface_slope
@@ -600,10 +600,10 @@ class impactor(object):
 #        grid = self.grid
 #        self.cheater_flag = 0
 #        pre_impact_elev = elev.copy()
-#        
+#
 #        #Derive the exponent for the crater shape, shared betw simple & complex:
 #        crater_bowl_exp = self.get_crater_shape_exp()
-#        
+#
 #        #Derive the effective angle for impact, relative to the surface normal, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
 #        while 1:
 #            #epsilon is the angle between the surface normal and the impactor angle to vertical, projected along the line of travel.
@@ -623,7 +623,7 @@ class impactor(object):
 #                else:
 #                    beta_eff = _angle_to_vertical + epsilon - pi
 #            #print 'Beta effective: ', beta_eff
-#            #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:            
+#            #Make correction to ejecta direction needed if angle to normal is small and slope is large in the opposite direction:
 #            if 0. <= beta_eff <= 0.5*pi:
 #                _ejecta_azimuth = _azimuth_of_travel
 #                break
@@ -638,15 +638,15 @@ class impactor(object):
 #                self.set_impactor_angles()
 #                _azimuth_of_travel = self._azimuth_of_travel
 #                _angle_to_vertical = self._angle_to_vertical
-#        
+#
 #        mass_bal_corrector_for_slope = self.correct_for_slope()
 #        mass_bal_corrector_for_angle_to_vertical = self.correct_for_angle_to_vertical()
-#        
+#
 #        #apply correction to beta to suppress nonlinear BC problem and make ejecta patterns "look like" they actually do:
 #        tan_beta = tan(beta_eff*self._beta_factor)
 #        tan_beta_sqd = tan_beta*tan_beta
 #        #print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
-#        
+#
 #        ###Here's the oh-so-ugly ad-hoc fix to address the mass balance problems
 #        #We're calculating the approx excavated volume directly to feed the ejecta thickness calculator...
 #        crater_edge_type_flag, crater_num_repeats = self.footprint_edge_type((self._xcoord,self._ycoord),4.*_radius)
@@ -662,7 +662,7 @@ class impactor(object):
 #            z_difference = self.elev[i] - _vec_new_z_excav #+ve when excavating
 #            excavated_volume += numpy.sum(numpy.where(z_difference>0.,z_difference,0.))*grid.dx*grid.dx
 #        #This all assumes we're representing the surface slope accurately now. If we are, then the real radius will remain roughly as the calculated value as we shear the crater into the surface. If not, could have problems.
-#                
+#
 #        unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID(excavated_volume*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical)
 #        thickness_at_rim = unique_expression_for_local_thickness(_radius)
 #        if thickness_at_rim<0.:
@@ -670,7 +670,7 @@ class impactor(object):
 #
 #        self.excavated_volume = excavated_volume
 #        self.rim_thickness = thickness_at_rim
-#        
+#
 #        #The center is transposed by rmax*tan(beta) in the direction of impact:
 #        #Might be an issue here - we use the rmax, so doesn't the *position* of the max thickness then also depend on rmax??
 #        #Should it actually just be r? -> no, use the MEAN: see Furbish para 27? For now, just use the max radius - this will be conservative, at least.
@@ -678,7 +678,7 @@ class impactor(object):
 #        max_radius_ejecta_on_flat = _radius * (thickness_at_rim/self._minimum_ejecta_thickness)**0.3636 #+ 0.5*grid.dx #0.5dx added as a conservative buffer, as we are going to use the closest node as the center... Now removed as we don't use this method
 #        #print 'thickness_at_rim: ', thickness_at_rim
 #        #print 'max_radius_ejecta: ', max_radius_ejecta_on_flat
-#        
+#
 #        displacement_distance = max_radius_ejecta_on_flat*tan_beta
 #        #need a variable for if the exacavated radius is ever outside the locus defined by the MREOF around the footprint center:
 #        x_impact_offset = sin(_azimuth_of_travel)*displacement_distance
@@ -690,31 +690,31 @@ class impactor(object):
 #        if y_impact_offset+4*self._radius > max_radius_ejecta_on_flat:
 #            print 'A low-angle crater!'
 #            max_radius_ejecta_on_flat = y_impact_offset+4.*self._radius
-#        
+#
 #        footprint_center_x = self._xcoord+x_impact_offset
 #        footprint_center_y = self._ycoord+y_impact_offset
 #        edge_type_flag, num_repeats = self.footprint_edge_type((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
 #        footprint_iterator = self.create_square_footsix.print_((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat, edge_type_flag)
 #        center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), edge_type_flag, num_repeats)
-#        
+#
 #        for footprint_nodes,center_tuple in izip(footprint_iterator, center_offset_iterator):
 #            elev = self.elev
 #            _vec_r_to_center, _vec_theta = grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles') #, node_subset=footprint_nodes)
 #            _vec_r_to_center = _vec_r_to_center[footprint_nodes]
 #            _vec_theta = _vec_theta[footprint_nodes]
-#        
+#
 #            ##We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
 #            _vec_new_z = numpy.empty_like(_vec_theta)
 #            _vec_new_z.fill(self.closest_node_elev + thickness_at_rim - self._depth)
-#            
+#
 #            _vec_new_z += self._depth * (_vec_r_to_center/_radius)**crater_bowl_exp
-#                        
+#
 #            _vec_theta_eff = _ejecta_azimuth - _vec_theta #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
 #            _vec_sin_theta_sqd = sin(_vec_theta_eff) ** 2.
 #            _vec_cos_theta = cos(_vec_theta_eff)
-#            
+#
 #            #need to be way more careful in the way we handle filling within the cavity. Try this:
-#            inner_radius = _radius #- thickness_at_rim/tan_repose 
+#            inner_radius = _radius #- thickness_at_rim/tan_repose
 #            _nodes_below_theoretical_ground_level = _vec_r_to_center<=inner_radius
 #            elevs_cavity_less_ground = _vec_new_z[_nodes_below_theoretical_ground_level]-pre_impact_elev[footprint_nodes][_nodes_below_theoretical_ground_level]
 #            #Assume everything in the inner radius gets filled to the crater level:
@@ -730,9 +730,9 @@ class impactor(object):
 #            #    thickness_at_rim = 0. #this shouldn't be a problem anymore
 #            self.excavated_volume = excavated_volume
 #            #self.rim_thickness = thickness_at_rim
-#            
+#
 #            _vec_flat_thickness_above_surface = unique_expression_for_local_thickness(_vec_r_to_center)
-#            
+#
 #            #This material is not necessary as part of this footprint-based method, as we already forbid beta_factor>0.5
 #            ##REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
 #            _vec_mu_theta_by_mu0 = tan_beta * _vec_cos_theta + sqrt(1. - _vec_sin_theta_sqd * tan_beta_sqd)
@@ -752,50 +752,50 @@ class impactor(object):
 #            if edge_type_flag == 'C' or edge_type_flag == 'X':
 #                elev_diff = self.elev[footprint_nodes] - pre_impact_elev[footprint_nodes]
 #        if edge_type_flag != 'C' and edge_type_flag != 'X':
-#            elev_diff = self.elev - pre_impact_elev 
+#            elev_diff = self.elev - pre_impact_elev
 #        self.mass_balance_in_impact = numpy.sum(elev_diff)/-numpy.sum(elev_diff[elev_diff<0.]) #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
 #
 #        print 'sum elev_diff', numpy.sum(elev_diff)
 #        print 'sum elev_diff<0', -numpy.sum(elev_diff[elev_diff<0.])
 #        #now perform the check on mass balance to try to iron out the mass balance issues.
-#                
+#
 #        self.ejecta_azimuth = _ejecta_azimuth
 #        self.impactor_angle_to_surface_normal = beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
 #        #print 'Vol of crater cavity: ', self._cavity_volume
-#        
+#
 #        #set this to see where the footprint is, and to see values:
 #        #self.elev[footprint_nodes] = _vec_r_to_center
-#        
+#
 #        return self.elev
 
 
     def set_elev_change_only_beneath_footprint_BAND_AID_memory_save(self):
         '''
-        This is a method to take an existing impact properties and a known 
-        nearest node to the impact site, and alter the topography to model the 
-        impact. It assumes crater radius and depth are known, models cavity 
-        shape as a power law where n is a function of R/D, and models ejecta 
-        thickness as an exponential decay,sensitive to both ballistic range from 
-        tilting and momentum transfer in impact (after Furbish). We DO NOT yet 
-        model transition to peak ring craters, or enhanced diffusion by ejecta 
-        in the strength regime. All craters are dug perpendicular to the geoid, 
+        This is a method to take an existing impact properties and a known
+        nearest node to the impact site, and alter the topography to model the
+        impact. It assumes crater radius and depth are known, models cavity
+        shape as a power law where n is a function of R/D, and models ejecta
+        thickness as an exponential decay,sensitive to both ballistic range from
+        tilting and momentum transfer in impact (after Furbish). We DO NOT yet
+        model transition to peak ring craters, or enhanced diffusion by ejecta
+        in the strength regime. All craters are dug perpendicular to the geoid,
         not the surface.
-        This version of the code does NOT correct for slope dip direction - 
-        because Furbish showed momentum almost always wins, and these impactors 
+        This version of the code does NOT correct for slope dip direction -
+        because Furbish showed momentum almost always wins, and these impactors
         have a lot of momentum!
-        NB - this function ASSUMES that the "beta factor" in the model is <=0.5, 
-        i.e., nonlinearities can't develop in the ejecta field, and the impact 
+        NB - this function ASSUMES that the "beta factor" in the model is <=0.5,
+        i.e., nonlinearities can't develop in the ejecta field, and the impact
         point is always within the (circular) ejecta footprint.
-        This version of this method ("_band_aid"!) uses a quick and dirty fix 
-        which substitutes the actual excavated volume into the equn to derive 
-        ejecta thicknesses. It also digs craters perpendicular to the local 
-        surface, mimicking some aspects of a "strength dominated" impact - 
+        This version of this method ("_band_aid"!) uses a quick and dirty fix
+        which substitutes the actual excavated volume into the equn to derive
+        ejecta thicknesses. It also digs craters perpendicular to the local
+        surface, mimicking some aspects of a "strength dominated" impact -
         unless doing so would create extremely strongly tilted craters, excavate
         large sheets of material, or otherwise destabilize the mass balance of
         the component.
         It pays no regard for the inefficiency of doing that!
         Created DEJH Dec 2013
-        '''     
+        '''
         #Load in the data, for speed and conciseness:
         _angle_to_vertical=self._angle_to_vertical
         _surface_slope=self._surface_slope
@@ -820,10 +820,10 @@ class impactor(object):
         #pre_impact_elev = elev.copy() #####DON'T DO THIS
         all_the_footprint_nodes = numpy.empty(self.grid.number_of_node_rows*self.grid.number_of_node_columns, dtype = int) #this will store the union of footprint across all loops over the grid
         number_of_total_footprint_nodes = 0.
-        
+
         #Derive the exponent for the crater shape, shared betw simple & complex:
         crater_bowl_exp = self.get_crater_shape_exp()
-        
+
         #Derive the effective angle for impact, relative to the surface normal, beta_eff. The direction is always controlled by the impactor. Draw new impact angles if impact geomtery is impossible.
         counter = 0
         while 1:
@@ -865,11 +865,11 @@ class impactor(object):
                     break
                 else:
                     counter+=1
-        
+
         mass_bal_corrector_for_slope = self.correct_for_slope()
         mass_bal_corrector_for_angle_to_vertical = self.correct_for_angle_to_vertical()
         mass_bal_corrector_for_size = self.correct_for_crater_size()
-        
+
         #apply correction to beta to suppress nonlinear BC problem and make ejecta patterns "look like" they actually do:
         tan_beta = tan(beta_eff*self._beta_factor)
         #if abs(tan_beta) > 1.:
@@ -881,7 +881,7 @@ class impactor(object):
         #        tan_beta = -1.
         tan_beta_sqd = tan_beta*tan_beta
         #print 'Impact, ejecta azimuths: ', _azimuth_of_travel, _ejecta_azimuth
-        
+
         ###Here's the oh-so-ugly ad-hoc fix to address the mass balance problems
         #We're calculating the approx excavated volume directly to feed the ejecta thickness calculator...
         crater_edge_type_flag, crater_num_repeats = self.footprint_edge_type((self._xcoord,self._ycoord),4.*_radius)
@@ -912,7 +912,7 @@ class impactor(object):
             excavated_volume += numpy.sum(self.z_difference[:i])*grid.dx*grid.dx
             #excavated_volume += numpy.sum(numpy.where(self.z_difference[:i]>0.,self.z_difference[:i],0.))*grid.dx*grid.dx
         #This all assumes we're representing the surface slope accurately now. If we are, then the real radius will remain roughly as the calculated value as we shear the crater into the surface. If not, could have problems.
-                
+
         unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID(excavated_volume*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical*mass_bal_corrector_for_size)
         thickness_at_rim = unique_expression_for_local_thickness(_radius)
         if thickness_at_rim<0.:
@@ -957,13 +957,13 @@ class impactor(object):
                 volume_to_remove_highs += numpy.sum(self.elevs_ground_less_new_z[:i])*grid.dx*grid.dx
             unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID((volume_to_remove_highs-volume_to_fill_inner_crater_divots)*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical*mass_bal_corrector_for_size)
             thickness_at_rim = unique_expression_for_local_thickness(_radius)
-        
+
         six.print_(volume_to_remove_highs)
         six.print_(volume_to_fill_inner_crater_divots)
         if thickness_at_rim<0.:
             thickness_at_rim = 0. #this shouldn't be a problem anymore
         self.rim_thickness = thickness_at_rim
-        
+
         #The center is transposed by rmax*tan(beta) in the direction of impact:
         #Might be an issue here - we use the rmax, so doesn't the *position* of the max thickness then also depend on rmax??
         #Should it actually just be r? -> no, use the MEAN: see Furbish para 27? For now, just use the max radius - this will be conservative, at least.
@@ -971,7 +971,7 @@ class impactor(object):
         max_radius_ejecta_on_flat = _radius * (thickness_at_rim/self._minimum_ejecta_thickness)**0.3636 #+ 0.5*grid.dx #0.5dx added as a conservative buffer, as we are going to use the closest node as the center... Now removed as we don't use this method
         #print 'thickness_at_rim: ', thickness_at_rim
         #print 'max_radius_ejecta: ', max_radius_ejecta_on_flat
-        
+
         displacement_distance = max_radius_ejecta_on_flat*tan_beta
         #need a variable for if the exacavated radius is ever outside the locus defined by the MREOF around the footprint center:
         x_impact_offset = sin(_azimuth_of_travel)*displacement_distance
@@ -983,7 +983,7 @@ class impactor(object):
         if y_impact_offset+4*self._radius > max_radius_ejecta_on_flat:
             six.print_('A low-angle crater!')
             max_radius_ejecta_on_flat = y_impact_offset+4.*self._radius
-        
+
         footprint_center_x = self._xcoord+x_impact_offset
         footprint_center_y = self._ycoord+y_impact_offset
         edge_type_flag, num_repeats = self.footprint_edge_type((footprint_center_x,footprint_center_y),max_radius_ejecta_on_flat)
@@ -992,7 +992,7 @@ class impactor(object):
         center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), edge_type_flag, num_repeats)
         total_elev_diffs = 0.
         elev_diffs_below_ground = 0.
-        
+
         for footprint_tuple,center_tuple in zip(footprint_iterator, center_offset_iterator):
             i = footprint_tuple[0]
             self.crater_footprint_max = footprint_tuple[1]
@@ -1003,24 +1003,24 @@ class impactor(object):
             grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes, out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
             #_vec_r_to_center = _vec_r_to_center[footprint_nodes]
             #_vec_theta = _vec_theta[footprint_nodes]
-        
+
             ##We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
             #_vec_new_z = numpy.empty_like(_vec_theta)
             #self._vec_new_z[:i].fill(self.closest_node_elev - 0.9*self._depth)
             self._vec_new_z[:i].fill(self.closest_node_elev + thickness_at_rim - self._depth)
-            
+
             numpy.divide(self._vec_r_to_center[:i], _radius, out=self.dummy_2[:i])
             numpy.power(self.dummy_2[:i], crater_bowl_exp, out=self.dummy_3[:i])
             numpy.multiply(self.dummy_3[:i], self._depth, out=self.dummy_2[:i])
             numpy.add(self.dummy_2[:i], self._vec_new_z[:i], out=self._vec_new_z[:i])
             #self._vec_new_z[:i] += self._depth * (self._vec_r_to_center[:i]/_radius)**crater_bowl_exp
-                        
+
             #self._vec_theta_eff[:i] = _ejecta_azimuth - self._vec_theta[:i] #This is the angle of the center-to-active-node line to the azimuth along which the ejecta is concentrated
             #_vec_sin_theta_sqd = sin(_ejecta_azimuth - self._vec_theta[:i]) ** 2.
             #_vec_cos_theta = cos(_ejecta_azimuth - self._vec_theta[:i])
-            
+
             #need to be way more careful in the way we handle filling within the cavity. Try this:
-            #inner_radius = _radius #- thickness_at_rim/tan_repose 
+            #inner_radius = _radius #- thickness_at_rim/tan_repose
             #_nodes_below_theoretical_ground_level = self._vec_r_to_center[:i]<=inner_radius
             #elevs_cavity_less_ground = self._vec_new_z[:i][_nodes_below_theoretical_ground_level]-pre_impact_elev[footprint_nodes][_nodes_below_theoretical_ground_level]
             #Assume everything in the inner radius gets filled to the crater level:
@@ -1039,9 +1039,9 @@ class impactor(object):
             #    thickness_at_rim = 0. #this shouldn't be a problem anymore
             ##self.excavated_volume = excavated_volume
             #self.rim_thickness = thickness_at_rim
-            
+
             self._vec_flat_thickness_above_surface[:i] = unique_expression_for_local_thickness(self._vec_r_to_center[:i])
-            
+
             #This material is not necessary as part of this footprint-based method, as we already forbid beta_factor>0.5
             ##REMEMBER, as tan_beta gets >1, the function describing the ejecta is only valid over ever more restricted ranges of theta!! In other words,
             numpy.subtract(_ejecta_azimuth, self._vec_theta[:i], out=self.dummy_1[:i])
@@ -1082,7 +1082,7 @@ class impactor(object):
             numpy.less(self._vec_thickness[:i], 0., self.dummy_bool[:i])
             self._vec_thickness[:i][self.dummy_bool[:i]] = 0.
             #Now, are we inside or outside the rim?
-            
+
             numpy.add(self.pre_impact_elev[footprint_nodes], self._vec_thickness[:i], out=self.dummy_1[:i]) #the ejecta thicknesses
             self.double_dummy[0,:i] = self.dummy_1[:i]
             self.double_dummy[1,:i] = self._vec_new_z[:i] #the excavation depths
@@ -1095,15 +1095,15 @@ class impactor(object):
             total_elev_diffs += numpy.sum(self.final_elev_diffs[:i])
             numpy.less(self.final_elev_diffs[:i], 0., out=self.dummy_bool[:i])
             elev_diffs_below_ground += -numpy.sum(self.final_elev_diffs[:i][self.dummy_bool[:i]])
-        
+
         six.print_(total_elev_diffs)
         six.print_(elev_diffs_below_ground)
         self.mass_balance_in_impact = total_elev_diffs / elev_diffs_below_ground #positive is mass gain, negative is mass loss. This is currently a mass fraction, given relative to volume (h*px#) excavated from below the original surface.
-                
+
         self.ejecta_azimuth = _ejecta_azimuth
         self.impactor_angle_to_surface_normal = beta_eff #note in this case this is the *effective* angle (in the direction of travel), not the actual angle to the surface.
         #print 'Vol of crater cavity: ', self._cavity_volume
-        
+
         return self.elev
 
 
@@ -1113,10 +1113,10 @@ class impactor(object):
         square_footsix.print_()  around the given center.
         Returns 2 values:
         * One of N,S,E,W,NW,NE,SW,SE, if the footprint overlaps a single edge or
-          corner; 'C' for an entirely enclosed footprint; 'I' if it intersects 
+          corner; 'C' for an entirely enclosed footprint; 'I' if it intersects
           opposite sides of the grid (i.e., bigger than the grid); 'X' if looped
           boundaries aren't set.
-        * An integer. If the first return is 'I', this is the number of "whole" 
+        * An integer. If the first return is 'I', this is the number of "whole"
           grids the footprint could enclose (minimum 1). If it's something else,
           returns 0.
         '''
@@ -1169,32 +1169,32 @@ class impactor(object):
         module.
         "Center" is a tuple, (x,y), the footprint's center.
         eff_radius is the footprint halfwidth.
-        footprint_edge_type and whole_grid_repeats are the outputs from 
+        footprint_edge_type and whole_grid_repeats are the outputs from
         footprint_edge_type() for this footprint.
         The function is a generator, designed to interface with a loop on the
         grids it outputs. The method generates intelligently:
         -If loops AREN'T active, it returns just a single array and terminates.
-        Note we can never return the IDs of the boundary nodes - we shouldn't 
+        Note we can never return the IDs of the boundary nodes - we shouldn't
         ever be operating directly on them in the meat of this module.
-        -If loops ARE active, it differentiates between big ('I') footprints 
+        -If loops ARE active, it differentiates between big ('I') footprints
         and the others-
             Edge type 'C' - the entire footprint is within the grid, and one
               array is output.
             Edge type 'N', 'E', 'S', 'W' - the footprint overlaps with one
-              edge only. Two arrays follow; the center grid nodes, then the 
+              edge only. Two arrays follow; the center grid nodes, then the
               edge nodes.
-            Edge type 'NE','SE','SW','NW' - the footprint overlaps with a 
+            Edge type 'NE','SE','SW','NW' - the footprint overlaps with a
               corner and two edges. three arrays follow; the center tile, then
               the edges (clockwise), then the corner.
 
           If it's 'I', it means the footprint is "large" compared to the
-          grid. The method then uses the integer stored in whole_grid_repeats. 
-          this works as 1: one whole grid plus edges needed. 
+          grid. The method then uses the integer stored in whole_grid_repeats.
+          this works as 1: one whole grid plus edges needed.
           2: a 3x3 grid surrounded by edges. 3: a 5x5 grid surrounded by edges.
           The intention is that these will be rare enough just using whole grids
           is not too inefficient.
-        
-        
+
+
           ______________________________________
           |                                     | 'I'
           |      * * * * * * * * * * *          |
@@ -1208,8 +1208,8 @@ class impactor(object):
           |   |_____|                           |
           |                                     |
           |_____________________________________|
-                
-                
+
+
         '''
         if array_in is not None:
             x = numpy.empty(self.grid.number_of_node_columns-2)
@@ -1253,7 +1253,7 @@ class impactor(object):
                 footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                 center_nodes = footprint_nodes_2dim.flatten()
             flag = footprint_edge_type
-        
+
             if flag != 'C' and self.looped_BCs:
                 if array_in is not None:
                     yield (len_x*len_y, array_in)
@@ -1277,7 +1277,7 @@ class impactor(object):
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         yield footprint_nodes_2dim.flatten()
-                        return                
+                        return
                 elif flag == 'S':
                     if array_in is not None:
                         len_x = right_top_nonzero_edge[0]-left_bottom_nonzero_edge[0]+1
@@ -1290,50 +1290,50 @@ class impactor(object):
                         return
                     else:
                         x = numpy.arange(right_top_nonzero_edge[0]-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         yield footprint_nodes_2dim.flatten()
-                        return 
+                        return
                 elif flag == 'E':
                     if array_in is not None:
                         len_x = right_top_nonzero_edge[0]
                         len_y = right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y_column[:len_y] = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
                         return
                     else:
                         x = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         yield footprint_nodes_2dim.flatten()
-                        return 
+                        return
                 elif flag == 'W':
                     if array_in is not None:
                         len_x = max_cols-left_bottom_nonzero_edge[0]+1
                         len_y = right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y_column[:len_y] = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
                         return
                     else:
                         x = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(right_top_nonzero_edge[1]-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         yield footprint_nodes_2dim.flatten()
-                        return 
+                        return
                 elif flag == 'NW':
                     if array_in is not None:
                         len_x = max_cols-left_bottom_nonzero_edge[0]+1
                         len_y = max_rows-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
@@ -1354,7 +1354,7 @@ class impactor(object):
                         return
                     else:
                         x = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         west = footprint_nodes_2dim.flatten()
@@ -1428,14 +1428,14 @@ class impactor(object):
                         len_x = max_cols-left_bottom_nonzero_edge[0]+1
                         len_y = max_rows-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
                         len_x = right_top_nonzero_edge[0]
                         len_y = max_rows-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
@@ -1448,13 +1448,13 @@ class impactor(object):
                         east = footprint_nodes_2dim.flatten()
                         yield east
                         x = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         south = footprint_nodes_2dim.flatten()
                         yield south
                         x = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         corner = footprint_nodes_2dim.flatten()
@@ -1465,7 +1465,7 @@ class impactor(object):
                         len_x = right_top_nonzero_edge[0]
                         len_y = max_rows-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
@@ -1479,14 +1479,14 @@ class impactor(object):
                         len_x = max_cols-left_bottom_nonzero_edge[0]+1
                         len_y = max_rows-left_bottom_nonzero_edge[1]+1
                         x[:len_x] = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1] 
+                        y_column[:len_y] = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1).reshape((len_y,1)) + left_bottom_nonzero_edge[1]
                         self.twod_node_store[:len_y,:len_x] = x[:len_x] + y_column[:len_y]*self.grid.number_of_node_columns
                         array_in[:((len_x)*(len_y))] = self.twod_node_store[:len_y,:len_x].flatten()
                         yield (len_x*len_y, array_in)
                         return
                     else:
                         x = numpy.arange(right_top_nonzero_edge[0]) + 1
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         south = footprint_nodes_2dim.flatten()
@@ -1498,7 +1498,7 @@ class impactor(object):
                         west = footprint_nodes_2dim.flatten()
                         yield west
                         x = numpy.arange(max_cols-left_bottom_nonzero_edge[0]+1) + left_bottom_nonzero_edge[0]
-                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1] 
+                        y = numpy.arange(max_rows-left_bottom_nonzero_edge[1]+1) + left_bottom_nonzero_edge[1]
                         y_column = y.reshape((y.shape[0],1))
                         footprint_nodes_2dim = x + y_column*self.grid.number_of_node_columns
                         corner = footprint_nodes_2dim.flatten()
@@ -1527,14 +1527,14 @@ class impactor(object):
         This helper method takes the output from the function self.footprint_
         edge_type() and returns a list of center tuples paired with the arrays
         in that output so that iterating on those arrays is easier.
-        If the output flag is 'I' (a big footprint), it instead returns a 
+        If the output flag is 'I' (a big footprint), it instead returns a
         number_of_tiles long list (e.g., 9, 25, 49...) of the relevant
         offsets, in effective ID order (i.e., from bottom left, working across
         line-by-line), as (x, y) tuples.
-        
+
         It needs to be supplied with the second output from self.create_square
         _footprint() also.
-        
+
         This method is a generator.
         '''
         grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
@@ -1594,21 +1594,21 @@ class impactor(object):
         slope and mass_balance to correct the mass balance in the impact back
         towards zero.
         The calibration is performed only for vertical impacts. A second,
-        subsequent calibration is needed to correct for impact angle losses (a 
+        subsequent calibration is needed to correct for impact angle losses (a
         different geometrical effect).
-        It returns 1/(mass_bal+1), which is the multiplier to use on 
+        It returns 1/(mass_bal+1), which is the multiplier to use on
         '''
         coeffs = numpy.array([  1.90725634e+03,  -2.22353553e+03,   9.94701549e+02,
                                -2.04517399e+02,   2.04931537e+01,  -5.84367364e-01,
-                               -3.53244682e-01])       
+                               -3.53244682e-01])
         powers = numpy.array([6.,5.,4.,3.,2.,1.,0.])
         synthetic_mass_balance = coeffs*self._surface_slope**powers
         return 1./(numpy.sum(synthetic_mass_balance) + 1.)
         #return 1.
-        
-        
+
+
     def correct_for_angle_to_vertical(self):
-        
+
         coeffs = numpy.array([ -1.52913024e-11,   3.86656244e-09,  -3.81596690e-07,
                                 1.76792349e-05,  -4.04787246e-04,   3.04029462e-03,
                                 4.28318928e-02])
@@ -1631,15 +1631,15 @@ class impactor(object):
         synthetic_mass_balance = coeffs*self._radius**powers
         return 1./(numpy.sum(synthetic_mass_balance) + 1.)
         #return 1.
-            
-                    
+
+
     #@profile
     def excavate_a_crater_noangle(self, grid):
         '''
         This method executes the most of the other methods of this crater
         class, and makes the geomorphic changes to a mesh associated with a
         single bolide impact with randomized properties. It receives and works
-        on the data fields attached to the model grid. 
+        on the data fields attached to the model grid.
         This version calls the _no_angle() method above, and thus produces
         always radially symmetric distributions.
         ***This is one of the primary interface method of this class.***
@@ -1670,13 +1670,13 @@ class impactor(object):
             self.impact_property_dict = {'x': -1., 'y': -1., 'r': -1., 'volume': -1., 'surface_slope': -1., 'normal_angle': -1., 'impact_az': -1., 'ejecta_az': -1., 'mass_balance': -1., 'redug_crater': -1}
         return self.grid
 
-        
+
     def excavate_a_crater_furbish(self, grid, single_process=False):
         '''
         This method executes the most of the other methods of this crater
         class, and makes the geomorphic changes to a mesh associated with a
         single bolide impact with randomized properties. It receives and works
-        on the data fields attached to the model grid. 
+        on the data fields attached to the model grid.
         This version implements the full, angle dependent versions of the
         methods, following Furbish et al., 2007.
         ***This is one of the primary interface method of this class.***
@@ -1695,7 +1695,7 @@ class impactor(object):
             self.pre_impact_elev = self.elev.copy()
         #print 'Surface slope: ', self._surface_slope
         #print 'Dip dir: ', self._surface_dip_direction
-        
+
         if self._radius !=1e-6:
             if numpy.isnan(self._surface_slope):
                 six.print_('Surface slope is not defined for this crater! Is it too big? Crater will not be drawn.')
@@ -1724,7 +1724,7 @@ class impactor(object):
         #else:
         #    self.impact_property_dict = {'x': -1., 'y': -1., 'r': -1., 'volume': -1., 'surface_slope': -1., 'normal_angle': -1., 'impact_az': -1., 'ejecta_az': -1., 'mass_balance': -1., 'redug_crater': -1}
         return self.grid
-        
+
     def crawl_roughness(self, window_dimension, accelerate=True):
         '''
         Takes a dimension, D, then passes a DxD window over the elevation grid.
@@ -1754,13 +1754,13 @@ class impactor(object):
         reliefs = numpy.array(reliefs)
         mean_relief = numpy.mean(reliefs)
         stderr_relief = numpy.std(reliefs)/numpy.sqrt(len(reliefs))
-        
+
         return mean_relief, stderr_relief
-        
-        
+
+
     def calculate_scale_roughness_dependence(self, elevations, min_window_size=2, max_window_size=100, step=5):
         self.elev = elevations
-        #create the 2D grid        
+        #create the 2D grid
         self.elev_r = self.grid.node_vector_to_raster(elevations)
         #max_window_size = min([self.grid.shape[0], self.grid.shape[1]])
         assert max_window_size < min([self.grid.shape[0], self.grid.shape[1]])
@@ -1773,17 +1773,17 @@ class impactor(object):
             mean_relief, stderr_relief = self.crawl_roughness(i)
             means.append(mean_relief)
             stderrs.append(stderr_relief)
-            
+
         return window_sizes, numpy.array(means), numpy.array(stderrs)
-    
-    
+
+
     def calculate_smoothed_ffts(self, elevations, smoothing_window=10000):
         '''
         Takes the elevations on the grid, and returns the real part of the fast
         Fourier transform of those elevations, smoothed at the supplied scale.
         Smoothing is applied on a log scale, but the returned values are both in
         their natural forms (i.e., not logged).
-        
+
         Returns the frequency domain values, and the fft real part at each of
         those frequencies.
         '''
@@ -1796,56 +1796,56 @@ class impactor(object):
         fftreal_nonan = fftreal[numpy.logical_not(numpy.isnan(fftreal))]
         fftreal_series = pd.Series(fftreal_nonan)
         fftreal_smoothed = pd.rolling_mean(fftreal_series, smoothing_window)
-        
+
         return fftfreq_nonan, numpy.exp(fftreal_smoothed)
-        
+
 #differences = []
 #for i in xrange(len(scale)):
 #    difference = []
 #    for j in xrange(len(means)-1):
 #        difference.append(means[j+1][i]-means[j][i])
 #    differences.append(difference)
-                
-    
+
+
     @property
     def crater_radius(self):
         return self._radius
-        
+
     @property
     def impact_xy_location(self):
         return (self._xcoord, self._ycoord)
-    
+
     @property
     def surface_slope_beneath_crater(self):
         return self._surface_slope
-        
+
     @property
     def surface_dip_direction_beneath_crater(self):
         self._surface_dip_direction
-        
+
     @property
     def impactor_travel_azimuth(self):
         return self._azimuth_of_travel
-    
+
     @property
     def impact_angle_to_normal(self):
         return self.impactor_angle_to_surface_normal
-    
+
     @property
     def cavity_volume(self):
         return self._cavity_volume
-        
+
     @property
     def ejecta_direction_azimuth(self):
         return self.ejecta_azimuth
-    
+
     @property
     def mass_balance(self):
         '''
         Mass balance in the impact. Negative means mass loss in the impact.
         '''
         return self.mass_balance_in_impact
-    
+
     @property
     def slope_insensitive(self):
         return self.cheater_flag

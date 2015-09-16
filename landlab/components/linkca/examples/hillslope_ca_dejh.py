@@ -6,7 +6,7 @@ hillslope_ca.py
 Example of a pair-based cellular automaton model, which simulates the evolution
 of a hillslope by disturbance-driven soil creep.
 This version of the code incorporates all three of rock, regolith, and air.
-To conduct an experiment just with regolith, no rock, set 
+To conduct an experiment just with regolith, no rock, set
 node_state_grid[lower_half] to 3, not 4.
 
 GT, August 2014
@@ -26,26 +26,26 @@ def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for a weathering model.
-    
+
     The states and transitions are as follows (note: X-X means "horizontal"
     pair, X/X means "vertical" pair with first item beneath second):
-    
+
     Node states
     -----------
     0 air
     1 moving left
     2 moving right
     3 immobile
-        
+
     Pair state      Transition to       Process     Rate
     ----------      -------------       -------     ----
-    0 (0-0)         
+    0 (0-0)
     1 (0-1)         5 (1-0)             leftward motion
     2 (0-2)
     3 (0-3)         5 (1-0)             left ejection
     4 (0-4)         3 (0-3)             rock to regolith rightwards (bare surface)
     5 (1-0)
-    6 (1-1)      
+    6 (1-1)
     7 (1-2)
     8 (1-3)
     9 (1-4)         8 (1-3)             rock to regolith rightwards (covered, mobile surface)
@@ -64,14 +64,14 @@ def setup_transition_list():
     22 (4-2)        17 (3-2)            rock to regolith leftwards (covered, mobile surface)
     23 (4-3)        18 (3-3)            rock to regolith leftwards (covered surface)
     24 (4-4)
-    25 (0/0)      
+    25 (0/0)
     26 (0/1)        30 (1/0)            downward motion
-    27 (0/2)        35 (2/0)            downward motion         
+    27 (0/2)        35 (2/0)            downward motion
     28 (0/3)        30 (1/0)            downward ejection, left
                     35 (2/0)            downward ejection, right
     29 (0/4)        28 (0/3)            rock to regolith upwards (bare surface)
     30 (1/0)        26 (0/1)            upward motion
-    31 (1/1)          
+    31 (1/1)
     32 (1/2)
     33 (1/3)
     34 (1/4)        33 (1/3)            rock to regolith upwards (covered, mobile surface)
@@ -91,10 +91,10 @@ def setup_transition_list():
     47 (4/2)        42 (3/2)            rock to regolith downwards (covered, mobile surface)
     48 (4/3)        43 (3/3)            rock to regolith downwards (covered surface)
     49 (4/4)
-    
+
     """
     xn_list = []
-    
+
     down_fall = 10.
     hoz_motion = 5.
     up_motion = 0.5
@@ -146,12 +146,12 @@ def setup_transition_list():
         print('setup_transition_list(): list has',len(xn_list),'transitions:')
         for t in xn_list:
             print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
-        
+
     return xn_list
-    
-    
+
+
 def main():
-    
+
     # INITIALIZE
 
     # User-defined parameters
@@ -161,15 +161,15 @@ def main():
     run_duration = 5000.0
     report_interval = 5.0  # report interval, in real-time seconds
     uplift_interval = 1.
-    
+
     # Initialize real time
     current_real_time = time.time()
     next_report = current_real_time + report_interval
 
     # Create grid and set up boundaries
     mg = RasterModelGrid(nr, nc, 1.0)
-    
-    # Transition data here represent a body of fractured rock, with rock 
+
+    # Transition data here represent a body of fractured rock, with rock
     # represented by nodes with state 0, and saprolite (weathered rock)
     # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
     # can undergo a transition to 1-1, representing chemical weathering of the
@@ -182,15 +182,15 @@ def main():
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
     (lower_half,) = numpy.where(mg.node_y<nr/2)
     node_state_grid[lower_half] = 4
-    
+
     # Set the left and right boundary conditions
     node_state_grid[mg.left_edge_node_ids()] = 0
     node_state_grid[mg.right_edge_node_ids()] = 0
-    
+
     # Create the CA model
     ca = LinkCellularAutomaton(mg, ns_dict, xn_list, node_state_grid)
-    
-    # Debug output if needed    
+
+    # Debug output if needed
     if _DEBUG:
         n = ca.grid.number_of_nodes
         for r in range(ca.grid.number_of_node_rows):
@@ -200,30 +200,30 @@ def main():
             print()
 
     ca_plotter = CAPlotter(ca)
-    
+
     # RUN
     BC_type = 2
 #0: Block decay, disabled
     if BC_type==0:
         current_time = 0.0
         while current_time < run_duration:
-            
+
             # Once in a while, print out simulation and real time to let the user
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
                 print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
-            
+
             # Run the model forward in time until the next output step
-            ca.run(current_time+plot_interval, ca.node_state, 
+            ca.run(current_time+plot_interval, ca.node_state,
                 plot_each_transition=False) #, plotter=ca_plotter)
             current_time += plot_interval
-            
+
             # Plot the current grid
             ca_plotter.update_plot()
-    
-            # for debugging        
+
+            # for debugging
             if _DEBUG:
                 n = ca.grid.number_of_nodes
                 for r in range(ca.grid.number_of_node_rows):
@@ -237,70 +237,70 @@ def main():
         # set all nodes as air, except bottom row:
         ca.node_state[:] = 0
         ca.node_state[mg.bottom_edge_node_ids()[1:-1]] = 3
-        
+
         current_time = 0.0
         while current_time < run_duration:
-            
+
             # Once in a while, print out simulation and real time to let the user
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
                 print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
-            
+
             #make the uplift
             state_raster = mg.node_vector_to_raster(ca.node_state)
             for i in range(state_raster.shape[0])[::-1][:-2]:
                 state_raster[i,20:-20] = state_raster[i-1,20:-20]
             state_raster[:2,20:-20] = 3
             ca.update_component_data(state_raster.ravel(), (numpy.arange(mg.number_of_nodes).reshape(mg.shape))[1,20:-20], (0,1))
-            
+
             # Run the model forward in time until the next output step
-            ca.run(current_time+uplift_interval, ca.node_state, 
+            ca.run(current_time+uplift_interval, ca.node_state,
                 plot_each_transition=False) #, plotter=ca_plotter)
             current_time += uplift_interval
-            
+
             # Plot the current grid
             ca_plotter.update_plot()
-        
+
     elif BC_type==2:
         #2: BC condition lowering
         #set all blocks as solid, except the top 3 rows:
         ca.node_state[:] = 3
         ca.node_state[-3*mg.shape[1]:] = 0
-        
+
         current_time = 0.0
         i = 0
         while current_time < run_duration:
-            
+
             # Once in a while, print out simulation and real time to let the user
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
                 print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
                 next_report = current_real_time + report_interval
-            
+
             #drop the baselevel
             ca.node_state[mg.left_edge_node_ids()[-(i+2):]] = 0
             ca.node_state[mg.right_edge_node_ids()[-(i+2):]] = 0
             ca.assign_link_states_from_node_types()
             ca.push_transitions_to_event_queue()
-            
+
             # Run the model forward in time until the next output step
-            ca.run(current_time+uplift_interval, ca.node_state, 
+            ca.run(current_time+uplift_interval, ca.node_state,
                 plot_each_transition=False) #, plotter=ca_plotter)
             current_time += uplift_interval
             i += 1
-            
+
             # Plot the current grid
             ca_plotter.update_plot()
 
 
     # FINALIZE
-    
+
     # Plot
     ca_plotter.finalize()
-        
+
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,8 @@
 #! /usr/env/python
 
 """
-test_script_for_route_flow_dn.py: 
-    
+test_script_for_route_flow_dn.py:
+
 Tests and illustrates use of route_flow_dn component.
 """
 
@@ -41,11 +41,11 @@ im = pylab.imshow(ar, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
 # add contour lines with labels
 cset = pylab.contour(ar, extent=[0,numcols*dx,numrows*dx,0])
 pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
-    
+
 # add a color bar on the side
 cb = pylab.colorbar(im)
 cb.set_label('Drainage area, sq meters')
-    
+
 # add a title and axis labels
 pylab.title('DEM')
 pylab.xlabel('Distance (m)')
@@ -53,5 +53,5 @@ pylab.ylabel('Distance (m)')
 
 # Display the plot
 pylab.show()
-    
-    
+
+

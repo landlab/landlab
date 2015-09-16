@@ -35,9 +35,9 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some surface load stresses in a field to test 
+#make some surface load stresses in a field to test
 mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
-    
+
 #instantiate:
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
 fsp = Fsc(mg, './coupled_SP_gflex_params.txt')

@@ -30,7 +30,7 @@ class OverlandFlow(Component):
     The :class:`OverlandFlow` component contains necessary and optional
     inputs (read from a :class:`~landlab.ModelParameterDictionary` file). If
     not given, default input file and values is used.
-    
+
     - Manning's n is needed, default value of 0.01 (`MANNINGS_N`).
     - Storm duration is needed IF rainfall_duration is not passed in the
       initialization (`STORM_DURATION`).

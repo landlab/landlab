@@ -43,7 +43,7 @@ z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -59,8 +59,8 @@ for i in xrange(nt):
     mg = sp.erode(mg)
     #vid.add_frame(mg, 'topographic__elevation')
     vid.add_frame(mg, mg.hillshade(alt=15.), cmap='gray')
-    
- 
+
+
 print('Completed the simulation. Plotting...')
 
 time_off = time()

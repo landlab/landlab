@@ -209,7 +209,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
                                                   self.node_at_link_head)
-                                                       
+
         # LINKS: inlink and outlink matrices
         self._setup_inlink_and_outlink_matrices()
 
@@ -324,7 +324,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # It's also useful to have a list of interior nodes
         core_nodes = as_id_array(numpy.where(node_status==0)[0])
-        
+
         #save the arrays and update the properties
         self.node_status = node_status
         self._num_active_nodes = node_status.size
@@ -591,7 +591,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Calculate the horizontal (dx) and vertical (dy) link offsets
         link_dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
         link_dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
-        
+
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
         link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
@@ -612,11 +612,11 @@ class VoronoiDelaunayGrid(ModelGrid):
 
             # Temporarily story the fromnode for these
             fromnode_temp = self.node_at_link_tail[flip_locs]
-            
+
             # The fromnodes now become the tonodes, and vice versa
             self._node_at_link_tail[flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
-            
+
     def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
         """
         Uses a delaunay diagram drawn from the provided points to

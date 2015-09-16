@@ -37,7 +37,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
     ordered as right, top, left, and bottom.
-    
+
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
@@ -69,7 +69,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     >>> x = np.array([0., 0., 0., 0., 0., 0., 1., 1., 3., 3., 3., 3.])
 
     A decrease in quantity across a face is a negative gradient.
-    
+
     >>> calculate_gradient_across_cell_faces(grid, x)
     masked_array(data =
      [[ 1.  3.  0.  0.]
@@ -134,7 +134,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
 
     A decrease in quantity to a diagonal node is a negative gradient.
-    
+
     >>> from math import sqrt
     >>> calculate_gradient_across_cell_corners(grid, x) * sqrt(2.)
     array([[ 3.,  3.,  1.,  0.],
@@ -162,7 +162,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     standard sign convention, where a link pointing N or E and increasing in
     value is positive, a link pointing S or W and increasing in value is
     negative.
-    
+
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
@@ -194,7 +194,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
 
     A decrease in quantity across a face is a negative gradient.
-    
+
     >>> calculate_gradient_along_node_links(grid, x)
     masked_array(data =
      [[-- -- -- --]
@@ -217,7 +217,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True False]
      [ True  True  True  True]],
            fill_value = 1e+20)
-    <BLANKLINE> 
+    <BLANKLINE>
     """
     padded_node_values = np.empty(node_values.size+1,dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -235,7 +235,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     out *= 1. / grid.node_spacing
 
     return out
-    
+
 
 def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
                                                      **kwds):
@@ -243,7 +243,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     Steepest gradient to neighbor and diagonal cells.
 
     Calculate the steepest downward gradients in *node_values*, given at every
-    node in the grid, relative to the nodes centered at *cell_ids*. Note that 
+    node in the grid, relative to the nodes centered at *cell_ids*. Note that
     upward gradients are reported as positive, so this method returns negative
     numbers.
 
@@ -300,13 +300,13 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     masked_array(data = [-2.],
                  mask = False,
            fill_value = 1e+20)
-    <BLANKLINE> 
+    <BLANKLINE>
     >>> calculate_steepest_descent_across_adjacent_cells(rmg, values_at_nodes,
     ...     method='d8') * sqrt(2.)
     masked_array(data = [-4.],
                  mask = False,
            fill_value = 1e+20)
-    <BLANKLINE> 
+    <BLANKLINE>
 
     With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
 
@@ -522,7 +522,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
         IDs of links
     cell_ids : array_like, optional
         IDs of cells for which to get links
-        
+
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
@@ -651,7 +651,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     Same as calculate_flux_divergence_at_core_cells, but works with and
     returns a list of net unit fluxes that corresponds to all nodes, rather
     than just core nodes.
-    
+
     Parameters
     ----------
     grid : RasterModelGrid
@@ -661,7 +661,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     out : ndarray, optional
         Alternative output array in which to place the result.  Must
         be of the same shape and buffer length as the expected output.
-        
+
     See Also
     --------
     calculate_flux_divergence_at_active_cells
@@ -669,8 +669,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     Notes
     -----
     Note that we DO compute net unit fluxes at boundary nodes (even though
-    these don't have active cells associated with them, and often don't have 
-    cells of any kind, because they are on the perimeter). It's up to the 
+    these don't have active cells associated with them, and often don't have
+    cells of any kind, because they are on the perimeter). It's up to the
     user to decide what to do with these boundary values.
 
     Example
@@ -694,31 +694,31 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> rmg.calculate_flux_divergence_at_nodes(flux)
     array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
            -4.,  1.,  0., -1.,  0.,  1.,  0.])
-        
+
     If calculate_gradients_at_nodes is called inside a loop, you can
     improve speed by creating an array outside the loop. For example, do
     this once, before the loop:
-        
+
     >>> df = rmg.zeros(centering='node') # outside loop
     >>> rmg.number_of_nodes
     20
-        
+
     Then do this inside the loop so that the function will not have to create
     the df array but instead puts values into the *df* array.
-        
+
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
     """
     assert (len(active_link_flux) == grid.number_of_active_links), \
            "incorrect length of active_link_flux array"
-        
+
     # If needed, create net_unit_flux array
     if out is None:
         out = grid.empty(centering='node')
     out.fill(0.)
     net_unit_flux = out
-        
+
     assert(len(net_unit_flux) == grid.number_of_nodes)
-    
+
     flux = np.zeros(grid.number_of_links + 1)
     flux[grid.active_links] = active_link_flux * grid.dx
 
@@ -738,24 +738,24 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
 
     .. note:: Deprecated since version 0.1.
         Use :func:`calculate_steepest_descent_across_adjacent_cells` instead
-    
-    This method calculates the gradients in u across all 4 faces of the 
-    cell with ID cell_id, and across the four diagonals. It then returns 
-    the steepest (most negative) of these values, followed by its dip 
-    direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes 
+
+    This method calculates the gradients in u across all 4 faces of the
+    cell with ID cell_id, and across the four diagonals. It then returns
+    the steepest (most negative) of these values, followed by its dip
+    direction (e.g.: 0.12, 225). i.e., this is a D8 algorithm. Slopes
     downward from the cell are reported as positive.
-        
-    This code is actually calculating slopes, not gradients.  
+
+    This code is actually calculating slopes, not gradients.
     The max gradient is the most negative, but the max slope is the most
-    positive.  So, this was updated to return the max value, not the 
+    positive.  So, this was updated to return the max value, not the
     min.
-        
-    GT: Might be possible to speed this up using inlink_matrix and 
+
+    GT: Might be possible to speed this up using inlink_matrix and
     outlink_matrix.
     """
     #We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = grid.get_neighbor_list(cell_id)
-    neighbor_cells.sort()        
+    neighbor_cells.sort()
     diagonal_cells = []
     if neighbor_cells[0]!=-1:
         diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
@@ -771,14 +771,14 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
             slopes.append(single_slope)
         else:
             six.print_('NaNs present in the grid!')
-            
+
     for a in diagonal_cells:
         single_slope = (u[cell_id] - u[a])/(diagonal_dx)
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
             six.print_('NaNs present in the grid!')
-    #ng thinks that the maximum slope should be found here, not the 
+    #ng thinks that the maximum slope should be found here, not the
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
@@ -791,10 +791,10 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
         six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 8
-    
+
     # North = Zero Radians  = Clockwise Positive
-    angles = [180., 270., 90., 0., 225., 135., 315., 45., np.nan] #This is inefficient 
-    
+    angles = [180., 270., 90., 0., 225., 135., 315., 45., np.nan] #This is inefficient
+
     #ng commented out old code
     #return min_slope, angles[index_min]
     return max_slope, angles[index_max]
@@ -806,18 +806,18 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     .. note:: Deprecated since version 0.1.
         Use :func:`calculate_steepest_descent_across_cell_faces` instead
 
-    This method calculates the gradients in u across all 4 faces of the 
-    cell with ID cell_id. It then returns 
-    the steepest (most negative) of these values, followed by its dip 
-    direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes 
+    This method calculates the gradients in u across all 4 faces of the
+    cell with ID cell_id. It then returns
+    the steepest (most negative) of these values, followed by its dip
+    direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes
     downward from the cell are reported as positive.
-    
+
     Note that this is exactly the same as calculate_max_gradient_across_node
     except that this is d4, and the other is d8.
-    
-    This code is actually calculating slopes, not gradients.  
+
+    This code is actually calculating slopes, not gradients.
     The max gradient is the most negative, but the max slope is the most
-    positive.  So, this was updated to return the max value, not the 
+    positive.  So, this was updated to return the max value, not the
     min.
     """
     node_id = self.node_at_cell[cell_id]
@@ -846,8 +846,8 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
         #else:
         #    print 'NaNs present in the grid!'
         slopes.append(single_slope)
-            
-    #ng thinks that the maximum slope should be found here, not the 
+
+    #ng thinks that the maximum slope should be found here, not the
     #minimum slope, old code commented out.  New code below it.
     #if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
@@ -861,12 +861,12 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
         six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 4
-        
+
     angles = [180., 270., 90., 0., np.nan] #This is inefficient
-    
+
     #ng commented out old code
     #return min_slope, angles[index_min]
-    return max_slope, angles[index_max] 
+    return max_slope, angles[index_max]
 
 
 def calculate_slope_aspect_BFP(xs, ys, zs):
@@ -874,39 +874,39 @@ def calculate_slope_aspect_BFP(xs, ys, zs):
     .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
 
     Fits a plane to the given N points with given *xs*, *ys*, and *zs* values
-    using single value decomposition. 
-   
-    Returns a tuple of (*slope*, *aspect*) based on the normal vector to the 
-    best fit plane. 
-   
+    using single value decomposition.
+
+    Returns a tuple of (*slope*, *aspect*) based on the normal vector to the
+    best fit plane.
+
     .. note::
         This function does not check if the points fall on a line, rather
         than a plane.
     """
     if not (len(xs) == len(ys) == len(ys)):
         raise ValueError('array must be the same length')
-   
+
     # step 1: subtract the centroid from the points
     x0 = np.mean(xs)
     y0 = np.mean(ys)
     z0 = np.mean(zs)
-   
+
     x = xs - x0
     y = ys - y0
     z = zs - z0
-   
+
     # step 2: create a 3XN matrix of the points for SVD
     # in python, the unit normal to the best fit plane is
     # given by the third column of the U matrix.
     mat = np.vstack((x, y, z))
     U, _, V = np.linalg.svd(mat)
     normal = U[:, 2]
-      
-    # step 3: calculate the aspect   
+
+    # step 3: calculate the aspect
     asp = 90.0 - np.degrees(np.arctan2(normal[1], normal[0]))
     asp = asp % 360.0
 
-    # step 4: calculate the slope   
+    # step 4: calculate the slope
     slp = 90.0 - np.degrees(np.arcsin(normal[2]))
 
     return slp, asp
@@ -942,7 +942,7 @@ def find_nearest_node(rmg, coords, mode='raise'):
 
     Examples
     --------
-    Create a grid of 4 by 5 nodes with unit spacing. 
+    Create a grid of 4 by 5 nodes with unit spacing.
 
     >>> import landlab
     >>> from landlab.grid.raster_funcs import find_nearest_node

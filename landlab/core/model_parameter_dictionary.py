@@ -169,9 +169,9 @@ class ModelParameterDictionary(dict):
     ... 1.2
     ... BOOL_VAL:
     ... true
-    ... INT_ARRAY: 
+    ... INT_ARRAY:
     ... 1,2,3
-    ... DBL_ARRAY: 
+    ... DBL_ARRAY:
     ... 1.,2.,3.
     ... STR_VAL:
     ... landlab is awesome!
@@ -280,7 +280,7 @@ class ModelParameterDictionary(dict):
 
     def _read_from_file_like(self, param_file):
         """
-        Read parameters from the file-like object, *param_file*. In fact, 
+        Read parameters from the file-like object, *param_file*. In fact,
         *param_file* really only needs to be an iterable of strings.
         """
         stripped_line_list = self._get_stripped_lines(param_file)
@@ -312,7 +312,7 @@ class ModelParameterDictionary(dict):
         Read a value from a string and try to guess its type. If the line
         contains any commas, try to convert it to a numpy array of ints and,
         if that doesn't work, an array of floats, otherwise it's just a
-        string. 
+        string.
 
         If there are no commas, the order of types is ``bool``, ``int``,
         ``float``, and ``str``.
@@ -348,7 +348,7 @@ class ModelParameterDictionary(dict):
 
     def params(self):
         """List of all the parameters names in the parameter dictionary.
-        
+
         Returns
         -------
         list of str

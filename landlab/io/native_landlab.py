@@ -44,10 +44,10 @@ def save_grid(grid, path, clobber=False):
     """
     if os.path.exists(path) and not clobber:
         raise ValueError('file exists')
-        
+
     #test it's a grid
     assert issubclass(type(grid), ModelGrid)
-        
+
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
         ext = ext+'.grid'
@@ -59,11 +59,11 @@ def save_grid(grid, path, clobber=False):
 
 def load_grid(path):
     """Load a grid and its fields from a Landlab "native" format.
-    
+
     This method uses cPickle to load a saved grid.
     It assumes you saved using vmg.save() or save_grid, i.e., that the
     pickle file is a .grid file.
-    
+
     Caution: Pickling can be slow, and can produce very large files.
     Caution 2: Future updates to Landlab could potentially render old
     saves unloadable.
@@ -86,7 +86,7 @@ def load_grid(path):
     >>> grid_in = load_grid('testsavedgrid.grid')
     >>> os.remove('testsavedgrid.grid') #to remove traces of this test
     """
-    
+
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
         ext = ext+'.grid'

@@ -1,11 +1,11 @@
 #! /usr/env/python
 """
-oriented_raster_lca.py: simple raster Landlab cellular automaton, with 
+oriented_raster_lca.py: simple raster Landlab cellular automaton, with
 cell-pair transitions that depend on orientation (vertical or horizontal)
 
-This file defines the OrientedRasterLCA class, which is a sub-class of 
+This file defines the OrientedRasterLCA class, which is a sub-class of
 LandlabCellularAutomaton that implements a simple, oriented, raster-grid
-CA. Like its parent class, OrientedRasterLCA implements a continuous-time, 
+CA. Like its parent class, OrientedRasterLCA implements a continuous-time,
 stochastic, pair-based CA.
 
 Created GT Sep 2014
@@ -29,7 +29,7 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         """
         RasterLCA constructor: sets number of orientations to 2 and calls
         base-class constructor.
-        
+
         Parameters
         ----------
         model_grid : Landlab ModelGrid object
@@ -48,66 +48,66 @@ class OrientedRasterLCA(LandlabCellularAutomaton):
         """
         warnings.warn('use of OrientedRasterLCA is deprecated. '
                       'Use OrientedRasterCTS instead.')
-                
+
         if _DEBUG:
             six.print_('OrientedRasterLCA.__init__ here')
 
-        # Make sure caller has sent the right grid type        
+        # Make sure caller has sent the right grid type
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
                'model_grid must be a Landlab RasterModelGrid'
-               
+
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.
         self.number_of_orientations = 2
-        
+
         # Call the LandlabCellularAutomaton constructor to do the rest of
         # the initialization
-        super(OrientedRasterLCA, self).__init__(model_grid, node_state_dict, 
+        super(OrientedRasterLCA, self).__init__(model_grid, node_state_dict,
             transition_list, initial_node_states, prop_data, prop_reset_value)
-            
+
         if _DEBUG:
             six.print_('ORLCA:')
             six.print_(self.n_xn)
             six.print_(self.xn_to)
             six.print_(self.xn_rate)
-        
+
 
     def setup_array_of_orientation_codes(self):
         """
-        Creates and configures an array that contain the orientation code for 
+        Creates and configures an array that contain the orientation code for
         each active link (and corresponding cell pair).
-        
+
         Parameters
         ----------
         (none)
-        
+
         Returns
         -------
         (none)
-        
+
         Creates
         -------
         self.active_link_orientation : 1D numpy array of ints
             Array of orientation codes for each cell pair (link)
-        
+
         Notes
         -----
         This overrides the method of the same name in landlab_ca.py.
         """
         # Create array for the orientation of each active link
         self.active_link_orientation = zeros(self.grid.number_of_active_links, dtype=int)
-    
+
         # Set its value according to the different in y coordinate between each
         # link's TO and FROM nodes (the numpy "astype" method turns the
         # resulting array into integer format)
         dy = (self.grid.node_y[self.grid.node_at_link_head[self.grid.active_links]] -
               self.grid.node_y[self.grid.node_at_link_tail[self.grid.active_links]])
         self.active_link_orientation = dy.astype(int)
-        
+
         if _DEBUG:
             six.print_(self.active_link_orientation)
-            
-            
+
+
 if __name__=='__main__':
     import doctest
     doctest.testmod()

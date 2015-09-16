@@ -1,9 +1,9 @@
 #! /usr/env/python
 """
     A python flow accumulation module. It is designed to be general, and to operate across multiple grids and multiple flow direction patterns. However, at the moment, only a steepest descent (single path) routing scheme is implemented.
-    
+
     There remain some outstanding issues with the handling of boundary cells, which this component has inherited from flow_routing_D8.
-    
+
     Created DEJH, 8/2013
 """
 
@@ -31,7 +31,7 @@ class AccumFlow(object):
     def calc_flowacc(self, grid, data):
         active_cell_ids = grid.get_active_cell_node_ids()
         #Perform test to see if the flowdir data is a single vector, or multidimensional, here. Several ways possible: 1. Is the vector multidimensional?, e.g., try: data.flowdirs.shape[1] 2. set a flag in flowdir.
-        
+
         try:
             height_order_active_cells = np.argsort(data.elev[active_cell_ids])[::-1] #descending order
         except:
@@ -69,8 +69,8 @@ printf ('Test');
         for i in xrange(len(sorted_flowdirs)):
             iter_height_order = height_order_active_cells[i]
             iter_sorted_fldirs = sorted_flowdirs[i]
-            self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]                     
-                                                            
+            self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]
+
         return self.flow_accum_by_area[:-1]
 
         #int downhill_node;

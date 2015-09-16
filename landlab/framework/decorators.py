@@ -96,7 +96,7 @@ class ImplementsOrRaise(object):
 
 class Implements(object):
     """
-    Decorator to indicate if a class implements interfaces. Similar to the 
+    Decorator to indicate if a class implements interfaces. Similar to the
     ImplementsOrRaise decorator except that this decorator silently ignores
     implemention errors. If the class does implement the interface, decorate
     it with a __implements__ data mamber that is a tuple of the interfaces it

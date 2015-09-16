@@ -22,14 +22,14 @@ class VtkExtent(object):
             self._extent.append((0, 0))
 
         self._extent_str = ' '.join (['%d %d' % x for x in self._extent])
-        
+
     def __str__(self):
         return self._extent_str
 
     def __repr__(self):
         return 'VtkExtent(%s)' % self._shape
-        
-        
+
+
 class VtkOrigin(object):
     def __init__(self, origin, spacing):
         assert(len(spacing) <= 3)
@@ -44,7 +44,7 @@ class VtkOrigin(object):
             self._cell_origin.append(0.)
 
         self._origin_str = ' '.join (['%f' % x for x in self._cell_origin])
-        
+
     def __str__ (self):
         return self._origin_str
 
@@ -66,14 +66,14 @@ class VtkSpacing(object):
             self._padded_spacing.append(0.)
 
         self._spacing_str = ' '.join (['%f' % x for x in self._padded_spacing])
-        
+
     def __str__(self):
         return self._spacing_str
-    
+
     def __repr__(self):
         return 'VtkSpacing(%s)' % self._spacing
-    
-    
+
+
 #class VtkElement(object, xml.dom.minidom.Element):
 class VtkElement(xml.dom.minidom.Element):
     def __init__ (self, name, **kwargs):

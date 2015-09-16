@@ -41,7 +41,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 #instantiate the components:
 diffuse = PerronNLDiffuse(mg, input_file)
@@ -73,7 +73,7 @@ for i in xrange(nt): #nt is the number of timesteps we calculated above, i.e., l
     #y is the elevation along all the rows, but only the 50th column (more slicing!), i.e., halfway along the grid and N-S
 
     print('Completed loop ', i)
- 
+
 print('Completed the simulation. Plotting...')
 
 #Finalize and plot:
@@ -104,7 +104,7 @@ print('Running ...')
 for i in xrange(nt):
     #This line performs the actual functionality of the component:
     #***NB: the nonlinear diffuser contains an "automatic" element of uplift. If you instead use the linear diffuser, you need to add the uplift manually...
-    mg['node']['topographic__elevation'][uplifted_nodes] += uplift_per_step 
+    mg['node']['topographic__elevation'][uplifted_nodes] += uplift_per_step
     mg = lin_diffuse.diffuse(dt) #linear diffusion
 
     pylab.figure(4)

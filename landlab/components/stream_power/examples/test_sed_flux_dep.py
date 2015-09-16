@@ -53,7 +53,7 @@ mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='
 print('fixed vals in grid: ', mg.fixed_value_node_properties['values'])
 
 # Display a message
-print('Running ...') 
+print('Running ...')
 
 #instantiate the components:
 fr = FlowRouter(mg)
@@ -88,8 +88,8 @@ for i in xrange(nt):
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
     #mg.update_boundary_nodes()
     #vid.add_frame(mg, 'topographic__elevation')
-    
- 
+
+
 print('Completed the simulation. Plotting...')
 
 time_off = time()

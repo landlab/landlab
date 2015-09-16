@@ -5,7 +5,7 @@ values drawn from the Weibull distribution.
 
 This uses the default file in the generate_fire.py component. Because we are
 drawing from a stochastic, statistical distribution, the output may change
-after the component is reloaded. 
+after the component is reloaded.
 
 The default file is currently set using parameters from central Colorado,
 given by Cannon et al., (2008) and Moody and Martin (2001). This sample driver

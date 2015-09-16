@@ -14,7 +14,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     circular shell at regular intervals that get as close as possible to dr.
     The points are then arranged in a Delaunay triangulation with Voronoi
     cells.
-    
+
     Examples
     --------
     >>> from landlab import RadialModelGrid
@@ -22,7 +22,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     >>> omg.number_of_nodes
     7
     """
-    
+
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
         """Create a circular grid.
 
@@ -32,7 +32,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         circular shell at regular intervals that get as close as possible to
         *dr*.  The points are then arranged in a Delaunay triangulation with
         Voronoi cells.
-        
+
         Parameters
         ----------
         num_shells : int
@@ -77,11 +77,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         if self._DEBUG_TRACK_METHODS:
             six.print_('RadialModelGrid._initialize(' + str(num_shells) + ', '
                        + str(dr) + ')')
-        
+
         [pts, npts] = self.make_radial_points(num_shells, dr)
         super(RadialModelGrid, self)._initialize(pts[:,0], pts[:,1])
-        
-        
+
+
     def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """
         Creates and returns a set of (x,y) points placed in a series of
@@ -103,5 +103,5 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             startpt += int(n_pts_in_shell[i])
         pts[:,0] += origin_x
         pts[:,1] += origin_y
-        
+
         return pts, npts

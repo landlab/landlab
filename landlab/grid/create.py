@@ -27,11 +27,11 @@ _GRID_READERS = {
 
 def create_and_initialize_grid(input_source):
     """
-    Creates, initializes, and returns a new grid object using parameters 
+    Creates, initializes, and returns a new grid object using parameters
     specified in *input_source*. *input_source* is either a
     ModelParameterDictionary instance (or, really, just dict-like) or a
     named input file.
-    
+
     Example:
 
     >>> from six import StringIO
@@ -42,16 +42,16 @@ def create_and_initialize_grid(input_source):
     ... 4
     ... NUM_COLS:
     ... 5
-    ... GRID_SPACING: 
+    ... GRID_SPACING:
     ... 2.5
     ... ''')
     >>> from landlab import create_and_initialize_grid
     >>> mg = create_and_initialize_grid(test_file)
     >>> mg.number_of_nodes
     20
-        
-    """    
-    # Handle input source. 
+
+    """
+    # Handle input source.
     #In this code block, we do the following:
     #   - handle the case in which caller provides neither a parameter
     #     dictionary nor an input file name.
@@ -61,7 +61,7 @@ def create_and_initialize_grid(input_source):
         param_dict = input_source
     else:
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
-        
+
     # Find out what type of grid the user wants
     #
     # Dev note: could handle defaults like:
@@ -74,7 +74,7 @@ def create_and_initialize_grid(input_source):
         raise
 
     grid_type.strip().lower()   # make LC w/o leading/trailing spaces
-    
+
     # Read parameters appropriate to that type, create it, and initialize it
     try:
         grid_reader = _GRID_READERS[grid_type]
@@ -82,6 +82,6 @@ def create_and_initialize_grid(input_source):
         raise BadGridTypeError(grid_type)
     else:
         mg = grid_reader(param_dict)
-    
+
     # Return the created and initialized grid
     return mg

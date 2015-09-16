@@ -20,14 +20,14 @@ def main():
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
     #rg.set_inactive_boundaries(False, False, True, True)
-    
+
     nodata_val=-1
-    z  = nodata_val*np.ones( nnodes )    
+    z  = nodata_val*np.ones( nnodes )
     #set-up interior elevations with random numbers
     #for i in range(0, nnodes):
     #    if rg.is_interior(i):
     #        elevations[i]=random.random_sample()
-    
+
     #set-up with prescribed elevations to test drainage area calcualtion
     helper = [7,8,9,10,13,14,15,16]
     for i in xrange(0, len(helper)):
@@ -36,12 +36,12 @@ def main():
     helper = [19,20,21,22]
     for i in xrange(0, len(helper)):
         z[helper[i]]=3+uniform(-0.5,0.5)
-        
+
     z[7]=1
-    
+
     bc=WatershedBoundaryConditions()
     bc.set_bc_find_outlet(rg, z, nodata_val)
-    
+
     #instantiate variable of type RouteFlowD8 Class
     flow_router = RouteFlowD8(len(z))
     #initial flow direction
@@ -50,11 +50,11 @@ def main():
     accumulator = AccumFlow(rg)
     #initial flow accumulation
     drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
-    
+
     print("elevations ", rg.node_vector_to_raster(z))
     print("flowdirs ", rg.node_vector_to_raster(flowdirs))
     print("drain_area ", rg.node_vector_to_raster(drain_area))
-    
-    
+
+
 if __name__ == '__main__':
     main()

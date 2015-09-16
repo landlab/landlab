@@ -249,7 +249,7 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     """
 
     active_cells = grid.node_at_core_cell
-    
+
     try:
         assert_array_size_matches(values, active_cells.size,
             'number of values does not match number of active cells')

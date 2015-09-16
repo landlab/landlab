@@ -27,8 +27,8 @@ def test_id_as_array():
     assert_array_equal(
         rmg.is_boundary(np.arange(20)),
         np.array([True,  True,  True,  True,  True,
-                  True, False, False, False,  True,  
-                  True, False, False, False,  True,  
+                  True, False, False, False,  True,
+                  True, False, False, False,  True,
                   True,  True,  True,  True,  True], dtype=bool))
 
 
@@ -43,8 +43,8 @@ def test_boundary_flag():
     assert_array_equal(
         rmg.is_boundary(np.arange(20)),
         np.array([True,  True,  True,  True,  True,
-                  True, False, False, False,  True,  
-                  True, False, False, False,  True,  
+                  True, False, False, False,  True,
+                  True, False, False, False,  True,
                   True,  True,  True,  True,  True], dtype=bool))
 
     assert_array_equal(

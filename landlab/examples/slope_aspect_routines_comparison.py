@@ -29,7 +29,7 @@ slope_horn,aspect_horn = \
 slope_BFP,aspect_BFP = grid.calculate_slope_aspect_at_nodes_bestFitPlane(ids,elev)
 
 
-## node_slopes_using_patches 
+## node_slopes_using_patches
 slope_NSP = grid.node_slopes_using_patches(elevs = 'Elevation', unit ='degrees')
 
 pic = 0
