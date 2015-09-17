@@ -115,7 +115,7 @@ def _make_number_of_donors_array(r):
 
 
 def _make_delta_array(nd):
-    """
+    r"""
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
 

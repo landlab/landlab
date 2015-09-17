@@ -8,6 +8,7 @@
 """
 
 import numpy as np
+import six
 
 
 class AccumFlow(object):
