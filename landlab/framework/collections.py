@@ -266,14 +266,17 @@ class Arena(Collection):
             children.add(child)
         return children
 
-    def walk(self, root, tree=[]):
-        """
+    def walk(self, root, tree=None):
+        """Walk a connected set of components.
+
         Walk a connected set of components with the component named *root*. If
         the *tree* keyword is given, treat it as a list of components already
         in the tree and add to that list. If a component is already in the tree,
         do not iterate through that component. This function returns a list of
         component names in the order they are visited by the walk.
         """
+        if tree is None:
+            tree = []
         if root in tree:
             return tree
 
