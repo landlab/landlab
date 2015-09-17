@@ -4218,7 +4218,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='topographic__elevation'):
         r"""
         .. note::
-            
+
             THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
             elevation profile. Please check slope_aspect_routines_comparison.py
             under landlab\examples before using this.
