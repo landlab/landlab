@@ -341,7 +341,8 @@ def corners(shape):
     """
     An array of the indices of the grid corner nodes.
     """
-    return np.array([0, shape[1] - 1, shape[1] * (shape[0] - 1), shape[1] * shape[0] - 1])
+    return np.array([0, shape[1] - 1, shape[1] * (shape[0] - 1),
+                     shape[1] * shape[0] - 1])
 
 
 def bottom_edge_node_ids(shape):
@@ -467,9 +468,9 @@ def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     """
     .. deprecated:: 0.6
     Up to date, unambiguous terminology core_cell_index_at_nodes() preferred.
-    Indices of the active cells associated with the nodes of the structured grid.
-    For nodes that don't have a cell (that is, boundary nodes) set indices
-    to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
+    Indices of the active cells associated with the nodes of the structured
+    grid.  For nodes that don't have a cell (that is, boundary nodes) set
+    indices to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
     Note that all three functions [X_]cell_index_at_nodes are equivalent.
@@ -632,12 +633,13 @@ def node_status(shape, boundary_status=FIXED_VALUE_BOUNDARY):
 def active_links(shape, node_status_array=None, link_nodes=None):
     """Link IDs for active links of a structured quad grid.
 
-    Return the link IDs for links that are *active* in a structured grid of quadrilaterals. Use the
-    *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each of the
-    perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+    Return the link IDs for links that are *active* in a structured grid of
+    quadrilaterals. Use the *node_status_array* keyword to specify the status
+    for each of the grid's nodes. If not given, each of the perimeter nodes is
+    assumed to be `FIXED_VALUE_BOUNDARY`.
 
-    Use the *link_nodes* keyword to provide, as a tuple of arrays, that give the *from-node* and the *to-node*
-    for each for each link in the grid.
+    Use the *link_nodes* keyword to provide, as a tuple of arrays, that give
+    the *from-node* and the *to-node* for each for each link in the grid.
 
     Parameters
     ----------
@@ -649,23 +651,25 @@ def active_links(shape, node_status_array=None, link_nodes=None):
 
     Examples
     --------
-    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes, only links attached to the
-    interior nodes are *active*.
+    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes,
+    only links attached to the interior nodes are *active*.
 
     >>> from landlab.utils.structured_grid import active_links
     >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
 
-    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link is between the two core nodes.
+    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link
+    is between the two core nodes.
 
     >>> node_status = np.ones(3 * 4) * CLOSED_BOUNDARY
     >>> node_status[5:7] = CORE_NODE
     >>> active_links((3, 4), node_status_array=node_status)
     array([12])
 
-    You can also provide a list of all the *from_nodes* and *to_nodes* for the grid. The following describes
-    a grid with only a single link (between nodes 5 and 6).
+    You can also provide a list of all the *from_nodes* and *to_nodes* for
+    the grid. The following describes a grid with only a single link (between
+    nodes 5 and 6).
 
     >>> active_links((3, 4), link_nodes=(np.array([5]), np.array([6])))
     array([0])
@@ -1021,9 +1025,9 @@ def horizontal_active_link_ids2(shape, node_status=None):
 
     Notes
     -----
-    Same as horizontal_active_link_ids() but returns "link IDs" for active links
-    rather than "active link IDs" for active links. Designed to ultimately
-    replace the original horizontal_active_link_ids().
+    Same as horizontal_active_link_ids() but returns "link IDs" for active
+    links rather than "active link IDs" for active links. Designed to
+    ultimately replace the original horizontal_active_link_ids().
     """
 
     horiz_link_ids = np.arange(
@@ -1383,15 +1387,17 @@ def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
 def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
     """Active links entering nodes.
 
-    Return the IDs of the active links that enter each node of a grid. The shape of the returned array is
-    (2, *N*) where *N* is the number of nodes in the grid. The first row contains the link ID entering the
-    node from the bottom, and the second row the link entering the node from the left.
+    Return the IDs of the active links that enter each node of a grid. The
+    shape of the returned array is (2, *N*) where *N* is the number of nodes
+    in the grid. The first row contains the link ID entering the node from the
+    bottom, and the second row the link entering the node from the left.
 
-    Use the *return_count* keyword to, in addition to the link IDs, return the number of active links attached
-    to each grid node.
+    Use the *return_count* keyword to, in addition to the link IDs, return
+    the number of active links attached to each grid node.
 
-    Use the *node_status_array* keyword to specify the status for each of the grid's nodes. If not given, each
-    of the perimeter nodes is assumed to be `FIXED_VALUE_BOUNDARY`.
+    Use the *node_status_array* keyword to specify the status for each of
+    the grid's nodes. If not given, each of the perimeter nodes is assumed
+    to be `FIXED_VALUE_BOUNDARY`.
 
     Parameters
     ----------
@@ -1411,8 +1417,9 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
 
     Examples
     --------
-    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row list links entering nodes from the
-    bottom, and the second links entering from the left.
+    Get the active link IDs for a grid of 3 nodes by 4 nodes. The first row
+    list links entering nodes from the bottom, and the second links entering
+    from the left.
 
     >>> from landlab.utils.structured_grid import setup_active_inlink_matrix
     >>> setup_active_inlink_matrix((3, 4), return_count=False)
@@ -1772,14 +1779,17 @@ def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
 def has_boundary_neighbor(neighbors, diagonals,
                           out_of_bounds=BAD_INDEX_VALUE):
     """
-    DEJH thinks this method is broken since terminology update: it returns closed
-    neihbors, not boundary neighbors.
+    .. note::
+
+        DEJH thinks this method is broken since terminology update: it returns
+        closed neighbors, not boundary neighbors.
     """
     return (out_of_bounds in neighbors |
             out_of_bounds in diagonals)
 
 
-def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
+def has_boundary_neighbor_slow(neighbors, diagonals,
+                               out_of_bounds=BAD_INDEX_VALUE):
     # nbr_nodes=self.get_neighbor_list(id)
     # diag_nbrs=self.get_diagonal_list(id)
 
@@ -1854,7 +1864,8 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     Returns the nodes around a point on a structured grid with unit spacing
     and zero origin.
 
-    >>> from landlab.utils.structured_grid import nodes_around_points_on_unit_grid
+    >>> from landlab.utils.structured_grid import (
+    ...     nodes_around_points_on_unit_grid)
     >>> nodes_around_points_on_unit_grid((3, 3), (.1, .1))
     array([0, 3, 4, 1])
 
@@ -1923,7 +1934,8 @@ def node_id_to_interior_node_id(shape, node_ids):
     ncols = shape[1]
     interior_ID = (node_ids // ncols - 1) * \
         (ncols - 2) + (node_ids % ncols) - 1
-    if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0] - 2) * (shape[1] - 2)):
+    if np.any(interior_ID < 0) or np.any(interior_ID >=
+                                         (shape[0] - 2) * (shape[1] - 2)):
         raise IndexError("A supplied node was outside the interior grid")
     else:
         return as_id_array(interior_ID)
