@@ -289,7 +289,7 @@ def _default_axis_units(n_dims):
 
 
 def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
-    """Separates a pair of links with vector values into x and y components.
+    r"""Separate a pair of links with vector values into x and y components.
 
     The concept here is that a pair of adjacent links attached to a node are
     projections of a 'true' but unknown vector. This function finds and returns
@@ -885,7 +885,6 @@ class ModelGrid(ModelDataFields):
                [-1, -1, -1,  5, -1, -1, -1]])
 
         """
-        import numpy as np
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
                                  self.node_active_outlink_matrix))
@@ -1390,7 +1389,7 @@ class ModelGrid(ModelDataFields):
 
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux,
                                                   net_unit_flux=None):
-        """Flux divergence for core nodes.
+        r"""Flux divergence for core nodes.
 
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
@@ -2304,7 +2303,7 @@ class ModelGrid(ModelDataFields):
 
 
     def _make_link_unit_vectors(self):
-        """Makes arrays to store the unit vectors associated with each link.
+        """Make arrays to store the unit vectors associated with each link.
 
         Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
         for each link, the x and y components of the link's unit vector (that is,
@@ -2391,7 +2390,7 @@ class ModelGrid(ModelDataFields):
             self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
 
     def map_link_vector_to_nodes(self, q):
-        """Maps data defined on links to nodes.
+        r"""Map data defined on links to nodes.
 
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
@@ -2581,7 +2580,7 @@ class ModelGrid(ModelDataFields):
         return node_vec_x, node_vec_y
 
     def display_grid(self, draw_voronoi=False):
-        """Displays the grid."""
+        """Display the grid."""
         import matplotlib.pyplot as plt
 
         # Plot nodes, colored by boundary vs interior
