@@ -66,7 +66,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
                     shape, reorient_links=False):
-        """
+        r"""Set up a hexagonal grid.
+
         Sets up a hexagonal grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
@@ -169,7 +170,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._dx = dx
 
     def _setup_cell_areas_array(self):
-        """
+        r"""Create an array of surface areas of hexagonal cells.
+
         Creates and returns an array containing the surface areas of the
         hexagonal (Voronoi) cells.
 

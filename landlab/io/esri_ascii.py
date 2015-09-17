@@ -13,8 +13,8 @@ _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
     'yllcenter', 'cellsize', 'nodata_value',
 ]
-_HEADER_KEY_REGEX_PATTERN = re.compile('\s*(?P<key>[a-zA-z]\w+)')
-_HEADER_REGEX_PATTERN = re.compile('\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
+_HEADER_KEY_REGEX_PATTERN = re.compile(r'\s*(?P<key>[a-zA-z]\w+)')
+_HEADER_REGEX_PATTERN = re.compile(r'\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
 _HEADER_VALUE_TESTS = {
     'nrows': (int, lambda x: x > 0),
     'ncols': (int, lambda x: x > 0),

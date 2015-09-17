@@ -4216,11 +4216,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='topographic__elevation'):
-        """
-        THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-        elevation profile. Please check slope_aspect_routines_comparison.py
-        under landlab\examples before using this.
-        Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
+        r"""
+        .. note::
+            
+            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
+            elevation profile. Please check slope_aspect_routines_comparison.py
+            under landlab\examples before using this.
+            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
                                                         ~ SN 25Sep14
 
         Calculates the local topographic slope (i.e., the down-dip slope, and
@@ -4374,12 +4376,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
     def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
-        """
-        THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-        elevation profile. Please check slope_aspect_routines_comparison.py
-        under landlab\examples before using this.
-        Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
-                                                            ~ SN 25Sep14
+        r"""
+
+        .. note::
+
+            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
+            elevation profile. Please check slope_aspect_routines_comparison.py
+            under landlab\examples before using this.
+            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
+                                                                ~ SN 25Sep14
 
 
         Slope aspect of best-fit plane at nodes.

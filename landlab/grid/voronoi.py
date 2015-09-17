@@ -565,8 +565,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
 
     def reorient_links_upper_right(self):
-        """
-        Reorients links so that all point within the upper-right semi-circle.
+        r"""Reorient links to all point within the upper-right semi-circle.
 
         Notes
         -----
