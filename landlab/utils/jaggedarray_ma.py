@@ -43,6 +43,7 @@ import numpy as np
 
 
 class JaggedArray(object):
+
     def __init__(self, *args):
         """JaggedArray([row0, row1, ...])
         JaggedArray(values, values_per_row)

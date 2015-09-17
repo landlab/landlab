@@ -12,6 +12,7 @@ class Error(Exception):
 
 
 class BadGridTypeError(Error):
+
     def __init__(self, grid_type):
         self._type = str(grid_type)
 
@@ -52,7 +53,7 @@ def create_and_initialize_grid(input_source):
 
     """
     # Handle input source.
-    #In this code block, we do the following:
+    # In this code block, we do the following:
     #   - handle the case in which caller provides neither a parameter
     #     dictionary nor an input file name.
     #   - if we're given an input file name, create a parameter dictionary

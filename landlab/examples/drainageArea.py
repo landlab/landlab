@@ -15,6 +15,7 @@ from __future__ import print_function
 #from landlab.model_grid import RasterModelGrid
 from numpy import *
 
+
 class CalcDrainageArea(object):
     """
     This class finds the drainage area at all active nodes on a mesh.
@@ -33,7 +34,7 @@ class CalcDrainageArea(object):
         self.num_cells = num_cells
         self.initialize()
 
-        #print 'CalcDrainageArea.__init__'
+        # print 'CalcDrainageArea.__init__'
 
     def initialize(self):
         """
@@ -44,7 +45,7 @@ class CalcDrainageArea(object):
 
         self.drainarea = zeros(self.num_cells)
 
-        #print 'CalcDrainageArea.__initialize__'
+        # print 'CalcDrainageArea.__initialize__'
 
     def calc_DA(self, mg, fd):
         """
@@ -60,22 +61,23 @@ class CalcDrainageArea(object):
         Method returns: the drainage area vector
         """
 
-        #loop through each cell
+        # loop through each cell
         for i in range(0, self.num_cells):
-            #only update drainage area in interior cells
+            # only update drainage area in interior cells
             if mg.is_interior(i):
-                #add local cell area to its drainage area
-                self.drainarea[i] = self.drainarea[i]+mg.cellarea
-                prev_cell=i
-                next_cell=fd[i]
-                #move down the flow direction, adding the cell area to the
-                #drainage area of all of the downstream cells
-                #stop if two cells have flow directions pointing to each other
-                #this can happen if there is a pit, which would trigger an
-                #infinite loop.  This s not a good fix, but a temporary fix.
+                # add local cell area to its drainage area
+                self.drainarea[i] = self.drainarea[i] + mg.cellarea
+                prev_cell = i
+                next_cell = fd[i]
+                # move down the flow direction, adding the cell area to the
+                # drainage area of all of the downstream cells
+                # stop if two cells have flow directions pointing to each other
+                # this can happen if there is a pit, which would trigger an
+                # infinite loop.  This s not a good fix, but a temporary fix.
                 while (mg.is_interior(next_cell) and fd[next_cell] != prev_cell):
-                    self.drainarea[next_cell] = self.drainarea[next_cell]+mg.cellarea
-                    prev_cell=next_cell
-                    next_cell=fd[next_cell]
+                    self.drainarea[next_cell] = self.drainarea[
+                        next_cell] + mg.cellarea
+                    prev_cell = next_cell
+                    next_cell = fd[next_cell]
 
         return self.drainarea

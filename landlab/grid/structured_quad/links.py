@@ -459,7 +459,7 @@ def node_link_ids(shape):
     (in_vert, in_horiz) = _node_in_link_ids(shape)
     (out_vert, out_horiz) = _node_out_link_ids(shape)
     _node_link_ids = np.vstack((in_vert.flat, in_horiz.flat,
-                               out_vert.flat, out_horiz.flat)).T
+                                out_vert.flat, out_horiz.flat)).T
 
     offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
     np.cumsum(number_of_links_per_node(shape), out=offset[1:])
@@ -2482,6 +2482,7 @@ def right_edge_vertical_ids(shape):
 
 
 class StructuredQuadLinkGrid(LinkGrid):
+
     def __init__(self, shape):
         link_ends = (node_id_at_link_start(shape), node_id_at_link_end(shape))
         number_of_nodes = np.prod(shape)

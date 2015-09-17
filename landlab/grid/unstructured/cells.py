@@ -5,6 +5,7 @@ from ...utils.jaggedarray import JaggedArray
 
 
 class CellGrid(object):
+
     def __init__(self, vertices, vertices_per_cell, node_at_cell=None):
         """
         Parameters
@@ -52,7 +53,8 @@ class CellGrid(object):
 
         if node_at_cell:
             self._node_at_cell = np.array(node_at_cell)
-            self._cell_at_node = np.ma.masked_all(max(node_at_cell) + 1, dtype=int)
+            self._cell_at_node = np.ma.masked_all(
+                max(node_at_cell) + 1, dtype=int)
             self._cell_at_node[self._node_at_cell] = range(len(node_at_cell))
             #self._cell_id_map = dict(zip(node_at_cell, range(len(node_at_cell))))
 
@@ -97,4 +99,3 @@ class CellGrid(object):
             return self.vertices_at_cell(self._cell_id_map[cell_id])
         except AttributeError:
             return self.vertices_at_cell(cell_id)
-

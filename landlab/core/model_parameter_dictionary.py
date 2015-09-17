@@ -209,6 +209,7 @@ class ModelParameterDictionary(dict):
     >>> params['DBL_ARRAY']
     array([ 1.,  2.,  3.])
     """
+
     def __init__(self, from_file=None, auto_type=False):
         super(ModelParameterDictionary, self).__init__()
 
@@ -454,7 +455,6 @@ class ModelParameterDictionary(dict):
             raise ParameterValueError(key, value, ptype)
         else:
             return typed_value
-
 
     def read_int(self, key, *args):
         """read_int(key, [default])

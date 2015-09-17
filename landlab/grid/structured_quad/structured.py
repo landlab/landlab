@@ -33,6 +33,7 @@ from . import nodes
 
 
 class StructuredQuadGrid(BaseGrid):
+
     def __init__(self, node_coord, shape=None, axis_name=None, axis_units=None,
                  links=True, cells=True, node_status=None):
         """
@@ -59,7 +60,7 @@ class StructuredQuadGrid(BaseGrid):
             self._status = node_status
 
         if links:
-            #links = (node_id_at_link_start(self.shape),
+            # links = (node_id_at_link_start(self.shape),
             #         node_id_at_link_end(self.shape))
             link_grid = StructuredQuadLinkGrid(self.shape)
         if cells:
@@ -92,10 +93,12 @@ class StructuredQuadGrid(BaseGrid):
         self._in_link_id_at_nodes = quad_links.node_in_link_ids(self.shape)
         self._out_link_id_at_nodes = quad_links.node_out_link_ids(self.shape)
 
-        self._node_id_at_link_start = quad_links.node_id_at_link_start(self.shape)
+        self._node_id_at_link_start = quad_links.node_id_at_link_start(
+            self.shape)
         self._node_id_at_link_end = quad_links.node_id_at_link_end(self.shape)
 
-        self._active_link_ids = quad_links.active_link_ids(self.shape, self._status)
+        self._active_link_ids = quad_links.active_link_ids(
+            self.shape, self._status)
 
     @property
     def shape(self):
@@ -104,7 +107,7 @@ class StructuredQuadGrid(BaseGrid):
         return self._shape
 
     #@property
-    #def number_of_core_nodes(self):
+    # def number_of_core_nodes(self):
     #    """Number of core nodes.
     #    """
     #    return self._num_core_nodes

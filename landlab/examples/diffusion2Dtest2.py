@@ -34,7 +34,7 @@ def set_flux_coefficients(mg, dx):
     #self.K = Kmax * ((yf-self.dx/2) / (self.dx*(self.nr-2)))**Kexp
 
     # increases to left
-    #self.K = Kmax * ((self.dx*(self.nc - 2) - (xf-self.dx/2)) /
+    # self.K = Kmax * ((self.dx*(self.nc - 2) - (xf-self.dx/2)) /
     #                 (self.dx*(self.nc-2)))**Kexp
 
     # increases to right
@@ -42,8 +42,8 @@ def set_flux_coefficients(mg, dx):
 
     # Exponential decline from a point at center top
     decay_scale = 0.5
-    xf = xf - dx/2.0
-    yf = yf - dx/2.0
+    xf = xf - dx / 2.0
+    yf = yf - dx / 2.0
     x0 = 0.5 * (mg.number_of_node_columns - 2) * dx
     y0 = (mg.number_of_node_columns - 2) * dx
     dist = np.sqrt((xf - x0) ** 2.0 + (yf - y0) ** 2.0)
@@ -66,7 +66,7 @@ def main():
     nc = 12     # number of columns
     dx = 0.5   # cell spacing
     s = 0.001  # source
-    #k0 = 0.01   # flux coefficient
+    # k0 = 0.01   # flux coefficient
 
     # Setup
     mg = RasterModelGrid(nr, nc, dx)
@@ -78,7 +78,7 @@ def main():
     fy = mg.get_face_y_coords()
     #k = k0 * (fy / max(fy))
     #k = k0 * (fx / max(fx))
-    #print 'k=',k
+    # print 'k=',k
 
     opt_plot = True
 
@@ -91,8 +91,8 @@ def main():
     # Radially symmetric, exponential decay
     k = set_flux_coefficients(mg, dx)
 
-    dt = 0.25*dx**2.0/max(k)   # time step
-    #print 'dt=',dt
+    dt = 0.25 * dx**2.0 / max(k)   # time step
+    # print 'dt=',dt
     run_time = 100.0
     nt = int(round(run_time / dt))    # number of iterations
 
@@ -101,28 +101,28 @@ def main():
     # Boundaries
     mg.set_noflux_boundaries(True, True, False, True)
 
-    #for i in range(0, len(u)):
+    # for i in range(0, len(u)):
     #    u[i] = mg.x(i)
-    #print 'u=',u
+    # print 'u=',u
 
     # Process
 
     for i in range(0, nt):
         print(i)
         g = mg.calculate_face_gradients(u)
-        q = -k*g
-        #print 'g=',g
-        #print 'q=',q
+        q = -k * g
+        # print 'g=',g
+        # print 'q=',q
         dqds = mg.calculate_flux_divergences(q)
-        #print 'dqds=',dqds
+        # print 'dqds=',dqds
         for c in interior_cells:
             dudt[c] = s - dqds[c]
         u = u + dudt * dt
         u = mg.update_noflux_boundaries(u)
-        #print 'new u:',u
+        # print 'new u:',u
 
         #plot(x, u)
-        #draw()
+        # draw()
 
     # Finalize
     print('Max u = ', max(u))

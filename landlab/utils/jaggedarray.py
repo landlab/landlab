@@ -42,6 +42,7 @@ from six.moves import range
 
 
 class JaggedArray(object):
+
     def __init__(self, *args):
         """JaggedArray([row0, row1, ...])
         JaggedArray(values, values_per_row)
@@ -69,7 +70,8 @@ class JaggedArray(object):
 
         self._values = values
         self._number_of_rows = len(values_per_row)
-        self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
+        self._offsets = JaggedArray._offsets_from_values_per_row(
+            values_per_row)
         self._offsets.flags['WRITEABLE'] = False
 
     @property

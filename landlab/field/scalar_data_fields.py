@@ -13,6 +13,7 @@ class Error(Exception):
 
 class FieldError(Error, KeyError):
     """Raise this error for a missing field name."""
+
     def __init__(self, field):
         self._field = field
 
@@ -43,6 +44,7 @@ class ScalarDataFields(dict):
     landlab.field.ModelDataFields.ones : Hold collections of
         `ScalarDataFields`.
     """
+
     def __init__(self, size):
         self._size = size
 
@@ -359,7 +361,8 @@ class ScalarDataFields(dict):
 
     def __setitem__(self, name, value_array):
         if value_array.size != self.size:
-            raise ValueError('total size of the new array must be the same as the field')
+            raise ValueError(
+                'total size of the new array must be the same as the field')
 
         if name not in self:
             self.set_units(name, None)

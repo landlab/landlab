@@ -41,4 +41,3 @@ def test_just_x():
     rmg = RasterModelGrid(4, 5, dx=2.0)
     assert_equal(rfuncs.is_coord_on_grid(rmg, (4., 1.e6), axes=(1, )), True)
     assert_equal(rfuncs.is_coord_on_grid(rmg, (-1., 1.), axes=(1, )), False)
-

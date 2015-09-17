@@ -130,40 +130,45 @@ class HexModelGrid(VoronoiDelaunayGrid):
         and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_('HexModelGrid._initialize('+str(base_num_rows) + ', ' +
+            six.print_('HexModelGrid._initialize(' + str(base_num_rows) + ', ' +
                        str(base_num_cols) + ', ' + str(dx) + ')')
 
         # Make sure the parameter *orientation* is correct
-        assert (orientation[0].lower()=='h' or orientation[0].lower()=='v'), \
-               'orientation must be either "horizontal" (default) or "vertical"'
+        assert (orientation[0].lower() == 'h' or orientation[0].lower() == 'v'), \
+            'orientation must be either "horizontal" (default) or "vertical"'
 
         # Make sure the parameter *shape* is correct
-        assert (shape[0].lower()=='h' or shape[0].lower()=='r'), \
-               'shape must be either "hex" (default) or "rect"'
+        assert (shape[0].lower() == 'h' or shape[0].lower() == 'r'), \
+            'shape must be either "hex" (default) or "rect"'
 
         # Create a set of hexagonally arranged points. These will be our nodes.
-        if orientation=='horizontal' and shape=='hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(base_num_rows, base_num_cols, dx)
+        if orientation == 'horizontal' and shape == 'hex':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(
+                base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
-        elif orientation=='horizontal' and shape=='rect':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(base_num_rows, base_num_cols, dx)
+        elif orientation == 'horizontal' and shape == 'rect':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(
+                base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
-        elif orientation=='vertical' and shape=='hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(base_num_rows, base_num_cols, dx)
+        elif orientation == 'vertical' and shape == 'hex':
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(
+                base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._ncols = base_num_cols
         else:
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(base_num_rows, base_num_cols, dx)
+            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(
+                base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
-        super(HexModelGrid, self)._initialize(pts[:,0], pts[:,1], reorient_links)
+        super(HexModelGrid, self)._initialize(
+            pts[:, 0], pts[:, 1], reorient_links)
 
         # Remember grid spacing
         self._dx = dx
@@ -180,9 +185,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
             A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
         """
-        self._cell_areas = 0.8660254*self._dx**2 + numpy.zeros(self.number_of_cells)
+        self._cell_areas = 0.8660254 * self._dx**2 + \
+            numpy.zeros(self.number_of_cells)
         return self._cell_areas
-
 
     @staticmethod
     def make_hex_points_horizontal_hex(num_rows, base_num_cols, dxh):
@@ -218,7 +223,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         if numpy.mod(num_rows, 2) == 0:  # even number of rows
             npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
         else:  # odd number of rows
-            npts = num_rows * base_num_cols + ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
+            npts = num_rows * base_num_cols + \
+                ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
         pts = numpy.zeros((npts, 2))
         middle_row = num_rows // 2
         extra_cols = 0
@@ -226,8 +232,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for r in range(num_rows):
             for c in range(base_num_cols + extra_cols):
-                pts[i,0] = c * dxh + xshift
-                pts[i,1] = r * dxv
+                pts[i, 0] = c * dxh + xshift
+                pts[i, 1] = r * dxv
                 i += 1
             if r < middle_row:
                 extra_cols += 1
@@ -236,7 +242,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
             xshift = - half_dxh * extra_cols
 
         return pts, npts
-
 
     @staticmethod
     def make_hex_points_horizontal_rect(num_rows, num_cols, dxh):
@@ -274,13 +279,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for r in range(num_rows):
             for c in range(num_cols):
-                xshift = half_dxh * (r%2)
-                pts[i,0] = c * dxh + xshift
-                pts[i,1] = r * dxv
+                xshift = half_dxh * (r % 2)
+                pts[i, 0] = c * dxh + xshift
+                pts[i, 1] = r * dxv
                 i += 1
 
         return pts, npts
-
 
     @staticmethod
     def make_hex_points_vertical_hex(base_num_rows, num_cols, dxv):
@@ -316,7 +320,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         if numpy.mod(num_cols, 2) == 0:  # even number of columns
             npts = base_num_rows * num_cols + (num_cols * num_cols) // 4
         else:  # odd number of columns
-            npts = base_num_rows * num_cols + ((num_cols - 1) // 2) * ((num_cols - 1) // 2)
+            npts = base_num_rows * num_cols + \
+                ((num_cols - 1) // 2) * ((num_cols - 1) // 2)
         pts = numpy.zeros((npts, 2))
         middle_col = num_cols // 2
         extra_rows = 0
@@ -324,8 +329,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for c in range(num_cols):
             for r in range(base_num_rows + extra_rows):
-                pts[i,1] = r * dxv + yshift
-                pts[i,0] = c * dxh
+                pts[i, 1] = r * dxv + yshift
+                pts[i, 0] = c * dxh
                 i += 1
             if c < middle_col:
                 extra_rows += 1
@@ -334,7 +339,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
             yshift = - half_dxv * extra_rows
 
         return pts, npts
-
 
     @staticmethod
     def make_hex_points_vertical_rect(num_rows, num_cols, dxv):
@@ -372,13 +376,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for c in range(num_cols):
             for r in range(num_rows):
-                yshift = half_dxv * (c%2)
-                pts[i,1] = r * dxv + yshift
-                pts[i,0] = c * dxh
+                yshift = half_dxv * (c % 2)
+                pts[i, 1] = r * dxv + yshift
+                pts[i, 0] = c * dxh
                 i += 1
 
         return pts, npts
-
 
     @property
     def number_of_node_columns(self):
@@ -401,7 +404,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         return self._ncols
 
-
     @property
     def number_of_node_rows(self):
         """Number of node rows in a rectangular-shaped and/or
@@ -422,7 +424,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         5
         """
         return self._nrows
-
 
     def configure_hexplot(self, data, data_label=None, color_map=None):
         """
@@ -459,32 +460,37 @@ class HexModelGrid(VoronoiDelaunayGrid):
             color_map = matplotlib.cm.jet
 
         # geometry
-        apothem = self._dx/2.0
-        radius = 2.0*apothem / sqrt(3.0)  # distance from node to each hexagon cell vertex
+        apothem = self._dx / 2.0
+        # distance from node to each hexagon cell vertex
+        radius = 2.0 * apothem / sqrt(3.0)
 
         # offsets from node x,y position
-        offsets = zeros((6,2))
-        poly_verts = zeros((6,2))
+        offsets = zeros((6, 2))
+        poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.node_y[0]==self.node_y[1]:   # horizontal
-            offsets[:,0] = array([0., apothem, apothem, 0., -apothem, -apothem])
-            offsets[:,1] = array([radius, radius/2.0, -radius/2.0, -radius, -radius/2.0, radius/2.0])
+        if self.node_y[0] == self.node_y[1]:   # horizontal
+            offsets[:, 0] = array(
+                [0., apothem, apothem, 0., -apothem, -apothem])
+            offsets[:, 1] = array(
+                [radius, radius / 2.0, -radius / 2.0, -radius, -radius / 2.0, radius / 2.0])
         else:   # vertical
-            offsets[:,0] = array([radius/2.0, radius, radius/2.0, -radius/2.0, -radius, -radius/2.0])
-            offsets[:,1] = array([apothem, 0., -apothem, -apothem, 0., apothem])
+            offsets[:, 0] = array(
+                [radius / 2.0, radius, radius / 2.0, -radius / 2.0, -radius, -radius / 2.0])
+            offsets[:, 1] = array(
+                [apothem, 0., -apothem, -apothem, 0., apothem])
 
         patches = []
         for i in range(self.number_of_nodes):
-            poly_verts[:,0] = self.node_x[i]+offsets[:,0]
-            poly_verts[:,1] = self.node_y[i]+offsets[:,1]
+            poly_verts[:, 0] = self.node_x[i] + offsets[:, 0]
+            poly_verts[:, 1] = self.node_y[i] + offsets[:, 1]
             p = Polygon(poly_verts, True)
             patches.append(p)
 
-        self._hexplot_pc = PatchCollection(patches, cmap=color_map, edgecolor='none', linewidth=0.0)
+        self._hexplot_pc = PatchCollection(
+            patches, cmap=color_map, edgecolor='none', linewidth=0.0)
 
-        self._hexplot_configured=True
-
+        self._hexplot_configured = True
 
     def hexplot(self, data, data_label=None, color_map=None):
         """
@@ -520,13 +526,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
         ax = plt.gca()
         self._hexplot_pc.set_array(array(data))
         ax.add_collection(self._hexplot_pc)
-        plt.xlim([amin(self.node_x)-self._dx, amax(self.node_x)+self._dx])
-        plt.ylim([amin(self.node_y)-self._dx, amax(self.node_y)+self._dx])
+        plt.xlim([amin(self.node_x) - self._dx, amax(self.node_x) + self._dx])
+        plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
         #cb = plt.colorbar(self._hexplot_pc)
-        #if data_label is not None:
+        # if data_label is not None:
         #    cb.set_label(data_label)
 
-        #plt.show()
+        # plt.show()
         return ax
 
 

@@ -1,5 +1,6 @@
 #! /usr/bin/env
 
+
 class Error(Exception):
     """
     Base class for errors in this package.
@@ -13,5 +14,3 @@ class NotRasterGridError(Error):
     uniform rectilinear with constant spacing in all dimensions.
     """
     pass
-
-

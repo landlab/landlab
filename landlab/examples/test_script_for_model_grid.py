@@ -9,7 +9,7 @@ from landlab import RasterModelGrid
 def main():
     nr = 3
     nc = 4
-    ncells = nr*nc
+    ncells = nr * nc
     mg = RasterModelGrid(nr, nc, 1.0)
 
     for i in xrange(0, ncells):

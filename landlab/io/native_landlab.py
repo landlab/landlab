@@ -45,13 +45,13 @@ def save_grid(grid, path, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError('file exists')
 
-    #test it's a grid
+    # test it's a grid
     assert issubclass(type(grid), ModelGrid)
 
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
-        ext = ext+'.grid'
-    path = base+ext
+        ext = ext + '.grid'
+    path = base + ext
 
     with open(path, 'wb') as fp:
         cPickle.dump(grid, fp)
@@ -89,10 +89,9 @@ def load_grid(path):
 
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
-        ext = ext+'.grid'
-    path = base+ext
+        ext = ext + '.grid'
+    path = base + ext
     with open(path, 'rb') as fp:
         loaded_grid = cPickle.load(fp)
     assert issubclass(type(loaded_grid), ModelGrid)
     return loaded_grid
-

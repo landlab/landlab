@@ -15,7 +15,7 @@ total_time:
 uplift_rate:
 0.001
 
-#these are the parameters for the stream power module:
+# these are the parameters for the stream power module:
 K_sp:
 0.2
 m_sp:

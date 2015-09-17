@@ -33,6 +33,7 @@ class RectilinearGrid(StructuredQuadGrid):
     >>> grid.node_col_coord
     array([ 0.,  1.,  2.,  3.,  4.])
     """
+
     def __init__(self, coord):
         """
         Parameters
@@ -92,6 +93,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     >>> grid.node_col_coord
     array([  1.,   4.,   7.,  10.,  13.])
     """
+
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
         """
         Parameters
@@ -160,6 +162,7 @@ class RasterGrid(UniformRectilinearGrid):
     >>> grid.node_col_coord
     array([ 1.,  3.,  5.,  7.,  9.])
     """
+
     def __init__(self, shape, spacing=1., origin=0.):
         """
         Parameters

@@ -14,6 +14,7 @@ from landlab.io import read_esri_ascii
 from landlab.io.netcdf import read_netcdf
 from landlab import RasterModelGrid
 
+
 def test_save_esri_ascii():
     grid = RasterModelGrid(4, 5, 2.)
     grid.add_field('node', 'air__temperature', np.arange(20.))

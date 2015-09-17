@@ -15,6 +15,7 @@ class VtkError(Exception):
 
 
 class InvalidFormatError(VtkError):
+
     def __init__(self, format):
         self.name = format
 
@@ -23,6 +24,7 @@ class InvalidFormatError(VtkError):
 
 
 class InvalidEncodingError(VtkError):
+
     def __init__(self, encoding):
         self.name = encoding
 
@@ -62,6 +64,7 @@ def assert_encoding_is_valid(encoding_string):
 
 
 class VtkWriter(xml.dom.minidom.Document):
+
     def __init__(self, **kwds):
         self._format = kwds.pop('format', 'ascii')
         self._encoding = kwds.pop('encoding', 'ascii')
@@ -130,7 +133,8 @@ def assemble_vtk_elements(element):
 
 
 class VTKDatabase(VtkWriter):
-    def write (self, path, **kwargs):
+
+    def write(self, path, **kwargs):
         (base, file) = os.path.split(path)
         (root, ext) = os.path.splitext(file)
 
@@ -140,7 +144,7 @@ class VTKDatabase(VtkWriter):
             self._count = 0
             next_file = '%s_%04d%s' % (root, self._count, ext)
 
-        VtkWriter.write(self, os.path.join (base, next_file), **kwargs)
+        VtkWriter.write(self, os.path.join(base, next_file), **kwargs)
 
         self._count += 1
 

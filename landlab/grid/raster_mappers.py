@@ -105,6 +105,7 @@ def map_mean_of_inlinks_to_node(mg, var_name, out=None):
 
     return out
 
+
 def map_max_of_inlinks_to_node(mg, var_name, out=None):
     """Map the maximum of links entering a node to the node.
 

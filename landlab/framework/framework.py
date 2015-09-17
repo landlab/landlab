@@ -11,10 +11,12 @@ class Error(Exception):
     Base exception for this module
     """
 
+
 class Framework(object):
     """
     A framework for connecting and running component from The Landlab.
     """
+
     def __init__(self):
         self._palette = Palette(**load_landlab_components())
         self._arena = Arena()

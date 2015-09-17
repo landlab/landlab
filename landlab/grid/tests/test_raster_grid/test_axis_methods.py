@@ -23,6 +23,7 @@ def setup_lon_lat_grid():
                                axis_units=['degrees_east', 'degrees_north'])
     })
 
+
 @with_setup(setup_default_grid)
 def test_default_names():
     assert_tuple_equal(rmg.axis_name, ('y', 'x'))

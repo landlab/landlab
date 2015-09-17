@@ -121,11 +121,11 @@ def test_netcdf_write():
                      set(['x', 'y', 'topographic__elevation']))
 
         assert_array_equal(root.variables['x'][:].flat,
-                          np.array([0., 1., 2., 0., 1., 2., 0., 1., 2.,
-                                    0., 1., 2., ]))
+                           np.array([0., 1., 2., 0., 1., 2., 0., 1., 2.,
+                                     0., 1., 2., ]))
         assert_array_equal(root.variables['y'][:].flat,
-                          np.array([0., 0., 0., 1., 1., 1., 2., 2., 2.,
-                                    3., 3., 3., ]))
+                           np.array([0., 0., 0., 1., 1., 1., 2., 2., 2.,
+                                     3., 3., 3., ]))
         assert_array_equal(root.variables['topographic__elevation'][:].flat,
                            field.at_node['topographic__elevation'])
 
@@ -162,7 +162,7 @@ def test_netcdf_write_names_keyword_as_list():
 
     with cdtemp() as _:
         write_netcdf('test.nc', field, names=['topographic__elevation'],
-                    format='NETCDF4')
+                     format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         assert_true('topographic__elevation' in root.variables)
@@ -219,21 +219,25 @@ def test_2d_unit_spacing():
     spacing = _get_raster_spacing((y, x))
     assert_equal(spacing, 1.)
 
+
 def test_2d_non_unit_spacing():
     (x, y) = np.meshgrid(np.arange(5.) * 2, np.arange(4.) * 2)
 
     spacing = _get_raster_spacing((y, x))
     assert_equal(spacing, 2.)
 
+
 def test_2d_uneven_spacing_axis_0():
     (x, y) = np.meshgrid(np.logspace(0., 2., num=5), np.arange(4.))
 
     assert_raises(NotRasterGridError, _get_raster_spacing, (y, x))
 
+
 def test_2d_uneven_spacing_axis_1():
     (x, y) = np.meshgrid(np.arange(4.), np.logspace(0., 2., num=5))
 
     assert_raises(NotRasterGridError, _get_raster_spacing, (y, x))
+
 
 def test_2d_switched_coords():
     (x, y) = np.meshgrid(np.arange(5.), np.arange(4.))
@@ -246,9 +250,11 @@ def test_1d__unit_spacing():
     spacing = _get_raster_spacing((np.arange(5.), ))
     assert_equal(spacing, 1.)
 
+
 def test_1d_non_unit_spacing():
     spacing = _get_raster_spacing((np.arange(5.) * 2, ))
     assert_equal(spacing, 2.)
+
 
 def test_1d_uneven_spacing():
     (x, y) = np.meshgrid(np.logspace(0., 2., num=5), np.arange(4.))

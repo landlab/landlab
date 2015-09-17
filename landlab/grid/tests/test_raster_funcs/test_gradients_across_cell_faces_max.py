@@ -33,7 +33,8 @@ def test_scalar_arg():
         _GRID, _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
-    grad = _GRID.calculate_steepest_descent_across_cell_faces(_VALUES_AT_NODES, 0)
+    grad = _GRID.calculate_steepest_descent_across_cell_faces(
+        _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
 
@@ -53,7 +54,7 @@ def test_scalar_arg_with_return_node():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,], dtype=float)
+                       0, 1, -3, 6, 10, ], dtype=float)
     (grad, node) = _GRID.calculate_steepest_descent_across_cell_faces(
         values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])

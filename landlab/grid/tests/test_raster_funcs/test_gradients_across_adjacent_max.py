@@ -31,6 +31,7 @@ def setup_3x3_grid():
                                                0, 1, 2], dtype=float))
     })
 
+
 @with_setup(setup_3x3_grid)
 def test_scalar_arg():
     grad = rfuncs.calculate_steepest_descent_across_adjacent_cells(
@@ -59,7 +60,7 @@ def test_scalar_arg_with_links():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,], dtype=float)
+                       0, 1, -3, 6, 10, ], dtype=float)
     (grad, node) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])
@@ -75,9 +76,9 @@ def test_scalar_arg_with_links():
 @with_setup(setup_unit_grid)
 def test_node_id_in_direction_of_max():
     values = np.array([-1, 1,  3, 6, 10,
-                        0, 1,  3, 6, 10,
-                        0, 1,  3, 5, 10,
-                        0, 1, -3, 6, 10,], dtype=float)
+                       0, 1,  3, 6, 10,
+                       0, 1,  3, 5, 10,
+                       0, 1, -3, 6, 10, ], dtype=float)
     (_, node_ids) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), return_node=True)
     assert_array_equal(node_ids, [5, 17])

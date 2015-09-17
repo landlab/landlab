@@ -38,7 +38,7 @@ class RouteFlowD8(object):
         self.num_cells = num_cells
         self.initialize()
 
-        #print 'RouteFlowD8.__init__'
+        # print 'RouteFlowD8.__init__'
 
     def initialize(self):
         """

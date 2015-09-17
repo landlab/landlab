@@ -11,6 +11,7 @@ from landlab import RasterModelGrid
 
 _GRIDS = {}
 
+
 def setup_grids():
     _GRIDS.update({
         'unit': RasterModelGrid(4, 5),

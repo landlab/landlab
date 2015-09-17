@@ -193,7 +193,7 @@ from ..core.utils import as_id_array
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
-#DEJH thinks the user should be able to override this value if they want
+# DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count
 # of that element in the grid.
@@ -250,6 +250,7 @@ LINK_STATUS_FLAGS_LIST = [
     INACTIVE_LINK,
 ]
 LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
+
 
 def _sort_points_into_quadrants(x, y, nodes):
     """
@@ -381,15 +382,17 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     (4.0, 3.0)
     (4.0, 3.0)
     """
-    assert ((b1x!=0 and b2y!=0) or (b2x!=0 and b1y!=0)), \
-            'Improper unit vectors'
+    assert ((b1x != 0 and b2y != 0) or (b2x != 0 and b1y != 0)), \
+        'Improper unit vectors'
 
-    if b1x!=0. and b2y!=0.:
-        ax = (L1/b1x - L2*(b1y/(b1x*b2y)))/(1.-(b1y*b2x)/(b1x*b2y))
-        ay = L2/b2y - ax*(b2x/b2y)
-    elif b2x!=0. and b1y!=0.:
-        ax = (L2/b2x - L1*(b2y/(b2x*b1y)))/(1.-(b2y*b1x)/(b2x*b1y))
-        ay = L1/b1y - ax*(b1x/b1y)
+    if b1x != 0. and b2y != 0.:
+        ax = (L1 / b1x - L2 * (b1y / (b1x * b2y))) / \
+            (1. - (b1y * b2x) / (b1x * b2y))
+        ay = L2 / b2y - ax * (b2x / b2y)
+    elif b2x != 0. and b1y != 0.:
+        ax = (L2 / b2x - L1 * (b2y / (b2x * b1y))) / \
+            (1. - (b2y * b1x) / (b2x * b1y))
+        ay = L1 / b1y - ax * (b1x / b1y)
 
     return ax, ay
 
@@ -435,17 +438,19 @@ class ModelGrid(ModelDataFields):
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
 
-    at_node = {} #: Values defined at nodes
-    at_cell = {} #: Values defined at cells
-    at_link = {} #: Values defined at links
-    at_face = {} #: Values defined at faces
-    at_core_node = {} #: Values defined at core nodes
-    at_core_cell = {} #: Values defined at core cells
-    at_active_link = {} #: Values defined at active links
-    at_active_face = {} #: Values defined at active faces
+    at_node = {}  # : Values defined at nodes
+    at_cell = {}  # : Values defined at cells
+    at_link = {}  # : Values defined at links
+    at_face = {}  # : Values defined at faces
+    at_core_node = {}  # : Values defined at core nodes
+    at_core_cell = {}  # : Values defined at core cells
+    at_active_link = {}  # : Values defined at active links
+    at_active_face = {}  # : Values defined at active faces
 
-    node_inlink_matrix = numpy.array([], dtype=numpy.int32) #: Nodes on the other end of links pointing into a node.
-    node_outlink_matrix = numpy.array([], dtype=numpy.int32) #: Nodes on the other end of links pointing out of a node.
+    # : Nodes on the other end of links pointing into a node.
+    node_inlink_matrix = numpy.array([], dtype=numpy.int32)
+    # : Nodes on the other end of links pointing out of a node.
+    node_outlink_matrix = numpy.array([], dtype=numpy.int32)
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
@@ -457,9 +462,10 @@ class ModelGrid(ModelDataFields):
                 pass
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
-        self.axis_units = kwds.get('axis_units', _default_axis_units(self.ndim))
+        self.axis_units = kwds.get(
+            'axis_units', _default_axis_units(self.ndim))
 
-    def _initialize( self ):
+    def _initialize(self):
         pass
 
     @property
@@ -895,10 +901,9 @@ class ModelGrid(ModelDataFields):
                 numpy.vstack(
                     (self.node_active_inlink_matrix[:, node_ids],
                      self.node_active_outlink_matrix[:, node_ids])
-                ).reshape(2*numpy.size(self.node_active_inlink_matrix, 0), -1))
+                ).reshape(2 * numpy.size(self.node_active_inlink_matrix, 0), -1))
         else:
             raise ValueError('only zero or one arguments accepted')
-
 
     def node_activelinks2(self, *args):
         """node_activelinks2([node_ids])
@@ -960,10 +965,9 @@ class ModelGrid(ModelDataFields):
                 numpy.vstack(
                     (self.node_active_inlink_matrix2[:, node_ids],
                      self.node_active_outlink_matrix2[:, node_ids])
-                ).reshape(2*numpy.size(self.node_active_inlink_matrix2, 0), -1))
+                ).reshape(2 * numpy.size(self.node_active_inlink_matrix2, 0), -1))
         else:
             raise ValueError('only zero or one arguments accepted')
-
 
     def create_node_array_zeros(self, name=None, **kwds):
         """Return a new array of the given type, filled with zeros.
@@ -1171,7 +1175,7 @@ class ModelGrid(ModelDataFields):
         gradient = gradient or numpy.zeros(self.number_of_active_links)
 
         assert (len(gradient) == self.number_of_active_links), \
-                "len(gradient)!=number_of_active_links"
+            "len(gradient)!=number_of_active_links"
 
         active_link_id = 0
         for link_id in self.active_link_ids:
@@ -1199,7 +1203,6 @@ class ModelGrid(ModelDataFields):
         """
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
-
     def node_slopes_using_patches(self, elevs='topographic__elevation', unit='degrees', return_components=False):
         """
         trial run to extract average local slopes at nodes by the average slope
@@ -1212,13 +1215,14 @@ class ModelGrid(ModelDataFields):
         If closed nodes were present in the original array, their values will
         be masked.
         """
-        dummy_patch_nodes = numpy.empty((self.patch_nodes.shape[0]+1,self.patch_nodes.shape[1]),dtype=int)
-        dummy_patch_nodes[:-1,:] = self.patch_nodes[:]
-        dummy_patch_nodes[-1,:] = -1
+        dummy_patch_nodes = numpy.empty(
+            (self.patch_nodes.shape[0] + 1, self.patch_nodes.shape[1]), dtype=int)
+        dummy_patch_nodes[:-1, :] = self.patch_nodes[:]
+        dummy_patch_nodes[-1, :] = -1
 
         # Now any ref to a null node will be -1 in this new
         # (N, patch_max_dim, 4or3) array.
-        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:,:,:3]
+        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:, :, :3]
         # Note: we truncate the array to be [N, patch_max_dim,3]; we only
         # need 3 pts per patch, if we're working on a raster
 
@@ -1228,41 +1232,40 @@ class ModelGrid(ModelDataFields):
                                  nodes_on_patches.shape[1], 3, 3),
                                 dtype=float)
 
-        mask_from_nop = nodes_on_patches[:,:,0]==-1
-        node_elevs[:,:,:,0] = self.node_x[nodes_on_patches]
-        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
+        mask_from_nop = nodes_on_patches[:, :, 0] == -1
+        node_elevs[:, :, :, 0] = self.node_x[nodes_on_patches]
+        node_elevs[:, :, :, 1] = self.node_y[nodes_on_patches]
         c = numpy.ma.array(numpy.linalg.det(node_elevs), mask=mask_from_nop)
         try:
-            node_elevs[:,:,:,2] = self.at_node[elevs][nodes_on_patches]
+            node_elevs[:, :, :, 2] = self.at_node[elevs][nodes_on_patches]
         except TypeError:
-            node_elevs[:,:,:,2] = elevs[nodes_on_patches]
-        node_elevs[:,:,:,1] = 1.
+            node_elevs[:, :, :, 2] = elevs[nodes_on_patches]
+        node_elevs[:, :, :, 1] = 1.
         b = numpy.linalg.det(node_elevs)
-        node_elevs[:,:,:,1] = self.node_y[nodes_on_patches]
-        node_elevs[:,:,:,0] = 1.
+        node_elevs[:, :, :, 1] = self.node_y[nodes_on_patches]
+        node_elevs[:, :, :, 0] = 1.
         a = numpy.linalg.det(node_elevs)
 
-        mask_from_nop = nodes_on_patches[:,:,0]==-1
-        grad_x = -a/c
-        grad_y = -b/c #...still for each patch
-        mean_grad_x = numpy.mean(grad_x,axis=1)
-        mean_grad_y = numpy.mean(grad_y,axis=1)
+        mask_from_nop = nodes_on_patches[:, :, 0] == -1
+        grad_x = -a / c
+        grad_y = -b / c  # ...still for each patch
+        mean_grad_x = numpy.mean(grad_x, axis=1)
+        mean_grad_y = numpy.mean(grad_y, axis=1)
 
         slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
 
-        if unit=='radians':
+        if unit == 'radians':
             if not return_components:
                 return slope_mag
             else:
                 return slope_mag, (mean_grad_x, mean_grad_y)
-        if unit=='degrees':
+        if unit == 'degrees':
             if not return_components:
-                return 180./numpy.pi*slope_mag
+                return 180. / numpy.pi * slope_mag
             else:
-                return 180./numpy.pi*slope_mag, (mean_grad_x, mean_grad_y)
+                return 180. / numpy.pi * slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
-
 
     def node_slopes(self, **kwargs):
         """
@@ -1273,7 +1276,6 @@ class ModelGrid(ModelDataFields):
         as for node_slopes_using_patches
         """
         return self.node_slopes_using_patches(**kwargs)
-
 
     def aspect(self, slope_component_tuple=None, elevs='topographic__elevation', unit='degrees'):
         """aspect
@@ -1298,16 +1300,17 @@ class ModelGrid(ModelDataFields):
             except MissingKeyError:
                 assert elevs.size == self.number_of_nodes
                 elev_array = elevs
-            _,slope_component_tuple = self.node_slopes_using_patches(elevs=elev_array)
-        angle_from_x_ccw = numpy.arctan2(slope_component_tuple[1], slope_component_tuple[0])
-        angle_from_N_cw = -(angle_from_x_ccw + numpy.pi/2.)%(2*numpy.pi)
-        if unit=='degrees':
-            return 180./numpy.pi*angle_from_N_cw
-        elif unit=='radians':
+            _, slope_component_tuple = self.node_slopes_using_patches(
+                elevs=elev_array)
+        angle_from_x_ccw = numpy.arctan2(
+            slope_component_tuple[1], slope_component_tuple[0])
+        angle_from_N_cw = -(angle_from_x_ccw + numpy.pi / 2.) % (2 * numpy.pi)
+        if unit == 'degrees':
+            return 180. / numpy.pi * angle_from_N_cw
+        elif unit == 'radians':
             return angle_from_N_cw
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
-
 
     def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees', elevs='topographic__elevation'):
         """Calculate hillshade.
@@ -1357,11 +1360,11 @@ class ModelGrid(ModelDataFields):
 
         """
         if slp is not None and asp is not None:
-            if unit=='degrees':
+            if unit == 'degrees':
                 (alt, az, slp, asp) = (numpy.radians(alt), numpy.radians(az),
-                                numpy.radians(slp), numpy.radians(asp))
-            elif unit=='radians':
-                if alt>numpy.pi/2. or az>2.*numpy.pi:
+                                       numpy.radians(slp), numpy.radians(asp))
+            elif unit == 'radians':
+                if alt > numpy.pi / 2. or az > 2. * numpy.pi:
                     six.print_('Assuming your solar properties are in degrees, '
                                'but your slopes and aspects are in radians...')
                     (alt, az) = (numpy.radians(alt), numpy.radians(az))
@@ -1369,13 +1372,14 @@ class ModelGrid(ModelDataFields):
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
         elif slp is None and asp is None:
-            if unit=='degrees':
+            if unit == 'degrees':
                 (alt, az) = (numpy.radians(alt), numpy.radians(az))
-            elif unit=='radians':
+            elif unit == 'radians':
                 pass
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
-            slp,slp_comps = self.node_slopes_using_patches(elevs, unit='radians', return_components=True)
+            slp, slp_comps = self.node_slopes_using_patches(
+                elevs, unit='radians', return_components=True)
             asp = self.aspect(slope_component_tuple=slp_comps, unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')
@@ -1387,9 +1391,8 @@ class ModelGrid(ModelDataFields):
 
         return shaded
 
-
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux,
-                                                  net_unit_flux=None):
+                                                net_unit_flux=None):
         """Flux divergence for core nodes.
 
         Given an array of fluxes along links, computes the net total flux
@@ -1469,7 +1472,7 @@ class ModelGrid(ModelDataFields):
             six.print_('ModelGrid.calculate_flux_divergence_at_core_nodes')
 
         assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
+            "incorrect length of active_link_flux array"
 
         # If needed, create net_unit_flux array
         if net_unit_flux is None:
@@ -1479,12 +1482,12 @@ class ModelGrid(ModelDataFields):
 
         assert (len(net_unit_flux)) == self.number_of_core_nodes
 
-        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(active_link_flux)
+        node_net_unit_flux = self.calculate_flux_divergence_at_nodes(
+            active_link_flux)
 
         net_unit_flux = node_net_unit_flux[self.corecell_node]
 
         return net_unit_flux
-
 
     def _calculate_flux_divergence_at_active_cells_slow(self, active_link_flux,
                                                         net_unit_flux=False):
@@ -1503,7 +1506,7 @@ class ModelGrid(ModelDataFields):
             six.print_('ModelGrid.calculate_flux_divergence_at_active_cells')
 
         assert (len(active_link_flux) == self.number_of_active_links), \
-               "incorrect length of active_link_flux array"
+            "incorrect length of active_link_flux array"
 
         # If needed, create net_unit_flux array
         if net_unit_flux is False:
@@ -1511,7 +1514,7 @@ class ModelGrid(ModelDataFields):
         else:
             net_unit_flux[:] = 0.
 
-        assert (len(net_unit_flux))==self.number_of_active_cells
+        assert (len(net_unit_flux)) == self.number_of_active_cells
 
         # For each active link, add up the flux out of the "from" cell and
         # into the "to" cell.
@@ -1520,8 +1523,8 @@ class ModelGrid(ModelDataFields):
             from_cell = self.node_activecell[self.node_at_link_tail[link_id]]
             to_cell = self.node_activecell[self.node_at_link_head[link_id]]
             total_flux = active_link_flux[active_link_id] * \
-                         self.face_width[self.link_face[link_id]]
-            #print('Flux '+str(total_flux)+' from '+str(from_cell) \
+                self.face_width[self.link_face[link_id]]
+            # print('Flux '+str(total_flux)+' from '+str(from_cell) \
             #      +' to '+str(to_cell)+' along link '+str(link_id))
             if from_cell != BAD_INDEX_VALUE:
                 net_unit_flux[from_cell] += total_flux
@@ -1554,8 +1557,7 @@ class ModelGrid(ModelDataFields):
         This method is untested with looped boundary conditions.
         """
         return gfuncs.calculate_flux_divergence_at_nodes(self, active_link_flux,
-                                                        out=out)
-
+                                                         out=out)
 
     @property
     @make_return_array_immutable
@@ -1617,9 +1619,10 @@ class ModelGrid(ModelDataFields):
         try:
             self._forced_cell_areas[cell_node_ids] = self.cell_areas
         except AttributeError:
-            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas #in the case of the Voronoi
+            # in the case of the Voronoi
+            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
 
-    def get_active_cell_node_ids( self ):
+    def get_active_cell_node_ids(self):
         """Nodes of active cells.
 
         Return an integer vector of the node IDs of all active (i.e., core +
@@ -1631,14 +1634,12 @@ class ModelGrid(ModelDataFields):
         """
         return self.activecell_node
 
-
     def get_core_cell_node_ids(self):
         """Nodes of core cells.
 
         Return an integer vector of the node IDs of all core cells.
         """
         return self.corecell_node
-
 
     def get_active_link_connecting_node_pair(self, node1, node2):
         """
@@ -1659,14 +1660,13 @@ class ModelGrid(ModelDataFields):
         for alink in range(0, self.number_of_active_links):
             link_connects_nodes = (
                 (self.activelink_fromnode[alink] == node1 and
-                self.activelink_tonode[alink] == node2) or
+                 self.activelink_tonode[alink] == node2) or
                 (self.activelink_tonode[alink] == node1 and
-                self.activelink_fromnode[alink] == node2))
+                 self.activelink_fromnode[alink] == node2))
             if link_connects_nodes:
                 active_link = alink
                 break
         return numpy.array([active_link])
-
 
     @property
     def active_link_length(self):
@@ -1710,7 +1710,7 @@ class ModelGrid(ModelDataFields):
               self.node_x[self.node_at_link_head])
         dy = (self.node_y[self.node_at_link_tail] -
               self.node_y[self.node_at_link_head])
-        numpy.sqrt(dx ** 2 + dy **2, out=self._link_length)
+        numpy.sqrt(dx ** 2 + dy ** 2, out=self._link_length)
         return self._link_length
 
     def assign_upslope_vals_to_active_links(self, u, v=None):
@@ -1748,7 +1748,7 @@ class ModelGrid(ModelDataFields):
         if len(v) < len(u):
             for i in range(0, self.number_of_active_links):
                 fv[i] = max(u[self.activelink_fromnode[i]],
-                            u[self.activelink_tonode[i]] )
+                            u[self.activelink_tonode[i]])
         else:
             for i in range(0, self.number_of_active_links):
                 if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
@@ -1817,17 +1817,17 @@ class ModelGrid(ModelDataFields):
         tonode_status = self.node_status[self.node_at_link_head]
 
         if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
-                (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
+                         (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
             assert numpy.all(fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
-                    tonode_status[already_fixed] == CLOSED_BOUNDARY)
+                             tonode_status[already_fixed] == CLOSED_BOUNDARY)
             fromnode_status[already_fixed] = numpy.where(
-                                 fromnode_status[already_fixed] == CLOSED_BOUNDARY,
-                                 FIXED_GRADIENT_BOUNDARY,
-                                 fromnode_status[already_fixed])
+                fromnode_status[already_fixed] == CLOSED_BOUNDARY,
+                FIXED_GRADIENT_BOUNDARY,
+                fromnode_status[already_fixed])
             tonode_status[already_fixed] = numpy.where(
-                                   tonode_status[already_fixed] == CLOSED_BOUNDARY,
-                                   FIXED_GRADIENT_BOUNDARY,
-                                   tonode_status[already_fixed])
+                tonode_status[already_fixed] == CLOSED_BOUNDARY,
+                FIXED_GRADIENT_BOUNDARY,
+                tonode_status[already_fixed])
 
         active_links = (((fromnode_status == CORE_NODE) & ~
                          (tonode_status == CLOSED_BOUNDARY)) |
@@ -1867,7 +1867,6 @@ class ModelGrid(ModelDataFields):
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
 
-
     def _reset_lists_of_nodes_cells(self):
         """
         Creates or resets various lists of nodes and cells based on their
@@ -1885,8 +1884,10 @@ class ModelGrid(ModelDataFields):
             node_corecell
             _boundary_nodes
         """
-        self.activecell_node = as_id_array(numpy.where(self.node_status != CLOSED_BOUNDARY)[0])
-        self.corecell_node = as_id_array(numpy.where(self.node_status == CORE_NODE)[0])
+        self.activecell_node = as_id_array(
+            numpy.where(self.node_status != CLOSED_BOUNDARY)[0])
+        self.corecell_node = as_id_array(
+            numpy.where(self.node_status == CORE_NODE)[0])
         self._num_core_cells = self.corecell_node.size
         self._num_core_nodes = self._num_core_cells
         self._num_active_nodes = self.activecell_node.size
@@ -1899,8 +1900,8 @@ class ModelGrid(ModelDataFields):
         self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
         self.node_activecell.fill(BAD_INDEX_VALUE)
         self.node_activecell.flat[self.activecell_node] = self.active_cells
-        self._boundary_nodes = as_id_array(numpy.where(self.node_status != CORE_NODE)[0])
-
+        self._boundary_nodes = as_id_array(
+            numpy.where(self.node_status != CORE_NODE)[0])
 
     def update_links_nodes_cells_to_new_BCs(self):
         """Update grid element connectivity, status.
@@ -1922,7 +1923,6 @@ class ModelGrid(ModelDataFields):
                 self.neighbor_list_created = False
         except AttributeError:
             pass
-
 
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
@@ -1954,7 +1954,6 @@ class ModelGrid(ModelDataFields):
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
-
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
@@ -2009,7 +2008,7 @@ class ModelGrid(ModelDataFields):
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
-        nodata_locations = numpy.nonzero(node_data==nodata_value)
+        nodata_locations = numpy.nonzero(node_data == nodata_value)
         self.node_status[nodata_locations] = CLOSED_BOUNDARY
 
         # Recreate the list of active cell IDs
@@ -2096,12 +2095,11 @@ class ModelGrid(ModelDataFields):
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
-        nodata_locations = numpy.nonzero(node_data==nodata_value)
+        nodata_locations = numpy.nonzero(node_data == nodata_value)
         self.node_status[nodata_locations] = FIXED_GRADIENT_BOUNDARY
 
         # Recreate the list of active cell IDs
         self.update_links_nodes_cells_to_new_BCs()
-
 
     def max_of_link_end_node_values(self, node_data):
         """Maximum value at the end of links.
@@ -2151,7 +2149,6 @@ class ModelGrid(ModelDataFields):
             num_nbrs[self.node_at_link_tail[link]] += 1
             num_nbrs[self.node_at_link_head[link]] += 1
         return num_nbrs
-
 
     def _setup_inlink_and_outlink_matrices(self):
         """
@@ -2209,7 +2206,6 @@ class ModelGrid(ModelDataFields):
         for (count, (fromnodes, link_ids)) in enumerate(counts):
             self.node_outlink_matrix[count][fromnodes] = link_ids
 
-
     def _setup_active_inlink_and_outlink_matrices(self):
         """
         Creates data structures to record the numbers of active inlinks and
@@ -2263,7 +2259,7 @@ class ModelGrid(ModelDataFields):
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
-        ## THE FOLLOWING IS MEANT TO REPLACE THE ABOVE CODE, USING LINK IDS
+        # THE FOLLOWING IS MEANT TO REPLACE THE ABOVE CODE, USING LINK IDS
         # FOR ACTIVE LINKS (ONLY), INSTEAD OF "ACTIVE LINK IDS". THE POINT IS
         # TO HAVE JUST ONE ID/NUMBERING SYSTEM FOR LINKS, RATHER THAN A
         # SEPARATE NUMBERING SYSTEM FOR ACTIVE LINKS
@@ -2290,9 +2286,11 @@ class ModelGrid(ModelDataFields):
         # DO THIS BY CHANGING active_link_ids TO
         # self.active_links[active_link_ids] BUT HAVEN'T MADE THIS CHANGE YET.
         # NEED TO WORK THROUGH EXAMPLE 3,2 HMG
-        counts = count_repeated_values(self.node_at_link_head[self.active_links])
+        counts = count_repeated_values(
+            self.node_at_link_head[self.active_links])
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self.node_active_inlink_matrix2[count][tonodes] = self.active_links[active_link_ids]
+            self.node_active_inlink_matrix2[count][
+                tonodes] = self.active_links[active_link_ids]
 
         # Set up the outlink arrays
         fromnodes = self.node_at_link_tail[self.active_links]
@@ -2300,8 +2298,8 @@ class ModelGrid(ModelDataFields):
             fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self.node_active_outlink_matrix2[count][fromnodes] = self.active_links[active_link_ids]
-
+            self.node_active_outlink_matrix2[count][
+                fromnodes] = self.active_links[active_link_ids]
 
     def _make_link_unit_vectors(self):
         """Makes arrays to store the unit vectors associated with each link.
@@ -2369,13 +2367,15 @@ class ModelGrid(ModelDataFields):
         # node_outlink_matrix to refer to the zero value in this extra element,
         # so that when we're summing up link unit vectors, or multiplying by a
         # nonexistent unit vector, we end up just treating these as zero.
-        self.link_unit_vec_x = numpy.zeros(self.number_of_links+1)
-        self.link_unit_vec_y = numpy.zeros(self.number_of_links+1)
+        self.link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
+        self.link_unit_vec_y = numpy.zeros(self.number_of_links + 1)
 
         # Calculate the unit vectors using triangle similarity and the Pythagorean
         # Theorem.
-        dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
-        dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
+        dx = self.node_x[self.node_at_link_head] - \
+            self.node_x[self.node_at_link_tail]
+        dy = self.node_y[self.node_at_link_head] - \
+            self.node_y[self.node_at_link_tail]
         self.link_unit_vec_x[:self.number_of_links] = dx / self.link_length
         self.link_unit_vec_y[:self.number_of_links] = dy / self.link_length
 
@@ -2385,10 +2385,14 @@ class ModelGrid(ModelDataFields):
         self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
         max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
         for i in range(max_num_inlinks_per_node):
-            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_inlink_matrix[i,:]])
-            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_inlink_matrix[i,:]])
-            self.node_unit_vector_sum_x += abs(self.link_unit_vec_x[self.node_outlink_matrix[i,:]])
-            self.node_unit_vector_sum_y += abs(self.link_unit_vec_y[self.node_outlink_matrix[i,:]])
+            self.node_unit_vector_sum_x += abs(
+                self.link_unit_vec_x[self.node_inlink_matrix[i, :]])
+            self.node_unit_vector_sum_y += abs(
+                self.link_unit_vec_y[self.node_inlink_matrix[i, :]])
+            self.node_unit_vector_sum_x += abs(
+                self.link_unit_vec_x[self.node_outlink_matrix[i, :]])
+            self.node_unit_vector_sum_y += abs(
+                self.link_unit_vec_y[self.node_outlink_matrix[i, :]])
 
     def map_link_vector_to_nodes(self, q):
         """Maps data defined on links to nodes.
@@ -2560,10 +2564,12 @@ class ModelGrid(ModelDataFields):
         #   2) This requires memory allocation. Because this function might be
         #       called repeatedly, it would be good to find a way to pre-allocate
         #       to improve speed.
-        qx = numpy.zeros(self.number_of_links+1)
-        qy = numpy.zeros(self.number_of_links+1)
-        qx[:self.number_of_links] = q*self.link_unit_vec_x[:self.number_of_links]
-        qy[:self.number_of_links] = q*self.link_unit_vec_y[:self.number_of_links]
+        qx = numpy.zeros(self.number_of_links + 1)
+        qy = numpy.zeros(self.number_of_links + 1)
+        qx[:self.number_of_links] = q * \
+            self.link_unit_vec_x[:self.number_of_links]
+        qy[:self.number_of_links] = q * \
+            self.link_unit_vec_y[:self.number_of_links]
 
         # Loop over each row in the node_inlink_matrix and node_outlink_matrix.
         # This isn't a big loop! In a raster grid, these have only two rows each;
@@ -2571,10 +2577,10 @@ class ModelGrid(ModelDataFields):
         # grid, there are up to 6 rows.
         n_matrix_rows = numpy.size(self.node_inlink_matrix, 0)
         for i in range(n_matrix_rows):
-            node_vec_x += qx[self.node_inlink_matrix[i,:]]
-            node_vec_x += qx[self.node_outlink_matrix[i,:]]
-            node_vec_y += qy[self.node_inlink_matrix[i,:]]
-            node_vec_y += qy[self.node_outlink_matrix[i,:]]
+            node_vec_x += qx[self.node_inlink_matrix[i, :]]
+            node_vec_x += qx[self.node_outlink_matrix[i, :]]
+            node_vec_y += qy[self.node_inlink_matrix[i, :]]
+            node_vec_y += qy[self.node_outlink_matrix[i, :]]
         node_vec_x /= self.node_unit_vector_sum_x
         node_vec_y /= self.node_unit_vector_sum_y
 
@@ -2593,28 +2599,27 @@ class ModelGrid(ModelDataFields):
         # Draw links
         for i in range(self.number_of_links):
             plt.plot([self._node_x[self.node_at_link_tail[i]],
-                     self._node_x[self.node_at_link_head[i]]],
+                      self._node_x[self.node_at_link_head[i]]],
                      [self._node_y[self.node_at_link_tail[i]],
-                     self._node_y[self.node_at_link_head[i]]], 'k-')
+                      self._node_y[self.node_at_link_head[i]]], 'k-')
 
         # Draw active links
         for link in self.active_link_ids:
             plt.plot([self._node_x[self.node_at_link_tail[link]],
-                     self._node_x[self.node_at_link_head[link]]],
+                      self._node_x[self.node_at_link_head[link]]],
                      [self._node_y[self.node_at_link_tail[link]],
-                     self._node_y[self.node_at_link_head[link]]], 'g-')
+                      self._node_y[self.node_at_link_head[link]]], 'g-')
 
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
             pts = numpy.zeros((self.number_of_nodes, 2))
-            pts[:,0] = self._node_x
-            pts[:,1] = self._node_y
+            pts[:, 0] = self._node_x
+            pts[:, 1] = self._node_y
             vor = Voronoi(pts)
             voronoi_plot_2d(vor)
 
         plt.show()
-
 
     def is_boundary(self, ids, boundary_flag=None):
         """Check if nodes are boundary nodes.
@@ -2680,7 +2685,6 @@ class ModelGrid(ModelDataFields):
 
         return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
 
-
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
                                 top_is_inactive, left_is_inactive):
         """Set boundaries to inactive.
@@ -2733,7 +2737,7 @@ class ModelGrid(ModelDataFields):
             six.print_('ModelGrid.set_inactive_boundaries')
 
         [left_edge, right_edge, top_edge, bottom_edge] = \
-                self._assign_boundary_nodes_to_grid_sides()
+            self._assign_boundary_nodes_to_grid_sides()
 
         if bottom_is_inactive:
             self.node_status[bottom_edge] = CLOSED_BOUNDARY
@@ -2767,7 +2771,6 @@ class ModelGrid(ModelDataFields):
             Outdated terminology. Use :func:`set_closed_nodes` instead.
         """
         self.set_closed_nodes(nodes)
-
 
     def set_closed_nodes(self, nodes):
         """Make nodes closed boundaries.
@@ -2836,19 +2839,18 @@ class ModelGrid(ModelDataFields):
                 assert out_distance.size == self.number_of_nodes
         if out_azimuth is None and get_az:
             try:
-                out_azimuth = numpy.empty((2,node_subset.size))
+                out_azimuth = numpy.empty((2, node_subset.size))
             except:
                 out_azimuth = numpy.empty((2, self.number_of_nodes))
-            #only one of these colums will get used if get_az == 'angles'
+            # only one of these colums will get used if get_az == 'angles'
         elif out_azimuth is not None:
             if subset_flag:
                 if get_az == 'displacements':
-                    assert out_azimuth.shape == (2,node_subset.shape[1])
+                    assert out_azimuth.shape == (2, node_subset.shape[1])
                 elif get_az == 'angles':
                     assert out_azimuth.size == node_subset.size
             else:
                 assert out_azimuth.size == self.number_of_nodes
-
 
         try:
             len_subset = node_subset.size
@@ -2856,55 +2858,64 @@ class ModelGrid(ModelDataFields):
             len_subset = self.number_of_nodes
 
         try:
-            azimuths_as_displacements[0,:len_subset] = self.node_x[node_subset]-tuple_xy[0]
-            azimuths_as_displacements[1,:len_subset] = self.node_y[node_subset]-tuple_xy[1]
+            azimuths_as_displacements[0, :len_subset] = self.node_x[
+                node_subset] - tuple_xy[0]
+            azimuths_as_displacements[1, :len_subset] = self.node_y[
+                node_subset] - tuple_xy[1]
         except:
-            azimuths_as_displacements[0] = (self.node_x-tuple_xy[0])
-            azimuths_as_displacements[1] = (self.node_y-tuple_xy[1])
+            azimuths_as_displacements[0] = (self.node_x - tuple_xy[0])
+            azimuths_as_displacements[1] = (self.node_y - tuple_xy[1])
 
-        numpy.square(azimuths_as_displacements[0,:len_subset], out=dummy_nodes_1[:len_subset])
-        numpy.square(azimuths_as_displacements[1,:len_subset], out=dummy_nodes_2[:len_subset])
-        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[:len_subset], out=dummy_nodes_3[:len_subset])
+        numpy.square(azimuths_as_displacements[
+                     0, :len_subset], out=dummy_nodes_1[:len_subset])
+        numpy.square(azimuths_as_displacements[
+                     1, :len_subset], out=dummy_nodes_2[:len_subset])
+        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[
+                  :len_subset], out=dummy_nodes_3[:len_subset])
         numpy.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
 
         if get_az:
             if get_az == 'displacements':
-                out_azimuth[:len_subset] = azimuths_as_displacements[:len_subset]
+                out_azimuth[:len_subset] = azimuths_as_displacements[
+                    :len_subset]
                 return out_distance, out_azimuth
             elif get_az == 'angles':
-                #new code to replace below ***
-                div_by_zero_cases = azimuths_as_displacements[0,:len_subset]==0.
+                # new code to replace below ***
+                div_by_zero_cases = azimuths_as_displacements[
+                    0, :len_subset] == 0.
                 not_div_by_zero_cases = numpy.logical_not(div_by_zero_cases)
-                dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1,:len_subset][not_div_by_zero_cases],
-                                 azimuths_as_displacements[0,:len_subset][not_div_by_zero_cases])
-                dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(dummy_nodes_1[:len_subset][not_div_by_zero_cases]) #"angle_to_xaxis"
-                dummy_nodes_2[:len_subset][div_by_zero_cases] = numpy.where(azimuths_as_displacements[1,:len_subset][div_by_zero_cases]<0, 0., numpy.pi)
+                dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1, :len_subset][not_div_by_zero_cases],
+                                                                                 azimuths_as_displacements[0, :len_subset][not_div_by_zero_cases])
+                dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(
+                    dummy_nodes_1[:len_subset][not_div_by_zero_cases])  # "angle_to_xaxis"
+                dummy_nodes_2[:len_subset][div_by_zero_cases] = numpy.where(
+                    azimuths_as_displacements[1, :len_subset][div_by_zero_cases] < 0, 0., numpy.pi)
                 #dummy_nodes_2[:len_subset][div_by_zero_cases] = 0.
                 #dummy_nodes_2[:len_subset][div_by_zero_cases][(azimuths_as_displacements[1,:len_subset][div_by_zero_cases]<0)] = numpy.pi
-                numpy.sign(azimuths_as_displacements[0,:len_subset],
-                               out=dummy_nodes_1[:len_subset])
+                numpy.sign(azimuths_as_displacements[0, :len_subset],
+                           out=dummy_nodes_1[:len_subset])
                 numpy.subtract(1., dummy_nodes_1[:len_subset],
-                                   out=dummy_nodes_3[:len_subset])
-                numpy.multiply(dummy_nodes_3[:len_subset], 0.5*numpy.pi,
-                                   out=dummy_nodes_1[:len_subset])
-                numpy.subtract(0.5*numpy.pi, dummy_nodes_2[:len_subset],
-                                   out=dummy_nodes_3[:len_subset])
+                               out=dummy_nodes_3[:len_subset])
+                numpy.multiply(dummy_nodes_3[:len_subset], 0.5 * numpy.pi,
+                               out=dummy_nodes_1[:len_subset])
+                numpy.subtract(0.5 * numpy.pi, dummy_nodes_2[:len_subset],
+                               out=dummy_nodes_3[:len_subset])
                 if out_azimuth is not None:
                     numpy.add(dummy_nodes_1[:len_subset],
-                                  dummy_nodes_3[:len_subset],
-                                  out=out_azimuth)
+                              dummy_nodes_3[:len_subset],
+                              out=out_azimuth)
                 else:
                     numpy.add(dummy_nodes_1[:len_subset],
-                                  dummy_nodes_3[:len_subset],
-                                  out=out_azimuth[0,:])
+                              dummy_nodes_3[:len_subset],
+                              out=out_azimuth[0, :])
                 #***
-                #try:
+                # try:
                 #    numpy.divide(azimuths_as_displacements[1,:len_subset],
                 #                 azimuths_as_displacements[0,:len_subset],
                 #                 out=dummy_nodes_1[:len_subset])
                 #    numpy.arctan(dummy_nodes_1[:len_subset],
                 #                 out=dummy_nodes_2[:len_subset]) #"angle_to_xaxis"
-                #except: #These cases have the impact right on a gridline.
+                # except: #These cases have the impact right on a gridline.
                 #    if len_subset == 1: #this is the single node case, point directly N or S of the node of interest
                 #        if azimuths_as_displacements[1]<0:
                 #            out_azimuth[0] = numpy.pi
@@ -2936,7 +2947,7 @@ class ModelGrid(ModelDataFields):
                 #    numpy.logical_not(dummy_bool[:num_zero_nodes][zero_nodes], out=dummy_bool[:num_zero_nodes][zero_nodes])
                 #    out_azimuth[zero_nodes][dummy_bool[:num_zero_nodes][zero_nodes]] = 0.
                 #    #out_azimuth[zero_nodes] = numpy.where(azimuths_as_displacements[1,:len_subset][zero_nodes]<0.,numpy.pi,0.)
-                #else: #the normal case
+                # else: #the normal case
                 #    numpy.sign(azimuths_as_displacements[0,:len_subset],
                 #               out=dummy_nodes_1[:len_subset])
                 #    numpy.subtract(1., dummy_nodes_1[:len_subset],
@@ -2955,7 +2966,7 @@ class ModelGrid(ModelDataFields):
                 #                  out=out_azimuth[0,:])
                 #    ##azimuth_array = ((1.-numpy.sign(x_displacement))*0.5)*numpy.pi + (0.5*numpy.pi-angle_to_xaxis) #duplicated by the above
                 if out_azimuth.shape[0] == 2 and len(out_azimuth.shape) == 2:
-                    return out_distance, out_azimuth[0,:]
+                    return out_distance, out_azimuth[0, :]
                 else:
                     return out_distance, out_azimuth
             else:
@@ -2989,16 +3000,17 @@ class ModelGrid(ModelDataFields):
         """
 
         self.all_node_distances_map = numpy.empty((self.number_of_nodes,
-                                                  self.number_of_nodes))
+                                                   self.number_of_nodes))
         self.all_node_azimuths_map = numpy.empty((self.number_of_nodes,
-                                                 self.number_of_nodes))
+                                                  self.number_of_nodes))
 
         node_coords = numpy.empty((self.number_of_nodes, 2))
-        node_coords[:,0] = self.node_x
-        node_coords[:,1] = self.node_y
+        node_coords[:, 0] = self.node_x
+        node_coords[:, 1] = self.node_y
 
         for i in range(self.number_of_nodes):
-            self.all_node_distances_map[i,:], self.all_node_azimuths_map[i,:] = self.get_distances_of_nodes_to_point((node_coords[i,0],node_coords[i,1]), get_az='angles')
+            self.all_node_distances_map[i, :], self.all_node_azimuths_map[
+                i, :] = self.get_distances_of_nodes_to_point((node_coords[i, 0], node_coords[i, 1]), get_az='angles')
 
         assert numpy.all(self.all_node_distances_map >= 0.)
 

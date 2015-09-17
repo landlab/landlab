@@ -6,6 +6,7 @@ import inspect
 
 from .scalar_data_fields import ScalarDataFields, FieldError
 
+
 class Error(Exception):
     """Base class for errors in this module."""
     pass
@@ -13,6 +14,7 @@ class Error(Exception):
 
 class GroupError(Error, KeyError):
     """Raise this error for a missing group name."""
+
     def __init__(self, group):
         self._group = group
 
@@ -79,6 +81,7 @@ class ModelDataFields(object):
     >>> list(fields.at_cell.keys())
     ['topographic__elevation']
     """
+
     def __init__(self, **kwds):
         self._groups = dict()
         super(ModelDataFields, self).__init__(**kwds)

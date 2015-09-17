@@ -75,7 +75,8 @@ else:
 
 
 def get_functions_from_module(mod, pattern=None):
-    import inspect, re
+    import inspect
+    import re
 
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
@@ -90,7 +91,9 @@ def add_functions_to_class(cls, funcs):
 
 
 def add_module_functions_to_class(cls, module, pattern=None):
-    import inspect, imp, os
+    import inspect
+    import imp
+    import os
 
     caller = inspect.stack()[1]
     path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
@@ -101,5 +104,3 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     funcs = get_functions_from_module(mod, pattern=pattern)
     add_functions_to_class(cls, funcs)
-
-
