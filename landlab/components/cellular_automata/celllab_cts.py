@@ -448,7 +448,7 @@ class CellLabCTSModel(object):
         Creates
         -------
         self.node_state : 1D array of ints (x number of nodes in grid)
-        	The node-state array
+            The node-state array
 
         Notes
         -----
@@ -833,13 +833,14 @@ class CellLabCTSModel(object):
         Parameters
         ----------
         event : Event object
-        	Event object containing the data for the current transition event
+            Event object containing the data for the current transition event
         current_time : float
-        	Current time in simulation
+            Current time in simulation
         plot_each_transition : bool (optional)
-        	True if caller wants to show a plot of the grid after this transition
+            True if caller wants to show a plot of the grid after this
+            transition
         plotter : CAPlotter object
-        	Sent if caller wants a plot after this transition
+            Sent if caller wants a plot after this transition
 
         Algorithm
         ---------
@@ -917,7 +918,7 @@ class CellLabCTSModel(object):
                         assert new_link_state==new_link_state2, 'oops'
                         self.update_link_state(link, new_link_state, event.time)
 
-		# If requested, display a plot of the grid
+            # If requested, display a plot of the grid
             if plot_each_transition and (plotter is not None):
                 plotter.update_plot()
 
@@ -984,13 +985,13 @@ class CellLabCTSModel(object):
         Parameters
         ----------
         run_duration : float
-        	Length of time to run
+            Length of time to run
         node_state_grid : 1D array of ints (x number of nodes) (optional)
-        	Node states (if given, replaces model's current node state grid)
+            Node states (if given, replaces model's current node state grid)
         plot_each_transition : bool (optional)
-        	Option to display the grid after each transition
+            Option to display the grid after each transition
         plotter : CAPlotter object (optional)
-        	Needed if caller wants to plot after every transition
+            Needed if caller wants to plot after every transition
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
