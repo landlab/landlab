@@ -17,7 +17,7 @@ from landlab import RasterModelGrid
 from landlab.io.netcdf.errors import NotRasterGridError
 
 
-_COORDINATE_NAMES = ['x_range', 'y_range', 'z_range', 'spacing', 'dimension' ]
+_COORDINATE_NAMES = ['x_range', 'y_range', 'z_range', 'spacing', 'dimension']
 _AXIS_NAMES = ['x', 'y']
 
 

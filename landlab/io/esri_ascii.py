@@ -14,7 +14,8 @@ _VALID_HEADER_KEYS = [
     'yllcenter', 'cellsize', 'nodata_value',
 ]
 _HEADER_KEY_REGEX_PATTERN = re.compile(r'\s*(?P<key>[a-zA-z]\w+)')
-_HEADER_REGEX_PATTERN = re.compile(r'\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
+_HEADER_REGEX_PATTERN = re.compile(
+    r'\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
 _HEADER_VALUE_TESTS = {
     'nrows': (int, lambda x: x > 0),
     'ncols': (int, lambda x: x > 0),
@@ -39,6 +40,7 @@ class BadHeaderLineError(Error):
     Raise this error if a bad header is line encounter in a ESRI ASCII
     file.
     """
+
     def __init__(self, line):
         self._line = line
 
@@ -50,6 +52,7 @@ class MissingRequiredKeyError(Error):
     """
     Raise this error when a header is missing a required key.
     """
+
     def __init__(self, key):
         self._key = key
 
@@ -61,6 +64,7 @@ class KeyTypeError(Error):
     """
     Raise this error when a header's key value is of the wrong type.
     """
+
     def __init__(self, key, expected_type):
         self._key = key
         self._type = str(expected_type)
@@ -73,6 +77,7 @@ class KeyValueError(Error):
     """
     Raise this error when a header's key value has a bad value
     """
+
     def __init__(self, key, message):
         self._key = key
         self._msg = message
@@ -86,6 +91,7 @@ class DataSizeError(Error):
     Raise this error if the size of the data does not match that given in
     the header.
     """
+
     def __init__(self, size, expected_size):
         self._actual = size
         self._expected = expected_size
@@ -154,6 +160,7 @@ def _header_is_valid(header):
             pass
 
     return True
+
 
 def read_asc_header(asc_file):
     """
@@ -250,9 +257,9 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None):
     if not reshape:
         data = data.flatten()
 
-    if grid==None:
+    if grid == None:
         grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
-                           dx=spacing[0])
+                               dx=spacing[0])
     if name:
         grid.add_field('node', name, data)
 

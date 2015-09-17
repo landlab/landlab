@@ -4,10 +4,11 @@ from landlab.io.vtk.encoders import AsciiEncoder, RawEncoder, Base64Encoder
 
 
 class VtkEndian(object):
-    def __init__ (self, endian):
+
+    def __init__(self, endian):
         self.name = endian
 
-    def __str__ (self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
@@ -15,6 +16,7 @@ class VtkEndian(object):
 
 
 class VtkType(object):
+
     def __init__(self, name, size):
         self.bytes = size
         self.name = name
@@ -27,6 +29,7 @@ class VtkType(object):
 
 
 class VtkCellType(object):
+
     def __init__(self, name, id):
         self.id = id
         self.name = name
@@ -42,6 +45,7 @@ class VtkCellType(object):
 
 
 class VtkGridType(object):
+
     def __init__(self, name):
         self.name = name
 

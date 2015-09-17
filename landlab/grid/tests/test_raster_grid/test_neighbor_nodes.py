@@ -11,10 +11,10 @@ def test_all_neighbors():
     X = BAD_INDEX_VALUE
     expected = np.array([
         [X, X, X, X], [X, 5, X, X], [X, 6, X, X], [X, X, X, X],
-        [5, X, X, X], [6, 9, 4, 1], [7,10, 5, 2], [X, X, 6, X],
-        [9, X, X, X], [10,13, 8, 5], [11,14, 9, 6], [X, X, 10, X],
-        [13, X, X, X], [14,17,12, 9], [15,18,13,10], [X, X,14, X],
-        [X, X, X, X], [X, X, X,13], [X, X, X,14], [X, X, X, X],
+        [5, X, X, X], [6, 9, 4, 1], [7, 10, 5, 2], [X, X, 6, X],
+        [9, X, X, X], [10, 13, 8, 5], [11, 14, 9, 6], [X, X, 10, X],
+        [13, X, X, X], [14, 17, 12, 9], [15, 18, 13, 10], [X, X, 14, X],
+        [X, X, X, X], [X, X, X, 13], [X, X, X, 14], [X, X, X, X],
     ])
     assert_array_equal(rmg.get_neighbor_list(), expected)
 

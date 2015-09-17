@@ -116,7 +116,7 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
-    #if len(node_at_link_end) != len(node_at_link_start):
+    # if len(node_at_link_end) != len(node_at_link_start):
     #    raise ValueError('Link arrays must be the same length')
     return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
 
@@ -335,6 +335,7 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
 
 class LinkGrid(object):
+
     def __init__(self, link_ends, number_of_nodes, link_ids=None,
                  node_status=None):
         """Create a grid of links that enter and leave nodes.
@@ -506,7 +507,6 @@ class LinkGrid(object):
             return self.nodes_at_link[self._link_id_map[link_id]]
         except AttributeError:
             return self.nodes_at_link[link_id]
-
 
     def in_link_at_node(self, node):
         """Links entering a node.

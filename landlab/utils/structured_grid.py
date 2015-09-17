@@ -75,12 +75,14 @@ def active_cell_count(shape):
     """
     return cell_count(shape)
 
+
 def core_cell_count(shape):
     """
     Number of core cells. By default, all cells are core so this is
     the same as cell_count.
     """
     return cell_count(shape)
+
 
 def active_link_count(shape):
     """
@@ -294,6 +296,7 @@ def boundary_iter(shape):
                            left_right_iter(shape, 1, shape[0] - 1),
                            top_index_iter(shape))
 
+
 def perimeter_iter(shape):
     """
     Iterates over all of the perimeter node indices of a structured grid in
@@ -308,6 +311,7 @@ def perimeter_iter(shape):
                            left_right_iter(shape, 1, shape[0] - 1),
                            top_index_iter(shape))
 
+
 def boundary_nodes(shape):
     """
     .. deprecated:: 0.6
@@ -321,6 +325,7 @@ def boundary_nodes(shape):
     """
     return np.fromiter(boundary_iter(shape), dtype=np.int)
 
+
 def perimeter_nodes(shape):
     """
     An array of the indices of the perimeter nodes of a structured grid.
@@ -331,11 +336,13 @@ def perimeter_nodes(shape):
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
+
 def corners(shape):
     """
     An array of the indices of the grid corner nodes.
     """
-    return np.array([0, shape[1]-1, shape[1]*(shape[0]-1), shape[1]*shape[0]-1])
+    return np.array([0, shape[1] - 1, shape[1] * (shape[0] - 1), shape[1] * shape[0] - 1])
+
 
 def bottom_edge_node_ids(shape):
     return np.fromiter(bottom_index_iter(shape), dtype=np.int)
@@ -365,7 +372,7 @@ def interior_iter(shape):
     interiors = []
     interiors_per_row = shape[1] - 2
     for row in range(shape[1] + 1, shape[1] * (shape[0] - 1), shape[1]):
-        interiors.append(range(row , row + interiors_per_row))
+        interiors.append(range(row, row + interiors_per_row))
     return itertools.chain(*interiors)
 
 
@@ -482,6 +489,7 @@ def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
 
     return node_ids
 
+
 def core_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     """
     Indices of the core cells associated with the nodes of the structured grid.
@@ -505,6 +513,7 @@ def core_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     node_ids[interior_nodes(shape)] = np.arange(interior_node_count(shape))
 
     return node_ids
+
 
 def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     """
@@ -865,12 +874,16 @@ def vertical_inactive_link_mask(shape, node_status):
     """
 
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
-    is_closed_node = (node_status == 0) # GT thinks this should be False, not 0
+    # GT thinks this should be False, not 0
+    is_closed_node = (node_status == 0)
     is_closed_node.shape = shape
 
-    inactive_outlinks = is_closed_node[:-1, 1:-1] # middle cols, all but top row
-    inactive_inlinks = is_closed_node[1:, 1:-1] # middle cols, all but bottom row
-    return inactive_outlinks | inactive_inlinks # if either node is closed, the link is inactive
+    inactive_outlinks = is_closed_node[
+        :-1, 1:-1]  # middle cols, all but top row
+    # middle cols, all but bottom row
+    inactive_inlinks = is_closed_node[1:, 1:-1]
+    # if either node is closed, the link is inactive
+    return inactive_outlinks | inactive_inlinks
 
 
 def horizontal_inactive_link_mask(shape, node_status):
@@ -882,7 +895,7 @@ def horizontal_inactive_link_mask(shape, node_status):
     return inactive_outlinks | inactive_inlinks
 
 
-#def vertical_active_link_ids(shape):
+# def vertical_active_link_ids(shape):
 #    link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
 #    link_ids.shape = (shape[0] - 1, shape[1] - 2)
 #    return link_ids
@@ -892,7 +905,7 @@ def vertical_active_link_ids(shape, node_status=None):
     if node_status is None:
         link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
         #link_ids.shape = (shape[0] - 1, shape[1] - 2)
-        #return link_ids
+        # return link_ids
     else:
         inactive_links = vertical_inactive_link_mask(shape, node_status)
         inactive_links.shape = (inactive_links.size, )
@@ -943,8 +956,8 @@ def vertical_active_link_ids2(shape, node_status=None):
     rather than "active link IDs" for active links. Designed to ultimately
     replace the original vertical_active_link_ids().
     """
-    vert_link_ids = np.arange((shape[0]-1)*shape[1])
-    vert_link_ids.shape = (shape[0]-1, shape[1])
+    vert_link_ids = np.arange((shape[0] - 1) * shape[1])
+    vert_link_ids.shape = (shape[0] - 1, shape[1])
     link_ids = vert_link_ids[:, 1:-1]
 
     if node_status is not None:
@@ -1013,8 +1026,9 @@ def horizontal_active_link_ids2(shape, node_status=None):
     replace the original horizontal_active_link_ids().
     """
 
-    horiz_link_ids = np.arange(shape[0]*(shape[1]-1)) + (shape[0]-1)*shape[1]
-    horiz_link_ids.shape = (shape[0], shape[1]-1)
+    horiz_link_ids = np.arange(
+        shape[0] * (shape[1] - 1)) + (shape[0] - 1) * shape[1]
+    horiz_link_ids.shape = (shape[0], shape[1] - 1)
     link_ids = horiz_link_ids[1:-1, :]
 
     if node_status is not None:
@@ -1061,6 +1075,7 @@ def south_links(shape):
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
     return np.vstack((- np.ones((1, shape[1]), dtype=np.int), link_ids))
+
 
 def east_links(shape):
     """
@@ -1202,7 +1217,7 @@ def active_west_links2(shape, node_status=None):
     """
     active_west_links = -np.ones(shape, dtype=int)
     active_west_links[1:-1, 1:] = horizontal_active_link_ids2(
-            shape, node_status=node_status)
+        shape, node_status=node_status)
 
     return active_west_links
 
@@ -1238,7 +1253,7 @@ def active_east_links2(shape, node_status=None):
     """
     active_east_links = -np.ones(shape, dtype=int)
     active_east_links[1:-1, :-1] = horizontal_active_link_ids2(
-            shape, node_status=node_status)
+        shape, node_status=node_status)
 
     return active_east_links
 
@@ -1489,7 +1504,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
 
 def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
-                        inactive_indices=None):
+                         inactive_indices=None):
     """
     >>> from landlab.utils.structured_grid import cell_index_with_halo
     >>> cell_index_with_halo((2, 3), halo_indices=-1)
@@ -1510,7 +1525,6 @@ def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
         ids[(1, -2), :] = inactive_indices
 
     return ids
-
 
 
 def _neighbor_node_ids(ids_with_halo):
@@ -1745,13 +1759,13 @@ def diagonal_array_slow(shape, out_of_bounds=BAD_INDEX_VALUE):
     (nrows, ncols) = shape
     ncells = shape[0] * shape[1]
     diagonal_cells = - np.ones([ncells, 4], dtype=np.int)
-    for r in range( 1, nrows-1 ):
-        for c in range( 1, ncols-1 ):
+    for r in range(1, nrows - 1):
+        for c in range(1, ncols - 1):
             cell_id = r * ncols + c
-            diagonal_cells[cell_id,2] = cell_id - ncols - 1 # bottom left
-            diagonal_cells[cell_id,0] = cell_id + ncols + 1 # top right
-            diagonal_cells[cell_id,3] = cell_id - ncols + 1 # bottom right
-            diagonal_cells[cell_id,1] = cell_id + ncols - 1 # top left
+            diagonal_cells[cell_id, 2] = cell_id - ncols - 1  # bottom left
+            diagonal_cells[cell_id, 0] = cell_id + ncols + 1  # top right
+            diagonal_cells[cell_id, 3] = cell_id - ncols + 1  # bottom right
+            diagonal_cells[cell_id, 1] = cell_id + ncols - 1  # top left
     return diagonal_cells
 
 
@@ -1769,7 +1783,7 @@ def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VAL
     # nbr_nodes=self.get_neighbor_list(id)
     # diag_nbrs=self.get_diagonal_list(id)
 
-    i=0
+    i = 0
     while i < 4 and neighbors[i] != out_of_bounds:
         i += 1
 
@@ -1780,7 +1794,7 @@ def has_boundary_neighbor_slow(neighbors, diagonals, out_of_bounds=BAD_INDEX_VAL
         while r < 4 and diagonals[r] != out_of_bounds:
             r += 1
 
-    if r < 4 :
+    if r < 4:
         return True
     else:
         return False
@@ -1895,9 +1909,9 @@ def interior_node_id_to_node_id(shape, core_node_ids):
     Converts the id of an interior node ID (i.e., if just the interior nodes
     were numbered) to a node ID.
     """
-    IGW = shape[1]-2
-    real_ID = (core_node_ids//IGW + 1) * shape[1] + (core_node_ids%IGW) + 1
-    assert np.all(real_ID < shape[0]*shape[1])
+    IGW = shape[1] - 2
+    real_ID = (core_node_ids // IGW + 1) * shape[1] + (core_node_ids % IGW) + 1
+    assert np.all(real_ID < shape[0] * shape[1])
     return as_id_array(real_ID)
 
 
@@ -1907,8 +1921,9 @@ def node_id_to_interior_node_id(shape, node_ids):
     interior nodes were numbered)
     """
     ncols = shape[1]
-    interior_ID = (node_ids//ncols - 1)*(ncols-2) + (node_ids%ncols) - 1
-    if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0]-2)*(shape[1]-2)):
+    interior_ID = (node_ids // ncols - 1) * \
+        (ncols - 2) + (node_ids % ncols) - 1
+    if np.any(interior_ID < 0) or np.any(interior_ID >= (shape[0] - 2) * (shape[1] - 2)):
         raise IndexError("A supplied node was outside the interior grid")
     else:
         return as_id_array(interior_ID)

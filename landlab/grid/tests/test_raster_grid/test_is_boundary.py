@@ -49,7 +49,7 @@ def test_boundary_flag():
 
     assert_array_equal(
         rmg.is_boundary(np.arange(20), boundary_flag=FIXED_GRADIENT_BOUNDARY),
-        np.array([ True, False, False, False, False,
+        np.array([True, False, False, False, False,
                   False, False, False, False, False,
                   False, False, False, False, False,
                   False, False, False, False, False], dtype=bool))

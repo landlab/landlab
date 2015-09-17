@@ -18,6 +18,7 @@ def _default_axis_units(n_dims):
 
 
 class BaseGrid(object):
+
     def __init__(self, nodes, axis_name=None, axis_units=None, node_status=None,
                  links=None, cells=None):
         """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)

@@ -79,17 +79,18 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
     <BLANKLINE>
     """
-    padded_node_values = np.empty(node_values.size+1,dtype=float)
+    padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
     neighbors = grid.get_neighbor_list(node_ids)
-    if BAD_INDEX_VALUE!=-1:
-        neighbors = np.where(neighbors==BAD_INDEX_VALUE, -1, neighbors)
+    if BAD_INDEX_VALUE != -1:
+        neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
-    masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
+    masked_neighbor_values = np.ma.array(
+        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
@@ -219,19 +220,22 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
     <BLANKLINE>
     """
-    padded_node_values = np.empty(node_values.size+1,dtype=float)
+    padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
     node_ids = _make_optional_arg_into_array(grid.number_of_nodes, *args)
 
     neighbors = grid.get_neighbor_list(node_ids, bad_index=-1)
     values_at_neighbors = padded_node_values[neighbors]
-    masked_neighbor_values = np.ma.array(values_at_neighbors,mask=values_at_neighbors==BAD_INDEX_VALUE)
+    masked_neighbor_values = np.ma.array(
+        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.ma.empty_like(masked_neighbor_values, dtype=float)
-    np.subtract(masked_neighbor_values[:,:2], values_at_nodes, out=out[:,:2], **kwds)
-    np.subtract(values_at_nodes, masked_neighbor_values[:,2:], out=out[:,2:], **kwds)
+    np.subtract(masked_neighbor_values[:, :2],
+                values_at_nodes, out=out[:, :2], **kwds)
+    np.subtract(values_at_nodes, masked_neighbor_values[
+                :, 2:], out=out[:, 2:], **kwds)
     out *= 1. / grid.node_spacing
 
     return out
@@ -345,8 +349,8 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
                                   (diagonal_grads[0], neighbor_grads[0]),
                                   **kwds)
             node_ids = np.choose(neighbor_grads[0] <= diagonal_grads[0],
-                             (diagonal_grads[1], neighbor_grads[1]),
-                             **kwds)
+                                 (diagonal_grads[1], neighbor_grads[1]),
+                                 **kwds)
             return (min_grads, node_ids)
 
 
@@ -420,7 +424,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
-        #return (out, 3 - ind)
+        # return (out, 3 - ind)
     else:
         return grads.min(axis=1, **kwds)
 
@@ -494,13 +498,13 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.get_neighbor_list()[grid.node_at_cell[cell_ids],ind]
+        node_ids = grid.get_neighbor_list()[grid.node_at_cell[cell_ids], ind]
         #node_ids = grid.neighbor_nodes[grid.node_at_cell[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[range(len(cell_ids)), ind]
         return (out, node_ids)
-        #return (out, 3 - ind)
+        # return (out, 3 - ind)
     else:
         return grads.min(axis=1, **kwds)
 
@@ -586,7 +590,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
-    #return neighbors[range(len(cell_ids)), 3 - inds]
+    # return neighbors[range(len(cell_ids)), 3 - inds]
     return (
         np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
@@ -642,7 +646,7 @@ def node_id_of_cell_corner(grid, inds, *args):
     return (
         np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
                 3 - inds, axis=1))
-    #return diagonals[range(len(cell_ids)), 3 - inds]
+    # return diagonals[range(len(cell_ids)), 3 - inds]
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
@@ -709,7 +713,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
     """
     assert (len(active_link_flux) == grid.number_of_active_links), \
-           "incorrect length of active_link_flux array"
+        "incorrect length of active_link_flux array"
 
     # If needed, create net_unit_flux array
     if out is None:
@@ -733,6 +737,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 # TODO: Functions below here still need to be refactored for speed and to
 # conform to the interface standards.
 
+
 def calculate_max_gradient_across_node(grid, u, cell_id):
     """Steepest descent using D8.
 
@@ -753,50 +758,53 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     GT: Might be possible to speed this up using inlink_matrix and
     outlink_matrix.
     """
-    #We have poor functionality if these are edge cells! Needs an exception
+    # We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = grid.get_neighbor_list(cell_id)
     neighbor_cells.sort()
     diagonal_cells = []
-    if neighbor_cells[0]!=-1:
-        diagonal_cells.extend([neighbor_cells[0]-1, neighbor_cells[0]+1])
-    if neighbor_cells[3]!=-1:
-        diagonal_cells.extend([neighbor_cells[3]-1, neighbor_cells[3]+1])
+    if neighbor_cells[0] != -1:
+        diagonal_cells.extend([neighbor_cells[0] - 1, neighbor_cells[0] + 1])
+    if neighbor_cells[3] != -1:
+        diagonal_cells.extend([neighbor_cells[3] - 1, neighbor_cells[3] + 1])
     slopes = []
     diagonal_dx = np.sqrt(2.) * grid.dx
     for a in neighbor_cells:
-        #ng I think this is actually slope as defined by a geomorphologist,
-        #that is -dz/dx and not the gradient (dz/dx)
-        single_slope = (u[cell_id] - u[a])/grid.dx
-        if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
+        # ng I think this is actually slope as defined by a geomorphologist,
+        # that is -dz/dx and not the gradient (dz/dx)
+        single_slope = (u[cell_id] - u[a]) / grid.dx
+        # This should no longer be necessary, but retained in case
+        if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
             six.print_('NaNs present in the grid!')
 
     for a in diagonal_cells:
-        single_slope = (u[cell_id] - u[a])/(diagonal_dx)
+        single_slope = (u[cell_id] - u[a]) / (diagonal_dx)
         if not np.isnan(single_slope):
             slopes.append(single_slope)
         else:
             six.print_('NaNs present in the grid!')
-    #ng thinks that the maximum slope should be found here, not the
-    #minimum slope, old code commented out.  New code below it.
-    #if slopes:
+    # ng thinks that the maximum slope should be found here, not the
+    # minimum slope, old code commented out.  New code below it.
+    # if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
-    #else:
+    # else:
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
-        max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
+        max_slope, index_max = max((max_slope, index_max)
+                                   for (index_max, max_slope) in enumerate(slopes))
     else:
         six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 8
 
     # North = Zero Radians  = Clockwise Positive
-    angles = [180., 270., 90., 0., 225., 135., 315., 45., np.nan] #This is inefficient
+    angles = [180., 270., 90., 0., 225., 135.,
+              315., 45., np.nan]  # This is inefficient
 
-    #ng commented out old code
-    #return min_slope, angles[index_min]
+    # ng commented out old code
+    # return min_slope, angles[index_min]
     return max_slope, angles[index_max]
 
 
@@ -828,44 +836,45 @@ def calculate_max_gradient_across_node_d4(self, u, cell_id):
     _ANGLES = (90., 0., 270., 180.)
     return grads[ind], _ANGLES[ind]
 
-    #We have poor functionality if these are edge cells! Needs an exception
+    # We have poor functionality if these are edge cells! Needs an exception
     neighbor_cells = self.get_neighbor_list(cell_id)
     neighbor_cells.sort()
 
     slopes = []
     for a in neighbor_cells:
-        #ng I think this is actually slope as defined by a geomorphologist,
-        #that is -dz/dx and not the gradient (dz/dx)
+        # ng I think this is actually slope as defined by a geomorphologist,
+        # that is -dz/dx and not the gradient (dz/dx)
         if self.node_status[a] != CLOSED_BOUNDARY:
-            single_slope = (u[cell_id] - u[a])/self.dx
+            single_slope = (u[cell_id] - u[a]) / self.dx
         else:
             single_slope = -9999
         #single_slope = (u[cell_id] - u[a])/self._dx
-        #if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
+        # if not np.isnan(single_slope): #This should no longer be necessary, but retained in case
         #    slopes.append(single_slope)
-        #else:
+        # else:
         #    print 'NaNs present in the grid!'
         slopes.append(single_slope)
 
-    #ng thinks that the maximum slope should be found here, not the
-    #minimum slope, old code commented out.  New code below it.
-    #if slopes:
+    # ng thinks that the maximum slope should be found here, not the
+    # minimum slope, old code commented out.  New code below it.
+    # if slopes:
     #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
-    #else:
+    # else:
     #    print 'Returning NaN angle and direction...'
     #    min_slope = np.nan
     #    index_min = 8
     if slopes:
-        max_slope, index_max = max((max_slope, index_max) for (index_max, max_slope) in enumerate(slopes))
+        max_slope, index_max = max((max_slope, index_max)
+                                   for (index_max, max_slope) in enumerate(slopes))
     else:
         six.print_('Returning NaN angle and direction...')
         max_slope = np.nan
         index_max = 4
 
-    angles = [180., 270., 90., 0., np.nan] #This is inefficient
+    angles = [180., 270., 90., 0., np.nan]  # This is inefficient
 
-    #ng commented out old code
-    #return min_slope, angles[index_min]
+    # ng commented out old code
+    # return min_slope, angles[index_min]
     return max_slope, angles[index_max]
 
 

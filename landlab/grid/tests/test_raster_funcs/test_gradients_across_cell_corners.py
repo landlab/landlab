@@ -49,13 +49,14 @@ def test_with_no_cell_id_arg():
     grads = rmg.calculate_gradient_across_cell_corners(values)
 
     assert_array_equal(grads, (1. / np.sqrt(2.)) * np.array([
-        [ 2., -1., -1., 2.], [2., -2., -2., 3.], [4., -3., -3., 4.],
+        [2., -1., -1., 2.], [2., -2., -2., 3.], [4., -3., -3., 4.],
         [-4., -1., -1., 2.], [3., -2., -2., 3.], [5., -8., -2., 5.]]))
 
 
 @with_setup(setup_unit_grid)
 def test_with_out_keyword():
     out = np.empty((1, 4))
-    rtn = rmg.calculate_gradient_across_cell_corners(values_at_nodes, 5, out=out)
+    rtn = rmg.calculate_gradient_across_cell_corners(
+        values_at_nodes, 5, out=out)
     assert_is(rtn, out)
     assert_array_equal(out, np.array([[6., 4., -6., -4.]]) / np.sqrt(2))

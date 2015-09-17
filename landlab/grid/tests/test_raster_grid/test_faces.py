@@ -11,6 +11,7 @@ from landlab import RasterModelGrid
 
 
 class TestRasterModelGridConnectingFaces():
+
     def setup(self):
         self.rmg = RasterModelGrid(4, 5)
 
@@ -32,6 +33,7 @@ class TestRasterModelGridConnectingFaces():
 
 
 class TestRasterModelGridCellFaces():
+
     def setup(self):
         self.rmg = RasterModelGrid(4, 5)
 

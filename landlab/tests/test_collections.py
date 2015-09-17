@@ -13,6 +13,7 @@ except ImportError:
 from landlab import Palette, Arena, NoProvidersError
 from landlab.components.sample import Sample1, Sample2
 
+
 def test_empty_palette():
     """
     Create a palette without components.

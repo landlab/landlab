@@ -13,12 +13,13 @@ def resolve_values_on_active_links(grid, active_link_values, out=None):
 
     return np.multiply(((grid.node_x[grid.activelink_tonode] -
                          grid.node_x[grid.activelink_fromnode]) /
-                         grid.active_link_length),
-                         active_link_values, out=out), np.multiply(
-                       ((grid.node_y[grid.activelink_tonode] -
-                         grid.node_y[grid.activelink_fromnode]) /
-                         grid.active_link_length),
-                         active_link_values, out=out)
+                        grid.active_link_length),
+                       active_link_values, out=out), np.multiply(
+        ((grid.node_y[grid.activelink_tonode] -
+          grid.node_y[grid.activelink_fromnode]) /
+         grid.active_link_length),
+        active_link_values, out=out)
+
 
 def resolve_values_on_links(grid, link_values, out=None):
     """
@@ -30,12 +31,13 @@ def resolve_values_on_links(grid, link_values, out=None):
         out = grid.empty(centering='link')
     return np.multiply(((grid.node_x[grid.node_at_link_head] -
                          grid.node_x[grid.node_at_link_tail]) /
-                         grid.link_length),
-                         link_values, out=out), np.multiply(
-                       ((grid.node_y[grid.node_at_link_head] -
-                         grid.node_y[grid.node_at_link_tail]) /
-                         grid.link_length),
-                         link_values, out=out)
+                        grid.link_length),
+                       link_values, out=out), np.multiply(
+        ((grid.node_y[grid.node_at_link_head] -
+          grid.node_y[grid.node_at_link_tail]) /
+         grid.link_length),
+        link_values, out=out)
+
 
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """
@@ -101,7 +103,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     arrays.
     """
     assert (len(active_link_flux) == grid.number_of_active_links), \
-           "incorrect length of active_link_flux array"
+        "incorrect length of active_link_flux array"
 
     # If needed, create net_unit_flux array
     if out is None:

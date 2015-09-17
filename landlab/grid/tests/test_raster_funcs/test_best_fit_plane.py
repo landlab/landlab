@@ -34,6 +34,7 @@ def test_best_fit_plane_in_xy():
     assert_equal(slope, 0.)
     assert_equal(aspect, 90.)
 
+
 def test_best_fit_plane_in_xz():
     (x, y, z) = (np.array([0., 1., 1.]),
                  np.array([0., 0., 0.]),
@@ -52,4 +53,3 @@ def test_best_fit_plane_in_yz():
 
     assert_equal(slope, 90.)
     assert_equal(aspect, 90.)
-

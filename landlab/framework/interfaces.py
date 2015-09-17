@@ -17,6 +17,7 @@ class FatalError(Exception):
 
 class BadVarNameError(Error):
     """Exception to indicate a bad input/output variable name"""
+
     def __init__(self, name):
         super(BadVarNameError, self).__init__()
         self.name = name
@@ -29,6 +30,7 @@ class MissingModelAttributeError(Error):
     """
     Raise this exception if a component is missing a required attribute.
     """
+
     def __init__(self, attrib):
         super(MissingModelAttributeError, self).__init__()
         self.attrib = attrib
@@ -75,6 +77,7 @@ class BmiBase(object):
     """
     Definition of the Basic Modeling Interface
     """
+
     def initialize(self, file_name):
         """
         Initialize model.
@@ -158,6 +161,7 @@ class BmiExtendedBase(object):
     """
     An extension interface for a BMI.
     """
+
     def update_until(self, time):
         """
         Update model until some time.
@@ -166,8 +170,7 @@ class BmiExtendedBase(object):
         """
         pass
 
-
-    def run_model (self):
+    def run_model(self):
         """
         Initialize, run, and finalize a model.
         """
@@ -178,6 +181,7 @@ class BmiUnstructured(object):
     """
     BMI for a model that uses an unstructured grid.
     """
+
     def get_x(self, name):
         """
         Get x-coordinates of grid nodes.
@@ -207,6 +211,7 @@ class BmiStructured(object):
     """
     BMI for a model that uses a structured grid.
     """
+
     def get_grid_shape(self, name):
         """
         Get shape of grid for variable, name.
@@ -232,6 +237,7 @@ class BmiRectilinear(object):
     """
     BMI for a model that uses a rectilinear grid.
     """
+
     def get_grid_shape(self, name):
         """
         Get shape of grid for variable, name.
@@ -257,6 +263,7 @@ class BmiUniformRectilinear(object):
     """
     BMI for a model that exposes a uniform rectilinear grid.
     """
+
     def get_grid_shape(self, name):
         """
         Get shape of grid for variable, name.

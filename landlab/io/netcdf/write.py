@@ -15,6 +15,7 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
 
+
 def _set_netcdf_attributes(root, attrs):
     """
     Set attributes of the netCDF Database object, *root*. Attributes are
@@ -171,6 +172,7 @@ _VALID_NETCDF_FORMATS = set([
     'NETCDF4_CLASSIC',
     'NETCDF4',
 ])
+
 
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None):

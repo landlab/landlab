@@ -9,6 +9,7 @@ from landlab.core.utils import as_id_array
 
 from scipy.spatial import Voronoi
 
+
 def simple_poly_area(x, y):
     """Calculates and returns the area of a 2-D simple polygon.
 
@@ -102,6 +103,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg.number_of_nodes
     25
     """
+
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
         """Create a Voronoi Delaunay grid from a set of points.
 
@@ -138,15 +140,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         Creates an unstructured grid around the given (x,y) points.
         """
 
-        assert type(x)==numpy.ndarray, 'x must be a numpy array'
-        assert type(y)==numpy.ndarray, 'y must be a numpy array'
-        assert len(x)==len(y), 'x and y arrays must have the same size'
+        assert type(x) == numpy.ndarray, 'x must be a numpy array'
+        assert type(y) == numpy.ndarray, 'y must be a numpy array'
+        assert len(x) == len(y), 'x and y arrays must have the same size'
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
         pts = numpy.zeros((len(x), 2))
-        pts[:,0] = x
-        pts[:,1] = y
+        pts[:, 0] = x
+        pts[:, 1] = y
         self.pts = pts
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
@@ -169,7 +171,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._node_x = x
         self._node_y = y
         [self.node_status, self._core_nodes, self._boundary_nodes] = \
-                self.find_perimeter_nodes(pts)
+            self.find_perimeter_nodes(pts)
         self._num_active_nodes = self.number_of_nodes
         self._num_core_nodes = len(self.core_nodes)
         self._num_cells = len(self.core_nodes)
@@ -185,9 +187,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.vor = vor
         self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
         for node in self.activecell_node:
-            xv = vor.vertices[vor.regions[vor.point_region[node]],0]
-            yv = vor.vertices[vor.regions[vor.point_region[node]],1]
-            self.active_cell_areas[self.node_activecell[node]] = simple_poly_area(xv, yv)
+            xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
+            yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
+            self.active_cell_areas[self.node_activecell[
+                node]] = simple_poly_area(xv, yv)
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
@@ -204,11 +207,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         #[self.node_at_link_tail, self.node_at_link_head, self.active_links, self.face_width] \
         #        = self.create_links_and_faces_from_voronoi_diagram(vor)
         self._num_links = len(self.node_at_link_tail)
-        self._num_faces = self._num_links # temporary: to be done right!
+        self._num_faces = self._num_links  # temporary: to be done right!
 
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
-                                                  self.node_at_link_head)
+                                                   self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
         self._setup_inlink_and_outlink_matrices()
@@ -263,22 +266,23 @@ class VoronoiDelaunayGrid(ModelGrid):
         Note that this method returns a *masked* array, with the normal provisos
         that integer indexing with a masked array removes the mask.
         """
-        if nodata==-1: #fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
+        if nodata == -1:  # fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
             try:
                 return self._node_patches
             except AttributeError:
-                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)
+                self.create_patches_from_delaunay_diagram(
+                    self.pts, self.vor, nodata)
                 return self._node_patches
         else:
             try:
                 self.set_bad_value
             except:
-                self.create_patches_from_delaunay_diagram(self.pts, self.vor, nodata)
-                self.set_bad_value=True
+                self.create_patches_from_delaunay_diagram(
+                    self.pts, self.vor, nodata)
+                self.set_bad_value = True
                 return self._node_patches
             else:
                 return self._node_patches
-
 
     def find_perimeter_nodes(self, pts):
         """
@@ -290,7 +294,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # Calculate the convex hull for the set of points
         from scipy.spatial import ConvexHull
-        hull = ConvexHull(pts, qhull_options='Qc') # see below why we use 'Qt'
+        hull = ConvexHull(pts, qhull_options='Qc')  # see below why we use 'Qt'
 
         # The ConvexHull object lists the edges that form the hull. We need to
         # get from this list of edges the unique set of nodes. To do this, we
@@ -310,7 +314,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # option to ConvexHull, which makes it generate a list of coplanar
         # points. We include these in our set of boundary nodes.
         convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
-        coplanar_nodes = hull.coplanar[:,0]
+        coplanar_nodes = hull.coplanar[:, 0]
         boundary_nodes = as_id_array(numpy.concatenate(
             (convex_hull_nodes, coplanar_nodes)))
 
@@ -319,13 +323,13 @@ class VoronoiDelaunayGrid(ModelGrid):
         # boundary (=1). This means that all perimeter (convex hull) nodes are
         # initially flagged as boundary code 1. An application might wish to change
         # this so that, for example, some boundaries are inactive.
-        node_status = numpy.zeros(len(pts[:,0]), dtype=numpy.int8)
+        node_status = numpy.zeros(len(pts[:, 0]), dtype=numpy.int8)
         node_status[boundary_nodes] = 1
 
         # It's also useful to have a list of interior nodes
-        core_nodes = as_id_array(numpy.where(node_status==0)[0])
+        core_nodes = as_id_array(numpy.where(node_status == 0)[0])
 
-        #save the arrays and update the properties
+        # save the arrays and update the properties
         self.node_status = node_status
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
@@ -373,11 +377,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> cell_node
         array([1, 2, 4])
         """
-        assert ncells==numpy.count_nonzero(node_status==CORE_NODE), \
-               'ncells must equal number of CORE_NODE values in node_status'
+        assert ncells == numpy.count_nonzero(node_status == CORE_NODE), \
+            'ncells must equal number of CORE_NODE values in node_status'
 
         cell = 0
-        node_cell = numpy.ones(len(node_status), dtype=int)*BAD_INDEX_VALUE
+        node_cell = numpy.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
         cell_node = numpy.zeros(ncells, dtype=int)
         for node in range(len(node_cell)):
             if node_status[node] == CORE_NODE:
@@ -418,7 +422,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # array that is > -1 (indicating that the triangle has a neighbor opposite
         # a given vertex; in other words, two triangles are sharing an edge).
         #
-        num_shared_links = numpy.count_nonzero(tri.neighbors>-1)
+        num_shared_links = numpy.count_nonzero(tri.neighbors > -1)
         num_links = 3 * tri.nsimplex - num_shared_links // 2
         link_fromnode = numpy.zeros(num_links, dtype=int)
         link_tonode = numpy.zeros(num_links, dtype=int)
@@ -439,13 +443,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         tridone = numpy.zeros(tri.nsimplex, dtype=bool)
         for t in range(tri.nsimplex):  # loop over triangles
             for i in range(0, 3):       # loop over vertices & neighbors
-                if tri.neighbors[t,i] == -1 or not tridone[tri.neighbors[t,i]]:
-                    link_fromnode[link_id] = tri.simplices[t,numpy.mod(i+1,3)]
-                    link_tonode[link_id] = tri.simplices[t,numpy.mod(i+2,3)]
+                if tri.neighbors[t, i] == -1 or not tridone[tri.neighbors[t, i]]:
+                    link_fromnode[link_id] = tri.simplices[
+                        t, numpy.mod(i + 1, 3)]
+                    link_tonode[link_id] = tri.simplices[
+                        t, numpy.mod(i + 2, 3)]
                     link_id += 1
             tridone[t] = True
 
-        #save the results
+        # save the results
         #self.node_at_link_tail = link_fromnode
         #self.node_at_link_head = link_tonode
         #self._num_links = num_links
@@ -457,8 +463,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     def is_valid_voronoi_ridge(vor, n):
 
         SUSPICIOUSLY_BIG = 40000000.0
-        return vor.ridge_vertices[n][0]!=-1 and vor.ridge_vertices[n][1]!=-1 \
-                and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]]))<SUSPICIOUSLY_BIG
+        return vor.ridge_vertices[n][0] != -1 and vor.ridge_vertices[n][1] != -1 \
+            and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG
 
     @staticmethod
     def create_links_and_faces_from_voronoi_diagram(vor):
@@ -519,7 +525,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # total number of links the number of occurrences of an undefined
         # vertex.
         num_active_links = num_links \
-                    - numpy.count_nonzero(numpy.array(vor.ridge_vertices)==-1)
+            - numpy.count_nonzero(numpy.array(vor.ridge_vertices) == -1)
 
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
@@ -532,15 +538,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         # so we add them to our arrays as well.
         j = 0
         for i in range(num_links):
-            link_fromnode[i] = vor.ridge_points[i,0]
-            link_tonode[i] = vor.ridge_points[i,1]
+            link_fromnode[i] = vor.ridge_points[i, 0]
+            link_tonode[i] = vor.ridge_points[i, 1]
             face_corner1 = vor.ridge_vertices[i][0]
             face_corner2 = vor.ridge_vertices[i][1]
-            if VoronoiDelaunayGrid.is_valid_voronoi_ridge(vor, i):  # means it's a valid face
-                dx = vor.vertices[face_corner2,0]-vor.vertices[face_corner1,0]
-                dy = vor.vertices[face_corner2,1]-vor.vertices[face_corner1,1]
-                face_width[j] = numpy.sqrt(dx*dx+dy*dy)
-                if abs(face_width[j])>=40000.0:
+            # means it's a valid face
+            if VoronoiDelaunayGrid.is_valid_voronoi_ridge(vor, i):
+                dx = vor.vertices[face_corner2, 0] - \
+                    vor.vertices[face_corner1, 0]
+                dy = vor.vertices[face_corner2, 1] - \
+                    vor.vertices[face_corner1, 1]
+                face_width[j] = numpy.sqrt(dx * dx + dy * dy)
+                if abs(face_width[j]) >= 40000.0:
                     six.print_('link ' + i + ' from ' + link_fromnode[i] +
                                ' to ' + link_tonode[i] + ' has face width ' +
                                face_width[j])
@@ -549,11 +558,12 @@ class VoronoiDelaunayGrid(ModelGrid):
 
                     from scipy.spatial import voronoi_plot_2d
                     voronoi_plot_2d(vor)
-                assert face_width[j] < 40000., 'face width must be less than earth circumference!'
+                assert face_width[
+                    j] < 40000., 'face width must be less than earth circumference!'
                 active_links[j] = i
                 j += 1
 
-        #save the data
+        # save the data
         #self.node_at_link_tail = link_fromnode
         #self.node_at_link_head = link_tonode
         #self.active_link_ids = active_links
@@ -562,7 +572,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         #self._num_active_links = active_links.size
 
         return link_fromnode, link_tonode, active_links, face_width
-
 
     def reorient_links_upper_right(self):
         r"""Reorient links to all point within the upper-right semi-circle.
@@ -588,32 +597,36 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
 
         # Calculate the horizontal (dx) and vertical (dy) link offsets
-        link_dx = self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
-        link_dy = self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
+        link_dx = self.node_x[self.node_at_link_head] - \
+            self.node_x[self.node_at_link_tail]
+        link_dy = self.node_y[self.node_at_link_head] - \
+            self.node_y[self.node_at_link_tail]
 
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
-        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi/4
+        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi / 4
 
         # The range of values should be -180 to +180 degrees (but in radians).
         # It won't be after the above operation, because angles that were
         # > 135 degrees will now have values > 180. To correct this, we subtract
-        # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi radians).
-        link_angle -= 2*numpy.pi*(link_angle>=numpy.pi)
+        # 360 (i.e., 2 pi radians) from those that are > 180 (i.e., > pi
+        # radians).
+        link_angle -= 2 * numpy.pi * (link_angle >= numpy.pi)
 
         # Find locations where the angle is negative; these are the ones we
         # want to flip
-        (flip_locs, ) = numpy.where(link_angle<0.)
+        (flip_locs, ) = numpy.where(link_angle < 0.)
 
         # If there are any flip locations, proceed to switch their fromnodes and
         # tonodes; otherwise, we're done
-        if len(flip_locs)>0:
+        if len(flip_locs) > 0:
 
             # Temporarily story the fromnode for these
             fromnode_temp = self.node_at_link_tail[flip_locs]
 
             # The fromnodes now become the tonodes, and vice versa
-            self._node_at_link_tail[flip_locs] = self.node_at_link_head[flip_locs]
+            self._node_at_link_tail[
+                flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
 
     def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
@@ -627,32 +640,36 @@ class VoronoiDelaunayGrid(ModelGrid):
         tri = Delaunay(pts)
         assert numpy.array_equal(tri.points, vor.points)
 
-        if nodata==-1:
+        if nodata == -1:
             pass
-        elif nodata=='bad_value':
-            nodata=BAD_INDEX_VALUE
-        elif nodata=='nan':
-            nodata=numpy.nan
+        elif nodata == 'bad_value':
+            nodata = BAD_INDEX_VALUE
+        elif nodata == 'nan':
+            nodata = numpy.nan
         else:
             raise ValueError('Do not recognise nodata value!')
 
         self._patch_nodes = tri.simplices
         self._number_of_patches = tri.simplices.shape[0]
         max_dimension = 0
-        #need to build a squared off, masked array of the node_patches
-        #the max number of patches for a node in the grid is the max sides of
-        #the side-iest voronoi region.
+        # need to build a squared off, masked array of the node_patches
+        # the max number of patches for a node in the grid is the max sides of
+        # the side-iest voronoi region.
         for i in range(len(vor.regions)):
-            if len(vor.regions[i])>max_dimension:
-                max_dimension=len(vor.regions[i])
-        _node_patches = numpy.empty((self.number_of_nodes, max_dimension), dtype=int)
+            if len(vor.regions[i]) > max_dimension:
+                max_dimension = len(vor.regions[i])
+        _node_patches = numpy.empty(
+            (self.number_of_nodes, max_dimension), dtype=int)
         _node_patches.fill(nodata)
         for i in range(self.number_of_nodes):
-            if not self.is_boundary(i, boundary_flag=4): #don't include closed nodes
-                patches_with_node = numpy.argwhere(numpy.equal(self._patch_nodes,i))[:,0]
-                _node_patches[i,:patches_with_node.size] = patches_with_node[:]
-        #mask it
-        self._node_patches = numpy.ma.array(_node_patches, mask=numpy.equal(_node_patches, -1))
+            if not self.is_boundary(i, boundary_flag=4):  # don't include closed nodes
+                patches_with_node = numpy.argwhere(
+                    numpy.equal(self._patch_nodes, i))[:, 0]
+                _node_patches[
+                    i, :patches_with_node.size] = patches_with_node[:]
+        # mask it
+        self._node_patches = numpy.ma.array(
+            _node_patches, mask=numpy.equal(_node_patches, -1))
 
     def save(self, path, clobber=False):
         """Save a grid and fields.
@@ -701,8 +718,8 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         (base, ext) = os.path.splitext(path)
         if ext != '.grid':
-            ext = ext+'.grid'
-        path = base+ext
+            ext = ext + '.grid'
+        path = base + ext
 
         with open(path, 'wb') as fp:
             cPickle.dump(self, fp)
