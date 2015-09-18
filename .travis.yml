@@ -8,6 +8,8 @@ python:
 os:
   - linux
 
+sudo: false
+
 install:
   - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
   - bash .ci/travis/install_python.sh
