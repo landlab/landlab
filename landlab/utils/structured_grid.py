@@ -645,12 +645,12 @@ def node_index_at_link_ends(shape):
 
 def inlink_index_at_node(shape):
     """Array of links entering nodes."""
-    return inlinks(shape, return_count=False)
+    return inlinks(shape)
 
 
 def outlink_index_at_node(shape):
     """Array of links leaving nodes."""
-    return outlinks(shape, return_count=False)
+    return outlinks(shape)
 
 
 def node_at_link_head(node_ids):
@@ -781,14 +781,14 @@ def active_face_index(shape):
     return np.arange(active_face_count(shape))
 
 
-def inlinks(shape, tonodes=None, return_count=True):
+def inlinks(shape):
     """Array of links entering nodes."""
     links = np.vstack((south_links(shape), west_links(shape)))
     links.shape = (2, node_count(shape))
     return links
 
 
-def outlinks(shape, tonodes=None, return_count=True):
+def outlinks(shape):
     """Array of links leaving nodes."""
     links = np.vstack((north_links(shape), east_links(shape)))
     links.shape = (2, node_count(shape))
