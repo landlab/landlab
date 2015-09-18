@@ -257,7 +257,7 @@ def test_no_interiors():
 
 # class TestNodeStatus(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_4_by_5():
-    status = sgrid.node_status((4, 5))
+    status = sgrid.stat_at_node((4, 5))
     assert_equal(status.dtype, np.int8)
     assert_array_equal(status,
                        np.array([1, 1, 1, 1, 1,
@@ -267,7 +267,7 @@ def test_4_by_5():
 
 
 def test_no_interiors():
-    status = sgrid.node_status((2, 3))
+    status = sgrid.status_at_node((2, 3))
     assert_equal(status.dtype, np.int8)
     assert_array_equal(status,
                        np.array([1, 1, 1,
@@ -300,8 +300,8 @@ def test_4_by_5():
     assert_equal(len(active_links), sgrid.active_link_count((4, 5)))
 
 
-def test_with_node_status():
-    status = sgrid.node_status((4, 5))
+def test_with_status_at_node():
+    status = sgrid.status_at_node((4, 5))
     status[6] = sgrid.CLOSED_BOUNDARY
     active_links = sgrid.active_links((4, 5), node_status_array=status)
 

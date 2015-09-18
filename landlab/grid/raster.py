@@ -428,7 +428,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # whether a given node is an active, non-boundary node, or some type of
         # boundary. Here we default to having all perimeter nodes be active
         # fixed-value boundaries.
-        self.node_status = sgrid.node_status(
+        self.node_status = sgrid.status_at_node(
             self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
 
         # Cell lists:
