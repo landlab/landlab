@@ -691,7 +691,7 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     return link_faces
 
 
-def node_status(shape, boundary_status=FIXED_VALUE_BOUNDARY):
+def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
     """Array of the statuses of nodes.
 
     The statuses of the nodes in a structured grid with dimensions, *shape*.
@@ -751,7 +751,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     array([0])
     """
     if node_status_array is None:
-        node_status_array = node_status(shape)
+        node_status_array = status_at_node(shape)
 
     if link_nodes is None:
         (link_from_node, link_to_node) = node_index_at_link_ends(shape)
