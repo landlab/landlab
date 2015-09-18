@@ -149,6 +149,17 @@ class JaggedArray(object):
         """
         return self._values.compressed()
 
+    @property
+    def masked_array(self):
+        """The jagged array as a masked array.
+
+        Returns
+        -------
+        np.masked_array :
+            The underlying masked array.
+        """
+        return self._values
+
     @array.setter
     def array(self, array):
         """Set the data of the jagged array from a 1D array.
@@ -231,7 +242,7 @@ class JaggedArray(object):
         JaggedArray
             A new JaggedArray.
         """
-        return JaggedArray(np.ma.empty_like(jagged.array, dtype=dtype))
+        return JaggedArray(np.ma.empty_like(jagged.masked_array, dtype=dtype))
 
     def length_of_row(self, row):
         """Number of values in a given row.
