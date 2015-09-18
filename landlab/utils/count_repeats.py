@@ -1,12 +1,10 @@
 #! /usr/bin/env python
-
+"""Count repeated values in an array."""
 
 import numpy as np
 
-from ..core.utils import as_id_array
 
-
-def count_repeated_values(x):
+def count_repeated_values(values):
     """Count how many times in an array values repeat and where they appear.
 
     Return a list of length *n* that gives the values and indices of repeated
@@ -18,7 +16,7 @@ def count_repeated_values(x):
 
     Parameters
     ----------
-    x : array_like
+    values : array_like
         Input array to count repeated values.
 
     Returns
@@ -45,7 +43,8 @@ def count_repeated_values(x):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30], dtype=np.int))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30],
+    ...     dtype=np.int))
     >>> len(counts)
     3
     >>> counts[0]
@@ -54,15 +53,22 @@ def count_repeated_values(x):
     (array([30]), array([3]))
     >>> counts[2]
     (array([30]), array([4]))
+
+    The input array remains unchanged.
+
+    >>> x = np.array([20, 30, 30, 40], dtype=np.int)
+    >>> counts = count_repeated_values(x)
+    >>> x
+    array([20, 30, 30, 40])
     """
     counts = []
 
-    (unique_values, unique_inds) = np.unique(x, return_index=True)
-    x_inds = np.arange(len(x), dtype=np.int)
+    (unique_values, unique_inds) = np.unique(values, return_index=True)
+    x_inds = np.arange(len(values), dtype=np.int)
     while len(unique_values) > 0:
         counts.append((unique_values, x_inds[unique_inds]))
-        x = np.delete(x, unique_inds)
+        values = np.delete(values, unique_inds)
         x_inds = np.delete(x_inds, unique_inds)
-        (unique_values, unique_inds) = np.unique(x, return_index=True)
+        (unique_values, unique_inds) = np.unique(values, return_index=True)
 
     return counts
