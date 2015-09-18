@@ -22,7 +22,7 @@ def node_count(shape):
     >>> node_count((3, 4))
     12
     """
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return shape[0] * shape[1]
 
 
@@ -43,13 +43,11 @@ def interior_node_count(shape):
     >>> interior_node_count((3, 4))
     2
     """
-    assert(len(shape) == 2)
-    try:
-        assert(np.min(shape) > 2)
-    except AssertionError:
-        return 0
-    else:
+    assert len(shape) == 2
+    if np.min(shape) > 2:
         return (shape[0] - 2) * (shape[1] - 2)
+    else:
+        return 0
 
 
 def cell_count(shape):
@@ -65,8 +63,7 @@ def cell_count(shape):
     >>> cell_count((1, 4))
     0
     """
-    assert(len(shape) == 2)
-
+    assert len(shape) == 2
     if np.min(shape) > 2:
         return (shape[0] - 2) * (shape[1] - 2)
     else:
@@ -105,13 +102,11 @@ def active_link_count(shape):
     >>> active_link_count((3, 4))
     7
     """
-    assert(len(shape) == 2)
-    try:
-        assert(np.min(shape) > 2)
-    except AssertionError:
-        return 0
-    else:
+    assert len(shape) == 2
+    if np.min(shape) > 2:
         return 2 * shape[0] * shape[1] - 3 * (shape[0] + shape[1]) + 4
+    else:
+        return 0
 
 
 def link_count(shape):
@@ -125,19 +120,19 @@ def link_count(shape):
     >>> link_count((3,2))
     7
     """
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return shape[1] * (shape[0] - 1) + shape[0] * (shape[1] - 1)
 
 
 def vertical_link_count(shape):
     """Number of vertical links."""
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return (shape[0] - 1) * shape[1]
 
 
 def horizontal_link_count(shape):
     """Number of horizontal links."""
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return shape[0] * (shape[1] - 1)
 
 
@@ -164,7 +159,7 @@ def boundary_cell_count(shape):
     >>> boundary_cell_count((3, 4))
     10
     """
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return 2 * (shape[0] - 2) + 2 * (shape[1] - 2) + 4
 
 
@@ -180,7 +175,7 @@ def perimeter_node_count(shape):
     >>> perimeter_node_count((3, 4))
     10
     """
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     return 2 * (shape[0] - 2) + 2 * (shape[1] - 2) + 4
 
 
@@ -205,7 +200,7 @@ def face_count(shape):
     >>> face_count((3, 4))
     7
     """
-    assert(len(shape) == 2)
+    assert len(shape) == 2
     if np.min(shape) > 2:
         return ((shape[0] - 1) * (shape[1] - 2) +
                 (shape[0] - 2) * (shape[1] - 1))
@@ -443,14 +438,14 @@ def node_coords(shape, *args):
     except IndexError:
         spacing = np.ones(len(shape), dtype=np.float)
     else:
-        assert(len(spacing) == len(shape))
+        assert len(spacing) == len(shape)
 
     try:
         origin = args[1]
     except IndexError:
         origin = np.zeros(len(shape), dtype=np.float)
     else:
-        assert(len(origin) == len(origin))
+        assert len(origin) == len(origin)
 
     node_count = np.prod(shape)
 
