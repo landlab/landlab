@@ -40,6 +40,7 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
+from six.moves import range
 
 
 class JaggedArray(object):
@@ -120,7 +121,7 @@ class JaggedArray(object):
         mat = np.ma.masked_all((len(values_per_row), max(values_per_row)),
                                dtype=array.dtype)
         offset = 0
-        for row_number in xrange(mat.shape[0]):
+        for row_number in range(mat.shape[0]):
             n_valid = values_per_row[row_number]
             mat[row_number, :n_valid] = array[offset:offset + n_valid]
             offset += n_valid
