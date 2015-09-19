@@ -2,7 +2,7 @@
 
 import numpy as np
 import inspect
-from landlab.field.grouped import FieldError
+from landlab.field.scalar_data_fields import FieldError
 try:
     import matplotlib.pyplot as plt
 except ImportError:
