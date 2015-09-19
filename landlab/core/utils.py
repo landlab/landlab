@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+"""Some utilities for the landlab package."""
 
 import numpy as np
 
@@ -6,12 +7,12 @@ import numpy as np
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
-def as_id_array(x):
+def as_id_array(array):
     """Convert an array to an array of ids.
 
     Parameters
     ----------
-    x : ndarray
+    array : ndarray
         Array of IDs.
 
     Returns
@@ -54,27 +55,42 @@ def as_id_array(x):
     >>> y.dtype == np.int
     True
     """
-    if x.dtype == np.int:
-        return x.view(np.int)
+    if array.dtype == np.int:
+        return array.view(np.int)
     else:
-        return x.astype(np.int)
+        return array.astype(np.int)
 
 
 if np.dtype(np.intp) == np.int:
-    def _as_id_array(x):
-        if x.dtype == np.intp or x.dtype == np.int:
-            return x.view(np.int)
+    def _as_id_array(array):
+        if array.dtype == np.intp or array.dtype == np.int:
+            return array.view(np.int)
         else:
-            return x.astype(np.int)
+            return array.astype(np.int)
 else:
-    def _as_id_array(x):
-        if x.dtype == np.int:
-            return x.view(np.int)
+    def _as_id_array(array):
+        if array.dtype == np.int:
+            return array.view(np.int)
         else:
-            return x.astype(np.int)
+            return array.astype(np.int)
 
 
 def get_functions_from_module(mod, pattern=None):
+    """Get all the function in a module.
+
+    Parameters
+    ----------
+    mod : module
+        An instance of a module.
+    pattern : str, optional
+        Only get functions whose name match a regular expression.
+
+    Returns
+    -------
+    dict
+        Dictionary of functions contained in the module. Keys are the
+        function names, values are the functions themselves.
+    """
     import inspect
     import re
 
@@ -86,11 +102,31 @@ def get_functions_from_module(mod, pattern=None):
 
 
 def add_functions_to_class(cls, funcs):
+    """Add functions as methods of a class.
+
+    Parameters
+    ----------
+    cls : class
+        A class.
+    funcs : dict
+        Dictionary of function names and instances.
+    """
     for name, func in funcs.items():
         setattr(cls, name, func)
 
 
 def add_module_functions_to_class(cls, module, pattern=None):
+    """Add functions from a module to a class as methods.
+
+    Parameters
+    ----------
+    cls : class
+        A class.
+    module : module
+        An instance of a module.
+    pattern : str, optional
+        Only get functions whose name match a regular expression.
+    """
     import inspect
     import imp
     import os
