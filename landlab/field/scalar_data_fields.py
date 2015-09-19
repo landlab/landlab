@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+"""Container that holds a collection of named data-fields."""
 
 import numpy as np
 
@@ -7,11 +8,14 @@ _UNKNOWN_UNITS = '?'
 
 
 class Error(Exception):
+
     """Base class for errors in this module."""
+
     pass
 
 
 class FieldError(Error, KeyError):
+
     """Raise this error for a missing field name."""
 
     def __init__(self, field):
@@ -22,6 +26,7 @@ class FieldError(Error, KeyError):
 
 
 class ScalarDataFields(dict):
+
     """Collection of named data fields that are of the same size.
 
     Holds a collection of data fields that all contain the same number of
@@ -53,7 +58,7 @@ class ScalarDataFields(dict):
 
     @property
     def units(self):
-        """Units for values of the field.
+        """Get units for values of the field.
 
         Returns
         -------
@@ -322,7 +327,8 @@ class ScalarDataFields(dict):
         array([1, 1, 1, 1])
         >>> field['topographic__elevation'] is values
         False
-        >>> field.add_field('topographic__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('topographic__elevation', values, noclobber=True)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
         """
@@ -360,6 +366,7 @@ class ScalarDataFields(dict):
         self._units[name] = units
 
     def __setitem__(self, name, value_array):
+        """Store a data field by name."""
         if value_array.size != self.size:
             raise ValueError(
                 'total size of the new array must be the same as the field')
@@ -370,6 +377,7 @@ class ScalarDataFields(dict):
         super(ScalarDataFields, self).__setitem__(name, value_array)
 
     def __getitem__(self, name):
+        """Get a data field by name."""
         try:
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:
