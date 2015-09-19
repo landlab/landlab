@@ -187,7 +187,7 @@ def _header_is_valid(header):
         try:
             header[key] = to_type(header[key])
         except ValueError:
-            raise KeyTypeError(key, float)
+            raise KeyTypeError(key, to_type)
 
         if not is_valid(header[key]):
             raise KeyValueError(key, 'Bad value')
@@ -224,6 +224,54 @@ def read_asc_header(asc_file):
         The header is missing a required key.
     KeyTypeError
         The header has the key but its values is of the wrong type.
+
+    Examples
+    --------
+    >>> from six import StringIO
+    >>> from landlab.io.esri_ascii import read_asc_header
+    >>> contents = StringIO('''
+    ...     nrows 100
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> hdr = read_asc_header(contents)
+    >>> hdr['nrows'], hdr['ncols']
+    (100, 200)
+    >>> hdr['cellsize']
+    1.5
+    >>> hdr['xllcenter'], hdr['yllcenter']
+    (0.5, -0.5)
+
+    ``MissingRequiredKey`` is raised if the header does not contain all of the
+    necessary keys.
+
+    >>> contents = StringIO('''
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> read_asc_header(contents)
+    Traceback (most recent call last):
+        ...
+    MissingRequiredKeyError: nrows
+
+    ``KeyTypeError`` is raises if a value is of the wrong type. For instance,
+    ``nrows`` and ``ncols`` must be ``int``.
+
+    >>> contents = StringIO('''
+    ...     nrows 100.5
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> read_asc_header(contents)
+    Traceback (most recent call last):
+        ...
+    KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = dict()
     for (key, value) in _header_lines(asc_file):
