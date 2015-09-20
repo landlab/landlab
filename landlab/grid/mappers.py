@@ -34,7 +34,7 @@ from __future__ import division
 import numpy as np
 
 
-def map_link_head_node_to_link(mg, var_name, out=None):
+def map_link_head_node_to_link(grid, var_name, out=None):
     """Map values from a link head nodes to links.
 
     Iterate over a grid and identify the node at the *head*. For each link,
@@ -46,7 +46,7 @@ def map_link_head_node_to_link(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -78,15 +78,15 @@ def map_link_head_node_to_link(mg, var_name, out=None):
     >>> rtn is values_at_links
     True
     """
-    values_at_nodes = mg.at_node[var_name]
+    values_at_nodes = grid.at_node[var_name]
     if out is None:
-        out = mg.empty(centering='link')
-    out[:] = values_at_nodes[mg.node_at_link_head]
+        out = grid.empty(centering='link')
+    out[:] = values_at_nodes[grid.node_at_link_head]
 
     return out
 
 
-def map_link_tail_node_to_link(mg, var_name, out=None):
+def map_link_tail_node_to_link(grid, var_name, out=None):
     """Map values from a link tail nodes to links.
 
     map_link_tail_node_to_link iterates across the grid and
@@ -99,7 +99,7 @@ def map_link_tail_node_to_link(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -132,15 +132,15 @@ def map_link_tail_node_to_link(mg, var_name, out=None):
     True
     """
     if out is None:
-        out = mg.empty(centering='link')
+        out = grid.empty(centering='link')
 
-    values_at_nodes = mg.at_node[var_name]
-    out[:] = values_at_nodes[mg.node_at_link_tail]
+    values_at_nodes = grid.at_node[var_name]
+    out[:] = values_at_nodes[grid.node_at_link_tail]
 
     return out
 
 
-def map_min_of_link_nodes_to_link(mg, var_name, out=None):
+def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     """Map the minimum of a link's nodes to the link.
 
     map_min_of_link_nodes_to_link iterates across the grid and
@@ -151,7 +151,7 @@ def map_min_of_link_nodes_to_link(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -185,17 +185,17 @@ def map_min_of_link_nodes_to_link(mg, var_name, out=None):
     True
     """
     if out is None:
-        out = mg.empty(centering='link')
+        out = grid.empty(centering='link')
 
-    values_at_nodes = mg.at_node[var_name]
-    np.minimum(values_at_nodes[mg.node_at_link_head],
-               values_at_nodes[mg.node_at_link_tail],
+    values_at_nodes = grid.at_node[var_name]
+    np.minimum(values_at_nodes[grid.node_at_link_head],
+               values_at_nodes[grid.node_at_link_tail],
                out=out)
 
     return out
 
 
-def map_max_of_link_nodes_to_link(mg, var_name, out=None):
+def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     """Map the maximum of a link's nodes to the link.
 
     map_max_of_link_nodes_to_link iterates across the grid and
@@ -206,7 +206,7 @@ def map_max_of_link_nodes_to_link(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -240,17 +240,17 @@ def map_max_of_link_nodes_to_link(mg, var_name, out=None):
     True
     """
     if out is None:
-        out = mg.empty(centering='link')
+        out = grid.empty(centering='link')
 
-    values_at_nodes = mg.at_node[var_name]
-    np.maximum(values_at_nodes[mg.node_at_link_head],
-               values_at_nodes[mg.node_at_link_tail],
+    values_at_nodes = grid.at_node[var_name]
+    np.maximum(values_at_nodes[grid.node_at_link_head],
+               values_at_nodes[grid.node_at_link_tail],
                out=out)
 
     return out
 
 
-def map_mean_of_link_nodes_to_link(mg, var_name, out=None):
+def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     """Map the mean of a link's nodes to the link.
 
     map_mean_of_link_nodes_to_link iterates across the grid and
@@ -261,7 +261,7 @@ def map_mean_of_link_nodes_to_link(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -294,16 +294,16 @@ def map_mean_of_link_nodes_to_link(mg, var_name, out=None):
     True
     """
     if out is None:
-        out = mg.empty(centering='link')
+        out = grid.empty(centering='link')
 
-    values_at_nodes = mg.at_node[var_name]
-    out[:] = 0.5 * (values_at_nodes[mg.node_at_link_head] +
-                    values_at_nodes[mg.node_at_link_tail])
+    values_at_nodes = grid.at_node[var_name]
+    out[:] = 0.5 * (values_at_nodes[grid.node_at_link_head] +
+                    values_at_nodes[grid.node_at_link_tail])
 
     return out
 
 
-def map_node_to_cell(mg, var_name, out=None):
+def map_node_to_cell(grid, var_name, out=None):
     """Map values for nodes to cells.
 
     map_node_to_cell iterates across the grid and
@@ -314,7 +314,7 @@ def map_node_to_cell(mg, var_name, out=None):
 
     Parameters
     ----------
-    mg : ModelGrid
+    grid : ModelGrid
         A landlab ModelGrid.
     var_name : str
         Name of variable field defined at nodes.
@@ -345,9 +345,9 @@ def map_node_to_cell(mg, var_name, out=None):
     True
     """
     if out is None:
-        out = mg.empty(centering='cell')
+        out = grid.empty(centering='cell')
 
-    values_at_nodes = mg.at_node[var_name]
-    out[:] = values_at_nodes[mg.node_at_cell]
+    values_at_nodes = grid.at_node[var_name]
+    out[:] = values_at_nodes[grid.node_at_cell]
 
     return out
