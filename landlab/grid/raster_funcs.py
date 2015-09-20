@@ -106,7 +106,8 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import calculate_gradient_across_cell_faces
+    >>> from landlab.grid.raster_funcs import (
+    ...     calculate_gradient_across_cell_faces)
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([0., 0., 0., 0., 0., 0., 1., 1., 3., 3., 3., 3.])
 
@@ -172,7 +173,8 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import calculate_gradient_across_cell_corners
+    >>> from landlab.grid.raster_funcs import (
+    ...     calculate_gradient_across_cell_corners)
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
 
@@ -232,7 +234,8 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     Create a grid with nine nodes.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import calculate_gradient_along_node_links
+    >>> from landlab.grid.raster_funcs import (
+    ...     calculate_gradient_along_node_links)
     >>> grid = RasterModelGrid(3, 3)
     >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
 
@@ -834,10 +837,13 @@ def calculate_max_gradient_across_node(grid, u, cell_id):
     # ng thinks that the maximum slope should be found here, not the
     # minimum slope, old code commented out.  New code below it.
     # if slopes:
-    #    min_slope, index_min = min((min_slope, index_min) for (index_min, min_slope) in enumerate(slopes))
+    #    min_slope, index_min = min(
+    #        (min_slope, index_min)
+    #        for (index_min, min_slope) in enumerate(slopes))
     # else:
     #    min_slope = np.nan
     #    index_min = 8
+
     if slopes:
         max_slope, index_max = max(
             (max_slope, index_max)
