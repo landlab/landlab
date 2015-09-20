@@ -4177,7 +4177,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
         indBool = (n != BAD_INDEX_VALUE)
@@ -4192,7 +4192,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             a.append(aspect)
             del ns
         # return aspect alone
@@ -4232,7 +4232,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
         indBool = (n != BAD_INDEX_VALUE)
@@ -4247,7 +4247,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             s.append(slope)
             del ns
         # return slope alone
@@ -4531,7 +4531,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
         indBool = (n != BAD_INDEX_VALUE)
@@ -4546,7 +4546,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             a.append(aspect)
             s.append(slope)
 
