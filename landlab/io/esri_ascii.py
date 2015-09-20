@@ -253,9 +253,8 @@ def read_asc_header(asc_file):
     ...     xllcenter 0.5
     ...     yllcenter -0.5
     ... ''')
-    >>> read_asc_header(contents)
+    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-        ...
     MissingRequiredKeyError: nrows
 
     ``KeyTypeError`` is raises if a value is of the wrong type. For instance,
@@ -268,9 +267,8 @@ def read_asc_header(asc_file):
     ...     xllcenter 0.5
     ...     yllcenter -0.5
     ... ''')
-    >>> read_asc_header(contents)
+    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-        ...
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = dict()
