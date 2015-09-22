@@ -638,75 +638,84 @@ class ModelGrid(ModelDataFields):
 
     @property
     def core_cell_index_at_nodes(self):
-        """Core cell ID associated with grid nodes."""
+        """Get array of core cells associated with nodes."""
         return self.node_corecell
 
     @property
     def core_cells(self):
-        """IDs of core cells."""
+        """Get array of core cells."""
         return self._core_cells
 
     @property
     def node_at_link_head(self):
-        """Node ID that defines the start of a link"""
+        """Get array of the node at each link head (*to-node*)."""
         return self._node_at_link_head
 
     @property
     def node_at_link_tail(self):
-        """Node ID that defines the end of a link"""
+        """Get array of the node at each link tail (*from-node*)."""
         return self._node_at_link_tail
 
     @property
     def face_at_link(self):
-        """ID of the face associated with a link between two grid nodes"""
+        """Get array of faces associated with links."""
         return self.link_face
 
     @property
     def number_of_nodes(self):
-        """Total number of nodes in the grid"""
+        """Total number of nodes."""
         return self._num_nodes
 
     @property
     def number_of_cells(self):
-        """Total number of cells in the grid"""
+        """Total number of cells."""
         return self._num_cells
 
     @property
     def number_of_links(self):
-        """Total number of links in the grid"""
+        """Total number of links."""
         return self._num_links
 
     @property
     def number_of_faces(self):
-        """Total number of faces in the grid"""
+        """Total number of faces."""
         return self._num_faces
 
     @property
     def number_of_active_nodes(self):
-        """Number of active nodes in the grid (i.e., core + open boundary)"""
+        """Number of active nodes.
+
+        An active node is either a core node or an open-boundary node.
+        """
         return self._num_active_nodes
 
     @property
     def number_of_core_nodes(self):
-        """Number of core nodes in the grid (i.e., not boundaries)"""
+        """Number of core nodes.
+        
+        A core node is a non-boundary node
+        """
         return self._num_core_nodes
 
     @property
     def number_of_active_cells(self):
-        """
-        Number of active cells in the grid (includes any possible
-        boundary cells)
+        """Number of active cells.
+
+        An active cell includes any possible boundary cells.
         """
         return self._num_active_cells
 
     @property
     def number_of_core_cells(self):
-        """Number of core cells in the grid (excludes all boundary cells)."""
+        """Number of core cells.
+        
+        A core cell excludes all boundary cells.
+        """
         return self._num_core_cells
 
     @property
     def number_of_active_links(self):
-        """Number of active links in the grid"""
+        """Number of active links."""
         try:
             return self._num_active_links
         except AttributeError:
@@ -715,7 +724,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_active_faces(self):
-        """Number of active faces in the grid"""
+        """Number of active faces."""
         try:
             return self._num_active_faces
         except AttributeError:
@@ -724,7 +733,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_fixed_links(self):
-        """Number of fixed links in the grid"""
+        """Number of fixed links."""
         try:
             return self._num_fixed_links
         except AttributeError:
@@ -733,7 +742,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_fixed_faces(self):
-        """Number of fixed faces in the grid"""
+        """Number of fixed faces."""
         try:
             return self._num_fixed_faces
         except AttributeError:
@@ -750,11 +759,10 @@ class ModelGrid(ModelDataFields):
         element_name : {'node', 'cell', 'link', 'face', 'core_node',
             'core_cell', 'active_link', 'active_face'}
             Name of the grid element.
-        }
 
         Returns
         -------
-        int :
+        int
             Number of elements in the grid.
         """
         try:
@@ -771,16 +779,6 @@ class ModelGrid(ModelDataFields):
             use :func:`get_core_nodes` instead.
         """
         return as_id_array(numpy.where(self.node_status == CORE_NODE)[0])
-
-    def get_core_nodes(self):
-        """Node IDs of core nodes.
-
-        Returns
-        -------
-        ndarray
-            Node IDs of all of a grid's core nodes.
-        """
-        return self.core_nodes
 
     @make_return_array_immutable
     def get_node_status(self):
