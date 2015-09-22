@@ -585,7 +585,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def open_boundary_nodes(self):
-        """Node id of all open boundary nodes."""
+        """Get array of open boundary nodes."""
         (open_boundary_node_ids, ) = numpy.where(
             (self.node_status != CLOSED_BOUNDARY) &
             (self.node_status != CORE_NODE))
@@ -593,31 +593,28 @@ class ModelGrid(ModelDataFields):
 
     @property
     def closed_boundary_nodes(self):
-        """Node id of all closed boundary nodes.
-        """
+        """Get array of closed boundary nodes."""
         (closed_boundary_node_ids, ) = numpy.where(
             self.node_status == CLOSED_BOUNDARY)
         return as_id_array(closed_boundary_node_ids)
 
     @property
     def fixed_gradient_boundary_nodes(self):
-        """Node id of all fixed gradient boundary nodes
-        """
+        """Get array of fixed gradient boundary nodes."""
         (fixed_gradient_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_GRADIENT_BOUNDARY)
         return as_id_array(fixed_gradient_boundary_node_ids)
 
     @property
     def fixed_value_boundary_nodes(self):
-        """Node id of all fixed value boundary nodes
-        """
+        """Get array of fixed value boundary nodes."""
         (fixed_value_boundary_node_ids, ) = numpy.where(
             self.node_status == FIXED_VALUE_BOUNDARY)
         return as_id_array(fixed_value_boundary_node_ids)
 
     @property
     def active_links(self):
-        """Link IDs of all active links"""
+        """Get array of active links."""
         try:
             return self.active_link_ids
         except AttributeError:
@@ -626,23 +623,12 @@ class ModelGrid(ModelDataFields):
 
     @property
     def fixed_links(self):
-        """Link IDs of all fixed links"""
+        """Get array of fixed links."""
         try:
             return self.fixed_link_ids
         except AttributeError:
             self._reset_link_status_list()
             return self.fixed_link_ids
-
-    @property
-    def node_index_at_active_cells(self):
-        """Node ID associated with active grid cells.
-
-        .. note:: Deprecated since version 0.6.
-            Uses out-of-date terminology;
-            use :func:`node_at_core_cell` for an exact equivalent.
-        """
-        (active_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
-        return as_id_array(active_cell_ids)
 
     @property
     def node_at_core_cell(self):
