@@ -637,16 +637,6 @@ class ModelGrid(ModelDataFields):
         return as_id_array(core_cell_ids)
 
     @property
-    def active_cell_index(self):
-        """IDs of active cells.
-
-        .. note:: Deprecated since version 0.6.
-            "active" terminology now superceded by "core", unless explicitly
-            referring to the open boundaries as well as core cells.
-        """
-        return self.active_cells
-
-    @property
     def core_cell_index_at_nodes(self):
         """Core cell ID associated with grid nodes."""
         return self.node_corecell
