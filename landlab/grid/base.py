@@ -632,19 +632,9 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_at_core_cell(self):
-        """Node ID associated with core grid cells."""
+        """Get array of nodes associated with core cells."""
         (core_cell_ids, ) = numpy.where(self.node_status == CORE_NODE)
         return as_id_array(core_cell_ids)
-
-    @property
-    def active_cell_index_at_nodes(self):
-        """Active cell ID associated with grid nodes.
-
-        .. note:: Deprecated since version 0.6.
-            "active" terminology now superceded by "core", unless explicitly
-            referring to the open boundaries as well as core cells.
-        """
-        return self.node_activecell
 
     @property
     def active_cell_index(self):
