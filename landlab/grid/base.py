@@ -254,11 +254,29 @@ LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
 
 
 def _sort_points_into_quadrants(x, y, nodes):
-    """
+    """Divide x, y points into quadrants.
+
     Divide points with locations given in the *x*, and *y* arrays into north,
     south, east, and west quadrants. Returns nodes contained in quadrants
     (west, east, north, south).
 
+    Parameters
+    ----------
+    x : array_like
+        X-coordinates of points.
+    y : array_like
+        Y-coordinates of points.
+    nodes : array_like
+        Nodes associated with points.
+
+    Returns
+    -------
+    tuple of array_like
+        Tuple of nodes in each coordinate. Nodes are grouped as (*west*,
+        *east*, *north*, *south*).
+
+    Examples
+    --------
     >>> import numpy as np
     >>> from landlab.grid.base import _sort_points_into_quadrants
     >>> x = np.array([0, 1, 0, -1])
@@ -280,13 +298,55 @@ def _sort_points_into_quadrants(x, y, nodes):
 
 
 def _default_axis_names(n_dims):
-    """Returns a tuple of the default axis names."""
+    """Name of each axis.
+    
+    Parameters
+    ----------
+    n_dims : int
+        Number of spatial dimensions.
+    
+    Returns
+    -------
+    tuple of str
+        Name of each axis.
+    
+    Examples
+    --------
+    >>> from landlab.grid.base import _default_axis_names
+    >>> _default_axis_names(1)
+    ('x',)
+    >>> _default_axis_names(2)
+    ('y', 'x')
+    >>> _default_axis_names(3)
+    ('z', 'y', 'x')
+    """
     _DEFAULT_NAMES = ('z', 'y', 'x')
     return _DEFAULT_NAMES[- n_dims:]
 
 
 def _default_axis_units(n_dims):
-    """Returns a tuple of the default axis units."""
+    """Unit names for each axis.
+    
+    Parameters
+    ----------
+    n_dims : int
+        Number of spatial dimensions.
+    
+    Returns
+    -------
+    tuple of str
+        Units of each axis.
+    
+    Examples
+    --------
+    >>> from landlab.grid.base import _default_axis_units
+    >>> _default_axis_units(1)
+    ('-',)
+    >>> _default_axis_units(2)
+    ('-', '-')
+    >>> _default_axis_units(3)
+    ('-', '-', '-')
+    """
     return ('-', ) * n_dims
 
 
@@ -402,8 +462,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 
 
 class ModelGrid(ModelDataFields):
-    """Base class for creating and manipulating 2D structured or unstructured
-    grids for numerical models.
+    """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
     classes, RasterModelGrid and DelaunayModelGrid, that can create and
@@ -470,7 +529,7 @@ class ModelGrid(ModelDataFields):
             'axis_units', _default_axis_units(self.ndim))
 
     def _initialize(self):
-        pass
+        raise NotImplementedError('_initialize')
 
     @property
     def ndim(self):
@@ -484,7 +543,8 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_nodes(self):
-        """
+        """Get array of active nodes.
+
         Node IDs of all active (core & open boundary) nodes.
         core_nodes will return just core nodes.
         """
@@ -493,9 +553,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def core_nodes(self):
-        """
-        Node IDs of all core nodes.
-        """
+        """Get array of core nodes."""
         try:
             return self._core_nodes
         except:
@@ -504,9 +562,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def boundary_nodes(self):
-        """
-        Node IDs of all boundary nodes.
-        """
+        """Get array of boundary nodes."""
         try:
             return self._boundary_nodes
         except:
@@ -515,29 +571,17 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_boundary_status(self):
-        """Boundary status of nodes.
+        """Get array of the boundary status of nodes.
 
         Return an array of the status of a grid's nodes. The node status can
         be one of the following:
         - `CORE_NODE`
         - `FIXED_VALUE_BOUNDARY`
-        - `FIXED_GRADIENT_BOUNDARY `
+        - `FIXED_GRADIENT_BOUNDARY`
         - `TRACKS_CELL_BOUNDARY`
-        - `CLOSED_BOUNDARY `
+        - `CLOSED_BOUNDARY`
         """
         return self.node_status
-
-    @property
-    def open_nodes(self):
-        """
-        .. note:: Deprecated since version 0.6.
-            This terminology is no longer preferred, "active_nodes" is a
-            synonym.
-
-        Node id for all nodes not marked as a closed boundary
-        """
-        (open_node_ids, ) = numpy.where(self.node_status != CLOSED_BOUNDARY)
-        return as_id_array(open_node_ids)
 
     @property
     def open_boundary_nodes(self):
