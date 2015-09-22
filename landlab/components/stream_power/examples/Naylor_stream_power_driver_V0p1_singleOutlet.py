@@ -113,8 +113,8 @@ for t in xrange(5):
     #im = pylab.plot(mg.dx*np.arange(ncols), elev_r[int(nrows//4),:])
     #pylab.title('E-W cross_section')
     #
-    #drainage_areas = mg['node']['drainage_area'][mg.get_interior_nodes()]
-    #steepest_slopes = mg['node']['steepest_slope'][mg.get_interior_nodes()]
+    #drainage_areas = mg['node']['drainage_area'][mg.core_nodes]
+    #steepest_slopes = mg['node']['steepest_slope'][mg.core_nodes]
     #pylab.figure(5)
     #pylab.loglog(drainage_areas, steepest_slopes, 'x')
     #pylab.xlabel('Upstream drainage area, m^2')

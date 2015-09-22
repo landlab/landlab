@@ -770,16 +770,6 @@ class ModelGrid(ModelDataFields):
         except KeyError:
             raise TypeError('element name not understood')
 
-    def get_interior_nodes(self):
-        """Return node IDs of all of a grid's interior nodes. Interior nodes
-        are active nodes that are not on a boundary.
-
-        .. note:: Deprecated since version 0.6.
-            Deprecated due to outdated terminology;
-            use :func:`get_core_nodes` instead.
-        """
-        return as_id_array(numpy.where(self.node_status == CORE_NODE)[0])
-
     @make_return_array_immutable
     def get_node_status(self):
         """Status of grid nodes.
