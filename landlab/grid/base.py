@@ -1266,7 +1266,7 @@ class ModelGrid(ModelDataFields):
                                                           out=out)
 
     def resolve_values_on_links(self, link_values, out=None):
-        """xy-components of links.
+        """Resolve the xy-components of links.
 
         Resolves values provided defined on links into the x and y directions.
         Returns values_along_x, values_along_y
@@ -1274,7 +1274,7 @@ class ModelGrid(ModelDataFields):
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
     def resolve_values_on_active_links(self, link_values, out=None):
-        """xy-components of active links.
+        """Resolve the xy-components of active links.
 
         Resolves values provided defined on active links into the x and y
         directions.
@@ -1350,19 +1350,22 @@ class ModelGrid(ModelDataFields):
             raise TypeError("unit must be 'degrees' or 'radians'")
 
     def node_slopes(self, **kwargs):
-        """
-        This method is simply an alias for grid.node_slopes_using_patches()
-        Takes
-        * elevs : field name or nnodes array, defaults to
-          'topographic__elevation'
-        * unit : 'degrees' (default) or 'radians'
-        as for node_slopes_using_patches
+        """Array of slopes at nodes.
+
+        This method is an alias for :any:`node_slopes_using_patches`.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes.
         """
         return self.node_slopes_using_patches(**kwargs)
 
     def aspect(self, slope_component_tuple=None,
                elevs='topographic__elevation', unit='degrees'):
-        """Calculate aspect of a surface.
+        """Get array of aspect of a surface.
 
         Calculates at returns the aspect of a surface. Aspect is returned as
         radians clockwise of north, unless input parameter units is set to
@@ -1399,11 +1402,9 @@ class ModelGrid(ModelDataFields):
 
     def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees',
                   elevs='topographic__elevation'):
-        """Calculate hillshade.
+        """Get array of hillshade.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Promoted from raster to base by DEJH, 10/7/14.
 
         Parameters
         ----------
@@ -1427,7 +1428,7 @@ class ModelGrid(ModelDataFields):
 
         Returns
         -------
-        float
+        ndarray of float
             Hillshade at each cell.
 
         Notes
@@ -1481,7 +1482,7 @@ class ModelGrid(ModelDataFields):
 
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux,
                                                 net_unit_flux=None):
-        r"""Flux divergence for core nodes.
+        r"""Get array of flux divergence for core nodes.
 
         Given an array of fluxes along links, computes the net total flux
         within each cell, divides by cell area, and stores the result in
@@ -1578,54 +1579,6 @@ class ModelGrid(ModelDataFields):
             active_link_flux)
 
         net_unit_flux = node_net_unit_flux[self.corecell_node]
-
-        return net_unit_flux
-
-    def _calculate_flux_divergence_at_active_cells_slow(self, active_link_flux,
-                                                        net_unit_flux=False):
-        """Flux divergence for active cells.
-
-        .. note:: Deprecated since version 0.1.
-            Use :func:`calculate_flux_divergence_at_active_cells`
-
-        Original, slower version of calculate_flux_divergence_at_active_cells,
-        using a for-loop instead of simply calling the node-based version of
-        the method. Kept here as illustration of what the method is intended
-        to do.
-        """
-
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid.calculate_flux_divergence_at_active_cells')
-
-        assert (len(active_link_flux) == self.number_of_active_links), \
-            "incorrect length of active_link_flux array"
-
-        # If needed, create net_unit_flux array
-        if net_unit_flux is False:
-            net_unit_flux = numpy.zeros(self.number_of_active_cells)
-        else:
-            net_unit_flux[:] = 0.
-
-        assert (len(net_unit_flux)) == self.number_of_active_cells
-
-        # For each active link, add up the flux out of the "from" cell and
-        # into the "to" cell.
-        active_link_id = 0
-        for link_id in self.active_link_ids:
-            from_cell = self.node_activecell[self.node_at_link_tail[link_id]]
-            to_cell = self.node_activecell[self.node_at_link_head[link_id]]
-            total_flux = active_link_flux[active_link_id] * \
-                self.face_width[self.link_face[link_id]]
-            # print('Flux '+str(total_flux)+' from '+str(from_cell) \
-            #      +' to '+str(to_cell)+' along link '+str(link_id))
-            if from_cell != BAD_INDEX_VALUE:
-                net_unit_flux[from_cell] += total_flux
-            if to_cell != BAD_INDEX_VALUE:
-                net_unit_flux[to_cell] -= total_flux
-            active_link_id += 1
-
-        # Divide by cell area
-        net_unit_flux = net_unit_flux / self._cell_areas
 
         return net_unit_flux
 
