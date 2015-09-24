@@ -1608,14 +1608,19 @@ class ModelGrid(ModelDataFields):
     def cell_areas(self):
         """Cell areas.
 
-        Returns an array of grid-cell areas.
+        Returns
+        -------
+        ndarray
+            Array of grid-cell areas.
 
-        .. note::
-            Sometimes it may make sense for a grid to not always calculate
-            its cell areas but, instead, only calculate them once they are
-            required. In such cases, the grid class must implement a
-            _setup_cell_areas_array method, which will be called the first
-            time cell areas are requested.
+        Notes
+        -----
+
+        Sometimes it may make sense for a grid to not always calculate
+        its cell areas but, instead, only calculate them once they are
+        required. In such cases, the grid class must implement a
+        _setup_cell_areas_array method, which will be called the first
+        time cell areas are requested.
         """
         try:
             return self._cell_areas
@@ -1641,8 +1646,7 @@ class ModelGrid(ModelDataFields):
 
     @property
     def face_widths(self):
-        """Width of grid faces.
-        """
+        """Width of grid faces."""
         try:
             return self._face_widths
         except AttributeError:
@@ -1671,19 +1675,8 @@ class ModelGrid(ModelDataFields):
 
         Return an integer vector of the node IDs of all active (i.e., core +
         open boundary) cells.
-
-        See Also
-        --------
-        get_core_cell_node_ids : may be preferable.
         """
         return self.activecell_node
-
-    def get_core_cell_node_ids(self):
-        """Nodes of core cells.
-
-        Return an integer vector of the node IDs of all core cells.
-        """
-        return self.corecell_node
 
     def get_active_link_connecting_node_pair(self, node1, node2):
         """
