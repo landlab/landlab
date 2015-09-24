@@ -190,6 +190,7 @@ from landlab.field.scalar_data_fields import FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
 from ..core.utils import as_id_array
+from ..core.utils import add_module_functions_to_class
 
 
 #: Indicates an index is, in some way, *bad*.
@@ -2990,9 +2991,6 @@ class ModelGrid(ModelDataFields):
         assert numpy.all(self.all_node_distances_map >= 0.)
 
         return self.all_node_distances_map, self.all_node_azimuths_map
-
-
-from ..core.utils import add_module_functions_to_class
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
