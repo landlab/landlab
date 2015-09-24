@@ -2899,12 +2899,14 @@ class ModelGrid(ModelDataFields):
             azimuths_as_displacements[0] = (self.node_x - tuple_xy[0])
             azimuths_as_displacements[1] = (self.node_y - tuple_xy[1])
 
-        numpy.square(azimuths_as_displacements[
-                     0, :len_subset], out=dummy_nodes_1[:len_subset])
-        numpy.square(azimuths_as_displacements[
-                     1, :len_subset], out=dummy_nodes_2[:len_subset])
-        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[
-                  :len_subset], out=dummy_nodes_3[:len_subset])
+        numpy.square(
+            azimuths_as_displacements[0, :len_subset],
+            out=dummy_nodes_1[:len_subset])
+        numpy.square(
+            azimuths_as_displacements[1, :len_subset],
+            out=dummy_nodes_2[:len_subset])
+        numpy.add(dummy_nodes_1[:len_subset],
+                  dummy_nodes_2[:len_subset], out=dummy_nodes_3[:len_subset])
         numpy.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
 
         if get_az:
