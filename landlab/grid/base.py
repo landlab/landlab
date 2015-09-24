@@ -1811,7 +1811,8 @@ class ModelGrid(ModelDataFields):
         return fv
 
     def _reset_link_status_list(self):
-        """
+        """Create of reset a list of links statuses.
+
         Creates or resets a list of link statuses. We do this by sweeping
         through the given lists of from and to nodes, and checking the status
         of these as given in the node_status list. A link is active if both its
@@ -1889,7 +1890,8 @@ class ModelGrid(ModelDataFields):
         self._setup_active_inlink_and_outlink_matrices()
 
     def _reset_lists_of_nodes_cells(self):
-        """
+        """Create of reset lists of nodes and cells based on their status.
+
         Creates or resets various lists of nodes and cells based on their
         statuses. Call this function whenever you make changes to the
         boundary conditions in the grid.
@@ -1945,6 +1947,7 @@ class ModelGrid(ModelDataFields):
         except AttributeError:
             pass
 
+    @deprecated
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
 
@@ -2176,7 +2179,8 @@ class ModelGrid(ModelDataFields):
         return num_nbrs
 
     def _setup_inlink_and_outlink_matrices(self):
-        """
+        """Create data structured for number of inlinks and outlinks.
+
         Creates data structures to record the numbers of inlinks and outlinks
         for each node. An inlink of a node is simply a link that has the
         node as its "to" node, and an outlink is a link that has the node
@@ -2233,7 +2237,8 @@ class ModelGrid(ModelDataFields):
             self.node_outlink_matrix[count][fromnodes] = link_ids
 
     def _setup_active_inlink_and_outlink_matrices(self):
-        """
+        """Create data structures for number of active inlinks and outlinks.
+
         Creates data structures to record the numbers of active inlinks and
         active outlinks for each node. These data structures are equivalent to
         the "regular" inlink and outlink matrices, except that it uses the IDs
@@ -2687,7 +2692,8 @@ class ModelGrid(ModelDataFields):
         return as_id_array(numpy.where(self.node_status != 0)[0])
 
     def _assign_boundary_nodes_to_grid_sides(self):
-        """
+        """Assign boundary nodes to a quadrant.
+
         For each boundary node, determines whether it belongs to the left,
         right, top or bottom of the grid, based on its distance from the grid's
         centerpoint (mean (x,y) position). Returns lists of nodes on each of
@@ -2715,6 +2721,7 @@ class ModelGrid(ModelDataFields):
 
         return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
 
+    @deprecated
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
                                 top_is_inactive, left_is_inactive):
         """Set boundaries to inactive.
@@ -2792,17 +2799,6 @@ class ModelGrid(ModelDataFields):
             self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
         self.update_links_nodes_cells_to_new_BCs()
-
-    def set_inactive_nodes(self, nodes):
-        """Make nodes inactive.
-
-        Sets the given nodes' boundary condition statuses to INACTIVE (==4),
-        and resets the list of active links to reflect any changes.
-
-        .. note:: Deprecated since version 0.6.
-            Outdated terminology. Use :func:`set_closed_nodes` instead.
-        """
-        self.set_closed_nodes(nodes)
 
     def set_closed_nodes(self, nodes):
         """Make nodes closed boundaries.
