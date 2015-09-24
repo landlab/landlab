@@ -784,18 +784,18 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable
     def node_x(self):
-        """X-coordinates of all nodes."""
+        """Get array of the x-coordinates of nodes."""
         return self._node_x
 
     @property
     @make_return_array_immutable
     def node_y(self):
-        """Y-coordinates of all nodes."""
+        """Get array of the y-coordinates of nodes."""
         return self._node_y
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
-        """Coordinates of nodes along a particular axis.
+        """Get the coordinates of nodes along a particular axis.
 
         Return node coordinates from a given *axis* (defaulting to 0). Axis
         numbering is the same as that for numpy arrays. That is, the zeroth
@@ -810,6 +810,21 @@ class ModelGrid(ModelDataFields):
         -------
         ndarray
             Coordinates of nodes for a given axis.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.node_axis_coordinates(0) # doctest: +NORMALIZE_WHITESPACE
+        array([ 0., 0., 0., 0., 0.,
+                1., 1., 1., 1., 1.,
+                2., 2., 2., 2., 2.,
+                3., 3., 3., 3., 3.])
+        >>> grid.node_axis_coordinates(1) # doctest: +NORMALIZE_WHITESPACE
+        array([ 0., 1., 2., 3., 4.,
+                0., 1., 2., 3., 4.,
+                0., 1., 2., 3., 4.,
+                0., 1., 2., 3., 4.])
         """
         AXES = ('node_y', 'node_x')
         try:
@@ -819,26 +834,57 @@ class ModelGrid(ModelDataFields):
 
     @property
     def axis_units(self):
-        """A tuple of the units (as a string) for each of a grid's
-        coordinates.
+        """Get units for each axis.
+
+        Returns
+        -------
+        tuple of str
+            The units (as a string) for each of a grid's coordinates.
         """
         return self._axis_units
 
     @axis_units.setter
     def axis_units(self, new_units):
-        """Set the units for each a grid's coordinates"""
+        """Set the units for each coordinate axis."""
         if len(new_units) != self.ndim:
             raise ValueError('length of units does not match grid dimension')
         self._axis_units = tuple(new_units)
 
     @property
     def axis_name(self):
-        """A tuple of coordinate names for the grid"""
+        """Get the name of each coordinate axis.
+
+        Returns
+        -------
+        tuple of str
+            The names of each axis.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.axis_name
+        ('y', 'x')
+        """
         return self._axis_name
 
     @axis_name.setter
     def axis_name(self, new_names):
-        """Set the names of a grid's coordinates"""
+        """Set the names of a grid's coordinate axes.
+
+        Raises
+        ------
+        ValueError
+            If the number of dimension do not match.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name
+        ('lon', 'lat')
+        """
         if len(new_names) != self.ndim:
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
@@ -891,7 +937,6 @@ class ModelGrid(ModelDataFields):
                [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  4, -1, -1, -1],
                [-1, -1, -1,  5, -1, -1, -1]])
-
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
@@ -907,7 +952,7 @@ class ModelGrid(ModelDataFields):
 
     def node_activelinks2(self, *args):
         """node_activelinks2([node_ids])
-        Link IDs of active links attached to one or more nodes.
+        Get active links attached to nodes.
 
         Parameters
         ----------
@@ -969,7 +1014,7 @@ class ModelGrid(ModelDataFields):
             raise ValueError('only zero or one arguments accepted')
 
     def create_node_array_zeros(self, name=None, **kwds):
-        """Return a new array of the given type, filled with zeros.
+        """Create an array of the given type, filled with zeros.
 
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument *name*, we add this data to the grid with
@@ -978,7 +1023,7 @@ class ModelGrid(ModelDataFields):
 
         Parameters
         ----------
-        name : str
+        name : str, optional
             Name of the quantity.
 
         Returns
@@ -1012,7 +1057,7 @@ class ModelGrid(ModelDataFields):
             return self.at_node[name]
 
     def create_active_link_array_zeros(self, name=None):
-        """Array, filled with zeros, for a given element.
+        """Array, filled with zeros, for values at active links.
 
         Returns a 1D numpy array the same length as the number of nodes. If
         user gives optional argument 'name', we add this data to the grid with
@@ -1047,13 +1092,32 @@ class ModelGrid(ModelDataFields):
             return self.at_link[name]
 
     def zeros(self, **kwds):
-        """
+        """Array, filled with zeros, for a given element.
+
         Returns a numpy array of zeros that is the same length as the number
         of nodes in the grid. Use the *centering* keyword to return an
         array for other elements of the grid. *centering* is a string that is
         one of *node*, *cell*, *link*, or *face*.
 
         All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.zeros()
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
         """
         centering = kwds.pop('centering', 'node')
         try:
@@ -1062,13 +1126,31 @@ class ModelGrid(ModelDataFields):
             raise TypeError(centering)
 
     def empty(self, **kwds):
-        """
+        """Array, filled with unititialized values, for a given element.
+
         Returns a numpy array of uninitialized values that is the same length
         as the number of nodes in the grid. Use the *centering* keyword to
         return an array for other elements of the grid. *centering* is a
         string that is one of *node*, *cell*, *link*, or *face*.
 
         All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> len(grid.empty())
+        20
         """
         centering = kwds.pop('centering', 'node')
         try:
@@ -1077,13 +1159,31 @@ class ModelGrid(ModelDataFields):
             raise TypeError(centering)
 
     def ones(self, **kwds):
-        """
+        """Array, filled with ones, for a given element.
+
         Returns a numpy array of ones that is the same length as the number
         of nodes in the grid. Use the *centering* keyword to return an
         array for other elements of the grid. *centering* is a string that is
         one of *node*, *cell*, *link*, or *face*.
 
         All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.zeros(dtype=int)
+        array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         """
         centering = kwds.pop('centering', 'node')
         try:
@@ -1095,14 +1195,18 @@ class ModelGrid(ModelDataFields):
         """Make nodes fixed value boundaries.
 
         Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
+
+        Parameters
+        ----------
+        node_ids : array_like of int
+            Grid nodes to set as fixed value boundaries.
         """
         self.node_status[node_ids] = FIXED_VALUE_BOUNDARY
         node_ids = numpy.array(range(0, self.number_of_nodes))
         self.update_links_nodes_cells_to_new_BCs()
 
-    @track_this_method
     def calculate_diff_at_links(self, node_values, out=None):
-        """Differences at links.
+        """Get differences at links.
 
         Calculates the difference in quantity *node_values* at every link
         in the grid. Note that this is tonode-fromnode along links, and is
@@ -1123,14 +1227,13 @@ class ModelGrid(ModelDataFields):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 3)
-        >>> z = np.zeros(9.)
+        >>> z = np.zeros(9)
         >>> z[4] = 1.
         >>> rmg.calculate_diff_at_links(z)
         array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
         """
         return gfuncs.calculate_diff_at_links(self, node_values, out=out)
 
-    @track_this_method
     def calculate_diff_at_active_links(self, node_values, out=None):
         """Get differences at active links.
 
@@ -1143,7 +1246,7 @@ class ModelGrid(ModelDataFields):
 
     @track_this_method
     def calculate_gradients_at_links(self, node_values, out=None):
-        """Gradients at links.
+        """Get gradients at links.
 
         Calculates the gradient in quantity *node_values* at every link
         in the grid.
@@ -1153,7 +1256,7 @@ class ModelGrid(ModelDataFields):
 
     @track_this_method
     def calculate_gradients_at_active_links(self, node_values, out=None):
-        """Gradients at active links.
+        """Get gradients at active links.
 
         Calculates the gradient in quantity *node_values* at each active link
         in the grid.
@@ -1161,30 +1264,6 @@ class ModelGrid(ModelDataFields):
         """
         return gfuncs.calculate_gradients_at_active_links(self, node_values,
                                                           out=out)
-
-    @track_this_method
-    def calculate_gradients_at_active_links_slow(self, s, gradient=None):
-        """*Deprecated*.
-        Calculates the gradient in quantity s at each active link in the
-        grid.
-
-        .. note:: Deprecated since version 0.1.
-            Use :func:`calculate_gradients_at_active_links`
-        """
-        gradient = gradient or numpy.zeros(self.number_of_active_links)
-
-        assert (len(gradient) == self.number_of_active_links), \
-            "len(gradient)!=number_of_active_links"
-
-        active_link_id = 0
-        for link_id in self.active_link_ids:
-            gradient[active_link_id] = (
-                (s[self.node_at_link_head[link_id]] -
-                 s[self.node_at_link_tail[link_id]]) /
-                self.link_length[link_id])
-            active_link_id += 1
-
-        return gradient
 
     def resolve_values_on_links(self, link_values, out=None):
         """xy-components of links.
