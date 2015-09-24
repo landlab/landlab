@@ -193,7 +193,7 @@ def test_is_interior():
 
 @with_setup(setup_grid)
 def test_get_interior_cells():
-    assert_array_equal(rmg.get_core_cell_node_ids(),
+    assert_array_equal(rmg.node_at_core_cell,
                        np.array([6, 7, 8, 11, 12, 13]))
 
 
