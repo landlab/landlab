@@ -1679,7 +1679,8 @@ class ModelGrid(ModelDataFields):
         return self.activecell_node
 
     def get_active_link_connecting_node_pair(self, node1, node2):
-        """
+        """Get the active link that connects a pair of nodes.
+
         Returns the ID number of the active link that connects the given pair
         of nodes, or BAD_INDEX_VALUE if not found.
         This method is slow, and can only take single ints as *node1* and
@@ -1707,14 +1708,23 @@ class ModelGrid(ModelDataFields):
 
     @property
     def active_link_length(self):
-        """Returns the lengths of all active links, in ID order"""
+        """Get array of lengths of active links.
+
+        Returns
+        -------
+        ndarray
+            Lengths of active links, in ID order.
+        """
         return self.link_length[self.active_link_ids]
 
     @property
     def link_length(self):
-        """Lengths of grid links.
+        """Get lengths of links.
 
-        Lengths of all links, in ID order.
+        Returns
+        -------
+        ndarray
+            Lengths of all links, in ID order.
         """
         try:
             return self._link_length
@@ -1722,21 +1732,27 @@ class ModelGrid(ModelDataFields):
             return self._calculate_link_length()
 
     def min_active_link_length(self):
-        """Shortest active link.
+        """Get length of the shortest active link.
 
-        Returns the horizontal length of the shortest active link in the grid.
+        Returns
+        -------
+        float
+            Length of the shortest active link in the grid.
         """
         return numpy.amin(self.link_length[self.active_link_ids])
 
     def max_active_link_length(self):
-        """Longest active link.
+        """Get the length of the longest active link.
 
-        Returns the horizontal length of the longest active link in the grid.
+        Returns
+        -------
+        float
+            Length of the longest active link in the grid.
         """
         return numpy.amax(self.link_length[self.active_link_ids])
 
     def _calculate_link_length(self):
-        """Lengths of links.
+        """Get array of the lengths of all links.
 
         Calculates, returns, and stores as a property of the grid the lengths
         of all the links in the grid.
@@ -1793,38 +1809,6 @@ class ModelGrid(ModelDataFields):
                 else:
                     fv[i] = u[self.activelink_tonode[i]]
         return fv
-
-    def _reset_list_of_active_links(self):
-        """
-        .. deprecated:: 0.1.27
-           Use :func: `_reset_link_status_list` instead.
-
-        Creates or resets a list of active links. We do this by sweeping
-        through the given lists of from and to nodes, and checking the status
-        of these as given in the node_status list. A link is active if both its
-        nodes are core, or if one is core and the other is an active boundary.
-        """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid._reset_list_of_active_links')
-
-        fromnode_status = self.node_status[self.node_at_link_tail]
-        tonode_status = self.node_status[self.node_at_link_head]
-
-        active_links = (((fromnode_status == CORE_NODE) & ~
-                         (tonode_status == CLOSED_BOUNDARY)) |
-                        ((tonode_status == CORE_NODE) & ~
-                         (fromnode_status == CLOSED_BOUNDARY)))
-
-        (self.active_link_ids, ) = numpy.where(active_links)
-        self.active_link_ids = as_id_array(self.active_link_ids)
-
-        self._num_active_links = len(self.active_link_ids)
-        self._num_active_faces = self._num_active_links
-        self.activelink_fromnode = self.node_at_link_tail[self.active_link_ids]
-        self.activelink_tonode = self.node_at_link_head[self.active_link_ids]
-
-        # Set up active inlink and outlink matrices
-        self._setup_active_inlink_and_outlink_matrices()
 
     def _reset_link_status_list(self):
         """

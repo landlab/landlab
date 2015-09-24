@@ -1044,19 +1044,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
-    def _reset_list_of_active_links(self):
-        '''
-        .. deprecated:: 0.1.27
-           Use :func: `_reset_link_status_list` instead.
-
-        Assuming the active link list has already been created elsewhere, this
-        helper method checks link statuses (active/inactive) for internal
-        consistency after the BC status of some nodes has been changed.
-        '''
-        super(RasterModelGrid, self)._reset_list_of_active_links()
-        if self._diagonal_links_created:
-            self._reset_list_of_active_diagonal_links()
-
     def _reset_link_status_list(self):
         '''
         Assuming the link_status array has already been created elsewhere, this
