@@ -6,6 +6,7 @@ from landlab.grid import raster_funcs as rfuncs
 
 
 def test_best_fit_with_bad_args():
+    """Raise an error if input arrays are not the same length."""
     len_2 = np.array([0, 1])
     len_3 = np.array([0, 0, 1])
 
@@ -18,6 +19,7 @@ def test_best_fit_with_bad_args():
 
 
 def test_best_fit_plane_in_xy():
+    """Best fit plane is the xy-plane."""
     (x, y, z) = (np.array([0., 1., 1.]),
                  np.array([0., 0., 1.]),
                  np.array([0., 0., 0.]), )
@@ -36,6 +38,7 @@ def test_best_fit_plane_in_xy():
 
 
 def test_best_fit_plane_in_xz():
+    """Best fit plane is the xz-plane."""
     (x, y, z) = (np.array([0., 1., 1.]),
                  np.array([0., 0., 0.]),
                  np.array([0., 0., 1.]), )
@@ -46,6 +49,7 @@ def test_best_fit_plane_in_xz():
 
 
 def test_best_fit_plane_in_yz():
+    """Best fit plane is the yz-plane."""
     (x, y, z) = (np.array([0., 0., 0.]),
                  np.array([0., 1., 1.]),
                  np.array([0., 0., 1.]), )
