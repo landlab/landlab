@@ -819,8 +819,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def node_diagonal_links(self, *args):
-        """node_diagonal_links([node_ids])
+    def diagonal_links_at_node(self, *args):
+        """diagonal_links_at_node([node_ids])
         Diagonal links attached to nodes.
 
         Returns the ids of diagonal links attached to grid nodes with
@@ -846,29 +846,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.diagonal_list_created = True
 
         try:
-            self._node_diagonal_links
+            self._diagonal_links_at_node
         except AttributeError:
-            self._node_diagonal_links = np.empty(
+            self._diagonal_links_at_node = np.empty(
                 (4, self.number_of_nodes), dtype=int)
-            self._node_diagonal_links.fill(-1)
-            self._node_diagonal_links[0, :][
+            self._diagonal_links_at_node.fill(-1)
+            self._diagonal_links_at_node[0, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
                                                                          self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links  # number of patches is number_of_diagonal_nodes/2
-            self._node_diagonal_links[1, :][
+            self._diagonal_links_at_node[1, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
                                                                          self.top_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
-            self._node_diagonal_links[2, :][
+            self._diagonal_links_at_node[2, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
                                                                          self.top_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links
-            self._node_diagonal_links[3, :][
+            self._diagonal_links_at_node[3, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
                                                                          self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
 
         if len(args) == 0:
-            return self._node_diagonal_links
+            return self._diagonal_links_at_node
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
-            return self._node_diagonal_links[:, node_ids]
+            return self._diagonal_links_at_node[:, node_ids]
         else:
             raise ValueError('only zero or one arguments accepted')
 
@@ -1546,7 +1546,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Traceback (most recent call last):
             ...
         AssertionError: No diagonal links have been created in the grid yet!
-        >>> _ = grid.node_diagonal_links()
+        >>> _ = grid.diagonal_links_at_node()
         >>> grid.number_of_diagonal_links
         24
         """
@@ -1878,7 +1878,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         >>> grid = RasterModelGrid((3, 3))
-        >>> _ = grid.node_diagonal_links()
+        >>> _ = grid.diagonal_links_at_node()
         >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
         array([
             1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
