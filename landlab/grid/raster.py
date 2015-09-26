@@ -1791,7 +1791,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def link_length(self):
-        """Lengths of links.
+        """Get lengths of links.
 
         Return the link lengths in the grid, as a nlinks-long array. This
         method *does* test if diagonal links are present in the grid already;
@@ -1808,23 +1808,38 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 4)
+        >>> grid = RasterModelGrid((3, 3))
         >>> grid.link_length
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.])
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        >>> grid = RasterModelGrid((3, 3))
+        >>> _ = grid.node_diagonal_links()
+        >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
+        array([
+            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.41421356,  1.41421356,  1.41421356,
+            1.41421356,  1.41421356,  1.41421356,  1.41421356,  1.41421356])
         """
-        try:
+        if self._link_length is None:
+            return self._calculate_link_length()
+        else:
             return self._link_length
-        except AttributeError:
-            if not self._diagonal_links_created:
-                return self._calculate_link_length()
-            else:
+
+    def _calculate_link_length(self):
+        """Calculate link lengths for a raster grid."""
+        if self._link_length is None:
+            if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
                 self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = np.sqrt(
                     2. * self._dx * self._dx)
-                return self._link_length
+            else:
+                self._link_length = self.empty(centering='link', dtype=float)
+                self._link_length.fill(self._dx)
+
+        return self._link_length
 
     def _setup_diagonal_links(self):
         """

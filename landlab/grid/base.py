@@ -529,6 +529,8 @@ class ModelGrid(ModelDataFields):
         self.axis_units = kwds.get(
             'axis_units', _default_axis_units(self.ndim))
 
+        self._link_length = None
+
     def _initialize(self):
         raise NotImplementedError('_initialize')
 
@@ -1726,11 +1728,22 @@ class ModelGrid(ModelDataFields):
         -------
         ndarray
             Lengths of all links, in ID order.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.link_length
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.])
+        >>> len(grid.link_length) == grid.number_of_links
+        True
         """
-        try:
-            return self._link_length
-        except AttributeError:
+        if self._link_length is None:
             return self._calculate_link_length()
+        else:
+            return self._link_length
 
     def min_active_link_length(self):
         """Get length of the shortest active link.
@@ -1758,13 +1771,15 @@ class ModelGrid(ModelDataFields):
         Calculates, returns, and stores as a property of the grid the lengths
         of all the links in the grid.
         """
-        if not hasattr(self, '_link_length'):
-            self._link_length = self.empty(centering='link')
-        dx = (self.node_x[self.node_at_link_tail] -
+        if self._link_length is None:
+            self._link_length = self.empty(centering='link', dtype=float)
+
+        diff_x = (self.node_x[self.node_at_link_tail] -
               self.node_x[self.node_at_link_head])
-        dy = (self.node_y[self.node_at_link_tail] -
+        diff_y = (self.node_y[self.node_at_link_tail] -
               self.node_y[self.node_at_link_head])
-        numpy.sqrt(dx ** 2 + dy ** 2, out=self._link_length)
+        numpy.sqrt(diff_x ** 2 + diff_y ** 2, out=self._link_length)
+
         return self._link_length
 
     def assign_upslope_vals_to_active_links(self, u, v=None):
@@ -2627,31 +2642,31 @@ class ModelGrid(ModelDataFields):
         import matplotlib.pyplot as plt
 
         # Plot nodes, colored by boundary vs interior
-        plt.plot(self._node_x[self.core_nodes],
-                 self._node_y[self.core_nodes], 'go')
-        plt.plot(self._node_x[self.boundary_nodes],
-                 self._node_y[self.boundary_nodes], 'ro')
+        plt.plot(self.node_x[self.core_nodes],
+                 self.node_y[self.core_nodes], 'go')
+        plt.plot(self.node_x[self.boundary_nodes],
+                 self.node_y[self.boundary_nodes], 'ro')
 
         # Draw links
         for i in range(self.number_of_links):
-            plt.plot([self._node_x[self.node_at_link_tail[i]],
-                      self._node_x[self.node_at_link_head[i]]],
-                     [self._node_y[self.node_at_link_tail[i]],
-                      self._node_y[self.node_at_link_head[i]]], 'k-')
+            plt.plot([self.node_x[self.node_at_link_tail[i]],
+                      self.node_x[self.node_at_link_head[i]]],
+                     [self.node_y[self.node_at_link_tail[i]],
+                      self.node_y[self.node_at_link_head[i]]], 'k-')
 
         # Draw active links
         for link in self.active_link_ids:
-            plt.plot([self._node_x[self.node_at_link_tail[link]],
-                      self._node_x[self.node_at_link_head[link]]],
-                     [self._node_y[self.node_at_link_tail[link]],
-                      self._node_y[self.node_at_link_head[link]]], 'g-')
+            plt.plot([self.node_x[self.node_at_link_tail[link]],
+                      self.node_x[self.node_at_link_head[link]]],
+                     [self.node_y[self.node_at_link_tail[link]],
+                      self.node_y[self.node_at_link_head[link]]], 'g-')
 
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
             pts = numpy.zeros((self.number_of_nodes, 2))
-            pts[:, 0] = self._node_x
-            pts[:, 1] = self._node_y
+            pts[:, 0] = self.node_x
+            pts[:, 1] = self.node_y
             vor = Voronoi(pts)
             voronoi_plot_2d(vor)
 
@@ -2717,8 +2732,8 @@ class ModelGrid(ModelDataFields):
         array([0, 2, 1])
         """
         # Calculate x and y distance from centerpoint
-        dx = self._node_x[self.boundary_nodes] - numpy.mean(self._node_x)
-        dy = self._node_y[self.boundary_nodes] - numpy.mean(self._node_y)
+        dx = self.node_x[self.boundary_nodes] - numpy.mean(self.node_x)
+        dy = self.node_y[self.boundary_nodes] - numpy.mean(self.node_y)
 
         return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
 
