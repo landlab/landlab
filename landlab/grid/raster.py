@@ -1118,12 +1118,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assume that the order of links is:
         # - The first (R-1)*C are vertical and oriented upward
         # - The remaining R*(C-1) are horizontal and oriented rightward
-        self.link_unit_vec_x = np.zeros(self.number_of_links + 1)
-        self.link_unit_vec_y = np.zeros(self.number_of_links + 1)
+        self._link_unit_vec_x = np.zeros(self.number_of_links + 1)
+        self._link_unit_vec_y = np.zeros(self.number_of_links + 1)
         n_vert_links = (self.number_of_node_rows - 1) * \
             self.number_of_node_columns
-        self.link_unit_vec_y[:n_vert_links] = 1.0
-        self.link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        self._link_unit_vec_y[:n_vert_links] = 1.0
+        self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
@@ -1131,28 +1131,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # each of which has 2 rows, corresponding to the maximum possible 2
         # inlinks and 2 outlinks in a raster grid.
         #     Create the arrays
-        self.node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
-        self.node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
+        self._node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
+        self._node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
         #     x-component contribution from inlinks
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_inlink_matrix[0, :]])
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_inlink_matrix[1, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_inlink_matrix[0, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_inlink_matrix[1, :]])
         #     x-component contribution from outlinks
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_outlink_matrix[0, :]])
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_outlink_matrix[1, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_outlink_matrix[0, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_outlink_matrix[1, :]])
         #     y-component contribution from inlinks
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_inlink_matrix[0, :]])
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_inlink_matrix[1, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_inlink_matrix[0, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_inlink_matrix[1, :]])
         #     y-component contribution from outlinks
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_outlink_matrix[0, :]])
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_outlink_matrix[1, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_outlink_matrix[0, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
     def cell_faces(self, *args):
         """cell_faces([cell_id])

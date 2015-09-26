@@ -532,6 +532,10 @@ class ModelGrid(ModelDataFields):
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
+        self._node_unit_vector_sum_x = None
+        self._node_unit_vector_sum_y = None
+        self._link_unit_vec_x = None
+        self._link_unit_vec_y = None
 
     def _initialize(self):
         raise NotImplementedError('_initialize')
@@ -2412,8 +2416,8 @@ class ModelGrid(ModelDataFields):
         # node_outlink_matrix to refer to the zero value in this extra element,
         # so that when we're summing up link unit vectors, or multiplying by a
         # nonexistent unit vector, we end up just treating these as zero.
-        self.link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
-        self.link_unit_vec_y = numpy.zeros(self.number_of_links + 1)
+        self._link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
+        self._link_unit_vec_y = numpy.zeros(self.number_of_links + 1)
 
         # Calculate the unit vectors using triangle similarity and the
         # Pythagorean Theorem.
@@ -2421,23 +2425,47 @@ class ModelGrid(ModelDataFields):
             self.node_x[self.node_at_link_tail]
         dy = self.node_y[self.node_at_link_head] - \
             self.node_y[self.node_at_link_tail]
-        self.link_unit_vec_x[:self.number_of_links] = dx / self.link_length
-        self.link_unit_vec_y[:self.number_of_links] = dy / self.link_length
+        self._link_unit_vec_x[:self.number_of_links] = dx / self.link_length
+        self._link_unit_vec_y[:self.number_of_links] = dy / self.link_length
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
-        self.node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
-        self.node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
+        self._node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
+        self._node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
         max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
         for i in range(max_num_inlinks_per_node):
-            self.node_unit_vector_sum_x += abs(
-                self.link_unit_vec_x[self.node_inlink_matrix[i, :]])
-            self.node_unit_vector_sum_y += abs(
-                self.link_unit_vec_y[self.node_inlink_matrix[i, :]])
-            self.node_unit_vector_sum_x += abs(
-                self.link_unit_vec_x[self.node_outlink_matrix[i, :]])
-            self.node_unit_vector_sum_y += abs(
-                self.link_unit_vec_y[self.node_outlink_matrix[i, :]])
+            self._node_unit_vector_sum_x += abs(
+                self._link_unit_vec_x[self.node_inlink_matrix[i, :]])
+            self._node_unit_vector_sum_y += abs(
+                self._link_unit_vec_y[self.node_inlink_matrix[i, :]])
+            self._node_unit_vector_sum_x += abs(
+                self._link_unit_vec_x[self.node_outlink_matrix[i, :]])
+            self._node_unit_vector_sum_y += abs(
+                self._link_unit_vec_y[self.node_outlink_matrix[i, :]])
+
+    @property
+    def link_unit_vec_x(self):
+        if self._link_unit_vec_x is None:
+            self._make_link_unit_vectors()
+        return self._link_unit_vec_x
+
+    @property
+    def link_unit_vec_y(self):
+        if self._link_unit_vec_y is None:
+            self._make_link_unit_vectors()
+        return self._link_unit_vec_y
+
+    @property
+    def node_unit_vector_sum_y(self):
+        if self._node_unit_vector_sum_y is None:
+            self._make_link_unit_vectors()
+        return self._node_unit_vector_sum_y
+
+    @property
+    def node_unit_vector_sum_x(self):
+        if self._node_unit_vector_sum_x is None:
+            self._make_link_unit_vectors()
+        return self._node_unit_vector_sum_x
 
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
@@ -2734,10 +2762,10 @@ class ModelGrid(ModelDataFields):
         array([0, 2, 1])
         """
         # Calculate x and y distance from centerpoint
-        dx = self.node_x[self.boundary_nodes] - numpy.mean(self.node_x)
-        dy = self.node_y[self.boundary_nodes] - numpy.mean(self.node_y)
+        diff_x = self.node_x[self.boundary_nodes] - numpy.mean(self.node_x)
+        diff_y = self.node_y[self.boundary_nodes] - numpy.mean(self.node_y)
 
-        return _sort_points_into_quadrants(dx, dy, self.boundary_nodes)
+        return _sort_points_into_quadrants(diff_x, diff_y, self.boundary_nodes)
 
     @deprecated
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
@@ -3015,7 +3043,7 @@ class ModelGrid(ModelDataFields):
     @property
     def all_node_distances_map(self):
         """Get distances from every node to every other node.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -3045,7 +3073,7 @@ class ModelGrid(ModelDataFields):
     @property
     def all_node_azimuths_map(self):
         """Get azimuths from every node to every other node.
-        
+
         Examples
         --------
         >>> import numpy as np
@@ -3064,7 +3092,7 @@ class ModelGrid(ModelDataFields):
         Angles are measured in radians and increase clockwise starting at
         north.
 
-        >>> angles *= 180. * np.pi
+        >>> angles *= 180. / np.pi
         >>> angles[0, :4]
         array([  0.,  90.,  90.,  90.])
         >>> angles[0, ::4]
