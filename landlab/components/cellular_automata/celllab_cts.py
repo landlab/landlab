@@ -332,8 +332,8 @@ class CellLabCTSModel(object):
 
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
-        ###self.node_active_links = self.grid.node_activelinks()
-        self.node_active_links = self.grid.node_activelinks2()
+        ###self.active_links_at_node = self.grid.active_links_at_node()
+        self.active_links_at_node = self.grid.active_links_at_node2()
 
         # Create an array that knows which links are connected to a boundary
         # node
@@ -882,7 +882,7 @@ class CellLabCTSModel(object):
                 if _DEBUG:
                     print('    fromnode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,tail_node]:
+                for link in self.active_links_at_node[:,tail_node]:
 
                     if _DEBUG:
                         print('f checking link',link)
@@ -903,7 +903,7 @@ class CellLabCTSModel(object):
                 if _DEBUG:
                     print('    tonode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,head_node]:
+                for link in self.active_links_at_node[:,head_node]:
 
                     if _DEBUG:
                         print('t checking link',link)

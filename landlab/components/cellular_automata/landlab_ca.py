@@ -328,8 +328,8 @@ class LandlabCellularAutomaton(object):
 
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
-        ###self.node_active_links = self.grid.node_activelinks()
-        self.node_active_links = self.grid.node_activelinks()
+        ###self.active_links_at_node = self.grid.active_links_at_node()
+        self.active_links_at_node = self.grid.active_links_at_node()
 
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)
@@ -883,7 +883,7 @@ class LandlabCellularAutomaton(object):
                 if _DEBUG:
                     six.print_('    fromnode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,tail_node]:
+                for link in self.active_links_at_node[:,tail_node]:
 
                     if _DEBUG:
                         six.print_('f checking link',link)
@@ -905,7 +905,7 @@ class LandlabCellularAutomaton(object):
                 if _DEBUG:
                     six.print_('    tonode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,head_node]:
+                for link in self.active_links_at_node[:,head_node]:
 
                     if _DEBUG:
                         six.print_('t checking link',link)
