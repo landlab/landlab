@@ -1781,9 +1781,9 @@ class ModelGrid(ModelDataFields):
             self._link_length = self.empty(centering='link', dtype=float)
 
         diff_x = (self.node_x[self.node_at_link_tail] -
-              self.node_x[self.node_at_link_head])
+                  self.node_x[self.node_at_link_head])
         diff_y = (self.node_y[self.node_at_link_tail] -
-              self.node_y[self.node_at_link_head])
+                  self.node_y[self.node_at_link_head])
         numpy.sqrt(diff_x ** 2 + diff_y ** 2, out=self._link_length)
 
         return self._link_length
@@ -2445,27 +2445,73 @@ class ModelGrid(ModelDataFields):
 
     @property
     def link_unit_vec_x(self):
+        """Get array of x-component of unit vector for links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> len(grid.link_unit_vec_x) == grid.number_of_links + 1
+        True
+        >>> grid.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,
+                1.,  1.,  1.,  1.,  1.,  1.,  0.])
+        """
         if self._link_unit_vec_x is None:
             self._make_link_unit_vectors()
         return self._link_unit_vec_x
 
     @property
     def link_unit_vec_y(self):
+        """Get array of y-component of unit vector for links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> len(grid.link_unit_vec_y) == grid.number_of_links + 1
+        True
+        >>> grid.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        """
         if self._link_unit_vec_y is None:
             self._make_link_unit_vectors()
         return self._link_unit_vec_y
 
     @property
-    def node_unit_vector_sum_y(self):
-        if self._node_unit_vector_sum_y is None:
-            self._make_link_unit_vectors()
-        return self._node_unit_vector_sum_y
-
-    @property
     def node_unit_vector_sum_x(self):
+        """Get array of x-component of unit vector sums at each node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> len(grid.node_unit_vector_sum_x) == grid.number_of_nodes
+        True
+        >>> grid.node_unit_vector_sum_x
+        array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
+        """
         if self._node_unit_vector_sum_x is None:
             self._make_link_unit_vectors()
         return self._node_unit_vector_sum_x
+
+    @property
+    def node_unit_vector_sum_y(self):
+        """Get array of y-component of unit vector sums at each node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> len(grid.node_unit_vector_sum_y) == grid.number_of_nodes
+        True
+        >>> grid.node_unit_vector_sum_y
+        array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
+        """
+        if self._node_unit_vector_sum_y is None:
+            self._make_link_unit_vectors()
+        return self._node_unit_vector_sum_y
 
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
