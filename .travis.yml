@@ -1,33 +1,25 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-
+- '2.6'
+- '2.7'
+- '3.3'
+- '3.4'
 os:
-  - linux
-
+- linux
 sudo: false
-
 install:
-  - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
-  - bash .ci/travis/install_python.sh
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - source activate test-env
-  - pip install coveralls
-  - python setup.py install
-
+- echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
+- bash .ci/travis/install_python.sh
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate test-env
+- pip install coveralls
+- python setup.py install
 script:
-  - (cd docs && make html 2> /dev/null)
-  - bash .ci/travis/run_travis_test.sh
-
+- (cd docs && make html 2> /dev/null)
+- bash .ci/travis/run_travis_test.sh
 virtualenv:
   system_site_packages: false
-
-after_success:
-  coveralls
-
+after_success: coveralls
 deploy:
   provider: pypi
   user: landlab
@@ -36,3 +28,6 @@ deploy:
   on:
     tags: true
     repo: landlab/landlab
+notifications:
+  slack:
+    secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=
