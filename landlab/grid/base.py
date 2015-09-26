@@ -1306,14 +1306,14 @@ class ModelGrid(ModelDataFields):
         be masked.
         """
         dummy_patch_nodes = numpy.empty(
-            (self.patch_nodes.shape[0] + 1, self.patch_nodes.shape[1]),
+            (self.nodes_at_patch.shape[0] + 1, self.nodes_at_patch.shape[1]),
             dtype=int)
-        dummy_patch_nodes[:-1, :] = self.patch_nodes[:]
+        dummy_patch_nodes[:-1, :] = self.nodes_at_patch[:]
         dummy_patch_nodes[-1, :] = -1
 
         # Now any ref to a null node will be -1 in this new
         # (N, patch_max_dim, 4or3) array.
-        nodes_on_patches = dummy_patch_nodes[self.node_patches()][:, :, :3]
+        nodes_on_patches = dummy_patch_nodes[self.patches_at_node()][:, :, :3]
         # Note: we truncate the array to be [N, patch_max_dim,3]; we only
         # need 3 pts per patch, if we're working on a raster
 

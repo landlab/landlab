@@ -791,8 +791,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def node_patches(self, nodata=-1, *args):
-        """
+    def patches_at_node(self, nodata=-1, *args):
+        """Get array of patches attached to nodes.
+
         This is a placeholder method until improved using jagged array
         operations.
         Returns a (N,4) array of the patches associated with each node in the
@@ -831,7 +832,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.node_patch_matrix == BAD_INDEX_VALUE] = nodata
             # now we blank out any patches that have a closed node as any
             # vertex:
-            patch_nodes = self.patch_nodes
+            patch_nodes = self.nodes_at_patch
             dead_nodes_in_patches = self.is_boundary(
                 patch_nodes, boundary_flag=4)
             # IDs of patches with dead nodes
@@ -843,14 +844,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self.node_patch_matrix
 
     @property
-    def patch_nodes(self):
-        """
+    def nodes_at_patch(self):
+        """Get array of nodes of a patch.
+
         Returns the four nodes at the corners of each patch in a regular grid.
         Shape of the returned array is (nnodes, 4).
         """
         base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base // (self._ncols - 1)
-        return np.column_stack((bottom_left_corner, bottom_left_corner + 1, bottom_left_corner + self._ncols, bottom_left_corner + self._ncols + 1))
+        return np.column_stack((bottom_left_corner,
+                                bottom_left_corner + 1,
+                                bottom_left_corner + self._ncols,
+                                bottom_left_corner + self._ncols + 1))
 
     def _setup_inlink_and_outlink_matrices(self):
         """
