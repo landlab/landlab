@@ -2,7 +2,6 @@
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
-
 """
 
 import numpy as np
@@ -67,7 +66,8 @@ def node_has_boundary_neighbor(mg, id, method='d8'):
 
 
 def _make_arg_into_array(arg):
-    """
+    """Make an argument into an iterable.
+
     This function tests if the provided object is a Python list or a numpy
     array. If not, attempts to cast the object to a list. If it cannot, it will
     raise a TypeError.
@@ -81,14 +81,28 @@ def _make_arg_into_array(arg):
     -------
     array_like
         The input array converted to an iterable.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _make_arg_into_array
+    >>> _make_arg_into_array(1)
+    [1]
+    >>> _make_arg_into_array((1, ))
+    [1]
+    >>> _make_arg_into_array([1, 2])
+    [1, 2]
+    >>> import numpy as np
+    >>> _make_arg_into_array(np.arange(3))
+    array([0, 1, 2])
     """
     ids = arg
-    if not isinstance(ids, list) or not isinstance(ids, np.ndarray):
+    if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
         try:
             ids = list(ids)
         except TypeError:
             ids = [ids]
     return ids
+
 
 has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                      excluded=['mg'])
@@ -160,10 +174,54 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
 
 
 def _old_style_args(args):
+    """Test if arguments are the old-style RasterModelGrid __init__ method.
+
+    The old way of initializing a :any:`RasterModelGrid` was like,
+
+        .. code::
+
+            grid = RasterModelGrid(n_rows, n_cols)
+
+    The new way passes the grid shape as a tuple, like numpy functions,
+
+        .. code::
+
+            grid = RasterModelGrid((n_rows, n_cols))
+
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _old_style_args
+    >>> _old_style_args((4, 5))
+    True
+    >>> _old_style_args(((4, 5), ))
+    False
+    >>> _old_style_args(([4, 5], ))
+    False
+    """
     return len(args) in (2, 3) and isinstance(args[0], int)
 
 
 def _parse_grid_shape_from_args(args):
+    """Get grid shape from args.
+    
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _parse_grid_shape_from_args
+    >>> _parse_grid_shape_from_args((3, 4))
+    (3, 4)
+    >>> _parse_grid_shape_from_args(((3, 4), ))
+    (3, 4)
+    """
     if _old_style_args(args):
         rows, cols = args[0], args[1]
     else:
@@ -175,6 +233,21 @@ def _parse_grid_shape_from_args(args):
 
 
 def _parse_grid_spacing_from_args(args):
+    """Get grid spacing from args.
+    
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _parse_grid_spacing_from_args
+    >>> _parse_grid_spacing_from_args((3, 4, 5))
+    5
+    >>> _parse_grid_spacing_from_args(((3, 4), 5))
+    5
+    """
     try:
         if _old_style_args(args):
             return args[2]
@@ -185,6 +258,7 @@ def _parse_grid_spacing_from_args(args):
 
 
 class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
+
     """A 2D uniform rectilinear grid.
 
     Create a uniform rectilinear grid that has *num_rows* and *num_cols*
@@ -289,7 +363,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties = {}
 
     def _initialize(self, num_rows, num_cols, dx):
-        """
+        """Set up a raster grid.
+
         Sets up a num_rows by num_cols grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
@@ -305,8 +380,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Note that by default, a RasterModelGrid ONLY has links to
         orthogonal neighboring nodes. However, if you wish to work with the
-        diagonal links (e.g., D8 flow routing), these functions are available as
-        methods, and the diagonal links can readily be created after
+        diagonal links (e.g., D8 flow routing), these functions are available
+        as methods, and the diagonal links can readily be created after
         initialization.
 
         Examples
@@ -316,55 +391,59 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> numcols = 30          # number of columns in the grid
         >>> dx = 10.0             # grid cell spacing
         >>> rmg = RasterModelGrid(numrows, numcols, dx)
-        >>> rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links, rmg.number_of_active_links
+        >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
+        ...  rmg.number_of_active_links)
         (600, 504, 1150, 1054)
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.number_of_nodes,rmg.number_of_cells,rmg.number_of_links,rmg.number_of_active_links
+        >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
+        ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest : +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
         True
         >>> rmg.node_corecell[8]
         2
         >>> rmg.node_numinlink
         array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
-        >>> rmg.node_inlink_matrix
-        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-                12, 13, 14],
-               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1, 27,
-                28, 29, 30]])
+        >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+              11, 12, 13, 14],
+             [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+              27, 28, 29, 30]])
         >>> rmg.node_numoutlink
         array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
-        >>> rmg.node_outlink_matrix[0]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1,
-               -1, -1, -1])
+        >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+               -1, -1, -1, -1, -1])
         >>> rmg.node_numactiveinlink
         array([0, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0, 2, 2, 2, 1, 0, 1, 1, 1, 0])
-        >>> rmg.node_active_inlink_matrix
-        array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,
-                 7,  8, -1],
-               [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
-                -1, -1, -1]])
+        >>> rmg.node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,
+                 6, 7,  8, -1],
+               [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
+                -1, -1, -1, -1]])
         >>> rmg.node_numactiveoutlink
         array([0, 1, 1, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0])
-        >>> rmg.node_active_outlink_matrix
-        array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1, -1,
-                -1, -1, -1],
-               [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1, -1,
-                -1, -1, -1]])
+        >>> rmg.node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1,
+                -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
+                -1, -1, -1, -1]])
         >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
-        >>> rmg.node_at_link_tail
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
-                2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
-        >>> rmg.node_at_link_head
-        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
-                3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
+        >>> rmg.node_at_link_tail # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,
+                1, 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
+        >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
+        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,
+                2,  3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
         >>> rmg.link_face[20]
         10
-        >>> rmg.active_links
-        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
+        >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
+        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
+               26])
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
@@ -535,30 +614,32 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_second_ring_cell_neighbor_list_created = False
 
     def _setup_cell_areas_array(self):
-        '''
+        """Set up array of cell areas.
+
         This method supports the creation of the array that stores cell areas.
         It is not meant to be called manually.
-        '''
+        """
         self._cell_areas = np.empty(self.number_of_cells)
         self._cell_areas.fill(self._dx ** 2)
         return self._cell_areas
 
     def _setup_cell_areas_array_force_inactive(self):
-        '''
+        """Set up array cell areas including extra cells for perimeter nodes.
+
         This method supports the creation of the array that stores cell areas.
         It differs from _setup_cell_areas_array in that it forces ALL nodes to
         have a surrounding cell, which is not actually the case for the generic
         perimeter node (these are unbounded). This is only possible because the
         grid is a raster.
         It is not meant to be called manually.
-        '''
+        """
         self._forced_cell_areas = np.empty(self.number_of_nodes)
         self._forced_cell_areas.fill(self._dx ** 2)
         return self._forced_cell_areas
 
     @property
     def shape(self):
-        """Return the shape of the grid.
+        """Get the shape of the grid.
 
         Returns
         -------
@@ -576,7 +657,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def cell_grid_shape(self):
-        """Return the shape of the cellular grid (grid with only cells).
+        """Get the shape of the cellular grid (grid with only cells).
 
         Returns
         -------
@@ -595,7 +676,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def dx(self):
-        """Return node spacing in the column direction.
+        """Get node spacing in the column direction.
 
         Returns
         -------
@@ -616,8 +697,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def dy(self):
-        """
-        Returns the node spacing in the row direction.
+        """Get node spacing in the row direction.
+
         Note in a RasterModelGrid, dy==dx.
 
         Returns
@@ -639,7 +720,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def node_links(self, *args):
         """node_links([node_ids])
-        Links attached to nodes.
+        Get links attached to nodes.
 
         Returns the ids of links attached to grid nodes with *node_ids*. If
         *node_ids* is not given, return links for all of the nodes in the
@@ -691,22 +772,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def active_node_links(self, *args):
         """active_node_links([node_ids])
-        Active links attached to nodes.
-
+        Get active links attached to nodes.
 
         .. deprecated:: 0.6
             Deprecated due to confusing terminology.
-            Use :func:`node_activelinks` instead.
+            Use :func:`active_links_at_node` instead.
 
         Returns the ids of active links attached to grid nodes with
         *node_ids*. If *node_ids* is not given, return links for all of the
         nodes in the grid. Link ids are listed in clockwise order starting
         with the south link. Diagonal links are never returned.
         """
-        return self.node_activelinks(*args)
+        return self.active_links_at_node(*args)
 
-    def node_activelinks(self, *args):
-        """node_activelinks([node_ids])
+    def active_links_at_node(self, *args):
+        """active_links_at_node([node_ids])
         Active links of a node.
 
         Parameters
@@ -731,12 +811,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [11],
                [ 5],
                [12]])
-        >>> rmg.node_activelinks((5, 6))
+        >>> rmg.active_links_at_node((5, 6))
         array([[0, 1],
                [4, 5],
                [2, 3],
                [5, 6]])
-        >>> rmg.node_activelinks()
+        >>> rmg.active_links_at_node()
         array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
