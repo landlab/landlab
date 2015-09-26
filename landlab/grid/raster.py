@@ -24,6 +24,7 @@ from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
+from ..core.utils import add_module_functions_to_class
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -3367,7 +3368,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         by setting closed boundaries (Aug 2013). DEJH added depreciated tag,
         May 14
         """
-        if bc == None:
+        if bc is None:
             bc = self.default_bc
 
         # For no-flux boundaries, we need to know which interior
@@ -3682,11 +3683,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                        'cell ' + id)
             six.print_('q: ' + q[self.faces[id, 0:4]])
 
-        fd = (-(q[self.faces[id, 2]]   # left face (positive=in)
-                + q[self.faces[id, 3]])           # bottom face (positive=in)
-              + q[self.faces[id, 0]]             # right face (positive=out)
-              + q[self.faces[id, 1]]             # top face (positive=out)
-              ) / self._dx
+        fd = (
+            - (q[self.faces[id, 2]] + # left face (positive=in)
+               q[self.faces[id, 3]]) + # bottom face (positive=in)
+              q[self.faces[id, 0]] + # right face (positive=out)
+              q[self.faces[id, 1]] # top face (positive=out)
+        ) / self._dx
+
         return fd
 
     def update_noflux_boundaries(self, u, bc=None):
@@ -3700,7 +3703,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         "boundary_nbrs" array.
         """
 
-        if bc == None:
+        if bc is None:
             bc = self.default_bc
 
         inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
@@ -3950,7 +3953,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-
         ans = has_boundary_neighbor(self, ids, method=method)
 
         if ans.ndim == 0:
@@ -3991,7 +3993,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         try:
             diagonal_nodes = self.diagonal_node_dict[bad_index]
-        except (KeyError):
+        except KeyError:
             diagonal_nodes = self.create_diagonal_list(bad_index=bad_index)
             self.diagonal_node_dict[bad_index] = diagonal_nodes
 
@@ -4022,7 +4024,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             boundary nodes now have neighbors, where they are found at the ends
             of active links.
         """
-
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
             self.shape, out_of_bounds=bad_index)
@@ -4296,7 +4297,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def _setup_face_widths(self):
         """Set up array of face widths.
-        
+
         Produces an array of length nfaces containing the face width (dx).
         """
         self._face_widths = np.empty(self.number_of_faces)
@@ -4442,7 +4443,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             *slope*, a len(ids) array of slopes at each node provided.
             *aspect*, a len(ids) array of aspects at each node provided.
         """
-        if ids == None:
+        if ids is None:
             ids = self.node_at_cell
         if type(ids) != np.ndarray:
             ids = np.array([ids])
@@ -4514,9 +4515,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             *slope*: a len(ids) array of slopes at each node provided.
             *aspect*: a len(ids) array of aspects at each node provided.
         """
-        if ids == None:
+        if ids is None:
             ids = self.core_nodes
-        if type(vals) == str:
+        if isinstance(vals, str):
             vals = self.at_node[vals]
         else:
             if not (len(vals) == self.number_of_nodes):
@@ -4775,7 +4776,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 raise ValueError('only zero or one arguments accepted')
         else:
             self.looped_cell_neighbor_list = \
-                    self.create_looped_cell_neighbor_list()
+                self.create_looped_cell_neighbor_list()
             return self.get_looped_cell_neighbor_list(*args)
 
     def create_looped_cell_neighbor_list(self):
@@ -4785,7 +4786,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cell as a 2D array of size ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
         """
-
         # CAUTION: Some terminology concerning cells in this module
         # is asynchronous to general understanding. This is intentionally
         # left as is until further discussion among dev group.
@@ -4869,7 +4869,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self.second_ring_looped_cell_neighbor_list =                                 \
                 self.create_second_ring_looped_cell_neighbor_list()
-            return(self.get_second_ring_looped_cell_neighbor_list(*args))
+            return self.get_second_ring_looped_cell_neighbor_list(*args)
 
     def create_second_ring_looped_cell_neighbor_list(self):
         """Create list of looped second ring cell neighbors (16 cells).
@@ -4894,10 +4894,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return second_ring
 
     def set_fixed_link_boundaries_at_grid_edges(
-        self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
-        link_value=None, node_value=None,
-        fixed_node_value_of='topographic__elevation',
-        fixed_link_value_of='topographic__slope'):
+            self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
+            link_value=None, node_value=None,
+            fixed_node_value_of='topographic__elevation',
+            fixed_link_value_of='topographic__slope'):
         """Create fixed link boundaries at the grid edges.
 
         Sets the status of links along the specified side(s) of a raster
@@ -5000,8 +5000,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
         'topographic__elevation'
         """
-        ## THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
-        ## IF NOT ALREADY SET.
+        # THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
+        # IF NOT ALREADY SET.
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_fixed_link_boundaries_at_grid_edges')
 
@@ -5120,7 +5120,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # For links, the default is topographic slope ('topographic__slope')
         # First, see if there is a scalar value...
-        if link_value == None:
+        if link_value is None:
 
             # if not, we assign the link values from the field of
             # 'topographic_slope'. If it does not exists, an error will be
@@ -5134,7 +5134,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             assigned_link_values = np.ones(fixed_links.size) * link_value
 
         # For nodes, the default value is 'topographic__elevation'.
-        if node_value == None:
+        if node_value is None:
 
             # If no scalar is found, the field values for
             # 'topographic__elevation' are used. If this field does not
@@ -5204,7 +5204,7 @@ def _is_closed_boundary(boundary_string):
 
 def _guess_format_from_name(path):
     """Get file format by name.
-    
+
     Parameters
     ----------
     path : str
@@ -5264,29 +5264,26 @@ def from_dict(param_dict):
     try:
         nrows = int(param_dict['NUM_ROWS'])
         ncols = int(param_dict['NUM_COLS'])
-        dx = float(param_dict.get('GRID_SPACING', 1.))
+        spacing = float(param_dict.get('GRID_SPACING', 1.))
     except KeyError:
         raise
     except ValueError:
         raise
     else:
-        mg = RasterModelGrid(nrows, ncols, dx)
+        grid = RasterModelGrid(nrows, ncols, spacing)
 
     # Set boundaries
     left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
     right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
     top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
     bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
-    mg.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
-                               _is_closed_boundary(right_boundary_type),
-                               _is_closed_boundary(top_boundary_type),
-                               _is_closed_boundary(left_boundary_type))
+    grid.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
+                                 _is_closed_boundary(right_boundary_type),
+                                 _is_closed_boundary(top_boundary_type),
+                                 _is_closed_boundary(left_boundary_type))
 
     # Return the created and initialized grid
-    return mg
-
-
-from ..core.utils import add_module_functions_to_class
+    return grid
 
 
 add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
