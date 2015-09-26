@@ -2810,8 +2810,8 @@ class ModelGrid(ModelDataFields):
         self.node_status[nodes] = CLOSED_BOUNDARY
         self.update_links_nodes_cells_to_new_BCs()
 
-    def get_distances_of_nodes_to_point(self, tuple_xy, get_az=None,
-                                        node_subset=numpy.nan,
+    def get_distances_of_nodes_to_point(self, coord, get_az=None,
+                                        node_subset=None,
                                         out_distance=None, out_azimuth=None):
         """Get distances for nodes to a given point.
 
@@ -2820,12 +2820,43 @@ class ModelGrid(ModelDataFields):
         array of azimuths from up/north. If it is set to 'displacements', it
         returns the azimuths as a 2xnnodes array of x and y displacements.
         If it is not set, returns just the distance array.
+
         If "node_subset" is set as an ID, or list/array/etc of IDs method
         returns just the distance (and optionally azimuth) for that node.
         Point is provided as a tuple (x,y).
+
         If out_distance (& out_azimuth) are provided, these arrays are used to
         store the outputs. This is recommended for memory management reasons if
         you are working with node subsets.
+
+        .. note::
+
+            Angles are returned in radians but measured clockwise from
+            north.
+
+        Parameters
+        ----------
+        coord : tuple of float
+            Coodinates of point as (x, y).
+        get_az: {None, 'angles', 'displacements'}, optional
+            Optionally calculate azimuths as either angles or displacements.
+            The calculated values will be returned along with the distances
+            as the second item of a tuple.
+        node_subset : array_like, optional
+            Calculate distances on a subset of grid nodes. The default is to
+            calculate distances from the provided points to all nodes.
+        out_distance : array_like, optional
+            If provided, put the calculated distances here. Otherwise,
+            create a new array.
+        out_azimuth : array_like, optional
+            If provided, put the calculated distances here. Otherwise,
+            create a new array.
+
+        Returns
+        -------
+        ndarray or tuple of ndarray
+            If *get_az* is ``None`` return the array of distances. Otherwise,
+            return a tuple of distances and azimuths.
 
         Notes
         -----
@@ -2841,113 +2872,126 @@ class ModelGrid(ModelDataFields):
         control over.
         Then, to maintain efficient memory allocation, we create some "dummy"
         nnode-long arrays to store intermediate parts of the solution in.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+
+        Calculate distances from point at (2., 1.) to a subset of nodes on
+        the grid.
+
+        >>> grid.get_distances_of_nodes_to_point((2, 1),
+        ...     node_subset=(2, 6, 7, 8, 12))
+        array([ 1.,  1.,  0.,  1.,  1.])
+
+        Calculate distances from a point to all nodes on the grid.
+
+        >>> dist = grid.get_distances_of_nodes_to_point((2, 1))
+        >>> dist.shape == (grid.number_of_nodes, )
+        True
+        >>> dist.take((2, 6, 7, 8, 12))
+        array([ 1.,  1.,  0.,  1.,  1.])
+
+        Put the distances into a buffer.
+
+        >>> out = np.empty(grid.number_of_nodes, dtype=float)
+        >>> dist = grid.get_distances_of_nodes_to_point((2, 1),
+        ...     out_distance=out)
+        >>> out is dist
+        True
+        >>> out.take((2, 6, 7, 8, 12))
+        array([ 1.,  1.,  0.,  1.,  1.])
+
+        Calculate azimuths along with distances. The azimuths are calculated
+        in radians but measured clockwise from north.
+
+        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        ...     get_az='angles')
+        >>> azim.take((2, 6, 7, 8, 12)) * 180. / np.pi
+        array([ 180.,  270.,    0.,   90.,    0.])
+        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        ...     get_az='angles', node_subset=(1, 3, 11, 13))
+        >>> azim * 180. / np.pi
+        array([ 225.,  135.,  315.,   45.])
+
+        When calculating displacements, the first row contains displacements
+        in x and the second displacements in y.
+
+        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        ...     get_az='displacements', node_subset=(2, 6, 7, 8, 12))
+        >>> azim
+        array([[ 0., -1.,  0.,  1.,  0.],
+               [-1.,  0.,  0.,  0.,  1.]])
         """
-        assert isinstance(tuple_xy, tuple)
-        assert len(tuple_xy) == 2
+        if len(coord) != 2:
+            raise ValueError('coordinate must iterable of length 2')
 
-        if numpy.any(numpy.isnan(node_subset)):
-            subset_flag = False
+        if get_az not in (None, 'displacements', 'angles'):
+            raise ValueError('get_az not understood')
+
+        if node_subset is not None and numpy.any(numpy.isnan(node_subset)):
+            node_subset = None
+
+        if node_subset is not None:
+            if not isinstance(node_subset, numpy.ndarray):
+                node_subset = numpy.array(node_subset)
+            node_subset = node_subset.reshape((-1, ))
+            len_subset = node_subset.size
         else:
-            subset_flag = True
+            len_subset = self.number_of_nodes
 
-        if subset_flag:
-            if type(node_subset) == int:
-                node_subset = numpy.array([node_subset])
+        if out_distance is None:
+            out_distance = numpy.empty(len_subset, dtype=numpy.float)
+        if out_distance.size != len_subset:
+            raise ValueError('output array size mismatch for distances')
+
+        if get_az is not None:
+            if get_az == 'displacements':
+                az_shape = (2, len_subset)
+            else:
+                az_shape = (len_subset, )
+            if out_azimuth is None:
+                out_azimuth = numpy.empty(az_shape, dtype=numpy.float)
+            if out_azimuth.shape != az_shape:
+                raise ValueError('output array mismatch for azimuths')
 
         azimuths_as_displacements = numpy.empty((2, self.number_of_nodes))
         dummy_nodes_1 = numpy.empty(self.number_of_nodes)
         dummy_nodes_2 = numpy.empty(self.number_of_nodes)
         dummy_nodes_3 = numpy.empty(self.number_of_nodes)
-        dummy_bool = numpy.empty(self.number_of_nodes, dtype=bool)
 
-        if out_distance is None:
-            try:
-                out_distance = numpy.empty(node_subset.size)
-            except:
-                out_distance = self.empty(centering='node')
+        if node_subset is None:
+            azimuths_as_displacements[0] = (self.node_x - coord[0])
+            azimuths_as_displacements[1] = (self.node_y - coord[1])
         else:
-            if subset_flag:
-                assert out_distance.size == node_subset.size
-            else:
-                assert out_distance.size == self.number_of_nodes
-        if out_azimuth is None and get_az:
-            try:
-                out_azimuth = numpy.empty((2, node_subset.size))
-            except:
-                out_azimuth = numpy.empty((2, self.number_of_nodes))
-            # only one of these colums will get used if get_az == 'angles'
-        elif out_azimuth is not None:
-            if subset_flag:
-                if get_az == 'displacements':
-                    assert out_azimuth.shape == (2, node_subset.shape[1])
-                elif get_az == 'angles':
-                    assert out_azimuth.size == node_subset.size
-            else:
-                assert out_azimuth.size == self.number_of_nodes
+            azimuths_as_displacements[0, :len_subset] = (
+                self.node_x[node_subset] - coord[0])
+            azimuths_as_displacements[1, :len_subset] = (
+                self.node_y[node_subset] - coord[1])
 
-        try:
-            len_subset = node_subset.size
-        except:
-            len_subset = self.number_of_nodes
-
-        try:
-            azimuths_as_displacements[0, :len_subset] = self.node_x[
-                node_subset] - tuple_xy[0]
-            azimuths_as_displacements[1, :len_subset] = self.node_y[
-                node_subset] - tuple_xy[1]
-        except:
-            azimuths_as_displacements[0] = (self.node_x - tuple_xy[0])
-            azimuths_as_displacements[1] = (self.node_y - tuple_xy[1])
-
-        numpy.square(
-            azimuths_as_displacements[0, :len_subset],
-            out=dummy_nodes_1[:len_subset])
-        numpy.square(
-            azimuths_as_displacements[1, :len_subset],
-            out=dummy_nodes_2[:len_subset])
-        numpy.add(dummy_nodes_1[:len_subset],
-                  dummy_nodes_2[:len_subset], out=dummy_nodes_3[:len_subset])
+        numpy.square(azimuths_as_displacements[0, :len_subset],
+                     out=dummy_nodes_1[:len_subset])
+        numpy.square(azimuths_as_displacements[1, :len_subset],
+                     out=dummy_nodes_2[:len_subset])
+        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[:len_subset],
+                  out=dummy_nodes_3[:len_subset])
         numpy.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
 
         if get_az:
             if get_az == 'displacements':
-                out_azimuth[:len_subset] = azimuths_as_displacements[
-                    :len_subset]
-                return out_distance, out_azimuth
+                out_azimuth[:] = azimuths_as_displacements[:, :len_subset]
             elif get_az == 'angles':
-                # new code to replace below ***
-                div_by_zero_cases = azimuths_as_displacements[
-                    0, :len_subset] == 0.
-                not_div_by_zero_cases = numpy.logical_not(div_by_zero_cases)
-                dummy_nodes_1[:len_subset][not_div_by_zero_cases] = numpy.divide(azimuths_as_displacements[1, :len_subset][not_div_by_zero_cases],
-                                                                                 azimuths_as_displacements[0, :len_subset][not_div_by_zero_cases])
-                dummy_nodes_2[:len_subset][not_div_by_zero_cases] = numpy.arctan(
-                    dummy_nodes_1[:len_subset][not_div_by_zero_cases])  # "angle_to_xaxis"
-                dummy_nodes_2[:len_subset][div_by_zero_cases] = numpy.where(
-                    azimuths_as_displacements[1, :len_subset][div_by_zero_cases] < 0, 0., numpy.pi)
-                numpy.sign(azimuths_as_displacements[0, :len_subset],
-                           out=dummy_nodes_1[:len_subset])
-                numpy.subtract(1., dummy_nodes_1[:len_subset],
-                               out=dummy_nodes_3[:len_subset])
-                numpy.multiply(dummy_nodes_3[:len_subset], 0.5 * numpy.pi,
-                               out=dummy_nodes_1[:len_subset])
-                numpy.subtract(0.5 * numpy.pi, dummy_nodes_2[:len_subset],
-                               out=dummy_nodes_3[:len_subset])
-                if out_azimuth is not None:
-                    numpy.add(dummy_nodes_1[:len_subset],
-                              dummy_nodes_3[:len_subset],
-                              out=out_azimuth)
-                else:
-                    numpy.add(dummy_nodes_1[:len_subset],
-                              dummy_nodes_3[:len_subset],
-                              out=out_azimuth[0, :])
-                if out_azimuth.shape[0] == 2 and len(out_azimuth.shape) == 2:
-                    return out_distance, out_azimuth[0, :]
-                else:
-                    return out_distance, out_azimuth
-            else:
-                six.print_("Option set for get_az not recognised. Should be "
-                           "'displacements' or 'angles'.")
+                numpy.arctan2(
+                    azimuths_as_displacements[0, :len_subset],
+                    azimuths_as_displacements[1, :len_subset],
+                    out=out_azimuth[:len_subset])
+
+                less_than_zero = numpy.empty(self.number_of_nodes, dtype=bool)
+                numpy.less(out_azimuth, 0., out=less_than_zero[:len_subset])
+                out_azimuth[less_than_zero[:len_subset]] += 2. * numpy.pi
+
+            return out_distance, out_azimuth
         else:
             return out_distance
 
