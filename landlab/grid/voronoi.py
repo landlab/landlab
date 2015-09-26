@@ -243,18 +243,17 @@ class VoronoiDelaunayGrid(ModelGrid):
             return self._number_of_patches
 
     @property
-    def patch_nodes(self):
-        """patch_nodes
-        Returns the four nodes at the corners of each patch in a regular grid.
+    def nodes_at_patch(self):
+        """Get the four nodes at the corners of each patch in a regular grid.
         """
         try:
-            return self._patch_nodes
+            return self._nodes_at_patch
         except AttributeError:
             self.create_patches_from_delaunay_diagram(self.pts, self.vor)
-            return self._patch_nodes
+            return self._nodes_at_patch
 
-    def node_patches(self, nodata=-1):
-        """node_patches()
+    def patches_at_node(self, nodata=-1):
+        """patches_at_node()
         (This is a placeholder method until improved using jagged array
         operations.)
         Returns a (N,max_voronoi_polygon_sides) array of the patches associated
@@ -268,11 +267,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         if nodata == -1:  # fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
             try:
-                return self._node_patches
+                return self._patches_at_node
             except AttributeError:
                 self.create_patches_from_delaunay_diagram(
                     self.pts, self.vor, nodata)
-                return self._node_patches
+                return self._patches_at_node
         else:
             try:
                 self.set_bad_value
@@ -280,9 +279,9 @@ class VoronoiDelaunayGrid(ModelGrid):
                 self.create_patches_from_delaunay_diagram(
                     self.pts, self.vor, nodata)
                 self.set_bad_value = True
-                return self._node_patches
+                return self._patches_at_node
             else:
-                return self._node_patches
+                return self._patches_at_node
 
     def find_perimeter_nodes(self, pts):
         """
@@ -649,27 +648,27 @@ class VoronoiDelaunayGrid(ModelGrid):
         else:
             raise ValueError('Do not recognise nodata value!')
 
-        self._patch_nodes = tri.simplices
+        self._nodes_at_patch = tri.simplices
         self._number_of_patches = tri.simplices.shape[0]
         max_dimension = 0
-        # need to build a squared off, masked array of the node_patches
+        # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
         # the side-iest voronoi region.
         for i in range(len(vor.regions)):
             if len(vor.regions[i]) > max_dimension:
                 max_dimension = len(vor.regions[i])
-        _node_patches = numpy.empty(
+        _patches_at_node = numpy.empty(
             (self.number_of_nodes, max_dimension), dtype=int)
-        _node_patches.fill(nodata)
+        _patches_at_node.fill(nodata)
         for i in range(self.number_of_nodes):
             if not self.is_boundary(i, boundary_flag=4):  # don't include closed nodes
                 patches_with_node = numpy.argwhere(
-                    numpy.equal(self._patch_nodes, i))[:, 0]
-                _node_patches[
+                    numpy.equal(self._nodes_at_patch, i))[:, 0]
+                _patches_at_node[
                     i, :patches_with_node.size] = patches_with_node[:]
         # mask it
-        self._node_patches = numpy.ma.array(
-            _node_patches, mask=numpy.equal(_node_patches, -1))
+        self._patches_at_node = numpy.ma.array(
+            _patches_at_node, mask=numpy.equal(_patches_at_node, -1))
 
     def save(self, path, clobber=False):
         """Save a grid and fields.
