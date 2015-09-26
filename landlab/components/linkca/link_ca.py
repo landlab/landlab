@@ -124,7 +124,7 @@ class LinkCellularAutomaton():
         assert (type(model_grid) is landlab.grid.raster.RasterModelGrid), \
                'model_grid must be a Landlab RasterModelGrid'
         self.grid = model_grid
-        self.active_links_at_node = self.grid.active_node_links()
+        self.active_links_at_node = self.grid.active_links_at_node()
 
         self.set_node_state_grid(initial_node_states)
 

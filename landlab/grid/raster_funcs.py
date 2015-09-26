@@ -580,7 +580,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     """
     cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    links = grid.active_node_links(node_ids).T
+    links = grid.active_links_at_node(node_ids).T
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)

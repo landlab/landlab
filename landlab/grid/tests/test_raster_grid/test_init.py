@@ -264,27 +264,27 @@ def test_active_outlink_matrix():
 
 
 @with_setup(setup_grid)
-def test_active_node_links_scalar_interior():
-    assert_array_equal(rmg.active_node_links([6]), np.array([[0, 9, 3, 10]]).T)
+def test_active_links_at_node_scalar_interior():
+    assert_array_equal(rmg.active_links_at_node([6]), np.array([[0, 9, 3, 10]]).T)
 
 
 @with_setup(setup_grid)
-def test_active_node_links_scalar_boundary():
-    assert_array_equal(rmg.active_node_links([1]),
+def test_active_links_at_node_scalar_boundary():
+    assert_array_equal(rmg.active_links_at_node([1]),
                        np.array([[-1, -1, 0, -1]]).T)
 
 
 @with_setup(setup_grid)
 def test_active_node_with_array_arg():
-    assert_array_equal(rmg.active_node_links([6, 7]),
+    assert_array_equal(rmg.active_links_at_node([6, 7]),
                        np.array([[0,  9, 3, 10],
                                  [1, 10, 4, 11]]).T)
 
 
 @with_setup(setup_grid)
-def test_active_node_links_with_no_args():
+def test_active_links_at_node_with_no_args():
     assert_array_equal(
-        rmg.active_node_links(),
+        rmg.active_links_at_node(),
         np.array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1,
                    -1,  3,  4,  5, -1, -1,  6,  7,  8, -1],
                   [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12,
