@@ -770,21 +770,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def active_node_links(self, *args):
-        """active_node_links([node_ids])
-        Get active links attached to nodes.
-
-        .. deprecated:: 0.6
-            Deprecated due to confusing terminology.
-            Use :func:`active_links_at_node` instead.
-
-        Returns the ids of active links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        with the south link. Diagonal links are never returned.
-        """
-        return self.active_links_at_node(*args)
-
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
         Active links of a node.
