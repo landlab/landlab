@@ -1274,8 +1274,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.squeeze(np.concatenate(
             (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
 
-    def links_at_face(self, *args):
-        """links_at_face([face_id])
+    def link_at_face(self, *args):
+        """link_at_face([face_id])
         Get links associated with faces.
 
         Returns an array of the link IDs for the links which intersect the
@@ -1291,10 +1291,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.links_at_face(0)
+        >>> mg.link_at_face(0)
         array([1])
 
-        >>> mg.links_at_face([0, 4, 13])
+        >>> mg.link_at_face([0, 4, 13])
         array([ 1,  7, 23])
         """
         if len(args) == 0:
