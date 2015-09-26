@@ -530,6 +530,8 @@ class ModelGrid(ModelDataFields):
             'axis_units', _default_axis_units(self.ndim))
 
         self._link_length = None
+        self._all_node_distances_map = None
+        self._all_node_azimuths_map = None
 
     def _initialize(self):
         raise NotImplementedError('_initialize')
@@ -3010,12 +3012,76 @@ class ModelGrid(ModelDataFields):
         else:
             return out_distance
 
+    @property
+    def all_node_distances_map(self):
+        """Get distances from every node to every other node.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> distances = grid.all_node_distances_map
+
+        The shape of the array is ``number_of_nodes`` by ``number_of_nodes``
+        and distance from a node to itself is zero.
+
+        >>> distances.shape
+        (12, 12)
+        >>> distances.diagonal()
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+        The distances from the first node to all nodes in its row and all the
+        nodes in its column.
+
+        >>> distances[0, :4]
+        array([ 0.,  1.,  2.,  3.])
+        >>> distances[0, ::4]
+        array([ 0.,  1.,  2.])
+        """
+        if self._all_node_distances_map is None:
+            self.build_all_node_distances_azimuths_maps()
+        return self._all_node_distances_map
+
+    @property
+    def all_node_azimuths_map(self):
+        """Get azimuths from every node to every other node.
+        
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> angles = grid.all_node_azimuths_map
+
+        The shape of the array is ``number_of_nodes`` by ``number_of_nodes``
+        and azimuth from a node to itself is zero.
+
+        >>> angles.shape
+        (12, 12)
+        >>> angles.diagonal()
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+        Angles are measured in radians and increase clockwise starting at
+        north.
+
+        >>> angles *= 180. * np.pi
+        >>> angles[0, :4]
+        array([  0.,  90.,  90.,  90.])
+        >>> angles[0, ::4]
+        array([ 0.,  0.,  0.])
+        >>> angles[0, ::5]
+        array([  0.,  45.,  45.])
+        """
+        if self._all_node_azimuths_map is None:
+            self.build_all_node_distances_azimuths_maps()
+        return self._all_node_azimuths_map
+
     def build_all_node_distances_azimuths_maps(self):
         """Build distance-azimuth maps.
 
-        This function creates and stores in the grid field two nnodes*nnodes
-        arrays that map the distances and azimuths of all nodes in the grid to
-        all nodes in the grid.
+        This function creates and stores in the grid field two ``nnodes`` by
+        ``nnodes`` arrays that map the distances and azimuths of all nodes
+        in the grid to all nodes in the grid.
 
         This is useful if your module needs to make repeated lookups of
         distances between the same nodes, but does potentially use up a lot
@@ -3033,25 +3099,24 @@ class ModelGrid(ModelDataFields):
         tuple of ndarrays
             Tuple of (distances, azimuths)
         """
-
-        self.all_node_distances_map = numpy.empty((self.number_of_nodes,
+        self._all_node_distances_map = numpy.empty((self.number_of_nodes,
+                                                    self.number_of_nodes))
+        self._all_node_azimuths_map = numpy.empty((self.number_of_nodes,
                                                    self.number_of_nodes))
-        self.all_node_azimuths_map = numpy.empty((self.number_of_nodes,
-                                                  self.number_of_nodes))
 
         node_coords = numpy.empty((self.number_of_nodes, 2))
         node_coords[:, 0] = self.node_x
         node_coords[:, 1] = self.node_y
 
         for i in range(self.number_of_nodes):
-            (self.all_node_distances_map[i, :],
-             self.all_node_azimuths_map[i, :]) = (
+            (self._all_node_distances_map[i, :],
+             self._all_node_azimuths_map[i, :]) = (
                  self.get_distances_of_nodes_to_point(
                      (node_coords[i, 0], node_coords[i, 1]), get_az='angles'))
 
-        assert numpy.all(self.all_node_distances_map >= 0.)
+        assert numpy.all(self._all_node_distances_map >= 0.)
 
-        return self.all_node_distances_map, self.all_node_azimuths_map
+        return self._all_node_distances_map, self._all_node_azimuths_map
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
