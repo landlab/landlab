@@ -858,10 +858,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 bottom_left_corner + self._ncols + 1))
 
     def _setup_inlink_and_outlink_matrices(self):
-        """
+        """Set up matrices that hold the inlinks and outlinks for each node.
+
         Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the node as
-        its "to" node, and an outlink is a link that has the node as its "from".
+        for each node. An inlink of a node is simply a link that has the node
+        as its "to" node, and an outlink is a link that has the node as its
+        "from".
 
         We store the inlinks in a 2-row by num_nodes-column matrix called
         node_inlink_matrix. It has two rows because we know that the nodes in
@@ -887,13 +889,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cute little trick when computing inflows and outflows. We make our
         "flux" array one element longer than the number of links, with the last
         element containing the value 0. Thus, any time we add an influx from
-        link number -1, Python takes the value of the last element in the array,
-        which is zero. By doing it this way, we maintain the efficiency that
-        comes with the use of numpy. Again, more info can be found in the
+        link number -1, Python takes the value of the last element in the
+        array, which is zero. By doing it this way, we maintain the efficiency
+        that comes with the use of numpy. Again, more info can be found in the
         description of the flux divergence functions.
 
-        DEJH notes that we may be using BAD_INDEX_VALUE (an arbitrary very large
-        number), not -1, now.
+        DEJH notes that we may be using BAD_INDEX_VALUE (an arbitrary very
+        large number), not -1, now.
         If you want to use this trick, you'll have to seach for BAD_INDEX_VALUE
         manually now.
 
@@ -910,13 +912,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
          self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
 
     def _setup_active_inlink_and_outlink_matrices(self):
-        """
+        """Set up matrices that hold active inlinks and outlinks for each node.
+
         Creates data structures to record the numbers of active inlinks and
         active outlinks for each node. These data structures are equivalent to
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
         """
-
         node_status = self.node_status != CLOSED_BOUNDARY
 
         (self.node_active_inlink_matrix,
@@ -936,16 +938,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
              self.shape, node_status=node_status)
 
     def _reset_list_of_active_diagonal_links(self):
-        '''
+        """Rest the active diagonal links.
+
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive) for internal
         consistency after the BC status of some nodes has been changed.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
-        Assumes _setup_diagonal_links() has been called, either explicitly or by
-        another grid method (e.g., d8_active_links()).
-        '''
-
+        Assumes _setup_diagonal_links() has been called, either explicitly or
+        by another grid method (e.g., d8_active_links()).
+        """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
         self._diagonal_active_links = []
@@ -971,7 +973,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
 
     def _reset_diagonal_link_statuses(self):
-        '''
+        """Rest the statuses of diagonal links.
+
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive/fixed) for internal
         consistency after the BC status of some nodes has been changed.
@@ -979,8 +982,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         "normal" links - so we add self.number_links to these IDs.
         Assumes _setup_diagonal_links() has been called, either explicitly or by
         another grid method (e.g., d8_active_links()).
-        '''
-
+        """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
         self._diagonal_active_links = []
@@ -1034,47 +1036,43 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
     def _reset_link_status_list(self):
-        '''
+        """Rest the status of links.
+
         Assuming the link_status array has already been created elsewhere, this
         helper method checks link statuses for internal
         consistency after the BC status of some nodes has been changed.
-        '''
+        """
         super(RasterModelGrid, self)._reset_link_status_list()
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
 
     def _make_link_unit_vectors(self):
-        """Makes arrays to store the unit vectors associated with each link.
-        Overrides ModelGrid._make_link_unit_vectors().
+        """Make arrays to store the unit vectors associated with each link.
 
         Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
-        for each link, the x and y components of the link's unit vector (that is,
-        the link's x and y dimensions if it were shrunk to unit length but
+        for each link, the x and y components of the link's unit vector (that
+        is, the link's x and y dimensions if it were shrunk to unit length but
         retained its orientation). The length of these arrays is the number of
-        links plus one. The last entry in each array is set to zero, and is used
-        to handle references to "link -1" (meaning, a non-existent link, whose
-        unit vector is (0,0)).
-            Also builds arrays to store the unit-vector component sums for each
+        links plus one. The last entry in each array is set to zero, and is
+        used to handle references to "link -1" (meaning, a non-existent link,
+        whose unit vector is (0,0)).
+
+        Also builds arrays to store the unit-vector component sums for each
         node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are
         designed to be used when mapping link vector values to nodes (one takes
         the average of the x- and y-components of all connected links).
 
-        Parameters
-        ----------
+        Notes
+        -----
+        .. note::
 
-        (none)
+            Overrides ModelGrid._make_link_unit_vectors().
 
-        Returns
-        -------
-
-        (none)
-
-        Creates
-        -------
-
-        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
-            x and y components of unit vectors at each link (extra 0 entries @ end)
-        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+        Creates the following:
+        * `self.link_unit_vec_x`, `self.link_unit_vec_y` : `ndarray`
+            x and y components of unit vectors at each link (extra 0
+            entries at end)
+        * `self.node_vector_sum_x`, `self.node_vector_sum_y` : `ndarray`
             Sums of x & y unit vector components for each node. Sum is over all
             links connected to a given node.
 
@@ -1116,36 +1114,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
-        # To do this, we take advantage of the node inlink and outlink matrices,
-        # each of which has 2 rows, corresponding to the maximum possible 2
-        # inlinks and 2 outlinks in a raster grid.
-        #     Create the arrays
+        # To do this, we take advantage of the node inlink and outlink
+        # matrices, each of which has 2 rows, corresponding to the maximum
+        # possible 2 inlinks and 2 outlinks in a raster grid.
+        #
+        # Create the arrays
         self._node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
         self._node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
-        #     x-component contribution from inlinks
+        # x-component contribution from inlinks
         self._node_unit_vector_sum_x += np.abs(
             self._link_unit_vec_x[self.node_inlink_matrix[0, :]])
         self._node_unit_vector_sum_x += np.abs(
             self._link_unit_vec_x[self.node_inlink_matrix[1, :]])
-        #     x-component contribution from outlinks
+        # x-component contribution from outlinks
         self._node_unit_vector_sum_x += np.abs(
             self._link_unit_vec_x[self.node_outlink_matrix[0, :]])
         self._node_unit_vector_sum_x += np.abs(
             self._link_unit_vec_x[self.node_outlink_matrix[1, :]])
-        #     y-component contribution from inlinks
+        # y-component contribution from inlinks
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_inlink_matrix[0, :]])
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_inlink_matrix[1, :]])
-        #     y-component contribution from outlinks
+        # y-component contribution from outlinks
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[0, :]])
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def cell_faces(self, *args):
-        """cell_faces([cell_id])
-        Faces of a cell.
+    def faces_at_cell(self, *args):
+        """faces_at_cell([cell_id])
+        Get array of faces of a cell.
 
         Return an array of the face IDs for the faces of a cell with ID,
         *cell_id*. The faces are listed clockwise, starting with the bottom
@@ -1166,14 +1165,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.cell_faces(0)
+        >>> rmg.faces_at_cell(0)
         array([ 0,  9,  3, 10])
 
-        >>> rmg.cell_faces([0, 5])
+        >>> rmg.faces_at_cell([0, 5])
         array([[ 0,  9,  3, 10],
                [ 5, 15,  8, 16]])
 
-        >>> rmg.cell_faces()
+        >>> rmg.faces_at_cell()
         array([[ 0,  9,  3, 10],
                [ 1, 10,  4, 11],
                [ 2, 11,  5, 12],
@@ -1196,7 +1195,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def face_links(self, *args):
         """face_links([face_id])
-        Links associated with faces.
+        Get links associated with faces.
 
         Returns an array of the link IDs for the links which intersect the
         faces specificed by *face_id*. *face_id* can be either a scalar or an
@@ -3955,7 +3954,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns an array of face indices that *cell_a* and *cell_b* share.
         If the cells do not share any faces, returns an empty array.
         """
-        cell_faces = self.cell_faces([cell_a, cell_b])
+        cell_faces = self.faces_at_cell([cell_a, cell_b])
         return np.intersect1d(cell_faces[0], cell_faces[1],
                               assume_unique=True)
 
