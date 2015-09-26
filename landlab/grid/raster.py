@@ -1243,8 +1243,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             excess_col % (self.shape[1] - 1))  # -1 cancels because of offset term
         return links
 
-    def link_faces(self, *args):
-        """link_faces([link_id])
+    def face_at_link(self, *args):
+        """face_at_link([link_id])
         Faces associated with links.
 
         Return an array of the face IDs for the faces that intersect the links
@@ -1263,9 +1263,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.link_faces(2)
+        >>> rmg.face_at_link(2)
         1
-        >>> rmg.link_faces([0, 1, 15, 19, 12, 26])
+        >>> rmg.face_at_link([0, 1, 15, 19, 12, 26])
         array([2147483647,          0, 2147483647,          9,          7,
                        16])
         """
