@@ -85,8 +85,8 @@ class DepressionFinderAndRouter(Component):
                 print('Error: Because your grid does not have a node field')
                 print('called "topographic__elevation", you need to pass the')
                 print('name of a text input file or ModelParameterDictionary,')
-                print(' and this file or dictionary needs to include the name')
-                print(' of another field in your grid that contains your')
+                print('and this file or dictionary needs to include the name')
+                print('of another field in your grid that contains your')
                 print('elevation data.')
                 raise AttributeError
             except MissingKeyError:
