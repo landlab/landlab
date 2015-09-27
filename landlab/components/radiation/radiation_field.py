@@ -111,7 +111,7 @@ class Radiation( Component ):
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
         self._slope,self._aspect = \
-            grid.calculate_slope_aspect_at_nodes_Burrough(vals = 'Elevation')
+            grid.calculate_slope_aspect_at_nodes_burrough(vals = 'Elevation')
         self._cell_values['Slope'] = self._slope
         self._cell_values['Aspect'] = self._aspect
 

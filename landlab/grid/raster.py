@@ -4335,7 +4335,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return slope alone
         return s
 
-    def calculate_slope_aspect_at_nodes_Burrough(self, ids=None,
+    def calculate_slope_aspect_at_nodes_burrough(self, ids=None,
                                                  vals='Elevation'):
         """Calculate topographic slope.
 
@@ -4374,31 +4374,32 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        try:
-            neighbors[:, ] = self.get_neighbor_list(ids)
-        except ValueError:
-            raise ValueError(ids)
+        neighbors[:, ] = self.get_neighbor_list(ids)
         #[topright, topleft, bottomleft, bottomright]
         diagonals[:, ] = self.get_diagonal_list(ids)
 
-        f = vals[neighbors[:, 0]]
-        b = vals[neighbors[:, 1]]
-        d = vals[neighbors[:, 2]]
-        h = vals[neighbors[:, 3]]
-        c = vals[diagonals[:, 0]]
-        a = vals[diagonals[:, 1]]
-        g = vals[diagonals[:, 2]]
-        i = vals[diagonals[:, 3]]
+        right = vals[neighbors[:, 0]]
+        top = vals[neighbors[:, 1]]
+        left = vals[neighbors[:, 2]]
+        bottom = vals[neighbors[:, 3]]
+        top_right = vals[diagonals[:, 0]]
+        top_left = vals[diagonals[:, 1]]
+        bottom_left = vals[diagonals[:, 2]]
+        bottom_right = vals[diagonals[:, 3]]
 
-        dZ_dX = ((c + 2 * f + i) - (a + 2 * d + g)) / (8. * self._dx)
-        dZ_dY = ((g + 2 * h + i) - (a + 2 * b + c)) / (8. * self._dx)
+        dz_dx = ((top_right + 2 * right + bottom_right) -
+                 (top_left + 2 * left + bottom_left)) / (8. * self._dx)
+        dz_dy = ((bottom_left + 2 * bottom + bottom_right) -
+                 (top_left + 2 * top + top_right)) / (8. * self._dx)
+
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
-        slope = np.arctan(np.sqrt(dZ_dX**2 + dZ_dY**2))
-        aspect = np.arctan2(dZ_dY, -dZ_dX)
+        slope = np.arctan(np.sqrt(dz_dx ** 2 + dz_dy ** 2))
+        aspect = np.arctan2(dz_dy, - dz_dx)
         aspect = np.pi * .5 - aspect
         aspect[aspect < 0.] = aspect[aspect < 0.] + 2. * np.pi
         aspect[slope == 0.] = -1.
+
         return slope, aspect
 
     def calculate_slope_aspect_at_nodes_horn(self, ids=None,
@@ -4410,7 +4411,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
             elevation profile. Please check slope_aspect_routines_comparison.py
             under landlab\examples before using this.
-            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
+            Suggested alternative: calculate_slope_aspect_at_nodes_burrough
                                                         ~ SN 25Sep14
 
         Calculates the local topographic slope (i.e., the down-dip slope, and
@@ -4588,7 +4589,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
             elevation profile. Please check slope_aspect_routines_comparison.py
             under landlab\examples before using this.
-            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
+            Suggested alternative: calculate_slope_aspect_at_nodes_burrough
                                                                 ~ SN 25Sep14
 
         Calculates both the slope and aspect at each node based on the

@@ -20,13 +20,13 @@ grid['node']['Elevation'] = elev
 
 ids = grid.node_at_cell
 # Burroughs
-slope_Burrough, aspect_Burrough = \
-    grid.calculate_slope_aspect_at_nodes_Burrough(ids, vals='Elevation')
+slope_burrough, aspect_burrough = \
+    grid.calculate_slope_aspect_at_nodes_burrough(ids, vals='Elevation')
 # Horn
 slope_horn, aspect_horn = \
     grid.calculate_slope_aspect_at_nodes_horn(ids, vals='Elevation')
 # BestFitPlane
-slope_BFP, aspect_BFP = grid.calculate_slope_aspect_at_nodes_bestFitPlane(
+slope_bfp, aspect_bfp = grid.calculate_slope_aspect_at_nodes_best_fit_plane(
     ids, elev)
 
 
@@ -41,17 +41,17 @@ plt.title('Elevation in m')
 
 pic += 1
 plt.figure(pic)
-imshow_grid(grid, np.degrees(slope_Burrough),
+imshow_grid(grid, np.degrees(slope_burrough),
             values_at='cell', grid_units=('m', 'm'))
 plt.title('Slope in degrees - Burrough 1998')
-# plt.savefig('Slope_Burrough_NS')
+# plt.savefig('Slope_burrough_NS')
 
 pic += 1
 plt.figure(pic)
-imshow_grid(grid, np.degrees(aspect_Burrough),
+imshow_grid(grid, np.degrees(aspect_burrough),
             values_at='cell', grid_units=('m', 'm'))
 plt.title('Aspect in degrees - Burrough 1998')
-# plt.savefig('aspect_Burrough_NS')
+# plt.savefig('aspect_burrough_NS')
 
 pic += 1
 plt.figure(pic)
@@ -69,22 +69,22 @@ plt.title('Aspect in degrees - Horn')
 
 pic += 1
 plt.figure(pic)
-imshow_grid(grid, np.degrees(slope_BFP),
+imshow_grid(grid, np.degrees(slope_bfp),
             values_at='cell', grid_units=('m', 'm'))
 plt.title('Slope in degrees - bestFitPlane')
-# plt.savefig('Slope_BFP_NS')
+# plt.savefig('Slope_bfp_NS')
 
 pic += 1
 plt.figure(pic)
-imshow_grid(grid, np.degrees(aspect_BFP),
+imshow_grid(grid, np.degrees(aspect_bfp),
             values_at='cell', grid_units=('m', 'm'))
 plt.title('Aspect in degrees - bestFitPlane')
-# plt.savefig('aspect_BFP_NS')
+# plt.savefig('aspect_bfp_NS')
 
 pic += 1
 plt.figure(pic)
 imshow_grid(grid, slope_NSP, values_at='node', grid_units=('m', 'm'))
 plt.title('Slope in degrees - Node Slopes using Patches')
-# plt.savefig('aspect_BFP_NS')
+# plt.savefig('aspect_bfp_NS')
 
 plt.show()
