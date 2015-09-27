@@ -600,7 +600,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
         # create_neighbor_list, we'll create it if necessary.
-        self.neighbor_list_created = False
+        self._neighbor_node_dict = {}
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
@@ -608,7 +608,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # List of looped neighbor cells (all 8 neighbors) for
         # given *cell ids* can be created if requested by the user.
-        self.looped_cell_neighbor_list_created = False
+        self._looped_cell_neighbor_list = None
 
         # List of second ring looped neighbor cells (all 16 neighbors) for
         # given *cell ids* can be created if requested by the user.
@@ -3876,34 +3876,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(4, 5)
-        >>> np.all(mg.get_neighbor_list([-1, 6, 2]) == np.array(
-        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]]))
+        >>> rmg = RasterModelGrid(4, 5)
+        >>> np.array_equal(rmg.get_neighbor_list([-1, 6, 2]),
+        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
         True
-        >>> mg.get_neighbor_list(7)
+        >>> rmg.get_neighbor_list(7)
         array([ 8, 12,  6,  2])
+        >>> rmg.get_neighbor_list(2, bad_index=-1)
+        array([-1,  7, -1, -1])
+        >>> np.array_equal(rmg.get_neighbor_list(2), [X, 7, X, X])
+        True
 
         ..todo: could use inlink_matrix, outlink_matrix
         """
         bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
+        if len(args) not in (0, 1):
+            raise ValueError('only zero or one arguments accepted')
 
-        if self.neighbor_list_created == False:
-            self.neighbor_node_dict = {}
-            self.neighbor_node_dict[
-                bad_index] = self.create_neighbor_list(bad_index=bad_index)
+        if bad_index not in self._neighbor_node_dict:
+            self._neighbor_node_dict[bad_index] = (
+                self.create_neighbor_list(bad_index=bad_index))
 
-        try:
-            neighbor_nodes = self.neighbor_node_dict[bad_index]
-        except KeyError:
-            neighbor_nodes = self.create_neighbor_list(bad_index=bad_index)
-            self.neighbor_node_dict[bad_index] = neighbor_nodes
+        neighbor_nodes = self._neighbor_node_dict[bad_index]
 
         if len(args) == 0:
             return neighbor_nodes
-        elif len(args) == 1:
-            return neighbor_nodes[args[0], :]
         else:
-            raise ValueError('only zero or one arguments accepted')
+            return neighbor_nodes[args[0], :]
 
     def create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of neighbor node IDs.
@@ -4445,7 +4444,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         if ids is None:
             ids = self.node_at_cell
-        if isinstance(ids, np.ndarray):
+        if not isinstance(ids, np.ndarray):
             ids = np.array([ids])
         if isinstance(vals, str):
             vals = self.at_node[vals]
@@ -4455,10 +4454,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
-        neighbors[:, ] = self.get_neighbor_list(
-            ids)  # [right, top, left, bottom]
-        diagonals[:, ] = self.get_diagonal_list(ids)
+        # [right, top, left, bottom]
+        try:
+            neighbors[:, ] = self.get_neighbor_list(ids)
+        except ValueError:
+            raise ValueError(ids)
         #[topright, topleft, bottomleft, bottomright]
+        diagonals[:, ] = self.get_diagonal_list(ids)
 
         f = vals[neighbors[:, 0]]
         b = vals[neighbors[:, 1]]
@@ -4764,16 +4766,42 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If *cell ids* are not given, it returns a 2D array of size
         ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
+
+        Parameters
+        ----------
+        cell_ids : array_like of int, optional
+            Cells to get neighbors for.
+
+        Returns
+        -------
+        ndarray
+            The eight neighbors of the cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> neighbors = grid.get_looped_cell_neighbor_list()
+        >>> neighbors[1]
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> neighbors[5]
+        array([3, 0, 2, 1, 4, 1, 2, 0])
+
+        >>> grid.get_looped_cell_neighbor_list(1)
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> grid.get_looped_cell_neighbor_list((1, 5))
+        array([[2, 5, 4, 3, 0, 3, 4, 5],
+               [3, 0, 2, 1, 4, 1, 2, 0]])
         """
-        if self.looped_cell_neighbor_list_created:
+        if self._looped_cell_neighbor_list is not None:
             if len(args) == 0:
-                return self.looped_cell_neighbor_list
+                return self._looped_cell_neighbor_list
             elif len(args) == 1:
-                return self.looped_cell_neighbor_list[args[0], :]
+                return self._looped_cell_neighbor_list[args[0], :]
             else:
                 raise ValueError('only zero or one arguments accepted')
         else:
-            self.looped_cell_neighbor_list = \
+            self._looped_cell_neighbor_list = \
                 self.create_looped_cell_neighbor_list()
             return self.get_looped_cell_neighbor_list(*args)
 
@@ -4783,14 +4811,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Creates a list of looped immediate cell neighbors (*cell ids*) for each
         cell as a 2D array of size ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> neighbors = grid.create_looped_cell_neighbor_list()
+        >>> neighbors[1]
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> neighbors[5]
+        array([3, 0, 2, 1, 4, 1, 2, 0])
         """
         # CAUTION: Some terminology concerning cells in this module
         # is asynchronous to general understanding. This is intentionally
         # left as is until further discussion among dev group.
         # Any such instances are marked with (*TC - Terminoly Caution)
-        r, c = self.cell_grid_shape
-        interior_cells = sgrid.interior_nodes(self.cell_grid_shape)   # *TC
-        corner_cells = self.corner_cells                              # *TC
+        nrows, ncols = self.cell_grid_shape
+        interior_cells = sgrid.interior_nodes(self.cell_grid_shape)  # *TC
+        corner_cells = self.corner_cells  # *TC
         bottom_edge_cells = [x for x in sgrid.bottom_edge_node_ids(
             self.cell_grid_shape) if x not in corner_cells]
         # *TC
@@ -4809,44 +4847,53 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # order = [E,NE,N,NW,W,SW,S,SE]
         for cell in range(0, self.number_of_cells):
             if cell in interior_cells:
-                neighbor_ = [cell + 1, cell + 1 + c, cell + c, cell + c - 1,
-                             cell - 1, cell - c - 1, cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell + 1 + ncols, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols, cell - ncols + 1]
             elif cell in bottom_edge_cells:
-                neighbor_ = [cell + 1, cell + 1 + c, cell + c, cell + c - 1,
-                             cell - 1, cell + (r - 1) * c - 1,
-                             cell + (r - 1) * c, cell + (r - 1) * c + 1]
+                neighbor_ = [
+                    cell + 1, cell + 1 + ncols, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell + (nrows - 1) * ncols - 1,
+                    cell + (nrows - 1) * ncols, cell + (nrows - 1) * ncols + 1]
             elif cell in top_edge_cells:
-                neighbor_ = [cell + 1, cell - (r - 1) * c + 1,
-                             cell - (r - 1) * c, cell - (r - 1) * c - 1,
-                             cell - 1, cell - c - 1, cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell - (nrows - 1) * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 1) * ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols, cell - ncols + 1]
             elif cell in right_edge_cells:
-                neighbor_ = [cell - c + 1, cell + 1, cell + c, cell + c - 1,
-                             cell - 1, cell - c - 1, cell - c,
-                             cell - 2 * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell + 1, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols,
+                    cell - 2 * ncols + 1]
             elif cell in left_edge_cells:
-                neighbor_ = [cell + 1, cell + c + 1, cell + c,
-                             cell + 2 * c - 1, cell + c - 1, cell - 1,
-                             cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell + ncols + 1, cell + ncols,
+                    cell + 2 * ncols - 1, cell + ncols - 1, cell - 1,
+                    cell - ncols, cell - ncols + 1]
             elif cell == corner_cells[0]:  # SW corner
-                neighbor_ = [cell + 1, cell + c + 1, cell + c,
-                             cell + 2 * c - 1, cell + c - 1, cell + r * c - 1,
-                             cell + (r - 1) * c, cell + (r - 1) * c + 1]
+                neighbor_ = [
+                    cell + 1, cell + ncols + 1, cell + ncols,
+                    cell + 2 * ncols - 1, cell + ncols - 1,
+                    cell + nrows * ncols - 1, cell + (nrows - 1) * ncols,
+                    cell + (nrows - 1) * ncols + 1]
             elif cell == corner_cells[1]:  # SE corner
-                neighbor_ = [cell - c + 1, cell + 1, cell + c, cell + c - 1,
-                             cell - 1, cell + (r - 1) * c - 1,
-                             cell + (r - 1) * c, cell + (r - 2) * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell + 1, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell + (nrows - 1) * ncols - 1,
+                    cell + (nrows - 1) * ncols, cell + (nrows - 2) * ncols + 1]
             elif cell == corner_cells[2]:  # NW corner
-                neighbor_ = [cell + 1, cell - (r - 1) * c + 1,
-                             cell - (r - 1) * c, cell - (r - 2) * c - 1,
-                             cell + c - 1, cell - 1, cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell - (nrows - 1) * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 2) * ncols - 1,
+                    cell + ncols - 1, cell - 1, cell - ncols, cell - ncols + 1]
             elif cell == corner_cells[3]:  # NE corner
-                neighbor_ = [cell - c + 1, cell - r * c + 1,
-                             cell - (r - 1) * c, cell - (r - 1) * c - 1,
-                             cell - 1, cell - c - 1, cell - c,
-                             cell - 2 * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell - nrows * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 1) * ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols,
+                    cell - 2 * ncols + 1]
             looped_cell_neighbors[cell] = neighbor_
 
-        self.looped_cell_neighbor_list_created = True
         return looped_cell_neighbors
 
     def get_second_ring_looped_cell_neighbor_list(self, *args):
