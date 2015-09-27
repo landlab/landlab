@@ -2501,8 +2501,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_fixed_value_boundaries_at_grid_edges(
-        self, bottom_is_fixed_val, left_is_fixed_val, top_is_fixed_val,
-        right_is_fixed_val, value=None, value_of='topographic__elevation'):
+            self, bottom_is_fixed_val, left_is_fixed_val, top_is_fixed_val,
+            right_is_fixed_val, value=None, value_of='topographic__elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -3605,8 +3605,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         fd = (
             - (q[self.faces[id, 2]] + # left face (positive=in)
                q[self.faces[id, 3]]) + # bottom face (positive=in)
-              q[self.faces[id, 0]] + # right face (positive=out)
-              q[self.faces[id, 1]] # top face (positive=out)
+            q[self.faces[id, 0]] + # right face (positive=out)
+            q[self.faces[id, 1]] # top face (positive=out)
         ) / self._dx
 
         return fd
@@ -4330,7 +4330,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
+            slope, _ = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             s.append(slope)
             del ns
         # return slope alone
@@ -4364,9 +4364,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         if ids is None:
             ids = self.node_at_cell
-        if type(ids) != np.ndarray:
+        if isinstance(ids, np.ndarray):
             ids = np.array([ids])
-        if type(vals) == str:
+        if isinstance(vals, str):
             vals = self.at_node[vals]
         else:
             if len(vals) != self.number_of_nodes:
@@ -4574,8 +4574,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return s.ravel(), a.ravel()
 
-    def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
+    def calculate_slope_aspect_at_nodes_best_fit_plane(self, nodes, val):
         r"""Calculate slope aspect.
+
+        Slope aspect of best-fit plane at nodes.
+
+        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
 
         .. note::
 
@@ -4585,18 +4589,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
                                                                 ~ SN 25Sep14
 
-
-        Slope aspect of best-fit plane at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
         Calculates both the slope and aspect at each node based on the
         elevation of the node and its neighbors using a best fit plane
         calculated using single value decomposition.
 
         Parameters
         ----------
-        id : array-like
+        nodes : array-like
             ID of nodes at which to calculate the aspect
         val : ndarray
             Elevation at all nodes
@@ -4611,9 +4610,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.get_neighbor_list(id)
-        a = []
-        s = []
+        node_neighbors = self.get_neighbor_list(nodes)
+        aspects = []
+        slopes = []
 
         # for each node in id make a list with the node id and the ids of
         # its neighbors.
@@ -4622,25 +4621,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
-        indBool = (n != BAD_INDEX_VALUE)
+        indBool = (node_neighbors != BAD_INDEX_VALUE)
 
-        for i in range(len(id)):
+        for id_ in range(len(nodes)):
             # make a list of the neighbor nodes and
             # check that none of the nodes are bad
+            neighbors = list(node_neighbors[0, indBool[0]])
+            neighbors.append(nodes[id_])
 
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
+            node_x = self.node_x[neighbors]
+            node_y = self.node_y[neighbors]
+            node_z = val[neighbors]
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(node_x, node_y,
+                                                              node_z)
+            aspects.append(aspect)
+            slopes.append(slope)
 
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
-            a.append(aspect)
-            s.append(slope)
-
-            del ns
-        # return slope and aspect
-        return s, a
+            del neighbors
+        return slopes, aspects
 
     def save(self, path, names=None, format=None):
         """Save a grid and fields.
