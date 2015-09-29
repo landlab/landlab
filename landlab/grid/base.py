@@ -3099,8 +3099,8 @@ class ModelGrid(ModelDataFields):
         The shape of the array is ``number_of_nodes`` by ``number_of_nodes``
         and distance from a node to itself is zero.
 
-        >>> distances.shape
-        (12, 12)
+        >>> distances.shape == (grid.number_of_nodes, grid.number_of_nodes)
+        True
         >>> distances.diagonal()
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
@@ -3130,8 +3130,8 @@ class ModelGrid(ModelDataFields):
         The shape of the array is ``number_of_nodes`` by ``number_of_nodes``
         and azimuth from a node to itself is zero.
 
-        >>> angles.shape
-        (12, 12)
+        >>> angles.shape == (grid.number_of_nodes, grid.number_of_nodes)
+        True
         >>> angles.diagonal()
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
