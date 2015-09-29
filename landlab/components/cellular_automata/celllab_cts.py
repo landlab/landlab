@@ -193,7 +193,7 @@ class Event():
 
     Examples
     --------
-    >>> from landlab.components.cellular_automata.landlab_ca import Event
+    >>> from landlab.components.cellular_automata.celllab_cts import Event
     >>> e1 = Event( 10.0, 1, 2)
     >>> e2 = Event( 2.0, 3, 1)
     >>> e1 < e2
