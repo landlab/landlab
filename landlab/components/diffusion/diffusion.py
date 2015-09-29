@@ -146,7 +146,7 @@ class LinearDiffuser(Component):
             pass
 
         # Get a list of interior cells
-        self.interior_cells = self._grid.get_core_cell_node_ids()
+        self.interior_cells = self._grid.node_at_core_cell
 
 ##DEJH bites the bullet and forces the 2015 style with fields
 #        # Here we're experimenting with different approaches: with
@@ -266,7 +266,7 @@ class LinearDiffuser(Component):
         extra_time = self.tstep_ratio-repeats
         z = self._grid.at_node[self.values_to_diffuse]
 
-        core_nodes = self._grid.get_core_cell_node_ids()
+        core_nodes = self._grid.node_at_core_cell
 
         for i in xrange(repeats+1):
             # Calculate the gradients and sediment fluxes

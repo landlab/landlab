@@ -1219,12 +1219,12 @@ class impactor(object):
         if footprint_edge_type == 'I':
             if array_in is not None:
                 number_of_footprint_nodes = self.grid.number_of_interior_nodes
-                array_in = self.grid.get_interior_nodes()
+                array_in = self.grid.core_nodes
                 while 1:
                     yield (number_of_footprint_nodes, array_in)
             else:
                 while 1:
-                    yield self.grid.get_interior_nodes()
+                    yield self.grid.core_nodes
         else:
             center_array = numpy.array(center)
             dx = self.grid.dx
