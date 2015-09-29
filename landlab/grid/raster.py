@@ -2339,7 +2339,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This doesn't deal with the fixed gradient boundary condition.
         """
-
         # NMG Update.  This is super clumsy.
 
         # DEJH update: Gets confused for the lowest node if w/i grid
