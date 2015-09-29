@@ -7,14 +7,14 @@ environment:
     NUMPY_VERSION: "1.9.1"
 
   matrix:
-    - PYTHON_VERSION: "2.6"
+    #- PYTHON_VERSION: "2.6"
     - PYTHON_VERSION: "2.7"
-    - PYTHON_VERSION: "3.3"
-    - PYTHON_VERSION: "3.4"
+    #- PYTHON_VERSION: "3.3"
+    #- PYTHON_VERSION: "3.4"
 
 platform:
   - x64
-  - x86
+  #  - x86
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
@@ -57,5 +57,5 @@ deploy:
 notifications:
   - provider: Slack
     auth_token:
-      secure: xoxp-8329794998-8389744580-11517874468-96c81e86dc
+      secure: hvij8zEmE9LqjvwUJteiIf+z6bj7iJsfl5mOhKC2dMMYQDk0NcQqvQBxFPoacAX2cwcxowLTfwU4wv4vBFpwlg==
     channel: testing
