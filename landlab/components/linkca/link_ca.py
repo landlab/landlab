@@ -504,7 +504,7 @@ class LinkCellularAutomaton():
             n_xs - array with number of transitions out of each link state
             eq - event queue
             xn_rate - array with rate of each transition
-            node_active_links - list of arrays containing IDs of links connected to
+            active_links_at_node - list of arrays containing IDs of links connected to
                 each node
             ls_dict - dictionary of link-state codes corresponding to each
                 node-state pair
@@ -538,7 +538,7 @@ class LinkCellularAutomaton():
                 if _DEBUG:
                     print('    fromnode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,fromnode]:
+                for link in self.active_links_at_node[:,fromnode]:
 
                     if _DEBUG:
                         print('f checking link',link)
@@ -557,7 +557,7 @@ class LinkCellularAutomaton():
                 if _DEBUG:
                     print('    tonode has changed state, so updating its links')
 
-                for link in self.node_active_links[:,tonode]:
+                for link in self.active_links_at_node[:,tonode]:
 
                     if _DEBUG:
                         print('t checking link',link)
@@ -666,8 +666,8 @@ class LinkCellularAutomaton():
                 else:
                     break
             #print old_nodes
-            old_links = self.grid.node_activelinks(old_nodes)
-            new_links = self.grid.node_activelinks(new_nodes)
+            old_links = self.grid.active_links_at_node(old_nodes)
+            new_links = self.grid.active_links_at_node(new_nodes)
             print(old_links.shape)
             print(new_links.shape)
             self.old_links, unique_index = numpy.unique(old_links, return_index=True)

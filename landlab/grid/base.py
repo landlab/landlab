@@ -898,8 +898,8 @@ class ModelGrid(ModelDataFields):
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
 
-    def node_activelinks(self, *args):
-        """node_activelinks([node_ids])
+    def active_links_at_node(self, *args):
+        """active_links_at_node([node_ids])
         Active links of a node.
 
         Parameters
@@ -920,7 +920,7 @@ class ModelGrid(ModelDataFields):
         --------
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2)
-        >>> hmg.node_activelinks(3)
+        >>> hmg.active_links_at_node(3)
         array([[-1],
                [-1],
                [-1],
@@ -933,7 +933,7 @@ class ModelGrid(ModelDataFields):
                [ 3],
                [ 4],
                [ 5]])
-        >>> hmg.node_activelinks()
+        >>> hmg.active_links_at_node()
         array([[ 3,  5,  2, -1,  4,  1,  0],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
@@ -959,8 +959,8 @@ class ModelGrid(ModelDataFields):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def node_activelinks2(self, *args):
-        """node_activelinks2([node_ids])
+    def active_links_at_node2(self, *args):
+        """active_links_at_node2([node_ids])
         Get active links attached to nodes.
 
         Parameters
@@ -982,7 +982,7 @@ class ModelGrid(ModelDataFields):
         --------
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2)
-        >>> hmg.node_activelinks2(3)
+        >>> hmg.active_links_at_node2(3)
         array([[-1],
                [-1],
                [-1],
@@ -995,7 +995,7 @@ class ModelGrid(ModelDataFields):
                [ 3],
                [ 4],
                [ 5]])
-        >>> hmg.node_activelinks2()
+        >>> hmg.active_links_at_node2()
         array([[ 3,  5,  2, -1,  4,  1,  0],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
