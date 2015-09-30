@@ -351,6 +351,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if dx is None:
             dx = kwds.pop('spacing', _parse_grid_spacing_from_args(args) or 1.)
 
+        self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
+
         # Set number of nodes, and initialize if caller has given dimensions
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
@@ -508,7 +510,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # whether a given node is an active, non-boundary node, or some type of
         # boundary. Here we default to having all perimeter nodes be active
         # fixed-value boundaries.
-        self.node_status = sgrid.status_at_node(
+        self._node_status[:] = sgrid.status_at_node(
             self.shape, boundary_status=FIXED_VALUE_BOUNDARY)
 
         # Cell lists:
@@ -1001,7 +1003,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
         """
-        node_status = self.node_status != CLOSED_BOUNDARY
+        node_status = self._node_status != CLOSED_BOUNDARY
 
         (self.node_active_inlink_matrix,
          self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
@@ -1036,8 +1038,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_fromnode = []
         self._diag_activelink_tonode = []
 
-        diag_fromnode_status = self.node_status[self._diag_link_fromnode]
-        diag_tonode_status = self.node_status[self._diag_link_tonode]
+        diag_fromnode_status = self._node_status[self._diag_link_fromnode]
+        diag_tonode_status = self._node_status[self._diag_link_tonode]
 
         diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
                               (diag_tonode_status == CLOSED_BOUNDARY)) |
@@ -1076,8 +1078,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         except AttributeError:
             already_fixed = np.zeros(self.number_of_links, dtype=bool)
 
-        diag_fromnode_status = self.node_status[self._diag_link_fromnode]
-        diag_tonode_status = self.node_status[self._diag_link_tonode]
+        diag_fromnode_status = self._node_status[self._diag_link_fromnode]
+        diag_tonode_status = self._node_status[self._diag_link_tonode]
 
         if not np.all((diag_fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
                       (diag_tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
@@ -1652,12 +1654,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             xcoord, (self.get_grid_xdimension() - self._dx)))
         y_condition = np.logical_and(np.less(0., ycoord), np.less(
             ycoord, (self.get_grid_ydimension() - self._dx)))
-        if np.all(self.node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or np.all(self.node_status[sgrid.right_edge_node_ids(self.shape)] == 3):
+        if np.all(self._node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.right_edge_node_ids(self.shape)] == 3):
             try:
                 x_condition[:] = 1
             except:
                 x_condition = 1
-        if np.all(self.node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or np.all(self.node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3):
+        if np.all(self._node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3):
             try:
                 y_condition[:] = 1
             except:
@@ -2280,7 +2282,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         slopes = []
         diagonal_dx = np.sqrt(2.)
         for a in neighbor_nodes:
-            if self.node_status[a] != CLOSED_BOUNDARY:
+            if self._node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a]) / self.dx
             else:
                 single_slope = -9999
@@ -2290,7 +2292,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 six.print_('NaNs present in the grid!')
         for a in diagonal_nodes:
-            if self.node_status[a] != CLOSED_BOUNDARY:
+            if self._node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a]) / diagonal_dx
             else:
                 single_slope = -9999
@@ -2350,7 +2352,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         neighbor_nodes.sort()
         slopes = []
         for a in neighbor_nodes:
-            if self.node_status[a] != CLOSED_BOUNDARY:
+            if self._node_status[a] != CLOSED_BOUNDARY:
                 single_slope = (u[node_id] - u[a]) / self.dx
             else:
                 single_slope = -9999
@@ -2458,24 +2460,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                           self.number_of_node_columns)
 
         if bottom_is_inactive:
-            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+            self._node_status[bottom_edge] = CLOSED_BOUNDARY
         else:
-            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_inactive:
-            self.node_status[right_edge] = CLOSED_BOUNDARY
+            self._node_status[right_edge] = CLOSED_BOUNDARY
         else:
-            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
 
         if top_is_inactive:
-            self.node_status[top_edge] = CLOSED_BOUNDARY
+            self._node_status[top_edge] = CLOSED_BOUNDARY
         else:
-            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_inactive:
-            self.node_status[left_edge] = CLOSED_BOUNDARY
+            self._node_status[left_edge] = CLOSED_BOUNDARY
         else:
-            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
         self.update_links_nodes_cells_to_new_BCs()
 
@@ -2567,16 +2569,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                           self.number_of_node_columns)
 
         if bottom_is_closed:
-            self.node_status[bottom_edge] = CLOSED_BOUNDARY
+            self._node_status[bottom_edge] = CLOSED_BOUNDARY
 
         if right_is_closed:
-            self.node_status[right_edge] = CLOSED_BOUNDARY
+            self._node_status[right_edge] = CLOSED_BOUNDARY
 
         if top_is_closed:
-            self.node_status[top_edge] = CLOSED_BOUNDARY
+            self._node_status[top_edge] = CLOSED_BOUNDARY
 
         if left_is_closed:
-            self.node_status[left_edge] = CLOSED_BOUNDARY
+            self._node_status[left_edge] = CLOSED_BOUNDARY
 
         self.update_links_nodes_cells_to_new_BCs()
 
@@ -2673,23 +2675,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                           self.number_of_node_columns)
 
         if bottom_is_fixed_val:
-            self.node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
 
         if right_is_fixed_val:
-            self.node_status[right_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
 
         if top_is_fixed_val:
-            self.node_status[top_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
 
         if left_is_fixed_val:
-            self.node_status[left_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
         self.update_links_nodes_cells_to_new_BCs()
 
         # save some internal data to speed updating:
         self.fixed_value_node_properties = {}
         self.fixed_value_node_properties['boundary_node_IDs'] = as_id_array(
-            np.where(self.node_status == FIXED_VALUE_BOUNDARY)[0])
+            np.where(self._node_status == FIXED_VALUE_BOUNDARY)[0])
 
         if value:
             if type(value) == float or type(value) == int:
@@ -2796,8 +2798,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         these_linked_nodes = np.array([])
 
         if top_bottom_are_looped:
-            self.node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
-            self.node_status[top_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[top_edge] = TRACKS_CELL_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  bottom_edge, top_edge))
             these_linked_nodes = np.concatenate((
@@ -2806,8 +2808,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 bottom_edge + self.number_of_node_columns))
 
         if sides_are_looped:
-            self.node_status[right_edge] = TRACKS_CELL_BOUNDARY
-            self.node_status[left_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[right_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[left_edge] = TRACKS_CELL_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  left_edge, right_edge))
             these_linked_nodes = np.concatenate((
@@ -2836,7 +2838,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties['linked_node_IDs'] = as_id_array(
             np.concatenate((these_linked_nodes, existing_links))[ID_ordering])
 
-        if np.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
+        if np.any(self._node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
             raise AttributeError(
                 'Switching a boundary between fixed gradient and looped will '
                 'result in bad BC handling! Bailing out...')
@@ -3047,7 +3049,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #fixed_gradient_values_to_add = np.array([], dtype=float)
 
         if bottom_is_fixed:
-            self.node_status[bottom_edge] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[bottom_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = np.concatenate(
                 (fixed_gradient_nodes, bottom_edge))
             bottom_anchor_nodes = bottom_edge + self.number_of_node_columns
@@ -3060,7 +3062,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bottom_links = self.node_links(bottom_edge)[2, :]
             boundary_links = np.concatenate((boundary_links, bottom_links))
         if right_is_fixed:
-            self.node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = np.concatenate(
                 (fixed_gradient_nodes, right_edge))
             right_anchor_nodes = right_edge - 1
@@ -3069,7 +3071,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             right_links = self.node_links(right_edge)[1, :]
             boundary_links = np.concatenate((boundary_links, right_links))
         if top_is_fixed:
-            self.node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = np.concatenate(
                 (fixed_gradient_nodes, top_edge))
             top_anchor_nodes = top_edge - self.number_of_node_columns
@@ -3080,7 +3082,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top_links = self.node_links(top_edge)[0, :]
             boundary_links = np.concatenate((boundary_links, top_links))
         if left_is_fixed:
-            self.node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
             fixed_gradient_nodes = np.concatenate(
                 (fixed_gradient_nodes, left_edge))
             left_anchor_nodes = left_edge + 1
@@ -3229,7 +3231,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 (fixed_gradient_values_to_add,
                  self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
 
-            if np.any(self.node_status[fixed_gradient_nodes] == 3):
+            if np.any(self._node_status[fixed_gradient_nodes] == 3):
                 raise AttributeError(
                     'Switching a boundary between fixed gradient and looped '
                     'will result in bad BC handling! Bailing out...')
@@ -3304,8 +3306,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         corner_nodes = self.corner_nodes
         tonodes = self.node_at_link_head[link_IDs]
         fromnodes = self.node_at_link_tail[link_IDs]
-        tonode_boundaries = self.node_status[tonodes] != 0
-        fromnode_boundaries = self.node_status[fromnodes] != 0
+        tonode_boundaries = self._node_status[tonodes] != 0
+        fromnode_boundaries = self._node_status[fromnodes] != 0
         edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
         edge_tonode_boundaries = np.logical_and(tonode_boundaries, edge_links)
         edge_fromnode_boundaries = np.logical_and(
@@ -3582,7 +3584,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diagonal_nodes = (sgrid.diagonal_node_array(
             self.shape, out_of_bounds=-1)).T
         # Set the diagonals pointing to inactive nodes as inactive
-        diagonal_nodes[np.where(self.node_status[diagonal_nodes] == 4)] = -1
+        diagonal_nodes[np.where(self._node_status[diagonal_nodes] == 4)] = -1
         # Repeat the -1 indexing trick from above:
         elevs = np.zeros(len(elevs_in) + 1)
         elevs[-1] = 9999999999999.  # as we want the gradients to inhibit flow
@@ -4055,9 +4057,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             node_ids = args[0]
         except IndexError:  # return all nodes
-            return np.equal(self.node_status, CORE_NODE)
+            return np.equal(self._node_status, CORE_NODE)
         else:
-            return np.equal(self.node_status[node_ids], CORE_NODE)
+            return np.equal(self._node_status[node_ids], CORE_NODE)
 
     def is_core(self, *args):
         """is_core([ids])
@@ -4075,9 +4077,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             node_ids = args[0]
         except IndexError:  # return all nodes
-            return np.equal(self.node_status, CORE_NODE)
+            return np.equal(self._node_status, CORE_NODE)
         else:
-            return np.equal(self.node_status[node_ids], CORE_NODE)
+            return np.equal(self._node_status[node_ids], CORE_NODE)
 
     def are_all_interior(self, IDs):
         """Check if nodes are interior.
@@ -4089,7 +4091,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns a single boolean truth value, True if all nodes with *IDs* are
         interior nodes, False if not.
         """
-        return np.all(np.equal(self.node_status[IDs], CORE_NODE))
+        return np.all(np.equal(self._node_status[IDs], CORE_NODE))
 
     def are_all_core(self, ids):
         """Check if nodes are all core.
@@ -4107,7 +4109,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         boolean
             ``True`` if all the given nodes are *core* nodes.
         """
-        return np.all(np.equal(self.node_status[ids], CORE_NODE))
+        return np.all(np.equal(self._node_status[ids], CORE_NODE))
 
     def get_boundary_code(self, id):
         """Get the status of a node.
@@ -4118,7 +4120,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns the boundary status of a node.
         """
         # ng june 2013
-        return self.node_status[id]
+        return self._node_status[id]
 
     def get_face_connecting_cell_pair(self, cell_a, cell_b):
         """Get the face that connects two cells.
@@ -4896,7 +4898,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             # Set the node and link boundary statuses to
             # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
-            self.node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
             self.link_status[bottom_edge] = FIXED_LINK
 
             # Append the node and link ids to the array created earlier to
@@ -4912,7 +4914,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             # Set the new boundary statuses
             self.link_status[right_edge] = FIXED_LINK
-            self.node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
             fixed_nodes = np.append(fixed_nodes, right_nodes)
@@ -4926,7 +4928,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             # Set the new boundary statuses
             self.link_status[top_edge] = FIXED_LINK
-            self.node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
             fixed_nodes = np.append(fixed_nodes, top_nodes)
@@ -4940,7 +4942,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             # Set the new boundary statuses
             self.link_status[left_edge] = FIXED_LINK
-            self.node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
+            self._node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
             fixed_nodes = np.append(fixed_nodes, left_nodes)
@@ -4950,8 +4952,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # This allows us to make sure that all link boundaries follow
         # the convention that FIXED_LINKs only occur between core and
         # fixed gradient nodes
-        fromnode_status = self.node_status[self.node_at_link_tail]
-        tonode_status = self.node_status[self.node_at_link_head]
+        fromnode_status = self._node_status[self.node_at_link_tail]
+        tonode_status = self._node_status[self.node_at_link_head]
 
         # Make sure the IDs are the correct type (Int, not Float)
         fixed_links = fixed_links.astype(int)

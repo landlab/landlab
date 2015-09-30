@@ -170,14 +170,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_nodes = len(x)
         self._node_x = x
         self._node_y = y
-        [self.node_status, self._core_nodes, self._boundary_nodes] = \
+        [self._node_status, self._core_nodes, self._boundary_nodes] = \
             self.find_perimeter_nodes(pts)
         self._num_active_nodes = self.number_of_nodes
         self._num_core_nodes = len(self.core_nodes)
         self._num_cells = len(self.core_nodes)
         self._num_active_cells = self.number_of_cells
         [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
-            self.node_status, self.number_of_cells)
+            self._node_status, self.number_of_cells)
         self.node_activecell = self._cell_at_node
         self.activecell_node = self._node_at_cell
 
@@ -329,7 +329,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         core_nodes = as_id_array(numpy.where(node_status == 0)[0])
 
         # save the arrays and update the properties
-        self.node_status = node_status
+        self._node_status = node_status
         self._num_active_nodes = node_status.size
         self._num_core_nodes = len(core_nodes)
         self._num_core_cells = len(core_nodes)
