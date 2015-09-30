@@ -563,6 +563,11 @@ class ModelGrid(ModelDataFields):
 
         return NodeStatusArray(self.node_status)
 
+    @status_at_node.setter
+    def status_at_node(self, new_status):
+        self.node_status[:] = new_status[:]
+        self.update_links_nodes_cells_to_new_BCs()
+
     @property
     def node_at_cell(self):
         """Node ID associated with grid cells"""
