@@ -903,6 +903,11 @@ class ModelGrid(ModelDataFields):
         """Get array of the status of all nodes."""
         return self._node_status
 
+    @node_status.setter
+    def node_status(self, new_status_array):
+        self._node_status[:] = new_status_array[:]
+        self.update_links_nodes_cells_to_new_BCs()
+
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
         Active links of a node.
