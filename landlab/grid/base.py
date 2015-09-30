@@ -546,6 +546,24 @@ class ModelGrid(ModelDataFields):
         return 2
 
     @property
+    def status_at_node(self):
+        class NodeStatusArray(numpy.ndarray):
+            def __new__(cls, node_status):
+                obj = numpy.asarray(node_status).view(cls)
+                obj._grid = self
+                return obj
+            def __array_finalize__(_self, obj):
+                if obj is None: return
+            def __setitem__(_self, ind, status):
+                super(NodeStatusArray, _self).__setitem__(ind, status)
+                _self._grid.update_links_nodes_cells_to_new_BCs()
+            def __setslice__(_self, start, stop, status):
+                super(NodeStatusArray, _self).__setslice__(start, stop, status)
+                _self._grid.update_links_nodes_cells_to_new_BCs()
+
+        return NodeStatusArray(self.node_status)
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells"""
         return self._node_at_cell
