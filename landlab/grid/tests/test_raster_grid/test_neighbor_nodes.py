@@ -42,7 +42,7 @@ def test_neighbor_list_boundary():
     X = BAD_INDEX_VALUE
     rmg = RasterModelGrid(5, 4)
     import landlab.utils.structured_grid as sgrid
-    rmg.set_inactive_nodes([0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19])
+    rmg.set_closed_nodes([0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19])
 
     for node_id in sgrid.boundary_iter(rmg.shape):
         assert_array_equal(rmg.get_neighbor_list(node_id),

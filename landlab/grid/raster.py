@@ -2,7 +2,6 @@
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
-
 """
 
 import numpy as np
@@ -25,6 +24,7 @@ from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
+from ..core.utils import add_module_functions_to_class
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -67,7 +67,8 @@ def node_has_boundary_neighbor(mg, id, method='d8'):
 
 
 def _make_arg_into_array(arg):
-    """
+    """Make an argument into an iterable.
+
     This function tests if the provided object is a Python list or a numpy
     array. If not, attempts to cast the object to a list. If it cannot, it will
     raise a TypeError.
@@ -81,14 +82,28 @@ def _make_arg_into_array(arg):
     -------
     array_like
         The input array converted to an iterable.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _make_arg_into_array
+    >>> _make_arg_into_array(1)
+    [1]
+    >>> _make_arg_into_array((1, ))
+    [1]
+    >>> _make_arg_into_array([1, 2])
+    [1, 2]
+    >>> import numpy as np
+    >>> _make_arg_into_array(np.arange(3))
+    array([0, 1, 2])
     """
     ids = arg
-    if not isinstance(ids, list) or not isinstance(ids, np.ndarray):
+    if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
         try:
             ids = list(ids)
         except TypeError:
             ids = [ids]
     return ids
+
 
 has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                      excluded=['mg'])
@@ -160,10 +175,54 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
 
 
 def _old_style_args(args):
+    """Test if arguments are the old-style RasterModelGrid __init__ method.
+
+    The old way of initializing a :any:`RasterModelGrid` was like,
+
+        .. code::
+
+            grid = RasterModelGrid(n_rows, n_cols)
+
+    The new way passes the grid shape as a tuple, like numpy functions,
+
+        .. code::
+
+            grid = RasterModelGrid((n_rows, n_cols))
+
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _old_style_args
+    >>> _old_style_args((4, 5))
+    True
+    >>> _old_style_args(((4, 5), ))
+    False
+    >>> _old_style_args(([4, 5], ))
+    False
+    """
     return len(args) in (2, 3) and isinstance(args[0], int)
 
 
 def _parse_grid_shape_from_args(args):
+    """Get grid shape from args.
+    
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _parse_grid_shape_from_args
+    >>> _parse_grid_shape_from_args((3, 4))
+    (3, 4)
+    >>> _parse_grid_shape_from_args(((3, 4), ))
+    (3, 4)
+    """
     if _old_style_args(args):
         rows, cols = args[0], args[1]
     else:
@@ -175,6 +234,21 @@ def _parse_grid_shape_from_args(args):
 
 
 def _parse_grid_spacing_from_args(args):
+    """Get grid spacing from args.
+    
+    Parameters
+    ----------
+    args : iterable
+        Arguments to a function.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster import _parse_grid_spacing_from_args
+    >>> _parse_grid_spacing_from_args((3, 4, 5))
+    5
+    >>> _parse_grid_spacing_from_args(((3, 4), 5))
+    5
+    """
     try:
         if _old_style_args(args):
             return args[2]
@@ -185,6 +259,7 @@ def _parse_grid_spacing_from_args(args):
 
 
 class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
+
     """A 2D uniform rectilinear grid.
 
     Create a uniform rectilinear grid that has *num_rows* and *num_cols*
@@ -289,7 +364,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties = {}
 
     def _initialize(self, num_rows, num_cols, dx):
-        """
+        """Set up a raster grid.
+
         Sets up a num_rows by num_cols grid with cell spacing dx and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
@@ -305,8 +381,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Note that by default, a RasterModelGrid ONLY has links to
         orthogonal neighboring nodes. However, if you wish to work with the
-        diagonal links (e.g., D8 flow routing), these functions are available as
-        methods, and the diagonal links can readily be created after
+        diagonal links (e.g., D8 flow routing), these functions are available
+        as methods, and the diagonal links can readily be created after
         initialization.
 
         Examples
@@ -316,55 +392,59 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> numcols = 30          # number of columns in the grid
         >>> dx = 10.0             # grid cell spacing
         >>> rmg = RasterModelGrid(numrows, numcols, dx)
-        >>> rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links, rmg.number_of_active_links
+        >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
+        ...  rmg.number_of_active_links)
         (600, 504, 1150, 1054)
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.number_of_nodes,rmg.number_of_cells,rmg.number_of_links,rmg.number_of_active_links
+        >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
+        ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest : +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
         True
         >>> rmg.node_corecell[8]
         2
         >>> rmg.node_numinlink
         array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
-        >>> rmg.node_inlink_matrix
-        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-                12, 13, 14],
-               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1, 27,
-                28, 29, 30]])
+        >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+              11, 12, 13, 14],
+             [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+              27, 28, 29, 30]])
         >>> rmg.node_numoutlink
         array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
-        >>> rmg.node_outlink_matrix[0]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1,
-               -1, -1, -1])
+        >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+               -1, -1, -1, -1, -1])
         >>> rmg.node_numactiveinlink
         array([0, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0, 2, 2, 2, 1, 0, 1, 1, 1, 0])
-        >>> rmg.node_active_inlink_matrix
-        array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,
-                 7,  8, -1],
-               [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
-                -1, -1, -1]])
+        >>> rmg.node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,
+                 6, 7,  8, -1],
+               [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
+                -1, -1, -1, -1]])
         >>> rmg.node_numactiveoutlink
         array([0, 1, 1, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0])
-        >>> rmg.node_active_outlink_matrix
-        array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1, -1,
-                -1, -1, -1],
-               [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1, -1,
-                -1, -1, -1]])
+        >>> rmg.node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1,
+                -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
+                -1, -1, -1, -1]])
         >>> rmg.node_at_cell
         array([ 6,  7,  8, 11, 12, 13])
-        >>> rmg.node_at_link_tail
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,  1,
-                2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
-        >>> rmg.node_at_link_head
-        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,  2,
-                3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
+        >>> rmg.node_at_link_tail # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,
+                1, 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
+        >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
+        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,
+                2,  3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
         >>> rmg.link_face[20]
         10
-        >>> rmg.active_links
-        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
+        >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
+        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
+               26])
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
@@ -520,7 +600,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
         # create_neighbor_list, we'll create it if necessary.
-        self.neighbor_list_created = False
+        self._neighbor_node_dict = {}
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
@@ -528,37 +608,39 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # List of looped neighbor cells (all 8 neighbors) for
         # given *cell ids* can be created if requested by the user.
-        self.looped_cell_neighbor_list_created = False
+        self._looped_cell_neighbor_list = None
 
         # List of second ring looped neighbor cells (all 16 neighbors) for
         # given *cell ids* can be created if requested by the user.
         self.looped_second_ring_cell_neighbor_list_created = False
 
     def _setup_cell_areas_array(self):
-        '''
+        """Set up array of cell areas.
+
         This method supports the creation of the array that stores cell areas.
         It is not meant to be called manually.
-        '''
+        """
         self._cell_areas = np.empty(self.number_of_cells)
         self._cell_areas.fill(self._dx ** 2)
         return self._cell_areas
 
     def _setup_cell_areas_array_force_inactive(self):
-        '''
+        """Set up array cell areas including extra cells for perimeter nodes.
+
         This method supports the creation of the array that stores cell areas.
         It differs from _setup_cell_areas_array in that it forces ALL nodes to
         have a surrounding cell, which is not actually the case for the generic
         perimeter node (these are unbounded). This is only possible because the
         grid is a raster.
         It is not meant to be called manually.
-        '''
+        """
         self._forced_cell_areas = np.empty(self.number_of_nodes)
         self._forced_cell_areas.fill(self._dx ** 2)
         return self._forced_cell_areas
 
     @property
     def shape(self):
-        """Return the shape of the grid.
+        """Get the shape of the grid.
 
         Returns
         -------
@@ -576,7 +658,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def cell_grid_shape(self):
-        """Return the shape of the cellular grid (grid with only cells).
+        """Get the shape of the cellular grid (grid with only cells).
 
         Returns
         -------
@@ -595,7 +677,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def dx(self):
-        """Return node spacing in the column direction.
+        """Get node spacing in the column direction.
 
         Returns
         -------
@@ -616,8 +698,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def dy(self):
-        """
-        Returns the node spacing in the row direction.
+        """Get node spacing in the row direction.
+
         Note in a RasterModelGrid, dy==dx.
 
         Returns
@@ -639,7 +721,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def node_links(self, *args):
         """node_links([node_ids])
-        Links attached to nodes.
+        Get links attached to nodes.
 
         Returns the ids of links attached to grid nodes with *node_ids*. If
         *node_ids* is not given, return links for all of the nodes in the
@@ -689,24 +771,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def active_node_links(self, *args):
-        """active_node_links([node_ids])
-        Active links attached to nodes.
-
-
-        .. deprecated:: 0.6
-            Deprecated due to confusing terminology.
-            Use :func:`node_activelinks` instead.
-
-        Returns the ids of active links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        with the south link. Diagonal links are never returned.
-        """
-        return self.node_activelinks(*args)
-
-    def node_activelinks(self, *args):
-        """node_activelinks([node_ids])
+    def active_links_at_node(self, *args):
+        """active_links_at_node([node_ids])
         Active links of a node.
 
         Parameters
@@ -731,12 +797,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [11],
                [ 5],
                [12]])
-        >>> rmg.node_activelinks((5, 6))
+        >>> rmg.active_links_at_node((5, 6))
         array([[0, 1],
                [4, 5],
                [2, 3],
                [5, 6]])
-        >>> rmg.node_activelinks()
+        >>> rmg.active_links_at_node()
         array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
@@ -754,8 +820,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def node_diagonal_links(self, *args):
-        """node_diagonal_links([node_ids])
+    def diagonal_links_at_node(self, *args):
+        """diagonal_links_at_node([node_ids])
         Diagonal links attached to nodes.
 
         Returns the ids of diagonal links attached to grid nodes with
@@ -781,34 +847,35 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.diagonal_list_created = True
 
         try:
-            self._node_diagonal_links
+            self._diagonal_links_at_node
         except AttributeError:
-            self._node_diagonal_links = np.empty(
+            self._diagonal_links_at_node = np.empty(
                 (4, self.number_of_nodes), dtype=int)
-            self._node_diagonal_links.fill(-1)
-            self._node_diagonal_links[0, :][
+            self._diagonal_links_at_node.fill(-1)
+            self._diagonal_links_at_node[0, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
                                                                          self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links  # number of patches is number_of_diagonal_nodes/2
-            self._node_diagonal_links[1, :][
+            self._diagonal_links_at_node[1, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
                                                                          self.top_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
-            self._node_diagonal_links[2, :][
+            self._diagonal_links_at_node[2, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
                                                                          self.top_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links
-            self._node_diagonal_links[3, :][
+            self._diagonal_links_at_node[3, :][
                 np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
                                                                          self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
 
         if len(args) == 0:
-            return self._node_diagonal_links
+            return self._diagonal_links_at_node
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
-            return self._node_diagonal_links[:, node_ids]
+            return self._diagonal_links_at_node[:, node_ids]
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def node_patches(self, nodata=-1, *args):
-        """
+    def patches_at_node(self, nodata=-1, *args):
+        """Get array of patches attached to nodes.
+
         This is a placeholder method until improved using jagged array
         operations.
         Returns a (N,4) array of the patches associated with each node in the
@@ -847,7 +914,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.node_patch_matrix == BAD_INDEX_VALUE] = nodata
             # now we blank out any patches that have a closed node as any
             # vertex:
-            patch_nodes = self.patch_nodes
+            patch_nodes = self.nodes_at_patch
             dead_nodes_in_patches = self.is_boundary(
                 patch_nodes, boundary_flag=4)
             # IDs of patches with dead nodes
@@ -859,20 +926,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self.node_patch_matrix
 
     @property
-    def patch_nodes(self):
-        """
+    def nodes_at_patch(self):
+        """Get array of nodes of a patch.
+
         Returns the four nodes at the corners of each patch in a regular grid.
         Shape of the returned array is (nnodes, 4).
         """
         base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base // (self._ncols - 1)
-        return np.column_stack((bottom_left_corner, bottom_left_corner + 1, bottom_left_corner + self._ncols, bottom_left_corner + self._ncols + 1))
+        return np.column_stack((bottom_left_corner,
+                                bottom_left_corner + 1,
+                                bottom_left_corner + self._ncols,
+                                bottom_left_corner + self._ncols + 1))
 
     def _setup_inlink_and_outlink_matrices(self):
-        """
+        """Set up matrices that hold the inlinks and outlinks for each node.
+
         Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the node as
-        its "to" node, and an outlink is a link that has the node as its "from".
+        for each node. An inlink of a node is simply a link that has the node
+        as its "to" node, and an outlink is a link that has the node as its
+        "from".
 
         We store the inlinks in a 2-row by num_nodes-column matrix called
         node_inlink_matrix. It has two rows because we know that the nodes in
@@ -898,13 +971,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cute little trick when computing inflows and outflows. We make our
         "flux" array one element longer than the number of links, with the last
         element containing the value 0. Thus, any time we add an influx from
-        link number -1, Python takes the value of the last element in the array,
-        which is zero. By doing it this way, we maintain the efficiency that
-        comes with the use of numpy. Again, more info can be found in the
+        link number -1, Python takes the value of the last element in the
+        array, which is zero. By doing it this way, we maintain the efficiency
+        that comes with the use of numpy. Again, more info can be found in the
         description of the flux divergence functions.
 
-        DEJH notes that we may be using BAD_INDEX_VALUE (an arbitrary very large
-        number), not -1, now.
+        DEJH notes that we may be using BAD_INDEX_VALUE (an arbitrary very
+        large number), not -1, now.
         If you want to use this trick, you'll have to seach for BAD_INDEX_VALUE
         manually now.
 
@@ -921,13 +994,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
          self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
 
     def _setup_active_inlink_and_outlink_matrices(self):
-        """
+        """Set up matrices that hold active inlinks and outlinks for each node.
+
         Creates data structures to record the numbers of active inlinks and
         active outlinks for each node. These data structures are equivalent to
         the "regular" inlink and outlink matrices, except that it uses the IDs
         of active links (only).
         """
-
         node_status = self.node_status != CLOSED_BOUNDARY
 
         (self.node_active_inlink_matrix,
@@ -947,16 +1020,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
              self.shape, node_status=node_status)
 
     def _reset_list_of_active_diagonal_links(self):
-        '''
+        """Rest the active diagonal links.
+
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive) for internal
         consistency after the BC status of some nodes has been changed.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
-        Assumes _setup_diagonal_links() has been called, either explicitly or by
-        another grid method (e.g., d8_active_links()).
-        '''
-
+        Assumes _setup_diagonal_links() has been called, either explicitly or
+        by another grid method (e.g., d8_active_links()).
+        """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
         self._diagonal_active_links = []
@@ -982,7 +1055,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
 
     def _reset_diagonal_link_statuses(self):
-        '''
+        """Rest the statuses of diagonal links.
+
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive/fixed) for internal
         consistency after the BC status of some nodes has been changed.
@@ -990,8 +1064,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         "normal" links - so we add self.number_links to these IDs.
         Assumes _setup_diagonal_links() has been called, either explicitly or by
         another grid method (e.g., d8_active_links()).
-        '''
-
+        """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
         self._diagonal_active_links = []
@@ -1044,61 +1117,44 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
-    def _reset_list_of_active_links(self):
-        '''
-        .. deprecated:: 0.1.27
-           Use :func: `_reset_link_status_list` instead.
-
-        Assuming the active link list has already been created elsewhere, this
-        helper method checks link statuses (active/inactive) for internal
-        consistency after the BC status of some nodes has been changed.
-        '''
-        super(RasterModelGrid, self)._reset_list_of_active_links()
-        if self._diagonal_links_created:
-            self._reset_list_of_active_diagonal_links()
-
     def _reset_link_status_list(self):
-        '''
+        """Rest the status of links.
+
         Assuming the link_status array has already been created elsewhere, this
         helper method checks link statuses for internal
         consistency after the BC status of some nodes has been changed.
-        '''
+        """
         super(RasterModelGrid, self)._reset_link_status_list()
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
 
     def _make_link_unit_vectors(self):
-        """Makes arrays to store the unit vectors associated with each link.
-        Overrides ModelGrid._make_link_unit_vectors().
+        """Make arrays to store the unit vectors associated with each link.
 
         Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
-        for each link, the x and y components of the link's unit vector (that is,
-        the link's x and y dimensions if it were shrunk to unit length but
+        for each link, the x and y components of the link's unit vector (that
+        is, the link's x and y dimensions if it were shrunk to unit length but
         retained its orientation). The length of these arrays is the number of
-        links plus one. The last entry in each array is set to zero, and is used
-        to handle references to "link -1" (meaning, a non-existent link, whose
-        unit vector is (0,0)).
-            Also builds arrays to store the unit-vector component sums for each
+        links plus one. The last entry in each array is set to zero, and is
+        used to handle references to "link -1" (meaning, a non-existent link,
+        whose unit vector is (0,0)).
+
+        Also builds arrays to store the unit-vector component sums for each
         node: node_unit_vector_sum_x and node_unit_vector_sum_y. These are
         designed to be used when mapping link vector values to nodes (one takes
         the average of the x- and y-components of all connected links).
 
-        Parameters
-        ----------
+        Notes
+        -----
+        .. note::
 
-        (none)
+            Overrides ModelGrid._make_link_unit_vectors().
 
-        Returns
-        -------
-
-        (none)
-
-        Creates
-        -------
-
-        self.link_unit_vec_x, self.link_unit_vec_y : ndarray
-            x and y components of unit vectors at each link (extra 0 entries @ end)
-        self.node_vector_sum_x, self.node_vector_sum_y : ndarray
+        Creates the following:
+        * `self.link_unit_vec_x`, `self.link_unit_vec_y` : `ndarray`
+            x and y components of unit vectors at each link (extra 0
+            entries at end)
+        * `self.node_vector_sum_x`, `self.node_vector_sum_y` : `ndarray`
             Sums of x & y unit vector components for each node. Sum is over all
             links connected to a given node.
 
@@ -1131,45 +1187,46 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assume that the order of links is:
         # - The first (R-1)*C are vertical and oriented upward
         # - The remaining R*(C-1) are horizontal and oriented rightward
-        self.link_unit_vec_x = np.zeros(self.number_of_links + 1)
-        self.link_unit_vec_y = np.zeros(self.number_of_links + 1)
+        self._link_unit_vec_x = np.zeros(self.number_of_links + 1)
+        self._link_unit_vec_y = np.zeros(self.number_of_links + 1)
         n_vert_links = (self.number_of_node_rows - 1) * \
             self.number_of_node_columns
-        self.link_unit_vec_y[:n_vert_links] = 1.0
-        self.link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        self._link_unit_vec_y[:n_vert_links] = 1.0
+        self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
-        # To do this, we take advantage of the node inlink and outlink matrices,
-        # each of which has 2 rows, corresponding to the maximum possible 2
-        # inlinks and 2 outlinks in a raster grid.
-        #     Create the arrays
-        self.node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
-        self.node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
-        #     x-component contribution from inlinks
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_inlink_matrix[0, :]])
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_inlink_matrix[1, :]])
-        #     x-component contribution from outlinks
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_outlink_matrix[0, :]])
-        self.node_unit_vector_sum_x += np.abs(
-            self.link_unit_vec_x[self.node_outlink_matrix[1, :]])
-        #     y-component contribution from inlinks
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_inlink_matrix[0, :]])
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_inlink_matrix[1, :]])
-        #     y-component contribution from outlinks
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_outlink_matrix[0, :]])
-        self.node_unit_vector_sum_y += np.abs(
-            self.link_unit_vec_y[self.node_outlink_matrix[1, :]])
+        # To do this, we take advantage of the node inlink and outlink
+        # matrices, each of which has 2 rows, corresponding to the maximum
+        # possible 2 inlinks and 2 outlinks in a raster grid.
+        #
+        # Create the arrays
+        self._node_unit_vector_sum_x = np.zeros(self.number_of_nodes)
+        self._node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
+        # x-component contribution from inlinks
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_inlink_matrix[0, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_inlink_matrix[1, :]])
+        # x-component contribution from outlinks
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_outlink_matrix[0, :]])
+        self._node_unit_vector_sum_x += np.abs(
+            self._link_unit_vec_x[self.node_outlink_matrix[1, :]])
+        # y-component contribution from inlinks
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_inlink_matrix[0, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_inlink_matrix[1, :]])
+        # y-component contribution from outlinks
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_outlink_matrix[0, :]])
+        self._node_unit_vector_sum_y += np.abs(
+            self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def cell_faces(self, *args):
-        """cell_faces([cell_id])
-        Faces of a cell.
+    def faces_at_cell(self, *args):
+        """faces_at_cell([cell_id])
+        Get array of faces of a cell.
 
         Return an array of the face IDs for the faces of a cell with ID,
         *cell_id*. The faces are listed clockwise, starting with the bottom
@@ -1190,14 +1247,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.cell_faces(0)
+        >>> rmg.faces_at_cell(0)
         array([ 0,  9,  3, 10])
 
-        >>> rmg.cell_faces([0, 5])
+        >>> rmg.faces_at_cell([0, 5])
         array([[ 0,  9,  3, 10],
                [ 5, 15,  8, 16]])
 
-        >>> rmg.cell_faces()
+        >>> rmg.faces_at_cell()
         array([[ 0,  9,  3, 10],
                [ 1, 10,  4, 11],
                [ 2, 11,  5, 12],
@@ -1218,9 +1275,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.squeeze(np.concatenate(
             (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
 
-    def face_links(self, *args):
-        """face_links([face_id])
-        Links associated with faces.
+    def link_at_face(self, *args):
+        """link_at_face([face_id])
+        Get links associated with faces.
 
         Returns an array of the link IDs for the links which intersect the
         faces specificed by *face_id*. *face_id* can be either a scalar or an
@@ -1235,10 +1292,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.face_links(0)
+        >>> mg.link_at_face(0)
         array([1])
 
-        >>> mg.face_links([0, 4, 13])
+        >>> mg.link_at_face([0, 4, 13])
         array([ 1,  7, 23])
         """
         if len(args) == 0:
@@ -1265,12 +1322,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         links[in_cols] = (
             self.shape[1] * (self.shape[0] - 1) +
             (col + 1) * (self.shape[1] - 1) +
-            excess_col % (self.shape[1] - 1))  # -1 cancels because of offset term
+            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
+                                              # term
         return links
 
-    def link_faces(self, *args):
-        """link_faces([link_id])
-        Faces associated with links.
+    def face_at_link(self, *args):
+        """face_at_link([link_id])
+        Get array of faces associated with links.
 
         Return an array of the face IDs for the faces that intersect the links
         specified by *link_id*. *link_id* can be either a scalar or array. If
@@ -1288,9 +1346,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.link_faces(2)
+        >>> rmg.face_at_link(2)
         1
-        >>> rmg.link_faces([0, 1, 15, 19, 12, 26])
+        >>> rmg.face_at_link([0, 1, 15, 19, 12, 26])
         array([2147483647,          0, 2147483647,          9,          7,
                        16])
         """
@@ -1494,11 +1552,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Traceback (most recent call last):
             ...
         AssertionError: No diagonal links have been created in the grid yet!
-        >>> _ = grid.node_diagonal_links()
+        >>> _ = grid.diagonal_links_at_node()
         >>> grid.number_of_diagonal_links
         24
         """
-        assert self.diagonal_list_created, "No diagonal links have been created in the grid yet!"
+        assert self.diagonal_list_created, \
+               "No diagonal links have been created in the grid yet!"
         return 2 * self.number_of_patches
 
     @property
@@ -1519,19 +1578,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def node_spacing_horizontal(self):
-        """Horizontal spacing, between columns.
-        """
+        """Horizontal spacing, between columns."""
         return self._dx
 
     @property
     def node_spacing_vertical(self):
-        """Vertical spacing, between rows.
-        """
+        """Vertical spacing, between rows."""
         return self._dx
 
     @property
     def corner_nodes(self):
-        """Nodes in grid corners.
+        """Get array of the nodes in grid corners.
 
         Return the IDs to the corner nodes of the grid, sorted by ID.
 
@@ -1551,7 +1608,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def corner_cells(self):
-        """Cells in cellular grid (grid with only cells) corners.
+        """Get array of cells in cellular grid (grid with only cells) corners.
 
         Return the IDs to the corner cells of the cellular grid, sorted by ID.
 
@@ -1570,7 +1627,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return sgrid.corners(self.cell_grid_shape)
 
     def is_point_on_grid(self, xcoord, ycoord):
-        """Check if a point is on a grid.
+        """Check if a point is on the grid.
 
         This method takes x, y coordinates and tests whether they lie within
         the grid. The limits of the grid are taken to be links connecting the
@@ -1578,6 +1635,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Coordinates can be ints or arrays of ints. If arrays, will return an
         array of the same length of boolean truth values.
+
+        Parameters
+        ----------
+        xcoord : float or array_like
+            The point's x-coordinate.
+        ycoord : float or array_like
+            The point's y-coordinate.
+
+        Returns
+        -------
+        bool
+            ``True`` if the point is on the grid. Otherwise, ``False``.
         """
         x_condition = np.logical_and(np.less(0., xcoord), np.less(
             xcoord, (self.get_grid_xdimension() - self._dx)))
@@ -1596,7 +1665,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.logical_and(x_condition, y_condition)
 
     def get_nodes_around_point(self, xcoord, ycoord):
-        """Nodes surrounding a point.
+        """Get the nodes surrounding a point.
 
         Return IDs of the four nodes of the area around a point with
         coordinates *xcoord*, *ycoord*. Node IDs are returned
@@ -1643,22 +1712,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                          ID + self.number_of_node_columns + 1, ID + 1])
 
     def snap_coords_to_grid(self, xcoord, ycoord):
-        '''Snap coordinates to the nearest node.
+        """Snap coordinates to the nearest node.
 
         .. deprecated:: 0.6
             :func:`find_nearest_node` is equivalent, and faster.
 
         This method takes existing coordinates, inside the grid, and returns
         the ID of the closest grid node. That node can be a boundary node.
-        '''
+        """
         # DEJH, 9/24/13.
-        # This testing suppressed for speed. While suppressed, coordinates provided MUST be within the grid or silent instability will occur.
+        # This testing suppressed for speed. While suppressed, coordinates
+        # provided MUST be within the grid or silent instability will occur.
         # if type(xcoord) == int:
         #    if not self.is_point_on_grid(xcoord, ycoord):
-        #        raise LookupError('Coordinates specified are outside the grid area')
+        #        raise LookupError(
+        #           'Coordinates specified are outside the grid area')
         # else: #it's an array
         #    if not np.all(self.is_point_on_grid(xcoord, ycoord)):
-        #        raise LookupError('One or more pairs of coordinates specified are outside the grid area')
+        #        raise LookupError(
+        #           'One or more pairs of coordinates specified are outside '
+        #           'the grid area')
         vertices_array = self.get_nodes_around_point(xcoord, ycoord)
         # vertices_array.reshape((4,-1))
         xdir_displacement = np.tile(
@@ -1666,9 +1739,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ydir_displacement = np.tile(
             ycoord, (4, 1)) - self.node_y[vertices_array]
         distances_to_vertices = np.sqrt(
-            xdir_displacement * xdir_displacement + ydir_displacement * ydir_displacement)
+            xdir_displacement * xdir_displacement +
+            ydir_displacement * ydir_displacement)
         try:
-            return vertices_array[(np.argmin(distances_to_vertices, axis=0), range(distances_to_vertices.shape[1]))]
+            return vertices_array[(np.argmin(distances_to_vertices, axis=0),
+                                   range(distances_to_vertices.shape[1]))]
         except:
             return vertices_array[np.argmin(distances_to_vertices)]
         #...per fancy indexing
@@ -1740,22 +1815,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Calculate the slopes of *node_values*, given at every node in the grid,
         relative to the nodes centered at *node_ids*. Note that upward slopes
-        are reported as positive. That is, the gradient is positive if a neighbor
-        node's value is greater than that of the node as *node_ids*.
+        are reported as positive. That is, the gradient is positive if a
+        neighbor node's value is greater than that of the node as *node_ids*.
 
         If *node_ids* is not provided, calculate the gradients for all
         nodes in the grid. Nodes surrounded by inactive links will receive
         four masked entries.
 
-        Use the *out* keyword if you have an array that you want to put the result
-        into. If not given, create and return a new array.
+        Use the *out* keyword if you have an array that you want to put the
+        result into. If not given, create and return a new array.
 
-        Returns the gradients of the neighboring links in the order (right, top,
-        left, bottom).
+        Returns the gradients of the neighboring links in the order (right,
+        top, left, bottom).
 
-        Note the distinction from calculate_gradient_across_cell_faces() is that
-        this method returns an nnodes-long array. That method returns an ncells-
-        long array.
+        Note the distinction from calculate_gradient_across_cell_faces() is
+        that this method returns an nnodes-long array. That method returns
+        an ncells-long array.
         """
         return rfuncs.calculate_gradient_along_node_links(
             self, node_values, *args, **kwds)
@@ -1766,17 +1841,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Calculate the slopes of *node_values*, given at every node in the grid,
         relative to the nodes centered at *cell_ids*. Note that upward slopes
-        are reported as positive. That is, the gradient is positive if a neighbor
-        node's value is greater than that of the node as *cell_ids*.
+        are reported as positive. That is, the gradient is positive if a
+        neighbor node's value is greater than that of the node as *cell_ids*.
 
         If *cell_ids* is not provided, calculate the gradients for all
         cells in the grid.
 
-        Use the *out* keyword if you have an array that you want to put the result
-        into. If not given, create and return a new array.
+        Use the *out* keyword if you have an array that you want to put the
+        result into. If not given, create and return a new array.
 
-        Returns the gradients of the neighboring links in the order (right, top,
-        left, bottom).
+        Returns the gradients of the neighboring links in the order (right,
+        top, left, bottom).
         """
         return rfuncs.calculate_gradient_across_cell_faces(
             self, node_values, *args, **kwds)
@@ -1787,14 +1862,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Calculate the slopes of *node_values*, given at every node in the grid,
         relative to the nodes centered at *cell_ids*. Note that upward slopes
-        are reported as positive. That is, the gradient is positive if a neighbor
-        node's value is greater than that of the node as *cell_ids*.
+        are reported as positive. That is, the gradient is positive if a
+        neighbor node's value is greater than that of the node as *cell_ids*.
 
         If *cell_ids* is not provided, calculate the gradients for all
         cells in the grid.
 
-        Use the *out* keyword if you have an array that you want to put the result
-        into. If not given, create and return a new array.
+        Use the *out* keyword if you have an array that you want to put the
+        result into. If not given, create and return a new array.
 
         Returns the gradients of the neighboring links in the order (topright,
         topleft, bottomleft, bottomright).
@@ -1804,7 +1879,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def link_length(self):
-        """Lengths of links.
+        """Get lengths of links.
 
         Return the link lengths in the grid, as a nlinks-long array. This
         method *does* test if diagonal links are present in the grid already;
@@ -1821,33 +1896,49 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 4)
+        >>> grid = RasterModelGrid((3, 3))
         >>> grid.link_length
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.])
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        >>> grid = RasterModelGrid((3, 3))
+        >>> _ = grid.diagonal_links_at_node()
+        >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
+        array([
+            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.41421356,  1.41421356,  1.41421356,
+            1.41421356,  1.41421356,  1.41421356,  1.41421356,  1.41421356])
         """
-        try:
+        if self._link_length is None:
+            return self._calculate_link_length()
+        else:
             return self._link_length
-        except AttributeError:
-            if not self._diagonal_links_created:
-                return self._calculate_link_length()
-            else:
+
+    def _calculate_link_length(self):
+        """Calculate link lengths for a raster grid."""
+        if self._link_length is None:
+            if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
                 self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = np.sqrt(
                     2. * self._dx * self._dx)
-                return self._link_length
+            else:
+                self._link_length = self.empty(centering='link', dtype=float)
+                self._link_length.fill(self._dx)
+
+        return self._link_length
 
     def _setup_diagonal_links(self):
-        """
+        """Set up matrices of tonodes and fromnodes for diagonal links.
+
         Creates lists of from and to nodes for diagonal links. A diagonal link
-        is a special type of link that connects the diagonal of two raster cells.
-        One use for diagonal links has to do with raster digital elevation
-        models: diagonal links allow you to implement "D8" drainage-routing
-        algorithms, in which each node is considered to have 8 rather than 4
-        neighbors, and flow will go toward whichever of these neighbors lies in
-        the steepest downslope direction.
+        is a special type of link that connects the diagonal of two raster
+        cells.  One use for diagonal links has to do with raster digital
+        elevation models: diagonal links allow you to implement "D8"
+        drainage-routing algorithms, in which each node is considered to have
+        8 rather than 4 neighbors, and flow will go toward whichever of these
+        neighbors lies in the steepest downslope direction.
         """
         n_diagonal_links = 2 * (self._nrows - 1) * (self._ncols - 1)
         self._diag_link_fromnode = np.zeros(n_diagonal_links, dtype=int)
@@ -1867,7 +1958,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_list_of_active_diagonal_links()
 
     def d8_active_links(self):
-        """Active links, including diagonals.
+        """Get active links, including diagonals.
 
         Return a set of active links that include diagonal connections between
         grid cells, for use with link-based water-routing schemes.
@@ -1964,7 +2055,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Get both the maximum gradient and the node to which the gradient is
         measured.
 
-        >>> rmg.calculate_steepest_descent_across_cell_faces(node_values, 0, return_node=True)
+        >>> rmg.calculate_steepest_descent_across_cell_faces(node_values, 0,
+        ...     return_node=True)
         (array([-1.]), array([1]))
         """
         return rfuncs.calculate_steepest_descent_across_cell_faces(
@@ -2081,7 +2173,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 4)
         >>> node_values = rmg.zeros()
         >>> node_values[1] = -1
-        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(
+        ...     node_values, 0)
         masked_array(data = [-1.],
                      mask = False,
                fill_value = 1e+20)
@@ -2090,18 +2183,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Get both the maximum gradient and the node to which the gradient is
         measured.
 
-        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0, return_node=True)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(
+        ...     node_values, 0, return_node=True)
         (array([-1.]), array([1]))
 
         Use method to choose which neighbors to consider.
 
         >>> node_values[0] = -10.
         >>> node_values[1] = -1.
-        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0, method='d4', return_node=True)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(
+        ...     node_values, 0, method='d4', return_node=True)
         (array([-1.]), array([1]))
-        >>> rmg.calculate_steepest_descent_across_adjacent_cells(node_values, 0, method='d8', return_node=True)
+        >>> rmg.calculate_steepest_descent_across_adjacent_cells(
+        ...     node_values, 0, method='d8', return_node=True)
         (array([-7.07106781]), array([0]))
-
         """
         return rfuncs.calculate_steepest_descent_across_adjacent_cells(
             self, node_values, *args, **kwds)
@@ -2122,7 +2217,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         The max gradient is the most negative, but the max slope is the most
         positive.  So, this was updated to return the max value, not the
         min.
-
         """
         return rfuncs.calculate_max_gradient_across_node(self, u, cell_id)
 
@@ -2138,8 +2232,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes
         downward from the cell are reported as positive.
 
-        Note that this is exactly the same as calculate_max_gradient_across_node
-        except that this is d4, and the other is d8.
+        Note that this is exactly the same as
+        calculate_max_gradient_across_node except that this is d4, and the
+        other is d8.
 
         This code is actually calculating slopes, not gradients.
         The max gradient is the most negative, but the max slope is the most
@@ -2162,7 +2257,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This doesn't deal with the fixed gradient boundary condition.
         """
-
         # NMG Update.  This is super clumsy.
 
         # DEJH update: Gets confused for the lowest node if w/i grid
@@ -2214,12 +2308,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         all_neighbor_nodes = np.concatenate((neighbor_nodes, diagonal_nodes))
 
-        # Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
-        # This remains extremely ad-hoc. An internal node points to itself, but this should never
-        # be used to actually route flow. In flow_accumulation, there is an explicit check that flow
+        # Final check to  allow correct handling of internally draining nodes;
+        # DEJH Aug 2013. This remains extremely ad-hoc. An internal node
+        # points to itself, but this should never be used to actually route
+        # flow. In flow_accumulation, there is an explicit check that flow
         # is not routed to yourself.
         steepest_node = all_neighbor_nodes[index_max]
-        #...now if a node is the lowest thing, this method returns -1, not a neighbor:
+        #...now if a node is the lowest thing, this method returns -1, not a
+        # neighbor:
         if u[steepest_node] > u[node_id]:
             steepest_node = -1
 
@@ -2232,8 +2328,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Use :func:`calculate_max_gradient_across_adjacent_cells` instead
 
         This method is exactly the same as find_node_in_direction_of_max_slope
-        except that this method only considers nodes that are connected by links,
-        or in otherwords, in the 0, 90, 180 and 270 directions.
+        except that this method only considers nodes that are connected by
+        links, or in otherwords, in the 0, 90, 180 and 270 directions.
 
         This method calculates the slopes (-dz/dx) in u across all 4 faces of
         the cell with ID node_id.
@@ -2243,7 +2339,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This doesn't deal with the fixed gradient boundary condition.
         """
-
         # NMG Update.  This is super clumsy.
 
         # DEJH update: Gets confused for the lowest node if w/i grid
@@ -2275,12 +2370,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # all_neighbor_nodes=np.concatenate((neighbor_nodes,diagonal_nodes))
 
-        # Final check to  allow correct handling of internally draining nodes; DEJH Aug 2013.
-        # This remains extremely ad-hoc. An internal node points to itself, but this should never
-        # be used to actually route flow. In flow_accumulation, there is an explicit check that flow
+        # Final check to  allow correct handling of internally draining nodes;
+        # DEJH Aug 2013. This remains extremely ad-hoc. An internal node
+        # points to itself, but this should never be used to actually route
+        # flow. In flow_accumulation, there is an explicit check that flow
         # is not routed to yourself.
         steepest_node = neighbor_nodes[index_max]
-        #...now if a node is the lowest thing, this method returns -1, not a neighbor:
+        #...now if a node is the lowest thing, this method returns -1, not a
+        # neighbor:
         if u[steepest_node] > u[node_id]:
             steepest_node = -1
 
@@ -2289,7 +2386,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
                                 top_is_inactive, left_is_inactive):
         """Set boundary nodes to be inactive.
-
 
         .. deprecated:: 0.6
             Due to imprecise terminology. Use
@@ -2327,23 +2423,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4],
+              dtype=int8)
 
         Notes
         -----
         The four corners are treated as follows:
-            - bottom left = BOTTOM
-            - bottom right = BOTTOM
-            - top right = TOP
-            - top left = TOP
+        - bottom left = BOTTOM
+        - bottom right = BOTTOM
+        - top right = TOP
+        - top left = TOP
 
-        This scheme is necessary for internal consistency with looped boundaries.
+        This scheme is necessary for internal consistency with looped
+        boundaries.
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_inactive_boundaries')
@@ -2399,15 +2498,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
               not active_link-based lists)
 
         This means that if you call the calculate_gradients_at_active_links
-        method, links connecting to closed boundaries will be ignored: there can
-        be no gradients or fluxes calculated, because the links that connect to
-        that edge of the grid are not included in the calculation. So, setting a
-        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
-        boundary condition. Note, however, that this applies to the grid as a
-        whole, rather than a particular variable that you might use in your
-        application. In other words, if you want a no-flux boundary in one
-        variable but a different boundary condition for another, then use
-        another method.
+        method, links connecting to closed boundaries will be ignored: there
+        can be no gradients or fluxes calculated, because the links that
+        connect to that edge of the grid are not included in the calculation.
+        So, setting a grid edge to CLOSED_BOUNDARY is a convenient way to
+        impose a no-flux boundary condition. Note, however, that this applies
+        to the grid as a whole, rather than a particular variable that you
+        might use in your application. In other words, if you want a no-flux
+        boundary in one variable but a different boundary condition for
+        another, then use another method.
 
         This method is a replacement for the now-deprecated method
         set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
@@ -2427,11 +2526,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Notes
         -----
         Note that the four corners are treated as follows:
-            - bottom left = BOTTOM
-            - bottom right = BOTTOM
-            - top right = TOP
-            - top left = TOP
-        This scheme is necessary for internal consistency with looped boundaries.
+        - bottom left = BOTTOM
+        - bottom right = BOTTOM
+        - top right = TOP
+        - top left = TOP
+        This scheme is necessary for internal consistency with looped
+        boundaries.
 
         Examples
         --------
@@ -2443,15 +2543,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
+              dtype=int8)
         """
-
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
 
@@ -2479,11 +2580,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.update_links_nodes_cells_to_new_BCs()
 
-    def set_fixed_value_boundaries_at_grid_edges(self, bottom_is_fixed_val,
-                                                 left_is_fixed_val,
-                                                 top_is_fixed_val,
-                                                 right_is_fixed_val, value=None,
-                                                 value_of='topographic__elevation'):
+    def set_fixed_value_boundaries_at_grid_edges(
+            self, bottom_is_fixed_val, left_is_fixed_val, top_is_fixed_val,
+            right_is_fixed_val, value=None, value_of='topographic__elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2492,8 +2591,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
 
-        *value* controls what values are held constant at these nodes. It can be
-        either a float, an array of length number_of_fixed_nodes or
+        *value* controls what values are held constant at these nodes. It can
+        be either a float, an array of length number_of_fixed_nodes or
         number_of_nodes (total), or left blank. If left blank, the values will
         be set from the those already in the grid fields, according to
         'value_of'.
@@ -2503,8 +2602,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         from the field values ***at the time you call this method***. If no
         values are present in the field, the module will complain but accept
         this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g., ``RasterModelGrid.update_boundary_nodes()``,
-        will raise exceptions if you try).
+        conditions (and such methods, e.g.,
+        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
+        if you try).
 
         The status of links (active or inactive) is automatically updated to
         reflect the changes.
@@ -2540,20 +2640,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> rmg.at_node['topographic__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.node_status
-        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4], dtype=int8)
-        >>> rmg.set_fixed_value_boundaries_at_grid_edges(False, False, True, True)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4],
+              dtype=int8)
+        >>> rmg.set_fixed_value_boundaries_at_grid_edges(
+        ...     False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status
-        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
 
         Note that the four corners are treated as follows:
-            bottom left = BOTTOM
-            bottom right = BOTTOM
-            top right = TOP
-            top left = TOP
-        This scheme is necessary for internal consistency with looped boundaries.
+        * bottom left = BOTTOM
+        * bottom right = BOTTOM
+        * top right = TOP
+        * top left = TOP
+        This scheme is necessary for internal consistency with looped
+        boundaries.
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
@@ -2598,7 +2702,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                         self.fixed_value_node_properties['boundary_node_IDs'])
                 else:
                     raise TypeError(
-                        "'value' must be of size nnodes or number of nodes to set!")
+                        "'value' must be of size nnodes or number of nodes "
+                        "to set!")
         else:
             try:
                 values_to_use = self.at_node[value_of].take(
@@ -2634,10 +2739,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def set_looped_boundaries(self, top_bottom_are_looped, sides_are_looped):
         """Create wrap-around boundaries.
-        Handles boundary conditions by setting corresponding parallel grid edges
-        as looped "tracks_cell" (==3) status, linked to each other. If top_bottom_are_looped
-        is True, the top and bottom edges will link to each other. If sides_are_
-        looped is True, the left and right edges will link to each other.
+
+        Handles boundary conditions by setting corresponding parallel grid
+        edges as looped "tracks_cell" (==3) status, linked to each other.
+        If top_bottom_are_looped is True, the top and bottom edges will link
+        to each other. If sides_are_looped is True, the left and right edges
+        will link to each other.
 
         Looped boundaries are experimental, and not as yet well integrated into
         the Landlab framework. Many functions may not recognise them, or
@@ -2659,8 +2766,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.create_node_array_zeros('topographic__elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -2677,8 +2785,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         right_edge = np.array(range(2 * self.number_of_node_columns - 1,
                                     self.number_of_nodes - 1,
                                     self.number_of_node_columns))
-        top_edge = np.array(range((self.number_of_node_rows - 1) *
-                                  self.number_of_node_columns, self.number_of_nodes))
+        top_edge = np.array(
+            range((self.number_of_node_rows - 1) * self.number_of_node_columns,
+                  self.number_of_nodes))
         left_edge = np.array(range(self.number_of_node_columns,
                                    (self.number_of_nodes -
                                     self.number_of_node_columns),
@@ -2722,14 +2831,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_node_properties = {}
         all_the_IDs = np.concatenate((these_boundary_IDs, existing_IDs))
         ID_ordering = np.argsort(all_the_IDs)
-        self.looped_node_properties['boundary_node_IDs'] = as_id_array(all_the_IDs[
-                                                                       ID_ordering])
+        self.looped_node_properties['boundary_node_IDs'] = (
+            as_id_array(all_the_IDs[ID_ordering]))
         self.looped_node_properties['linked_node_IDs'] = as_id_array(
             np.concatenate((these_linked_nodes, existing_links))[ID_ordering])
 
         if np.any(self.node_status[self.looped_node_properties['boundary_node_IDs']] == 2):
             raise AttributeError(
-                'Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
+                'Switching a boundary between fixed gradient and looped will '
+                'result in bad BC handling! Bailing out...')
 
     def set_fixed_gradient_boundaries(
             self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
@@ -2739,7 +2849,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         .. deprecated:: 0.29
             Use :func:`set_fixed_link_boundaries_at_grid_edges` instead
-
 
         Create fixed gradient boundaries.
 
@@ -2781,8 +2890,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
               and this is assumed to be named "topographic__elevation" in the
               grid. If the gradient is in another surface, or the elevation
               surface is named differently, you need to set 'gradient_of' equal
-              to the relevant string. self.fixed_gradient_node_properties['fixed_gradient_of'] stores this string
-              for access elsewhere.
+              to the relevant string.
+              self.fixed_gradient_node_properties['fixed_gradient_of'] stores
+              this string for access elsewhere.
 
             - The critical IDs and values relevant to the boundary conditions
               are stored in two special dictionaries,
@@ -2847,8 +2957,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.create_node_array_zeros('topographic__elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -2856,8 +2967,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg['node']['topographic__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
         >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
         Fixed gradients will be set according to existing data in the grid...
-        >>> rmg.node_status
-        array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2], dtype=int8)
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2],
+              dtype=int8)
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
         'topographic__elevation'
         >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
@@ -2867,7 +2979,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([ 0. ,  0.2,  0.2,  0.2,  0. , -0.2, -0.2,  0. , -0.2, -0.2, -0.2,
                 0. ,  0.2,  0.2])
-        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, -0.1, gradient_of='topographic__elevation') #second case
+        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, -0.1,
+        ...     gradient_of='topographic__elevation') #second case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([ 0. ,  0.1,  0.1,  0.1,  0. , -0.1, -0.1,  0. , -0.1, -0.1, -0.1,
                 0. ,  0.1,  0.1])
@@ -2875,14 +2988,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  0.9,  1. ,  1. ,  1. ,  0.9,  0.9,
                 1. ,  1. ,  1. ,  0.9,  0.9,  0.9,  0.9,  0.9,  0.9])
 
-        -> All boundaries end up with the same dip outwards. Note that the
-        corners have been automatically set with "true" gradients of 0., so they
-        mimic their edge neighbor. This is almost always what you want to
+        All boundaries end up with the same dip outwards. Note that the
+        corners have been automatically set with "true" gradients of 0., so
+        they mimic their edge neighbor. This is almost always what you want to
         happen.
 
         >>> import numpy as np
-        >>> my_gradients = np.array([-0.5,-0.5,-0.5,-0.5,]) #remember these are in edge, then ID order, with the corners attached to the other edges
-        >>> rmg.set_fixed_gradient_boundaries(False, True, False, True, my_gradients) #third case
+        >>> # Remember these are in edge, then ID order, with the corners
+        >>> # attached to the other edges
+        >>> my_gradients = np.array([-0.5,-0.5,-0.5,-0.5,])
+        >>> rmg.set_fixed_gradient_boundaries(False, True, False, True,
+        ...     my_gradients) #third case
         >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
         array([-0.5, -0.5, -0.5, -0.5,  0.6,  0.1,  0.1,  0.1, -0.4, -0.6, -0.1,
                -0.1, -0.1,  0.4])
@@ -2897,10 +3013,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 0.9,  0.9,  0.9,  0.9,  0.9,  1.5,  1. ,  1. ,  1. ,  0.5,  1.5,
                 1. ,  1. ,  1. ,  0.5,  0.9,  0.9,  0.9,  0.9,  0.9])
 
-        ...i.e.,    0.9  0.9  0.9  0.9  0.9
-                    1.5  1.   1.   1.   0.5
-                    1.5  1.   1.   1.   0.5
-                    0.9  0.9  0.9  0.9  0.9
+        i.e.::
+
+            0.9  0.9  0.9  0.9  0.9
+            1.5  1.   1.   1.   0.5
+            1.5  1.   1.   1.   0.5
+            0.9  0.9  0.9  0.9  0.9
 
         Now note we can easily update these boundary conditions much faster:
 
@@ -2918,9 +3036,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                self.number_of_node_columns)
         top_edge = np.arange((self.number_of_node_rows - 1) *
                              self.number_of_node_columns, self.number_of_nodes)
-        left_edge = np.arange(self.number_of_node_columns,
-                              self.number_of_nodes - self.number_of_node_columns,
-                              self.number_of_node_columns)
+        left_edge = np.arange(
+            self.number_of_node_columns,
+            self.number_of_nodes - self.number_of_node_columns,
+            self.number_of_node_columns)
 
         fixed_gradient_nodes = np.array([], dtype=int)
         fixed_gradient_linked_nodes = np.array([], dtype=int)
@@ -2978,13 +3097,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             no_val_provided = False
         if no_val_provided:
             # Set the gradients by reference to existing data on grid
-            six.print_('Fixed gradients will be set according to existing data '
-                       'in the grid...')
-            fixed_gradient_array = self.calculate_gradients_at_links(self['node'][gradient_of])[
-                boundary_links]  # this grid func gives slopes UP as positive
-            fixed_gradient_values_to_add = self['node'][gradient_of][
-                fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
+            six.print_('Fixed gradients will be set according to existing '
+                       'data in the grid...')
 
+            # this grid func gives slopes UP as positive
+            fixed_gradient_array = self.calculate_gradients_at_links(
+                self['node'][gradient_of])[boundary_links]
+            fixed_gradient_values_to_add = (
+                self['node'][gradient_of][fixed_gradient_nodes] -
+                self['node'][gradient_of][fixed_gradient_linked_nodes])
         else:
             try:
                 fixed_gradient = float(gradient_in)
@@ -2994,11 +3115,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     fixed_gradient_array = np.array(gradient_in)
                 except TypeError:
                     raise TypeError(
-                        'The supplied gradient parameter must be a single number or iterable of length number_of_fixed_gradient_nodes')
+                        'The supplied gradient parameter must be a single '
+                        'number or iterable of length '
+                        'number_of_fixed_gradient_nodes')
                 self.force_boundaries_from_gradients(
                     boundary_links, fixed_gradient_array, gradient_of)
-                fixed_gradient_values_to_add = self['node'][gradient_of][
-                    fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
+                fixed_gradient_values_to_add = (
+                    self['node'][gradient_of][fixed_gradient_nodes] -
+                    self['node'][gradient_of][fixed_gradient_linked_nodes])
             else:
                 if fixed_gradient > 0.:
                     six.print_(
@@ -3041,8 +3165,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                         (fixed_gradient_array, left_fixed_gradients))
                 self.force_boundaries_from_gradients(
                     boundary_links, fixed_gradient_array, gradient_of)
-                fixed_gradient_values_to_add = self['node'][gradient_of][
-                    fixed_gradient_nodes] - self['node'][gradient_of][fixed_gradient_linked_nodes]
+                fixed_gradient_values_to_add = (
+                    self['node'][gradient_of][fixed_gradient_nodes] -
+                    self['node'][gradient_of][fixed_gradient_linked_nodes])
 
         # Now we need to save the various fixed_gradient property arrays to the
         # grid, but making sure we don't duplicate any entries that might already
@@ -3066,8 +3191,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 'boundary_link_IDs'] = as_id_array(boundary_links)
             # Update the link gradients over whole grid, as if there's values
             # in the grid already, there could be compatibility issues...
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = self.calculate_gradients_at_links(
-                self['node'][gradient_of])[boundary_links]
+            self.fixed_gradient_link_properties['boundary_link_gradients'] = (
+                self.calculate_gradients_at_links(
+                    self['node'][gradient_of])[boundary_links])
 
         else:
             # there's something in there, which we need to merge with, and
@@ -3075,27 +3201,38 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if self.fixed_gradient_node_properties['fixed_gradient_of'] != gradient_of:
                 # need to sort this ASAP...
                 raise ValueError(
-                    'At the moment, you have to define all your boundaries on the same set of values!')
-                #...We probably want the syntax to be rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT, to which we can pin these properties
+                    'At the moment, you have to define all your boundaries '
+                    'on the same set of values!')
+                # ...We probably want the syntax to be 
+                # rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT,
+                # to which we can pin these properties
             # The fixed_gradient_nodes should be uniquely defined...
             unrepeated_node_entries = np.logical_not(np.in1d(
-                self.fixed_gradient_node_properties['boundary_node_IDs'], fixed_gradient_nodes))
+                self.fixed_gradient_node_properties['boundary_node_IDs'],
+                fixed_gradient_nodes))
             unrepeated_link_entries = np.logical_not(np.in1d(
-                self.fixed_gradient_link_properties['boundary_link_IDs'], boundary_links))
-            fixed_gradient_array = np.concatenate((fixed_gradient_array, self.fixed_gradient_link_properties[
-                                                  'boundary_link_gradients'][unrepeated_link_entries]))
-            boundary_links = np.concatenate((boundary_links, self.fixed_gradient_link_properties[
-                                            'boundary_link_IDs'][unrepeated_link_entries]))
-            fixed_gradient_nodes = np.concatenate((fixed_gradient_nodes, self.fixed_gradient_node_properties[
-                                                  'boundary_node_IDs'][unrepeated_node_entries]))
-            fixed_gradient_linked_nodes = np.concatenate((fixed_gradient_linked_nodes, self.fixed_gradient_node_properties[
-                                                         'anchor_node_IDs'][unrepeated_node_entries]))
+                self.fixed_gradient_link_properties['boundary_link_IDs'],
+                boundary_links))
+            fixed_gradient_array = np.concatenate(
+                (fixed_gradient_array,
+                 self.fixed_gradient_link_properties['boundary_link_gradients'][unrepeated_link_entries]))
+            boundary_links = np.concatenate(
+                (boundary_links,
+                 self.fixed_gradient_link_properties['boundary_link_IDs'][unrepeated_link_entries]))
+            fixed_gradient_nodes = np.concatenate(
+                (fixed_gradient_nodes,
+                 self.fixed_gradient_node_properties['boundary_node_IDs'][unrepeated_node_entries]))
+            fixed_gradient_linked_nodes = np.concatenate(
+                (fixed_gradient_linked_nodes,
+                 self.fixed_gradient_node_properties['anchor_node_IDs'][unrepeated_node_entries]))
             fixed_gradient_values_to_add = np.concatenate(
-                (fixed_gradient_values_to_add, self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
+                (fixed_gradient_values_to_add,
+                 self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
 
             if np.any(self.node_status[fixed_gradient_nodes] == 3):
                 raise AttributeError(
-                    'Switching a boundary between fixed gradient and looped will result in bad BC handling! Bailing out...')
+                    'Switching a boundary between fixed gradient and looped '
+                    'will result in bad BC handling! Bailing out...')
 
             self.fixed_gradient_node_properties = {}
             self.fixed_gradient_link_properties = {}
@@ -3111,16 +3248,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 'boundary_link_IDs'] = as_id_array(boundary_links)
             # Update the link gradients over whole grid, as if there's values
             # in the grid already, there could be compatibility issues...
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = self.calculate_gradients_at_links(
-                self['node'][gradient_of])[boundary_links]
+            self.fixed_gradient_link_properties['boundary_link_gradients'] = (
+                self.calculate_gradients_at_links(
+                    self['node'][gradient_of])[boundary_links])
 
     def force_boundaries_from_gradients(self, link_IDs, link_gradients,
                                         value='topographic__elevation'):
         """Set values of fixed-gradient boundaries.
 
         Calculates and updates new values at the boundary nodes of a grid, when
-        provided with a list of fixed gradient link IDs, and the fixed values of
-        the gradients on these links.
+        provided with a list of fixed gradient link IDs, and the fixed values
+        of the gradients on these links.
 
         The "value" flag specifies which kind of data (e.g., elevation) the
         gradients refer to.
@@ -3128,11 +3266,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This method follows the convention POSITIVE GRADIENT IS UP.
 
         The routine will automatically test to ensure the provided links are
-        boundary links, and will raise an exception if they aren't. It is clever
-        enough to distinguish for itself if any of the links provided are corner
-        links (i.e., joining an edge node to a corner node). In such cases, the
-        values of the corner nodes are updated *last*, such that the edge nodes
-        they refer to have already been updated.
+        boundary links, and will raise an exception if they aren't. It is
+        clever enough to distinguish for itself if any of the links provided
+        are corner links (i.e., joining an edge node to a corner node). In
+        such cases, the values of the corner nodes are updated *last*, such
+        that the edge nodes they refer to have already been updated.
 
         Examples
         --------
@@ -3142,19 +3280,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.create_node_array_zeros('topographic__elevation')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg['node']['topographic__elevation'] += 2.
-        >>> rmg.force_boundaries_from_gradients(np.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]), np.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
+        >>> rmg.force_boundaries_from_gradients(
+        ...     np.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]),
+        ...     np.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
         >>> rmg['node']['topographic__elevation']
         array([ 1.,  1.,  1.,  1.,  1.,  2.,  2.,  1.,  1.,  1.,  1.,  1.])
-        >>> rmg.force_boundaries_from_gradients(np.array([ 11, 13]), np.array([-2.,-2.]))
+        >>> rmg.force_boundaries_from_gradients(np.array([ 11, 13]),
+        ...     np.array([-2.,-2.]))
         >>> rmg['node']['topographic__elevation']
         array([ 1.,  1.,  1.,  1.,  4.,  2.,  2.,  0.,  1.,  1.,  1.,  1.])
 
         ...and now we demonstrate an exception if an interior link is included:
-        >>> rmg.force_boundaries_from_gradients(np.array([ 12, 13]), np.array([-2.,-2.]))
+
+        >>> rmg.force_boundaries_from_gradients(np.array([ 12, 13]),
+        ...     np.array([-2.,-2.])) # doctest: +NORMALIZE_WHITESPACE
         Traceback (most recent call last):
             ...
-        ValueError: One or more of the supplied links was neither an edge link, nor a link to a corner!
-
+        ValueError: One or more of the supplied links was neither an edge
+                    link, nor a link to a corner!
         """
         # determine the grid corners. This method has to be clever enough to
         # realize when it's been given them!
@@ -3167,27 +3310,32 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         edge_tonode_boundaries = np.logical_and(tonode_boundaries, edge_links)
         edge_fromnode_boundaries = np.logical_and(
             fromnode_boundaries, edge_links)
-        self['node'][value][tonodes[edge_tonode_boundaries]] = self['node'][value][
-            fromnodes[edge_tonode_boundaries]] + link_gradients[edge_tonode_boundaries] * self.dx
-        self['node'][value][fromnodes[edge_fromnode_boundaries]] = self['node'][value][
-            tonodes[edge_fromnode_boundaries]] - link_gradients[edge_fromnode_boundaries] * self.dx
+        self['node'][value][tonodes[edge_tonode_boundaries]] = (
+            self['node'][value][fromnodes[edge_tonode_boundaries]] +
+            link_gradients[edge_tonode_boundaries] * self.dx)
+        self['node'][value][fromnodes[edge_fromnode_boundaries]] = (
+            self['node'][value][tonodes[edge_fromnode_boundaries]] -
+            link_gradients[edge_fromnode_boundaries] * self.dx)
 
         if not np.all(edge_links):
             corner_links = np.logical_not(edge_links)
             tonode_is_corner = np.in1d(tonodes[corner_links], corner_nodes)
             fromnode_is_corner = np.in1d(
                 fromnodes[np.logical_not(edge_links)], corner_nodes)
-            if not np.all(np.logical_xor(tonode_is_corner, fromnode_is_corner)):
+            if not np.all(np.logical_xor(tonode_is_corner,
+                                         fromnode_is_corner)):
                 raise ValueError(
-                    'One or more of the supplied links was neither an edge link, nor a link to a corner!')
-            self['node'][value][(tonodes[corner_links])[tonode_is_corner]] = self['node'][value][(fromnodes[
-                corner_links])[tonode_is_corner]] + (link_gradients[corner_links])[tonode_is_corner] * self.dx
-            self['node'][value][(fromnodes[corner_links])[fromnode_is_corner]] = self['node'][value][(tonodes[
-                corner_links])[fromnode_is_corner]] - (link_gradients[corner_links])[fromnode_is_corner] * self.dx
+                    'One or more of the supplied links was neither an edge '
+                    'link, nor a link to a corner!')
+            self['node'][value][(tonodes[corner_links])[tonode_is_corner]] = (
+                self['node'][value][(fromnodes[corner_links])[tonode_is_corner]] +
+                (link_gradients[corner_links])[tonode_is_corner] * self.dx)
+            self['node'][value][(fromnodes[corner_links])[fromnode_is_corner]] = (
+                self['node'][value][(tonodes[corner_links])[fromnode_is_corner]] -
+                (link_gradients[corner_links])[fromnode_is_corner] * self.dx)
 
-    def set_noflux_boundaries(self, bottom, left, top, right,
-                              bc=None):
-        """*Deprecated*.
+    def set_noflux_boundaries(self, bottom, left, top, right, bc=None):
+        """Set no-flux boundaries.
 
         .. deprecated:: 0.1
                 Use :func:`set_closed_boundaries_at_grid_edges` instead
@@ -3215,11 +3363,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         matter much anyway), the neighbor is arbitrarily chosen as either
         the righthand or lefthand cell.
 
-        GT: I believe this is now obsolete, because we can do no-flux simply by
-        setting closed boundaries (Aug 2013). DEJH added depreciated tag, May 14
+        GT: I believe this is now obsolete, because we can do no-flux simply
+        by setting closed boundaries (Aug 2013). DEJH added depreciated tag,
+        May 14
         """
-
-        if bc == None:
+        if bc is None:
             bc = self.default_bc
 
         # For no-flux boundaries, we need to know which interior
@@ -3272,10 +3420,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             six.print_('tracks_cell: ' + bc.tracks_cell)
 
     def update_boundary_nodes(self):
-        """
+        """Update the boundary nodes.
+
         This method updates all the boundary nodes in the grid field on which
         they are set (i.e., it updates the field
-            rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
+        rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
         It currently works only with fixed value (type 1) and fixed gradient
         (type 2) conditions. Looping must be handled internally to a component,
         and is not dealt with here.
@@ -3286,12 +3435,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # no fixed value boundaries have been set
             pass
         else:
-            assert self.fixed_value_node_properties[
-                'internal_flag'], 'Values were not supplied to the method that set the boundary conditions! You cant update automatically!'
+            assert self.fixed_value_node_properties['internal_flag'], \
+                    'Values were not supplied to the method that set the ' \
+                    'boundary conditions! You cant update automatically!'
             values_val = self.at_node[
                 self.fixed_value_node_properties['fixed_value_of']]
-            values_val[self.fixed_value_node_properties[
-                'boundary_node_IDs']] = self.fixed_value_node_properties['values']
+            values_val[self.fixed_value_node_properties['boundary_node_IDs']] = self.fixed_value_node_properties['values']
 
         try:
             values_grad = self.at_node[
@@ -3303,7 +3452,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             pass
 
     def calculate_gradients_at_links(self, node_values, out=None):
-        """*Deprecated*.
+        """Calculate gradients over links.
 
         .. deprecated:: 0.1
             Use :func:`calculate_gradient_across_cell_faces`
@@ -3314,7 +3463,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @track_this_method
     def calculate_gradients_at_active_links(self, node_values, out=None):
-        """*Deprecated*.
+        """Calculate gradients over active links.
 
         .. deprecated:: 0.1
             Use :func:`calculate_gradient_across_cell_faces`
@@ -3324,8 +3473,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This is nearly identical to the method of the same name in ModelGrid,
         except that it uses self._dx for link length to improve efficiency.
 
-        Note that a negative gradient corresponds to a lower node in the direction
-        of the link.
+        Note that a negative gradient corresponds to a lower node in the
+        direction of the link.
 
         Examples
         --------
@@ -3360,7 +3509,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.divide(diffs, self._dx, out=diffs)
 
     def calculate_gradients_at_d8_active_links(self, node_values, out=None):
-        """*Deprecated*.
+        """Calculate gradients over D8 active links.
 
         .. deprecated:: 0.1
             Use :func:`calculate_gradient_across_cell_faces`
@@ -3368,31 +3517,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
 
         diag_dist = 1.4142 * self._dx
-        straight_link_slopes = (node_values[self.activelink_tonode] -
-                                node_values[self.activelink_fromnode]) / \
-            self._dx
-        diagonal_link_slopes = (node_values[self._diag_activelink_tonode] -
-                                node_values[self._diag_activelink_fromnode]) / \
-            diag_dist
+        straight_link_slopes = (
+            (node_values[self.activelink_tonode] -
+             node_values[self.activelink_fromnode]) / self._dx)
+        diagonal_link_slopes = (
+            (node_values[self._diag_activelink_tonode] -
+             node_values[self._diag_activelink_fromnode]) / diag_dist)
         return np.concatenate((straight_link_slopes, diagonal_link_slopes))
 
-    def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients, max_slope=False, dstr_node_ids=False):
+    def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
+                                            max_slope=False,
+                                            dstr_node_ids=False):
         """Steepest descent over nodes.
 
         Likely to be DEPRECATED in near future, in favor of the component
         flow_routing.route_flow_dn. This component is MUCH faster and more
         efficient than the option provided here.
 
-        Created DEJH Sept 2013. Based on approach of calc_flux_divergence..., below.
-        Takes the elevations across a raster and the active link_gradients between those nodes, and returns the
-        magnitude of the most downward slope from each node, and the direction of that cell. In the case where a node
-        is a local minimum, method returns the lowest upward slope *as a negative slope*, and returns the downslope
+        Created DEJH Sept 2013. Based on approach of calc_flux_divergence...,
+        below. Takes the elevations across a raster and the active
+        link_gradients between those nodes, and returns the magnitude of the
+        most downward slope from each node, and the direction of that cell.
+        In the case where a node is a local minimum, method returns the
+        lowest upward slope *as a negative slope*, and returns the downslope
         node id as -1. i.e., downhill slopes are returned as positive values.
 
-        At the moment, handling when equal gradients are present is poor. Method will currently preferentially route
-        flow according the priority scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in these cases.
+        At the moment, handling when equal gradients are present is poor.
+        Method will currently preferentially route flow according the priority
+        scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in
+        these cases.
         """
-
         if self._DEBUG_TRACK_METHODS:
             six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
 
@@ -3418,8 +3572,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Make a matrix of the links. Need to append to this the gradients *on
         # the diagonals*.
-        node_links = np.vstack((gradients[self.node_active_outlink_matrix[0][:]], gradients[self.node_active_outlink_matrix[
-                               1][:]], -gradients[self.node_active_inlink_matrix[0][:]], -gradients[self.node_active_inlink_matrix[1][:]]))
+        node_links = np.vstack(
+            (gradients[self.node_active_outlink_matrix[0][:]],
+             gradients[self.node_active_outlink_matrix[1][:]],
+             - gradients[self.node_active_inlink_matrix[0][:]],
+             - gradients[self.node_active_inlink_matrix[1][:]]))
 
         # calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(
@@ -3428,11 +3585,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diagonal_nodes[np.where(self.node_status[diagonal_nodes] == 4)] = -1
         # Repeat the -1 indexing trick from above:
         elevs = np.zeros(len(elevs_in) + 1)
-        elevs[-1] = 9999999999999.  # ...as we want the gradients to inhibit flow
+        elevs[-1] = 9999999999999.  # as we want the gradients to inhibit flow
         elevs[:-1] = elevs_in
 
         slopes_diagonal_nodes = (
-            (elevs[diagonal_nodes]) - np.tile(elevs_in, (4, 1))) / (1.41421356 * self.dx)
+            ((elevs[diagonal_nodes]) - np.tile(elevs_in, (4, 1))) /
+            (1.41421356 * self.dx))
+
         # Debug:
         gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         # The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
@@ -3444,8 +3603,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assemble a node index array which corresponds to this gradients array
         # from which to draw the dstr IDs:
         neighbors_ENWS = (self.get_neighbor_list()).T
-        dstr_id_source_array = np.vstack((neighbors_ENWS[1][:], neighbors_ENWS[0][
-                                         :], neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
+        dstr_id_source_array = np.vstack(
+            (neighbors_ENWS[1][:], neighbors_ENWS[0][:],
+             neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
         most_negative_gradient_node_ids = dstr_id_source_array[
             max_slope_indices, range(dstr_id_source_array.shape[1])]
         # But we only want to return an id if the "dstr" node is actually
@@ -3466,9 +3626,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         than just active cells.
 
         Note that we DO compute net unit fluxes at boundary nodes (even though
-        these don't have active cells associated with them, and often don't have
-        cells of any kind, because they are on the perimeter). It's up to the
-        user to decide what to do with these boundary values.
+        these don't have active cells associated with them, and often don't
+        have cells of any kind, because they are on the perimeter). It's up to
+        the user to decide what to do with these boundary values.
 
         Examples
         --------
@@ -3522,11 +3682,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                        'cell ' + id)
             six.print_('q: ' + q[self.faces[id, 0:4]])
 
-        fd = (-(q[self.faces[id, 2]]   # left face (positive=in)
-                + q[self.faces[id, 3]])           # bottom face (positive=in)
-              + q[self.faces[id, 0]]             # right face (positive=out)
-              + q[self.faces[id, 1]]             # top face (positive=out)
-              ) / self._dx
+        fd = (
+            - (q[self.faces[id, 2]] + # left face (positive=in)
+               q[self.faces[id, 3]]) + # bottom face (positive=in)
+            q[self.faces[id, 0]] + # right face (positive=out)
+            q[self.faces[id, 1]] # top face (positive=out)
+        ) / self._dx
+
         return fd
 
     def update_noflux_boundaries(self, u, bc=None):
@@ -3540,7 +3702,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         "boundary_nbrs" array.
         """
 
-        if bc == None:
+        if bc is None:
             bc = self.default_bc
 
         inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
@@ -3569,9 +3731,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0)
         >>> u = rmg.zeros(centering='node')
         >>> u = u + range(0, len(u))
-        >>> u
-        array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
-                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
+        >>> u # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
+               11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         >>> ur = rmg.node_vector_to_raster(u)
         >>> ur
         array([[  0.,   1.,   2.,   3.,   4.],
@@ -3595,9 +3757,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         so that it can be plotted, output, etc.
 
         If the optional argument flip_vertically=True, the function returns an
-        array that has the rows in reverse order, for use in plot commands (such
-        as the image display functions) that put the (0,0) axis at the top left
-        instead of the bottom left.
+        array that has the rows in reverse order, for use in plot commands
+        (such as the image display functions) that put the (0,0) axis at the
+        top left instead of the bottom left.
 
         Examples
         --------
@@ -3647,19 +3809,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> data = rmg.add_zeros('node', 'test_data')
         >>> data[:] = np.arange(12)
         >>> rmg.roll_nodes_ud('test_data', 1)
-        >>> data
-        array([  9.,  10.,  11.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,
-                 8.])
+        >>> data # doctest: +NORMALIZE_WHITESPACE
+        array([ 9.,  10.,  11.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,
+                8.])
         >>> rmg.roll_nodes_ud('test_data', 2)
-        >>> data
-        array([  3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   0.,   1.,
-                 2.])
+        >>> data # doctest: +NORMALIZE_WHITESPACE
+        array([ 3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   0.,   1.,
+                2.])
         >>> rmg.roll_nodes_ud('test_data', 1, interior_only=True)
-        >>> data
-        array([  3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
-                 2.])
+        >>> data # doctest: +NORMALIZE_WHITESPACE
+        array([ 3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
+                2.])
         """
-
         # Get the data
         data = self.at_node[data_name]
 
@@ -3668,10 +3829,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ncols = self.number_of_node_columns
         nrows = self.number_of_node_rows
 
-        # To handle "interior only" option, we use the variable *offset*, which is
-        # zero if shifting everything, and 1 if shifting just the interior -- we
-        # use this to go from column 1 to column N-2 (instead of 0 to N-1) when
-        # interior_only is True.
+        # To handle "interior only" option, we use the variable *offset*,
+        # which is zero if shifting everything, and 1 if shifting just the
+        # interior -- we use this to go from column 1 to column N-2 (instead
+        # of 0 to N-1) when interior_only is True.
         if interior_only:
             offset = 1
             top_ids = top_ids[1:ncols - 1]
@@ -3714,33 +3875,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(4, 5)
-        >>> np.all(mg.get_neighbor_list([-1, 6, 2]) == np.array([[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]]))
+        >>> rmg = RasterModelGrid(4, 5)
+        >>> np.array_equal(rmg.get_neighbor_list([-1, 6, 2]),
+        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
         True
-        >>> mg.get_neighbor_list(7)
+        >>> rmg.get_neighbor_list(7)
         array([ 8, 12,  6,  2])
+        >>> rmg.get_neighbor_list(2, bad_index=-1)
+        array([-1,  7, -1, -1])
+        >>> np.array_equal(rmg.get_neighbor_list(2), [X, 7, X, X])
+        True
 
         ..todo: could use inlink_matrix, outlink_matrix
         """
         bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
+        if len(args) not in (0, 1):
+            raise ValueError('only zero or one arguments accepted')
 
-        if self.neighbor_list_created == False:
-            self.neighbor_node_dict = {}
-            self.neighbor_node_dict[
-                bad_index] = self.create_neighbor_list(bad_index=bad_index)
+        if bad_index not in self._neighbor_node_dict:
+            self._neighbor_node_dict[bad_index] = (
+                self.create_neighbor_list(bad_index=bad_index))
 
-        try:
-            neighbor_nodes = self.neighbor_node_dict[bad_index]
-        except KeyError:
-            neighbor_nodes = self.create_neighbor_list(bad_index=bad_index)
-            self.neighbor_node_dict[bad_index] = neighbor_nodes
+        neighbor_nodes = self._neighbor_node_dict[bad_index]
 
         if len(args) == 0:
             return neighbor_nodes
-        elif len(args) == 1:
-            return neighbor_nodes[args[0], :]
         else:
-            raise ValueError('only zero or one arguments accepted')
+            return neighbor_nodes[args[0], :]
 
     def create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of neighbor node IDs.
@@ -3748,7 +3909,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Creates a list of IDs of neighbor nodes for each node, as a
         2D array. Only record neighbor nodes that are on the other end of an
         *active* link. Nodes attached to *inactive* links or neighbor nodes
-        that would be outside of the grid are given an ID of :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
+        that would be outside of the grid are given an ID of
+        :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
 
         Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
         """
@@ -3758,16 +3920,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # note self.nieghbor_nodes is no longer created... but nobody should be
         # calling it direct anyway.
 
-        neighbor_nodes = sgrid.neighbor_node_array(self.shape,
-                                                   closed_boundary_nodes=self.closed_boundary_nodes,
-                                                   open_boundary_nodes=self.open_boundary_nodes,
-                                                   inactive=bad_index).T
+        neighbor_nodes = sgrid.neighbor_node_array(
+            self.shape, closed_boundary_nodes=self.closed_boundary_nodes,
+            open_boundary_nodes=self.open_boundary_nodes,
+            inactive=bad_index).T
 
         self.neighbor_list_created = True
         return neighbor_nodes
 
     def has_boundary_neighbor(self, ids, method='d8'):
-        """
+        """Check if nodes have neighbors that are boundary nodes.
+
         Checks to see if one of the eight neighbor nodes of node(s) with
         *id* has a boundary node.  Returns True if a node has a boundary node,
         False if all neighbors are interior.
@@ -3788,7 +3951,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-
         ans = has_boundary_neighbor(self, ids, method=method)
 
         if ans.ndim == 0:
@@ -3829,7 +3991,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         try:
             diagonal_nodes = self.diagonal_node_dict[bad_index]
-        except (KeyError):
+        except KeyError:
             diagonal_nodes = self.create_diagonal_list(bad_index=bad_index)
             self.diagonal_node_dict[bad_index] = diagonal_nodes
 
@@ -3848,7 +4010,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodes get -1 for each neighbor. The order of the diagonal nodes is
         [topright, topleft, bottomleft, bottomright].
 
-        .. note:: This is equivalent to the diagonals of all cells,
+        .. note::
+            
+            This is equivalent to the diagonals of all cells,
             and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
             same ID. However, this is the old-style grid structure as
@@ -3858,7 +4022,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             boundary nodes now have neighbors, where they are found at the ends
             of active links.
         """
-
         self.diagonal_list_created = True
         self.diagonal_cells = sgrid.diagonal_node_array(
             self.shape, out_of_bounds=bad_index)
@@ -3879,15 +4042,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Deprecated due to out-of-date terminology.
             Use :func:`is_core` instead.
 
-        .. deprecated:: 0.6
-            Deprecated due to out-of-date terminology.
-            Use :func:`is_core` instead.
-
         Returns an boolean array of truth values for each node ID provided;
         True if the node is an interior node, False otherwise.
         If no IDs are provided, method returns a boolean array for every node.
 
-        (Interior status is typically indicated by a value of 0 in node_status.)
+        (Interior status is typically indicated by a value of 0 in
+        node_status.)
         """
         # NG changed this.
         # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
@@ -3950,7 +4110,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.all(np.equal(self.node_status[ids], CORE_NODE))
 
     def get_boundary_code(self, id):
-        """
+        """Get the status of a node.
+
         .. deprecated:: 0.6
             Use :func:`node_boundary_status` instead.
 
@@ -3960,11 +4121,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self.node_status[id]
 
     def get_face_connecting_cell_pair(self, cell_a, cell_b):
-        """
+        """Get the face that connects two cells.
+
         Returns an array of face indices that *cell_a* and *cell_b* share.
         If the cells do not share any faces, returns an empty array.
         """
-        cell_faces = self.cell_faces([cell_a, cell_b])
+        cell_faces = self.faces_at_cell([cell_a, cell_b])
         return np.intersect1d(cell_faces[0], cell_faces[1],
                               assume_unique=True)
 
@@ -4004,13 +4166,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Nodes 6 and 8 are not connected by a link, so raise an exception.
 
-        >>> rmg.get_link_connecting_node_pair(6, 8) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> rmg.get_link_connecting_node_pair(6, 8)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: disconnected nodes
 
         If *node_a* and *node_b* are the same node, also raise a `ValueError`.
 
-        >>> rmg.get_link_connecting_node_pair(6, 6) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> rmg.get_link_connecting_node_pair(6, 6)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: nodes are the same
         """
@@ -4026,7 +4190,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             raise ValueError('disconnected nodes')
 
     def top_edge_node_ids(self):
-        """Nodes along the top edge.
+        """Get array of nodes along the top edge.
 
         Returns a 1D numpy integer array containing the node ID numbers of the
         nodes along the top (y=ymax) grid edge.
@@ -4041,7 +4205,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return sgrid.top_edge_node_ids(self.shape)
 
     def bottom_edge_node_ids(self):
-        """Nodes along the bottom edge.
+        """Get array of nodes along the bottom edge.
 
         Returns a 1D numpy integer array containing the node ID numbers of the
         nodes along the bottom (y=0) grid edge.
@@ -4056,7 +4220,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return sgrid.bottom_edge_node_ids(self.shape)
 
     def left_edge_node_ids(self):
-        """Nodes along the left edge.
+        """Get array of nodes along the left edge.
 
         Returns a 1D numpy integer array containing the node ID numbers of the
         nodes along the left (x=0) grid edge.
@@ -4071,7 +4235,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return sgrid.left_edge_node_ids(self.shape)
 
     def right_edge_node_ids(self):
-        """Nodes along the right edge.
+        """Get array nodes along the right edge.
 
         Returns a 1D numpy integer array containing the node ID numbers of the
         nodes along the right (x=xmax) grid edge.
@@ -4100,6 +4264,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         expect).
 
         .. note::
+
             The syntax assumes that first row and column are 0,
             so max entry for a mg with 4 rows and 5 cols is row=3, col=4
 
@@ -4129,7 +4294,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return as_id_array(ids)
 
     def _setup_face_widths(self):
-        """
+        """Set up array of face widths.
+
         Produces an array of length nfaces containing the face width (dx).
         """
         self._face_widths = np.empty(self.number_of_faces)
@@ -4137,11 +4303,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self._face_widths
 
     def _unit_test(self):
-        """
-        This is just scratch space for testing while developing. More proper
-        tests are in the doctests for each function, and in
-        test_raster_model_grid.py.
-        """
+        """Stub for adding unit tests to RasterModelGrid."""
         pass
 
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
@@ -4177,7 +4339,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
         indBool = (n != BAD_INDEX_VALUE)
@@ -4192,7 +4354,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             a.append(aspect)
             del ns
         # return aspect alone
@@ -4232,7 +4394,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
         indBool = (n != BAD_INDEX_VALUE)
@@ -4247,14 +4409,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x = self.node_x[ns]
             y = self.node_y[ns]
             z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
+
+            slope, _ = rfuncs.calculate_slope_aspect_bfp(x, y, z)
             s.append(slope)
             del ns
         # return slope alone
         return s
 
-    def calculate_slope_aspect_at_nodes_Burrough(self, ids=None, vals='Elevation'):
-        """
+    def calculate_slope_aspect_at_nodes_burrough(self, ids=None,
+                                                 vals='Elevation'):
+        """Calculate topographic slope.
+
         Calculates the local topographic slope (i.e., the down-dip slope, and
         presented as positive), and the aspect (dip direction in degrees
         clockwise from north), at the given nodes, *ids*. All *ids* must be of
@@ -4266,20 +4431,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cells.
 
         *vals* is either the name of an existing grid field from which to draw
-        topographic data, or an array of values to use. If an array of values is
-        passed, it must be nnodes long.
-        If *vals* is not provided, this method will default to trying to use the
-        field 'Elevation'.
+        topographic data, or an array of values to use. If an array of values
+        is passed, it must be nnodes long.
+        If *vals* is not provided, this method will default to trying to use
+        the field 'Elevation'.
 
-        Returns:
-            s, a len(ids) array of slopes at each node provided.
-            a, a len(ids) array of aspects at each node provided.
+        Returns
+        -------
+        (slope, aspect) : tuple of float
+            *slope*, a len(ids) array of slopes at each node provided.
+            *aspect*, a len(ids) array of aspects at each node provided.
         """
-        if ids == None:
+        if ids is None:
             ids = self.node_at_cell
-        if type(ids) != np.ndarray:
+        if not isinstance(ids, np.ndarray):
             ids = np.array([ids])
-        if type(vals) == str:
+        if isinstance(vals, str):
             vals = self.at_node[vals]
         else:
             if len(vals) != self.number_of_nodes:
@@ -4287,220 +4454,49 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
-        neighbors[:, ] = self.get_neighbor_list(
-            ids)  # [right, top, left, bottom]
-        diagonals[:, ] = self.get_diagonal_list(ids)
+        # [right, top, left, bottom]
+        neighbors[:, ] = self.get_neighbor_list(ids)
         #[topright, topleft, bottomleft, bottomright]
+        diagonals[:, ] = self.get_diagonal_list(ids)
 
-        f = vals[neighbors[:, 0]]
-        b = vals[neighbors[:, 1]]
-        d = vals[neighbors[:, 2]]
-        h = vals[neighbors[:, 3]]
-        c = vals[diagonals[:, 0]]
-        a = vals[diagonals[:, 1]]
-        g = vals[diagonals[:, 2]]
-        i = vals[diagonals[:, 3]]
+        right = vals[neighbors[:, 0]]
+        top = vals[neighbors[:, 1]]
+        left = vals[neighbors[:, 2]]
+        bottom = vals[neighbors[:, 3]]
+        top_right = vals[diagonals[:, 0]]
+        top_left = vals[diagonals[:, 1]]
+        bottom_left = vals[diagonals[:, 2]]
+        bottom_right = vals[diagonals[:, 3]]
 
-        dZ_dX = ((c + 2 * f + i) - (a + 2 * d + g)) / (8. * self._dx)
-        dZ_dY = ((g + 2 * h + i) - (a + 2 * b + c)) / (8. * self._dx)
+        dz_dx = ((top_right + 2 * right + bottom_right) -
+                 (top_left + 2 * left + bottom_left)) / (8. * self._dx)
+        dz_dy = ((bottom_left + 2 * bottom + bottom_right) -
+                 (top_left + 2 * top + top_right)) / (8. * self._dx)
+
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
-        slope = np.arctan(np.sqrt(dZ_dX**2 + dZ_dY**2))
-        aspect = np.arctan2(dZ_dY, -dZ_dX)
+        slope = np.arctan(np.sqrt(dz_dx ** 2 + dz_dy ** 2))
+        aspect = np.arctan2(dz_dy, - dz_dx)
         aspect = np.pi * .5 - aspect
         aspect[aspect < 0.] = aspect[aspect < 0.] + 2. * np.pi
         aspect[slope == 0.] = -1.
+
         return slope, aspect
 
-    def calculate_slope_aspect_at_nodes_horn(self, ids=None, vals='topographic__elevation'):
-        r"""
-        .. note::
-
-            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-            elevation profile. Please check slope_aspect_routines_comparison.py
-            under landlab\examples before using this.
-            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
-                                                        ~ SN 25Sep14
-
-        Calculates the local topographic slope (i.e., the down-dip slope, and
-        presented as positive), and the aspect (dip direction in degrees
-        clockwise from north), at the given nodes, *ids*. All *ids* must be of
-        core nodes.
-        This method uses the Horn 1981 algorithm, the one employed by many GIS
-        packages. It should be significantly faster than alternative slope
-        methods.
-
-        If *ids* is not provided, the slope will be returned for all core
-        nodes.
-
-        *vals* is either the name of an existing grid field from which to draw
-        topographic data, or an array of values to use. If an array of values is
-        passed, it must be nnodes long.
-        If *vals* is not provided, this method will default to trying to use the
-        field "topographic__elevation".
-
-        Returns:
-            s, a len(ids) array of slopes at each node provided.
-            a, a len(ids) array of aspects at each node provided.
-        """
-
-        if ids == None:
-            ids = self.core_nodes
-        if type(vals) == str:
-            vals = self.at_node[vals]
-        else:
-            if not (len(vals) == self.number_of_nodes):
-                raise IndexError('*vals* was not of a compatible length!')
-
-        neighbors = self.get_neighbor_list(ids)  # [right, top, left, bottom]
-        # [topright, topleft, bottomleft, bottomright]
-        diagonals = self.get_diagonal_list(ids)
-        input_array = np.empty((len(ids), 9), dtype=int)
-        input_array[:, 0] = ids
-        input_array[:, 1:5] = neighbors
-        input_array[:, 5:] = diagonals
-
-        def one_line_slopes(input_array, grid, vals):
-            node = input_array[0]
-            diagonals = input_array[5:]
-            neighbors = input_array[1:5]
-            if not grid.node_boundary_status[node] == 0:
-                raise IndexError(
-                    'One or more of the provided nodes was closed!')
-            try:
-                S_we = ((vals[diagonals[1]] + 2. * vals[neighbors[2]] + vals[diagonals[2]]) - (
-                    vals[diagonals[0]] + 2. * vals[neighbors[0]] + vals[diagonals[3]])) / (8. * grid.dx)
-                S_sn = ((vals[diagonals[2]] + 2. * vals[neighbors[3]] + vals[diagonals[3]]) - (
-                    vals[diagonals[1]] + 2. * vals[neighbors[:, 1]] + vals[diagonals[0]])) / (8. * grid.dx)
-                return S_we, S_sn
-            except IndexError:
-                C = vals[node]
-                weighting_verticals = 4.
-                weighting_horizontals = 4.
-                try:
-                    vertical_grad = (vals[neighbors[3]] -
-                                     vals[neighbors[1]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        vertical_grad = (C - vals[neighbors[1]]) / grid.dx
-                    except IndexError:
-                        try:
-                            vertical_grad = (vals[neighbors[3]] - C) / grid.dx
-                        except IndexError:
-                            vertical_grad = 0.
-                            weighting_verticals -= 2.
-                try:
-                    horizontal_grad = (
-                        vals[neighbors[2]] - vals[neighbors[0]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        horizontal_grad = (C - vals[neighbors[0]]) / grid.dx
-                    except IndexError:
-                        try:
-                            horizontal_grad = (
-                                vals[neighbors[2]] - C) / grid.dx
-                        except IndexError:
-                            horizontal_grad = 0.
-                            weighting_horizontals -= 2.
-                try:
-                    left_grad = (vals[diagonals[2]] -
-                                 vals[diagonals[1]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        C = vals[neighbors[2]]
-                    except:
-                        left_grad = 0.
-                        weighting_verticals -= 1.
-                    else:
-                        try:
-                            left_grad = (C - vals[diagonals[1]]) / grid.dx
-                        except IndexError:
-                            left_grad = (vals[diagonals[2]] - C) / grid.dx
-                try:
-                    right_grad = (vals[diagonals[3]] -
-                                  vals[diagonals[0]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        C = vals[neighbors[0]]
-                    except:
-                        right_grad = 0.
-                        weighting_verticals -= 1.
-                    else:
-                        try:
-                            right_grad = (C - vals[diagonals[0]]) / grid.dx
-                        except IndexError:
-                            right_grad = (vals[diagonals[3]] - C) / grid.dx
-                try:
-                    top_grad = (vals[diagonals[1]] -
-                                vals[diagonals[0]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        C = vals[neighbors[1]]
-                    except:
-                        top_grad = 0.
-                        weighting_horizontals -= 1.
-                    else:
-                        try:
-                            top_grad = (C - vals[diagonals[0]]) / grid.dx
-                        except IndexError:
-                            top_grad = (vals[diagonals[1]] - C) / grid.dx
-                try:
-                    bottom_grad = (vals[diagonals[2]] -
-                                   vals[diagonals[3]]) / (2. * grid.dx)
-                except IndexError:
-                    try:
-                        C = vals[neighbors[3]]
-                    except:
-                        bottom_grad = 0.
-                        weighting_horizontals -= 1.
-                    else:
-                        try:
-                            bottom_grad = (C - vals[diagonals[3]]) / grid.dx
-                        except IndexError:
-                            bottom_grad = (vals[diagonals[2]] - C) / grid.dx
-
-                S_we = (top_grad + 2. * horizontal_grad +
-                        bottom_grad) / weighting_horizontals
-                S_sn = (left_grad + 2. * vertical_grad +
-                        right_grad) / weighting_verticals
-                return S_we, S_sn
-
-        #S_we = ((vals[diagonals[:,1]]+2.*vals[neighbors[:,2]]+vals[diagonals[:,2]])-(vals[diagonals[:,0]]+2.*vals[neighbors[:,0]]+vals[diagonals[:,3]]))/(8.*self.dx)
-        #S_sn = ((vals[diagonals[:,2]]+2.*vals[neighbors[:,3]]+vals[diagonals[:,3]])-(vals[diagonals[:,1]]+2.*vals[neighbors[:,1]]+vals[diagonals[:,0]]))/(8.*self.dy)
-
-        slopes_array = np.apply_along_axis(
-            one_line_slopes, 1, input_array, self, vals)
-        S_we = slopes_array[:, 0]
-        S_sn = slopes_array[:, 1]
-
-        s = np.sqrt(S_we * S_we + S_sn * S_sn)
-        a = np.empty_like(s)
-        simple_cases = S_we != 0.
-        complex_cases = np.logical_not(simple_cases)
-        a[complex_cases][S_sn[complex_cases] < 0.] = np.pi
-        a[complex_cases][S_sn[complex_cases] >= 0.] = 0.
-        # +ve is CCW rotation from x axis
-        angle_to_xaxis = np.arctan(S_sn[simple_cases] / S_we[simple_cases])
-        a[simple_cases] = ((1. - np.sign(S_we[simple_cases]))
-                           * 0.5) * np.pi + (0.5 * np.pi - angle_to_xaxis)
-
-        return s.ravel(), a.ravel()
-
-    def calculate_slope_aspect_at_nodes_bestFitPlane(self, id, val):
-        r"""
-
-        .. note::
-
-            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-            elevation profile. Please check slope_aspect_routines_comparison.py
-            under landlab\examples before using this.
-            Suggested alternative: calculate_slope_aspect_at_nodes_Burrough
-                                                                ~ SN 25Sep14
-
+    def calculate_slope_aspect_at_nodes_best_fit_plane(self, nodes, val):
+        r"""Calculate slope aspect.
 
         Slope aspect of best-fit plane at nodes.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
+
+        .. note::
+
+            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
+            elevation profile. Please check slope_aspect_routines_comparison.py
+            under landlab\examples before using this.
+            Suggested alternative: calculate_slope_aspect_at_nodes_burrough
+                                                                ~ SN 25Sep14
 
         Calculates both the slope and aspect at each node based on the
         elevation of the node and its neighbors using a best fit plane
@@ -4508,7 +4504,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        id : array-like
+        nodes : array-like
             ID of nodes at which to calculate the aspect
         val : ndarray
             Elevation at all nodes
@@ -4523,36 +4519,35 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.get_neighbor_list(id)
-        a = []
-        s = []
+        node_neighbors = self.get_neighbor_list(nodes)
+        aspects = []
+        slopes = []
 
         # for each node in id make a list with the node id and the ids of
         # its neighbors.
 
         # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_BFP to calculate the
+        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
         # slope and aspect.
 
-        indBool = (n != BAD_INDEX_VALUE)
+        indBool = (node_neighbors != BAD_INDEX_VALUE)
 
-        for i in range(len(id)):
+        for id_ in range(len(nodes)):
             # make a list of the neighbor nodes and
             # check that none of the nodes are bad
+            neighbors = list(node_neighbors[0, indBool[0]])
+            neighbors.append(nodes[id_])
 
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
+            node_x = self.node_x[neighbors]
+            node_y = self.node_y[neighbors]
+            node_z = val[neighbors]
+            slope, aspect = rfuncs.calculate_slope_aspect_bfp(node_x, node_y,
+                                                              node_z)
+            aspects.append(aspect)
+            slopes.append(slope)
 
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_BFP(x, y, z)
-            a.append(aspect)
-            s.append(slope)
-
-            del ns
-        # return slope and aspect
-        return s, a
+            del neighbors
+        return slopes, aspects
 
     def save(self, path, names=None, format=None):
         """Save a grid and fields.
@@ -4597,18 +4592,44 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If *cell ids* are not given, it returns a 2D array of size
         ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
+
+        Parameters
+        ----------
+        cell_ids : array_like of int, optional
+            Cells to get neighbors for.
+
+        Returns
+        -------
+        ndarray
+            The eight neighbors of the cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> neighbors = grid.get_looped_cell_neighbor_list()
+        >>> neighbors[1]
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> neighbors[5]
+        array([3, 0, 2, 1, 4, 1, 2, 0])
+
+        >>> grid.get_looped_cell_neighbor_list(1)
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> grid.get_looped_cell_neighbor_list((1, 5))
+        array([[2, 5, 4, 3, 0, 3, 4, 5],
+               [3, 0, 2, 1, 4, 1, 2, 0]])
         """
-        if self.looped_cell_neighbor_list_created:
+        if self._looped_cell_neighbor_list is not None:
             if len(args) == 0:
-                return self.looped_cell_neighbor_list
+                return self._looped_cell_neighbor_list
             elif len(args) == 1:
-                return self.looped_cell_neighbor_list[args[0], :]
+                return self._looped_cell_neighbor_list[args[0], :]
             else:
                 raise ValueError('only zero or one arguments accepted')
         else:
-            self.looped_cell_neighbor_list =                                 \
+            self._looped_cell_neighbor_list = \
                 self.create_looped_cell_neighbor_list()
-            return(self.get_looped_cell_neighbor_list(*args))
+            return self.get_looped_cell_neighbor_list(*args)
 
     def create_looped_cell_neighbor_list(self):
         """Create a list of looped immediate cell neighbors (8 adjacent cells).
@@ -4616,15 +4637,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Creates a list of looped immediate cell neighbors (*cell ids*) for each
         cell as a 2D array of size ( self.number_of_cells, 8 ).
         Order or neighbors is [ E, NE, N, NW, W, SW, S, SE ]
-        """
 
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> neighbors = grid.create_looped_cell_neighbor_list()
+        >>> neighbors[1]
+        array([2, 5, 4, 3, 0, 3, 4, 5])
+        >>> neighbors[5]
+        array([3, 0, 2, 1, 4, 1, 2, 0])
+        """
         # CAUTION: Some terminology concerning cells in this module
         # is asynchronous to general understanding. This is intentionally
         # left as is until further discussion among dev group.
         # Any such instances are marked with (*TC - Terminoly Caution)
-        r, c = self.cell_grid_shape
-        interior_cells = sgrid.interior_nodes(self.cell_grid_shape)   # *TC
-        corner_cells = self.corner_cells                              # *TC
+        nrows, ncols = self.cell_grid_shape
+        interior_cells = sgrid.interior_nodes(self.cell_grid_shape)  # *TC
+        corner_cells = self.corner_cells  # *TC
         bottom_edge_cells = [x for x in sgrid.bottom_edge_node_ids(
             self.cell_grid_shape) if x not in corner_cells]
         # *TC
@@ -4643,42 +4673,57 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # order = [E,NE,N,NW,W,SW,S,SE]
         for cell in range(0, self.number_of_cells):
             if cell in interior_cells:
-                neighbor_ = [cell + 1, cell + 1 + c, cell + c, cell + c - 1, cell - 1,
-                             cell - c - 1, cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell + 1 + ncols, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols, cell - ncols + 1]
             elif cell in bottom_edge_cells:
-                neighbor_ = [cell + 1, cell + 1 + c, cell + c, cell + c - 1, cell - 1,
-                             cell + (r - 1) * c - 1, cell + (r - 1) * c, cell + (r - 1) * c + 1]
+                neighbor_ = [
+                    cell + 1, cell + 1 + ncols, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell + (nrows - 1) * ncols - 1,
+                    cell + (nrows - 1) * ncols, cell + (nrows - 1) * ncols + 1]
             elif cell in top_edge_cells:
-                neighbor_ = [cell + 1, cell - (r - 1) * c + 1, cell - (r - 1) * c,
-                             cell - (r - 1) * c - 1, cell - 1, cell - c - 1,
-                             cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell - (nrows - 1) * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 1) * ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols, cell - ncols + 1]
             elif cell in right_edge_cells:
-                neighbor_ = [cell - c + 1, cell + 1, cell + c, cell + c - 1, cell - 1,
-                             cell - c - 1, cell - c, cell - 2 * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell + 1, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols,
+                    cell - 2 * ncols + 1]
             elif cell in left_edge_cells:
-                neighbor_ = [cell + 1, cell + c + 1, cell + c, cell + 2 * c - 1, cell + c - 1,
-                             cell - 1, cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell + ncols + 1, cell + ncols,
+                    cell + 2 * ncols - 1, cell + ncols - 1, cell - 1,
+                    cell - ncols, cell - ncols + 1]
             elif cell == corner_cells[0]:  # SW corner
-                neighbor_ = [cell + 1, cell + c + 1, cell + c, cell + 2 * c - 1, cell + c - 1,
-                             cell + r * c - 1, cell + (r - 1) * c, cell + (r - 1) * c + 1]
+                neighbor_ = [
+                    cell + 1, cell + ncols + 1, cell + ncols,
+                    cell + 2 * ncols - 1, cell + ncols - 1,
+                    cell + nrows * ncols - 1, cell + (nrows - 1) * ncols,
+                    cell + (nrows - 1) * ncols + 1]
             elif cell == corner_cells[1]:  # SE corner
-                neighbor_ = [cell - c + 1, cell + 1, cell + c, cell + c - 1, cell - 1,
-                             cell + (r - 1) * c - 1, cell + (r - 1) * c, cell + (r - 2) * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell + 1, cell + ncols, cell + ncols - 1,
+                    cell - 1, cell + (nrows - 1) * ncols - 1,
+                    cell + (nrows - 1) * ncols, cell + (nrows - 2) * ncols + 1]
             elif cell == corner_cells[2]:  # NW corner
-                neighbor_ = [cell + 1, cell - (r - 1) * c + 1, cell - (r - 1) * c,
-                             cell - (r - 2) * c - 1, cell + c - 1, cell - 1,
-                             cell - c, cell - c + 1]
+                neighbor_ = [
+                    cell + 1, cell - (nrows - 1) * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 2) * ncols - 1,
+                    cell + ncols - 1, cell - 1, cell - ncols, cell - ncols + 1]
             elif cell == corner_cells[3]:  # NE corner
-                neighbor_ = [cell - c + 1, cell - r * c + 1, cell - (r - 1) * c, cell - (r - 1) * c - 1,
-                             cell - 1, cell - c - 1, cell - c, cell - 2 * c + 1]
+                neighbor_ = [
+                    cell - ncols + 1, cell - nrows * ncols + 1,
+                    cell - (nrows - 1) * ncols, cell - (nrows - 1) * ncols - 1,
+                    cell - 1, cell - ncols - 1, cell - ncols,
+                    cell - 2 * ncols + 1]
             looped_cell_neighbors[cell] = neighbor_
 
-        self.looped_cell_neighbor_list_created = True
         return looped_cell_neighbors
 
     def get_second_ring_looped_cell_neighbor_list(self, *args):
-        """
-        Get list of second ring looped neighbor cell IDs (all 16 neighbors).
+        """Get list of second ring looped neighbor cell IDs (all 16 neighbors).
 
         Returns lists of looped second ring neighbor cell IDs of
         given *cell ids*. If *cell ids* are not given, it returns
@@ -4695,11 +4740,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self.second_ring_looped_cell_neighbor_list =                                 \
                 self.create_second_ring_looped_cell_neighbor_list()
-            return(self.get_second_ring_looped_cell_neighbor_list(*args))
+            return self.get_second_ring_looped_cell_neighbor_list(*args)
 
     def create_second_ring_looped_cell_neighbor_list(self):
-        """
-        Creates list of looped second ring cell neighbors (16 cells).
+        """Create list of looped second ring cell neighbors (16 cells).
 
         Creates a list of looped immediate cell neighbors for each cell as a
         2D array of size ( self.number_of_cells, 16 ).
@@ -4720,31 +4764,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.looped_second_ring_cell_neighbor_list_created = True
         return second_ring
 
-    def set_fixed_link_boundaries_at_grid_edges(self, bottom_is_fixed,
-                                                left_is_fixed,
-                                                top_is_fixed,
-                                                right_is_fixed, link_value=None,
-                                                node_value=None,
-                                                fixed_node_value_of='topographic__elevation',
-                                                fixed_link_value_of='topographic__slope'):
+    def set_fixed_link_boundaries_at_grid_edges(
+            self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
+            link_value=None, node_value=None,
+            fixed_node_value_of='topographic__elevation',
+            fixed_link_value_of='topographic__slope'):
         """Create fixed link boundaries at the grid edges.
 
         Sets the status of links along the specified side(s) of a raster
         grid--- bottom vertical links, right horizontal, top vertical links,
         and/or left horizontal links ---to FIXED_LINK.
 
-        By definition, fixed links exist between fixed gradient nodes (node_status==2)
-        and core nodes (node_status==0). Because the outer ring of nodes are
-        fixed gradient (node_status==2), the links between them are inactive
-        (link_status==4) and are not set using this function (the inactive links
-        are the top and bottom horizontal edge links, and left and right edge
-        vertical edge links.)
+        By definition, fixed links exist between fixed gradient nodes
+        (node_status==2) and core nodes (node_status==0). Because the outer
+        ring of nodes are fixed gradient (node_status==2), the links between
+        them are inactive (link_status==4) and are not set using this
+        function (the inactive links are the top and bottom horizontal edge
+        links, and left and right edge vertical edge links.)
 
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
 
-        *value* controls what values are held constant at these nodes. It can be
-        either a float, an array of length number_of_fixed_nodes or
+        *value* controls what values are held constant at these nodes. It can
+        be either a float, an array of length number_of_fixed_nodes or
         number_of_nodes (total), or left blank. If left blank, the values will
         be set from the those already in the grid fields, according to
         'value_of'.
@@ -4754,15 +4796,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         from the field values ***at the time you call this method***. If no
         values are present in the field, the module will complain but accept
         this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g., ``RasterModelGrid.update_boundary_nodes()``,
-        will raise exceptions if you try).
+        conditions (and such methods, e.g.,
+        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
+        if you try).
 
         The following example sets the bottom and right link boundaries as
         fixed-value in a four-row by five-column grid that initially has all
         boundaries closed (i.e., flagged as link_status=2)
-
-        ## THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
-        ## IF NOT ALREADY SET.
 
         Parameters
         ----------
@@ -4779,30 +4819,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         value_of : string.
             The name of the grid field containing the values of interest.
 
-        Example
-        ----------
+        Examples
+        --------
 
         The following grid is used in the example::
 
-          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
-          ^       ^       ^       ^       ^       ^       ^       ^       ^
-          I       X       X       X       X       X       X       X       I
-          |       |       |       |       |       |       |       |       |
-          *--X--->o       o       o       o       o       o       o--X--->*
-          ^       ^       ^       ^       ^       ^       ^       ^       ^
-          I       |       |       |       |       |       |       |       I
-          |       |       |       |       |       |       |       |       |
-          *--X--->o       o       o       o       o       o       o--X--->*
-          ^       ^       ^       ^       ^       ^       ^       ^       ^
-          I       X       X       X       X       X       X       X       I
-          |       |       |       |       |       |       |       |       |
-          *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+            *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
+            ^       ^       ^       ^       ^       ^       ^       ^       ^
+            I       X       X       X       X       X       X       X       I
+            |       |       |       |       |       |       |       |       |
+            *--X--->o       o       o       o       o       o       o--X--->*
+            ^       ^       ^       ^       ^       ^       ^       ^       ^
+            I       |       |       |       |       |       |       |       I
+            |       |       |       |       |       |       |       |       |
+            *--X--->o       o       o       o       o       o       o--X--->*
+            ^       ^       ^       ^       ^       ^       ^       ^       ^
+            I       X       X       X       X       X       X       X       I
+            |       |       |       |       |       |       |       |       |
+            *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
 
         .. note::
 
           Links set to :any:`ACTIVE_LINK` are not indicated in this diagram.
 
-        ``*`` indicates the nodes that are set to :any:`FIXED_GRADIENT BOUNDARY`
+        ``*`` indicates the nodes that are set to
+        :any:`FIXED_GRADIENT BOUNDARY`
 
         ``o`` indicates the nodes that are set to :any:`CORE_NODE`
 
@@ -4818,20 +4859,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg['node']['topographic__elevation'] = z
         >>> rmg['link']['topographic__slope'] = s
         >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.node_status
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0,
-               0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
-        >>> rmg.link_status
-        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2,
-               2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
-               0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
+               0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2,
+               2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0,
+               2, 2, 0, 0, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
         >>> rmg.fixed_link_properties['fixed_gradient_of']
         'topographic__slope'
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
         'topographic__elevation'
-
         """
-
+        # THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
+        # IF NOT ALREADY SET.
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_fixed_link_boundaries_at_grid_edges')
 
@@ -4843,9 +4884,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Based on the inputs, we then assign boundary status. Starting
         # from the bottom edge (South edge) we look to see if the boolean input
-        # is True or False. If true, we find the appropriate links and nodes and
-        # set them to the boundary condition of FIXED_GRADIENT_BOUNDARY for nodes
-        # and FIXED_LINK for links.
+        # is True or False. If true, we find the appropriate links and nodes
+        # and set them to the boundary condition of FIXED_GRADIENT_BOUNDARY
+        # for nodes and FIXED_LINK for links.
         if bottom_is_fixed:
 
             # Finding the link and node IDs along the bottom edge of the raster
@@ -4853,8 +4894,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             bottom_edge = links.bottom_edge_vertical_ids(self.shape)
             bottom_nodes = self.bottom_edge_node_ids()
 
-            # Set the node and link boundary statuses to FIXED_GRADIENT_BOUNDARY
-            # and FIXED_LINK respectively.
+            # Set the node and link boundary statuses to
+            # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
             self.node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
             self.link_status[bottom_edge] = FIXED_LINK
 
@@ -4915,21 +4956,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Make sure the IDs are the correct type (Int, not Float)
         fixed_links = fixed_links.astype(int)
 
-        # Make sure that all fixed links have a core neighbor AND a fixed_gradient
-        # node neighbor
-        try:
-            assert np.all(((fromnode_status[fixed_links] == CORE_NODE) & ~
-                           (tonode_status[fixed_links] == FIXED_GRADIENT_BOUNDARY)) |
-                          ((tonode_status[fixed_links] == CORE_NODE) & ~
-                              (fromnode_status[fixed_links] == FIXED_GRADIENT_BOUNDARY)))
-        except AssertionError:
+        # Make sure that all fixed links have a core neighbor AND a
+        # fixed_gradient node neighbor
+        if not np.all(((fromnode_status[fixed_links] == CORE_NODE) & ~
+                       (tonode_status[fixed_links] == FIXED_GRADIENT_BOUNDARY)) |
+                      ((tonode_status[fixed_links] == CORE_NODE) & ~
+                       (fromnode_status[fixed_links] ==
+                        FIXED_GRADIENT_BOUNDARY))):
             # If there are links that DON'T follow the correct convention, it
             # is likely there is a FIXED_LINK between two
             # FIXED_GRADIENT_BOUNDARY_nodes
 
             # Finding inactive links between two FIXED_GRADIENT_BOUNDARY nodes
-            inactive_links = np.where((fromnode_status == FIXED_GRADIENT_BOUNDARY) & (
-                tonode_status == FIXED_GRADIENT_BOUNDARY))
+            inactive_links = np.where(
+                (fromnode_status == FIXED_GRADIENT_BOUNDARY) &
+                (tonode_status == FIXED_GRADIENT_BOUNDARY))
 
             # ... and setting their status to INACTIVE_LINK
             self.link_status[inactive_links] = INACTIVE_LINK
@@ -4950,10 +4991,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # For links, the default is topographic slope ('topographic__slope')
         # First, see if there is a scalar value...
-        if link_value == None:
+        if link_value is None:
 
-            # if not, we assign the link values from the field of 'topographic_slope'.
-            # If it does not exists, an error will be kicked out.
+            # if not, we assign the link values from the field of
+            # 'topographic_slope'. If it does not exists, an error will be
+            # kicked out.
             assigned_link_values = self['link'][
                 fixed_link_value_of][fixed_links]
 
@@ -4963,11 +5005,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             assigned_link_values = np.ones(fixed_links.size) * link_value
 
         # For nodes, the default value is 'topographic__elevation'.
-        if node_value == None:
+        if node_value is None:
 
-            # If no scalar is found, the field values for 'topographic__elevation'
-            # are used. If this field does not exist, an error will be
-            # returned.
+            # If no scalar is found, the field values for
+            # 'topographic__elevation' are used. If this field does not
+            # exist, an error will be returned.
             assigned_node_values = self['node'][
                 fixed_node_value_of][fixed_nodes]
         else:
@@ -5023,7 +5065,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
 def _is_closed_boundary(boundary_string):
-    """
+    """Check if boundary string indicates a closed boundary.
+
     Helper function, probably depreciated due to changes in BC handling
     procedures (DEJH, May 14).
     """
@@ -5031,6 +5074,18 @@ def _is_closed_boundary(boundary_string):
 
 
 def _guess_format_from_name(path):
+    """Get file format by name.
+
+    Parameters
+    ----------
+    path : str
+        Path to file.
+
+    Returns
+    -------
+    str
+        File format as a string.
+    """
     import os
 
     fname = os.path.basename(path)
@@ -5044,6 +5099,20 @@ def _guess_format_from_name(path):
 
 
 def _add_format_extension(path, format):
+    """Add format extension to a file name.
+
+    Parameters
+    ----------
+    path : str
+        File name.
+    format : str
+        File format.
+
+    Returns
+    -------
+    str
+        File name with the file-format extension added.
+    """
     import os
 
     (base, ext) = os.path.splitext(path)
@@ -5055,7 +5124,8 @@ def _add_format_extension(path, format):
 
 
 def from_dict(param_dict):
-    """
+    """Create a RasterModelGrid from a dict-like object.
+
     Create a RasterModelGrid from the dictionary-like object, *param_dict*.
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing is given, use it as the
@@ -5065,30 +5135,29 @@ def from_dict(param_dict):
     try:
         nrows = int(param_dict['NUM_ROWS'])
         ncols = int(param_dict['NUM_COLS'])
-        dx = float(param_dict.get('GRID_SPACING', 1.))
+        spacing = float(param_dict.get('GRID_SPACING', 1.))
     except KeyError:
         raise
     except ValueError:
         raise
     else:
-        mg = RasterModelGrid(nrows, ncols, dx)
+        grid = RasterModelGrid(nrows, ncols, spacing)
 
     # Set boundaries
     left_boundary_type = param_dict.get('LEFT_BOUNDARY', 'open')
     right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
     top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
     bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
-    mg.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
-                               _is_closed_boundary(right_boundary_type),
-                               _is_closed_boundary(top_boundary_type),
-                               _is_closed_boundary(left_boundary_type))
+    grid.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
+                                 _is_closed_boundary(right_boundary_type),
+                                 _is_closed_boundary(top_boundary_type),
+                                 _is_closed_boundary(left_boundary_type))
 
     # Return the created and initialized grid
-    return mg
-
-
-from ..core.utils import add_module_functions_to_class
+    return grid
 
 
 add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
                               pattern='map_*')
+add_module_functions_to_class(RasterModelGrid, 'raster_aspect.py',
+                              pattern='calculate_slope_aspect*')

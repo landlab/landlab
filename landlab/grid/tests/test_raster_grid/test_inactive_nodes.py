@@ -24,7 +24,7 @@ def test_inactive_boundaries():
         np.array([[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
                   [-1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1]]))
     assert_array_equal(
-        rmg.active_node_links(),
+        rmg.active_links_at_node(),
         np.array([[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
                   [-1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1],
                   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -33,8 +33,8 @@ def test_inactive_boundaries():
 
 def test_inactive_interiors():
     rmg = RasterModelGrid(4, 5, 1.)
-    rmg.set_inactive_nodes([6, 12])
-    assert_array_equal(rmg.active_node_links(),
+    rmg.set_closed_nodes([6, 12])
+    assert_array_equal(rmg.active_links_at_node(),
                        np.array([[-1, -1, -1, -1, -1,
                                   -1, -1,  0,  1, -1,
                                   -1, -1, -1,  2, -1,

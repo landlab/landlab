@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Read data from an ESRI ASCII file into a RasterModelGrid
-"""
+"""Read data from an ESRI ASCII file into a RasterModelGrid."""
 
 import os
 import re
@@ -29,17 +27,15 @@ _HEADER_VALUE_TESTS = {
 
 
 class Error(Exception):
-    """
-    Base class for errors in this module.
-    """
+
+    """Base class for errors in this module."""
+
     pass
 
 
 class BadHeaderLineError(Error):
-    """
-    Raise this error if a bad header is line encounter in a ESRI ASCII
-    file.
-    """
+
+    """Raise this error for a bad header is line."""
 
     def __init__(self, line):
         self._line = line
@@ -49,9 +45,8 @@ class BadHeaderLineError(Error):
 
 
 class MissingRequiredKeyError(Error):
-    """
-    Raise this error when a header is missing a required key.
-    """
+
+    """Raise this error when a header is missing a required key."""
 
     def __init__(self, key):
         self._key = key
@@ -61,9 +56,8 @@ class MissingRequiredKeyError(Error):
 
 
 class KeyTypeError(Error):
-    """
-    Raise this error when a header's key value is of the wrong type.
-    """
+
+    """Raise this error when a header's key value is of the wrong type."""
 
     def __init__(self, key, expected_type):
         self._key = key
@@ -74,9 +68,8 @@ class KeyTypeError(Error):
 
 
 class KeyValueError(Error):
-    """
-    Raise this error when a header's key value has a bad value
-    """
+
+    """Raise this error when a header's key value has a bad value."""
 
     def __init__(self, key, message):
         self._key = key
@@ -87,10 +80,8 @@ class KeyValueError(Error):
 
 
 class DataSizeError(Error):
-    """
-    Raise this error if the size of the data does not match that given in
-    the header.
-    """
+
+    """Raise this error if the size of data does not match the header."""
 
     def __init__(self, size, expected_size):
         self._actual = size
@@ -101,10 +92,27 @@ class DataSizeError(Error):
 
 
 def _parse_header_key_value(line):
+    """Parse a header line into a key-value pair.
+
+    Parameters
+    ----------
+    line : str
+        Header line.
+
+    Returns
+    -------
+    (str, str)
+        Header key-value pair
+
+    Raises
+    ------
+    BadHeaderLineError
+        The is something wrong with the header line.
+    """
     match = _HEADER_KEY_REGEX_PATTERN.match(line)
     if match is None:
         return None
-        #raise BadHeaderLineError(line)
+        # raise BadHeaderLineError(line)
 
     match = _HEADER_REGEX_PATTERN.match(line)
     if match is None:
@@ -119,6 +127,18 @@ def _parse_header_key_value(line):
 
 
 def _header_lines(asc_file):
+    """Iterate over header lines for a ESRI ASCII file.
+
+    Parameters
+    ----------
+    asc_file : file_like
+        File-like object for an ESRI ASCII file.
+
+    Yields
+    ------
+    str
+        Header line.
+    """
     pos = asc_file.tell()
     line = asc_file.readline()
     while len(line) > 0:
@@ -134,37 +154,49 @@ def _header_lines(asc_file):
 
 
 def _header_is_valid(header):
+    """Check if the ESRI ASCII header is valid.
+
+    Parameters
+    ----------
+    header : dict
+        Header as key-values pairs.
+
+    Raises
+    ------
+    MissingRequiredKeyError
+        The header is missing a required key.
+    KeyTypeError
+        The header has the key but its values is of the wrong type.
+    """
     header_keys = set(header)
     required_keys = set(['ncols', 'nrows', 'cellsize'])
 
-    try:
-        assert(required_keys.issubset(header_keys))
-    except AssertionError:
+    if not required_keys.issubset(header_keys):
         raise MissingRequiredKeyError(', '.join(required_keys - header_keys))
 
     for keys in [('xllcenter', 'xllcorner'), ('yllcenter', 'yllcorner')]:
-        try:
-            assert(len(set(keys) & header_keys) == 1)
-        except AssertionError:
+        if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError('|'.join(keys))
 
     for (key, requires) in _HEADER_VALUE_TESTS.items():
+        to_type, is_valid = requires
+
+        if key not in header:
+            continue
+
         try:
-            header[key] = requires[0](header[key])
-            assert(requires[1](header[key]))
+            header[key] = to_type(header[key])
         except ValueError:
-            raise KeyTypeError(key, float)
-        except AssertionError:
+            raise KeyTypeError(key, to_type)
+
+        if not is_valid(header[key]):
             raise KeyValueError(key, 'Bad value')
-        except KeyError:
-            pass
 
     return True
 
 
 def read_asc_header(asc_file):
-    """
-    Read header information from an ESRI ASCII raster file.
+    """Read header information from an ESRI ASCII raster file.
 
     The header contains the following variables,
         - *ncols*: Number of cell columns
@@ -175,15 +207,75 @@ def read_asc_header(asc_file):
             coordinate of grid (by center or lower-left corner of the cell)
         - *cellsize*: Grid spacing between rows and columns
         - *nodata_value*: No-data value (optional)
+
+    Parameters
+    ----------
+    asc_file : file_like
+        File-like object from which to read header.
+
+    Returns
+    -------
+    dict
+        Header as key-value pairs.
+
+    Raises
+    ------
+    MissingRequiredKeyError
+        The header is missing a required key.
+    KeyTypeError
+        The header has the key but its values is of the wrong type.
+
+    Examples
+    --------
+    >>> from six import StringIO
+    >>> from landlab.io.esri_ascii import read_asc_header
+    >>> contents = StringIO('''
+    ...     nrows 100
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> hdr = read_asc_header(contents)
+    >>> hdr['nrows'], hdr['ncols']
+    (100, 200)
+    >>> hdr['cellsize']
+    1.5
+    >>> hdr['xllcenter'], hdr['yllcenter']
+    (0.5, -0.5)
+
+    ``MissingRequiredKey`` is raised if the header does not contain all of the
+    necessary keys.
+
+    >>> contents = StringIO('''
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    MissingRequiredKeyError: nrows
+
+    ``KeyTypeError`` is raises if a value is of the wrong type. For instance,
+    ``nrows`` and ``ncols`` must be ``int``.
+
+    >>> contents = StringIO('''
+    ...     nrows 100.5
+    ...     ncols 200
+    ...     cellsize 1.5
+    ...     xllcenter 0.5
+    ...     yllcenter -0.5
+    ... ''')
+    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = dict()
     for (key, value) in _header_lines(asc_file):
         header[key] = value
 
-    try:
-        _header_is_valid(header)
-    except Error:
-        raise
+    _header_is_valid(header)
 
     return header
 
@@ -257,7 +349,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None):
     if not reshape:
         data = data.flatten()
 
-    if grid == None:
+    if grid is None:
         grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
                                dx=spacing[0])
     if name:
