@@ -463,36 +463,78 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 
 
 class override_array_setitem_and_reset(object):
+
+    """Decorator that calls a grid method after setting array values.
+
+    This decorator wraps :any:`ModelGrid` methods that return a numpy array
+    so that it returns a wrapped array that overrides the numpy array
+    `__setitem__`, `__setslice__`, and `itemset` methods. The wrapped methods
+    set values in the array but then also call a grid method that resets some
+    state variables of the grid.
+
+    Parameters
+    ----------
+    reset : str
+        The name of the grid method to call after setting values. The
+        corresponding method must take no arguments.
+    """
     def __init__(self, reset):
+        """Initialize the decorator with an argument.
+
+        Parameters
+        ----------
+        reset : str
+            The name of the grid method to call after setting values. The
+            corresponding method must take no arguments.
+        """
         self._reset = reset
 
     def __call__(self, func):
-        def _wrapped(grid, *args):
-            array = func(grid, *args)
-            class wrapped_ndarray(numpy.ndarray):
-                def __new__(cls, array):
-                    obj = numpy.asarray(array).view(cls)
+        """Get a wrapped version of the method.
+
+        Parameters
+        ----------
+        func : function
+            The grid method to wrap.
+
+        Returns
+        -------
+        function
+            The wrapped function.
+        """
+        def _wrapped(grid):
+            class array(numpy.ndarray):
+
+                def __new__(cls, arr):
+                    """Instantiate the class with a view of the base array."""
+                    obj = numpy.asarray(arr).view(cls)
                     obj._grid = grid
                     return obj
+
                 def __array_finalize__(_self, obj):
                     if obj is None: return
+
                 def itemset(_self, ind, value):
                     """Set value of array, then call reset function."""
-                    super(wrapped_ndarray, _self).itemset(ind, value)
+                    super(array, _self).itemset(ind, value)
                     getattr(_self._grid, self._reset)()
+
                 def __setitem__(_self, ind, value):
                     """Set value of array, then call reset function."""
-                    super(wrapped_ndarray, _self).__setitem__(ind, value)
+                    super(array, _self).__setitem__(ind, value)
                     getattr(_self._grid, self._reset)()
+
                 def __setslice__(_self, start, stop, value):
                     """Set values of array, then call reset function."""
-                    super(wrapped_ndarray, _self).__setslice__(start, stop,
+                    super(array, _self).__setslice__(start, stop,
                                                                value)
                     getattr(_self._grid, self._reset)()
 
-            return wrapped_ndarray(array)
+            return array(func(grid))
+
         _wrapped.__name__ = func.__name__
         _wrapped.__doc__ = func.__doc__
+
         return _wrapped
 
 
@@ -583,11 +625,12 @@ class ModelGrid(ModelDataFields):
     @override_array_setitem_and_reset('update_links_nodes_cells_to_new_BCs')
     def status_at_node(self):
         """Get array of the boundary status for each node."""
-        return self.node_status
+        return self._node_status
 
     @status_at_node.setter
     def status_at_node(self, new_status):
-        self.node_status[:] = new_status[:]
+        """Set the array of node boundary statuses."""
+        self._node_status[:] = new_status[:]
         self.update_links_nodes_cells_to_new_BCs()
 
     @property
@@ -917,16 +960,6 @@ class ModelGrid(ModelDataFields):
         if len(new_names) != self.ndim:
             raise ValueError('length of names does not match grid dimension')
         self._axis_name = tuple(new_names)
-
-    @property
-    def status_at_node(self):
-        """Get array of the status of all nodes."""
-        return self._node_status
-
-    @status_at_node.setter
-    def status_at_node(self, new_status_array):
-        self._node_status[:] = new_status_array[:]
-        self.update_links_nodes_cells_to_new_BCs()
 
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
