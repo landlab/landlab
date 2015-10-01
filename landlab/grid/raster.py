@@ -4111,17 +4111,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return np.all(np.equal(self._node_status[ids], CORE_NODE))
 
-    def get_boundary_code(self, id):
-        """Get the status of a node.
-
-        .. deprecated:: 0.6
-            Use :func:`node_boundary_status` instead.
-
-        Returns the boundary status of a node.
-        """
-        # ng june 2013
-        return self._node_status[id]
-
     def get_face_connecting_cell_pair(self, cell_a, cell_b):
         """Get the face that connects two cells.
 
