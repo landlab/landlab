@@ -300,17 +300,17 @@ def _sort_points_into_quadrants(x, y, nodes):
 
 def _default_axis_names(n_dims):
     """Name of each axis.
-    
+
     Parameters
     ----------
     n_dims : int
         Number of spatial dimensions.
-    
+
     Returns
     -------
     tuple of str
         Name of each axis.
-    
+
     Examples
     --------
     >>> from landlab.grid.base import _default_axis_names
@@ -327,17 +327,17 @@ def _default_axis_names(n_dims):
 
 def _default_axis_units(n_dims):
     """Unit names for each axis.
-    
+
     Parameters
     ----------
     n_dims : int
         Number of spatial dimensions.
-    
+
     Returns
     -------
     tuple of str
         Units of each axis.
-    
+
     Examples
     --------
     >>> from landlab.grid.base import _default_axis_units
@@ -687,7 +687,7 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_core_nodes(self):
         """Number of core nodes.
-        
+
         A core node is a non-boundary node
         """
         return self._num_core_nodes
@@ -703,7 +703,7 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_core_cells(self):
         """Number of core cells.
-        
+
         A core cell excludes all boundary cells.
         """
         return self._num_core_cells
@@ -1383,7 +1383,7 @@ class ModelGrid(ModelDataFields):
                 assert elevs.size == self.number_of_nodes
                 elev_array = elevs
             _, slope_component_tuple = self.node_slopes_using_patches(
-                elevs=elev_array)
+                elevs=elev_array, return_components=True)
         angle_from_x_ccw = numpy.arctan2(
             slope_component_tuple[1], slope_component_tuple[0])
         angle_from_N_cw = -(angle_from_x_ccw + numpy.pi / 2.) % (2 * numpy.pi)
@@ -2374,7 +2374,7 @@ class ModelGrid(ModelDataFields):
         unit vector (+/-0.5, +/-sqrt(3)/2) (note: sqrt(3)/2 ~ 0.866).
 
         .. note::
-            
+
             This example assumes that the triangulation places links in a
             certain order. Because the order is arbitrary, this might break on
             different platforms. If that happens, the example needs to be
