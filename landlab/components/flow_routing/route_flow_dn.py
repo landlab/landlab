@@ -219,7 +219,9 @@ class FlowRouter(Component):
         # otherwise.
         link_slope = -self._grid.calculate_gradients_at_d8_active_links(elevs)
         # Find the baselevel nodes
-        (baselevel_nodes, ) = numpy.where(numpy.logical_or(self._grid.node_status==1, self._grid.node_status==2))
+        (baselevel_nodes, ) = numpy.where(
+            numpy.logical_or(self._grid.status_at_node == 1,
+                             self._grid.status_at_node == 2))
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link  = \

@@ -44,7 +44,7 @@ flow_router = FlowRouter(grid)
 grid = flow_router.route_flow()
 
 for i in range(grid.number_of_nodes):
-    print(i, grid.node_x[i], grid.node_y[i], z[i], grid.node_status[i], \
+    print(i, grid.node_x[i], grid.node_y[i], z[i], grid.status_at_node[i], \
           r[i], a[i], q[i], ss[i], rl[i])
 
 # Let's take a look for debugging

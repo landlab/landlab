@@ -578,7 +578,7 @@ def active_link_ids(shape, node_status):
     >>> from landlab.grid.structured_quad.links import active_link_ids
     >>> rmg = RasterModelGrid(3, 4)
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status
+    >>> status = rmg.status_at_node
     >>> active_link_ids((3, 4), status)
     array([12])
     """
@@ -611,7 +611,7 @@ def is_fixed_link(shape, node_status):
     >>> rmg['node']['topographic__elevation'] = z
     >>> rmg['link']['topographic__slope'] = s
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-    >>> is_fixed_link(rmg.shape, rmg.node_status)
+    >>> is_fixed_link(rmg.shape, rmg.status_at_node)
     array([False,  True,  True,  True, False, False, False, False, False,
            False, False,  True,  True,  True, False, False, False, False,
            False,  True, False, False,  True,  True, False, False,  True,
@@ -657,7 +657,7 @@ def fixed_link_ids(shape, node_status):
     >>> rmg['node']['topographic__elevation'] = z
     >>> rmg['link']['topographic__slope'] = s
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-    >>> fixed_link_ids(rmg.shape, rmg.node_status)
+    >>> fixed_link_ids(rmg.shape, rmg.status_at_node)
     array([ 1,  2,  3, 11, 12, 13, 19, 22, 23, 26])
     """
     return as_id_array(np.where(is_fixed_link(shape, node_status))[0])
@@ -718,7 +718,7 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     ...     horizontal_active_link_ids)
     >>> rmg = RasterModelGrid(4, 5)
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status
+    >>> status = rmg.status_at_node
     >>> active_ids = active_link_ids((4,5), status)
     >>> horizontal_active_link_ids((4,5), active_ids)
     array([-1, -1, -1, -1, -1, 20, 21, -1, -1, 24, 25, -1, -1, -1, -1, -1])
@@ -814,7 +814,7 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     >>> rmg['link']['topographic__slope'] = numpy.arange(
     ...     0, rmg.number_of_links)
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status
+    >>> status = rmg.status_at_node
     >>> fixed_ids = fixed_link_ids((4,5), status)
     >>> horizontal_fixed_link_ids((4,5), fixed_ids)
     array([-1, -1, -1, -1, 19, -1, -1, 22, 23, -1, -1, 26, -1, -1, -1, -1])
@@ -902,7 +902,7 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     ...     vertical_active_link_ids)
     >>> rmg = RasterModelGrid(4, 5)
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status
+    >>> status = rmg.status_at_node
     >>> active_ids = active_link_ids((4,5), status)
     >>> vertical_active_link_ids((4,5), active_ids)
     array([-1, -1, -1, -1, -1, -1,  6,  7,  8, -1, -1, -1, -1, -1, -1])
@@ -994,7 +994,7 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     >>> rmg['link']['topographic__slope'] = numpy.arange(
     ...     0, rmg.number_of_links)
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-    >>> status = rmg.node_status
+    >>> status = rmg.status_at_node
     >>>
     >>> fixed_ids = fixed_link_ids((4,5), status)
     >>> vertical_fixed_link_ids((4,5), fixed_ids)
@@ -1507,7 +1507,7 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> active_ids = active_link_ids(rmg.shape, rmg.node_status)
+    >>> active_ids = active_link_ids(rmg.shape, rmg.status_at_node)
     >>> horizontal_ids = horizontal_active_link_ids(
     ...     rmg.shape, active_ids)
     >>> d4_horizontal_active_link_neighbors(rmg.shape, horizontal_ids)
@@ -1990,7 +1990,7 @@ def d4_vertical_active_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
     ...     vertical_active_link_ids, d4_vertical_active_link_neighbors)
     >>> rmg = RasterModelGrid(4, 5)
-    >>> active_link_ids = active_link_ids(rmg.shape, rmg.node_status)
+    >>> active_link_ids = active_link_ids(rmg.shape, rmg.status_at_node)
     >>> vertical_active_ids = vertical_active_link_ids(
     ...     rmg.shape, active_link_ids)
     >>> d4_vertical_active_link_neighbors(rmg.shape, vertical_active_ids)

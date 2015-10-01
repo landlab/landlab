@@ -590,7 +590,7 @@ class ModelGrid(ModelDataFields):
         - `TRACKS_CELL_BOUNDARY`
         - `CLOSED_BOUNDARY`
         """
-        return self.node_status
+        return self.status_at_node
 
     @property
     def open_boundary_nodes(self):
@@ -899,12 +899,12 @@ class ModelGrid(ModelDataFields):
         self._axis_name = tuple(new_names)
 
     @property
-    def node_status(self):
+    def status_at_node(self):
         """Get array of the status of all nodes."""
         return self._node_status
 
-    @node_status.setter
-    def node_status(self, new_status_array):
+    @status_at_node.setter
+    def status_at_node(self, new_status_array):
         self._node_status[:] = new_status_array[:]
         self.update_links_nodes_cells_to_new_BCs()
 
@@ -2002,12 +2002,12 @@ class ModelGrid(ModelDataFields):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(3, 4, 1.0)
-        >>> mg.node_status
+        >>> mg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
         >>> h = np.array([-9999, -9999, -9999, -9999, -9999, -9999, 12345.,
         ...     0., -9999, 0., 0., 0.])
         >>> mg.set_nodata_nodes_to_inactive(h, -9999)
-        >>> mg.node_status
+        >>> mg.status_at_node
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
@@ -2056,12 +2056,12 @@ class ModelGrid(ModelDataFields):
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-        >>> mg.node_status
+        >>> mg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
         >>> h = np.array([-9999, -9999, -9999, -9999, -9999, -9999, 12345.,
         ...     0., -9999, 0., 0., 0.])
         >>> mg.set_nodata_nodes_to_closed(h, -9999)
-        >>> mg.node_status
+        >>> mg.status_at_node
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
         """
         # Find locations where value equals the NODATA code and set these nodes
@@ -2124,7 +2124,7 @@ class ModelGrid(ModelDataFields):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9)
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 1, 1, 1,
                1, 0, 0, 0, 0, 0, 0, 0, 1,
                1, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -2138,7 +2138,7 @@ class ModelGrid(ModelDataFields):
         ...     -99., -99., -99., -99., -99., -99., -99., -99., -99.])
 
         >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2,
                2, 2, 2, 0, 0, 0, 0, 0, 2,
                2, 2, 2, 0, 0, 0, 0, 0, 2,
@@ -2799,7 +2799,7 @@ class ModelGrid(ModelDataFields):
         For each boundary node, determines whether it belongs to the left,
         right, top or bottom of the grid, based on its distance from the grid's
         centerpoint (mean (x,y) position). Returns lists of nodes on each of
-        the four grid sides. Assumes self.node_status, self.number_of_nodes,
+        the four grid sides. Assumes self.status_at_node, self.number_of_nodes,
         self.boundary_nodes, self._node_x, and self._node_y have been
         initialized.
 
@@ -2864,13 +2864,13 @@ class ModelGrid(ModelDataFields):
         >>> rmg = ll.HexModelGrid(5, 3, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         30
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
         >>> rmg.number_of_active_links
         21
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4],
                dtype=int8)
         """

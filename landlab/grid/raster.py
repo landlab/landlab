@@ -52,14 +52,14 @@ def node_has_boundary_neighbor(mg, id, method='d8'):
     """
     for neighbor in mg.get_neighbor_list(id):
         try:
-            if mg.node_status[neighbor] != CORE_NODE:
+            if mg.status_at_node[neighbor] != CORE_NODE:
                 return True
         except IndexError:
             return True
     if method == 'd8':
         for neighbor in mg.get_diagonal_list(id):
             try:
-                if mg.node_status[neighbor] != CORE_NODE:
+                if mg.status_at_node[neighbor] != CORE_NODE:
                     return True
             except IndexError:
                 return True
@@ -401,7 +401,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
         ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
-        >>> rmg.node_status # doctest : +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
@@ -2425,13 +2425,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.set_inactive_boundaries(False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4],
               dtype=int8)
 
@@ -2545,13 +2545,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
         """
@@ -2642,14 +2642,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> rmg.at_node['topographic__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(
         ...     False, False, True, True)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 4, 4, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
 
@@ -2768,7 +2768,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.create_node_array_zeros('topographic__elevation')
@@ -2959,7 +2959,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
         >>> rmg.create_node_array_zeros('topographic__elevation')
@@ -2969,7 +2969,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg['node']['topographic__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
         >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
         Fixed gradients will be set according to existing data in the grid...
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2],
               dtype=int8)
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
@@ -4861,7 +4861,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg['node']['topographic__elevation'] = z
         >>> rmg['link']['topographic__slope'] = s
         >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.node_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
                0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
         >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE

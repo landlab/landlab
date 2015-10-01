@@ -71,7 +71,7 @@ start_time = time.time()
 
 # These functions find link neighbors for horizontal and vertical active links.
 # First, we find all active links in the raster grid.
-active_ids = links.active_link_ids(mg.shape, mg.node_status)
+active_ids = links.active_link_ids(mg.shape, mg.status_at_node)
 
 # Then we find all horizontal link ids...
 horizontal_ids = links.horizontal_link_ids(mg.shape)
