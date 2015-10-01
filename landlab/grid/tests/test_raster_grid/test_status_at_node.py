@@ -4,6 +4,7 @@ from nose.tools import with_setup
 
 from landlab import RasterModelGrid
 from landlab import FIXED_VALUE_BOUNDARY as FV
+from landlab import CLOSED_BOUNDARY as CB
 
 
 def test_get_status():
@@ -17,6 +18,7 @@ def test_get_status():
 
 
 def test_set_status_with_scalar():
+    """Test setting status with a scalar."""
     grid = RasterModelGrid((4, 5))
     grid.status_at_node[6] = 2
 
@@ -28,6 +30,7 @@ def test_set_status_with_scalar():
 
 
 def test_set_status_with_slice():
+    """Test setting status with an array slice."""
     grid = RasterModelGrid((4, 5))
     grid.status_at_node[6: 9] = 2
 
@@ -39,6 +42,7 @@ def test_set_status_with_slice():
 
 
 def test_set_status_with_array():
+    """Test setting node status with boolean array."""
     grid = RasterModelGrid((4, 5))
     inds = np.full((20, ), False, dtype=bool)
     inds[6] = True
@@ -51,3 +55,33 @@ def test_set_status_with_array():
                         FV,  2,  2,  0, FV,
                         FV,  0,  0,  2, FV,
                         FV, FV, FV, FV, FV])
+
+
+def test_set_with_itemset():
+    grid = RasterModelGrid((4, 5))
+    grid.status_at_node.itemset(7, 2)
+
+    assert_array_equal(grid.status_at_node,
+                       [FV, FV, FV, FV, FV,
+                        FV,  0,  2,  0, FV,
+                        FV,  0,  0,  0, FV,
+                        FV, FV, FV, FV, FV])
+
+
+def test_set_status_with_array():
+    """Test that active links are reset after changing the node status."""
+    grid = RasterModelGrid((4, 5))
+
+    assert_array_equal(grid.active_links,
+                      [1, 2, 3, 6, 7, 8, 11, 12, 13,
+                       19, 20, 21, 22, 23, 24, 25, 26])
+
+    grid.status_at_node[: 5] = CB
+    assert_array_equal(grid.status_at_node,
+                       [CB, CB, CB, CB, CB,
+                        FV,  0,  0,  0, FV,
+                        FV,  0,  0,  0, FV,
+                        FV, FV, FV, FV, FV])
+
+    assert_array_equal(grid.active_links,
+                      [6, 7, 8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
