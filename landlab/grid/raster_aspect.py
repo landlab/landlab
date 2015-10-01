@@ -8,7 +8,7 @@ def _one_line_slopes(input_array, grid, vals):
     diagonals = input_array[5:]
     neighbors = input_array[1:5]
 
-    if not grid.node_boundary_status[node] == 0:
+    if not grid.status_at_node[node] == 0:
         raise IndexError('One or more of the provided nodes was closed!')
 
     try:

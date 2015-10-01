@@ -186,9 +186,9 @@ class DepressionFinderAndRouter(Component):
             elif self._elev[t] > self._elev[h]:
                 self.is_pit[t] = False
             elif self._elev[h] == self._elev[t]:
-                if self._grid.node_boundary_status[h] == FIXED_VALUE_BOUNDARY:
+                if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
                     self.is_pit[t] = False
-                elif self._grid.node_boundary_status[t] == FIXED_VALUE_BOUNDARY:
+                elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
                     self.is_pit[h] = False
                     
         # If we have a raster grid, handle the diagonal active links too
@@ -205,9 +205,9 @@ class DepressionFinderAndRouter(Component):
                 elif self._elev[t] > self._elev[h]:
                     self.is_pit[t] = False
                 elif self._elev[h] == self._elev[t]:
-                    if self._grid.node_boundary_status[h] == FIXED_VALUE_BOUNDARY:
+                    if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
                         self.is_pit[t] = False
-                    elif self._grid.node_boundary_status[t] == FIXED_VALUE_BOUNDARY:
+                    elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
                         self.is_pit[h] = False
 
         # Record the number of pits and the IDs of pit nodes.
@@ -267,7 +267,7 @@ class DepressionFinderAndRouter(Component):
         """
         Determine whether the given node is a valid outlet for the depression.
         """
-        if self._grid.node_boundary_status[the_node]==FIXED_VALUE_BOUNDARY:
+        if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
             #print '   this node is an open boundary, so of course it can drain'
             return True
             

@@ -579,20 +579,6 @@ class ModelGrid(ModelDataFields):
             return as_id_array(boundary_node_ids)
 
     @property
-    def node_boundary_status(self):
-        """Get array of the boundary status of nodes.
-
-        Return an array of the status of a grid's nodes. The node status can
-        be one of the following:
-        - `CORE_NODE`
-        - `FIXED_VALUE_BOUNDARY`
-        - `FIXED_GRADIENT_BOUNDARY`
-        - `TRACKS_CELL_BOUNDARY`
-        - `CLOSED_BOUNDARY`
-        """
-        return self.status_at_node
-
-    @property
     def open_boundary_nodes(self):
         """Get array of open boundary nodes."""
         (open_boundary_node_ids, ) = numpy.where(
@@ -778,17 +764,6 @@ class ModelGrid(ModelDataFields):
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
         except KeyError:
             raise TypeError('element name not understood')
-
-    @make_return_array_immutable
-    def get_node_status(self):
-        """Status of grid nodes.
-
-        Returns
-        -------
-        ndarray
-            Node status of all a grid's nodes.
-        """
-        return self._node_status
 
     @property
     @make_return_array_immutable
