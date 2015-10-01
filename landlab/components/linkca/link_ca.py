@@ -420,9 +420,9 @@ class LinkCellularAutomaton():
         old_tonode_state = self.node_state[tonode]
 
         # Change to the new states
-        if self.grid.node_status[fromnode]==landlab.grid.base.CORE_NODE:
+        if self.grid.status_at_node[fromnode]==landlab.grid.base.CORE_NODE:
             self.node_state[fromnode] = self.cell_pair[new_link_state][0]
-        if self.grid.node_status[tonode]==landlab.grid.base.CORE_NODE:
+        if self.grid.status_at_node[tonode]==landlab.grid.base.CORE_NODE:
             self.node_state[tonode] = self.cell_pair[new_link_state][1]
 
         if _DEBUG:
@@ -454,9 +454,9 @@ class LinkCellularAutomaton():
         fn = self.grid.activelink_fromnode[link]
         tn = self.grid.activelink_tonode[link]
         if _DEBUG:
-            print('fn',fn,'tn',tn,'fnstat',self.grid.node_status[fn],'tnstat',self.grid.node_status[tn])
-        if self.grid.node_status[fn]!=landlab.grid.base.CORE_NODE or \
-           self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
+            print('fn',fn,'tn',tn,'fnstat',self.grid.status_at_node[fn],'tnstat',self.grid.status_at_node[tn])
+        if self.grid.status_at_node[fn]!=landlab.grid.base.CORE_NODE or \
+           self.grid.status_at_node[tn]!=landlab.grid.base.CORE_NODE:
             fns = self.node_state[self.grid.activelink_fromnode[link]]
             tns = self.node_state[self.grid.activelink_tonode[link]]
             orientation = self.active_link_orientation(link)  # VARIES WITH LATTICE AND ORIENTATION CHOICE

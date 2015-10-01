@@ -755,9 +755,9 @@ class LandlabCellularAutomaton(object):
         old_head_node_state = self.node_state[head_node]
 
         # Change to the new states
-        if self.grid.node_status[tail_node]==landlab.grid.base.CORE_NODE:
+        if self.grid.status_at_node[tail_node]==landlab.grid.base.CORE_NODE:
             self.node_state[tail_node] = self.cell_pair[new_link_state][0]
-        if self.grid.node_status[head_node]==landlab.grid.base.CORE_NODE:
+        if self.grid.status_at_node[head_node]==landlab.grid.base.CORE_NODE:
             self.node_state[head_node] = self.cell_pair[new_link_state][1]
 
         if _DEBUG:
@@ -795,9 +795,9 @@ class LandlabCellularAutomaton(object):
         ###fn = self.grid.activelink_fromnode[link]
         ###tn = self.grid.activelink_tonode[link]
         if _DEBUG:
-            six.print_('fn',fn,'tn',tn,'fnstat',self.grid.node_status[fn],'tnstat',self.grid.node_status[tn])
-        if self.grid.node_status[fn]!=landlab.grid.base.CORE_NODE or \
-           self.grid.node_status[tn]!=landlab.grid.base.CORE_NODE:
+            six.print_('fn',fn,'tn',tn,'fnstat',self.grid.status_at_node[fn],'tnstat',self.grid.status_at_node[tn])
+        if self.grid.status_at_node[fn]!=landlab.grid.base.CORE_NODE or \
+           self.grid.status_at_node[tn]!=landlab.grid.base.CORE_NODE:
             ###fns = self.node_state[self.grid.activelink_fromnode[link]]
             ###tns = self.node_state[self.grid.activelink_tonode[link]]
             ###orientation = self.active_link_orientation[link]
@@ -933,9 +933,9 @@ class LandlabCellularAutomaton(object):
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
                 self.propid[head_node] = tmp
-                if self.grid.node_status[tail_node]!=landlab.grid.base.CORE_NODE:
+                if self.grid.status_at_node[tail_node]!=landlab.grid.base.CORE_NODE:
                     self.prop_data[self.propid[tail_node]] = self.prop_reset_value
-                if self.grid.node_status[head_node]!=landlab.grid.base.CORE_NODE:
+                if self.grid.status_at_node[head_node]!=landlab.grid.base.CORE_NODE:
                     self.prop_data[self.propid[head_node]] = self.prop_reset_value
 
             if _DEBUG:

@@ -74,7 +74,7 @@ def imshow_node_grid(grid, values, **kwds):
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
 
-    data = np.ma.masked_where((grid.node_status == 4).reshape(grid.shape),
+    data = np.ma.masked_where((grid.status_at_node == 4).reshape(grid.shape),
                               data)
 
     myimage = _imshow_grid_values(grid, data, **kwds)
@@ -340,7 +340,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         cm = plt.get_cmap(cmap)
         if limits is None:
             # only want to work with NOT CLOSED nodes
-            open_nodes = grid.node_status != 4
+            open_nodes = grid.status_at_node != 4
             if symmetric_cbar:
                 (var_min, var_max) = (values.flat[
                     open_nodes].min(), values.flat[open_nodes].max())

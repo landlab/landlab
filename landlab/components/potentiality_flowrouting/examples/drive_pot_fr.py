@@ -34,7 +34,7 @@ mg.at_node['topographic__elevation'] = z
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 figure(3)
-imshow_node_grid(mg, mg.node_boundary_status)
+imshow_node_grid(mg, mg.status_at_node)
 
 mg.at_node['water__volume_flux_in'] = np.ones_like(z)
 

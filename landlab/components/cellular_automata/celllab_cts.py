@@ -339,7 +339,7 @@ class CellLabCTSModel(object):
         # node
         self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
         for link_id in range(self.grid.number_of_links):
-            if self.grid.node_status[self.grid.node_at_link_tail[link_id]]!=_CORE or self.grid.node_status[self.grid.node_at_link_head[link_id]]!=_CORE:
+            if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]]!=_CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]]!=_CORE:
                 self.bnd_lnk[link_id] = True
 
         # Set up the initial node-state grid
@@ -769,9 +769,9 @@ class CellLabCTSModel(object):
         old_head_node_state = self.node_state[head_node]
 
         # Change to the new states
-        if self.grid.node_status[tail_node]==_CORE:
+        if self.grid.status_at_node[tail_node]==_CORE:
             self.node_state[tail_node] = self.node_pair[new_link_state][0]
-        if self.grid.node_status[head_node]==_CORE: #landlab.grid.base.CORE_NODE:
+        if self.grid.status_at_node[head_node]==_CORE: #landlab.grid.base.CORE_NODE:
             self.node_state[head_node] = self.node_pair[new_link_state][1]
 
         if _DEBUG:
@@ -803,8 +803,8 @@ class CellLabCTSModel(object):
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
-        #if self.grid.node_status[self.grid.link_fromnode[link]]!=_CORE or \
-        #   self.grid.node_status[self.grid.link_tonode[link]]!=_CORE:
+        #if self.grid.status_at_node[self.grid.link_fromnode[link]]!=_CORE or \
+        #   self.grid.status_at_node[self.grid.link_tonode[link]]!=_CORE:
         if self.bnd_lnk[link]:
             fns = self.node_state[self.grid.node_at_link_tail[link]]
             tns = self.node_state[self.grid.node_at_link_head[link]]
@@ -931,9 +931,9 @@ class CellLabCTSModel(object):
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
                 self.propid[head_node] = tmp
-                if self.grid.node_status[tail_node]!=_CORE:
+                if self.grid.status_at_node[tail_node]!=_CORE:
                     self.prop_data[self.propid[tail_node]] = self.prop_reset_value
-                if self.grid.node_status[head_node]!=_CORE:
+                if self.grid.status_at_node[head_node]!=_CORE:
                     self.prop_data[self.propid[head_node]] = self.prop_reset_value
                 if event.prop_update_fn is not None:
                     event.prop_update_fn(self, tail_node, head_node, event.time)

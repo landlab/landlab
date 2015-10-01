@@ -103,7 +103,7 @@ class impactor(object):
         self.loop_dict = {} #this holds information on how looped BCs execute - see set_slope()
 
         #perform a BC condition check:
-        if not numpy.all(numpy.equal(grid.node_status[numpy.nonzero(grid.node_status)], 3)):
+        if not numpy.all(numpy.equal(grid.status_at_node[numpy.nonzero(grid.status_at_node)], 3)):
             self.looped_BCs = False
             six.print_('*****-----*****-----*****')
             six.print_('This module is designed to run with looped boundary conditions.')
@@ -290,8 +290,8 @@ class impactor(object):
                     #points_under_surface_reversed = impactor_elevs_along_line[::-1]<=self.elev[snapped_pts_along_line[::-1]]
                     reversed_index = numpy.argmax(self.dummy_int[:(num_divisions)])
                     #reversed_index = numpy.argmax(points_under_surface_reversed)
-                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[(num_divisions-1)::-1][reversed_index]]
-                    #intersect_pt_node_status = self.grid.node_status[snapped_pts_along_line[::-1][reversed_index]]
+                    intersect_pt_node_status = self.grid.status_at_node[self.dummy_2[(num_divisions-1)::-1][reversed_index]]
+                    #intersect_pt_node_status = self.grid.status_at_node[snapped_pts_along_line[::-1][reversed_index]]
                 except IndexError: #only one item in array
                     six.print_(len(self.dummy_4[:(num_divisions)]))
                     assert len(self.dummy_4[:(num_divisions)]) == 1
@@ -299,8 +299,8 @@ class impactor(object):
                     #points_under_surface_reversed = impactor_elevs_along_line<=self.elev[snapped_pts_along_line]
                     reversed_index = numpy.argmax(self.dummy_int[:(num_divisions)])
                     #reversed_index = numpy.argmax(points_under_surface_reversed)
-                    intersect_pt_node_status = self.grid.node_status[self.dummy_2[:(num_divisions)]]
-                    #intersect_pt_node_status = self.grid.node_status[snapped_pts_along_line]
+                    intersect_pt_node_status = self.grid.status_at_node[self.dummy_2[:(num_divisions)]]
+                    #intersect_pt_node_status = self.grid.status_at_node[snapped_pts_along_line]
                 if numpy.any(self.dummy_int[:(num_divisions)]):
                 #if numpy.any(points_under_surface_reversed):
                     #print 'points under surface...', numpy.sum(points_under_surface_reversed)

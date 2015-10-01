@@ -179,7 +179,7 @@ class PotentialityFlowRouter(Component):
 
         #make and store a 2d reference for node BCs
         self._BCs = 4*np.ones_like(self.elev_raster)
-        self._BCs[self._core].flat = self._grid.get_node_status()
+        self._BCs[self._core].flat = self._grid.status_at_node
         BCR = self._BCs #for conciseness below
         #these are conditions for boundary->boundary contacts AND anything->closed contacts w/i the grid, both of which forbid flow
         self.boundaryboundaryN = np.logical_or(np.logical_and(BCR[self._core]>0, BCR[self._Ns]>0), np.logical_or(BCR[self._Ns]==4, BCR[self._core]==4))

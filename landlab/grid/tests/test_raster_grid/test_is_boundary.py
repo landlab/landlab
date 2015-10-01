@@ -39,7 +39,7 @@ def test_id_as_list():
 
 @with_setup(setup_grid)
 def test_boundary_flag():
-    rmg.node_status[0] = FIXED_GRADIENT_BOUNDARY
+    rmg.status_at_node[0] = FIXED_GRADIENT_BOUNDARY
     assert_array_equal(
         rmg.is_boundary(np.arange(20)),
         np.array([True,  True,  True,  True,  True,
