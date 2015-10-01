@@ -34,7 +34,7 @@ boundary_node_list = mg.get_boundary_nodes()
 #set up its boundary conditions (bottom, right, top, left is inactive)
 mg.set_inactive_boundaries(True, True, True, True)
 mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
-mg.set_fixed_value_boundaries(20)
+mg.status_at_node[20] = FIXED_VALUE_BOUNDARY
 
 ##create the elevation field in the grid:
 #create the field
@@ -53,7 +53,7 @@ for t in xrange(5):
     mg.set_inactive_boundaries(True, True, True, True)
     #mg.set_closed_boundaries_at_grid_edges(True,True,True,True)
     random_boundary_node = random.choice(boundary_node_list)
-    mg.set_fixed_value_boundaries(random_boundary_node)
+    mg.status_at_node[random_boundary_node] = FIXED_VALUE_BOUNDARY
 
     # MN: Set the elevation of that random outlet boundary node to zero
     #mg['node'][ 'topographic__elevation'][random_boundary_node] = 0

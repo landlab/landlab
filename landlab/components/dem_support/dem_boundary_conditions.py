@@ -1,32 +1,26 @@
 #! /usr/env/python
-"""
+"""Set boundary conditions for watersheds from a DEM.
 
 Classes for Landlab that deal with setting boundary conditions if running
 on a DEM.  This takes advantage of methods in the grid, but combines them
 to make it easier for a user.
-
-Last updated NG 8/2013
-
 """
-
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, FIXED_VALUE_BOUNDARY
 import numpy as np
 import pylab
 
+
 class WatershedBoundaryConditions(object):
-    """
-    If using a DEM of a watershed, this class will properly
-    set the boundary conditions.
-    """
+
+    """Set the boundary conditions of a watershed extracted from a DEM."""
 
     def __init__(self):
-        """
-        what does this need?
-        """
+        pass
 
-    def set_bc_node_coords(self, mg, node_data, nodata_value, outlet_row, outlet_column):
-        """
-        Sets the boundary conditions for a watershed.
+    def set_bc_node_coords(self, mg, node_data, nodata_value, outlet_row,
+                           outlet_column):
+        """Set the boundary conditions for a watershed.
+
         Assumes that outlet is already known.
 
         This must be passed the grid, node_data and nodata_value,
@@ -39,7 +33,7 @@ class WatershedBoundaryConditions(object):
         #find the id of the outlet node
         outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
         #set the boundary condition (fixed value) at the outlet_node
-        mg.set_fixed_value_boundaries(outlet_node)
+        mg.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
 
     def set_bc_node_id(self, mg, node_data, nodata_value, outlet_node):
         """
@@ -54,7 +48,7 @@ class WatershedBoundaryConditions(object):
         mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
 
         #set the boundary condition (fixed value) at the outlet_node
-        mg.set_fixed_value_boundaries(outlet_node)
+        mg.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
 
     def set_bc_find_outlet(self, mg, node_data, nodata_value):
         """
@@ -200,10 +194,8 @@ class WatershedBoundaryConditions(object):
                     not_found = False
 
         #set outlet boundary condition
-        mg.set_fixed_value_boundaries(outlet_loc)
+        mg.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
         #x=mg.node_x[outlet_loc]
         #y=node_y[outlet_loc]
         #print "outlet_loc ", outlet_loc," x ",x," y ",y
         return outlet_loc
-
-

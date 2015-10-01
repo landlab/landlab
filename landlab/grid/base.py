@@ -1230,20 +1230,6 @@ class ModelGrid(ModelDataFields):
         except KeyError:
             raise TypeError(centering)
 
-    def set_fixed_value_boundaries(self, node_ids):
-        """Make nodes fixed value boundaries.
-
-        Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
-
-        Parameters
-        ----------
-        node_ids : array_like of int
-            Grid nodes to set as fixed value boundaries.
-        """
-        self._node_status[node_ids] = FIXED_VALUE_BOUNDARY
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.update_links_nodes_cells_to_new_BCs()
-
     def calculate_diff_at_links(self, node_values, out=None):
         """Get differences at links.
 
