@@ -462,6 +462,40 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
+class override_array_setitem_and_reset(object):
+    def __init__(self, reset):
+        self._reset = reset
+
+    def __call__(self, func):
+        def _wrapped(grid, *args):
+            array = func(grid, *args)
+            class wrapped_ndarray(numpy.ndarray):
+                def __new__(cls, array):
+                    obj = numpy.asarray(array).view(cls)
+                    obj._grid = grid
+                    return obj
+                def __array_finalize__(_self, obj):
+                    if obj is None: return
+                def itemset(_self, ind, value):
+                    """Set value of array, then call reset function."""
+                    super(wrapped_ndarray, _self).itemset(ind, value)
+                    getattr(_self._grid, self._reset)()
+                def __setitem__(_self, ind, value):
+                    """Set value of array, then call reset function."""
+                    super(wrapped_ndarray, _self).__setitem__(ind, value)
+                    getattr(_self._grid, self._reset)()
+                def __setslice__(_self, start, stop, value):
+                    """Set values of array, then call reset function."""
+                    super(wrapped_ndarray, _self).__setslice__(start, stop,
+                                                               value)
+                    getattr(_self._grid, self._reset)()
+
+            return wrapped_ndarray(array)
+        _wrapped.__name__ = func.__name__
+        _wrapped.__doc__ = func.__doc__
+        return _wrapped
+
+
 class ModelGrid(ModelDataFields):
     """Base class for 2D structured or unstructured grids for numerical models.
 
@@ -546,22 +580,10 @@ class ModelGrid(ModelDataFields):
         return 2
 
     @property
+    @override_array_setitem_and_reset('update_links_nodes_cells_to_new_BCs')
     def status_at_node(self):
-        class NodeStatusArray(numpy.ndarray):
-            def __new__(cls, node_status):
-                obj = numpy.asarray(node_status).view(cls)
-                obj._grid = self
-                return obj
-            def __array_finalize__(_self, obj):
-                if obj is None: return
-            def __setitem__(_self, ind, status):
-                super(NodeStatusArray, _self).__setitem__(ind, status)
-                _self._grid.update_links_nodes_cells_to_new_BCs()
-            def __setslice__(_self, start, stop, status):
-                super(NodeStatusArray, _self).__setslice__(start, stop, status)
-                _self._grid.update_links_nodes_cells_to_new_BCs()
-
-        return NodeStatusArray(self.node_status)
+        """Get array of the boundary status for each node."""
+        return self.node_status
 
     @status_at_node.setter
     def status_at_node(self, new_status):
