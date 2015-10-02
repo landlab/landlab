@@ -5,7 +5,7 @@ Classes for Landlab that deal with setting boundary conditions if running
 on a DEM.  This takes advantage of methods in the grid, but combines them
 to make it easier for a user.
 """
-from landlab import RasterModelGrid, FIXED_VALUE_BOUNDARY
+from landlab import FIXED_VALUE_BOUNDARY
 import numpy as np
 import pylab
 
@@ -14,10 +14,7 @@ class WatershedBoundaryConditions(object):
 
     """Set the boundary conditions of a watershed extracted from a DEM."""
 
-    def __init__(self):
-        pass
-
-    def set_bc_node_coords(self, mg, node_data, nodata_value, outlet_row,
+    def set_bc_node_coords(self, grid, node_data, nodata_value, outlet_row,
                            outlet_column):
         """Set the boundary conditions for a watershed.
 
@@ -26,16 +23,15 @@ class WatershedBoundaryConditions(object):
         This must be passed the grid, node_data and nodata_value,
         and the values of the outlet_row and outlet_column.
         """
+        # set no data nodes to inactive boundaries
+        grid.set_nodata_nodes_to_inactive(node_data, nodata_value)
 
-        #set no data nodes to inactive boundaries
-        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
+        # find the id of the outlet node
+        outlet_node = grid.grid_coords_to_node_id(outlet_row, outlet_column)
+        # set the boundary condition (fixed value) at the outlet_node
+        grid.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
 
-        #find the id of the outlet node
-        outlet_node = mg.grid_coords_to_node_id(outlet_row, outlet_column)
-        #set the boundary condition (fixed value) at the outlet_node
-        mg.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
-
-    def set_bc_node_id(self, mg, node_data, nodata_value, outlet_node):
+    def set_bc_node_id(self, grid, node_data, nodata_value, outlet_node):
         """
         Sets the boundary conditions for a watershed.
         Assumes that outlet is already known.
@@ -45,12 +41,12 @@ class WatershedBoundaryConditions(object):
         """
 
         #set no data nodes to inactive boundaries
-        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
+        grid.set_nodata_nodes_to_inactive(node_data, nodata_value)
 
         #set the boundary condition (fixed value) at the outlet_node
-        mg.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
+        grid.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
 
-    def set_bc_find_outlet(self, mg, node_data, nodata_value):
+    def set_bc_find_outlet(self, grid, node_data, nodata_value):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.
@@ -63,12 +59,12 @@ class WatershedBoundaryConditions(object):
         #are inactive boundaries now, then set the outlet location later.
         #By enforcing the ring of closed values first, then fixing the outlet
         #later, it should be OK if the outlet is on the outer ring.
-        mg.set_inactive_boundaries(True, True, True, True)
+        grid.set_inactive_boundaries(True, True, True, True)
 
         #set no data nodes to inactive boundaries
         #this may be redundant, but must do in case there are no data
         #values that are not on the outer boundary
-        mg.set_nodata_nodes_to_inactive(node_data, nodata_value)
+        grid.set_nodata_nodes_to_inactive(node_data, nodata_value)
 
         #This method works well if the watershed topography is already
         #established.  If it's not, then this is an ineffiient method, but
@@ -106,7 +102,7 @@ class WatershedBoundaryConditions(object):
                 local_not_found=True
                 i=0
                 while (i<len(min_locs) and local_not_found):
-                    if mg.has_boundary_neighbor(min_locs[i]):
+                    if grid.has_boundary_neighbor(min_locs[i]):
                         local_not_found = False
                         #outlet_loc contains the index of the outlet location
                         #in the node_data array
@@ -162,7 +158,7 @@ class WatershedBoundaryConditions(object):
                 local_not_found=True
                 i=0
                 while (i<len(min_locs) and local_not_found):
-                    if mg.has_boundary_neighbor(min_locs[i]):
+                    if grid.has_boundary_neighbor(min_locs[i]):
                         local_not_found = False
                         #outlet_loc contains the index of the outlet location
                         #in the node_data array
@@ -194,8 +190,8 @@ class WatershedBoundaryConditions(object):
                     not_found = False
 
         #set outlet boundary condition
-        mg.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
-        #x=mg.node_x[outlet_loc]
+        grid.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+        #x=grid.node_x[outlet_loc]
         #y=node_y[outlet_loc]
         #print "outlet_loc ", outlet_loc," x ",x," y ",y
         return outlet_loc

@@ -5,7 +5,7 @@ from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, FIXED_VALUE_BOUNDARY
 import numpy as np
 import pylab
 
