@@ -478,6 +478,7 @@ class override_array_setitem_and_reset(object):
         The name of the grid method to call after setting values. The
         corresponding method must take no arguments.
     """
+
     def __init__(self, reset):
         """Initialize the decorator with an argument.
 
@@ -502,33 +503,37 @@ class override_array_setitem_and_reset(object):
         function
             The wrapped function.
         """
+        reset = self._reset
         def _wrapped(grid):
+            """Embed a grid into a numpy array and override set methods."""
             class array(numpy.ndarray):
+
+                """Override numpy setters and reset grid topology."""
 
                 def __new__(cls, arr):
                     """Instantiate the class with a view of the base array."""
                     obj = numpy.asarray(arr).view(cls)
-                    obj._grid = grid
+                    obj.grid = grid
                     return obj
 
-                def __array_finalize__(_self, obj):
-                    if obj is None: return
+                def __array_finalize__(self, obj):
+                    if obj is None:
+                        return
 
-                def itemset(_self, ind, value):
+                def itemset(self, ind, value):
                     """Set value of array, then call reset function."""
-                    super(array, _self).itemset(ind, value)
-                    getattr(_self._grid, self._reset)()
+                    numpy.ndarray.itemset(self, ind, value)
+                    getattr(self.grid, reset)()
 
-                def __setitem__(_self, ind, value):
+                def __setitem__(self, ind, value):
                     """Set value of array, then call reset function."""
-                    super(array, _self).__setitem__(ind, value)
-                    getattr(_self._grid, self._reset)()
+                    numpy.ndarray.__setitem__(self, ind, value)
+                    getattr(self.grid, reset)()
 
-                def __setslice__(_self, start, stop, value):
+                def __setslice__(self, start, stop, value):
                     """Set values of array, then call reset function."""
-                    super(array, _self).__setslice__(start, stop,
-                                                               value)
-                    getattr(_self._grid, self._reset)()
+                    numpy.ndarray.__setslice__(self, start, stop, value)
+                    getattr(self.grid, reset)()
 
             return array(func(grid))
 
