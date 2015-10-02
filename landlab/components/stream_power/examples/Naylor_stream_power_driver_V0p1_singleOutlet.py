@@ -29,7 +29,7 @@ uplift_per_step = uplift_rate * dt
 #instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
 
-boundary_node_list = mg.get_boundary_nodes()
+boundary_node_list = mg.boundary_nodes
 
 #set up its boundary conditions (bottom, right, top, left is inactive)
 mg.set_inactive_boundaries(True, True, True, True)

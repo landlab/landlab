@@ -2753,19 +2753,6 @@ class ModelGrid(ModelDataFields):
         else:
             return self._node_status[ids] == boundary_flag
 
-    @return_id_array
-    def get_boundary_nodes(self):
-        """Boundary nodes of a grid.
-
-        Get ids of all open and closed boundary nodes in the grid.
-
-        Returns
-        -------
-        ndarray
-            IDs of boundary nodes.
-        """
-        return numpy.where(self._node_status != 0)[0]
-
     def _assign_boundary_nodes_to_grid_sides(self):
         """Assign boundary nodes to a quadrant.
 
