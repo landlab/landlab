@@ -1,5 +1,9 @@
 """This module defines decorators used with ModelGrid objects."""
+from functools import wraps
+
 import numpy as np
+
+from ..core.utils import as_id_array
 
 
 class override_array_setitem_and_reset(object):
@@ -83,3 +87,48 @@ class override_array_setitem_and_reset(object):
         return _wrapped
 
 
+def return_id_array(func):
+    """Decorate a function to return an array of ids.
+
+    Parameters
+    ----------
+    func : function
+        A function that returns a numpy array.
+
+    Returns
+    -------
+    func
+        A wrapped function that returns an id array.
+    """
+    @wraps(func)
+    def _wrapped(self, *args, **kwds):
+        """Create a function that returns an id array."""
+        return as_id_array(func(self, *args, **kwds))
+    return _wrapped
+
+
+def return_readonly_id_array(func):
+    """Decorate a function to return a read-only array of ids.
+
+    Parameters
+    ----------
+    func : function
+        A function that returns a numpy array.
+
+    Returns
+    -------
+    func
+        A wrapped function that returns an id array.
+    """
+    @wraps(func)
+    def _wrapped(self, *args, **kwds):
+        """Create a function that returns an id array."""
+        id_array = as_id_array(func(self, *args, **kwds))
+        try:
+            immutable_array = id_array.view()
+            immutable_array.flags.writeable = False
+        except ValueError:
+            return id_array
+        else:
+            return immutable_array
+    return _wrapped
