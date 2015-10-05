@@ -209,7 +209,7 @@ def _old_style_args(args):
 
 def _parse_grid_shape_from_args(args):
     """Get grid shape from args.
-    
+
     Parameters
     ----------
     args : iterable
@@ -235,7 +235,7 @@ def _parse_grid_shape_from_args(args):
 
 def _parse_grid_spacing_from_args(args):
     """Get grid spacing from args.
-    
+
     Parameters
     ----------
     args : iterable
@@ -3205,7 +3205,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 raise ValueError(
                     'At the moment, you have to define all your boundaries '
                     'on the same set of values!')
-                # ...We probably want the syntax to be 
+                # ...We probably want the syntax to be
                 # rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT,
                 # to which we can pin these properties
             # The fixed_gradient_nodes should be uniquely defined...
@@ -3569,16 +3569,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         assert(len(max_slope) == self.number_of_nodes)
         assert(len(dstr_node_ids) == self.number_of_nodes)
 
-        gradients = np.zeros(len(link_gradients) + 1)
-        gradients[:-1] = link_gradients
+        gradients = np.zeros(self.number_of_links + 1)
+        gradients[self.active_links] = link_gradients
 
         # Make a matrix of the links. Need to append to this the gradients *on
         # the diagonals*.
         node_links = np.vstack(
-            (gradients[self.node_active_outlink_matrix[0][:]],
-             gradients[self.node_active_outlink_matrix[1][:]],
-             - gradients[self.node_active_inlink_matrix[0][:]],
-             - gradients[self.node_active_inlink_matrix[1][:]]))
+            (gradients[self.node_active_outlink_matrix2[0][:]],
+             gradients[self.node_active_outlink_matrix2[1][:]],
+             - gradients[self.node_active_inlink_matrix2[0][:]],
+             - gradients[self.node_active_inlink_matrix2[1][:]]))
 
         # calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(
@@ -4013,7 +4013,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         [topright, topleft, bottomleft, bottomright].
 
         .. note::
-            
+
             This is equivalent to the diagonals of all cells,
             and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
