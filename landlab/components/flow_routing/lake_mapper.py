@@ -105,15 +105,15 @@ class DepressionFinderAndRouter(Component):
                 
         # Create output variables.
         #
-        # Note that we initialize depression depth to -1 (negative values make
-        # no sense, so this is a clue to non-flooded nodes), and depression
+        # Note that we initialize depression 
         # outlet ID to BAD_INDEX_VALUE (which is a major clue!)
         self.depression_depth = self._grid.add_zeros('node', \
-                                                     'depression__depth') - 1.0             
+                                                     'depression__depth')
         self.depression_outlet = self._grid.add_zeros('node', \
                                                 'depression__outlet_node_id', \
-                                                dtype=int) + BAD_INDEX_VALUE               
-                
+                                                dtype=int)
+        self.depression_outlet += BAD_INDEX_VALUE       
+
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
         self._BIG_ELEV = numpy.amax(self._elev) + 1
@@ -336,7 +336,8 @@ class DepressionFinderAndRouter(Component):
         
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
-        self.record_depression_depth_and_outlet(nodes_this_depression, lowest_node_on_perimeter)
+        self.record_depression_depth_and_outlet(nodes_this_depression, 
+                                                lowest_node_on_perimeter)
         
         # TODO: ideally we need a way to keep track of the number, area extent,
         # and average depth of depressions. Tricky thing is that one might be
@@ -381,8 +382,8 @@ class DepressionFinderAndRouter(Component):
         self.find_pits()
         
         # Set up "lake code" array
-        self.flood_status = self._grid.add_zeros('node', 'flood_status_code') \
-                            + _UNFLOODED
+        self.flood_status = self._grid.add_zeros('node', 'flood_status_code', \
+                                                 dtype=int) + _UNFLOODED
         self.flood_status[self.pit_node_ids] = _PIT
         
         self.identify_depressions_and_outlets()

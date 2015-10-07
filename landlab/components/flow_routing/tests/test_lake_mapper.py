@@ -2,19 +2,22 @@
 """
 test_lake_mapper: 
 
-Created on Sun Sep 27 09:52:50 2015
+Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker
 """
 
+import landlab
 from landlab import RasterModelGrid
 from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 from numpy import sin, pi
+import numpy as np  # for use of np.round
+from numpy.testing import assert_array_equal
 
-NUM_GRID_ROWS = 32
-NUM_GRID_COLS = 32
-PERIOD_X = 32.
-PERIOD_Y = 16.
+NUM_GRID_ROWS = 8
+NUM_GRID_COLS = 8
+PERIOD_X = 8.
+PERIOD_Y = 4.
 
 
 def create_test_grid():
@@ -52,6 +55,68 @@ def check_fields(grid):
         raise
 
 
+def check_array_values(rmg, lm):
+    """
+    Check values of the various fields against known values.
+    """
+    assert_array_equal(lm.is_pit, \
+    [False, False, False, False, False, False, False, False, False, False, False, False,
+     False, False,  True, False, False, False, False, False, False, False, False, False,
+     False, False,  True, False, False, False, False, False, False, False, False, False,
+     False, False, False, False, False, False, False, False, False, False,  True, False,
+     False,  True, False, False, False, False, False, False, False, False, False, False,
+     False, False, False, False])
+
+    assert_array_equal(lm.flood_status, \
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    dd1 = np.round(lm.depression_depth*100)
+    assert_array_equal(dd1, \
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+
+    dd1 = np.round(rmg.at_node['depression__depth']*100)
+    assert_array_equal(dd1, \
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+      
+    assert_array_equal(lm.depression_outlet, \
+    [2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647,          5,          5, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
+     2147483647,          5,          5,          5,          5, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5,          5,
+              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
+     2147483647,         50, 2147483647, 2147483647, 2147483647,          5,
+              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647, 2147483647])
+
+    assert_array_equal(rmg.at_node['depression__outlet_node_id'], \
+    [2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647,          5,          5, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
+     2147483647,          5,          5,          5,          5, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5,          5,
+              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
+     2147483647,         50, 2147483647, 2147483647, 2147483647,          5,
+              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+     2147483647, 2147483647, 2147483647, 2147483647])
+
+
 def test_lake_mapper():
     """
     Create a test grid and run a series of tests.
@@ -69,12 +134,7 @@ def test_lake_mapper():
     
     # Run tests
     check_fields(rmg)
-    
-#    for i in range(rmg.number_of_nodes/4):
-#        print i, rmg.node_x[i], rmg.node_y[i], rmg.at_node['topographic__elevation'][i], \
-#            lm.is_pit[i], lm.flood_status[i], rmg.at_node['depression__depth'][i], \
-#            rmg.at_node['depression__outlet_node_id'][i]
-            
+    check_array_values(rmg, lm)
     
     
 if __name__=='__main__':
