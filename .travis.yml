@@ -7,6 +7,9 @@ python:
 os:
 - linux
 - osx
+matrix:
+  allow_failures:
+    - os: osx
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
