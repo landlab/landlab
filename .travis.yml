@@ -9,8 +9,9 @@ os:
 - linux
 - osx
 matrix:
-  allow_failures:
+  exclude:
     - os: osx
+      env: TRAVIS_PYTHON_VERSION="2.6"
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
