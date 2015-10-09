@@ -22,6 +22,7 @@ install:
 - source activate test-env
 - pip install coveralls
 - conda install numpy=$NUMPY_VERSION
+- conda install scipy
 - python setup.py install
 script:
 - (cd docs && make html 2> /dev/null)
