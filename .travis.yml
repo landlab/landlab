@@ -6,6 +6,7 @@ python:
 - '3.4'
 os:
 - linux
+- osx
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
