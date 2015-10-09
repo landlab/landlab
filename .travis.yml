@@ -9,7 +9,7 @@ os:
 - linux
 - osx
 matrix:
-  exclude:
+  allow_failures:
     - os: osx
       env: TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
 sudo: false
