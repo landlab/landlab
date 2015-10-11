@@ -1,15 +1,17 @@
-language: python
-python:
-- '2.6'
-- '2.7'
-- '3.3'
-- '3.4'
+env:
+  - TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.10"
+  - TRAVIS_PYTHON_VERSION="3.3" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.10"
 os:
 - linux
 - osx
 matrix:
   allow_failures:
     - os: osx
+      env: TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
@@ -17,6 +19,8 @@ install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - source activate test-env
 - pip install coveralls
+- conda install numpy=$NUMPY_VERSION
+- conda install scipy
 - python setup.py install
 script:
 - (cd docs && make html 2> /dev/null)
@@ -32,6 +36,7 @@ deploy:
   on:
     tags: true
     repo: landlab/landlab
+  distributions: "sdist bdist_wheel"
 notifications:
   slack:
     secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=
