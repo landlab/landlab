@@ -30,9 +30,9 @@ virtualenv:
 after_success: coveralls
 deploy:
   provider: pypi
-  user: landlab
+  user: mcflugen
   password:
-    secure: Ba/spYvhJuoXB9Kv78xwU2AMEcQe4USIbSX5S2d8ytmjKNFwYSOGZ8W4snyoq/txkPhaz97joKp8uFJd0YITf6A6feP5vEatZWKQQ8qKf68eo9AaK+vSxUQuoPBnEt0EZ/l/77t6XYWtYCB2+m6jD8/rxO2x+LG9PQ3IBk80sNQ=
+    secure: "gb0S9ei9RkXM5sKke4HOC0u0/g63Qd7pq+uSFURavq9szrt3vfRkDZMnRiC/8G1NJ6xuWzPugJdU3yRtJPp6lCvjwFVb4M9PY1TFkvQ5bcqy9c9OF5kCmjrKaCvK9uTmB5getn1Xnp6DX97LUXB2fB25AOKoKQlRXro2k0713IY="
   on:
     tags: true
     repo: landlab/landlab

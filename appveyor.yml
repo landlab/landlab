@@ -6,7 +6,7 @@ environment:
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     NUMPY_VERSION: "1.9.1"
     PYPI_PASS:
-      secure: McZCupcxPPhf+ZTqvVMc2sEEg1L9o34VQZOhc85dNJI=
+      secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
     - PYTHON_VERSION: "2.6"
