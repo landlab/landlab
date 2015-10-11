@@ -36,6 +36,7 @@ deploy:
   on:
     tags: true
     repo: landlab/landlab
+  distributions: "sdist bdist_wheel"
 notifications:
   slack:
     secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=
