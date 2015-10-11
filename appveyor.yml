@@ -5,6 +5,8 @@ environment:
     MINICONDA_VERSION: "3.5.5"
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     NUMPY_VERSION: "1.9.1"
+    PYPI_PASS:
+      secure: McZCupcxPPhf+ZTqvVMc2sEEg1L9o34VQZOhc85dNJI=
 
   matrix:
     - PYTHON_VERSION: "2.6"
@@ -53,6 +55,9 @@ deploy:
   folder: incoming/huttone/
   on:
     appveyor_repo_tag: true
+
+deploy_script:
+  - "powershell .ci/appveyor/deploy_to_pypi.ps1"
 
 notifications:
   - provider: Slack
