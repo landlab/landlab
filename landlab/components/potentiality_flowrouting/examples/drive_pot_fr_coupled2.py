@@ -39,7 +39,7 @@ section_col = int((0.5*mg.number_of_node_columns)//1)
 mg.at_node['topographic__elevation'][section_col] = 1.
 mg.set_closed_boundaries_at_grid_edges(True, False, False, False)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
-mg.node_status[section_col] = 2
+mg.status_at_node[section_col] = 2
 mg.update_links_nodes_cells_to_new_BCs()
 mg.at_node['water__volume_flux_in'].fill(0.)
 mg.at_node['water__volume_flux_in'][inlet_node] = 1.

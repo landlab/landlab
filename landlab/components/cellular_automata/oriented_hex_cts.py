@@ -2,7 +2,7 @@
 """
 oriented_hex_cts.py: simple hexagonal Landlab cellular automaton
 
-This file defines the OrientedHexCTS class, which is a sub-class of 
+This file defines the OrientedHexCTS class, which is a sub-class of
 CellLabCTSModel that implements a simple, non-oriented, hex-grid
 CA. Like its parent class, OrientedHexCTS implements a continuous-time, stochastic,
 pair-based CA. The hex grid has 3 principal directions, rather than 2 for a
@@ -20,7 +20,7 @@ from ...grid import HexModelGrid
 class OrientedHexCTS(CellLabCTSModel):
     """
     Class OrientedHexCTS implements an oriented hex-grid CellLab-CTS model.
-    
+
     Example
     -------
     >>> from landlab import HexModelGrid
@@ -34,13 +34,13 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
     >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
-    
+
     def __init__(self, model_grid, node_state_dict, transition_list,
                  initial_node_states, prop_data=None, prop_reset_value=None):
         """
         OrientedHexCTS constructor: sets number of orientations to 3 and calls
         base-class constructor.
-        
+
         Parameters
         ----------
         model_grid : Landlab ModelGrid object
@@ -57,43 +57,43 @@ class OrientedHexCTS(CellLabCTSModel):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        
-        # Make sure caller has sent the right grid type        
+
+        # Make sure caller has sent the right grid type
         if not isinstance(model_grid, HexModelGrid):
             raise TypeError('model_grid must be a Landlab HexModelGrid')
-               
+
         # Somehow test to make sure the grid links have been re-oriented to
         # point up/right (-45 to +135 degrees clockwise relative to vertical).
         # Such orientation is ensured when the argument reorient_grid=True is
         # passed to the hex grid constructor.
-               
+
         # Define the number of distinct cell-pair orientations: here 3,
         # representing
         self.number_of_orientations = 3
-        
+
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(OrientedHexCTS, self).__init__(model_grid, node_state_dict, 
+        super(OrientedHexCTS, self).__init__(model_grid, node_state_dict,
             transition_list, initial_node_states, prop_data, prop_reset_value)
-            
+
 
     def setup_array_of_orientation_codes(self):
         """
-        Creates and configures an array that contain the orientation code for 
+        Creates and configures an array that contain the orientation code for
         each active link (and corresponding cell pair).
-        
+
         Parameters
         ----------
         (none)
-        
+
         Returns
         -------
         (none)
-        
+
         Creates
         -------
         self.active_link_orientation : 1D numpy array
-        
+
         Notes
         -----
         This overrides the method of the same name in celllab_cts.py. If the hex

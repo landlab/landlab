@@ -5,6 +5,8 @@ environment:
     MINICONDA_VERSION: "3.5.5"
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     NUMPY_VERSION: "1.9.1"
+    PYPI_PASS:
+      secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
     - PYTHON_VERSION: "2.6"
@@ -28,6 +30,7 @@ install:
   - "python --version"
   - "conda install -q --yes numpy=%NUMPY_VERSION% pip jinja2 scipy nose>=1.3 matplotlib netCDF4 sympy pandas Cython"
   - "pip install wheel"
+  - "pip install twine"
   - "%WITH_COMPILER% python setup.py install"
 
 build: false
@@ -44,12 +47,11 @@ artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
 
-deploy:
-  provider: FTP
-  protocol: ftp
-  host: csdms.colorado.edu
-  username: anonymous
-  password: appveyor@appveyor.com
-  folder: incoming/huttone/
-  on:
-    appveyor_repo_tag: true
+deploy_script:
+  - "powershell .ci/appveyor/deploy_to_pypi.ps1"
+
+notifications:
+  - provider: Slack
+    auth_token:
+      secure: hvij8zEmE9LqjvwUJteiIZdwutlETmcJWwI/PtQEiAn3Hb2J+SH0Ye+pxMot2J2mc4i+zeNpHlzu8NV2CcLXzA==
+    channel: testing

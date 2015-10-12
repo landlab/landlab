@@ -1,5 +1,5 @@
 #########################################################
-##  
+##
 ##    Example for soil_moisture_field.py
 ##
 ##    Sai Nudurupati and Erkan Istanbulluoglu - 15May2014

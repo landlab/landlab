@@ -194,49 +194,49 @@ class PerronNLDiffuse(object):
         self.left_flag = 1
         self.right_flag = 1
         # self.corner_flags = [1,1,1,1] #In ID order, so BL,BR,TL,TR
-        if numpy.all(grid.node_status[bottom_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 4):
             # ^This should be all of them, or none of them
             self.bottom_flag = 4
-        elif numpy.all(grid.node_status[bottom_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 3):
             self.bottom_flag = 3
-        elif numpy.all(grid.node_status[bottom_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 2):
             self.bottom_flag = 2
-        elif numpy.all(grid.node_status[bottom_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 1):
             pass
         else:
             raise NameError('''Different cells on the same grid edge have
                             different boundary statuses!!''')
             # Note this could get fraught if we need to open a cell to let
             # water flow out...
-        if numpy.all(grid.node_status[top_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[top_nodes[1:-1]] == 4):
             self.top_flag = 4
-        elif numpy.all(grid.node_status[top_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 3):
             self.top_flag = 3
-        elif numpy.all(grid.node_status[top_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 2):
             self.top_flag = 2
-        elif numpy.all(grid.node_status[top_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 1):
             pass
         else:
             raise NameError('''Different cells on the same grid edge have
                             different boundary statuses!!''')
-        if numpy.all(grid.node_status[left_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[left_nodes[1:-1]] == 4):
             self.left_flag = 4
-        elif numpy.all(grid.node_status[left_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 3):
             self.left_flag = 3
-        elif numpy.all(grid.node_status[left_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 2):
             self.left_flag = 2
-        elif numpy.all(grid.node_status[left_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 1):
             pass
         else:
             raise NameError('''Different cells on the same grid edge have
                             different boundary statuses!!''')
-        if numpy.all(grid.node_status[right_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[right_nodes[1:-1]] == 4):
             self.right_flag = 4
-        elif numpy.all(grid.node_status[right_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 3):
             self.right_flag = 3
-        elif numpy.all(grid.node_status[right_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 2):
             self.right_flag = 2
-        elif numpy.all(grid.node_status[right_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 1):
             pass
         else:
             raise NameError('''Different cells on the same grid edge have
@@ -256,7 +256,7 @@ class PerronNLDiffuse(object):
                                  apply to the data the diffuser is trying to
                                  work with!""")
 
-        if numpy.any(grid.node_status == 2):
+        if numpy.any(grid.status_at_node == 2):
             self.fixed_grad_offset_map = numpy.empty(nrows*ncols, dtype=float)
             self.fixed_grad_anchor_map = numpy.empty_like(
                                                     self.fixed_grad_offset_map)
@@ -264,7 +264,7 @@ class PerronNLDiffuse(object):
                 'boundary_node_IDs']] = grid.fixed_gradient_node_properties[
                                                                'values_to_add']
 
-        self.corner_flags = grid.node_status[[0, ncols-1, -ncols, -1]]
+        self.corner_flags = grid.status_at_node[[0, ncols-1, -ncols, -1]]
 
         op_mat_just_corners = operating_matrix_ID_map[self.corner_interior_IDs,
                                                       :]

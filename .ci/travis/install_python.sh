@@ -5,7 +5,6 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 else
     OS="Linux-x86_64";
 fi
-sudo apt-get update 2> /dev/null || echo "No apt-get"
 if [[ "$TRAVIS_PYTHON_VERSION" == 2.* ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda-latest-$OS.sh -O miniconda.sh;
 else

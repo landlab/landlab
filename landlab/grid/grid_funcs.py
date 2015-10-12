@@ -1,47 +1,85 @@
+"""Utility functions that operate on landlab grids."""
+
+
 import numpy as np
 from six.moves import range
 
 
-def resolve_values_on_active_links(grid, active_link_values, out=None):
-    """
-    Takes a set of values defined on active links, and returns those values
-    resolved into the x and y directions.
-    Two link arrays are returned; x, then y.
-    """
-    if out is None:
-        out = grid.empty(centering='active_link')
+def resolve_values_on_active_links(grid, active_link_values):
+    """Resolve active-link values into x and y directions.
 
-    return np.multiply(((grid.node_x[grid.activelink_tonode] - 
-                         grid.node_x[grid.activelink_fromnode]) / 
-                         grid.active_link_length),
-                         active_link_values, out=out), np.multiply(
-                       ((grid.node_y[grid.activelink_tonode] - 
-                         grid.node_y[grid.activelink_fromnode]) / 
-                         grid.active_link_length),
-                         active_link_values, out=out)
-
-def resolve_values_on_links(grid, link_values, out=None):
-    """
     Takes a set of values defined on active links, and returns those values
-    resolved into the x and y directions.
-    Two link arrays are returned; x, then y.
+    resolved into the x and y directions.  Two link arrays are returned:
+    x, then y.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    active_link_values : ndarray
+        Values on active links.
+
+    Returns
+    -------
+    tuple of ndarray
+        Values resolved into x-component and y-component.
     """
-    if out is None:
-        out = grid.empty(centering='link')
-    return np.multiply(((grid.node_x[grid.node_at_link_head] - 
-                         grid.node_x[grid.node_at_link_tail]) / 
-                         grid.link_length),
-                         link_values, out=out), np.multiply(
-                       ((grid.node_y[grid.node_at_link_head] - 
-                         grid.node_y[grid.node_at_link_tail]) / 
-                         grid.link_length),
-                         link_values, out=out)
+    return (
+        np.multiply(((grid.node_x[grid.activelink_tonode] -
+                      grid.node_x[grid.activelink_fromnode]) /
+                     grid.active_link_length), active_link_values),
+        np.multiply(((grid.node_y[grid.activelink_tonode] -
+                      grid.node_y[grid.activelink_fromnode]) /
+                     grid.active_link_length), active_link_values))
+
+
+def resolve_values_on_links(grid, link_values):
+    """Resolve link values into x and y directions.
+
+    Takes a set of values defined on active links, and returns those values
+    resolved into the x and y directions.  Two link arrays are returned:
+    x, then y.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    link_values : ndarray
+        Values on links.
+
+    Returns
+    -------
+    tuple of ndarray
+        Values resolved into x-component and y-component.
+    """
+    return (
+        np.multiply(((grid.node_x[grid.node_at_link_head] -
+                      grid.node_x[grid.node_at_link_tail]) /
+                     grid.link_length), link_values),
+        np.multiply(((grid.node_y[grid.node_at_link_head] -
+                      grid.node_y[grid.node_at_link_tail]) /
+                     grid.link_length), link_values))
+
 
 def calculate_gradients_at_active_links(grid, node_values, out=None):
-    """
-    Calculates the gradient in *quantity* node_values at each active link in
+    """Calculate gradients of node values over active links.
+
+    Calculates the gradient in *quantity* node values at each active link in
     the grid.
-    Convention is POSITIVE UP.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Gradients across active links.
     """
     if out is None:
         out = grid.empty(centering='active_link')
@@ -51,10 +89,23 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
 
 
 def calculate_gradients_at_links(grid, node_values, out=None):
-    """
-    Calculates the gradient in *quantity* node_values at each link in
-    the grid.
-    Convention is POSITIVE UP.
+    """Calculate gradients of node values over links.
+
+    Calculates the gradient in *quantity* node_values at each link in the grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Gradients across links.
     """
     if out is None:
         out = grid.empty(centering='link')
@@ -64,10 +115,24 @@ def calculate_gradients_at_links(grid, node_values, out=None):
 
 
 def calculate_diff_at_active_links(grid, node_values, out=None):
-    """
+    """Calculate differences of node values over active links.
+
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
-    Slope UP is positive.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across active links.
     """
     if out is None:
         out = grid.empty(centering='active_link')
@@ -76,10 +141,24 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
 
 
 def calculate_diff_at_links(grid, node_values, out=None):
-    """
+    """Calculate differences of node values over links.
+
     Calculates the difference in quantity *node_values* at each link in the
     grid.
-    Slope UP is positive.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across links.
     """
     if out is None:
         out = grid.empty(centering='link')
@@ -88,21 +167,36 @@ def calculate_diff_at_links(grid, node_values, out=None):
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
-    """
+    """Calculate flux divergence at grid nodes.
+
     Same as calculate_flux_divergence_at_active_cells, but works with and
     returns a list of net unit fluxes that corresponds to all nodes, rather
-    than just active cells. 
-    
+    than just active cells.
+
     Note that we don't compute net unit fluxes at
-    boundary nodes (which don't have active cells associated with them, and 
-    often don't have cells of any kind, because they are on the perimeter), 
-    but simply return zeros for these entries. The advantage is that the 
-    caller can work with node-based arrays instead of active-cell-based 
+    boundary nodes (which don't have active cells associated with them, and
+    often don't have cells of any kind, because they are on the perimeter),
+    but simply return zeros for these entries. The advantage is that the
+    caller can work with node-based arrays instead of active-cell-based
     arrays.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    active_link_flux : ndarray
+        Fluxes at active links.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Net unit fluxes at nodes.
     """
-    assert (len(active_link_flux) == grid.number_of_active_links), \
-           "incorrect length of active_link_flux array"
-        
+    assert len(active_link_flux) == grid.number_of_active_links, (
+        "incorrect length of active_link_flux array")
+
     # If needed, create net_unit_flux array
     if out is None:
         out = grid.empty(centering='node')
@@ -110,7 +204,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     net_unit_flux = out
 
     assert len(net_unit_flux) == grid.number_of_nodes
-    
+
     # Create a flux array one item longer than the number of active links.
     # Populate it with flux times face width (so, total flux rather than
     # unit flux). Here, face_width is an array with one entry for each
@@ -118,22 +212,22 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # width of its corresponding face.
     flux = np.zeros(len(active_link_flux) + 1)
     flux[:len(active_link_flux)] = active_link_flux * grid.face_width
-    
+
     # Next, we need to add up the incoming and outgoing fluxes.
     #
-    # Notes: 
+    # Notes:
     #    1) because "net flux" is defined as positive outward, we add the
     #       outflux and subtract the influx
     #    2) the loop is over the number of rows in the inlink/outlink
     #       matrices. This dimension is equal to the maximum number of links
     #       attached to a node, so should be of order 6 or 7 and won't
     #       generally increase with the number of nodes in the grid.
-    # 
+    #
     for i in range(np.size(grid.node_active_inlink_matrix, 0)):
         net_unit_flux += flux[grid.node_active_outlink_matrix[i][:]]
         net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
-        
+
     # Now divide by cell areas ... where there are active cells.
     net_unit_flux[grid.activecell_node] /= grid.active_cell_areas
-            
+
     return net_unit_flux

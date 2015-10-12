@@ -61,7 +61,7 @@ while elapsed_time < time_to_run:
     #pylab.figure(1)
     #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
     #pylab.show()
-    
+
     mg = diffusion_component.diffuse(mg, elapsed_time)
     elapsed_time += dt
 

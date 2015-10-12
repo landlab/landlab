@@ -53,7 +53,7 @@ def main():
 
     if args.plot:
         grid.imshow('node', 'lithosphere__elevation',
-                    symmetric_cbar=False, cmap='spectral', show=True) 
+                    symmetric_cbar=False, cmap='spectral', show=True)
 
 if __name__ == '__main__':
     main()

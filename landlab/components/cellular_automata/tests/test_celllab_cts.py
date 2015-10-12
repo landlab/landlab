@@ -31,13 +31,13 @@ def callback_function(ca, node1, node2, time_now):
 #    elapsed_time = time_now - ca.last_update_time[node2]
 #    if ca.node_state[node2]==1:
 #        ca.prop_data[ca.propid[node2]]+=100*elapsed_time
-#    
+#
 
 
 
 def test_transition():
     """Test instantiation of Transition() object."""
-    t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test', 
+    t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test',
                    swap_properties=False, prop_update_fn=None)
     assert_equal(t.from_state, (0,0,0))
     assert_equal(t.to_state, (1,1,0))
@@ -45,8 +45,8 @@ def test_transition():
     assert_equal(t.name, 'test')
     assert_equal(t.swap_properties, False)
     assert_equal(t.prop_update_fn, None)
-    
-    
+
+
 def test_event_init():
     """Test instantiation of Event() object"""
     e = Event(2.0, 3, 4, propswap=False, prop_update_fn=None)
@@ -69,7 +69,7 @@ def test_raster_cts():
     Tests instantiation of a RasterCTS and implementation of one transition,
     with a callback function.
     """
-    
+
     # Set up a small grid with no events scheduled
     mg = RasterModelGrid(4, 4, 1.0)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -90,19 +90,19 @@ def test_raster_cts():
     assert (ca.num_link_states==4), 'wrong number of link states'
     assert (ca.prop_data[5]==50), 'error in property data'
     assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
-    assert (ca.node_active_links[1][6]==16), 'error in active link array'
+    assert (ca.active_links_at_node[1][6]==16), 'error in active link array'
     assert (ca.num_node_states==2), 'error in num_node_states'
     assert (ca.link_orientation[-1]==0), 'error in link orientation array'
     assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'
     assert (ca.n_xn[2]==1), 'error in n_xn'
     assert (ca.node_pair[1]==(0, 1, 0)), 'error in cell_pair list'
-    
+
     # Manipulate the data in the event queue for testing:
-    
+
     # pop the scheduled event off the queue
     ev = heappop(ca.event_queue)
     assert (ca.event_queue==[]), 'event queue should now be empty but is not'
-    
+
     # engineer an event
     ev.time = 1.0
     ev.link = 16
@@ -110,14 +110,14 @@ def test_raster_cts():
     ev.propswap = True
     ev.prop_update_fn = callback_function
     ca.next_update[16] = 1.0
-    
+
     # push it onto the event queue
     heappush(ca.event_queue, ev)
-    
+
     # run the CA
     ca.run(2.0)
-    
-    # some more tests. 
+
+    # some more tests.
     # Is current time advancing correctly? (should only go to 1.0, not 2.0)
     # Did the two nodes (5 and 6) correctly exchange states?
     # Did the property ID and data arrays get updated? Note that the "propswap"
@@ -127,7 +127,7 @@ def test_raster_cts():
     assert (ca.node_state[5]==0), 'error in node state 5'
     assert (ca.node_state[6]==1), 'error in node state 6'
     #assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
-    
+
 
 def test_oriented_raster_cts():
     """Tests instantiation of an OrientedRasterCTS() object"""
@@ -137,11 +137,11 @@ def test_oriented_raster_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'hopping'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
-    
+
     assert_equal(orcts.num_link_states, 8)
     assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
 
-    
+
 def test_hex_cts():
     """Tests instantiation of a HexCTS() object"""
     mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
@@ -150,11 +150,11 @@ def test_hex_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     hcts = HexCTS(mg, nsd, xnlist, nsg)
-    
+
     assert_equal(hcts.num_link_states, 4)
     assert_array_equal(hcts.link_orientation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-    
+
 def test_oriented_hex_cts():
     """Tests instantiation of an OrientedHexCTS() object"""
     mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
@@ -163,9 +163,9 @@ def test_oriented_hex_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-    
+
     assert_equal(ohcts.num_link_states, 12)
     assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
 
 
-    
+

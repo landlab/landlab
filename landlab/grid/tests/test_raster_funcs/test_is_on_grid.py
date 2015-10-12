@@ -12,6 +12,7 @@ from landlab import RasterModelGrid
 
 
 def test_with_arrays():
+    """Test with arrays as arg."""
     rmg = RasterModelGrid(4, 5, dx=2.0)
 
     coords = (np.array([1., -1.]), np.array([1., -1.]))
@@ -20,6 +21,7 @@ def test_with_arrays():
 
 
 def test_just_inside():
+    """Test with points just inside the grid."""
     rmg = RasterModelGrid(4, 5, dx=2.0)
 
     assert_equal(rfuncs.is_coord_on_grid(rmg, (0., 4.)), True)
@@ -29,6 +31,7 @@ def test_just_inside():
 
 
 def test_just_outside():
+    """Test with points just outside the grid."""
     rmg = RasterModelGrid(4, 5, dx=2.0)
 
     assert_equal(rfuncs.is_coord_on_grid(rmg, (0. - 1e-12, 4.)), False)
@@ -38,7 +41,7 @@ def test_just_outside():
 
 
 def test_just_x():
+    """Test check if points are within the x bounds."""
     rmg = RasterModelGrid(4, 5, dx=2.0)
     assert_equal(rfuncs.is_coord_on_grid(rmg, (4., 1.e6), axes=(1, )), True)
     assert_equal(rfuncs.is_coord_on_grid(rmg, (-1., 1.), axes=(1, )), False)
-

@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+
 class Component(object):
     _input_var_names = set()
     _output_var_names = set()
@@ -29,15 +30,15 @@ class Component(object):
     @property
     def units(self):
         return self._var_units
-    
+
     @property
     def var_units(self):
         return self._var_units
-        
+
     @property
     def var_definitions(self):
         return self._var_defs
-    
+
     @property
     def var_mapping(self):
         """var_mapping

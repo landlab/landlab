@@ -1,7 +1,7 @@
-"""Arrays of variable-length arrays.
+"""The JaggedArray class to store arrays of variable-length arrays.
 
 Examples
-========
+--------
 
 Create a JaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
@@ -42,6 +42,9 @@ from six.moves import range
 
 
 class JaggedArray(object):
+
+    """A container for an array of variable-length arrays."""
+
     def __init__(self, *args):
         """JaggedArray([row0, row1, ...])
         JaggedArray(values, values_per_row)
@@ -69,7 +72,8 @@ class JaggedArray(object):
 
         self._values = values
         self._number_of_rows = len(values_per_row)
-        self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
+        self._offsets = JaggedArray._offsets_from_values_per_row(
+            values_per_row)
         self._offsets.flags['WRITEABLE'] = False
 
     @property
@@ -96,7 +100,7 @@ class JaggedArray(object):
 
     @property
     def offset(self):
-        """Offsets to rows of a 1D array.
+        """The offsets to rows of a 1D array.
 
         Returns
         -------
@@ -161,6 +165,18 @@ class JaggedArray(object):
 
     @staticmethod
     def _offsets_from_values_per_row(values_per_row):
+        """Get offsets into the base array from array lengths.
+
+        Parameters
+        ----------
+        values_per_row : array of int
+            The number of values in each row of the JaggedArray.
+
+        Returns
+        -------
+        ndarray
+            An array of offsets.
+        """
         offset = np.empty(len(values_per_row) + 1, dtype=int)
         np.cumsum(values_per_row, out=offset[1:])
         offset[0] = 0
@@ -168,6 +184,20 @@ class JaggedArray(object):
 
     @staticmethod
     def empty_like(jagged, dtype=None):
+        """Create a new JaggedArray that is like another one.
+
+        Parameters
+        ----------
+        jagged : JaggedArray
+            A JaggedArray to copy.
+        dtype : np.dtype
+            The data type of the new JaggedArray.
+
+        Returns
+        -------
+        JaggedArray
+            A new JaggedArray.
+        """
         return JaggedArray(np.empty_like(jagged.array, dtype=dtype),
                            np.diff(jagged.offset))
 
@@ -196,7 +226,7 @@ class JaggedArray(object):
         return self._offsets[row + 1] - self._offsets[row]
 
     def row(self, row):
-        """Values of a row
+        """Get the values of a row as an array.
 
         Parameters
         ----------
@@ -235,11 +265,11 @@ class JaggedArray(object):
         array([0, 1, 2])
         array([3, 4])
         """
-        for n in range(self._number_of_rows):
-            yield self.row(n)
+        for row_number in range(self._number_of_rows):
+            yield self.row(row_number)
 
     def foreach_row(self, func, out=None):
-        """Apply an operator row-by-row
+        """Apply an operator row-by-row.
 
         Examples
         --------
@@ -257,7 +287,7 @@ class JaggedArray(object):
         if out is None:
             out = np.empty(self.number_of_rows, dtype=self._values.dtype)
 
-        for (m, row) in enumerate(self):
-            out[m] = func(row)
+        for (row_number, row) in enumerate(self):
+            out[row_number] = func(row)
 
         return out

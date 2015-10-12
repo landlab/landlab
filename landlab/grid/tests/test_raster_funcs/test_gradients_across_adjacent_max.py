@@ -11,18 +11,21 @@ from landlab.grid import raster_funcs as rfuncs
 
 
 def setup_unit_grid():
+    """Set up a test grid with unit spacing."""
     from landlab import RasterModelGrid
     globals()['rmg'] = RasterModelGrid(4, 5)
     globals()['values_at_nodes'] = np.arange(20, dtype=float)
 
 
 def setup_non_unit_grid():
+    """Set up a test grid with non-unit spacing."""
     from landlab import RasterModelGrid
     globals()['rmg'] = RasterModelGrid(4, 5, 2)
     globals()['values_at_nodes'] = np.arange(20, dtype=float)
 
 
 def setup_3x3_grid():
+    """Set up a grid of 3 rows and 3 columns."""
     from landlab import RasterModelGrid
     globals().update({
         'rmg_3x3': RasterModelGrid(3, 3),
@@ -31,8 +34,10 @@ def setup_3x3_grid():
                                                0, 1, 2], dtype=float))
     })
 
+
 @with_setup(setup_3x3_grid)
 def test_scalar_arg():
+    """Test scalar arg for nodes."""
     grad = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg_3x3, values_at_nodes, 0)
     assert_equal(grad, -3.)
@@ -49,6 +54,7 @@ def test_scalar_arg():
 
 @with_setup(setup_unit_grid)
 def test_iterable():
+    """Test iterable arg for nodes."""
     grad = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values_at_nodes, [0, 4])
     assert_array_equal(grad, [-5., -5.])
@@ -59,7 +65,7 @@ def test_scalar_arg_with_links():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,], dtype=float)
+                       0, 1, -3, 6, 10, ], dtype=float)
     (grad, node) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])
@@ -75,14 +81,15 @@ def test_scalar_arg_with_links():
 @with_setup(setup_unit_grid)
 def test_node_id_in_direction_of_max():
     values = np.array([-1, 1,  3, 6, 10,
-                        0, 1,  3, 6, 10,
-                        0, 1,  3, 5, 10,
-                        0, 1, -3, 6, 10,], dtype=float)
+                       0, 1,  3, 6, 10,
+                       0, 1,  3, 5, 10,
+                       0, 1, -3, 6, 10, ], dtype=float)
     (_, node_ids) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), return_node=True)
     assert_array_equal(node_ids, [5, 17])
 
-    (grads, node_ids) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
+    (grads,
+     node_ids) = rfuncs.calculate_steepest_descent_across_adjacent_cells(
         rmg, values, (0, 4), method='d8', return_node=True)
     assert_array_equal(node_ids, [0, 17])
 

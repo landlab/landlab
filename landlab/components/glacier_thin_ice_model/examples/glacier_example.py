@@ -8,7 +8,7 @@ import matplotlib as mpl
 
 def main():
 	'''
-	B: bed elevation 
+	B: bed elevation
 	b_dot:
 	dx: node spacing (dx = dy)
 	nx: number of columns of nodes
@@ -22,19 +22,19 @@ def main():
 	B = mat['B']
 	b_dot = mat['b_dot']
 	dx = mat['dx'][0,0]
-	dy = mat['dy'][0,0] 
+	dy = mat['dy'][0,0]
 	nx = np.int_(mat['nx'][0,0])
 	ny = np.int_(mat['ny'][0,0])
-	
+
 	t_STOP = 500        ### 1000
 	dt = 0.08333
-	t = 0	
+	t = 0
 
 	### put input data in a dictionary, and pass the dictionary as arguments
 	B,b_dot,S = flatten(B,b_dot)
 	dictionary = {'S':S,'B':B,'b_dot':b_dot,'dt':dt,'t_STOP':t_STOP,'t':t,'dx':dx,'nx':nx,'ny':ny}
 	grid = RasterModelGrid(nx,ny,dx)
-	gla = Glacier(grid,dictionary) 
+	gla = Glacier(grid,dictionary)
 	gla.recursive_steps()
 
 	### save outputs in ascill file
@@ -60,7 +60,7 @@ def main():
 
 	### plot map of observed and simulated masks of ice
 	plot_mask('I_map.txt','obs_map.txt')
-	
+
 
 def flatten(B,b_dot):
 	### flatten two dimensional matrix
@@ -72,14 +72,14 @@ def flatten(B,b_dot):
 
 def plot_mask(ifile_sim,ifile_obs):
 	'''
-	plot simulated and observed masks of ice 
+	plot simulated and observed masks of ice
 
 	'''
 
 	# make presence of ice from simulated ice file as 1
 	# make presence of ice from observed ice file as 2
 	# make presence of ice in overlapping area as 3
-	
+
 	dat_sim = np.genfromtxt(ifile_sim)
 	dat_obs = np.genfromtxt(ifile_obs)
 	dat_obs[np.where(dat_obs==1)] = 2

@@ -37,6 +37,7 @@ def test_add_multiple_groups():
     fields.new_field_location('link', 7)
     assert_set_equal(set(['node', 'cell', 'face', 'link']), fields.groups)
 
+
 def test_ones():
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
@@ -47,6 +48,7 @@ def test_ones():
 
     value_array = fields.ones('cell')
     assert_array_equal(np.ones(2), value_array)
+
 
 def test_add_ones():
     fields = ModelDataFields()
@@ -60,6 +62,7 @@ def test_add_ones():
     fields.add_ones('cell', 'z')
     assert_array_equal(np.ones(2), fields['cell']['z'])
     assert_array_equal(np.ones(2), fields.field_values('cell', 'z'))
+
 
 def test_add_ones_return_value():
     fields = ModelDataFields()
@@ -75,6 +78,7 @@ def test_add_ones_return_value():
     assert_array_equal(rtn_value, np.ones(2))
     assert_is(rtn_value, fields['cell']['z'])
     assert_is(rtn_value, fields.field_values('cell', 'z'))
+
 
 def test_getitem():
     fields = ModelDataFields()
@@ -94,6 +98,7 @@ def test_at_attribute():
 
     fields.add_ones('node', 'z')
     assert_array_equal(np.ones(12), fields.at_node['z'])
+
 
 def test_has_group():
     fields = ModelDataFields()

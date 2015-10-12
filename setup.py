@@ -31,7 +31,7 @@ def register(**kwds):
     data = urllib.urlencode(kwds)
     header = {"Content-type": "application/x-www-form-urlencoded",
               "Accept": "text/plain"}
-    conn = httplib.HTTPConnection('csdms.colorado.edu') 
+    conn = httplib.HTTPConnection('csdms.colorado.edu')
     conn.request('POST', '/register/', data, header)
 
 

@@ -64,6 +64,7 @@ def test_4x3_read_file_name():
                                  3.,  4.,  5.,
                                  0.,  1.,  2.]))
 
+
 def test_4x3_read_file_like():
     with open(os.path.join(_TEST_DATA_DIR, '4_x_3.asc')) as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
@@ -154,7 +155,7 @@ nrows         4
 ncols         3
 xllcorner     1.
 yllcorner     2.
-cellsize      
+cellsize
 NODATA_value  -9999
 invalid_key   1
         """)
@@ -198,7 +199,7 @@ NODATA_value  -9999
         """)
     header = read_asc_header(asc_file)
     assert_equal(header['xllcenter'], 1.)
-    #with assert_raises(KeyError):
+    # with assert_raises(KeyError):
     #    header['xllcorner']
     assert_raises(KeyError, lambda k: header[k], 'xllcorner')
 
@@ -261,7 +262,7 @@ NODATA_value  -999
 def test_name_keyword():
     (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
                                                  '4_x_3.asc'),
-                                   name='air__temperature')
+                                    name='air__temperature')
 
     assert_is_instance(grid, RasterModelGrid)
 

@@ -1,7 +1,7 @@
 '''
 simple_sp_driver.py
 
-A simple driver implementing Braun-Willett flow routing and then a 
+A simple driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 DEJH, 09/15/14
 '''
@@ -35,7 +35,7 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
-#make some K values in a field to test 
+#make some K values in a field to test
 mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 
 print( 'Running ...' )
@@ -86,4 +86,4 @@ pylab.show()
 
 print('Done.')
 
-    
+

@@ -35,14 +35,15 @@ def setup_grid():
 
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
-    grad = rmg.calculate_steepest_descent_across_cell_corners(values_at_nodes, 0)
+    grad = rmg.calculate_steepest_descent_across_cell_corners(
+        values_at_nodes, 0)
     assert_equal(grad, - 6. / np.sqrt(2.))
 
 
 @with_setup(setup_unit_grid)
 def test_iterable():
     grads = rmg.calculate_steepest_descent_across_cell_corners(values_at_nodes,
-                                                           [0, 4])
+                                                               [0, 4])
     assert_array_equal(grads, - np.array([6., 6.]) / np.sqrt(2))
 
 

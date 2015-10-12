@@ -15,6 +15,7 @@ class VtkError(Exception):
 
 
 class InvalidFormatError(VtkError):
+
     def __init__(self, format):
         self.name = format
 
@@ -23,6 +24,7 @@ class InvalidFormatError(VtkError):
 
 
 class InvalidEncodingError(VtkError):
+
     def __init__(self, encoding):
         self.name = encoding
 
@@ -42,12 +44,12 @@ def assemble_vtk_document(element):
             pass
     grid.appendChild(piece)
     root.appendChild(grid)
-  
+
     try:
         root.appendChild(element['AppendedData'])
     except KeyError:
         pass
-  
+
     return root
 
 
@@ -59,9 +61,10 @@ def assert_format_is_valid(format_string):
 def assert_encoding_is_valid(encoding_string):
     if encoding not in _VALID_ENCODINGS:
         raise InvalidEncodingError(encoding)
-  
-  
+
+
 class VtkWriter(xml.dom.minidom.Document):
+
     def __init__(self, **kwds):
         self._format = kwds.pop('format', 'ascii')
         self._encoding = kwds.pop('encoding', 'ascii')
@@ -76,7 +79,7 @@ class VtkWriter(xml.dom.minidom.Document):
             self._data = VtkAppendedDataElement('', encoding=self.encoding)
         else:
             self._data = None
-  
+
         xml.dom.minidom.Document.__init__(self)
 
     @property
@@ -103,7 +106,7 @@ class VtkWriter(xml.dom.minidom.Document):
 
         self.appendChild(assemble_vtk_document(elements))
         self.to_xml(path)
-  
+
     def to_xml(self, path):
         with open(path, 'w') as xml_file:
             xml_file.write(self.toprettyxml())
@@ -130,7 +133,8 @@ def assemble_vtk_elements(element):
 
 
 class VTKDatabase(VtkWriter):
-    def write (self, path, **kwargs):
+
+    def write(self, path, **kwargs):
         (base, file) = os.path.split(path)
         (root, ext) = os.path.splitext(file)
 
@@ -140,7 +144,7 @@ class VTKDatabase(VtkWriter):
             self._count = 0
             next_file = '%s_%04d%s' % (root, self._count, ext)
 
-        VtkWriter.write(self, os.path.join (base, next_file), **kwargs)
+        VtkWriter.write(self, os.path.join(base, next_file), **kwargs)
 
         self._count += 1
 

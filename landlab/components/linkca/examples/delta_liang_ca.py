@@ -19,15 +19,15 @@ def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for a weathering model.
-    
-    We employ a scheme where sediment *can* move independently of water 
+
+    We employ a scheme where sediment *can* move independently of water
     precipitons, but once it is caught up by a precipiton, it tends to stay
-    with it until ejected to a floodplain, dropped by the flow, or the 
+    with it until ejected to a floodplain, dropped by the flow, or the
     precipiton reaches the sea.
-    
+
     The states and transitions are as follows (note: X-X means "horizontal"
     pair, X/X means "vertical" pair with first item beneath second):
-    
+
     Node states
     -----------
     0 ocean
@@ -38,7 +38,7 @@ def setup_transition_list():
     5 channel with water and sediment packet
     6 floodplain with sediment packet
     7 abandoned channel
-        
+
     Pair state      Transition to       Process     Rate
     ----------      -------------       -------     ----
     (0-0)
@@ -67,7 +67,7 @@ def setup_transition_list():
     (3-3)
     (3-4)           (1-5)               Water envelops sediment packet
                     (5-1)               Sediment packet migrates into precipiton
-    (3-5)           (5-3)               Sed packet gets passed downstream in flow              
+    (3-5)           (5-3)               Sed packet gets passed downstream in flow
     (3-6)           (5-2)               Sed cannibalized from floodplain into channel
     (3-7)
     (4-4)
@@ -80,14 +80,14 @@ def setup_transition_list():
     (6-6)
     (6-7)           (2-2)               Abandoned channel fills with floodplain sed
     (7-7)
-    
+
     """
     xn_list = []
-    
+
     subaerial_sed_mobility = 1.
     precipiton_mobility = 1.
     jump_to_plain_rate = subaerial_sed_mobility
     backwater_rate = precipiton_mobility #This is the (3-5)->(5-3) rate. set it lower to simulate backwater effects??
-    
-    
+
+
     xn_list.append( Transition((0,3,0), (1,0,0), ) ) #there won't be direction here... probably (Man does use a global direction wrighting, gamma)

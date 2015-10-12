@@ -55,7 +55,7 @@ for i in xrange(loops):
         angle[j] = craters_component.impact_angle_to_normal
         az[j] = craters_component.impactor_travel_azimuth
         mass_balance[j] = craters_component.mass_balance
-        
+
         #if np.any(np.isnan(mg['node']['topographic__elevation'])):
         #    print np.where(np.isnan(mg['node']['topographic__elevation']))
         print('Completed loop ', j)
@@ -93,7 +93,7 @@ for i in xrange(loops):
         angle[j] = craters_component.impact_angle_to_normal
         az[j] = craters_component.impactor_travel_azimuth
         mass_balance[j] = craters_component.mass_balance
-        
+
         #if np.any(np.isnan(mg['node']['topographic__elevation'])):
         #    print np.where(np.isnan(mg['node']['topographic__elevation']))
         print('Completed loop ', j)

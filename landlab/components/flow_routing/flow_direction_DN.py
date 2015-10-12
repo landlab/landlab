@@ -22,7 +22,7 @@ UNDEFINED_INDEX = BAD_INDEX_VALUE
 def grid_flow_directions(grid, elevations):
     """Flow directions on raster grid.
 
-    Calculate flow directions for node elevations on a raster grid. 
+    Calculate flow directions for node elevations on a raster grid.
     Each node is assigned a single direction, toward one of its neighboring
     nodes (or itself, if none of its neighbors are lower). There is only
     flow from one node to another if there is a negative gradient. If a
@@ -62,7 +62,7 @@ def grid_flow_directions(grid, elevations):
         5 - 1 - 2 - 2 - 5
         |   |   |   |   |
         5 - 0 - 5 - 5 - 5
-        
+
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
@@ -116,7 +116,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     Finds and returns flow directions for a given elevation grid. Each node is
     assigned a single direction, toward one of its N neighboring nodes (or
     itself, if none of its neighbors are lower).
-    
+
     Parameters
     ----------
     elev : array_like
@@ -132,7 +132,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         means the link runs uphill from the fromnode to the tonode).
     baselevel_nodes : array_like, optional
         IDs of open boundary (baselevel) nodes.
-    
+
     Returns
     -------
     receiver : ndarray
@@ -145,13 +145,13 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     receiver_link : ndarray
         ID of link that leads from each node to its receiver, or
         UNDEFINED_INDEX if none.
-    
+
     Examples
     --------
     The example below assigns elevations to the 10-node example network in
     Braun and Willett (2012), so that their original flow pattern should be
     re-created.
-    
+
     >>> import numpy as np
     >>> from landlab.components.flow_routing.flow_direction_DN import flow_directions
     >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
@@ -173,14 +173,14 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     active links. Ways to do this:
         - Pass active_links in as argument
         - In calling code, only refer to receiver_links for active nodes
-    
+
     """
     # Setup
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
     receiver = np.arange(num_nodes)
     receiver_link = UNDEFINED_INDEX + np.zeros(num_nodes, dtype=np.int)
-    
+
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
     # from donor to receiver is steeper than the steepest one found so far for
@@ -193,8 +193,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
 
     #DEJH attempting to replace the node-by-node loop, 5/28/14:
     #This is actually about the same speed on a 100*100 grid!
-    #as of Dec 2014, we prioritise the weave if a weave is viable, and only do 
-    #the numpy methods if it's not (~10% speed gain on 100x100 grid; 
+    #as of Dec 2014, we prioritise the weave if a weave is viable, and only do
+    #the numpy methods if it's not (~10% speed gain on 100x100 grid;
     #presumably better if the grid is bigger)
     method = 'cython'
     if method == 'cython':
@@ -216,7 +216,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                     receiver[t] = f
                     steepest_slope[t] = -link_slope[i]
                     receiver_link[t] = active_links[i]
-        else:    
+        else:
             #alternative, assuming grid structure doesn't change between steps
             #global neighbor_nodes
             #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
@@ -229,7 +229,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                 neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
                 links_list = np.empty_like(neighbor_nodes)
                 links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)
-                links_list[:,4:] = grid.node_diagonal_links().T[grid.active_nodes,:] #SW,NW,NE,NE
+                links_list[:,4:] = grid.diagonal_links_at_node().T[grid.active_nodes,:] #SW,NW,NE,NE
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
             slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.link_length[links_list]
             axis_indices = np.argmax(slope_array, axis=1)
@@ -238,7 +238,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
             downslope_active = downslope[grid.active_nodes]
             receiver[downslope] = neighbor_nodes[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
             receiver_link[downslope] = links_list[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
-            
+
     node_id = np.arange(num_nodes)
 
     # Optionally, handle baselevel nodes: they are their own receivers
@@ -246,16 +246,16 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         receiver[baselevel_nodes] = node_id[baselevel_nodes]
         receiver_link[baselevel_nodes] = UNDEFINED_INDEX
         steepest_slope[baselevel_nodes] = 0.
-    
+
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
     (sink, ) = np.where(node_id==receiver)
     sink = as_id_array(sink)
-    
+
     return receiver, steepest_slope, sink, receiver_link
-    
-    
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

@@ -6,7 +6,8 @@ Created on Sat May 30 14:01:10 2015
 """
 from __future__ import print_function
 
-from landlab import ModelParameterDictionary, Component, FieldError, FIXED_VALUE_BOUNDARY
+from landlab import ModelParameterDictionary, Component, FieldError, \
+                    FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy  # Used for: count_nonzero
@@ -21,7 +22,11 @@ _FLOODED = 3
 
 
 class DepressionFinderAndRouter(Component):
-    
+    """
+    This component identifies depressions in a topographic surface, finds an
+    outlet for each depression, and [when GT or someone else finishes it]
+    will modify the drainage directions accordingly.
+    """
     _name = 'DepressionFinderAndRouter'
     
     _input_var_names = set(['topographic__elevation',
@@ -44,17 +49,25 @@ class DepressionFinderAndRouter(Component):
                   }
     
     def __init__(self, grid, input_stream=None, current_time=0.):
+        """
+        Constructor assigns a copy of the grid, sets the current time, and
+        calls the initialize method.
+        """
         self._grid = grid
         self.current_time = current_time
         self.initialize(input_stream)
 
 
     def initialize(self, input_stream=None):
-        
+        """
+        The BMI-style initialize method takes an optional input_stream
+        parameter, which may be either a ModelParameterDictionary object or
+        an input stream from which a ModelParameterDictionary can read values.
+        """
         # Create a ModelParameterDictionary for the inputs
         if input_stream is None:
             inputs = None
-        elif type(input_stream)==ModelParameterDictionary:
+        elif type(input_stream) == ModelParameterDictionary:
             inputs = input_stream
         else:
             inputs = ModelParameterDictionary(input_stream)
@@ -69,35 +82,41 @@ class DepressionFinderAndRouter(Component):
             try:
                 topo_field_name = inputs.read_string('ELEVATION_FIELD_NAME')
             except AttributeError:
-                print('Error: Because your grid does not have a node field called')
-                print('"topographic__elevation", you need to pass the name of')
-                print('a text input file or ModelParameterDictionary, and this')
-                print('file or dictionary needs to include the name of another')
-                print('field in your grid that contains your elevation data.')
+                print('Error: Because your grid does not have a node field')
+                print('called "topographic__elevation", you need to pass the')
+                print('name of a text input file or ModelParameterDictionary,')
+                print('and this file or dictionary needs to include the name')
+                print('of another field in your grid that contains your')
+                print('elevation data.')
                 raise AttributeError
             except MissingKeyError:
-                print('Error: Because your grid does not have a node field called')
-                print('"topographic__elevation", your input file (or')
-                print('ModelParameterDictionary) must include an entry with the')
-                print('key "ELEVATION_FIELD_NAME", which gives the name of a')
-                print('field in your grid that contains your elevation data.')
+                print('Error: Because your grid does not have a node field')
+                print('called "topographic__elevation", your input file (or')
+                print('ModelParameterDictionary) must include an entry with')
+                print('the key "ELEVATION_FIELD_NAME", which gives the name')
+                print('of a field in your grid that contains your elevation')
+                print('data.')
                 raise MissingKeyError('ELEVATION_FIELD_NAME')
             try:
                 self._elev = self._grid.at_node[topo_field_name]
             except AttributeError:
-                print('Your grid does not seem to include a node field called',topo_field_name)
+                print('Your grid does not seem to have a node field called', \
+                      topo_field_name)
                 
         # Create output variables.
         #
-        # Note that we initialize depression depth to -1 (negative values make
-        # no sense, so this is a clue to non-flooded nodes), and depression
+        # Note that we initialize depression 
         # outlet ID to BAD_INDEX_VALUE (which is a major clue!)
-        self.depression_depth = self._grid.add_zeros('node', 'depression__depth') - 1.0             
-        self.depression_outlet = self._grid.add_zeros('node', 'depression__outlet_node_id', dtype=int) + BAD_INDEX_VALUE               
-                
+        self.depression_depth = self._grid.add_zeros('node', \
+                                                     'depression__depth')
+        self.depression_outlet = self._grid.add_zeros('node', \
+                                                'depression__outlet_node_id', \
+                                                dtype=int)
+        self.depression_outlet += BAD_INDEX_VALUE       
+
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
-        self._BIG_ELEV = numpy.amax(self._elev)+1
+        self._BIG_ELEV = numpy.amax(self._elev) + 1
         
         # We'll also need a handy copy of the node neighbor lists
         # TODO: presently, this grid method seems to only exist for Raster grids.
@@ -111,7 +130,7 @@ class DepressionFinderAndRouter(Component):
                 
     def find_pits(self):
         """
-        Locates local depressions ("pits") in a gridded elevation field.
+        Locate local depressions ("pits") in a gridded elevation field.
         
         Uses
         ----
@@ -139,7 +158,6 @@ class DepressionFinderAndRouter(Component):
         elevations. If one is an open boundary, then the other must be a core
         node, and we declare the latter not to be a pit (via rule 2 above).
         """
-        
         # Create the is_pit array, with all core nodes initialized to True and
         # all boundary nodes initialized to False.
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
@@ -168,9 +186,9 @@ class DepressionFinderAndRouter(Component):
             elif self._elev[t] > self._elev[h]:
                 self.is_pit[t] = False
             elif self._elev[h] == self._elev[t]:
-                if self._grid.node_boundary_status[h]==FIXED_VALUE_BOUNDARY:
+                if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
                     self.is_pit[t] = False
-                elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
+                elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
                     self.is_pit[h] = False
                     
         # If we have a raster grid, handle the diagonal active links too
@@ -187,9 +205,9 @@ class DepressionFinderAndRouter(Component):
                 elif self._elev[t] > self._elev[h]:
                     self.is_pit[t] = False
                 elif self._elev[h] == self._elev[t]:
-                    if self._grid.node_boundary_status[h]==FIXED_VALUE_BOUNDARY:
+                    if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
                         self.is_pit[t] = False
-                    elif self._grid.node_boundary_status[t]==FIXED_VALUE_BOUNDARY:
+                    elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
                         self.is_pit[h] = False
 
         # Record the number of pits and the IDs of pit nodes.
@@ -198,7 +216,9 @@ class DepressionFinderAndRouter(Component):
         
         
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
-        
+        """
+        Locate the lowest node on the margin of the 'lake'.
+        """
         # Start with the first node on the list, and an arbitrarily large elev
         lowest_node = nodes_this_depression[0]
         lowest_elev = self._BIG_ELEV
@@ -209,29 +229,33 @@ class DepressionFinderAndRouter(Component):
             for nbr in self._node_nbrs[n]:
                 #print nbr
                 if nbr!=BAD_INDEX_VALUE:
-                    if self.flood_status[nbr]==_UNFLOODED:
+                    if self.flood_status[nbr] == _UNFLOODED:
                         if self._elev[nbr] < lowest_elev:
                             lowest_node = nbr
                             lowest_elev = self._elev[nbr]
-                    elif self.flood_status[nbr]==_PIT or self.flood_status[nbr]==_FLOODED:
+                    elif self.flood_status[nbr]==_PIT or \
+                         self.flood_status[nbr] == _FLOODED:
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
                         
-        #print '  lowest node on lake perim is',lowest_node,'with elev',lowest_elev
+        # print '  lowest node on perim is',lowest_node,'with elev',lowest_elev
         return lowest_node
         
         
     def node_can_drain(self, the_node, nodes_this_depression):
-        
+        """
+        Determine whether the given node has drainage away from the current
+        lake/depression.
+        """
         #print '    checking drainage for node',the_node
         for nbr in self._node_nbrs[the_node]:
             #print '    checking nbr',nbr
-            if nbr!=BAD_INDEX_VALUE:
+            if nbr != BAD_INDEX_VALUE:
                 #print '    this nbr is valid'
                 #print '    its flood status is',self.flood_status[nbr]
                 if self._elev[nbr] < self._elev[the_node] and \
-                   self.flood_status[nbr]!=_CURRENT_LAKE and \
-                   self.flood_status[nbr]!=_FLOODED:  # caveat about outlet elevation...
+                   self.flood_status[nbr] != _CURRENT_LAKE and \
+                   self.flood_status[nbr] != _FLOODED:  # caveat about outlet elevation...
                     #print '    Eureka!'
                     return True
         
@@ -240,8 +264,10 @@ class DepressionFinderAndRouter(Component):
             
         
     def is_valid_outlet(self, the_node, nodes_this_depression):
-        
-        if self._grid.node_boundary_status[the_node]==FIXED_VALUE_BOUNDARY:
+        """
+        Determine whether the given node is a valid outlet for the depression.
+        """
+        if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
             #print '   this node is an open boundary, so of course it can drain'
             return True
             
@@ -253,7 +279,10 @@ class DepressionFinderAndRouter(Component):
             
             
     def record_depression_depth_and_outlet(self, nodes_this_depression, outlet_id):
-        
+        """
+        Record information about this depression/lake in the flood_status,
+        depression_depth, and depression_outlet arrays.
+        """
         for n in nodes_this_depression:
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
@@ -261,7 +290,10 @@ class DepressionFinderAndRouter(Component):
             
 
     def find_depression_from_pit(self, pit_node):
-        
+        """
+        Identify extent of depression/lake whose lowest point is the node
+        pit_node (which is a itself a pit, a.k.a., closed depression).
+        """
         #print ' processing pit at',pit_node
         
         # Place pit_node at top of depression list
@@ -304,7 +336,8 @@ class DepressionFinderAndRouter(Component):
         
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
-        self.record_depression_depth_and_outlet(nodes_this_depression, lowest_node_on_perimeter)
+        self.record_depression_depth_and_outlet(nodes_this_depression, 
+                                                lowest_node_on_perimeter)
         
         # TODO: ideally we need a way to keep track of the number, area extent,
         # and average depth of depressions. Tricky thing is that one might be
@@ -312,7 +345,10 @@ class DepressionFinderAndRouter(Component):
         
         
     def identify_depressions_and_outlets(self):
-                
+        """
+        Find and map the depressions/lakes in a topographic surface,
+        given a previously identified list of pits (if any) in the surface.
+        """
         for pit_node in self.pit_node_ids:
             #print 'mapping lake starting from pit',pit_node
             self.find_depression_from_pit(pit_node)
@@ -320,6 +356,8 @@ class DepressionFinderAndRouter(Component):
                 
     def map_depressions(self):
         """
+        Map depressions/lakes in a topographic surface.        
+        
         Examples
         --------
         Test #1: 5x5 raster grid with a diagonal lake.
@@ -344,14 +382,17 @@ class DepressionFinderAndRouter(Component):
         self.find_pits()
         
         # Set up "lake code" array
-        self.flood_status = self._grid.add_zeros('node', 'flood_status_code') + _UNFLOODED
+        self.flood_status = self._grid.add_zeros('node', 'flood_status_code', \
+                                                 dtype=int) + _UNFLOODED
         self.flood_status[self.pit_node_ids] = _PIT
         
         self.identify_depressions_and_outlets()
         
         
     def display_depression_map(self):
-        
+        """
+        Display on screen a simple character-based map of depressions/lakes.
+        """
         # Find the outlet nodes (just for display purposes)
         is_outlet = numpy.zeros(self._grid.number_of_nodes, dtype=bool)
         for i in self._grid.core_nodes:

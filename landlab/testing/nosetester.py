@@ -36,14 +36,14 @@ class LandlabTester(Tester):
             package_path = str(package)
 
         self.package_path = os.path.abspath(package_path)
-        
+
         # Find the package name under test; this name is used to limit coverage
         # reporting (if enabled).
         if package_name is None:
             #package_name = get_package_name(package_path)
             package_name = 'landlab'
         self.package_name = package_name
-        
+
         # Set to "release" in constructor in maintenance branches.
         self.raise_warnings = raise_warnings
 

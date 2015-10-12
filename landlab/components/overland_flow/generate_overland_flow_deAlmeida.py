@@ -30,7 +30,7 @@ class OverlandFlow(Component):
     The :class:`OverlandFlow` component contains necessary and optional
     inputs (read from a :class:`~landlab.ModelParameterDictionary` file). If
     not given, default input file and values is used.
-    
+
     - Manning's n is needed, default value of 0.01 (`MANNINGS_N`).
     - Storm duration is needed IF rainfall_duration is not passed in the
       initialization (`STORM_DURATION`).
@@ -234,7 +234,7 @@ class OverlandFlow(Component):
         # links which are needed for the de Almeida solution
 
         # First we identify all active links
-        self.active_ids = links.active_link_ids(grid.shape, grid.node_status)
+        self.active_ids = links.active_link_ids(grid.shape, grid.status_at_node)
 
         # And then find all horizontal link IDs (Active and Inactive)
         self.horizontal_ids = links.horizontal_link_ids(grid.shape)
@@ -255,7 +255,7 @@ class OverlandFlow(Component):
             grid.shape, self.active_ids)
 
         if self.use_fixed_links:
-            fixed_link_ids = links.fixed_link_ids(grid.shape, grid.node_status)
+            fixed_link_ids = links.fixed_link_ids(grid.shape, grid.status_at_node)
             fixed_horizontal_links = links.horizontal_fixed_link_ids(
                 grid.shape, fixed_link_ids)
             fixed_vertical_links = links.vertical_fixed_link_ids(

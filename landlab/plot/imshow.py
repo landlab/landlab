@@ -2,7 +2,7 @@
 
 import numpy as np
 import inspect
-from landlab.field.grouped import FieldError
+from landlab.field.scalar_data_fields import FieldError
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -64,17 +64,17 @@ def imshow_node_grid(grid, values, **kwds):
     """
     if type(values) == str:
         value_str = values
-        values=grid.at_node[values]
+        values = grid.at_node[values]
 
     assert_array_size_matches(values, grid.number_of_nodes,
-            'number of values does not match number of nodes')
+                              'number of values does not match number of nodes')
 
     data = values.view()
 
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
 
-    data = np.ma.masked_where((grid.node_status == 4).reshape(grid.shape),
+    data = np.ma.masked_where((grid.status_at_node == 4).reshape(grid.shape),
                               data)
 
     myimage = _imshow_grid_values(grid, data, **kwds)
@@ -106,16 +106,16 @@ def imshow_active_node_grid(grid, values, other_node_val='min', **kwds):
     active_nodes = grid.active_nodes
     try:
         assert_array_size_matches(values, active_nodes.size,
-            'number of values does not match number of active nodes')
+                                  'number of values does not match number of active nodes')
     except ValueError:
         assert_array_size_matches(values[active_nodes], active_nodes.size,
-            'number of values does not match number of active nodes')
+                                  'number of values does not match number of active nodes')
         values_to_use = values[active_nodes]
     else:
         values_to_use = values
 
     data = np.zeros(grid.number_of_nodes)
-    if other_node_val!='min':
+    if other_node_val != 'min':
         data.fill(other_node_val)
     else:
         data.fill(np.min(values_to_use))
@@ -154,22 +154,22 @@ def imshow_core_node_grid(grid, values, other_node_val='min', **kwds):
     if type(values) == str:
         value_str = values
         try:
-            values=grid.at_core_node[values]
+            values = grid.at_core_node[values]
         except FieldError:
-            values=grid.at_node[values][active_nodes]
+            values = grid.at_node[values][active_nodes]
 
     try:
         assert_array_size_matches(values, active_nodes.size,
-            'number of values does not match number of active nodes')
+                                  'number of values does not match number of active nodes')
     except ValueError:
         assert_array_size_matches(values[active_nodes], active_nodes.size,
-            'number of values does not match number of active nodes')
+                                  'number of values does not match number of active nodes')
         values_to_use = values[active_nodes]
     else:
         values_to_use = values
 
     data = np.zeros(grid.number_of_nodes)
-    if other_node_val!='min':
+    if other_node_val != 'min':
         data.fill(other_node_val)
     else:
         data.fill(np.min(values_to_use))
@@ -204,16 +204,16 @@ def imshow_cell_grid(grid, values, **kwds):
     if type(values) == str:
         value_str = values
         try:
-            values=grid.at_cell[values]
+            values = grid.at_cell[values]
         except FieldError:
-            values=grid.at_node[values][cells]
+            values = grid.at_node[values][cells]
 
     try:
         assert_array_size_matches(values, cells.size,
-            'number of values does not match number of cells')
+                                  'number of values does not match number of cells')
     except ValueError:
         assert_array_size_matches(values[cells], cells.size,
-            'number of values does not match number of cells')
+                                  'number of values does not match number of cells')
         values_to_use = values[cells]
     else:
         values_to_use = values
@@ -249,19 +249,19 @@ def imshow_active_cell_grid(grid, values, other_node_val='min', **kwds):
     """
 
     active_cells = grid.node_at_core_cell
-    
+
     try:
         assert_array_size_matches(values, active_cells.size,
-            'number of values does not match number of active cells')
+                                  'number of values does not match number of active cells')
     except ValueError:
         assert_array_size_matches(values[active_cells], active_cells.size,
-            'number of values does not match number of active cells')
+                                  'number of values does not match number of active cells')
         values_to_use = values[active_cells]
     else:
         values_to_use = values
 
     data = np.zeros(grid.number_of_nodes)
-    if other_node_val!='min':
+    if other_node_val != 'min':
         data.fill(other_node_val)
     else:
         data.fill(np.min(values_to_use))
@@ -288,7 +288,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
 
     if RasterModelGrid in gridtypes:
         if len(values.shape) != 2:
-            raise ValueError('dimension of values must be 2 (%s)' % values.shape)
+            raise ValueError(
+                'dimension of values must be 2 (%s)' % values.shape)
 
         y = np.arange(values.shape[0] + 1) * grid.dx - grid.dx * .5
         x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
@@ -325,7 +326,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         if var_name is not None:
             plt.title('%s (%s)' % (var_name, var_units))
 
-        #plt.show()
+        # plt.show()
 
     elif VoronoiDelaunayGrid in gridtypes:
         # This is still very much ad-hoc, and needs prettifying.
@@ -338,17 +339,19 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         import matplotlib.cm as cmx
         cm = plt.get_cmap(cmap)
         if limits is None:
-            #only want to work with NOT CLOSED nodes
-            open_nodes = grid.node_status!=4
+            # only want to work with NOT CLOSED nodes
+            open_nodes = grid.status_at_node != 4
             if symmetric_cbar:
-                (var_min, var_max) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
+                (var_min, var_max) = (values.flat[
+                    open_nodes].min(), values.flat[open_nodes].max())
                 limit = max(abs(var_min), abs(var_max))
                 (vmin, vmax) = (- limit, limit)
             else:
-                (vmin, vmax) = (values.flat[open_nodes].min(), values.flat[open_nodes].max())
+                (vmin, vmax) = (values.flat[
+                    open_nodes].min(), values.flat[open_nodes].max())
         else:
             (vmin, vmax) = (limits[0], limits[1])
-        cNorm = colors.Normalize(vmin,vmax)
+        cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
 
@@ -359,11 +362,11 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
             colortouse = next(mycolors)
             if -1 not in region:
                 polygon = [grid.vor.vertices[i] for i in region]
-                plt.fill(*zip(*polygon),color=colortouse)
-                #must be TOTALLY sure the ordering is right
+                plt.fill(*zip(*polygon), color=colortouse)
+                # must be TOTALLY sure the ordering is right
 
         plt.gca().set_aspect(1.)
-        #plt.autoscale(tight=True)
+        # plt.autoscale(tight=True)
         plt.xlim((np.min(grid.node_x), np.max(grid.node_x)))
         plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
 
@@ -407,16 +410,18 @@ def imshow_field(field, name, **kwds):
 # Added by Sai Nudurupati 29Oct2013
 # This function is exactly the same as imshow_grid but this function plots
 # arrays spread over cells rather than nodes
-##DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
+# DEJH: Sai, this is duplicating what we already had I think. I deprecated it.
+
+
 def imshow_active_cells(grid, values, var_name=None, var_units=None,
-                grid_units=(None, None), symmetric_cbar=False,
-                cmap='pink'):
+                        grid_units=(None, None), symmetric_cbar=False,
+                        cmap='pink'):
     """
     .. deprecated:: 0.6
     Use :meth:`imshow_active_cell_grid`, above, instead.
     """
     data = values.view()
-    data.shape = (grid.shape[0]-2, grid.shape[1]-2)
+    data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
     y = np.arange(data.shape[0]) - grid.dx * .5
     x = np.arange(data.shape[1]) - grid.dx * .5
