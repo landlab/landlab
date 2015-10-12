@@ -3,3 +3,4 @@ languages:
 exclude_paths:
 - "docs/*"
 - "scripts/*"
+- "landlab/components/**/*"
