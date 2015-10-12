@@ -5,3 +5,4 @@ exclude_paths:
 - "scripts/*"
 - "landlab/components/**/*"
 - "landlab/examples/*"
+- "landlab/**/test_*.py"
