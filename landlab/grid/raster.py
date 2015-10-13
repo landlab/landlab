@@ -13,7 +13,6 @@ from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
-from . import grid_funcs as gfuncs
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK,
@@ -26,6 +25,7 @@ from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import return_id_array
+from . import gradients
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -3461,7 +3461,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Use :func:`calculate_gradient_across_cell_faces`
                     or :func:`calculate_gradient_across_cell_corners` instead
         """
-        diffs = gfuncs.calculate_diff_at_links(self, node_values, out=out)
+        diffs = gradients.calculate_diff_at_links(self, node_values, out=out)
         return np.divide(diffs, self._dx, out=diffs)
 
     @track_this_method
@@ -3507,8 +3507,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 10.,  10., -10., -10., -10., -10., -10.,   0.,  10.,  10.,  10.,
                -10.,  10.,  10.,  10., -10.,  10.])
         """
-        diffs = gfuncs.calculate_diff_at_active_links(self, node_values,
-                                                      out=out)
+        diffs = gradients.calculate_diff_at_active_links(self, node_values,
+                                                         out=out)
         return np.divide(diffs, self._dx, out=diffs)
 
     def calculate_gradients_at_d8_active_links(self, node_values, out=None):
