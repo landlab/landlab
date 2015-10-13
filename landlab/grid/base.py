@@ -1208,45 +1208,6 @@ class ModelGrid(ModelDataFields):
         except KeyError:
             raise TypeError(centering)
 
-    def calculate_diff_at_links(self, node_values, out=None):
-        """Get differences at links.
-
-        Calculates the difference in quantity *node_values* at every link
-        in the grid. Note that this is tonode-fromnode along links, and is
-        thus equivalent to positive gradient up.
-
-        Parameters
-        ----------
-        node_values : ndarary
-            Values at grid nodes.
-
-        Returns
-        -------
-        ndarray
-            Differences over links.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 3)
-        >>> z = np.zeros(9)
-        >>> z[4] = 1.
-        >>> rmg.calculate_diff_at_links(z)
-        array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
-        """
-        return gfuncs.calculate_diff_at_links(self, node_values, out=out)
-
-    def calculate_diff_at_active_links(self, node_values, out=None):
-        """Get differences at active links.
-
-        Calculates the difference in quantity *node_values* at each active link
-        in the grid. Note that this is tonode-fromnode along links, and is
-        thus equivalent to positive gradient up.
-        """
-        return gfuncs.calculate_diff_at_active_links(self, node_values,
-                                                     out=out)
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
