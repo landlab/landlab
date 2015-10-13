@@ -1247,27 +1247,6 @@ class ModelGrid(ModelDataFields):
         return gfuncs.calculate_diff_at_active_links(self, node_values,
                                                      out=out)
 
-    @track_this_method
-    def calculate_gradients_at_links(self, node_values, out=None):
-        """Get gradients at links.
-
-        Calculates the gradient in quantity *node_values* at every link
-        in the grid.
-        This method follows the convention POSITIVE UP.
-        """
-        return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
-
-    @track_this_method
-    def calculate_gradients_at_active_links(self, node_values, out=None):
-        """Get gradients at active links.
-
-        Calculates the gradient in quantity *node_values* at each active link
-        in the grid.
-        This method follows the convention POSITIVE UP.
-        """
-        return gfuncs.calculate_gradients_at_active_links(self, node_values,
-                                                          out=out)
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
@@ -3179,6 +3158,7 @@ class ModelGrid(ModelDataFields):
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
+add_module_functions_to_class(ModelGrid, 'gradients.py', pattern='calculate_*')
 
 
 if __name__ == '__main__':
