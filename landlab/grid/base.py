@@ -895,11 +895,6 @@ class ModelGrid(ModelDataFields):
         self._axis_name = tuple(new_names)
 
     @property
-    def status_at_node(self):
-        """Get array of the status of all nodes."""
-        return self._node_status
-
-    @property
     def status_at_link(self):
         """Get array of the status of all links."""
         return self._link_status
