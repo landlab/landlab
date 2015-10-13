@@ -878,6 +878,11 @@ class ModelGrid(ModelDataFields):
         """Get array of the status of all nodes."""
         return self._node_status
 
+    @property
+    def status_at_link(self):
+        """Get array of the status of all links."""
+        return self._link_status
+
     @status_at_node.setter
     def status_at_node(self, new_status_array):
         self._node_status[:] = new_status_array[:]
@@ -1838,7 +1843,7 @@ class ModelGrid(ModelDataFields):
             six.print_('ModelGrid._reset_link_status_list')
 
         try:
-            already_fixed = self.link_status == FIXED_LINK
+            already_fixed = self._link_status == FIXED_LINK
         except AttributeError:
             already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
 
@@ -1871,16 +1876,16 @@ class ModelGrid(ModelDataFields):
                        already_fixed)
 
         try:
-            self.link_status.fill(4)
+            self._link_status.fill(4)
         except AttributeError:
-            self.link_status = numpy.empty(self.number_of_links, dtype=int)
-            self.link_status.fill(4)
+            self._link_status = numpy.empty(self.number_of_links, dtype=int)
+            self._link_status.fill(4)
 
-        self.link_status[active_links] = 0
+        self._link_status[active_links] = 0
 
-        self.link_status[fixed_links] = 2
+        self._link_status[fixed_links] = 2
 
-        active_links = self.link_status == 0  # now it's correct
+        active_links = self._link_status == 0  # now it's correct
         (self.active_link_ids, ) = numpy.where(active_links)
         (self.fixed_link_ids, ) = numpy.where(fixed_links)
         self.active_link_ids = as_id_array(self.active_link_ids)

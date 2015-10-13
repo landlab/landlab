@@ -1074,7 +1074,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_tonode = []
 
         try:
-            already_fixed = self.link_status == FIXED_LINK
+            already_fixed = self._link_status == FIXED_LINK
         except AttributeError:
             already_fixed = np.zeros(self.number_of_links, dtype=bool)
 
@@ -4888,7 +4888,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # Set the node and link boundary statuses to
             # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
             self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
-            self.link_status[bottom_edge] = FIXED_LINK
+            self._link_status[bottom_edge] = FIXED_LINK
 
             # Append the node and link ids to the array created earlier to
             # track boundary statuses
@@ -4902,7 +4902,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             right_nodes = self.right_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[right_edge] = FIXED_LINK
+            self._link_status[right_edge] = FIXED_LINK
             self._node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4916,7 +4916,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top_nodes = self.top_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[top_edge] = FIXED_LINK
+            self._link_status[top_edge] = FIXED_LINK
             self._node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4930,7 +4930,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_nodes = self.left_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[left_edge] = FIXED_LINK
+            self._link_status[left_edge] = FIXED_LINK
             self._node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4964,12 +4964,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 (tonode_status == FIXED_GRADIENT_BOUNDARY))
 
             # ... and setting their status to INACTIVE_LINK
-            self.link_status[inactive_links] = INACTIVE_LINK
+            self._link_status[inactive_links] = INACTIVE_LINK
 
             # Anywhere there are still FIXED_LINK statuses are our boundary
             # links
-            fixed_links = np.where(self.link_status == FIXED_LINK)
-            self.link_status[fixed_links] = FIXED_LINK
+            fixed_links = np.where(self._link_status == FIXED_LINK)
+            self._link_status[fixed_links] = FIXED_LINK
 
         # Readjust the fixed_nodes array to make sure entries are ints, aren't
         # duplicated and sorted from lowest value to highest.
