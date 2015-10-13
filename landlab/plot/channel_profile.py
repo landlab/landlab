@@ -28,7 +28,7 @@ except ImportError:
 def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
     if threshold == None:
         threshold = 2. * numpy.amin(grid.cell_areas)
-    boundary_nodes = grid.get_boundary_nodes()
+    boundary_nodes = grid.boundary_nodes
     #top_two_pc = len(boundary_nodes)//50
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
     starting_nodes = boundary_nodes[numpy.argsort(

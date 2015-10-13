@@ -25,6 +25,7 @@ from ..io.netcdf import write_netcdf
 from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
+from .decorators import return_id_array
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -4240,6 +4241,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return sgrid.right_edge_node_ids(self.shape)
 
+    @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
         """Convert node indices to node ID.
 
@@ -4281,8 +4283,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
         """
-        ids = np.ravel_multi_index((row, col), self.shape, **kwds)
-        return as_id_array(ids)
+        return np.ravel_multi_index((row, col), self.shape, **kwds)
 
     def _setup_face_widths(self):
         """Set up array of face widths.
