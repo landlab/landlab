@@ -895,6 +895,7 @@ class ModelGrid(ModelDataFields):
         self._axis_name = tuple(new_names)
 
     @property
+    @make_return_array_immutable
     def status_at_link(self):
         """Get array of the status of all links."""
         return self._link_status
