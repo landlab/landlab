@@ -2131,7 +2131,7 @@ class ModelGrid(ModelDataFields):
                2, 2, 2, 0, 0, 0, 0, 0, 2,
                2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
 
-        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 0, 0, 0, 0, 0, 4,
                4, 4, 4, 2, 2, 2, 2, 2, 4,
