@@ -210,7 +210,7 @@ def _old_style_args(args):
 
 def _parse_grid_shape_from_args(args):
     """Get grid shape from args.
-    
+
     Parameters
     ----------
     args : iterable
@@ -236,7 +236,7 @@ def _parse_grid_shape_from_args(args):
 
 def _parse_grid_spacing_from_args(args):
     """Get grid spacing from args.
-    
+
     Parameters
     ----------
     args : iterable
@@ -1075,7 +1075,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_tonode = []
 
         try:
-            already_fixed = self.link_status == FIXED_LINK
+            already_fixed = self._link_status == FIXED_LINK
         except AttributeError:
             already_fixed = np.zeros(self.number_of_links, dtype=bool)
 
@@ -3206,7 +3206,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 raise ValueError(
                     'At the moment, you have to define all your boundaries '
                     'on the same set of values!')
-                # ...We probably want the syntax to be 
+                # ...We probably want the syntax to be
                 # rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT,
                 # to which we can pin these properties
             # The fixed_gradient_nodes should be uniquely defined...
@@ -3570,16 +3570,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         assert(len(max_slope) == self.number_of_nodes)
         assert(len(dstr_node_ids) == self.number_of_nodes)
 
-        gradients = np.zeros(len(link_gradients) + 1)
-        gradients[:-1] = link_gradients
+        gradients = np.zeros(self.number_of_links + 1)
+        gradients[self.active_links] = link_gradients
 
         # Make a matrix of the links. Need to append to this the gradients *on
         # the diagonals*.
         node_links = np.vstack(
-            (gradients[self.node_active_outlink_matrix[0][:]],
-             gradients[self.node_active_outlink_matrix[1][:]],
-             - gradients[self.node_active_inlink_matrix[0][:]],
-             - gradients[self.node_active_inlink_matrix[1][:]]))
+            (gradients[self.node_active_outlink_matrix2[0][:]],
+             gradients[self.node_active_outlink_matrix2[1][:]],
+             - gradients[self.node_active_inlink_matrix2[0][:]],
+             - gradients[self.node_active_inlink_matrix2[1][:]]))
 
         # calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(
@@ -4014,7 +4014,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         [topright, topleft, bottomleft, bottomright].
 
         .. note::
-            
+
             This is equivalent to the diagonals of all cells,
             and setting the neighbors of boundary-node cells to -1. In such a
             case, each node has one cell and each node-cell pair have the
@@ -4889,7 +4889,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # Set the node and link boundary statuses to
             # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
             self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
-            self.link_status[bottom_edge] = FIXED_LINK
+            self._link_status[bottom_edge] = FIXED_LINK
 
             # Append the node and link ids to the array created earlier to
             # track boundary statuses
@@ -4903,7 +4903,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             right_nodes = self.right_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[right_edge] = FIXED_LINK
+            self._link_status[right_edge] = FIXED_LINK
             self._node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4917,7 +4917,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top_nodes = self.top_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[top_edge] = FIXED_LINK
+            self._link_status[top_edge] = FIXED_LINK
             self._node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4931,7 +4931,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_nodes = self.left_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[left_edge] = FIXED_LINK
+            self._link_status[left_edge] = FIXED_LINK
             self._node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4965,12 +4965,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 (tonode_status == FIXED_GRADIENT_BOUNDARY))
 
             # ... and setting their status to INACTIVE_LINK
-            self.link_status[inactive_links] = INACTIVE_LINK
+            self._link_status[inactive_links] = INACTIVE_LINK
 
             # Anywhere there are still FIXED_LINK statuses are our boundary
             # links
-            fixed_links = np.where(self.link_status == FIXED_LINK)
-            self.link_status[fixed_links] = FIXED_LINK
+            fixed_links = np.where(self._link_status == FIXED_LINK)
+            self._link_status[fixed_links] = FIXED_LINK
 
         # Readjust the fixed_nodes array to make sure entries are ints, aren't
         # duplicated and sorted from lowest value to highest.
