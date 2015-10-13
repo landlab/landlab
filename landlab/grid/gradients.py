@@ -88,6 +88,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='link')
+    node_values = np.asarray(node_values)
     return np.subtract(node_values[grid.node_at_link_head],
                        node_values[grid.node_at_link_tail], out=out)
 
@@ -114,5 +115,6 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='active_link')
+    node_values = np.asarray(node_values)
     return np.subtract(node_values[grid.activelink_tonode],
                        node_values[grid.activelink_fromnode], out=out)
