@@ -335,12 +335,12 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z', np.arange(12.))
     >>> map_node_to_cell(rmg, 'z')
-    array([ 5., 6.])
+    array([ 5.,  6.])
 
     >>> values_at_cells = rmg.empty(centering='cell')
     >>> rtn = map_node_to_cell(rmg, 'z', out=values_at_cells)
     >>> values_at_cells
-    array([ 5., 6.])
+    array([ 5.,  6.])
     >>> rtn is values_at_cells
     True
     """

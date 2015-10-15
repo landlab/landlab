@@ -177,6 +177,7 @@ True
 """
 
 import numpy
+import numpy as np
 import warnings
 
 import six
