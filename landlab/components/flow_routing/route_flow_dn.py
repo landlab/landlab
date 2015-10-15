@@ -233,30 +233,29 @@ class FlowRouter(Component):
             else:
                 raise NameError("*method* argument must be set to 'D8' or 'D4'!")
         else:
-            raise TypeError  # for now
+            link_slope = -self._grid.calculate_gradients_at_active_links(elevs)
         # Find the baselevel nodes
         (baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == 1,
                              self._grid.status_at_node == 2))
 
         # Calculate flow directions
-        if self._is_raster:
-            if method=='D8':
-                receiver, steepest_slope, sink, recvr_link  = \
-                    flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_from,
-                                         self._activelink_to, link_slope,
-                                         grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
-            elif method=='D4':
-                num_d4_active = self._grid.number_of_active_links  # only d4
-                receiver, steepest_slope, sink, recvr_link  = \
-                    flow_direction_DN.flow_directions(elevs, self._active_links,
+        if self._is_raster and method=='D4':
+            num_d4_active = self._grid.number_of_active_links  # only d4
+            receiver, steepest_slope, sink, recvr_link  = \
+                flow_direction_DN.flow_directions(elevs, self._active_links,
                                          self._activelink_from[:num_d4_active],
                                          self._activelink_to[:num_d4_active],
                                          link_slope,
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
+        else:  # Voronoi or D8
+            receiver, steepest_slope, sink, recvr_link  = \
+                flow_direction_DN.flow_directions(elevs, self._active_links,
+                                     self._activelink_from,
+                                     self._activelink_to, link_slope,
+                                     grid=self._grid,
+                                     baselevel_nodes=baselevel_nodes)
 #############grid=None???
 
         # TODO: either need a way to calculate and return the *length* of the
