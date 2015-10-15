@@ -58,6 +58,10 @@ def imshow_node_grid(grid, values, **kwds):
         Fraction by which to shrink the colorbar.
     color_for_closed : str
         Color to use for closed nodes (default 'black')
+    show_elements : bool
+        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
+        corners) will be plotted along with just the colour of the cell
+        (defaults False).
 
     Use matplotlib functions like xlim, ylim to modify your
     plot after calling imshow_node_grid, as desired.
@@ -280,7 +284,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         grid_units=(None, None), symmetric_cbar=False,
                         cmap='pink', limits=None, allow_colorbar=True,
                         vmin=None, vmax=None,
-                        norm=None, shrink=1., color_for_closed='black'):
+                        norm=None, shrink=1., color_for_closed='black',
+                        show_elements=False):
 
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -356,7 +361,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
 
-        myimage = voronoi_plot_2d(grid.vor)
+        if show_elements:
+            myimage = voronoi_plot_2d(grid.vor)
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
@@ -364,7 +370,6 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
             if -1 not in region:
                 polygon = [grid.vor.vertices[i] for i in region]
                 plt.fill(*zip(*polygon), color=colortouse)
-                # must be TOTALLY sure the ordering is right
 
         plt.gca().set_aspect(1.)
         # plt.autoscale(tight=True)
@@ -380,7 +385,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         if var_name is not None:
             plt.title('%s (%s)' % (var_name, var_units))
 
-    return myimage
+    return None
 
 
 def imshow_grid(grid, values, **kwds):
