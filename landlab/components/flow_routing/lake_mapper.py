@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat May 30 14:01:10 2015
+Created on Sat May 30 14:01:10 2015.
 
 @author: gtucker
 """
