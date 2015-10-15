@@ -25,6 +25,7 @@ from ..io.netcdf import write_netcdf
 from landlab.grid.structured_quad import links
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
+from .decorators import return_id_array
 
 
 def node_has_boundary_neighbor(mg, id, method='d8'):
@@ -1074,7 +1075,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_tonode = []
 
         try:
-            already_fixed = self.link_status == FIXED_LINK
+            already_fixed = self._link_status == FIXED_LINK
         except AttributeError:
             already_fixed = np.zeros(self.number_of_links, dtype=bool)
 
@@ -4240,6 +4241,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return sgrid.right_edge_node_ids(self.shape)
 
+    @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
         """Convert node indices to node ID.
 
@@ -4281,8 +4283,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
         """
-        ids = np.ravel_multi_index((row, col), self.shape, **kwds)
-        return as_id_array(ids)
+        return np.ravel_multi_index((row, col), self.shape, **kwds)
 
     def _setup_face_widths(self):
         """Set up array of face widths.
@@ -4853,7 +4854,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
                0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
-        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
         array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2,
                2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0,
                2, 2, 0, 0, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
@@ -4888,7 +4889,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # Set the node and link boundary statuses to
             # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
             self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
-            self.link_status[bottom_edge] = FIXED_LINK
+            self._link_status[bottom_edge] = FIXED_LINK
 
             # Append the node and link ids to the array created earlier to
             # track boundary statuses
@@ -4902,7 +4903,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             right_nodes = self.right_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[right_edge] = FIXED_LINK
+            self._link_status[right_edge] = FIXED_LINK
             self._node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4916,7 +4917,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             top_nodes = self.top_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[top_edge] = FIXED_LINK
+            self._link_status[top_edge] = FIXED_LINK
             self._node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4930,7 +4931,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             left_nodes = self.left_edge_node_ids()
 
             # Set the new boundary statuses
-            self.link_status[left_edge] = FIXED_LINK
+            self._link_status[left_edge] = FIXED_LINK
             self._node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
 
             # Add the IDs to the array...
@@ -4964,12 +4965,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 (tonode_status == FIXED_GRADIENT_BOUNDARY))
 
             # ... and setting their status to INACTIVE_LINK
-            self.link_status[inactive_links] = INACTIVE_LINK
+            self._link_status[inactive_links] = INACTIVE_LINK
 
             # Anywhere there are still FIXED_LINK statuses are our boundary
             # links
-            fixed_links = np.where(self.link_status == FIXED_LINK)
-            self.link_status[fixed_links] = FIXED_LINK
+            fixed_links = np.where(self._link_status == FIXED_LINK)
+            self._link_status[fixed_links] = FIXED_LINK
 
         # Readjust the fixed_nodes array to make sure entries are ints, aren't
         # duplicated and sorted from lowest value to highest.

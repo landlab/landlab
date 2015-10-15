@@ -191,7 +191,8 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
-
+from .decorators import (override_array_setitem_and_reset, return_id_array,
+                         return_readonly_id_array)
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
@@ -546,11 +547,24 @@ class ModelGrid(ModelDataFields):
         return 2
 
     @property
+    @override_array_setitem_and_reset('update_links_nodes_cells_to_new_BCs')
+    def status_at_node(self):
+        """Get array of the boundary status for each node."""
+        return self._node_status
+
+    @status_at_node.setter
+    def status_at_node(self, new_status):
+        """Set the array of node boundary statuses."""
+        self._node_status[:] = new_status[:]
+        self.update_links_nodes_cells_to_new_BCs()
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells"""
         return self._node_at_cell
 
     @property
+    @return_readonly_id_array
     def active_nodes(self):
         """Get array of active nodes.
 
@@ -558,54 +572,60 @@ class ModelGrid(ModelDataFields):
         core_nodes will return just core nodes.
         """
         (active_node_ids, ) = numpy.where(self._node_status != CLOSED_BOUNDARY)
-        return as_id_array(active_node_ids)
+        return active_node_ids
 
     @property
+    @return_readonly_id_array
     def core_nodes(self):
         """Get array of core nodes."""
         try:
             return self._core_nodes
         except:
             (core_node_ids, ) = numpy.where(self._node_status == CORE_NODE)
-            return as_id_array(core_node_ids)
+            return core_node_ids
 
     @property
+    @return_readonly_id_array
     def boundary_nodes(self):
         """Get array of boundary nodes."""
         try:
             return self._boundary_nodes
         except:
             (boundary_node_ids, ) = numpy.where(self._node_status != CORE_NODE)
-            return as_id_array(boundary_node_ids)
+            return boundary_node_ids
 
     @property
+    @return_readonly_id_array
     def open_boundary_nodes(self):
         """Get array of open boundary nodes."""
         (open_boundary_node_ids, ) = numpy.where(
             (self._node_status != CLOSED_BOUNDARY) &
             (self._node_status != CORE_NODE))
-        return as_id_array(open_boundary_node_ids)
+        return open_boundary_node_ids
 
     @property
+    @return_readonly_id_array
     def closed_boundary_nodes(self):
         """Get array of closed boundary nodes."""
         (closed_boundary_node_ids, ) = numpy.where(
             self._node_status == CLOSED_BOUNDARY)
-        return as_id_array(closed_boundary_node_ids)
+        return closed_boundary_node_ids
 
     @property
+    @return_readonly_id_array
     def fixed_gradient_boundary_nodes(self):
         """Get array of fixed gradient boundary nodes."""
         (fixed_gradient_boundary_node_ids, ) = numpy.where(
             self._node_status == FIXED_GRADIENT_BOUNDARY)
-        return as_id_array(fixed_gradient_boundary_node_ids)
+        return fixed_gradient_boundary_node_ids
 
     @property
+    @return_readonly_id_array
     def fixed_value_boundary_nodes(self):
         """Get array of fixed value boundary nodes."""
         (fixed_value_boundary_node_ids, ) = numpy.where(
             self._node_status == FIXED_VALUE_BOUNDARY)
-        return as_id_array(fixed_value_boundary_node_ids)
+        return fixed_value_boundary_node_ids
 
     @property
     def active_links(self):
@@ -626,10 +646,11 @@ class ModelGrid(ModelDataFields):
             return self.fixed_link_ids
 
     @property
+    @return_readonly_id_array
     def node_at_core_cell(self):
         """Get array of nodes associated with core cells."""
         (core_cell_ids, ) = numpy.where(self._node_status == CORE_NODE)
-        return as_id_array(core_cell_ids)
+        return core_cell_ids
 
     @property
     def core_cell_index_at_nodes(self):
@@ -874,9 +895,10 @@ class ModelGrid(ModelDataFields):
         self._axis_name = tuple(new_names)
 
     @property
-    def status_at_node(self):
-        """Get array of the status of all nodes."""
-        return self._node_status
+    @make_return_array_immutable
+    def status_at_link(self):
+        """Get array of the status of all links."""
+        return self._link_status
 
     @status_at_node.setter
     def status_at_node(self, new_status_array):
@@ -1184,20 +1206,6 @@ class ModelGrid(ModelDataFields):
             return numpy.ones(self.number_of_elements(centering), **kwds)
         except KeyError:
             raise TypeError(centering)
-
-    def set_fixed_value_boundaries(self, node_ids):
-        """Make nodes fixed value boundaries.
-
-        Assignes FIXED_VALUE_BOUNDARY status to specified nodes.
-
-        Parameters
-        ----------
-        node_ids : array_like of int
-            Grid nodes to set as fixed value boundaries.
-        """
-        self._node_status[node_ids] = FIXED_VALUE_BOUNDARY
-        node_ids = numpy.array(range(0, self.number_of_nodes))
-        self.update_links_nodes_cells_to_new_BCs()
 
     def calculate_diff_at_links(self, node_values, out=None):
         """Get differences at links.
@@ -1838,7 +1846,7 @@ class ModelGrid(ModelDataFields):
             six.print_('ModelGrid._reset_link_status_list')
 
         try:
-            already_fixed = self.link_status == FIXED_LINK
+            already_fixed = self._link_status == FIXED_LINK
         except AttributeError:
             already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
 
@@ -1871,16 +1879,16 @@ class ModelGrid(ModelDataFields):
                        already_fixed)
 
         try:
-            self.link_status.fill(4)
+            self._link_status.fill(4)
         except AttributeError:
-            self.link_status = numpy.empty(self.number_of_links, dtype=int)
-            self.link_status.fill(4)
+            self._link_status = numpy.empty(self.number_of_links, dtype=int)
+            self._link_status.fill(4)
 
-        self.link_status[active_links] = 0
+        self._link_status[active_links] = 0
 
-        self.link_status[fixed_links] = 2
+        self._link_status[fixed_links] = 2
 
-        active_links = self.link_status == 0  # now it's correct
+        active_links = self._link_status == 0  # now it's correct
         (self.active_link_ids, ) = numpy.where(active_links)
         (self.fixed_link_ids, ) = numpy.where(fixed_links)
         self.active_link_ids = as_id_array(self.active_link_ids)
@@ -2119,7 +2127,7 @@ class ModelGrid(ModelDataFields):
                2, 2, 2, 0, 0, 0, 0, 0, 2,
                2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
 
-        >>> rmg.link_status # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 0, 0, 0, 0, 0, 4,
                4, 4, 4, 2, 2, 2, 2, 2, 4,
@@ -2755,18 +2763,6 @@ class ModelGrid(ModelDataFields):
             return ~ (self._node_status[ids] == CORE_NODE)
         else:
             return self._node_status[ids] == boundary_flag
-
-    def get_boundary_nodes(self):
-        """Boundary nodes of a grid.
-
-        Gat ids of all open and closed boundary nodes in the grid.
-
-        Returns
-        -------
-        ndarray
-            IDs of boundary nodes.
-        """
-        return as_id_array(numpy.where(self._node_status != 0)[0])
 
     def _assign_boundary_nodes_to_grid_sides(self):
         """Assign boundary nodes to a quadrant.
