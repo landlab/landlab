@@ -114,7 +114,7 @@ class DepressionFinderAndRouter(Component):
                                                 dtype=int)
         self.depression_outlet += BAD_INDEX_VALUE       
 
-        # Later on, we'll need a number that's guaranteed to be larger than the
+       # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
         self._BIG_ELEV = numpy.amax(self._elev) + 1
         
@@ -383,9 +383,10 @@ class DepressionFinderAndRouter(Component):
         
         # Set up "lake code" array
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code', \
-                                                 dtype=int) + _UNFLOODED
+                                                 dtype=int)
+        self.flood_status += _UNFLOODED
         self.flood_status[self.pit_node_ids] = _PIT
-        
+
         self.identify_depressions_and_outlets()
         
         
