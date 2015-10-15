@@ -56,6 +56,28 @@ are some options:
 (4) ...
 
 
+How do I test whether my grid is regular or irregular?
+------------------------------------------------------
+
+There are a number of cases when designing Landlab components where you'll want to do
+something one way if the grid is a raster, or another if it's a Voronoi-derived type.
+The way to do this is:
+
+.. code-block:: python
+
+    from landlab import RasterModelGrid, VoronoiDelaunayGrid
+    import inspect
+    # ...
+    grid_inheritance = inspect.getmro(grid.__class__)
+    if RasterModelGrid in grid_inheritance:
+        print('Doing it one way')
+    elif VoronoiDelaunayGrid in grid_inheritance:
+        print('Doing it the other way')
+    else:
+        raise TypeError('Landlab did not recognise your grid type!')
+
+
+
 Why are there no other FAQs besides these few?
 ----------------------------------------------
 
