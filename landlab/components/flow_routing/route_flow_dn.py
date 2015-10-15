@@ -21,7 +21,9 @@ from landlab.components.flow_routing import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
 from landlab import ModelParameterDictionary
+from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 import numpy
+import inspect
 
 #output_suppression_flag = True
 
@@ -95,6 +97,9 @@ class FlowRouter(Component):
         self._grid = model_grid
         self.value_field = 'topographic__elevation'
 
+        # set up the grid type testing:
+        self._is_raster = RasterModelGrid in inspect.getmro(self._grid.__class__)
+
         if input_params:
             if type(input_params) == str:
                 input_dict = ModelParameterDictionary(input_params)
@@ -104,11 +109,12 @@ class FlowRouter(Component):
 
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
-        if type(model_grid) is landlab.grid.raster.RasterModelGrid:
+        if self._is_raster:
             dal, d8f, d8t = model_grid.d8_active_links()
             self._active_links = dal
             self._activelink_from = d8f
             self._activelink_to = d8t
+            # needs modifying in the loop if D4 (now done)
         else:
             self._active_links = model_grid.active_links
             self._activelink_from = model_grid.activelink_fromnode
@@ -148,11 +154,15 @@ class FlowRouter(Component):
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
 
 
-    def route_flow(self):
+    def route_flow(self, method='D8'):
         """
         Routes surface-water flow by (1) assigning to each node a single
         drainage direction, and then (2) adding up the number of nodes that
         contribute flow to each node on the grid (including the node itself).
+
+        Takes (optional):
+            - method: 'D8' (default), or 'D4'. This argument has no effect for
+              a Voronoi-based grid.
 
         Stores as ModelGrid fields:
             - Node array of receivers (nodes that receive flow):
@@ -215,21 +225,37 @@ class FlowRouter(Component):
 
 
         # Calculate the downhill-positive slopes at the d8 active links
-        #TODO: generalize to use EITHER D8, if raster, or just active links,
-        # otherwise.
-        link_slope = -self._grid.calculate_gradients_at_d8_active_links(elevs)
+        if self._is_raster:
+            if method=='D8':
+                link_slope = -self._grid.calculate_gradients_at_d8_active_links(elevs)
+            elif method=='D4':
+                link_slope = -self._grid.calculate_gradients_at_active_links(elevs)
+            else:
+                raise NameError("*method* argument must be set to 'D8' or 'D4'!")
+        else:
+            link_slope = -self._grid.calculate_gradients_at_active_links(elevs)
         # Find the baselevel nodes
         (baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == 1,
                              self._grid.status_at_node == 2))
 
         # Calculate flow directions
-        receiver, steepest_slope, sink, recvr_link  = \
-            flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_from,
-                                         self._activelink_to, link_slope,
+        if self._is_raster and method=='D4':
+            num_d4_active = self._grid.number_of_active_links  # only d4
+            receiver, steepest_slope, sink, recvr_link  = \
+                flow_direction_DN.flow_directions(elevs, self._active_links,
+                                         self._activelink_from[:num_d4_active],
+                                         self._activelink_to[:num_d4_active],
+                                         link_slope,
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
+        else:  # Voronoi or D8
+            receiver, steepest_slope, sink, recvr_link  = \
+                flow_direction_DN.flow_directions(elevs, self._active_links,
+                                     self._activelink_from,
+                                     self._activelink_to, link_slope,
+                                     grid=self._grid,
+                                     baselevel_nodes=baselevel_nodes)
 #############grid=None???
 
         # TODO: either need a way to calculate and return the *length* of the

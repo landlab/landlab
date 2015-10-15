@@ -823,6 +823,27 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
+    @property
+    def number_of_d8_links(self):
+        try:
+            return self._number_of_d8_links
+        except AttributeError:
+            self._number_of_d8_links = self.number_of_links + \
+                4*self.number_of_interior_nodes + \
+                2*(self.number_of_nodes-self.number_of_interior_nodes-4) + 4
+            # cores w 4, edges w 2, corners w 1
+            return self._number_of_d8_links
+
+    @property
+    def number_of_d8_active_links(self):
+        try:
+            return self._number_of_d8_active_links
+        except AttributeError:
+            self._number_of_d8_active_links = self.d8_active_links()[0].size
+            # this creates the diagonals as well, but that's appropriate if
+            # you're already asking for this property
+            return self._number_of_d8_active_links
+
     def diagonal_links_at_node(self, *args):
         """diagonal_links_at_node([node_ids])
         Diagonal links attached to nodes.
