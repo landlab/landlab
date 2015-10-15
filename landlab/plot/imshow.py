@@ -73,9 +73,10 @@ def imshow_node_grid(grid, values, **kwds):
 
     if RasterModelGrid in inspect.getmro(grid.__class__):
         data.shape = grid.shape
-
-    data = np.ma.masked_where((grid.status_at_node == 4).reshape(grid.shape),
+        data = np.ma.masked_where((grid.status_at_node == 4).reshape(grid.shape),
                               data)
+    else:
+        data = np.ma.masked_where(grid.status_at_node == 4, data)
 
     myimage = _imshow_grid_values(grid, data, **kwds)
 
