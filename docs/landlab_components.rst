@@ -29,7 +29,7 @@ The current library includes the following components in essentially full workin
 * a more complex flexural model, incorporating A. Wickert’s gFlex code: :class:`~landlab.components.gflex.flexure.gFlex`
 * a single-direction (“D8 generalized” or “Dn”) flow router: :class:`~landlab.components.flow_routing.route_flow_dn.FlowRouter`
 * a thin ice glacial approximation: :class:`~landlab.components.glacier_thin_ice_model.glacier.Glacier`
-* a shallow overland flow approximation (following Bates et al., 2010): :class:`~landlab.components.overland_flow.generate_overland_flow_DEM.OverlandFlow`
+* a shallow overland flow approximation (following de Almeida et al., 2012): :class:`~landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow`
 * a potential evapotranspiration module: :class:`~landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration`
 * a solar total incident shortwave radiation calculator: :class:`~landlab.components.radiation.radiation_field.Radiation`
 * a soil moisture module: :class:`~landlab.components.soil_moisture.soil_moisture_field.SoilMoisture`
