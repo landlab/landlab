@@ -9,8 +9,9 @@ from optparse import OptionParser
 parser = OptionParser('usage: %prog [options] -- [nosetests options]')
 parser.add_option('-v', '--verbose', action='count', dest='verbose',
                   default=1, help='increase verbosity [%default]')
-parser.add_option('--doctests', action='store_true', dest='doctests',
-                  default=False, help='Run doctests in module [%default]')
+parser.add_option('--no-doctests', action='store_false', dest='doctests',
+                  default=True,
+                  help='Do not run doctests in module [%default]')
 parser.add_option('--coverage', action='store_true', dest='coverage',
                   default=False, help='report coverage of landlab [%default]')
 parser.add_option('-m', '--mode', action='store', dest='mode', default='fast',
