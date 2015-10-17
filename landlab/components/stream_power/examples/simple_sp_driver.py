@@ -54,7 +54,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow()
+    mg = fr.route_flow(method='D8')
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
     mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope', K_if_used='K_values')
@@ -85,5 +85,3 @@ pylab.title('Vertical cross section')
 pylab.show()
 
 print('Done.')
-
-

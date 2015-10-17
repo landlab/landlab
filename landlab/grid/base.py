@@ -177,6 +177,7 @@ True
 """
 
 import numpy
+import numpy as np
 import warnings
 
 import six
@@ -1639,7 +1640,8 @@ class ModelGrid(ModelDataFields):
         long array. For a raster, it assumes areas are equal to the normal
         case.
 
-        For a voronoi...?
+        For a voronoi, all cells get their true area. Boundary cells with
+        undefined areas get the mean cell area.
         """
         try:
             return self._forced_cell_areas
@@ -1664,13 +1666,15 @@ class ModelGrid(ModelDataFields):
         ever need to be called.
         """
         self._forced_cell_areas = numpy.empty(self.number_of_nodes)
-        self._forced_cell_areas.fill(numpy.nan)
+        mean_cell_area = numpy.mean(self.active_cell_areas)
+        self._forced_cell_areas.fill(mean_cell_area)
         cell_node_ids = self.get_active_cell_node_ids()
         try:
             self._forced_cell_areas[cell_node_ids] = self.cell_areas
         except AttributeError:
             # in the case of the Voronoi
             self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
+        return self._forced_cell_areas
 
     def get_active_cell_node_ids(self):
         """Nodes of active cells.

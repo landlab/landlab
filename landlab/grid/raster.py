@@ -413,9 +413,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
-              11, 12, 13, 14],
-             [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
-              27, 28, 29, 30]])
+                11, 12, 13, 14],
+               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+                27, 28, 29, 30]])
         >>> rmg.node_numoutlink
         array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
@@ -822,6 +822,27 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                           ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
+
+    @property
+    def number_of_d8_links(self):
+        try:
+            return self._number_of_d8_links
+        except AttributeError:
+            self._number_of_d8_links = self.number_of_links + \
+                4*self.number_of_interior_nodes + \
+                2*(self.number_of_nodes-self.number_of_interior_nodes-4) + 4
+            # cores w 4, edges w 2, corners w 1
+            return self._number_of_d8_links
+
+    @property
+    def number_of_d8_active_links(self):
+        try:
+            return self._number_of_d8_active_links
+        except AttributeError:
+            self._number_of_d8_active_links = self.d8_active_links()[0].size
+            # this creates the diagonals as well, but that's appropriate if
+            # you're already asking for this property
+            return self._number_of_d8_active_links
 
     def diagonal_links_at_node(self, *args):
         """diagonal_links_at_node([node_ids])
