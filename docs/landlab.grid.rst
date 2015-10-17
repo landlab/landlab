@@ -1,6 +1,15 @@
 landlab.grid package
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.grid.structured_quad
+    landlab.grid.tests
+    landlab.grid.unstructured
+
 Submodules
 ----------
 
@@ -64,6 +73,14 @@ landlab.grid.raster_funcs module
 --------------------------------
 
 .. automodule:: landlab.grid.raster_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.grid.raster_mappers module
+----------------------------------
+
+.. automodule:: landlab.grid.raster_mappers
     :members:
     :undoc-members:
     :show-inheritance:

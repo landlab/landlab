@@ -1,3 +1,4 @@
+.DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -52,3 +53,26 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# Vim
+*~
+*.swp
+*.swo
+
+test-results.xml
+
+*.gif
+
+*.p
+
+*.pdf
+!docs/**/*.pdf
+
+*.png
+!docs/**/*.png
+
+installfiles.txt
+
+# Ignore all .c files as, currently, they are all cython generated.
+*.c
+
+landlab/io/mysave.grid

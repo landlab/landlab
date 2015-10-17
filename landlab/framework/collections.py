@@ -15,10 +15,12 @@ class Error(Exception):
     Base exception for this module
     """
 
+
 class UnknownComponentError(Error):
     """
     Raise this exception when requesting a component unknown to the framework
     """
+
     def __init__(self, name):
         self._name = name
 
@@ -30,6 +32,7 @@ class MultipleProvidersError(Error):
     """
     Raise this exception if multiple components provide the same variable
     """
+
     def __init__(self, var_name):
         self._name = var_name
 
@@ -41,6 +44,7 @@ class NoProvidersError(Error):
     """
     Raise this exception if no components provide the a variable
     """
+
     def __init__(self, var_name):
         self._name = var_name
 
@@ -52,6 +56,7 @@ class BadVarNameError(Error):
     """
     Raise this exception if a variable name is not found for a component.
     """
+
     def __init__(self, var_name):
         self._name = var_name
 
@@ -80,9 +85,10 @@ class Collection(dict):
     """
     A collection of components that implement a BmiBase
     """
+
     def __init__(self, **kwds):
         super(Collection, self).__init__(**kwds)
-        for (name, component) in self.items():
+        for (_, component) in self.items():
             assert(is_implementation(component, BmiBase))
 
     def list(self):
@@ -192,7 +198,8 @@ class Palette(Collection):
     """
     A collection of component classes that have yet to be instantiated.
     """
-    def __init__(self,*args, **kwds):
+
+    def __init__(self, *args, **kwds):
         super(Palette, self).__init__(*args, **kwds)
 
 
@@ -200,6 +207,7 @@ class Arena(Collection):
     """
     A collection of component instances.
     """
+
     def __init__(self):
         super(Arena, self).__init__()
         self._connections = dict()
@@ -266,14 +274,17 @@ class Arena(Collection):
             children.add(child)
         return children
 
-    def walk(self, root, tree=[]):
-        """
+    def walk(self, root, tree=None):
+        """Walk a connected set of components.
+
         Walk a connected set of components with the component named *root*. If
         the *tree* keyword is given, treat it as a list of components already
         in the tree and add to that list. If a component is already in the tree,
         do not iterate through that component. This function returns a list of
         component names in the order they are visited by the walk.
         """
+        if tree is None:
+            tree = []
         if root in tree:
             return tree
 

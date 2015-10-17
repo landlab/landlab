@@ -20,6 +20,14 @@ landlab.core.model_parameter_dictionary module
     :undoc-members:
     :show-inheritance:
 
+landlab.core.utils module
+-------------------------
+
+.. automodule:: landlab.core.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

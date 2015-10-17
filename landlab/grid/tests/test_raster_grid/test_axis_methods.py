@@ -1,6 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup, assert_tuple_equal, raises
+from nose.tools import with_setup, raises
+try:
+    from nose.tools import assert_tuple_equal
+except ImportError:
+    from landlab.testing.tools import assert_tuple_equal
+
 
 from landlab import RasterModelGrid
 
@@ -17,6 +22,7 @@ def setup_lon_lat_grid():
                                axis_name=['longitude', 'latitude'],
                                axis_units=['degrees_east', 'degrees_north'])
     })
+
 
 @with_setup(setup_default_grid)
 def test_default_names():

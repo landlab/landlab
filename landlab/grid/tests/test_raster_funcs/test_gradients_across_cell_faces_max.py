@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_is, assert_equal
+from nose.tools import assert_equal
+try:
+    from nose.tools import assert_is
+except ImportError:
+    from landlab.testing.tools import assert_is
 
 from landlab.grid import raster_funcs as rfuncs
 
@@ -14,7 +18,7 @@ def setup_unit_grid():
     from landlab import RasterModelGrid
     global _GRID, _VALUES_AT_NODES
     _GRID = RasterModelGrid(4, 5)
-    _VALUES_AT_NODES = np.arange(20)
+    _VALUES_AT_NODES = np.arange(20.)
 
 
 def setup_3x3_grid():
@@ -29,7 +33,8 @@ def test_scalar_arg():
         _GRID, _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
-    grad = _GRID.calculate_steepest_descent_across_cell_faces(_VALUES_AT_NODES, 0)
+    grad = _GRID.calculate_steepest_descent_across_cell_faces(
+        _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
 
@@ -49,7 +54,7 @@ def test_scalar_arg_with_return_node():
     values = np.array([0, 1,  3, 6, 10,
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
-                       0, 1, -3, 6, 10,])
+                       0, 1, -3, 6, 10, ], dtype=float)
     (grad, node) = _GRID.calculate_steepest_descent_across_cell_faces(
         values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])

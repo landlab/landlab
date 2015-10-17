@@ -1,10 +1,11 @@
 #! /usr/env/python
 
 """
-test_script_for_fastscape_stream_power.py: 
-    
+test_script_for_fastscape_stream_power.py:
+
 Tests and illustrates use of route_flow_dn component.
 """
+from __future__ import print_function
 
 from landlab import RasterModelGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
@@ -40,11 +41,11 @@ interior_nodes = grid.get_active_cell_node_ids()
 
 # Route flow
 flow_router = FlowRouter(grid)
-r, a, q, ss, s, rl = flow_router.route_flow(z)
+grid = flow_router.route_flow()
 
 for i in range(grid.number_of_nodes):
-    print i, grid.node_x[i], grid.node_y[i], z[i], grid.node_status[i], \
-          r[i], a[i], q[i], ss[i], rl[i]
+    print(i, grid.node_x[i], grid.node_y[i], z[i], grid.status_at_node[i], \
+          r[i], a[i], q[i], ss[i], rl[i])
 
 # Let's take a look for debugging
 #print 'node  receiver  flow_link'
@@ -54,7 +55,7 @@ for i in range(grid.number_of_nodes):
 # Calculate lengths of flow links
 flow_link_length = ones(size(z))
 flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
-print 'fll:', flow_link_length
+print('fll:', flow_link_length)
 
 # Get a 2D array version of the elevations
 ar = grid.node_vector_to_raster(a)
@@ -69,11 +70,11 @@ im = pylab.imshow(ar, cmap=pylab.cm.RdBu, extent=[0,numcols*dx,0,numrows*dx])
 # add contour lines with labels
 cset = pylab.contour(ar, extent=[0,numcols*dx,numrows*dx,0])
 pylab.clabel(cset, inline=True, fmt='%1.1f', fontsize=10)
-    
+
 # add a color bar on the side
 cb = pylab.colorbar(im)
 cb.set_label('Drainage area, sq meters')
-    
+
 # add a title and axis labels
 pylab.title('DEM')
 pylab.xlabel('Distance (m)')
@@ -97,7 +98,7 @@ Kdt = K*dt  # saves lots of multiplying later
 
 # Time loop
 for t in range(num_time_steps):
-    
+
     # Update baselevel nodes if applicable
     # (to be added)
 
@@ -106,12 +107,12 @@ for t in range(num_time_steps):
     Am = numpy.power(a, m)
     alpha = Kdt*Am/flow_link_length
 
-    # Loop over nodes from downstream to upstream, updating elevations using 
+    # Loop over nodes from downstream to upstream, updating elevations using
     # analytical solution (implicit)
     for i in s:  # for each node ID, in order from downstream to upstream
-        
+
         j = r[i]   # receiver (downstream node) of i
-        print i, j
+        print(i, j)
         if i != j:  # if sender and receiver are same, it's a boundary node
             z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
 

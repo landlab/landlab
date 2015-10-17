@@ -3,11 +3,13 @@
 import base64
 import numpy as np
 
+
 class EncoderError(Exception):
     pass
 
 
 class UnknownEncoderError(EncoderError):
+
     def __init__(self, name):
         self._name
 
@@ -16,11 +18,13 @@ class UnknownEncoderError(EncoderError):
 
 
 class EncoderInterface(object):
+
     def encode(self, array):
         pass
 
 
 class AsciiEncoder(object):
+
     def encode(self, array):
         try:
             return ' '.join([str(val) for val in array.flatten()])
@@ -29,6 +33,7 @@ class AsciiEncoder(object):
 
 
 class RawEncoder(object):
+
     def encode(self, array):
         try:
             as_str = array.tostring()
@@ -39,7 +44,8 @@ class RawEncoder(object):
 
 
 class Base64Encoder(object):
-    def encode (self, array):
+
+    def encode(self, array):
         try:
             as_str = array.tostring()
         except AttributeError:

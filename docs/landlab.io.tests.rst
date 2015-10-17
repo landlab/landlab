@@ -12,6 +12,14 @@ landlab.io.tests.test_read_esri_ascii module
     :undoc-members:
     :show-inheritance:
 
+landlab.io.tests.test_write_esri_ascii module
+---------------------------------------------
+
+.. automodule:: landlab.io.tests.test_write_esri_ascii
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

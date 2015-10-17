@@ -7,10 +7,12 @@ version 3 same as 2 but uses source as a dvector
 
 GT, July 2010
 """
+from __future__ import print_function
+
+import numpy as np
+from pylab import plot, draw, show, contour
 
 from landlab import RasterModelGrid
-
-from pylab import plot, draw, show, contour
 
 
 def set_flux_coefficients(mg, dx):
@@ -28,12 +30,12 @@ def set_flux_coefficients(mg, dx):
 
     # Exponential decline from a point at center top
     decay_scale = 0.5
-    xf = xf - dx/2.0
-    yf = yf - dx/2.0
+    xf = xf - dx / 2.0
+    yf = yf - dx / 2.0
     x0 = 0.5 * (mg.number_of_node_columns - 2) * dx
     y0 = (mg.number_of_node_columns - 2) * dx
-    dist = sqrt((xf-x0)**2.0 + (yf-y0)**2.0)
-    K = Kmax * exp(-dist / decay_scale)
+    dist = np.sqrt((xf - x0) ** 2.0 + (yf - y0) ** 2.0)
+    K = Kmax * np.exp(-dist / decay_scale)
 
     return K
 
@@ -49,17 +51,17 @@ def main():
 
     # Setup
     mg = RasterModelGrid(nr, nc, dx)  # Create the grid
-    u = mg.zeros(centering='cell') # Dependent variable (temperature)
+    u = mg.zeros(centering='cell')  # Dependent variable (temperature)
     interior_cells = mg.get_interior_cells()  # ID's of interior cells
-    dudt = mg.zeros(centering='cell') # Rate of change of temperature
-    s = mg.zeros(centering='cell') # Source term (e.g., radioactive decay)
+    dudt = mg.zeros(centering='cell')  # Rate of change of temperature
+    s = mg.zeros(centering='cell')  # Source term (e.g., radioactive decay)
     s[interior_cells] = s0  # Set source at interior cells
     opt_plot = True  # Option for plotting output
 
     # Radially symmetric, exponential decay
     k = set_flux_coefficients(mg, dx)       # Set up diffusion coefficients
 
-    dt = 0.25*dx**2.0/max(k)                  # Set time step
+    dt = 0.25 * dx**2.0 / max(k)                  # Set time step
     run_time = 100.0                          # Set run time
     nt = int(round(run_time / dt))        # number of iterations
 
@@ -70,9 +72,9 @@ def main():
 
     for i in range(0, nt):
 
-        print i
+        print(i)
         g = mg.calculate_face_gradients(u)  # Thermal gradients
-        q = -k*g  # Heat flux across faces
+        q = -k * g  # Heat flux across faces
         dqds = mg.calculate_flux_divergences(q)  # Divergence of heat flux
         dudt = s - dqds  # Rate of change of temperature
         u = u + dudt * dt  # Update temperature field

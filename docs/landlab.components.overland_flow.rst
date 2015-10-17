@@ -4,18 +4,10 @@ landlab.components.overland_flow package
 Submodules
 ----------
 
-landlab.components.overland_flow.functionality_test module
-----------------------------------------------------------
+landlab.components.overland_flow.generate_overland_flow_Bates module
+--------------------------------------------------------------------
 
-.. automodule:: landlab.components.overland_flow.functionality_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.overland_flow.generate_overland_flow module
---------------------------------------------------------------
-
-.. automodule:: landlab.components.overland_flow.generate_overland_flow
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_Bates
     :members:
     :undoc-members:
     :show-inheritance:
@@ -28,18 +20,10 @@ landlab.components.overland_flow.generate_overland_flow_DEM module
     :undoc-members:
     :show-inheritance:
 
-landlab.components.overland_flow.overland_flow_driver module
-------------------------------------------------------------
-
-.. automodule:: landlab.components.overland_flow.overland_flow_driver
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.overland_flow.overland_flow_driver_springcreek module
+landlab.components.overland_flow.generate_overland_flow_deAlmeida module
 ------------------------------------------------------------------------
 
-.. automodule:: landlab.components.overland_flow.overland_flow_driver_springcreek
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_deAlmeida
     :members:
     :undoc-members:
     :show-inheritance:

@@ -9,13 +9,13 @@ leftmost_elevation:
 initial_slope:
 0.
 dt:
-1.
+0.1
 total_time:
-30.
+100.
 uplift_rate:
 0.001
 K_sp:
-0.01
+0.3
 m_sp:
 0.5
 n_sp:
@@ -25,9 +25,9 @@ rock_density:
 sed_density:
 2.7
 kappa:
-0.0001 
+0.0001
 S_crit:
 0.56
 
-DIFMOD_KD:
+linear_diffusivity:
 0.0001

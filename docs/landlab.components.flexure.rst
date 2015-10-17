@@ -1,8 +1,23 @@
 landlab.components.flexure package
 ==================================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.components.flexure.tests
+
 Submodules
 ----------
+
+landlab.components.flexure.cfuncs module
+----------------------------------------
+
+.. automodule:: landlab.components.flexure.cfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 landlab.components.flexure.flexure module
 -----------------------------------------

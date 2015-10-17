@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Constants used with the netcdf module."""
 
 
 _DIMENSION_NAMES = ['ni', 'nj', 'nk']
@@ -15,15 +16,12 @@ _NP_TO_NC_TYPE = {
     'uint16': 'u2',
     'uint32': 'u4',
     'uint64': 'u8',
+    'bool': 'i1',
 }
 
 
 _AXIS_DIMENSION_NAMES = ['nk', 'nj', 'ni']
 _AXIS_COORDINATE_NAMES = ['z', 'y', 'x']
-#_AXIS_DIMENSION_NAMES = ['ni', 'nj', 'nk']
-#_AXIS_COORDINATE_NAMES = ['x', 'y', 'z']
 
 _DIMENSION_NAMES = set(_AXIS_DIMENSION_NAMES + ['nt'])
 _COORDINATE_NAMES = set(_AXIS_COORDINATE_NAMES + ['t'])
-
-

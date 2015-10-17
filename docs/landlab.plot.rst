@@ -1,6 +1,13 @@
 landlab.plot package
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.plot.tests
+
 Submodules
 ----------
 
@@ -16,6 +23,14 @@ landlab.plot.imshow module
 --------------------------
 
 .. automodule:: landlab.plot.imshow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.plot.video_out module
+-----------------------------
+
+.. automodule:: landlab.plot.video_out
     :members:
     :undoc-members:
     :show-inheritance:

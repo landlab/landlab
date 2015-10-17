@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
@@ -22,16 +24,16 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
-mg.create_node_array_zeros('planet_surface__elevation')
+mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'planet_surface__elevation'] = z + numpy.random.rand(len(z))/1000.
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 ##Now add a step to diffuse out:
-#mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += 0.05 #half block uplift
+#mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += 0.05 #half block uplift
 
 #pylab.figure(1)
 #pylab.close()
-#elev = mg['node']['planet_surface__elevation']
+#elev = mg['node']['topographic__elevation']
 #elev_r = mg.node_vector_to_raster(elev)
 #pylab.figure(1)
 #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
@@ -47,24 +49,24 @@ diffusion_component = PerronNLDiffuse(mg, './drive_perron_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt<time_to_run:
         diffusion_component.input_timestep(dt)
-    mg.at_node['planet_surface__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
-    #mg.at_node['planet_surface__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
+    mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
+    #mg.at_node['topographic__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
     #pylab.figure(1)
     #pylab.close()
-    #elev = mg['node']['planet_surface__elevation']
+    #elev = mg['node']['topographic__elevation']
     #elev_r = mg.node_vector_to_raster(elev)
     #pylab.figure(1)
     #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
     #pylab.show()
-    
+
     mg = diffusion_component.diffuse(mg, elapsed_time)
     elapsed_time += dt
 
 #Finalize and plot
-elev = mg['node']['planet_surface__elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 # Clear previous plots
@@ -74,7 +76,7 @@ pylab.close()
 # Plot topography
 pylab.figure(1)
 im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-print elev_r
+print(elev_r)
 pylab.colorbar(im)
 pylab.title('Topography')
 
@@ -85,4 +87,4 @@ pylab.title('Vertical cross section')
 pylab.show()
 
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))

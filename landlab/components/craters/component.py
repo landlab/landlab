@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab.grid.raster import RasterModelGrid 
+from landlab.grid.raster import RasterModelGrid
 from landlab import Component
 import landlab.components.craters as craters
 
@@ -11,16 +11,16 @@ class CratersComponent(Component):
     _name = 'Craters'
 
     _input_var_names = [
-        'planet_surface__elevation',
+        'topographic__elevation',
     ]
     _output_var_names = [
-        'planet_surface__elevation',
-        'planet_surface__elevation_increment',
+        'topographic__elevation',
+        'topographic__elevation_increment',
     ]
 
     _var_units = {
-        'planet_surface__elevation': 'm',
-        'planet_surface__elevation_increment': 'm',
+        'topographic__elevation': 'm',
+        'topographic__elevation_increment': 'm',
     }
 
     def __init__(self, grid, **kwds):
@@ -32,10 +32,10 @@ class CratersComponent(Component):
 
         self._vectors = craters.data(self.grid)
 
-        self._grid.add_field('node', 'planet_surface__elevation',
+        self._grid.add_field('node', 'topographic__elevation',
                              self._vectors.elev, units='m')
 
-        self._grid.add_field('node', 'planet_surface__elevation_increment', 
+        self._grid.add_field('node', 'topographic__elevation_increment',
                              np.zeros(self._grid.shape, dtype=np.float),
                              units='m')
 
@@ -59,7 +59,7 @@ class CratersComponent(Component):
         cr.set_crater_volume()
         cr._xcoord, cr._ycoord = (impact_loc[1], impact_loc[0])
 
-        z0 = self._grid.at_node['planet_surface__elevation'].copy()
+        z0 = self._grid.at_node['topographic__elevation'].copy()
 
         vertices_array = self.grid.get_nodes_around_point(impact_loc[1],
                                                           impact_loc[0])
@@ -81,8 +81,8 @@ class CratersComponent(Component):
         cr.set_crater_mean_slope_v2(self.grid, self._vectors)
         cr.set_elev_change_across_grid(self.grid, self._vectors)
 
-        self._grid.at_node['planet_surface__elevation_increment'][:].flat = (
-            self._grid.at_node['planet_surface__elevation'].flat - z0)
+        self._grid.at_node['topographic__elevation_increment'][:].flat = (
+            self._grid.at_node['topographic__elevation'].flat - z0)
 
     def next_impactor(self):
         cr = craters.impactor()
