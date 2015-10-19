@@ -392,30 +392,33 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = np.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
         >>> df = DepressionFinderAndRouter(rg)
-        >>> df.map_depressions()
+        >>> df.map_depressions(pits=None, reroute_flow=False)
         >>> df.display_depression_map()
-        . . . . .
-        . . . ~ .
-        . . ~ . .
-        . ~ . . .
-        o . . . .
+        . . . . . 
+        . . . ~ . 
+        . . ~ . . 
+        . ~ . . . 
+        o . . . . 
+
         """
         self.lake_outlets = []  # reset this
         # Locate nodes with pits
         try:
             pits = self._grid.at_node[pits]
             supplied_pits = np.where(pits)[0]
+            self.pit_node_ids = np.setdiff1d(supplied_pits,
+                                             self._grid.boundary_nodes)
         except FieldError:  # wasn't a string, or field did not exist
-            if pits == None:
+            if type(pits)==str or pits==None:
                 self.find_pits()
             else:
                 if len(pits)==self._grid.number_of_nodes:
                     supplied_pits = np.where(pits)[0]
                 else:  # it's an array of node ids
                     supplied_pits = pits
-        # remove any boundary nodes from the supplied pit list
-        self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                         self._grid.boundary_nodes)
+                # remove any boundary nodes from the supplied pit list
+                self.pit_node_ids = np.setdiff1d(supplied_pits,
+                                                 self._grid.boundary_nodes)
         # Set up "lake code" array
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code', \
                                                  dtype=int)
