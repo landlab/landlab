@@ -403,7 +403,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
         >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+              dtype=int8)
         >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
         True
         >>> rmg.node_corecell[8]
@@ -412,9 +413,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
-              11, 12, 13, 14],
-             [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
-              27, 28, 29, 30]])
+                11, 12, 13, 14],
+               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+                27, 28, 29, 30]])
         >>> rmg.node_numoutlink
         array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
