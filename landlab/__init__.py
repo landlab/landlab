@@ -3,7 +3,6 @@
 The Landlab
 
 :Package name: TheLandlab
-:Version: 0.1.0
 :Release date: 2013-03-24
 :Authors:
   Greg Tucker,

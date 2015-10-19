@@ -168,30 +168,30 @@ def check_array_values(rmg, lm):
       0.,   0.,   0.,   0.])
       
     assert_array_equal(lm.depression_outlet, \
-    [2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647,          5,          5, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
-     2147483647,          5,          5,          5,          5, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5,          5,
-              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
-     2147483647,         50, 2147483647, 2147483647, 2147483647,          5,
-              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647, 2147483647])
+    [XX, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX, XX, XX,
+     XX,  5,  5, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX,  5,  5,  5,  5, XX,
+     XX, XX, XX,  5,  5,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX, 50, XX, XX, XX,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX])
 
     assert_array_equal(rmg.at_node['depression__outlet_node'], \
-    [2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647,          5,          5, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
-     2147483647,          5,          5,          5,          5, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5,          5,
-              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647,          5,          5, 2147483647,
-     2147483647,         50, 2147483647, 2147483647, 2147483647,          5,
-              5, 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
-     2147483647, 2147483647, 2147483647, 2147483647])
+    [XX, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX, XX, XX,
+     XX,  5,  5, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX,  5,  5,  5,  5, XX,
+     XX, XX, XX,  5,  5,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX, 50, XX, XX, XX,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX])
 
 
 def test_lake_mapper():
@@ -263,7 +263,7 @@ def test_pits_as_IDs():
     lf.map_depressions(pits=np.where(mg.at_node['flow_sinks'])[0])
     assert_array_equal(mg.at_node['drainage_area'], A_new)
 
-def three_pits():
+def test_three_pits():
     """
     A test to ensure the component correctly handles cases where there are
     multiple pits.
@@ -283,7 +283,7 @@ def three_pits():
     fr.route_flow()
     lf.map_depressions()
     
-    flow_sinks_target = np.empty(100, dtype=bool)
+    flow_sinks_target = np.zeros(100, dtype=bool)
     flow_sinks_target[mg.boundary_nodes] = True
     # no internal sinks now:
     assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
