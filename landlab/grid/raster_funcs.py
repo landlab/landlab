@@ -5,6 +5,8 @@ from six.moves import range
 from .base import CLOSED_BOUNDARY
 from .base import BAD_INDEX_VALUE
 from .raster_gradients import calculate_gradient_across_cell_faces
+from .raster_gradients import calculate_gradient_across_cell_corners
+
 
 _VALID_ROUTING_METHODS = set(['d8', 'd4'])
 
@@ -70,61 +72,6 @@ def _make_optional_arg_into_array(number_of_elements, *args):
             except TypeError:
                 ids = [ids]
     return ids
-
-
-def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
-    """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
-    Get gradients to diagonally opposite nodes.
-
-    Calculate gradient of the value field provided by *node_values* to
-    the values at diagonally opposite nodes. The returned gradients are
-    ordered as upper-right, upper-left, lower-left and lower-right.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Source grid.
-    node_values : array_link
-        Quantity to take the gradient of defined at each node.
-    cell_ids : array_like, optional
-        If provided, cell ids to measure gradients. Otherwise, find gradients
-        for all cells.
-    out : array_like, optional
-        Alternative output array in which to place the result.  Must
-        be of the same shape and buffer length as the expected output.
-
-    Returns
-    -------
-    (N, 4) ndarray
-        Gradients to each diagonal node.
-
-    Examples
-    --------
-    Create a grid with two cells.
-
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import (
-    ...     calculate_gradient_across_cell_corners)
-    >>> grid = RasterModelGrid(3, 4)
-    >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
-
-    A decrease in quantity to a diagonal node is a negative gradient.
-
-    >>> from math import sqrt
-    >>> calculate_gradient_across_cell_corners(grid, x) * sqrt(2.)
-    array([[ 3.,  3.,  1.,  0.],
-           [ 2.,  2., -1.,  0.]])
-    """
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
-    node_ids = grid.node_at_cell[cell_ids]
-
-    values_at_diagonals = node_values[grid.get_diagonal_list(node_ids)]
-    values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
-
-    out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
-    np.divide(out, np.sqrt(2.) * grid.node_spacing, out=out)
-
-    return out
 
 
 def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
