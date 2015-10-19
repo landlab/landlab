@@ -25,8 +25,11 @@ _FLOODED = 3
 class DepressionFinderAndRouter(Component):
     """
     This component identifies depressions in a topographic surface, finds an
-    outlet for each depression, and [when GT or someone else finishes it]
-    will modify the drainage directions accordingly.
+    outlet for each depression.  If directed to do so (default True), and the
+    component is able to find existing routing fields output from the
+    'route_flow_dn' component, it will then modify the drainage directions and
+    accumulations already stored in the grid to route flow across these
+    depressions.
     """
     _name = 'DepressionFinderAndRouter'
 
@@ -34,19 +37,24 @@ class DepressionFinderAndRouter(Component):
                             ])
 
     _output_var_names = set(['depression__depth',  # depth below spill point
-                             'depression__outlet_node_id',
+                             'depression__outlet_node',
                              ])
 
-    _var_units = {'depression__depth' : 'm',
-                  'depression__outlet_node_id' : '-'
+    _var_units = {'topographic__elevation' : 'm',
+                  'depression__depth' : 'm',
+                  'depression__outlet_node' : '-'
                   }
 
-    _var_mapping = {'depression__depth' : 'node',
-                    'depression__outlet_node_id' : 'node'
+    _var_mapping = {'topographic__elevation' : 'node',
+                    'depression__depth' : 'node',
+                    'depression__outlet_node' : 'node',
                     }
 
     _var_defs = {'topographic__elevation' : 'Surface topographic elevation',
-                 'depression__depth' : 'Depth of depression below its spillway point'
+                 'depression__depth' : 'Depth of depression below its spillway point',
+                 'depression__outlet_node' : 'If a depression, the id ' + 
+                    'of the outlet node for that depression, otherwise ' +
+                    'BAD_INDEX_VALUE'
                   }
 
     def __init__(self, grid, input_stream=None, current_time=0.):
@@ -111,7 +119,7 @@ class DepressionFinderAndRouter(Component):
         self.depression_depth = self._grid.add_zeros('node', \
                                                      'depression__depth')
         self.depression_outlet = self._grid.add_zeros('node', \
-                                                'depression__outlet_node_id', \
+                                                'depression__outlet_node', \
                                                 dtype=int)
         self.depression_outlet += BAD_INDEX_VALUE
 
@@ -445,7 +453,6 @@ class DepressionFinderAndRouter(Component):
             nodes_routed = np.array([outlet_node])
             # ^using set on assumption of cythonizing later
             nodes_on_front = np.array([outlet_node])
-            n = 0
             self.handle_outlet_node(outlet_node, nodes_in_lake)
             while (len(nodes_in_lake)+1) != len(nodes_routed):
                 all_neighbors = np.hstack((self._grid.get_neighbor_list(
@@ -470,8 +477,8 @@ class DepressionFinderAndRouter(Component):
                 nodes_on_front = drains_from[1:]
                 nodes_routed = np.union1d(nodes_routed, nodes_on_front)
                 self.grads[drains_from[1:]] = 0.  # downstream grad is 0.
-            self.sinks[self.pit_node_ids[n]] = False
-            n += 1
+        self.sinks[self.pit_node_ids] = False
+
 
     def reaccumulate_flow(self):
         """
