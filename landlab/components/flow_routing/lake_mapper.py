@@ -411,21 +411,23 @@ class DepressionFinderAndRouter(Component):
         """
         self.lake_outlets = []  # reset this
         # Locate nodes with pits
-        try:
-            pits = self._grid.at_node[pits]
-            supplied_pits = np.where(pits)[0]
-            self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                             self._grid.boundary_nodes)
-        except FieldError:  # wasn't a string, or field did not exist
-            if type(pits)==str or pits==None:
-                self.find_pits()
-            else:
-                if len(pits)==self._grid.number_of_nodes:
-                    supplied_pits = np.where(pits)[0]
-                else:  # it's an array of node ids
-                    supplied_pits = pits
-                # remove any boundary nodes from the supplied pit list
+        if type(pits) == str:
+            try:
+                pits = self._grid.at_node[pits]
+                supplied_pits = np.where(pits)[0]
                 self.pit_node_ids = np.setdiff1d(supplied_pits,
+                                             self._grid.boundary_nodes)
+            except FieldError:
+                self.find_pits()
+        elif pits==None:
+            self.find_pits()
+        else:  # hopefully an array or other sensible iterable
+            if len(pits)==self._grid.number_of_nodes:
+                supplied_pits = np.where(pits)[0]
+            else:  # it's an array of node ids
+                supplied_pits = pits
+            # remove any boundary nodes from the supplied pit list
+            self.pit_node_ids = np.setdiff1d(supplied_pits,
                                                  self._grid.boundary_nodes)
         # Set up "lake code" array
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code', \
