@@ -4,7 +4,7 @@ test_lake_mapper:
 
 Created on Sun Sep 27 09:52:50, 2015
 
-@author: gtucker
+@author: gtucker, amended dejh
 """
 
 import landlab
@@ -15,6 +15,7 @@ from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal
 from landlab import BAD_INDEX_VALUE as XX
+from nose.tools import with_setup, assert_true, assert_false
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -49,6 +50,9 @@ def setup_dans_grid():
     from landlab.components.flow_routing.route_flow_dn import FlowRouter
     from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
     
+    global fr, lf, mg
+    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
+    
     mg = RasterModelGrid(7,7,1.)
     
     z = np.array([  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
@@ -57,7 +61,7 @@ def setup_dans_grid():
                     0.0,  2.0,  1.7,  1.6,  1.7,  2.0,  0.0,
                     0.0,  2.0,  1.8,  2.0,  2.0,  2.0,  0.0,
                     0.0,  1.0,  0.6,  1.0,  1.0,  1.0,  0.0,
-                    0.0,  0.0, -0.5,  0.0,  0.0,  0.0,  0.0])
+                    0.0,  0.0, -0.5,  0.0,  0.0,  0.0,  0.0]).flatten()
 
     r_old = np.array([  0,  1,  2,  3,  4,  5,  6,
                         7,  1,  2,  3,  4,  5, 13,
@@ -65,7 +69,7 @@ def setup_dans_grid():
                         21, 21, 17, 17, 17, 27, 27,
                         28, 28, 37, 38, 39, 34, 34,
                         35, 44, 44, 44, 46, 47, 41,
-                        42, 43, 44, 45, 46, 47, 48])
+                        42, 43, 44, 45, 46, 47, 48]).flatten()
 
     r_new = np.array([  0,  1,  2,  3,  4,  5,  6,
                         7,  1,  2,  3,  4,  5, 13,
@@ -73,7 +77,7 @@ def setup_dans_grid():
                         21, 21, 30, 30, 24, 27, 27,
                         28, 28, 37, 38, 39, 34, 34,
                         35, 44, 44, 44, 46, 47, 41,
-                        42, 43, 44, 45, 46, 47, 48])
+                        42, 43, 44, 45, 46, 47, 48]).flatten()
     
     A_old = np.array([[  1.,  2.,  2.,  2.,  2.,  2.,  1.,
                          1.,  1.,  1.,  1.,  1.,  1.,  1.,
@@ -81,7 +85,7 @@ def setup_dans_grid():
                          2.,  1.,  1.,  1.,  1.,  1.,  2.,
                          2.,  1.,  1.,  1.,  1.,  1.,  2.,
                          1.,  1.,  2.,  2.,  2.,  1.,  1.,
-                         1.,  1.,  6.,  1.,  3.,  2.,  1.]])
+                         1.,  1.,  6.,  1.,  3.,  2.,  1.]]).flatten()
 
     A_new = np.array([[  1.,  2.,  2.,  2.,  2.,  2.,  1.,
                          1.,  1.,  1.,  1.,  1.,  1.,  1.,
@@ -89,7 +93,7 @@ def setup_dans_grid():
                          2.,  1.,  3.,  3.,  1.,  1.,  2.,
                          2.,  1.,  7.,  1.,  1.,  1.,  2.,
                          1.,  1.,  8.,  2.,  2.,  1.,  1.,
-                         1.,  1., 12.,  1.,  3.,  2.,  1.]])
+                         1.,  1., 12.,  1.,  3.,  2.,  1.]]).flatten()
     
     s_new = np.array([  0,  1,  8,  2,  9,  3, 10,
                         4, 11,  5, 12,  6,  7, 13,
@@ -97,17 +101,18 @@ def setup_dans_grid():
                        26, 28, 29, 34, 33, 35, 41,
                        42, 43, 44, 36, 37, 30, 23,
                        16, 17, 24, 18, 25, 38, 31,
-                       45, 46, 39, 32, 47, 40, 48])
+                       45, 46, 39, 32, 47, 40, 48]).flatten()
 
-    depression_outlet_target = np.array([ XX, XX, XX, XX, XX, XX, XX,
-                                          XX, XX, XX, XX, XX, XX, XX,
-                                          XX, XX, 30, 30, 30, XX, XX,
-                                          XX, XX, 30, 30, 30, XX, XX,
-                                          XX, XX, XX, XX, XX, XX, XX,
-                                          XX, XX, XX, XX, XX, XX, XX,
-                                          XX, XX, XX, XX, XX, XX, XX])
+    depr_outlet_target = np.array([ XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, 30, 30, 30, XX, XX,
+                                    XX, XX, 30, 30, 30, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX]).flatten()
     
     mg.add_field('node', 'topographic__elevation', z, units='-')
+    
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
     
@@ -235,8 +240,8 @@ def test_filling_alone():
     Test the filler alone, w/o supplying information on the pits.
     """
     lf.map_depressions(pits=None, reroute_flow=False)
-    assert_array_equal(mg.at_node['flow_receiver'], r_old)
-    assert_array_equal(lf.depression_outlet, depression_outlet_target)
+    assert_array_equal(mg.at_node['flow_receiver'], np.zeros(49, dtype=float))
+    assert_array_equal(lf.depression_outlet, depr_outlet_target)
 
 @with_setup(setup_dans_grid)
 def test_filling_supplied_pits():
@@ -265,8 +270,9 @@ def three_pits():
     """
     mg = RasterModelGrid(10,10,1.)
     z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
-    np.random.seed(seed=0)
-    z += np.random.rand(100)/10000.
+    # a sloping plane
+    #np.random.seed(seed=0)
+    #z += np.random.rand(100)/10000.
     # punch some holes
     z[33] = 1.
     z[43] = 1.
@@ -277,6 +283,28 @@ def three_pits():
     fr.route_flow()
     lf.map_depressions()
     
+    flow_sinks_target = np.empty(100, dtype=bool)
+    flow_sinks_target[mg.boundary_nodes] = True
+    # no internal sinks now:
+    assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
+    
+    # test conservation of mass:
+    assert np.isclose(mg.at_node['drainage_area'
+                                       ].reshape((10,10))[1:-1,1].sum(), 8.**2)
+    # ^all the core nodes
+    
+    # test the actual flow field:
+    nA = np.array([  1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                     9.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   1.,
+                     3.,   2.,   1.,   1.,   2.,   1.,   1.,   1.,   1.,   1.,
+                     3.,   2.,   1.,  15.,  11.,  10.,   9.,   8.,   1.,   1.,
+                    27.,  26.,  25.,   9.,   2.,   1.,   1.,   1.,   1.,   1.,
+                     3.,   2.,   1.,   1.,   5.,   4.,   3.,   2.,   1.,   1.,
+                     3.,   2.,   1.,   1.,   1.,   1.,   3.,   2.,   1.,   1.,
+                    21.,  20.,  19.,  18.,  17.,  12.,   3.,   2.,   1.,   1.,
+                     3.,   2.,   1.,   1.,   1.,   1.,   3.,   2.,   1.,   1.,
+                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.])
+    assert_array_equal(mg.at_node['drainage_area'], nA)
     
     
 if __name__=='__main__':
