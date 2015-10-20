@@ -1811,33 +1811,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return self._dx
 
-    def calculate_gradient_along_node_links(self, node_values, *args, **kwds):
-        """calculate_gradient_along_node_links(node_values [, node_ids], out=None):
-        Gradient of a quantity along neighboring active links at all nodes in
-        the grid.
-
-        Calculate the slopes of *node_values*, given at every node in the grid,
-        relative to the nodes centered at *node_ids*. Note that upward slopes
-        are reported as positive. That is, the gradient is positive if a
-        neighbor node's value is greater than that of the node as *node_ids*.
-
-        If *node_ids* is not provided, calculate the gradients for all
-        nodes in the grid. Nodes surrounded by inactive links will receive
-        four masked entries.
-
-        Use the *out* keyword if you have an array that you want to put the
-        result into. If not given, create and return a new array.
-
-        Returns the gradients of the neighboring links in the order (right,
-        top, left, bottom).
-
-        Note the distinction from calculate_gradient_across_cell_faces() is
-        that this method returns an nnodes-long array. That method returns
-        an ncells-long array.
-        """
-        return rfuncs.calculate_gradient_along_node_links(
-            self, node_values, *args, **kwds)
-
     @property
     def link_length(self):
         """Get lengths of links.

@@ -4,8 +4,9 @@ from six.moves import range
 
 from .base import CLOSED_BOUNDARY
 from .base import BAD_INDEX_VALUE
-from .raster_gradients import calculate_gradient_across_cell_faces
-from .raster_gradients import calculate_gradient_across_cell_corners
+from .raster_gradients import (calculate_gradient_across_cell_faces,
+                               calculate_gradient_across_cell_corners,
+                               calculate_gradient_along_node_links)
 
 
 _VALID_ROUTING_METHODS = set(['d8', 'd4'])
@@ -72,95 +73,6 @@ def _make_optional_arg_into_array(number_of_elements, *args):
             except TypeError:
                 ids = [ids]
     return ids
-
-
-def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
-    """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
-    Get gradients along links touching a node.
-
-    Calculate gradient of the value field provided by *node_values* across
-    each of the faces of the nodes of a grid. The returned gradients are
-    ordered as right, top, left, and bottom. All returned values follow our
-    standard sign convention, where a link pointing N or E and increasing in
-    value is positive, a link pointing S or W and increasing in value is
-    negative.
-
-    Note that the returned gradients are masked to exclude neighbor nodes which
-    are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Source grid.
-    node_values : array_link
-        Quantity to take the gradient of defined at each node.
-    node_ids : array_like, optional
-        If provided, node ids to measure gradients. Otherwise, find gradients
-        for all nodes.
-    out : array_like, optional
-        Alternative output array in which to place the result.  Must
-        be of the same shape and buffer length as the expected output.
-
-    Returns
-    -------
-    (N, 4) ndarray
-        Gradients for each link of the node. Ordering is E,N,W,S.
-
-    Examples
-    --------
-    Create a grid with nine nodes.
-
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import (
-    ...     calculate_gradient_along_node_links)
-    >>> grid = RasterModelGrid(3, 3)
-    >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
-
-    A decrease in quantity across a face is a negative gradient.
-
-    >>> calculate_gradient_along_node_links(grid, x)
-    masked_array(data =
-     [[-- -- -- --]
-     [-- 1.0 -- --]
-     [-- -- -- --]
-     [1.0 -- -- --]
-     [1.0 1.0 1.0 1.0]
-     [-- -- 1.0 --]
-     [-- -- -- --]
-     [-- -- -- 1.0]
-     [-- -- -- --]],
-                 mask =
-     [[ True  True  True  True]
-     [ True False  True  True]
-     [ True  True  True  True]
-     [False  True  True  True]
-     [False False False False]
-     [ True  True False  True]
-     [ True  True  True  True]
-     [ True  True  True False]
-     [ True  True  True  True]],
-           fill_value = 1e+20)
-    <BLANKLINE>
-    """
-    padded_node_values = np.empty(node_values.size + 1, dtype=float)
-    padded_node_values[-1] = BAD_INDEX_VALUE
-    padded_node_values[:-1] = node_values
-    node_ids = _make_optional_arg_into_array(grid.number_of_nodes, *args)
-
-    neighbors = grid.get_neighbor_list(node_ids, bad_index=-1)
-    values_at_neighbors = padded_node_values[neighbors]
-    masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
-    values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
-
-    out = np.ma.empty_like(masked_neighbor_values, dtype=float)
-    np.subtract(masked_neighbor_values[:, :2],
-                values_at_nodes, out=out[:, :2], **kwds)
-    np.subtract(values_at_nodes, masked_neighbor_values[:, 2:],
-                out=out[:, 2:], **kwds)
-    out *= 1. / grid.node_spacing
-
-    return out
 
 
 def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
