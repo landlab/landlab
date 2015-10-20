@@ -59,7 +59,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
         Input grid.
     node_values : array_like
         Values to take gradient of.
-    cell_ids : array_link, optional
+    cell_ids : array_like, optional
         IDs of grid cells to measure gradients.
     return_node: boolean, optional
         Return node IDs of the node that has the steepest descent.
@@ -189,7 +189,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
         Input grid.
     node_values : array_like
         Values to take gradient of.
-    cell_ids : array_link, optional
+    cell_ids : array_like, optional
         IDs of grid cells to measure gradients.
     return_node: boolean, optional
         If `True`, return node IDs of the node that has the steepest descent.
@@ -276,7 +276,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
         Input grid.
     node_values : array_like
         Values to take gradient of.
-    cell_ids : array_link, optional
+    cell_ids : array_like, optional
         IDs of grid cells to measure gradients.
     return_node: boolean, optional
         Return node IDs of the node that has the steepest descent.

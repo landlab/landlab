@@ -112,7 +112,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_link
+    node_values : array_like
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -177,7 +177,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_link
+    node_values : array_like
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -236,7 +236,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_link
+    node_values : array_like
         Quantity to take the gradient of defined at each node.
     node_ids : array_like, optional
         If provided, node ids to measure gradients. Otherwise, find gradients
