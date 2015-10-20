@@ -2135,29 +2135,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return rfuncs.calculate_steepest_descent_across_adjacent_cells(
             self, node_values, *args, **kwds)
 
-    def calculate_max_gradient_across_node_d4(self, u, cell_id):
-        """Maximum gradient to neighbors.
-
-        .. deprecated:: 0.1
-            Use :func:`calculate_max_gradient_across_cell_faces` instead
-
-        This method calculates the gradients in u across all 4 faces of the
-        cell with ID cell_id. It then returns
-        the steepest (most negative) of these values, followed by its dip
-        direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes
-        downward from the cell are reported as positive.
-
-        Note that this is exactly the same as
-        calculate_max_gradient_across_node except that this is d4, and the
-        other is d8.
-
-        This code is actually calculating slopes, not gradients.
-        The max gradient is the most negative, but the max slope is the most
-        positive.  So, this was updated to return the max value, not the
-        min.
-        """
-        return rfuncs.calculate_max_gradient_across_node_d4(self, u, cell_id)
-
     def find_node_in_direction_of_max_slope(self, u, node_id):
         """Node of steepest gradient.
 

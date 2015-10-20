@@ -573,39 +573,6 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     return net_unit_flux
 
-# TODO: Functions below here still need to be refactored for speed and to
-# conform to the interface standards.
-
-
-def calculate_max_gradient_across_node_d4(self, u, cell_id):
-    """Steepest descent using D4.
-
-    .. note:: Deprecated since version 0.1.
-        Use :func:`calculate_steepest_descent_across_cell_faces` instead
-
-    This method calculates the gradients in u across all 4 faces of the
-    cell with ID cell_id. It then returns
-    the steepest (most negative) of these values, followed by its dip
-    direction (e.g.: 90 180). i.e., this is a D4 algorithm. Slopes
-    downward from the cell are reported as positive.
-
-    Note that this is exactly the same as calculate_max_gradient_across_node
-    except that this is d4, and the other is d8.
-
-    This code is actually calculating slopes, not gradients.
-    The max gradient is the most negative, but the max slope is the most
-    positive.  So, this was updated to return the max value, not the
-    min.
-    """
-    node_id = self.node_at_cell[cell_id]
-    neighbor_nodes = self.get_neighbor_list(node_id)
-
-    grads = (u[node_id] - u[neighbor_nodes]) / self.node_spacing
-    ind = np.argmax(grads)
-    angles = (90., 0., 270., 180.)
-
-    return grads[ind], angles[ind]
-
 
 def calculate_slope_aspect_bfp(xs, ys, zs):
     """Calculate slope and aspect.
