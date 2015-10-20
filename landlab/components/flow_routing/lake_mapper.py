@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat May 30 14:01:10 2015.
+"""Find depressions on a topographic surface.
 
-@author: gtucker
-Routing by DEJH, Oct 15.
+.. codeauthor:: gtucker, DEJH (Flow routing)
 """
+# Routing by DEJH, Oct 15.
 from __future__ import print_function
 
 from landlab import (ModelParameterDictionary, Component, FieldError,
@@ -25,7 +24,8 @@ _FLOODED = 3
 
 class DepressionFinderAndRouter(Component):
 
-    """
+    """Find depressions on a topographic surface.
+
     This component identifies depressions in a topographic surface, finds an
     outlet for each depression.  If directed to do so (default True), and the
     component is able to find existing routing fields output from the
@@ -62,19 +62,35 @@ class DepressionFinderAndRouter(Component):
     }
 
     def __init__(self, grid, input_stream=None, current_time=0.):
-        """
+        """Create a DepressionFinderAndRouter.
+
         Constructor assigns a copy of the grid, sets the current time, and
         calls the initialize method.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A landlab RasterModelGrid.
+        input_stream : str, file_like, or ModelParameterDictionary, optional
+            ModelParameterDictionary that holds the input parameters.
+        current_time : float, optional
+            The current time for the mapper.
         """
         self._grid = grid
         self.current_time = current_time
         self.initialize(input_stream)
 
     def initialize(self, input_stream=None):
-        """
+        """Initialize the component from an input file.
+
         The BMI-style initialize method takes an optional input_stream
         parameter, which may be either a ModelParameterDictionary object or
         an input stream from which a ModelParameterDictionary can read values.
+
+        Parameters
+        ----------
+        input_stream : str, file_like, or ModelParameterDictionary, optional
+            ModelParameterDictionary that holds the input parameters.
         """
         # Create a ModelParameterDictionary for the inputs
         if input_stream is None:
@@ -121,9 +137,8 @@ class DepressionFinderAndRouter(Component):
         # outlet ID to BAD_INDEX_VALUE (which is a major clue!)
         self.depression_depth = self._grid.add_zeros('node',
                                                      'depression__depth')
-        self.depression_outlet = self._grid.add_zeros('node', 'depression__' +
-                                                      'outlet_node',
-                                                      dtype=int)
+        self.depression_outlet = self._grid.add_zeros(
+            'node', 'depression__outlet_node', dtype=int)
         self.depression_outlet += BAD_INDEX_VALUE
 
         # Later on, we'll need a number that's guaranteed to be larger than the
@@ -143,27 +158,27 @@ class DepressionFinderAndRouter(Component):
         self._link_lengths[4:].fill(np.sqrt(2.))
 
     def find_pits(self):
-        """
-        Locate local depressions ("pits") in a gridded elevation field.
-
-        Uses
-        ----
-        self._elev, self._grid
-
-        Creates
-        -------
-        self.is_pit : node array of booleans
-            Flag indicating whether the node is a pit
-        self.number_of_pits : int
-            Number of pits found
-        self.pit_node_ids : node array of ints
-            IDs of the nodes that are pits
+        """Locate local depressions ("pits") in a gridded elevation field.
 
         Notes
         -----
+        **Uses**:
+
+        * ``self._elev``
+        * ``self._grid``
+
+        **Creates**:
+
+        * ``self.is_pit`` (node array of booleans): Flag indicating whether
+          the node is a pit.
+        * ``self.number_of_pits`` (int): Number of pits found.
+        * ``self.pit_node_ids`` (node array of ints): IDs of the nodes that
+          are pits
+
         A node is defined as being a pit if and only if:
-            1. All neighboring core nodes have equal or greater elevation, and
-            2. Any neighboring open boundary nodes have a greater elevation.
+
+        1. All neighboring core nodes have equal or greater elevation, and
+        2. Any neighboring open boundary nodes have a greater elevation.
 
         The algorithm starts off assuming that all core nodes are pits. We then
         loop through all active links. For each link, if one node is higher
@@ -229,7 +244,18 @@ class DepressionFinderAndRouter(Component):
         (self.pit_node_ids, ) = np.where(self.is_pit)
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
-        """Locate the lowest node on the margin of the 'lake'."""
+        """Locate the lowest node on the margin of the "lake".
+
+        Parameters
+        ----------
+        nodes_this_depression : array_like of int
+            Nodes that form a pit.
+
+        Returns
+        -------
+        int
+            The lowest node on the perimeter of a depression.
+        """
         # Start with the first node on the list, and an arbitrarily large elev
         lowest_node = nodes_this_depression[0]
         lowest_elev = self._BIG_ELEV
@@ -248,9 +274,19 @@ class DepressionFinderAndRouter(Component):
         return lowest_node
 
     def node_can_drain(self, the_node, nodes_this_depression):
-        """
-        Determine whether the given node has drainage away from the current
-        lake/depression.
+        """Check if a node has drainage away from the current lake/depression.
+
+        Parameters
+        ----------
+        the_node : int
+            The node to test.
+        nodes_this_depression : array_like of int
+            Nodes that form a pit.
+
+        Returns
+        -------
+        boolean
+            ``True`` if the node can drain. Otherwise, ``False``.
         """
         for nbr in self._node_nbrs[the_node]:
             if nbr != BAD_INDEX_VALUE:
@@ -262,8 +298,19 @@ class DepressionFinderAndRouter(Component):
         return False
 
     def is_valid_outlet(self, the_node, nodes_this_depression):
-        """
-        Determine whether the given node is a valid outlet for the depression.
+        """Check if a node is a valid outlet for the depression.
+        
+        Parameters
+        ----------
+        the_node : int
+            The node to test.
+        nodes_this_depression : array_like of int
+            Nodes that form a pit.
+
+        Returns
+        -------
+        boolean
+            ``True`` if the node is a valid outlet. Otherwise, ``False``.
         """
         if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
             return True
@@ -273,9 +320,17 @@ class DepressionFinderAndRouter(Component):
 
     def record_depression_depth_and_outlet(self, nodes_this_depression,
                                            outlet_id):
-        """
+        """Record information about a depression.
+
         Record information about this depression/lake in the flood_status,
         depression_depth, and depression_outlet arrays.
+
+        Parameters
+        ----------
+        nodes_this_depression : iterable of int
+            Nodes that form a pit.
+        outlet_id : int
+            Node that is the outlet of the pit.
         """
         for n in nodes_this_depression:
             self.flood_status[n] = _FLOODED
@@ -283,9 +338,15 @@ class DepressionFinderAndRouter(Component):
             self.depression_outlet[n] = outlet_id
 
     def find_depression_from_pit(self, pit_node):
-        """
+        """Find the extent of the nodes that form a pit.
+
         Identify extent of depression/lake whose lowest point is the node
         pit_node (which is a itself a pit, a.k.a., closed depression).
+
+        Parameters
+        ----------
+        pit_node : int
+            The node that is the lowest point of a pit.
         """
 
         # Place pit_node at top of depression list
@@ -330,7 +391,8 @@ class DepressionFinderAndRouter(Component):
         # devoured by another, so would need to be removed from the list.
 
     def identify_depressions_and_outlets(self):
-        """
+        """Find depression and likes on a topographic surface.
+
         Find and map the depressions/lakes in a topographic surface,
         given a previously identified list of pits (if any) in the surface.
         """
@@ -338,18 +400,17 @@ class DepressionFinderAndRouter(Component):
             self.find_depression_from_pit(pit_node)
 
     def map_depressions(self, pits='flow_sinks', reroute_flow=True):
-        """
-        Map depressions/lakes in a topographic surface.
+        """Map depressions/lakes in a topographic surface.
 
         Parameters
         ----------
-        pits : array or field name or None (optional)
+        pits : array or str or None, optional
             If a field name, the boolean field containing True where pits.
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
             Default is 'flow_sinks', the pit field output from 'route_flow_dn'
-        reroute_flow : bool (optional)
+        reroute_flow : bool, optional
             If True (default), and the component detects the output fields in
             the grid produced by the route_flow_dn component, this component
             will modify the existing flow fields to route the flow across the
@@ -418,7 +479,8 @@ class DepressionFinderAndRouter(Component):
             self.reaccumulate_flow()
 
     def route_flow(self):
-        """
+        """Route flow across lake flats.
+
         Route flow across lake flats, which have already been identified.
         """
         for outlet_node in self.lake_outlets:
@@ -455,7 +517,8 @@ class DepressionFinderAndRouter(Component):
         self.sinks[self.pit_node_ids] = False
 
     def reaccumulate_flow(self):
-        """
+        """Update drainage area, discharge, and upstream order.
+
         Invoke the accumulator a second time to update drainage area,
         discharge, and upstream order.
         """
@@ -475,9 +538,7 @@ class DepressionFinderAndRouter(Component):
         # ## Right now, we're just not updating it.
 
     def display_depression_map(self):
-        """
-        Display on screen a simple character-based map of depressions/lakes.
-        """
+        """Print a simple character-based map of depressions/lakes."""
         # Find the outlet nodes (just for display purposes)
         is_outlet = np.zeros(self._grid.number_of_nodes, dtype=bool)
         for i in self._grid.core_nodes:
@@ -497,11 +558,19 @@ class DepressionFinderAndRouter(Component):
             print()
 
     def handle_outlet_node(self, outlet_node, nodes_in_lake):
-        """
+        """Ensure the outlet node drains to the grid edge.
+
         Makes sure the outlet node is drains to the grid edge, not back
         into the depression.
         This exists because if the slope into the lake is steeper than the
         slope out from the (rim lowest) outlet node, the lake won't drain.
+
+        Parameters
+        ----------
+        outlet_node : int
+            The outlet node.
+        nodes_in_lake : array_like of int
+            The nodes that are contained within the lake.
         """
         outlet_neighbors = np.hstack((self._grid.get_neighbor_list(
             outlet_node),
@@ -521,9 +590,7 @@ class DepressionFinderAndRouter(Component):
 
 
 def main():
-    """
-    temporary: test.
-    """
+    """temporary: test."""
     print('howdy')
     from landlab import RasterModelGrid
     from numpy.random import rand
