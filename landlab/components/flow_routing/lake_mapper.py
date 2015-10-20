@@ -7,8 +7,8 @@ Routing by DEJH, Oct 15.
 """
 from __future__ import print_function
 
-from landlab import ModelParameterDictionary, Component, FieldError, \
-                    FIXED_VALUE_BOUNDARY
+from landlab import (ModelParameterDictionary, Component, FieldError,
+                     FIXED_VALUE_BOUNDARY)
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.grid.base import BAD_INDEX_VALUE
@@ -24,6 +24,7 @@ _FLOODED = 3
 
 
 class DepressionFinderAndRouter(Component):
+
     """
     This component identifies depressions in a topographic surface, finds an
     outlet for each depression.  If directed to do so (default True), and the
@@ -32,6 +33,7 @@ class DepressionFinderAndRouter(Component):
     accumulations already stored in the grid to route flow across these
     depressions.
     """
+
     _name = 'DepressionFinderAndRouter'
 
     _input_var_names = set(['topographic__elevation',
@@ -51,13 +53,13 @@ class DepressionFinderAndRouter(Component):
                     'depression__outlet_node': 'node',
                     }
 
-    _var_defs = {'topographic__elevation': 'Surface topographic elevation',
-                 'depression__depth': 'Depth of depression below its ' +
-                 'spillway point',
-                 'depression__outlet_node': 'If a depression, the id ' +
-                 'of the outlet node for that depression, otherwise ' +
-                 'BAD_INDEX_VALUE'
-                 }
+    _var_defs = {
+        'topographic__elevation': 'Surface topographic elevation',
+        'depression__depth': 'Depth of depression below its spillway point',
+        'depression__outlet_node':
+            'If a depression, the id of the outlet node for that depression, '
+            'otherwise BAD_INDEX_VALUE'
+    }
 
     def __init__(self, grid, input_stream=None, current_time=0.):
         """
@@ -227,9 +229,7 @@ class DepressionFinderAndRouter(Component):
         (self.pit_node_ids, ) = np.where(self.is_pit)
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
-        """
-        Locate the lowest node on the margin of the 'lake'.
-        """
+        """Locate the lowest node on the margin of the 'lake'."""
         # Start with the first node on the list, and an arbitrarily large elev
         lowest_node = nodes_this_depression[0]
         lowest_elev = self._BIG_ELEV
@@ -363,11 +363,16 @@ class DepressionFinderAndRouter(Component):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+        >>> from landlab.components.flow_routing.lake_mapper import (
+        ...     DepressionFinderAndRouter)
 
         >>> rg = RasterModelGrid(5, 5)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
-        >>> z[:] = np.array([100.,100.,95.,100.,100.,100.,101.,92.,1.,100.,100.,101.,2.,101.,100.,100.,3.,101.,101.,100.,90.,95.,100.,100.,100])
+        >>> z[:] = np.array([100., 100.,  95., 100., 100.,
+        ...                  100., 101.,  92.,   1., 100.,
+        ...                  100., 101.,   2., 101., 100.,
+        ...                  100.,   3., 101., 101., 100.,
+        ...                   90.,  95., 100., 100., 100.])
         >>> df = DepressionFinderAndRouter(rg)
         >>> df.map_depressions(pits=None, reroute_flow=False)
         >>> df.display_depression_map()
@@ -376,7 +381,6 @@ class DepressionFinderAndRouter(Component):
         . . ~ . . 
         . ~ . . . 
         o . . . . 
-
         """
         self.lake_outlets = []  # reset this
         # Locate nodes with pits
@@ -424,11 +428,11 @@ class DepressionFinderAndRouter(Component):
             # ^using set on assumption of cythonizing later
             nodes_on_front = np.array([outlet_node])
             self.handle_outlet_node(outlet_node, nodes_in_lake)
-            while (len(nodes_in_lake)+1) != len(nodes_routed):
+            while (len(nodes_in_lake) + 1) != len(nodes_routed):
                 all_neighbors = np.hstack((self._grid.get_neighbor_list(
-                                                    nodes_on_front),
-                                           self._grid.get_diagonal_list(
-                                                    nodes_on_front)))
+                    nodes_on_front),
+                    self._grid.get_diagonal_list(
+                    nodes_on_front)))
                 outlake = np.logical_not(np.in1d(all_neighbors.flat,
                                                  nodes_in_lake))
                 all_neighbors[outlake.reshape(all_neighbors.shape)] = -1
@@ -439,7 +443,7 @@ class DepressionFinderAndRouter(Component):
                 # ^gets flattened, but, usefully, unique_indices are *in order*
                 # remember, 1st one is always -1
                 # I bet this is sloooooooooow
-                drains_to = nodes_on_front[unique_indices[1:]//8]
+                drains_to = nodes_on_front[unique_indices[1:] // 8]
                 # to run the accumulator successfully, we need receivers, and
                 # sinks only. So the priority is sorting out the receiver
                 # field, and sealing the filled sinks (once while loop is done)
@@ -500,9 +504,9 @@ class DepressionFinderAndRouter(Component):
         slope out from the (rim lowest) outlet node, the lake won't drain.
         """
         outlet_neighbors = np.hstack((self._grid.get_neighbor_list(
-                                            outlet_node),
-                                      self._grid.get_diagonal_list(
-                                            outlet_node)))
+            outlet_node),
+            self._grid.get_diagonal_list(
+            outlet_node)))
         inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
         outlet_neighbors[inlake] = -1
         unique_outs, unique_indices = np.unique(outlet_neighbors,
@@ -525,7 +529,7 @@ def main():
     from numpy.random import rand
     grid = RasterModelGrid(4, 5, 1.0)
     z = grid.add_zeros('node', 'topographic__elevation')
-    z[:] = rand(len(z))*100
+    z[:] = rand(len(z)) * 100
     print(z)
     dep_finder = DepressionFinderAndRouter(grid,  '/Users/gtucker/Dev/' +
                                            'Landlab/gt_tests/test_inputs_for' +
@@ -533,7 +537,7 @@ def main():
     dep_finder.map_depressions()
 
     n = 0
-    for r in range(grid.number_of_node_rows-1, -1, -1):
+    for r in range(grid.number_of_node_rows - 1, -1, -1):
         for c in range(grid.number_of_node_columns):
             print(int(z[n]), '(', dep_finder.is_pit[n], ')',  end=' ')
             n += 1
@@ -560,6 +564,7 @@ def main():
     print(z)
     print(rcvr)
     print(ss)
+
 
 if __name__ == '__main__':
     import doctest
