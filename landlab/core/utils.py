@@ -75,6 +75,56 @@ else:
             return array.astype(np.int)
 
 
+def make_optional_arg_into_id_array(number_of_elements, *args):
+    """Transform an optional argument into an array of element ids.
+
+    Many landlab functions an optional argument of element ids that tells the
+    function to operate only on the elements provided. However, if the argument
+    is absent, all of the elements are to be operated on. This is a convenience
+    function that converts such an arguments list into an array of elements
+    ids.
+
+    Parameters
+    ----------
+    number_of_elements : int
+        Number of elements in the grid.
+    array : array_like
+        Iterable to convert to an array.
+
+    Returns
+    -------
+    ndarray
+        Input array converted to a numpy array, or a newly-created numpy
+        array.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import make_optional_arg_into_id_array
+    >>> make_optional_arg_into_id_array(4)
+    array([0, 1, 2, 3])
+    >>> make_optional_arg_into_id_array(4, [0, 0, 0, 0])
+    [0, 0, 0, 0]
+    >>> make_optional_arg_into_id_array(4, (1, 1, 1, 1))
+    [1, 1, 1, 1]
+    >>> make_optional_arg_into_id_array(4, np.ones(4))
+    array([ 1.,  1.,  1.,  1.])
+    """
+    if len(args) >= 2:
+        raise ValueError('Number of arguments must be 0 or 1.')
+
+    if len(args) == 0:
+        ids = np.arange(number_of_elements, dtype=np.int)
+    else:
+        ids = args[0]
+        if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
+            try:
+                ids = list(ids)
+            except TypeError:
+                ids = [ids]
+    return ids
+
+
 def get_functions_from_module(mod, pattern=None):
     """Get all the function in a module.
 
