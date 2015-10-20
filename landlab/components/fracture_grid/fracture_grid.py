@@ -25,16 +25,15 @@ Potential improvements:
         fully (statistically) symmetric.
 
 Created: September 2013 by Greg Tucker
-Last significant modification: August 2014 GT
+Last significant modification: cleanup and unit tests Oct 2015 GT
 """
 
 from numpy import tan, pi, size, zeros
-from numpy.random import rand
+import numpy as np
 import random
-import pylab as plt
 
 
-def calculate_fracture_starting_position(numrows, numcols):
+def calculate_fracture_starting_position(numrows, numcols, seed):
     """
     Chooses a random starting position along the x or y axis (random choice).
 
@@ -42,12 +41,17 @@ def calculate_fracture_starting_position(numrows, numcols):
     ----------
     numrows, numcols : int
         Number of rows and columns in the grid
+    seed : int
+        Seeds the random number generator, so that a particular random
+        sequence can be recreated.
 
     Returns
     -------
     x, y : int
         Fracture starting coordinates
     """
+    random.seed(seed)
+
     if random.randint(0, 1)==0:
         x = 0
         y = random.randint(0, numrows-1)
@@ -57,7 +61,7 @@ def calculate_fracture_starting_position(numrows, numcols):
     return x, y
 
 
-def calculate_fracture_orientation(x, y):
+def calculate_fracture_orientation(x, y, seed):
     """
     Chooses a random orientation for the fracture.
 
@@ -65,6 +69,8 @@ def calculate_fracture_orientation(x, y):
     ----------
     x, y : int
         Starting coordinates (one of which should be zero)
+    seed : int
+        Seed value for random number generator
 
     Returns
     -------
@@ -77,7 +83,8 @@ def calculate_fracture_orientation(x, y):
     will be between 45 and 135 degrees from horizontal (counter-clockwise).
     Otherwise, it will be between -45 and 45 degrees.
     """
-    ang = (pi/2)*rand()
+    np.random.seed(seed)
+    ang = (pi/2)*np.random.rand()
     if y==0:
         ang += pi/4
     else:
@@ -142,7 +149,8 @@ def trace_fracture_through_grid(m, x0, y0, dx, dy):
         y += dy
 
 
-def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None):
+def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
+                   seed=0):
     """
     Creates and returns a grid containing a network of random fractures, which
     are represented as 1's embedded in a grid of 0's.
@@ -156,6 +164,8 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None):
         uses values from the model grid instead)
     (optional) model_grid : Landlab RasterModelGrid object
         RasterModelGrid to use for grid size
+    (optional) seed : int
+        Seed used for random number generator
 
     Returns
     -------
@@ -170,58 +180,21 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None):
     if model_grid is not None:
         numrows = model_grid.number_of_node_rows
         numcols = model_grid.number_of_node_columns
-    m = zeros((numrows,numcols))
+    m = zeros((numrows,numcols), dtype=int)
 
     # Add fractures to grid
     nfracs = (numrows+numcols)/frac_spacing
     for i in range(nfracs):
 
-        x, y = calculate_fracture_starting_position(numrows, numcols)
-        ang = calculate_fracture_orientation(x, y)
+        x, y = calculate_fracture_starting_position(numrows, numcols, seed+i)
+        ang = calculate_fracture_orientation(x, y, seed+i)
         dx, dy = calculate_fracture_step_sizes(x, y, ang)
-
-        #print 'startx=',x,'starty=',y,'ang=',180*ang/pi,'dx=',dx,'dy=',dy
 
         trace_fracture_through_grid(m, x, y, dx, dy)
 
     # If we have a model_grid, flatten the frac grid so it's equivalent to
     # a node array.
     if model_grid is not None:
-        #print 'FROG!'
         m.shape = (m.shape[0]*m.shape[1])
 
     return m
-
-
-def test_fracture_grid():
-    """
-    Test routine that generates and displays a fracture grid.
-
-    Parameters
-    ----------
-    (none)
-
-    Returns
-    -------
-    (none)
-    """
-    # User-defined parameters
-    N = 100
-    frac_spacing = 8
-
-    frac_grid = make_frac_grid(frac_spacing, N, N)
-
-    plt.figure()
-    plt.imshow(frac_grid)
-    plt.show()
-
-    # Version with model grid
-    from landlab import RasterModelGrid
-    rmg = RasterModelGrid(40, 50, 1.0)
-    frac_grid = make_frac_grid(frac_spacing, model_grid=rmg)
-    fg_raster = rmg.node_vector_to_raster(frac_grid)
-
-    plt.figure()
-    plt.imshow(fg_raster)
-    plt.show()
-
