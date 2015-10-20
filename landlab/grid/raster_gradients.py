@@ -1,52 +1,10 @@
 #! /usr/bin/env python
+"""Calculate gradients on a raster grid."""
 import numpy as np
 
+from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE
-
-
-def _make_optional_arg_into_array(number_of_elements, *args):
-    """Transform an optional argument into an array.
-
-    Parameters
-    ----------
-    number_of_elements : int
-        Number of elements in the grid.
-    array : array_like
-        Iterable to convert to an array.
-
-    Returns
-    -------
-    ndarray
-        Input array converted to a numpy array, or a newly-created numpy
-        array.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.grid.raster_funcs import _make_optional_arg_into_array
-    >>> _make_optional_arg_into_array(4)
-    array([0, 1, 2, 3])
-    >>> _make_optional_arg_into_array(4, [0, 0, 0, 0])
-    [0, 0, 0, 0]
-    >>> _make_optional_arg_into_array(4, (1, 1, 1, 1))
-    [1, 1, 1, 1]
-    >>> _make_optional_arg_into_array(4, np.ones(4))
-    array([ 1.,  1.,  1.,  1.])
-    """
-    if len(args) >= 2:
-        raise ValueError('Number of arguments must be 0 or 1.')
-
-    if len(args) == 0:
-        ids = np.arange(number_of_elements)
-    else:
-        ids = args[0]
-        if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
-            try:
-                ids = list(ids)
-            except TypeError:
-                ids = [ids]
-    return ids
 
 
 def calculate_gradients_at_links(grid, node_values, out=None):
@@ -69,15 +27,13 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_gradients import (
-    ...     calculate_gradients_at_links)
     >>> grid = RasterModelGrid((3, 3))
     >>> node_values = [0., 0., 0., 1., 3., 1., 2., 2., 2.]
-    >>> calculate_gradients_at_links(grid, node_values)
+    >>> grid.calculate_gradients_at_links(node_values)
     array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
 
     >>> out = np.empty(grid.number_of_links, dtype=float)
-    >>> rtn = calculate_gradients_at_links(grid, node_values, out=out)
+    >>> rtn = grid.calculate_gradients_at_links(node_values, out=out)
     >>> rtn is out
     True
     >>> out
@@ -115,12 +71,12 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> grid = RasterModelGrid(4, 5, 1.0)
     >>> u = [0., 1., 2., 3., 0.,
     ...      1., 2., 3., 2., 3.,
     ...      0., 1., 2., 1., 2.,
     ...      0., 0., 2., 2., 0.]
-    >>> grad = rmg.calculate_gradients_at_active_links(u)
+    >>> grad = grid.calculate_gradients_at_active_links(u)
     >>> grad
     array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
             1.,  1., -1.,  1.])
@@ -128,8 +84,8 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     For greater speed, sending a pre-created numpy array as an argument
     avoids having to create a new one with each call:
 
-    >>> grad = np.empty(rmg.number_of_active_links)
-    >>> rtn = rmg.calculate_gradients_at_active_links(u, out=grad)
+    >>> grad = np.empty(grid.number_of_active_links)
+    >>> rtn = grid.calculate_gradients_at_active_links(u, out=grad)
     >>> grad
     array([ 1.,  1., -1., -1., -1., -1., -1.,   0.,  1.,  1.,  1.,
            -1.,  1.,  1.,  1., -1.,  1.])
@@ -175,14 +131,12 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_gradients import (
-    ...     calculate_gradient_across_cell_faces)
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([0., 0., 0., 0., 0., 0., 1., 1., 3., 3., 3., 3.])
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> calculate_gradient_across_cell_faces(grid, x)
+    >>> grid.calculate_gradient_across_cell_faces(x)
     masked_array(data =
      [[ 1.  3.  0.  0.]
      [ 0.  2. -1. -1.]],
@@ -194,7 +148,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
     neighbors = grid.get_neighbor_list(node_ids)
@@ -242,19 +196,17 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_gradients import (
-    ...     calculate_gradient_across_cell_corners)
     >>> grid = RasterModelGrid(3, 4)
     >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
 
     A decrease in quantity to a diagonal node is a negative gradient.
 
     >>> from math import sqrt
-    >>> calculate_gradient_across_cell_corners(grid, x) * sqrt(2.)
+    >>> grid.calculate_gradient_across_cell_corners(x) * sqrt(2.)
     array([[ 3.,  3.,  1.,  0.],
            [ 2.,  2., -1.,  0.]])
     """
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
     values_at_diagonals = node_values[grid.get_diagonal_list(node_ids)]
@@ -303,14 +255,12 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     Create a grid with nine nodes.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import (
-    ...     calculate_gradient_along_node_links)
     >>> grid = RasterModelGrid(3, 3)
     >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> calculate_gradient_along_node_links(grid, x)
+    >>> grid.calculate_gradient_along_node_links(x)
     masked_array(data =
      [[-- -- -- --]
      [-- 1.0 -- --]
@@ -337,7 +287,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
-    node_ids = _make_optional_arg_into_array(grid.number_of_nodes, *args)
+    node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
     neighbors = grid.get_neighbor_list(node_ids, bad_index=-1)
     values_at_neighbors = padded_node_values[neighbors]

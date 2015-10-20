@@ -7,7 +7,7 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid import raster_funcs as rfuncs
+from landlab.grid.raster_gradients import calculate_gradient_across_cell_faces
 
 
 def setup_unit_grid():
@@ -31,7 +31,7 @@ def setup_grid():
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
     """Test with a scalar arg for faces."""
-    grads = rfuncs.calculate_gradient_across_cell_faces(
+    grads = calculate_gradient_across_cell_faces(
         rmg, values_at_nodes, 0)
     assert_array_equal(grads, np.array([[1., 5., -1., -5.]]))
 
