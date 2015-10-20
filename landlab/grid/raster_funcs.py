@@ -2,52 +2,7 @@ import numpy as np
 import six
 from six.moves import range
 
-from .base import CLOSED_BOUNDARY
-from .base import BAD_INDEX_VALUE
-
-
-def _make_optional_arg_into_array(number_of_elements, *args):
-    """Transform an optional argument into an array.
-
-    Parameters
-    ----------
-    number_of_elements : int
-        Number of elements in the grid.
-    array : array_like
-        Iterable to convert to an array.
-
-    Returns
-    -------
-    ndarray
-        Input array converted to a numpy array, or a newly-created numpy
-        array.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.grid.raster_funcs import _make_optional_arg_into_array
-    >>> _make_optional_arg_into_array(4)
-    array([0, 1, 2, 3])
-    >>> _make_optional_arg_into_array(4, [0, 0, 0, 0])
-    [0, 0, 0, 0]
-    >>> _make_optional_arg_into_array(4, (1, 1, 1, 1))
-    [1, 1, 1, 1]
-    >>> _make_optional_arg_into_array(4, np.ones(4))
-    array([ 1.,  1.,  1.,  1.])
-    """
-    if len(args) >= 2:
-        raise ValueError('Number of arguments must be 0 or 1.')
-
-    if len(args) == 0:
-        ids = np.arange(number_of_elements)
-    else:
-        ids = args[0]
-        if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
-            try:
-                ids = list(ids)
-            except TypeError:
-                ids = [ids]
-    return ids
+from ..core.utils import make_optional_arg_into_id_array
 
 
 def active_link_id_of_cell_neighbor(grid, inds, *args):
@@ -69,7 +24,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
         IDs of cells for which to get links
 
     """
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
     links = grid.active_links_at_node(node_ids).T
 
@@ -124,7 +79,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     array([[ 2, 12],
            [ 7, 17]])
     """
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
     neighbors = grid.get_neighbor_list(node_ids)
 
@@ -177,7 +132,7 @@ def node_id_of_cell_corner(grid, inds, *args):
     array([[ 3, 11],
            [ 8, 16]])
     """
-    cell_ids = _make_optional_arg_into_array(grid.number_of_cells, *args)
+    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
     diagonals = grid.get_diagonal_list(node_ids)
 
