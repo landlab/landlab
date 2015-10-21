@@ -75,7 +75,8 @@ class HoleFiller(Component):
             self._elev = self._grid.at_node['topographic__elevation']
         except FieldError:
             try:
-                topo_field_name = inputs.read_string('ELEVATION_FIELD_NAME')
+                self.topo_field_name = inputs.read_string('ELEVATION_' +
+                                                          'FIELD_NAME')
             except AttributeError:
                 print('Error: Because your grid does not have a node field')
                 print('called "topographic__elevation", you need to pass the')
@@ -93,14 +94,16 @@ class HoleFiller(Component):
                 print('data.')
                 raise MissingKeyError('ELEVATION_FIELD_NAME')
             try:
-                self._elev = self._grid.at_node[topo_field_name]
+                self._elev = self._grid.at_node[self.topo_field_name]
             except AttributeError:
                 print('Your grid does not seem to have a node field called',
-                      topo_field_name)
+                      self.topo_field_name)
+        else:
+            self.topo_field_name = 'topographic__elevation'
         # create the only new output field:
         self.sed_fill_depth = self._grid.add_zeros('node',
                                                    'sediment_fill__depth')
-        
+
         self._lf = DepressionFinderAndRouter(self._grid)
         self._fr = FlowRouter(self._grid)
 
@@ -133,17 +136,22 @@ class HoleFiller(Component):
         # delete them!
         existing_fields = {}
         spurious_fields = set()
-        for field in self._lf.output_var_names | self._fr.output_var_names:
+        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        try:
+            set_of_outputs.remove(self.topo_field_name)
+        except KeyError:
+            pass
+        for field in set_of_outputs:
             try:
-                existing_fields[field] = mg.at_node[field].copy()
+                existing_fields[field] = self._grid.at_node[field].copy()
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
         self._fr.route_flow()
-        self._lf.map_depressions(pits=self._fr.pit_node_ids,
+        self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
-        self._elev += self.at_node['depression__depth']
+        self._elev += self._grid.at_node['depression__depth']
         # if apply_slope is none, we're now done! But if not...
 
         if apply_slope:
@@ -152,9 +160,10 @@ class HoleFiller(Component):
             sublake = False
             unstable = True
             stability_increment = 0
+            self.lake_nodes_treated = np.array([], dtype=int)
             while unstable:
                 while 1:
-                    for outlet_node in self._lf.lake_outlets:
+                    for outlet_node in set(self._lf.lake_outlets):
                         self.apply_slope_current_lake(apply_slope, outlet_node,
                                                       sublake)
                     # Call the mapper again here. Bail out if no core pits are
@@ -162,10 +171,11 @@ class HoleFiller(Component):
                     # This is necessary as there are some configs where adding
                     # the slope could create subsidiary pits in the topo
                     self._lf.map_depressions(pits=None, reroute_flow=False)
-                    if self._lf.lake_outlets.sum() == 0.:
+                    if len(self._lf.lake_outlets) == 0.:
                         break
-                    self._elev += self.at_node['depression__depth']
+                    self._elev += self._grid.at_node['depression__depth']
                     sublake = True
+                    self.lake_nodes_treated = np.array([], dtype=int)
                 # final test that all lakes are not reversing flow dirs
                 all_lakes = np.where(self._lf.flood_status <
                                      BAD_INDEX_VALUE)[0]
@@ -175,10 +185,11 @@ class HoleFiller(Component):
                 if unstable:
                     apply_slope *= 0.1
                     sublake = False
+                    self.lake_nodes_treated = np.array([], dtype=int)
                     self._elev[:] = original_elev  # put back init conds
                     stability_increment += 1
                     if stability_increment == 10:
-                        raise StandardError('Filler could not find a stable ' +
+                        raise OverflowError('Filler could not find a stable ' +
                                             'condition with a sloping ' +
                                             'surface!')
         # now put back any fields that were present initially, and wipe the
@@ -199,11 +210,14 @@ class HoleFiller(Component):
         outlet_coord = (self._grid.node_x[outlet_node],
                         self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.depression_outlet == outlet_node)[0]
+        lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
         dists = self._grid.get_distances_of_nodes_to_point(outlet_coord,
                                                         node_subset=lake_nodes)
         add_vals = slope*dists
         new_elevs[lake_nodes] += add_vals
+        self.lake_nodes_treated = np.union1d(self.lake_nodes_treated,
+                                             lake_nodes)
         return new_elevs, lake_nodes
 
     def get_lake_ext_margin(self, lake_nodes):
@@ -213,7 +227,7 @@ class HoleFiller(Component):
         all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
                               self._grid.get_diagonal_list(lake_nodes))
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
-        return lake_ext_edge
+        return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
     def get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """
@@ -222,7 +236,7 @@ class HoleFiller(Component):
         all_poss_int = np.union1d(self._grid.get_neighbor_list(lake_ext_edge),
                                   self._grid.get_diagonal_list(lake_ext_edge))
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
-        return lake_int_edge
+        return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
     def apply_slope_current_lake(self, apply_slope, outlet_node, sublake):
         while 1:
@@ -233,8 +247,9 @@ class HoleFiller(Component):
             if sublake:
                 break
             else:
-                if self.drainage_directions_change(lake_nodes, starting_elevs,
-                                                   self._elev):
+                if not self.drainage_directions_change(lake_nodes,
+                                                       starting_elevs,
+                                                       self._elev):
                     break
                 else:
                     # put the elevs back...
@@ -249,10 +264,12 @@ class HoleFiller(Component):
         """
         ext_edge = self.get_lake_ext_margin(lake_nodes)
         edge_neighbors = self._grid.get_neighbor_list(ext_edge)
+        edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
+        # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
         new_neighbor_elevs = new_elevs[edge_neighbors]
         # enforce the "don't change drainage direction" condition:
-        edge_elevs = old_elevs[ext_edge].reshape((ext_edge.size,1))
+        edge_elevs = old_elevs[ext_edge].reshape((ext_edge.size, 1))
         cond = np.allclose((edge_elevs >= old_neighbor_elevs),
                            (edge_elevs >= new_neighbor_elevs))
         # if True, we're good, the tilting didn't mess with the fr
