@@ -15,13 +15,13 @@ from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import with_setup, assert_true, assert_false, assert_raises
+from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
+                        assert_almost_equal)
 try:
-    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal,
-                            assert_close)
+    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
 except ImportError:
     from landlab.testing.tools import (assert_is, assert_set_equal,
-                                       assert_dict_equal, assert_close)
+                                       assert_dict_equal)
 
 
 def setup_dans_grid1():
@@ -225,7 +225,7 @@ def test_add_slopes():
     elevs_out, lake_out = hf.add_slopes(slope_to_add, outlet)
     assert_array_equal(slope_to_add*(np.arange(2.)+1.)+outlet_elev,
                        elevs_out[straight_north])
-    assert_close(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
+    assert_almost_equal(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
     assert_array_equal(new_z, elevs_out)
     assert_array_equal(lake, lake_out)
 
