@@ -15,13 +15,15 @@ from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
 
+DEFAULT_SLOPE = 1.e-5
+
 
 class HoleFiller(Component):
     """
     This component identifies depressions in a topographic surface, then fills
     them in in the topography.  No attempt is made to conserve sediment mass.
     User may specify whether the holes should be filled to flat, or with a
-    slight gradient (~<XXX) downwards towards the depression outlet.
+    slight gradient (~<10**-5) downwards towards the depression outlet.
     """
     _name = 'HoleFiller'
 
@@ -109,18 +111,23 @@ class HoleFiller(Component):
 
     def fill_pits(self, apply_slope=None):
         """
-        This is the main method.
+        This is the main method. Call it to fill depressions in a starting
+        topography.
 
         Parameters
         ----------
-        apply_slope : None, or float
+        apply_slope : None, bool, or float
             If a float is provided this is the slope of the surface down
             towards the lake outlet. Supply a small positive number, e.g.,
-            1e-6. A test is
-            performed to ensure applying this slope will not alter the
-            drainage structure at the edge of the filled region (i.e.,
-            that we are not accidentally reversing the flow direction far from
-            the outlet.)
+            1.e-5 (or True, to use this default value).
+            A test is performed to ensure applying this slope will not alter
+            the drainage structure at the edge of the filled region (i.e.,
+            that we are not accidentally reversing the flow direction far
+            from the outlet.) The component will automatically decrease the
+            (supplied or default) gradient a number of times to try to
+            accommodate this, but will eventually raise an OverflowError
+            if it can't deal with it. If you pass True, the method will use
+            the default value of 1.e-5.
 
         Return fields
         -------------
@@ -153,7 +160,10 @@ class HoleFiller(Component):
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']
         # if apply_slope is none, we're now done! But if not...
-
+        if apply_slope is True:
+            apply_slope = DEFAULT_SLOPE
+        elif type(apply_slope) in (float, int):
+            assert apply_slope >= 0.
         if apply_slope:
             # this isn't very efficient, but OK as we're only running this
             # code ONCE in almost all use cases
@@ -239,6 +249,10 @@ class HoleFiller(Component):
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
     def apply_slope_current_lake(self, apply_slope, outlet_node, sublake):
+        """
+        Wraps the add_slopes method to allow handling of conditions where the
+        drainage structure would be changed or we're dealing with a sublake.
+        """
         while 1:
             starting_elevs = self._elev.copy()
             self._elev[:], lake_nodes = self.add_slopes(apply_slope,
@@ -260,7 +274,7 @@ class HoleFiller(Component):
 
     def drainage_directions_change(self, lake_nodes, old_elevs, new_elevs):
         """
-        True is the drainage structure at lake margin changes, False otherwise.
+        True if the drainage structure at lake margin changes, False otherwise.
         """
         ext_edge = self.get_lake_ext_margin(lake_nodes)
         edge_neighbors = self._grid.get_neighbor_list(ext_edge)

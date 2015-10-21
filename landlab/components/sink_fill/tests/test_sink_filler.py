@@ -273,11 +273,13 @@ def test_filler_inclined2():
 def test_stupid_shaped_hole():
     """
     Tests inclined fill into a surface with a deliberately awkward shape.
+    Also tests the ability to pass a bool to fill_pits(), to use the default
+    value of 1.e-5.
     """
-    hf.fill_pits(apply_slope=0.1)
-    hole1 = np.array([4.141421, 4.223607, 4.316228, 4.1, 4.2, 4.3, 4.141421,
-                      4.223607, 4.316228, 4.282843, 4.316228])
-    hole2 = np.array([7.223607, 7.1, 7.2])
+    hf.fill_pits(apply_slope=True)
+    hole1 = np.array([4.000014, 4.000022, 4.000032, 4.00001, 4.00002, 4.00003,
+                      4.000014, 4.000022, 4.000032, 4.000028, 4.000032])
+    hole2 = np.array([7.000022, 7.00001, 7.00002])
     np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     # print this to check out the funky drainage arrangement...
     # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
