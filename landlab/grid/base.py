@@ -581,7 +581,7 @@ class ModelGrid(ModelDataFields):
         """Get array of core nodes."""
         try:
             return self._core_nodes
-        except:
+        except AttributeError:
             (core_node_ids, ) = numpy.where(self._node_status == CORE_NODE)
             return core_node_ids
 

@@ -3,7 +3,6 @@
 The Landlab
 
 :Package name: TheLandlab
-:Version: 0.1.0
 :Release date: 2013-03-24
 :Authors:
   Greg Tucker,
@@ -21,7 +20,7 @@ The Landlab
 
 from __future__ import absolute_import
 
-__version__ = '0.1.33'
+__version__ = '0.1.34'
 
 
 import os

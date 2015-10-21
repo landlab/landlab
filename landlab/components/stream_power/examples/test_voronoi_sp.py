@@ -5,7 +5,7 @@ from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from matplotlib.pyplot import figure, show
 
-nnodes = 1000
+nnodes = 10000
 
 x, y = np.random.rand(nnodes), np.random.rand(nnodes)
 mg = VoronoiDelaunayGrid(x,y)

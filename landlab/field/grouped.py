@@ -534,7 +534,7 @@ class ModelDataFields(object):
                               ModelDataFields.ones(self, group, **kwds),
                               units=units)
 
-    def add_zeros(self, group, name, units=None, **kwds):
+    def add_zeros(self, group, name, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
