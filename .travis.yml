@@ -1,10 +1,13 @@
 env:
-- TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
-- TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.9"
-- TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.10"
-- TRAVIS_PYTHON_VERSION="3.3" NUMPY_VERSION="1.9"
-- TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.9"
-- TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.10"
+  matrix:
+  - TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.10"
+  - TRAVIS_PYTHON_VERSION="3.3" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.9"
+  - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.10"
+  global:
+    secure: UxPkdFKl0xtk+H+98CNHSnYN8SJrEq5xJjLtPUPR+5UF5lLKL7godwrOdYeO0B0fXPi2Plw0vtoIID6H1AV4x+8QD/AgAizoWIh8KLim3E7rDX0v0M3WnUHctvYwt76mGCYvIGH6qR2Ziml37Ec6nz2aTuz0oex27P6dq0BKkXs=
 os:
 - linux
 - osx
@@ -27,7 +30,9 @@ script:
 - bash .ci/travis/run_travis_test.sh
 virtualenv:
   system_site_packages: false
-after_success: coveralls
+after_success:
+  - bash .ci/travis/deploy_to_pypi.sh
+  - coveralls
 deploy:
   provider: pypi
   user: mcflugen
@@ -36,7 +41,7 @@ deploy:
   on:
     tags: true
     repo: landlab/landlab
-  distributions: "sdist bdist_wheel"
+  distributions: sdist bdist_wheel
 notifications:
   slack:
     secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=
