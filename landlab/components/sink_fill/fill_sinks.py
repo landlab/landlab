@@ -100,6 +100,9 @@ class HoleFiller(Component):
         # create the only new output field:
         self.sed_fill_depth = self._grid.add_zeros('node',
                                                    'sediment_fill__depth')
+        
+        self._lf = DepressionFinderAndRouter(self._grid)
+        self._fr = FlowRouter(self._grid)
 
     def fill_pits(self, apply_slope=None):
         """
@@ -124,8 +127,6 @@ class HoleFiller(Component):
         self.original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.
-        self._lf = DepressionFinderAndRouter(self._grid)
-        self._fr = FlowRouter(self._grid)
         # We're going to implement the lake_mapper component to do the heavy
         # lifting here, then delete its fields. This means we first need to
         # test if these fields already exist, in which case, we should *not*
@@ -194,8 +195,9 @@ class HoleFiller(Component):
         Assuming you have already run the lake_mapper, adds an incline towards
         the outlet to the nodes in the lake.
         """
-        new_elevs = self._grid.elevs.copy()
-        outlet_coord = (mg.node_x[outlet_node], mg.node_y[outlet_node])
+        new_elevs = self._elev.copy()
+        outlet_coord = (self._grid.node_x[outlet_node],
+                        self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.depression_outlet == outlet_node)[0]
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
         dists = self._grid.get_distances_of_nodes_to_point(outlet_coord,
@@ -243,14 +245,15 @@ class HoleFiller(Component):
 
     def drainage_directions_change(self, lake_nodes, old_elevs, new_elevs):
         """
+        True is the drainage structure at lake margin changes, False otherwise.
         """
+        ext_edge = self.get_lake_ext_margin(lake_nodes)
         edge_neighbors = self._grid.get_neighbor_list(ext_edge)
         old_neighbor_elevs = old_elevs[edge_neighbors]
         new_neighbor_elevs = new_elevs[edge_neighbors]
         # enforce the "don't change drainage direction" condition:
-        if ((edge_neighbors >= old_neighbor_elevs) ==
-                (edge_neighbors >= new_neighbor_elevs)):
-            # we're good, the tilting didn't mess with the fr
-            return False
-        else:
-            return True
+        edge_elevs = old_elevs[ext_edge].reshape((ext_edge.size,1))
+        cond = np.allclose((edge_elevs >= old_neighbor_elevs),
+                           (edge_elevs >= new_neighbor_elevs))
+        # if True, we're good, the tilting didn't mess with the fr
+        return not cond
