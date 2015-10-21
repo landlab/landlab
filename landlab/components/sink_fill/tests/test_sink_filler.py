@@ -13,7 +13,7 @@ from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.sink_fill.fill_sinks import HoleFiller
 from numpy import sin, pi
 import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
 from nose.tools import with_setup, assert_true, assert_false, assert_raises
 try:
@@ -42,46 +42,6 @@ def setup_dans_grid1():
                   0.0,  1.0,  0.6,  1.0,  1.0,  1.0,  0.0,
                   0.0,  0.0, -0.5,  0.0,  0.0,  0.0,  0.0]).flatten()
 
-    r_old = np.array([  0,  1,  2,  3,  4,  5,  6,
-                        7,  1,  2,  3,  4,  5, 13,
-                       14, 14, 17, 17, 17, 20, 20,
-                       21, 21, 17, 17, 17, 27, 27,
-                       28, 28, 37, 38, 39, 34, 34,
-                       35, 44, 44, 44, 46, 47, 41,
-                       42, 43, 44, 45, 46, 47, 48]).flatten()
-
-    r_new = np.array([  0,  1,  2,  3,  4,  5,  6,
-                        7,  1,  2,  3,  4,  5, 13,
-                        14, 14, 23, 23, 24, 20, 20,
-                        21, 21, 30, 30, 24, 27, 27,
-                        28, 28, 37, 38, 39, 34, 34,
-                        35, 44, 44, 44, 46, 47, 41,
-                        42, 43, 44, 45, 46, 47, 48]).flatten()
-
-    A_old = np.array([[  1.,  2.,  2.,  2.,  2.,  2.,  1.,
-                         1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                         2.,  1.,  1.,  6.,  1.,  1.,  2.,
-                         2.,  1.,  1.,  1.,  1.,  1.,  2.,
-                         2.,  1.,  1.,  1.,  1.,  1.,  2.,
-                         1.,  1.,  2.,  2.,  2.,  1.,  1.,
-                         1.,  1.,  6.,  1.,  3.,  2.,  1.]]).flatten()
-
-    A_new = np.array([[  1.,  2.,  2.,  2.,  2.,  2.,  1.,
-                         1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                         2.,  1.,  1.,  1.,  1.,  1.,  2.,
-                         2.,  1.,  3.,  3.,  1.,  1.,  2.,
-                         2.,  1.,  7.,  1.,  1.,  1.,  2.,
-                         1.,  1.,  8.,  2.,  2.,  1.,  1.,
-                         1.,  1., 12.,  1.,  3.,  2.,  1.]]).flatten()
-
-    s_new = np.array([  0,  1,  8,  2,  9,  3, 10,
-                        4, 11,  5, 12,  6,  7, 13,
-                       14, 15, 20, 19, 21, 22, 27,
-                       26, 28, 29, 34, 33, 35, 41,
-                       42, 43, 44, 36, 37, 30, 23,
-                       16, 17, 24, 18, 25, 38, 31,
-                       45, 46, 39, 32, 47, 40, 48]).flatten()
-
     depr_outlet_target = np.array([XX, XX, XX, XX, XX, XX, XX,
                                    XX, XX, XX, XX, XX, XX, XX,
                                    XX, XX, 30, 30, 30, XX, XX,
@@ -97,6 +57,67 @@ def setup_dans_grid1():
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
     hf = HoleFiller(mg)
+
+
+def setup_dans_grid2():
+    """
+    Create a 10x10 test grid with a well defined hole in it, from a flat
+    surface.
+    """
+    global hf, mg
+    global z, depr_outlet_target
+    global lake, outlet, outlet_array
+    
+    lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
+    outlet = 35  #shouldn't be needed
+    outlet_array = np.array([outlet])
+
+    mg = RasterModelGrid(10, 10, 1.)
+    
+    z = np.ones(100, dtype=float)
+    z[lake] = 0.
+
+    depr_outlet_target = np.empty(100, dtype=float)
+    depr_outlet_target.fill(XX)
+    depr_outlet_target = XX  # not well defined in this simplest case...?
+
+    mg.add_field('node', 'topographic__elevation', z, units='-')
+
+    hf = HoleFiller(mg)
+
+
+def setup_dans_grid3():
+    """
+    Create a 10x10 test grid with a well defined hole in it, into an inclined
+    surface.
+    """
+    global hf, mg
+    global z, depr_outlet_target
+    global lake, lake1, lake2, outlet, outlet_array
+    
+    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
+    lake2 = np.array([77, 78, 87, 88])
+    guard_nodes = np.array([23, 33, 53, 63])
+    lake = np.concatenate((lake1, lake2))
+    outlet = 35  #shouldn't be needed
+    outlet_array = np.array([outlet])
+
+    mg = RasterModelGrid(10, 10, 1.)
+    
+    z = np.ones(100, dtype=float)
+    # add slope
+    z += mg.node_x
+    z[guard_nodes] += 0.001
+    z[lake] = 0.
+
+    depr_outlet_target = np.empty(100, dtype=float)
+    depr_outlet_target.fill(XX)
+    depr_outlet_target = XX  # not well defined in this simplest case...?
+
+    mg.add_field('node', 'topographic__elevation', z, units='-')
+
+    hf = HoleFiller(mg)
+
 
 @with_setup(setup_dans_grid1)
 def check_fields(grid):
@@ -159,6 +180,7 @@ def test_add_slopes():
     depr_outlet_map.fill(XX)
     depr_outlet_map[lake] = outlet
     hf._lf.depression_outlet = depr_outlet_map
+    hf.lake_nodes_treated = np.array([], dtype=int)
     dists = mg.get_distances_of_nodes_to_point((mg.node_x[outlet],
                                                 mg.node_y[outlet]))
     new_z[lake] = outlet_elev
@@ -172,6 +194,53 @@ def test_add_slopes():
     assert_close(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
     assert_array_equal(new_z, elevs_out)
     assert_array_equal(lake, lake_out)
+
+@with_setup(setup_dans_grid2)
+def test_filler_flat():
+    """
+    Very simple, though possibly degerate, case, filling a 3x3 hole up to
+    the flat surface surrounding it.
+    """
+    hf.fill_pits()
+    assert_array_equal(hf._elev[lake], np.ones(9.))
+    assert_array_equal(mg.at_node['topographic__elevation'][lake],
+                       np.ones(9.))
+
+
+@with_setup(setup_dans_grid3)
+def test_filler_inclined():
+    """
+    Tests a flat fill into an inclined surface, with two holes.
+    """
+    hf.fill_pits()
+    assert_array_equal(mg.at_node['topographic__elevation'][lake1],
+                       np.ones(9.)*4.)
+    assert_array_equal(mg.at_node['topographic__elevation'][lake2],
+                       np.ones(4.)*7.)
+
+
+@with_setup(setup_dans_grid3)
+def test_filler_inclined2():
+    """
+    Tests an inclined fill into an inclined surface, with two holes.
+    """
+    hf.fill_pits(apply_slope=0.1)
+    hole1 = np.array([4.141421, 4.223607, 4.316228, 4.1, 4.2, 4.3, 4.141421,
+                      4.223607, 4.316228])
+    hole2 = np.array([7.141421, 7.223607, 7.1, 7.2])
+    assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
+                              hole1)
+    assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
+                              hole2)
+
+
+# @with_setup(setup_dans_grid2)
+# def test_filler_flat_imposed_slope():
+#     """
+#     Test impossible condition, where filler attempts to impose a gradient
+#     across the pit but rest of surface is flat.
+#     """
+#     assert_raises(OverflowError, hf.fill_pits(apply_slope=0.1))
 
 
 # def test_three_pits():
