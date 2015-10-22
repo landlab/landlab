@@ -13,9 +13,10 @@ from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 from numpy import sin, pi
 import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import with_setup, assert_true, assert_false
+from nose.tools import (with_setup, assert_true, assert_false,
+                        assert_almost_equal)
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -94,7 +95,7 @@ def setup_dans_grid():
                          2.,  1.,  7.,  1.,  1.,  1.,  2.,
                          1.,  1.,  8.,  2.,  2.,  1.,  1.,
                          1.,  1., 12.,  1.,  3.,  2.,  1.]]).flatten()
-    
+
     s_new = np.array([  0,  1,  8,  2,  9,  3, 10,
                         4, 11,  5, 12,  6,  7, 13,
                        14, 15, 20, 19, 21, 22, 27,
@@ -194,6 +195,126 @@ def check_array_values(rmg, lm):
      XX, XX, XX, XX])
 
 
+def setup_dans_grid2():
+    """
+    Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
+    """
+    from landlab import RasterModelGrid
+    from landlab.components.flow_routing.route_flow_dn import FlowRouter
+    from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+    
+    global fr, lf, mg
+    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
+    
+    mg = RasterModelGrid(7,7,1.)
+    
+    z = mg.node_x.copy()
+    guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
+    edges = np.concatenate((np.arange(7), np.arange(42, 49)))
+    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
+    z[guard_sides] = z[13]
+    z[edges] = -2.  # force flow outwards from the tops of the guards
+    z[hole_here] = -1.
+
+    A_new = np.array([[[  1.,   2.,   2.,   2.,   2.,   2.,   1.,
+                          1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                          1.,   1.,   4.,   3.,   2.,   1.,   1.,
+                          1.,  14.,   4.,   3.,   2.,   1.,   1.,
+                         16.,   1.,   4.,   3.,   2.,   1.,   1.,
+                          1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                          1.,   2.,   2.,   2.,   2.,   2.,   1.]]]).flatten()
+
+    depr_outlet_target = np.array([ XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX,
+                                    XX, 28, 28, XX, XX, XX, XX,
+                                    XX, 28, 28, XX, XX, XX, XX,
+                                    XX, 28, 28, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX,
+                                    XX, XX, XX, XX, XX, XX, XX]).flatten()
+    
+    mg.add_field('node', 'topographic__elevation', z, units='-')
+    
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+    
+    
+def check_fields(grid):
+    """
+    Check to make sure the right fields have been created.
+    """
+    try:
+        grid.at_node['topographic__elevation']
+        grid.at_node['flood_status_code']
+        grid.at_node['depression__depth']
+        grid.at_node['depression__outlet_node']
+        grid.at_node['is_pit']
+    except:
+        print('Test failure in check_fields')
+        raise
+
+
+def check_array_values(rmg, lm):
+    """
+    Check values of the various fields against known values.
+    """
+    assert_array_equal(lm.is_pit,
+    [False, False, False, False, False, False, False, False, False, False, False, False,
+     False, False,  True, False, False, False, False, False, False, False, False, False,
+     False, False,  True, False, False, False, False, False, False, False, False, False,
+     False, False, False, False, False, False, False, False, False, False,  True, False,
+     False,  True, False, False, False, False, False, False, False, False, False, False,
+     False, False, False, False])
+
+    assert_array_equal(lm.flood_status,
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    dd1 = np.round(lm.depression_depth*100)
+    assert_array_equal(dd1,
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+
+    dd1 = np.round(rmg.at_node['depression__depth']*100)
+    assert_array_equal(dd1,
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+      
+    assert_array_equal(lm.depression_outlet,
+    [XX, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX, XX, XX,
+     XX,  5,  5, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX,  5,  5,  5,  5, XX,
+     XX, XX, XX,  5,  5,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX, 50, XX, XX, XX,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX])
+
+    assert_array_equal(rmg.at_node['depression__outlet_node'], \
+    [XX, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX, XX, XX,
+     XX,  5,  5, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX,  5,  5,  5,  5, XX,
+     XX, XX, XX,  5,  5,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX,  5,  5, XX,
+     XX, 50, XX, XX, XX,  5,
+      5, XX, XX, XX, XX, XX,
+     XX, XX, XX, XX])
+
+
 def test_lake_mapper():
     """
     Create a test grid and run a series of tests.
@@ -220,7 +341,7 @@ def test_initial_routing():
     """
     fr.route_flow()
     assert_array_equal(mg.at_node['flow_receiver'], r_old)
-    assert_array_equal(mg.at_node['drainage_area'], A_old)
+    assert_array_almost_equal(mg.at_node['drainage_area'], A_old)
 
 @with_setup(setup_dans_grid)
 def test_rerouting_with_supplied_pits():
@@ -230,8 +351,8 @@ def test_rerouting_with_supplied_pits():
     fr.route_flow()
     lf.map_depressions()
     assert_array_equal(mg.at_node['flow_receiver'], r_new)
-    assert_array_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_equal(mg.at_node['water__volume_flux'], A_new)  # as P=1
+    assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
+    assert_array_almost_equal(mg.at_node['water__volume_flux'], A_new)
     assert_array_equal(mg.at_node['upstream_ID_order'], s_new)
 
 @with_setup(setup_dans_grid)
@@ -261,7 +382,20 @@ def test_pits_as_IDs():
     """
     fr.route_flow()
     lf.map_depressions(pits=np.where(mg.at_node['flow_sinks'])[0])
-    assert_array_equal(mg.at_node['drainage_area'], A_new)
+    assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
+
+
+@with_setup(setup_dans_grid2)
+def test_edge_draining():
+    """
+    This tests when the lake attempts to drain from an edge, where an issue
+    is suspected.
+    """
+    fr.route_flow()
+    lf.map_depressions()
+    assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
+    assert_array_equal(lf.depression_outlet, depr_outlet_target)
+
 
 def test_three_pits():
     """
@@ -289,7 +423,7 @@ def test_three_pits():
     assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
     
     # test conservation of mass:
-    assert np.isclose(mg.at_node['drainage_area'
+    assert_almost_equal(mg.at_node['drainage_area'
                                        ].reshape((10,10))[1:-1,1].sum(), 8.**2)
     # ^all the core nodes
     
