@@ -12,7 +12,7 @@ Created GT Sep 2014
 """
 
 from .celllab_cts import CellLabCTSModel
-from ...grid import HexModelGrid
+from ..grid import HexModelGrid
 
 
 class HexCTS(CellLabCTSModel):
@@ -22,8 +22,8 @@ class HexCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import HexModelGrid
-    >>> from landlab.components.cellular_automata.celllab_cts import Transition
-    >>> from landlab.components.cellular_automata.hex_cts import HexCTS
+    >>> from landlab.ca.celllab_cts import Transition
+    >>> from landlab.ca.hex_cts import HexCTS
 
     >>> mg = HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}

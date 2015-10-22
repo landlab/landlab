@@ -1,7 +1,6 @@
 #!/usr/env/python
 """
-cts_lattice_gas_with_gravity.py:
-continuous-time stochastic version of a lattice-gas cellular
+cts_lattice_gas.py: continuous-time stochastic version of a lattice-gas cellular
 automaton model.
 
 GT Sep 2014
@@ -12,12 +11,14 @@ _DEBUG = False
 
 import time
 import random
+from numpy import zeros, bincount, arange
+from pylab import subplots, plot, show, xlabel, ylabel, title, axis
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
 
-def setup_transition_list(g=1.0):
+def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for simple granular mechanics model.
@@ -113,75 +114,6 @@ def setup_transition_list(g=1.0):
     xn_list.append( Transition((7,6,2), (1,7,2), 0.5, 'rest') )
     xn_list.append( Transition((7,6,2), (5,7,2), 0.5, 'rest') )
 
-    # Gravity rules
-    xn_list.append( Transition((1,0,0), (7,0,0), g, 'up to rest') )
-    xn_list.append( Transition((1,1,0), (7,1,0), g, 'up to rest') )
-    xn_list.append( Transition((1,2,0), (7,2,0), g, 'up to rest') )
-    xn_list.append( Transition((1,3,0), (7,3,0), g, 'up to rest') )
-    xn_list.append( Transition((1,4,0), (7,4,0), g, 'up to rest') )
-    xn_list.append( Transition((1,5,0), (7,5,0), g, 'up to rest') )
-    xn_list.append( Transition((1,6,0), (7,6,0), g, 'up to rest') )
-    xn_list.append( Transition((1,7,0), (7,7,0), g, 'up to rest') )
-    xn_list.append( Transition((0,1,0), (0,7,0), g, 'up to rest') )
-    xn_list.append( Transition((1,1,0), (1,7,0), g, 'up to rest') )
-    xn_list.append( Transition((2,1,0), (2,7,0), g, 'up to rest') )
-    xn_list.append( Transition((3,1,0), (3,7,0), g, 'up to rest') )
-    xn_list.append( Transition((4,1,0), (4,7,0), g, 'up to rest') )
-    xn_list.append( Transition((5,1,0), (5,7,0), g, 'up to rest') )
-    xn_list.append( Transition((6,1,0), (6,7,0), g, 'up to rest') )
-    xn_list.append( Transition((7,1,0), (7,7,0), g, 'up to rest') )
-
-    xn_list.append( Transition((7,0,0), (4,0,0), g, 'rest to down') )
-    xn_list.append( Transition((7,1,0), (4,1,0), g, 'rest to down') )
-    xn_list.append( Transition((7,2,0), (4,2,0), g, 'rest to down') )
-    xn_list.append( Transition((7,3,0), (4,3,0), g, 'rest to down') )
-    xn_list.append( Transition((7,4,0), (4,4,0), g, 'rest to down') )
-    xn_list.append( Transition((7,5,0), (4,5,0), g, 'rest to down') )
-    xn_list.append( Transition((7,6,0), (4,6,0), g, 'rest to down') )
-    xn_list.append( Transition((7,7,0), (4,7,0), g, 'rest to down') )
-    xn_list.append( Transition((0,7,0), (0,4,0), g, 'rest to down') )
-    xn_list.append( Transition((1,7,0), (1,4,0), g, 'rest to down') )
-    xn_list.append( Transition((2,7,0), (2,4,0), g, 'rest to down') )
-    xn_list.append( Transition((3,7,0), (3,4,0), g, 'rest to down') )
-    xn_list.append( Transition((4,7,0), (4,4,0), g, 'rest to down') )
-    xn_list.append( Transition((5,7,0), (5,4,0), g, 'rest to down') )
-    xn_list.append( Transition((6,7,0), (6,4,0), g, 'rest to down') )
-    xn_list.append( Transition((7,7,0), (7,4,0), g, 'rest to down') )
-
-    xn_list.append( Transition((2,0,1), (3,0,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,1,1), (3,1,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,2,1), (3,2,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,3,1), (3,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,4,1), (3,4,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,5,1), (3,5,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,6,1), (3,6,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,7,1), (3,7,1), g, 'right up to right down') )
-    xn_list.append( Transition((0,2,1), (0,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((1,2,1), (1,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((2,2,1), (2,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((3,2,1), (3,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((4,2,1), (4,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((5,2,1), (5,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((6,2,1), (6,3,1), g, 'right up to right down') )
-    xn_list.append( Transition((7,2,1), (7,3,1), g, 'right up to right down') )
-
-    xn_list.append( Transition((6,0,2), (5,0,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,1,2), (5,1,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,2,2), (5,2,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,3,2), (5,3,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,4,2), (5,4,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,5,2), (5,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,6,2), (5,6,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,7,2), (5,7,2), g, 'left up to left down') )
-    xn_list.append( Transition((0,6,2), (0,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((1,6,2), (1,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((2,6,2), (2,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((3,6,2), (3,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((4,6,2), (4,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((5,6,2), (5,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((6,6,2), (6,5,2), g, 'left up to left down') )
-    xn_list.append( Transition((7,6,2), (7,5,2), g, 'left up to left down') )
-
     if _DEBUG:
         print()
         print('setup_transition_list(): list has',len(xn_list),'transitions:')
@@ -196,9 +128,8 @@ def main():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 41
-    nc = 61
-    g = 0.05
+    nr = 52
+    nc = 120
     plot_interval = 1.0
     run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
@@ -229,10 +160,10 @@ def main():
                 6 : 'moving left and up',
                 7 : 'rest',
                 8 : 'wall'}
-    xn_list = setup_transition_list(g)
+    xn_list = setup_transition_list()
 
     # Create data and initialize values.
-    node_state_grid = hmg.add_zeros('node', 'node_state_grid')
+    node_state_grid = hmg.add_zeros('node', 'node_state_grid', dtype=int)
 
     # Make the grid boundary all wall particles
     node_state_grid[hmg.boundary_nodes] = 8
@@ -245,11 +176,28 @@ def main():
     # Create the CA model
     ca = OrientedHexCTS(hmg, ns_dict, xn_list, node_state_grid)
 
+    # Set up a color map for plotting
+    import matplotlib
+    clist = [ (1.0, 1.0, 1.0),   # empty = white
+              (1.0, 0.0, 0.0),   # up = red
+              (1.0, 1.0, 0.0),   # right-up = yellow
+              (0.0, 1.0, 0.0),   # down-up = green
+              (0.0, 1.0, 1.0),   # down = cyan
+              (0.0, 0.0, 1.0),   # left-down = blue
+              (1.0, 0.0, 1.0),   # left-up = magenta
+              (0.5, 0.5, 0.5),   # resting = gray
+              (0.0, 0.0, 0.0) ]   # wall = black
+    my_cmap = matplotlib.colors.ListedColormap(clist)
+
     # Create a CAPlotter object for handling screen display
-    ca_plotter = CAPlotter(ca)
+    ca_plotter = CAPlotter(ca, cmap=my_cmap)
 
     # Plot the initial grid
     ca_plotter.update_plot()
+
+    # Create an array to store the numbers of states at each plot interval
+    nstates = zeros((9, int(run_duration/plot_interval)))
+    k = 0
 
     # RUN
     current_time = 0.0
@@ -269,12 +217,27 @@ def main():
 
         # Plot the current grid
         ca_plotter.update_plot()
+        axis('off')
 
+        # Record numbers in each state
+        nstates[:,k] = bincount(node_state_grid)
+        k += 1
 
     # FINALIZE
 
     # Plot
     ca_plotter.finalize()
+
+    # Display the numbers of each state
+    fig, ax = subplots()
+    for i in range(1, 8):
+        plot(arange(plot_interval, run_duration+plot_interval, plot_interval), nstates[i,:], label=ns_dict[i], color=clist[i])
+    ax.legend()
+    xlabel('Time')
+    ylabel('Number of particles in state')
+    title('Particle distribution by state')
+    axis([0, run_duration, 0, 2*nstates[7,0]])
+    show()
 
 
 if __name__=='__main__':

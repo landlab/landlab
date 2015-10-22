@@ -75,7 +75,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         --------
         >>> import numpy as np
         >>> from landlab import HexModelGrid
-        >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
 
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
@@ -227,7 +227,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
         >>> from landlab import HexModelGrid
 
         >>> pid = np.arange(25, dtype=int)
@@ -355,7 +355,7 @@ def main():
 
     Examples
     --------
-    >>> from landlab.components.cellular_automata.boundaries.hex_lattice_tectonicizer import test_create_lnf
+    >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import test_create_lnf
     >>> lnf = test_create_lnf(4, 4)
     >>> lnf.incoming_node
     array([4, 8, 9])

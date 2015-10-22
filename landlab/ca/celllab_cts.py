@@ -1,11 +1,11 @@
 #! /usr/env/python
-"""
-Landlab's cellular automata modeling package.
+r"""
+Landlab's Continuous-Time Stochastic (CTS) cellular automata modeling package.
 
 Overview
 --------
 
-A Landlab Cellular Automaton, or LCA, implements a particular type of cellular
+A CellLab CTS model implements a particular type of cellular
 automaton (CA): a continuous-time stochastic CA. The approach is based on that
 of Narteau et al. (2002, 2009) and Rozier and Narteau (2014). Like a normal
 CA, the domain consists of a lattice of cells, each of which has a discrete
@@ -13,25 +13,25 @@ state. Unlike a conventional CA, the updating process is stochastic, and takes
 place in continuous rather than discrete time. Any given pair (or "doublet")
 of adjacent cell states has a certain specified probability of transition to a
 different pair of states. The transition probability is given in the form of an
-average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual time of
-transition is a random variable drawn from an exponential probability
+average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual
+time of transition is a random variable drawn from an exponential probability
 distribution with mean :math:1/\lambda
 
 Subclasses
 ----------
 
 Landlab provides for several different lattice and connection types:
-    - RasterLCA: regular raster grid with transitions between horizontal and
+    - RasterCTS: regular raster grid with transitions between horizontal and
         vertical cell pairs
-    - OrientedRasterLCA: like a RasterLCA, but different transition rates can
+    - OrientedRasterCTS: like a RasterLCA, but different transition rates can
         be assigned to vertical and horizontal pairs. This property of
         orientation can be used, for example, to implement rules representing
         gravitational attraction, or flow of a fluid with a particular direction.
-    - RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
+    - RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
         and horizontal cell pairs.
-    - OrientedRasterD8LCA: as above but orientation also matters.
-    - HexLCA: hexagonal grid
-    - OrientedLCA: hexagonal grid, with transition rates allowed to vary
+    - OrientedRasterD8CTS: as above but orientation also matters.
+    - HexCTS: hexagonal grid
+    - OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
         according to orientation.
 
 Encoding of "states"
@@ -76,7 +76,7 @@ link_state_dict : dictionary
     link-state codes. Allows you to look up the link-state code corresponding
     to a particular pair of adjacent nodes with a particular orientation.
 
-cell_pair : list (x number of possible link states)
+node_pair : list (x number of possible link states)
     List of 3-element tuples representing all the various link states. Allows
     you to look up the node states and orientation corresponding to a particular
     link-state ID.
@@ -119,22 +119,22 @@ xn_rate : 2d array of floats (# possible link states x max. # transitions)
 
 Created GT Sep 2014, starting from link_ca.py.
 """
-import warnings
+from __future__ import print_function
 
 from heapq import heappush
 from heapq import heappop
 import landlab
 import numpy
 import pylab as plt
-
-import six
-
+from numpy import zeros
 
 _NEVER = 1e50
 
 _DEBUG = False
 
 _TEST = False
+
+_CORE = landlab.grid.base.CORE_NODE
 
 
 class Transition():
@@ -153,7 +153,7 @@ class Transition():
     For such a tuple, order is (left/bottom, right/top, orientation).
     """
     def __init__(self, from_state, to_state, rate, name=None,
-                 swap_properties=False):
+                 swap_properties=False, prop_update_fn=None):
         """
         Transition() constructor sets 3 required properties and 2 optional
         properties for a transition from one cell pair to another.
@@ -176,6 +176,8 @@ class Transition():
         self.rate = rate
         self.name = name
         self.swap_properties = swap_properties
+        self.prop_update_fn = prop_update_fn
+
 
 
 class Event():
@@ -191,7 +193,7 @@ class Event():
 
     Examples
     --------
-    >>> from landlab.components.cellular_automata.landlab_ca import Event
+    >>> from landlab.ca.celllab_cts import Event
     >>> e1 = Event( 10.0, 1, 2)
     >>> e2 = Event( 2.0, 3, 1)
     >>> e1 < e2
@@ -199,7 +201,7 @@ class Event():
     >>> e2 < e1
     True
     """
-    def __init__(self, time, link, xn_to, propswap=False):
+    def __init__(self, time, link, xn_to, propswap=False, prop_update_fn=None):
         """
         Event() constructor sets 3 required properties and one optional
         property.
@@ -220,6 +222,8 @@ class Event():
         self.link = link
         self.xn_to = xn_to
         self.propswap = propswap
+        self.prop_update_fn = prop_update_fn
+
 
     def __lt__(self, other):
         """
@@ -227,6 +231,7 @@ class Event():
         has an earlier scheduled time than the event on the right
         """
         return self.time < other.time
+
 
 
 class CAPlotter():
@@ -279,6 +284,7 @@ class CAPlotter():
         plt.draw()
         plt.pause(0.001)
 
+
     def finalize(self):
         """
         Wraps up plotting by switching off interactive model and showing the
@@ -288,9 +294,10 @@ class CAPlotter():
         plt.show()
 
 
-class LandlabCellularAutomaton(object):
+
+class CellLabCTSModel(object):
     """
-    A LandlabCellularAutomaton implements a link-type (or doublet-type) cellular
+    A CellLabCTSModel implements a link-type (or doublet-type) cellular
     automaton model. A link connects a pair of cells. Each cell has a state
     (represented by an integer code), and each link also has a state that is
     determined by the states of the cell pair.
@@ -316,9 +323,6 @@ class LandlabCellularAutomaton(object):
         prop_reset_value : (scalar; same type as entries in prop_data) (optional)
             Default or initial value for a node/cell property (e.g., 0.0)
         """
-        warnings.warn('Use of LandlabCellularAutomaton is deprecated. '
-                      'Use CellLabCTSModel instead.')
-
         # Are we calling this from a subclass __init__? If so, then the
         # variable self.number_of_orientations should already be defined.
         try:
@@ -329,7 +333,14 @@ class LandlabCellularAutomaton(object):
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
         ###self.active_links_at_node = self.grid.active_links_at_node()
-        self.active_links_at_node = self.grid.active_links_at_node()
+        self.active_links_at_node = self.grid.active_links_at_node2()
+
+        # Create an array that knows which links are connected to a boundary
+        # node
+        self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
+        for link_id in range(self.grid.number_of_links):
+            if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]]!=_CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]]!=_CORE:
+                self.bnd_lnk[link_id] = True
 
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)
@@ -345,7 +356,8 @@ class LandlabCellularAutomaton(object):
         #   0-0 0-1 1-0 1-1  0 0 1 1
         #                    0 1 0 1
         self.num_node_states = len(node_state_dict)
-        self.num_link_states = self.number_of_orientations*self.num_node_states**2
+        self.num_node_states_sq = self.num_node_states*self.num_node_states
+        self.num_link_states = self.number_of_orientations*self.num_node_states_sq
 
         assert (type(transition_list) is list), 'transition_list must be a list!'
         assert (transition_list), \
@@ -436,7 +448,7 @@ class LandlabCellularAutomaton(object):
         Creates
         -------
         self.node_state : 1D array of ints (x number of nodes in grid)
-        	The node-state array
+            The node-state array
 
         Notes
         -----
@@ -457,23 +469,28 @@ class LandlabCellularAutomaton(object):
         dictionary keys are 3-element tuples, each of which represents the state
         of the TAIL node, the HEAD node, and the orientation of the link. The
         values are integer codes representing the link state numbers.
+
+        (Performance note: making self.node_pair a tuple does not appear to
+        change time to lookup values in update_node_states. Changing it to a
+        2D array of int actually slows it down.)
         """
         self.link_state_dict = {}
-        self.cell_pair = []
+        self.node_pair = []
         k=0
         for orientation in range(self.number_of_orientations):
             for tail_state in range(self.num_node_states):
                 for head_state in range(self.num_node_states):
                     self.link_state_dict[(tail_state,head_state,orientation)] = k
+                    self.node_pair.append((tail_state,head_state,orientation))
                     k+=1
-                    self.cell_pair.append((tail_state,head_state,orientation))
 
         if False and _DEBUG:
-            six.print_()
-            six.print_('create_link_state_dict_and_pair_list(): dict is:')
-            six.print_(self.link_state_dict)
-            six.print_('  and the pair list is:')
-            six.print_(self.cell_pair)
+            print()
+            print('create_link_state_dict_and_pair_list(): dict is:')
+            print((self.link_state_dict))
+            print('  and the pair list is:')
+            print((self.cell_pair))
+
 
     def setup_array_of_orientation_codes(self):
         """
@@ -499,7 +516,6 @@ class LandlabCellularAutomaton(object):
         will override this method to handle lattices in which orientation
         matters (for example, vertical vs. horizontal in an OrientedRasterLCA).
         """
-        ###self.active_link_orientation = numpy.zeros(self.grid.number_of_active_links, dtype=int)
         self.link_orientation = numpy.zeros(self.grid.number_of_links, dtype=int)
 
 
@@ -512,27 +528,19 @@ class LandlabCellularAutomaton(object):
         3-element tuple, comprising the TAIL state, FROM state, and orientation)
         to link states.
         """
-        ###self.link_state = numpy.zeros(self.grid.number_of_active_links,
-        ###                              dtype=int)
         self.link_state = numpy.zeros(self.grid.number_of_links, dtype=int)
 
-        ###for i in range(self.grid.number_of_active_links):
         for i in self.grid.active_links:
-            ###orientation = self.active_link_orientation[i]
             orientation = self.link_orientation[i]
-            ###node_pair = (self.node_state[self.grid.activelink_fromnode[i]], \
-            ###             self.node_state[self.grid.activelink_tonode[i]], \
-            ###             orientation)
-            node_pair = (self.node_state[self.grid.node_at_link_tail[i]], \
-                         self.node_state[self.grid.node_at_link_head[i]], \
+            node_pair = (self.node_state[self.grid.node_at_link_tail[i]],
+                         self.node_state[self.grid.node_at_link_head[i]],
                          orientation)
             self.link_state[i] = self.link_state_dict[node_pair]
 
         if False and _DEBUG:
-            six.print_()
-            six.print_('assign_link_states_from_node_types(): the link state '
-                      'array is:')
-            six.print_(self.link_state)
+            print()
+            print('assign_link_states_from_node_types(): the link state array is:')
+            print((self.link_state))
 
 
     def setup_transition_data(self, xn_list):
@@ -566,6 +574,7 @@ class LandlabCellularAutomaton(object):
         self.xn_to = numpy.zeros((self.num_link_states, max_transitions), dtype=int)
         self.xn_rate = numpy.zeros((self.num_link_states, max_transitions))
         self.xn_propswap = numpy.zeros((self.num_link_states, max_transitions), dtype=bool)
+        self.xn_prop_update_fn = numpy.empty((self.num_link_states, max_transitions), dtype=object)
 
         # Populate the "to" and "rate" arrays
         self.n_xn[:] = 0  # reset this and then re-do (inefficient but should work)
@@ -574,19 +583,20 @@ class LandlabCellularAutomaton(object):
             self.xn_to[from_state][self.n_xn[from_state]] = xn.to_state
             self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
             self.xn_propswap[from_state][self.n_xn[from_state]] = xn.swap_properties
+            self.xn_prop_update_fn[from_state][self.n_xn[from_state]] = xn.prop_update_fn
             self.n_xn[from_state] += 1
 
         if False and _DEBUG:
-            six.print_()
-            six.print_('setup_transition_data():')
-            six.print_('  n_xn',self.n_xn)
-            six.print_('  to:',self.xn_to)
-            six.print_('  rate:',self.xn_rate)
+            print()
+            print('setup_transition_data():')
+            print(('  n_xn',self.n_xn))
+            print(('  to:',self.xn_to))
+            print(('  rate:',self.xn_rate))
 
 
     def current_link_state(self, link_id):
         """
-        Used to determines whether the link state at link *link_id* has changed
+        Used to determine whether the link state at link *link_id* has changed
         due to an independent change in the node-state grid. Returns the
         current state of the link based on the states of its two end nodes; this
         can be compared to the entry in self.link_state to determine whether the
@@ -616,7 +626,9 @@ class LandlabCellularAutomaton(object):
         orientation = self.link_orientation[link_id]
 
         # Return the corresponding state code.
-        return self.link_state_dict[(tail_node_state,head_node_state,orientation)]
+        #assert self.link_state_dict[(tail_node_state,head_node_state,orientation)]==orientation*self.num_node_states_sq+tail_node_state*self.num_node_states+head_node_state, 'ooops'
+        #return self.link_state_dict[(tail_node_state,head_node_state,orientation)]
+        return orientation*self.num_node_states_sq+tail_node_state*self.num_node_states+head_node_state
 
 
     def update_link_states_and_transitions(self, current_time):
@@ -675,29 +687,31 @@ class LandlabCellularAutomaton(object):
 
         # Find next event time for each potential transition
         if self.n_xn[current_state]==1:
-            xn = self.xn_to[current_state][0]
+            xn_to = self.xn_to[current_state][0]
             propswap = self.xn_propswap[current_state][0]
             next_time = numpy.random.exponential(1.0/self.xn_rate[current_state][0])
+            prop_update_fn = self.xn_prop_update_fn[current_state][0]
         else:
             next_time = _NEVER
-            xn = None
+            xn_to = None
             propswap = False
             for i in range(self.n_xn[current_state]):
                 this_next = numpy.random.exponential(1.0/self.xn_rate[current_state][i])
                 if this_next < next_time:
                     next_time = this_next
-                    xn = self.xn_to[current_state][i]
+                    xn_to = self.xn_to[current_state][i]
                     propswap = self.xn_propswap[current_state][i]
+                    prop_update_fn = self.xn_prop_update_fn[current_state][i]
 
         # Create and setup event, and return it
-        my_event = Event(next_time+current_time, link, xn, propswap)
+        my_event = Event(next_time+current_time, link, xn_to, propswap, prop_update_fn)
 
         if _DEBUG:
-            six.print_('get_next_event():')
-            six.print_('  next_time:',my_event.time)
-            six.print_('  link:',my_event.link)
-            six.print_('  xn_to:',my_event.xn_to)
-            six.print_('  propswap:',my_event.propswap)
+            print('get_next_event():')
+            print(('  next_time:', my_event.time))
+            print(('  link:', my_event.link))
+            print(('  xn_to:', my_event.xn_to))
+            print(('  propswap:', my_event.propswap))
 
         return my_event
 
@@ -710,7 +724,7 @@ class LandlabCellularAutomaton(object):
         self.next_update array.
         """
         if _DEBUG:
-            six.print_('push_transitions_to_event_queue():',self.num_link_states,self.n_xn)
+            print(('push_transitions_to_event_queue():', self.num_link_states, self.n_xn))
 
         for i in self.grid.active_links:
         ###for i in range(self.grid.number_of_active_links):
@@ -724,11 +738,11 @@ class LandlabCellularAutomaton(object):
                 self.next_update[i] = _NEVER
 
         if _DEBUG:
-            six.print_('  push_transitions_to_event_queue(): events in queue are now:')
+            print('  push_transitions_to_event_queue(): events in queue are now:')
             for e in self.event_queue:
-                six.print_('    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to)
+                print('    next_time:',e.time,'link:',e.link,'xn_to:',e.xn_to)
 
-
+    #@profile
     def update_node_states(self, tail_node, head_node, new_link_state):
         """
         Updates the states of the two nodes in the given link.
@@ -755,19 +769,18 @@ class LandlabCellularAutomaton(object):
         old_head_node_state = self.node_state[head_node]
 
         # Change to the new states
-        if self.grid.status_at_node[tail_node]==landlab.grid.base.CORE_NODE:
-            self.node_state[tail_node] = self.cell_pair[new_link_state][0]
-        if self.grid.status_at_node[head_node]==landlab.grid.base.CORE_NODE:
-            self.node_state[head_node] = self.cell_pair[new_link_state][1]
+        if self.grid.status_at_node[tail_node]==_CORE:
+            self.node_state[tail_node] = self.node_pair[new_link_state][0]
+        if self.grid.status_at_node[head_node]==_CORE: #landlab.grid.base.CORE_NODE:
+            self.node_state[head_node] = self.node_pair[new_link_state][1]
 
         if _DEBUG:
-            six.print_('update_node_states() for',tail_node,'and',head_node)
-            six.print_('  tail_node was',old_tail_node_state,'and is now',self.node_state[tail_node])
-            six.print_('  head_node was',old_head_node_state,'and is now',self.node_state[head_node])
+            print('update_node_states() for',tail_node,'and',head_node)
+            print('  tail_node was',old_tail_node_state,'and is now',self.node_state[tail_node])
+            print('  head_node was',old_head_node_state,'and is now',self.node_state[head_node])
 
         return self.node_state[tail_node]!=old_tail_node_state, \
                self.node_state[head_node]!=old_head_node_state
-
 
     def update_link_state(self, link, new_link_state, current_time):
         """
@@ -784,30 +797,24 @@ class LandlabCellularAutomaton(object):
         current_time : float
             Current time in simulation
         """
-        if _DEBUG:
-            six.print_()
-            six.print_('update_link_state()')
+#        if _DEBUG:
+#            print()
+#            print('update_link_state()')
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
-        fn = self.grid.node_at_link_tail[link]
-        tn = self.grid.node_at_link_head[link]
-        ###fn = self.grid.activelink_fromnode[link]
-        ###tn = self.grid.activelink_tonode[link]
-        if _DEBUG:
-            six.print_('fn',fn,'tn',tn,'fnstat',self.grid.status_at_node[fn],'tnstat',self.grid.status_at_node[tn])
-        if self.grid.status_at_node[fn]!=landlab.grid.base.CORE_NODE or \
-           self.grid.status_at_node[tn]!=landlab.grid.base.CORE_NODE:
-            ###fns = self.node_state[self.grid.activelink_fromnode[link]]
-            ###tns = self.node_state[self.grid.activelink_tonode[link]]
-            ###orientation = self.active_link_orientation[link]
+        #if self.grid.status_at_node[self.grid.link_fromnode[link]]!=_CORE or \
+        #   self.grid.status_at_node[self.grid.link_tonode[link]]!=_CORE:
+        if self.bnd_lnk[link]:
             fns = self.node_state[self.grid.node_at_link_tail[link]]
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
-            actual_pair = (fns,tns,orientation)
-            new_link_state = self.link_state_dict[actual_pair]
-            if _DEBUG:
-                six.print_('**Boundary: overriding new link state to',new_link_state)
+            ##actual_pair = (fns,tns,orientation)
+            ##new_link_state = self.link_state_dict[actual_pair]
+            new_link_state = orientation*self.num_node_states_sq+fns*self.num_node_states+tns
+            #assert new_link_state==new_link_state2, 'oops'
+#            if _DEBUG:
+#                print('**Boundary: overriding new link state to',new_link_state)
 
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
@@ -816,11 +823,6 @@ class LandlabCellularAutomaton(object):
             self.next_update[link] = event.time
         else:
             self.next_update[link] = _NEVER
-
-        if _DEBUG:
-            six.print_('  at link',link)
-            six.print_('  state changed to',self.link_state[link],self.cell_pair[self.link_state[link]])
-            six.print_('  update time now',self.next_update[link])
 
 
     def do_transition(self, event, current_time, plot_each_transition=False,
@@ -831,13 +833,14 @@ class LandlabCellularAutomaton(object):
         Parameters
         ----------
         event : Event object
-        	Event object containing the data for the current transition event
+            Event object containing the data for the current transition event
         current_time : float
-        	Current time in simulation
+            Current time in simulation
         plot_each_transition : bool (optional)
-        	True if caller wants to show a plot of the grid after this transition
+            True if caller wants to show a plot of the grid after this
+            transition
         plotter : CAPlotter object
-        	Sent if caller wants a plot after this transition
+            Sent if caller wants a plot after this transition
 
         Algorithm
         ---------
@@ -851,12 +854,10 @@ class LandlabCellularAutomaton(object):
             the event queue.
             3) Update the states of the other links attached to the two nodes,
             choose their next transitions, and push them on the event queue.
-
         """
-
-        if _DEBUG:
-            six.print_()
-            six.print_('do_transition() for link',event.link)
+#        if _DEBUG:
+#            print()
+#            print('do_transition() for link',event.link)
 
         # We'll process the event if its update time matches the one we have
         # recorded for the link in question. If not, it means that the link has
@@ -865,10 +866,8 @@ class LandlabCellularAutomaton(object):
         if event.time == self.next_update[event.link]:
 
             if _DEBUG:
-                six.print_('  event time =',event.time)
+                print('  event time =',event.time)
 
-            ###tail_node = self.grid.activelink_fromnode[event.link]
-            ###head_node = self.grid.activelink_tonode[event.link]
             tail_node = self.grid.node_at_link_tail[event.link]
             head_node = self.grid.node_at_link_head[event.link]
             tail_changed, head_changed = self.update_node_states(tail_node, head_node,
@@ -881,81 +880,82 @@ class LandlabCellularAutomaton(object):
             if tail_changed:
 
                 if _DEBUG:
-                    six.print_('    fromnode has changed state, so updating its links')
+                    print('    fromnode has changed state, so updating its links')
 
                 for link in self.active_links_at_node[:,tail_node]:
 
                     if _DEBUG:
-                        six.print_('f checking link',link)
+                        print('f checking link',link)
                     if link!=-1 and link!=event.link:
 
-                        ###this_link_fromnode = self.grid.activelink_fromnode[link]
-                        ###this_link_tonode = self.grid.activelink_tonode[link]
-                        ###orientation = self.active_link_orientation[link]
                         this_link_fromnode = self.grid.node_at_link_tail[link]
                         this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode],
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
+                        new_link_state2 = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
+                        assert new_link_state==new_link_state2, 'oops'
                         self.update_link_state(link, new_link_state, event.time)
 
             if head_changed:
 
                 if _DEBUG:
-                    six.print_('    tonode has changed state, so updating its links')
+                    print('    tonode has changed state, so updating its links')
 
                 for link in self.active_links_at_node[:,head_node]:
 
                     if _DEBUG:
-                        six.print_('t checking link',link)
+                        print('t checking link',link)
                     if link!=-1 and link!=event.link:
-
-                        ###this_link_fromnode = self.grid.activelink_fromnode[link]
-                        ###this_link_tonode = self.grid.activelink_tonode[link]
-                        ###orientation = self.active_link_orientation[link]
                         this_link_fromnode = self.grid.node_at_link_tail[link]
                         this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
                         current_pair = (self.node_state[this_link_fromnode],
                                         self.node_state[this_link_tonode], orientation)
                         new_link_state = self.link_state_dict[current_pair]
+                        new_link_state2 = orientation*self.num_node_states_sq+self.node_state[this_link_fromnode]*self.num_node_states+self.node_state[this_link_tonode]
+                        assert new_link_state==new_link_state2, 'oops'
                         self.update_link_state(link, new_link_state, event.time)
 
-		# If requested, display a plot of the grid
+            # If requested, display a plot of the grid
             if plot_each_transition and (plotter is not None):
                 plotter.update_plot()
 
             # If this event involves an exchange of properties (i.e., the event involves
             # motion of an object that posses properties we want to track), implement
             # the swap.
+            #   If the event requires a call to a user-defined callback function,
+            # we handle that here too.
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
                 self.propid[head_node] = tmp
-                if self.grid.status_at_node[tail_node]!=landlab.grid.base.CORE_NODE:
+                if self.grid.status_at_node[tail_node]!=_CORE:
                     self.prop_data[self.propid[tail_node]] = self.prop_reset_value
-                if self.grid.status_at_node[head_node]!=landlab.grid.base.CORE_NODE:
+                if self.grid.status_at_node[head_node]!=_CORE:
                     self.prop_data[self.propid[head_node]] = self.prop_reset_value
+                if event.prop_update_fn is not None:
+                    event.prop_update_fn(self, tail_node, head_node, event.time)
 
             if _DEBUG:
                 n = self.grid.number_of_nodes
                 for r in range(self.grid.number_of_node_rows):
                     for c in range(self.grid.number_of_node_columns):
                         n -= 1
-                        six.print_('{0:.0f}'.format(self.node_state[n]), end=' ')
-                    six.print_()
+                        print('{0:.0f}'.format(self.node_state[n]), end=' ')
+                    print()
                 if self.propid is not None:
-                    six.print_()
+                    print()
                     n = self.grid.number_of_nodes
                     for r in range(self.grid.number_of_node_rows):
                         for c in range(self.grid.number_of_node_columns):
                             n -= 1
-                            six.print_('{0:2.0f}'.format(self.propid[n]), end=' ')
-                        six.print_()
+                            print('{0:2.0f}'.format(self.propid[n]), end=' ')
+                        print()
 
         elif _DEBUG:
-            six.print_('  event time is',event.time,'but update time is', \
+            print('  event time is',event.time,'but update time is', \
                   self.next_update[event.link],'so event will be ignored')
 
 
@@ -985,13 +985,13 @@ class LandlabCellularAutomaton(object):
         Parameters
         ----------
         run_duration : float
-        	Length of time to run
+            Length of time to run
         node_state_grid : 1D array of ints (x number of nodes) (optional)
-        	Node states (if given, replaces model's current node state grid)
+            Node states (if given, replaces model's current node state grid)
         plot_each_transition : bool (optional)
-        	Option to display the grid after each transition
+            Option to display the grid after each transition
         plotter : CAPlotter object (optional)
-        	Needed if caller wants to plot after every transition
+            Needed if caller wants to plot after every transition
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
@@ -1000,18 +1000,19 @@ class LandlabCellularAutomaton(object):
         while self.current_time < run_duration and self.event_queue:
 
             if _DEBUG:
-                six.print_('Current Time = ', self.current_time)
+                print('Current Time = ', self.current_time)
 
             # Pick the next transition event from the event queue
             ev = heappop(self.event_queue)
 
             if _DEBUG:
-                six.print_('Event:',ev.time,ev.link,ev.xn_to)
+                print('Event:',ev.time,ev.link,ev.xn_to)
 
             self.do_transition(ev, self.current_time, plot_each_transition, plotter)
 
             # Update current time
             self.current_time = ev.time
+
 
 
 if __name__ == "__main__":

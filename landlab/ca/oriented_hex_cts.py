@@ -14,7 +14,7 @@ Created GT Sep 2014
 from numpy import zeros
 
 from .celllab_cts import CellLabCTSModel
-from ...grid import HexModelGrid
+from ..grid import HexModelGrid
 
 
 class OrientedHexCTS(CellLabCTSModel):
@@ -24,8 +24,8 @@ class OrientedHexCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import HexModelGrid
-    >>> from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
-    >>> from landlab.components.cellular_automata.celllab_cts import Transition
+    >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
+    >>> from landlab.ca.celllab_cts import Transition
 
     >>> mg = HexModelGrid(4, 3, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}

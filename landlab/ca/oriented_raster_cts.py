@@ -15,7 +15,7 @@ from __future__ import print_function
 from numpy import zeros
 
 from .celllab_cts import CellLabCTSModel
-from ...grid import RasterModelGrid
+from ..grid import RasterModelGrid
 
 
 _DEBUG = False
@@ -27,8 +27,8 @@ class OrientedRasterCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.cellular_automata.celllab_cts import Transition
-    >>> from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+    >>> from landlab.ca.celllab_cts import Transition
+    >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
     >>> mg = RasterModelGrid(3, 4, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}

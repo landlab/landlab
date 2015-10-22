@@ -14,8 +14,8 @@ import time
 import random
 import numpy
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
 
 # TODO: merge this code with the newer gravity rules and color scheme

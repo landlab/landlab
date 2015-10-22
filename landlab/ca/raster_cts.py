@@ -11,7 +11,7 @@ Created GT Sep 2014, starting from link_ca.py.
 """
 
 from .celllab_cts import CellLabCTSModel
-from ...grid import RasterModelGrid
+from ..grid import RasterModelGrid
 
 
 class RasterCTS(CellLabCTSModel):
@@ -21,8 +21,8 @@ class RasterCTS(CellLabCTSModel):
     Example
     -------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.cellular_automata.celllab_cts import Transition
-    >>> from landlab.components.cellular_automata.raster_cts import RasterCTS
+    >>> from landlab.ca.celllab_cts import Transition
+    >>> from landlab.ca.raster_cts import RasterCTS
 
     >>> mg = RasterModelGrid(3, 4, 1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}

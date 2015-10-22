@@ -1,28 +1,30 @@
 #!/usr/env/python
 
 """
-saprolite_weathering.py
+diffusion_in_gravity.py
 
 Example of a continuous-time, stochastic, pair-based cellular automaton model,
-which simulates weathering of rock into saprolite.
+which simulates diffusion by random particle motion in a gravitational field.
+The purpose of the example is to demonstrate the use of an OrientedRasterLCA.
 
-GT, August 2014 (adapted to new Landlab cellular automata framework Sep 2014)
+GT, September 2014
 """
 from __future__ import print_function
 
 _DEBUG = False
 
 import time
+from numpy import where, bitwise_and
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.landlab_ca import Transition, CAPlotter
-from landlab.components.cellular_automata.raster_lca import RasterLCA
-from landlab.components.fracture_grid.fracture_grid import make_frac_grid
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
 
 def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
-    transitions for a weathering model.
+    transitions for a biased random walk, in which the rate of downward
+    motion is greater than the rate in the other three directions.
 
     Parameters
     ----------
@@ -35,20 +37,29 @@ def setup_transition_list():
 
     Notes
     -----
+    State 0 represents fluid and state 1 represents a particle (such as a
+    sediment grain or dissolved heavy particle).
+
     The states and transitions are as follows:
 
-    Pair state      Transition to       Process     Rate
-    ==========      =============       =======     ====
-    0 (0-0)         (none)              -           -
-    1 (0-1)         3 (1-1)             weathering  1.0
-    2 (1-0)         3 (1-1)             weathering  1.0
-    3 (1-1)         (none)              -           -
+    Pair state      Transition to       Process         Rate
+    ==========      =============       =======         ====
+    0 (0-0)         (none)              -               -
+    1 (0-1)         2 (1-0)             left motion     1.0
+    2 (1-0)         1 (0-1)             right motion    1.0
+    3 (1-1)         (none)              -               -
+    4 (0/0)         (none)              -               -
+    5 (0/1)         6 (1/0)             down motion     1.1
+    6 (1/0)         5 (0/1)             up motion       0.9
+    7 (1/1)         (none)              -               -
 
     """
     xn_list = []
 
-    xn_list.append( Transition(1, 3, 1., 'weathering') ) # rock-sap to sap-sap
-    xn_list.append( Transition(2, 3, 1., 'weathering') ) # sap-rock to sap-sap
+    xn_list.append( Transition((0,1,0), (1,0,0), 1., 'left motion') )
+    xn_list.append( Transition((1,0,0), (0,1,0), 1., 'right motion') )
+    xn_list.append( Transition((0,1,1), (1,0,1), 1.1, 'down motion') )
+    xn_list.append( Transition((1,0,1), (0,1,1), 0.9, 'up motion') )
 
     if _DEBUG:
         print()
@@ -64,11 +75,10 @@ def main():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 128
-    nc = 128
-    fracture_spacing = 10  # fracture spacing, cell widths
-    plot_interval = 0.25
-    run_duration = 4.0
+    nr = 80
+    nc = 80
+    plot_interval = 2
+    run_duration = 200
     report_interval = 5.0  # report interval, in real-time seconds
 
     # Remember the clock time, and calculate when we next want to report
@@ -79,25 +89,22 @@ def main():
     # Create grid
     mg = RasterModelGrid(nr, nc, 1.0)
 
+    # Make the boundaries be walls
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
     # Set up the states and pair transitions.
-    # Transition data here represent a body of fractured rock, with rock
-    # represented by nodes with state 0, and saprolite (weathered rock)
-    # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
-    # can undergo a transition to 1-1, representing chemical weathering of the
-    # rock.
-    ns_dict = { 0 : 'rock', 1 : 'saprolite' }
+    ns_dict = { 0 : 'fluid', 1 : 'particle' }
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
 
-    # Initialize the node-state array as a "fracture grid" in which randomly
-    # oriented fractures are represented as lines of saprolite embedded in
-    # bedrock.
-    node_state_grid[:] = make_frac_grid(fracture_spacing, model_grid=mg)
+    # Initialize the node-state array
+    middle_rows = where(bitwise_and(mg.node_y>0.45*nr, mg.node_y<0.55*nr))[0]
+    node_state_grid[middle_rows] = 1
 
     # Create the CA model
-    ca = RasterLCA(mg, ns_dict, xn_list, node_state_grid)
+    ca = OrientedRasterCTS(mg, ns_dict, xn_list, node_state_grid)
 
     # Debug output if needed
     if _DEBUG:
