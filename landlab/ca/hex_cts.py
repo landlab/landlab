@@ -1,6 +1,5 @@
 #! /usr/env/python
-"""
-hex_cts.py: simple hexagonal Landlab cellular automaton
+"""Simple hexagonal Landlab cellular automaton
 
 This file defines the HexCTS class, which is a sub-class of
 CellLabCTSModel that implements a simple, non-oriented, hex-grid
@@ -52,7 +51,7 @@ class HexCTS(CellLabCTSModel):
             Starting values for node-state grid
         prop_data : array (x number of nodes in grid) (optional)
             Array of properties associated with each node/cell
-        prop_reset_value : (scalar; same type as entries in prop_data) (optional)
+        prop_reset_value : float (same type as entries in prop_data), optional
             Default or initial value for a node/cell property (e.g., 0.0)
         """
 
@@ -67,9 +66,10 @@ class HexCTS(CellLabCTSModel):
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
         super(HexCTS, self).__init__(model_grid, node_state_dict,
-            transition_list, initial_node_states, prop_data, prop_reset_value)
+                                     transition_list, initial_node_states,
+                                     prop_data, prop_reset_value)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import doctest
     doctest.testmod()

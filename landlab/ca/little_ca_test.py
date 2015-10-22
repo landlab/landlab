@@ -1,7 +1,5 @@
 #!/usr/env/python
-
-"""
-little_ca_test.py
+"""Test the creation and execution of a CellLab-CTS model.
 
 Tests the creation and execution of a CellLab-CTS model, by creating a
 simple two-state CA on a small grid.
@@ -25,7 +23,8 @@ def setup_transition_list():
     Returns
     -------
     xn_list : list of Transition objects
-        List of objects that encode information about the link-state transitions.
+        List of objects that encode information about the link-state
+        transitions.
 
     Notes
     -----
@@ -57,10 +56,10 @@ def setup_transition_list():
     #    (left/bottom cell, right/top cell, orientation)
     #  - Transition rate (cells per time step, in this case 1 sec)
     #  - Name for transition
-    xn_list.append( Transition((0,0,0), (0,1,0), 0.5, '') )
-    xn_list.append( Transition((0,0,0), (1,0,0), 0.5, '') )
-    xn_list.append( Transition((0,1,0), (1,1,0), 1., '') )
-    xn_list.append( Transition((1,0,0), (1,1,0), 1., '') )
+    xn_list.append(Transition((0, 0, 0), (0, 1, 0), 0.5, ''))
+    xn_list.append(Transition((0, 0, 0), (1, 0, 0), 0.5, ''))
+    xn_list.append(Transition((0, 1, 0), (1, 1, 0), 1., ''))
+    xn_list.append(Transition((1, 0, 0), (1, 1, 0), 1., ''))
 
     return xn_list
 
@@ -88,7 +87,7 @@ def main():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Set up the states and pair transitions.
-    ns_dict = { 0 : 'black', 1 : 'white' }
+    ns_dict = {0: 'black', 1: 'white'}
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
@@ -115,17 +114,16 @@ def main():
         current_real_time = time.time()
         if current_real_time >= next_report:
             print('Current sim time', current_time, '(',
-                  100 * current_time/run_duration, '%)')
+                  100 * current_time / run_duration, '%)')
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
+        ca.run(current_time + plot_interval, ca.node_state,
                plot_each_transition=True, plotter=ca_plotter)
         current_time += plot_interval
 
         # Plot the current grid
         ca_plotter.update_plot()
-
 
     # FINALIZE
 
@@ -135,9 +133,10 @@ def main():
     print('ok, here are the keys')
     print(ca.__dict__.keys())
 
+
 # If user runs this file, activate the main() function
 if __name__ == "__main__":
     #import cProfile
     #fname = 'test_profiler_for_little_ca.txt'
-    #cProfile.run('print main(); print') #, fname)
+    # cProfile.run('print main(); print') #, fname)
     main()
