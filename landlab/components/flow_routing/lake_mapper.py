@@ -156,6 +156,11 @@ class DepressionFinderAndRouter(Component):
         # ^note this is nlakes-long
         self._link_lengths = np.ones(8, dtype=float)
         self._link_lengths[4:].fill(np.sqrt(2.))
+        
+        self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
+        self.flood_status = self._grid.add_zeros('node', 'flood_status_code',
+                                                 dtype=int)
+
 
     def find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -189,7 +194,7 @@ class DepressionFinderAndRouter(Component):
         """
         # Create the is_pit array, with all core nodes initialized to True and
         # all boundary nodes initialized to False.
-        self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
+        self.is_pit.fill(True)
         self.is_pit[self._grid.boundary_nodes] = False
 
 #        # Get a list of active links; in a raster, this (TODO: optionally)
@@ -207,25 +212,36 @@ class DepressionFinderAndRouter(Component):
         # Loop over all active links: if one of a link's two nodes is higher
         # than the other, the higher one is not a pit. Also, if they have
         # equal elevations and one is an open boundary, the other is not a pit.
-        for link in self._grid.active_links:
-            h = self._grid.node_at_link_head[link]
-            t = self._grid.node_at_link_tail[link]
-            if self._elev[h] > self._elev[t]:
-                self.is_pit[h] = False
-            elif self._elev[t] > self._elev[h]:
-                self.is_pit[t] = False
-            elif self._elev[h] == self._elev[t]:
-                if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
-                    self.is_pit[t] = False
-                elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
-                    self.is_pit[h] = False
+        act_links = self._grid.active_links
+        h_orth = self._grid.node_at_link_head[act_links]
+        t_orth = self._grid.node_at_link_tail[act_links]
+
+        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if not self._grid._diagonal_links_created:
+                self._grid._setup_diagonal_links()
+
+        h_diag = self._grid._diag_activelink_tonode
+        t_diag = self._grid._diag_activelink_fromnode
+
+        for (h, t) in ((h_orth, t_orth),):  #, (h_diag, t_diag)):
+            self.is_pit[h] = np.where(self._elev[h] > self._elev[t],
+                                      False, self.is_pit[h])
+            self.is_pit[t] = np.where(self._elev[t] > self._elev[h],
+                                      False, self.is_pit[t])
+            cond1 = np.logical_and(self._elev[h] == self._elev[t],
+                                   self._grid.status_at_node[h] ==
+                                       FIXED_VALUE_BOUNDARY)
+            self.is_pit[t] = np.where(cond1, False, self.is_pit[t])
+            cond2 = np.logical_and(self._elev[h] == self._elev[t],
+                                   self._grid.status_at_node[t] ==
+                                       FIXED_VALUE_BOUNDARY)
+            self.is_pit[h] = np.where(cond2, False, self.is_pit[h])
 
         # If we have a raster grid, handle the diagonal active links too
         # (At the moment, their data structure is a bit different)
         # TODO: update the diagonal link data structures
+        # DEJH doesn't understand why this can't be vectorized as above...
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-            if not self._grid._diagonal_links_created:
-                self._grid._setup_diagonal_links()
             for i in range(len(self._grid._diag_active_links)):
                 h = self._grid._diag_activelink_tonode[i]
                 t = self._grid._diag_activelink_fromnode[i]
@@ -241,7 +257,7 @@ class DepressionFinderAndRouter(Component):
 
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
-        (self.pit_node_ids, ) = np.where(self.is_pit)
+        self.pit_node_ids = np.where(self.is_pit)[0]
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".
@@ -332,10 +348,10 @@ class DepressionFinderAndRouter(Component):
         outlet_id : int
             Node that is the outlet of the pit.
         """
-        for n in nodes_this_depression:
-            self.flood_status[n] = _FLOODED
-            self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
-            self.depression_outlet[n] = outlet_id
+        n = nodes_this_depression
+        self.flood_status[n] = _FLOODED
+        self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
+        self.depression_outlet[n] = outlet_id
 
     def find_depression_from_pit(self, pit_node):
         """Find the extent of the nodes that form a pit.
@@ -463,9 +479,8 @@ class DepressionFinderAndRouter(Component):
             # remove any boundary nodes from the supplied pit list
             self.pit_node_ids = np.setdiff1d(supplied_pits,
                                              self._grid.boundary_nodes)
+        self.number_of_pits = self.pit_node_ids.size
         # Set up "lake code" array
-        self.flood_status = self._grid.add_zeros('node', 'flood_status_code',
-                                                 dtype=int)
         self.flood_status.fill(_UNFLOODED)
         self.flood_status[self.pit_node_ids] = _PIT
 
@@ -486,34 +501,35 @@ class DepressionFinderAndRouter(Component):
         for outlet_node in self.lake_outlets:
             nodes_in_lake = np.where(self.depression_outlet ==
                                      outlet_node)[0]
-            nodes_routed = np.array([outlet_node])
-            # ^using set on assumption of cythonizing later
-            nodes_on_front = np.array([outlet_node])
-            self.handle_outlet_node(outlet_node, nodes_in_lake)
-            while (len(nodes_in_lake) + 1) != len(nodes_routed):
-                all_neighbors = np.hstack((self._grid.get_neighbor_list(
-                    nodes_on_front),
-                    self._grid.get_diagonal_list(
-                    nodes_on_front)))
-                outlake = np.logical_not(np.in1d(all_neighbors.flat,
-                                                 nodes_in_lake))
-                all_neighbors[outlake.reshape(all_neighbors.shape)] = -1
-                backflow = np.in1d(all_neighbors, nodes_routed)
-                all_neighbors[backflow.reshape(all_neighbors.shape)] = -1
-                (drains_from, unique_indices) = np.unique(all_neighbors,
-                                                          return_index=True)
-                # ^gets flattened, but, usefully, unique_indices are *in order*
-                # remember, 1st one is always -1
-                # I bet this is sloooooooooow
-                drains_to = nodes_on_front[unique_indices[1:] // 8]
-                # to run the accumulator successfully, we need receivers, and
-                # sinks only. So the priority is sorting out the receiver
-                # field, and sealing the filled sinks (once while loop is done)
-                self.receivers[drains_from[1:]] = drains_to
-                # now put the relevant nodes in the relevant places:
-                nodes_on_front = drains_from[1:]
-                nodes_routed = np.union1d(nodes_routed, nodes_on_front)
-                self.grads[drains_from[1:]] = 0.  # downstream grad is 0.
+            if len(nodes_in_lake) > 0:
+                nodes_routed = np.array([outlet_node])
+                # ^using set on assumption of cythonizing later
+                nodes_on_front = np.array([outlet_node])
+                self.handle_outlet_node(outlet_node, nodes_in_lake)
+                while (len(nodes_in_lake) + 1) != len(nodes_routed):
+                    all_neighbors = np.hstack((self._grid.get_neighbor_list(
+                        nodes_on_front),
+                        self._grid.get_diagonal_list(
+                        nodes_on_front)))
+                    outlake = np.logical_not(np.in1d(all_neighbors.flat,
+                                                     nodes_in_lake))
+                    all_neighbors[outlake.reshape(all_neighbors.shape)] = -1
+                    backflow = np.in1d(all_neighbors, nodes_routed)
+                    all_neighbors[backflow.reshape(all_neighbors.shape)] = -1
+                    (drains_from, unique_indices) = np.unique(all_neighbors,
+                                                              return_index=True)
+                    # ^gets flattened, but, usefully, unique_indices are *in order*
+                    # remember, 1st one is always -1
+                    # I bet this is sloooooooooow
+                    drains_to = nodes_on_front[unique_indices[1:] // 8]
+                    # to run the accumulator successfully, we need receivers, and
+                    # sinks only. So the priority is sorting out the receiver
+                    # field, and sealing the filled sinks (once while loop is done)
+                    self.receivers[drains_from[1:]] = drains_to
+                    # now put the relevant nodes in the relevant places:
+                    nodes_on_front = drains_from[1:]
+                    nodes_routed = np.union1d(nodes_routed, nodes_on_front)
+                    self.grads[drains_from[1:]] = 0.  # downstream grad is 0.
         self.sinks[self.pit_node_ids] = False
 
     def reaccumulate_flow(self):
@@ -572,21 +588,25 @@ class DepressionFinderAndRouter(Component):
         nodes_in_lake : array_like of int
             The nodes that are contained within the lake.
         """
-        outlet_neighbors = np.hstack((self._grid.get_neighbor_list(
-            outlet_node),
-            self._grid.get_diagonal_list(
-            outlet_node)))
-        inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
-        outlet_neighbors[inlake] = -1
-        unique_outs, unique_indices = np.unique(outlet_neighbors,
-                                                return_index=True)
-        out_draining = unique_outs[1:]
-        eff_slopes = ((self._elev[outlet_node] - self._elev[out_draining]) /
-                      self._link_lengths[unique_indices[1:]])
-        lowest = np.argmax(eff_slopes)
-        lowest_node = out_draining[lowest]
-        # route the flow
-        self.receivers[outlet_node] = lowest_node
+        if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
+            outlet_neighbors = np.hstack((self._grid.get_neighbor_list(
+                outlet_node),
+                self._grid.get_diagonal_list(
+                outlet_node)))
+            inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
+            outlet_neighbors[inlake] = -1
+            unique_outs, unique_indices = np.unique(outlet_neighbors,
+                                                    return_index=True)
+            out_draining = unique_outs[1:]
+            eff_slopes = ((self._elev[outlet_node] -
+                           self._elev[out_draining]) /
+                          self._link_lengths[unique_indices[1:]])
+            lowest = np.argmax(eff_slopes)
+            lowest_node = out_draining[lowest]
+            # route the flow
+            self.receivers[outlet_node] = lowest_node
+        else:
+            self.receivers[outlet_node] = outlet_node
 
 
 def main():
