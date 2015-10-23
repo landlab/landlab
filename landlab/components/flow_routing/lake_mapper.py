@@ -160,9 +160,8 @@ class DepressionFinderAndRouter(Component):
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code',
                                                  dtype=int)
-        self.number_of_lakes = -1  # because, note, n_outlets != n_lakes
-        self.lake_code = np.empty(self._grid.number_of_nodes, dtype=int)
-        self.lake_code.fill(BAD_INDEX_VALUE)
+        self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
+        self._lake_map.fill(BAD_INDEX_VALUE)
 
     def find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -359,13 +358,13 @@ class DepressionFinderAndRouter(Component):
         # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
         # possible to have two lakes overlapping... We can test this with an
         # assertion that out total # of *tracked* lakes matches the accumulated
-        # total of unique vals in lake_code.
-        fresh_nodes = np.equal(self.lake_code[n], BAD_INDEX_VALUE)
+        # total of unique vals in lake_map.
+        fresh_nodes = np.equal(self._lake_map[n], BAD_INDEX_VALUE)
         if np.all(fresh_nodes):  # a new lake
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
             self.depression_outlet_map[n] = outlet_id
-            self.lake_code[n] = pit_node
+            self._lake_map[n] = pit_node
             self._pits_flooded += 1
             pit_node_where = np.searchsorted(self.pit_node_ids,
                                              pit_node)
@@ -376,7 +375,7 @@ class DepressionFinderAndRouter(Component):
             self.depression_depth[n] = depth_this_lake
             self.depression_outlet_map[n] = outlet_id
             # ^these two will just get stamped over as needed
-            subsumed_lakes = np.unique(self.lake_code[n])  #IDed by pit_node
+            subsumed_lakes = np.unique(self._lake_map[n])  #IDed by pit_node
             # the final entry is BAD_INDEX_VALUE
             subs_lakes_where = np.searchsorted(self.pit_node_ids,
                                                subsumed_lakes[:-1])
@@ -387,7 +386,7 @@ class DepressionFinderAndRouter(Component):
             self._pits_flooded -= (subsumed_lakes.size - 2)
             # -1 for the BAD_INDEX_VALUE that must be present; another  -1
             # because a single lake is just replaced by a new lake 
-            self.lake_code[n] = pit_node
+            self._lake_map[n] = pit_node
         else:  # lake is subsumed within an existing lake
             #print(self.flood_status[n])
             #print(_FLOODED)
@@ -460,10 +459,9 @@ class DepressionFinderAndRouter(Component):
         for pit_node in self.pit_node_ids:
             self.find_depression_from_pit(pit_node)
             self._pits_flooded += 1
-        self.number_of_lakes = self._pits_flooded
         # debug
-        #assert self.number_of_lakes == np.unique(self.lake_code[
-        #        self.lake_code != BAD_INDEX_VALUE]).size
+        #assert self.number_of_lakes == np.unique(self._lake_map[
+        #        self._lake_map != BAD_INDEX_VALUE]).size
         assert len(self.depression_outlets) == self._unique_pits.size
         
         self.unique_lake_outlets = np.array(self.depression_outlets
@@ -513,8 +511,7 @@ class DepressionFinderAndRouter(Component):
         . ~ . . . 
         o . . . . 
         """
-        self.number_of_lakes = 0
-        self.lake_code.fill(BAD_INDEX_VALUE)
+        self._lake_map.fill(BAD_INDEX_VALUE)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits
         if type(pits) == str:
@@ -562,7 +559,7 @@ class DepressionFinderAndRouter(Component):
         for outlet, lake_id in zip(np.array(self.depression_outlets)[
                                             self._unique_pits],
                                    self.pit_node_ids[self._unique_pits]):
-            nodes_in_lake = np.where(self.lake_code == lake_id)[0]
+            nodes_in_lake = np.where(self._lake_map == lake_id)[0]
             assert len(nodes_in_lake) > 0
             nodes_routed = np.array([outlet])
             # ^using set on assumption of cythonizing later
@@ -684,6 +681,69 @@ class DepressionFinderAndRouter(Component):
                     print('~', end=' ')
                 n += 1
             print()
+    
+    @property
+    def lake_outlets(self):
+        """
+        Returns the *unique* outlets for each lake, in same order as the
+        return from lake_codes.
+        """
+        return np.array(self.depression_outlets)[self._unique_pits]
+    
+    @property
+    def lake_codes(self):
+        """
+        Returns the *unique* code assigned to each unique lake. These are
+        the values used to map the lakes in the property "lake_map".
+        """
+        return self.pit_node_ids[self._unique_pits]
+    
+    @property
+    def number_of_lakes(self):
+        """
+        Return the number of individual lakes.
+        """
+        return self._unique_pits.sum()
+    
+    @property
+    def lake_map(self):
+        """
+        Return an array of ints, where each node within a lake is labelled
+        with a unique (non-consecutive) code corresponding to each unique
+        lake. The codes used can be obtained with *lake_codes*.
+        Nodes not in a lake are labelled with BAD_INDEX_VALUE.
+        """
+        return self._lake_map
+    
+    @property
+    def lake_areas(self):
+        """
+        A nlakes-long array of the area of each lake. The order is the same as
+        that returned by *lake_codes*.
+        """
+        lake_areas = np.empty(self.number_of_lakes)
+        lake_counter = 0
+        for lake_code in self.lake_codes:
+            each_cell_in_lake = self._grid.forced_cell_areas[self.lake_map ==
+                                                             lake_code]
+            lake_areas[lake_counter] = each_cell_in_lake.sum()
+            lake_counter += 1
+        return lake_areas
+    
+    @property
+    def lake_volumes(self):
+        """
+        A nlakes-long array of the volume of each lake. The order is the same
+        as that returned by *lake_codes*.
+        """
+        lake_vols = np.empty(self.number_of_lakes)
+        lake_counter = 0
+        col_vols = self._grid.forced_cell_areas * self.depression_depth
+        for lake_code in self.lake_codes:
+            each_cell_in_lake = col_vols[self.lake_map == lake_code]
+            lake_vols[lake_counter] = each_cell_in_lake.sum()
+            lake_counter += 1
+        return lake_vols
 
 
 def main():
