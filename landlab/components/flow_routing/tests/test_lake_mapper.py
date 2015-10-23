@@ -168,7 +168,7 @@ def check_array_values(rmg, lm):
       0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
       0.,   0.,   0.,   0.])
       
-    assert_array_equal(lm.depression_outlet, \
+    assert_array_equal(lm.depression_outlet_map, \
     [XX, XX, XX, XX, XX, XX,
      XX, XX, XX, XX, XX, XX,
      XX,  5,  5, XX, XX, XX,
@@ -218,17 +218,17 @@ def setup_dans_grid2():
 
     A_new = np.array([[[  1.,   2.,   2.,   2.,   2.,   2.,   1.,
                           1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                         16.,   9.,   4.,   3.,   2.,   1.,   1.,
+                          1.,   6.,   4.,   3.,   2.,   1.,   1.,
                           1.,   1.,   4.,   3.,   2.,   1.,   1.,
-                          1.,  14.,   4.,   3.,   2.,   1.,   1.,
-                         16.,   1.,   4.,   3.,   2.,   1.,   1.,
                           1.,   1.,   1.,   1.,   1.,   1.,   1.,
                           1.,   2.,   2.,   2.,   2.,   2.,   1.]]]).flatten()
 
     depr_outlet_target = np.array([ XX, XX, XX, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX]).flatten()
     
@@ -288,7 +288,7 @@ def check_array_values(rmg, lm):
       0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
       0.,   0.,   0.,   0.])
       
-    assert_array_equal(lm.depression_outlet,
+    assert_array_equal(lm.depression_outlet_map,
     [XX, XX, XX, XX, XX, XX,
      XX, XX, XX, XX, XX, XX,
      XX,  5,  5, XX, XX, XX,
@@ -362,7 +362,7 @@ def test_filling_alone():
     """
     lf.map_depressions(pits=None, reroute_flow=False)
     assert_array_equal(mg.at_node['flow_receiver'], np.zeros(49, dtype=float))
-    assert_array_equal(lf.depression_outlet, depr_outlet_target)
+    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 @with_setup(setup_dans_grid)
 def test_filling_supplied_pits():
@@ -394,7 +394,7 @@ def test_edge_draining():
     fr.route_flow()
     lf.map_depressions()
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_equal(lf.depression_outlet, depr_outlet_target)
+    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 
 def test_three_pits():
@@ -431,8 +431,8 @@ def test_three_pits():
     nA = np.array([  1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
                      9.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   1.,
                      3.,   2.,   1.,   1.,   2.,   1.,   1.,   1.,   1.,   1.,
-                     3.,   2.,   1.,  15.,  11.,  10.,   9.,   8.,   1.,   1.,
-                    27.,  26.,  25.,   9.,   2.,   1.,   1.,   1.,   1.,   1.,
+                    27.,  26.,  25.,  15.,  11.,  10.,   9.,   8.,   1.,   1.,
+                     3.,   2.,   1.,   9.,   2.,   1.,   1.,   1.,   1.,   1.,
                      3.,   2.,   1.,   1.,   5.,   4.,   3.,   2.,   1.,   1.,
                      3.,   2.,   1.,   1.,   1.,   1.,   3.,   2.,   1.,   1.,
                     21.,  20.,  19.,  18.,  17.,  12.,   3.,   2.,   1.,   1.,
