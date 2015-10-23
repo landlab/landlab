@@ -152,7 +152,7 @@ class DepressionFinderAndRouter(Component):
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
-        self.lake_outlets = []  # a list of each unique lake outlet
+        self.depression_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
         self._link_lengths = np.ones(8, dtype=float)
         self._link_lengths[4:].fill(np.sqrt(2.))
@@ -160,7 +160,9 @@ class DepressionFinderAndRouter(Component):
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code',
                                                  dtype=int)
-
+        self.number_of_lakes = -1  # because, note, n_outlets != n_lakes
+        self.lake_code = np.empty(self._grid.number_of_nodes, dtype=int)
+        self.lake_code.fill(BAD_INDEX_VALUE)
 
     def find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -335,7 +337,7 @@ class DepressionFinderAndRouter(Component):
             return True
 
     def record_depression_depth_and_outlet(self, nodes_this_depression,
-                                           outlet_id):
+                                           outlet_id, pit_node):
         """Record information about a depression.
 
         Record information about this depression/lake in the flood_status,
@@ -347,11 +349,51 @@ class DepressionFinderAndRouter(Component):
             Nodes that form a pit.
         outlet_id : int
             Node that is the outlet of the pit.
+        pit_node : int
+            Node that is the deepest pit, uniquely associated with this
+            depression.
         """
         n = nodes_this_depression
-        self.flood_status[n] = _FLOODED
-        self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
-        self.depression_outlet[n] = outlet_id
+        # three cases possible - new lake is fresh; new lake is smaller than
+        # an existing lake (subsumed, and unimportant), new lake is equal to
+        # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
+        # possible to have two lakes overlapping... We can test this with an
+        # assertion that out total # of *tracked* lakes matches the accumulated
+        # total of unique vals in lake_code.
+        fresh_nodes = np.equal(self.lake_code[n], BAD_INDEX_VALUE)
+        if np.all(fresh_nodes):  # a new lake
+            self.flood_status[n] = _FLOODED
+            self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
+            self.depression_outlet[n] = outlet_id
+            self.lake_code[n] = pit_node
+            self._pits_flooded += 1
+            pit_node_where = np.searchsorted(self.pit_node_ids,
+                                             pit_node)
+            self._unique_pits[pit_node_where] = True
+        elif np.any(fresh_nodes):  # lake is bigger than one or more existing
+            self.flood_status[n] = _FLOODED
+            depth_this_lake = self._elev[outlet_id] - self._elev[n]
+            self.depression_depth[n] = depth_this_lake
+            self.depression_outlet[n] = outlet_id
+            # ^these two will just get stamped over as needed
+            subsumed_lakes = np.unique(self.lake_code[n])  #IDed by pit_node
+            # the final entry is BAD_INDEX_VALUE
+            subs_lakes_where = np.searchsorted(self.pit_node_ids,
+                                               subsumed_lakes[:-1])
+            pit_node_where = np.searchsorted(self.pit_node_ids,
+                                             pit_node)
+            self._unique_pits[subs_lakes_where] = False
+            self._unique_pits[pit_node_where] = True
+            self._pits_flooded -= (subsumed_lakes.size - 2)
+            # -1 for the BAD_INDEX_VALUE that must be present; another  -1
+            # because a single lake is just replaced by a new lake 
+            self.lake_code[n] = pit_node
+        else:  # lake is subsumed within an existing lake
+            #print(self.flood_status[n])
+            #print(_FLOODED)
+            assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
+            # ^for safety's sake, but no other action required
+            pass
 
     def find_depression_from_pit(self, pit_node):
         """Find the extent of the nodes that form a pit.
@@ -396,11 +438,12 @@ class DepressionFinderAndRouter(Component):
             # Safety check, in case a bug (ha!) puts us in an infinite loop
             assert (count < max_count), 'too many iterations in lake filler!'
 
-        self.lake_outlets.append(lowest_node_on_perimeter)
+        self.depression_outlets.append(lowest_node_on_perimeter)
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
         self.record_depression_depth_and_outlet(nodes_this_depression,
-                                                lowest_node_on_perimeter)
+                                                lowest_node_on_perimeter,
+                                                pit_node)
 
         # TODO: ideally we need a way to keep track of the number, area extent,
         # and average depth of depressions. Tricky thing is that one might be
@@ -412,8 +455,19 @@ class DepressionFinderAndRouter(Component):
         Find and map the depressions/lakes in a topographic surface,
         given a previously identified list of pits (if any) in the surface.
         """
+        self._pits_flooded = 0
+        self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
         for pit_node in self.pit_node_ids:
             self.find_depression_from_pit(pit_node)
+            self._pits_flooded += 1
+        self.number_of_lakes = self._pits_flooded
+        # debug
+        #assert self.number_of_lakes == np.unique(self.lake_code[
+        #        self.lake_code != BAD_INDEX_VALUE]).size
+        assert len(self.depression_outlets) == self._unique_pits.size
+        
+        self.unique_lake_outlets = np.array(self.depression_outlets
+                                            )[self._unique_pits]
 
     def map_depressions(self, pits='flow_sinks', reroute_flow=True):
         """Map depressions/lakes in a topographic surface.
@@ -459,7 +513,9 @@ class DepressionFinderAndRouter(Component):
         . ~ . . . 
         o . . . . 
         """
-        self.lake_outlets = []  # reset this
+        self.number_of_lakes = 0
+        self.lake_code.fill(BAD_INDEX_VALUE)
+        self.depression_outlets = []  # reset these
         # Locate nodes with pits
         if type(pits) == str:
             try:
@@ -467,6 +523,9 @@ class DepressionFinderAndRouter(Component):
                 supplied_pits = np.where(pits)[0]
                 self.pit_node_ids = np.setdiff1d(supplied_pits,
                                                  self._grid.boundary_nodes)
+                self.number_of_pits = self.pit_node_ids.size
+                self.is_pit.fill(False)
+                self.is_pit[self.pit_node_ids] = True
             except FieldError:
                 self.find_pits()
         elif pits is None:
@@ -479,13 +538,15 @@ class DepressionFinderAndRouter(Component):
             # remove any boundary nodes from the supplied pit list
             self.pit_node_ids = np.setdiff1d(supplied_pits,
                                              self._grid.boundary_nodes)
-        self.number_of_pits = self.pit_node_ids.size
+            self.number_of_pits = self.pit_node_ids.size
+            self.is_pit.fill(False)
+            self.is_pit[self.pit_node_ids] = True
         # Set up "lake code" array
         self.flood_status.fill(_UNFLOODED)
         self.flood_status[self.pit_node_ids] = _PIT
-
+        
         self.identify_depressions_and_outlets()
-
+        
         if reroute_flow and ('flow_receiver' in self._grid.at_node.keys()):
             self.receivers = self._grid.at_node['flow_receiver']
             self.sinks = self._grid.at_node['flow_sinks']
@@ -498,7 +559,7 @@ class DepressionFinderAndRouter(Component):
 
         Route flow across lake flats, which have already been identified.
         """
-        for outlet_node in self.lake_outlets:
+        for outlet_node in self.depression_outlets:
             nodes_in_lake = np.where(self.depression_outlet ==
                                      outlet_node)[0]
             if len(nodes_in_lake) > 0:
@@ -506,16 +567,23 @@ class DepressionFinderAndRouter(Component):
                 # ^using set on assumption of cythonizing later
                 nodes_on_front = np.array([outlet_node])
                 self.handle_outlet_node(outlet_node, nodes_in_lake)
+                print('New lake')
                 while (len(nodes_in_lake) + 1) != len(nodes_routed):
+                    print(nodes_in_lake)
+                    print(nodes_routed)
+                    print('*')
                     all_neighbors = np.hstack((self._grid.get_neighbor_list(
                         nodes_on_front),
                         self._grid.get_diagonal_list(
                         nodes_on_front)))
-                    outlake = np.logical_not(np.in1d(all_neighbors.flat,
+                    outlake = np.logical_not(np.in1d(all_neighbors.ravel(),
                                                      nodes_in_lake))
                     all_neighbors[outlake.reshape(all_neighbors.shape)] = -1
                     backflow = np.in1d(all_neighbors, nodes_routed)
                     all_neighbors[backflow.reshape(all_neighbors.shape)] = -1
+                    print(nodes_on_front)
+                    print(all_neighbors)
+                    print('***')
                     (drains_from, unique_indices) = np.unique(all_neighbors,
                                                               return_index=True)
                     # ^gets flattened, but, usefully, unique_indices are *in order*
@@ -553,26 +621,6 @@ class DepressionFinderAndRouter(Component):
         # ## Think more on this.
         # ## Right now, we're just not updating it.
 
-    def display_depression_map(self):
-        """Print a simple character-based map of depressions/lakes."""
-        # Find the outlet nodes (just for display purposes)
-        is_outlet = np.zeros(self._grid.number_of_nodes, dtype=bool)
-        for i in self._grid.core_nodes:
-            if self.flood_status[i] == _FLOODED:
-                is_outlet[self.depression_outlet[i]] = True
-
-        n = 0
-        for r in range(self._grid.number_of_node_rows):
-            for c in range(self._grid.number_of_node_columns):
-                if is_outlet[n]:
-                    print('o', end=' ')
-                elif self.flood_status[n] == _UNFLOODED:
-                    print('.', end=' ')
-                else:
-                    print('~', end=' ')
-                n += 1
-            print()
-
     def handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
 
@@ -607,6 +655,32 @@ class DepressionFinderAndRouter(Component):
             self.receivers[outlet_node] = lowest_node
         else:
             self.receivers[outlet_node] = outlet_node
+
+    def handle_shared_outlets(self):
+        """
+        This method resolves degenerate lake geometries which drain into each
+        other. Only needs to be called if you are performing flow routing.
+        """
+
+    def display_depression_map(self):
+        """Print a simple character-based map of depressions/lakes."""
+        # Find the outlet nodes (just for display purposes)
+        is_outlet = np.zeros(self._grid.number_of_nodes, dtype=bool)
+        for i in self._grid.core_nodes:
+            if self.flood_status[i] == _FLOODED:
+                is_outlet[self.depression_outlet[i]] = True
+
+        n = 0
+        for r in range(self._grid.number_of_node_rows):
+            for c in range(self._grid.number_of_node_columns):
+                if is_outlet[n]:
+                    print('o', end=' ')
+                elif self.flood_status[n] == _UNFLOODED:
+                    print('.', end=' ')
+                else:
+                    print('~', end=' ')
+                n += 1
+            print()
 
 
 def main():
