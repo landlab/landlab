@@ -122,17 +122,19 @@ def setup_D4_grid():
     """
     Test functionality of routing when D4 is specified.
     """
-    global fr, lf, mg
+    global fr, lfD8, lfD4, mg1, mg2
     global z, lake_nodes
 
-    mg = RasterModelGrid(7,7,1.)
-    z = mg.node_x.copy()*0.001 + 1.
+    mg1 = RasterModelGrid(7,7,1.)
+    mg2 = RasterModelGrid(7,7,1.)
+    z = mg1.node_x.copy() + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
     z[lake_nodes] = 0.
-    mg.add_field('node', 'topographic__elevation', z, units='-')
-    
-    lfD8 = DepressionFinderAndRouter(mg, routing='D8')
-    lfD4 = DepressionFinderAndRouter(mg, routing='D4')
+    mg1.add_field('node', 'topographic__elevation', z, units='-')
+    mg2.add_field('node', 'topographic__elevation', z, units='-')
+
+    lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
+    lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
 
 def check_fields(grid):
     """
@@ -573,11 +575,34 @@ def test_composite_pits():
     assert_almost_equal(lf.lake_volumes[0], 63.)
 
 @with_setup(setup_D4_grid)
-def test_D8_D4():
+def test_D8_D4_fill():
     """
-        Tests the functionality of D4 routing.
-        """
-    pass
+    Tests the functionality of D4 filling.
+    """
+    lfD8.map_depressions(pits=None, reroute_flow=False)
+    lfD4.map_depressions(pits=None, reroute_flow=False)
+    assert_equal(lfD8.number_of_lakes, 1)
+    assert_equal(lfD4.number_of_lakes, 3)
+    
+    correct_D8_lake_map = np.empty(7*7, dtype=int)
+    correct_D8_lake_map.fill(XX)
+    correct_D8_lake_map[lake_nodes] = 10
+    correct_D4_lake_map = correct_D8_lake_map.copy()
+    correct_D4_lake_map[lake_nodes[5:]] = 32
+    correct_D4_lake_map[lake_nodes[-2]] = 38
+    correct_D8_depths = np.zeros(7*7, dtype=float)
+    correct_D8_depths[lake_nodes] = 2.
+    correct_D4_depths = correct_D8_depths.copy()
+    correct_D4_depths[lake_nodes[5:]] = 4.
+    correct_D4_depths[lake_nodes[-2]] = 3.
+    
+    assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
+    assert_array_equal(lfD4.lake_map, correct_D4_lake_map)
+    
+    assert_array_almost_equal(mg1.at_node['depression__depth'],
+                              correct_D8_depths)
+    assert_array_almost_equal(mg2.at_node['depression__depth'],
+                              correct_D4_depths)
 
 
 if __name__=='__main__':
