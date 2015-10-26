@@ -10,7 +10,7 @@ Created on Tues Oct 20, 2015
 import landlab
 from landlab import RasterModelGrid, FieldError
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.sink_fill.fill_sinks import HoleFiller
+from landlab.components.sink_fill.fill_sinks import SinkFiller
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -30,7 +30,7 @@ def setup_dans_grid1():
     """
     global hf, mg
     global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
-    global lake, outlet, outlet_array
+    global lake, outlet, lake_code, outlet_array
 
     mg = RasterModelGrid(7, 7, 1.)
 
@@ -52,11 +52,12 @@ def setup_dans_grid1():
 
     lake = np.array([16, 17, 18, 23, 24, 25])
     outlet = 30
+    lake_code = 17
     outlet_array = np.array([outlet])
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
-    hf = HoleFiller(mg)
+    hf = SinkFiller(mg)
 
 
 def setup_dans_grid2():
@@ -66,10 +67,11 @@ def setup_dans_grid2():
     """
     global hf, mg
     global z, depr_outlet_target
-    global lake, outlet, outlet_array
+    global lake, outlet, lake_code, outlet_array
 
     lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
     outlet = 35  # shouldn't be needed
+    lake_code = 44
     outlet_array = np.array([outlet])
 
     mg = RasterModelGrid(10, 10, 1.)
@@ -83,7 +85,7 @@ def setup_dans_grid2():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
-    hf = HoleFiller(mg)
+    hf = SinkFiller(mg)
 
 
 def setup_dans_grid3():
@@ -116,7 +118,7 @@ def setup_dans_grid3():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
-    hf = HoleFiller(mg)
+    hf = SinkFiller(mg)
 
 
 def setup_dans_grid4():
@@ -150,7 +152,7 @@ def setup_dans_grid4():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
-    hf = HoleFiller(mg)
+    hf = SinkFiller(mg)
 
 
 @with_setup(setup_dans_grid1)
@@ -210,10 +212,10 @@ def test_add_slopes():
     hf._elev[lake] = outlet_elev
     rt2 = np.sqrt(2.)
     slope_to_add = 0.1
-    depr_outlet_map = np.empty_like(z)
-    depr_outlet_map.fill(XX)
-    depr_outlet_map[lake] = outlet
-    hf._lf.depression_outlet = depr_outlet_map
+    lake_map = np.empty_like(z)
+    lake_map.fill(XX)
+    lake_map[lake] = lake_code
+    hf._lf._lake_map = lake_map
     hf.lake_nodes_treated = np.array([], dtype=int)
     dists = mg.get_distances_of_nodes_to_point((mg.node_x[outlet],
                                                 mg.node_y[outlet]))
@@ -222,7 +224,7 @@ def test_add_slopes():
     # test the ones we can do easily analytically separately
     straight_north = np.array([23, 16])
     off_angle = 24
-    elevs_out, lake_out = hf.add_slopes(slope_to_add, outlet)
+    elevs_out, lake_out = hf.add_slopes(slope_to_add, outlet, lake_code)
     assert_array_equal(slope_to_add*(np.arange(2.)+1.)+outlet_elev,
                        elevs_out[straight_north])
     assert_almost_equal(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
@@ -262,7 +264,7 @@ def test_filler_inclined2():
     hf.fill_pits(apply_slope=0.1)
     hole1 = np.array([4.141421, 4.223607, 4.316228, 4.1, 4.2, 4.3, 4.141421,
                       4.223607, 4.316228])
-    hole2 = np.array([7.141421, 7.223607, 7.1, 7.2])
+    hole2 = np.array([7.1, 7.2, 7.141421, 7.223607])
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
