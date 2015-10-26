@@ -7,8 +7,6 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid import raster_funcs as rfuncs
-
 
 def setup_unit_grid():
     from landlab import RasterModelGrid

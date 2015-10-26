@@ -12,7 +12,8 @@ import numpy as np
 import inspect
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE
-from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
+from landlab.grid.raster_steepest_descent import (
+    calculate_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 

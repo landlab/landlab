@@ -7,7 +7,8 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid import raster_funcs as rfuncs
+from landlab.grid.raster_gradients import (
+    calculate_gradient_across_cell_corners)
 
 
 def setup_unit_grid():
@@ -31,7 +32,7 @@ def setup_grid():
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
     """Test using a scalar for cell arg."""
-    grads = rfuncs.calculate_gradient_across_cell_corners(
+    grads = calculate_gradient_across_cell_corners(
         rmg, values_at_nodes, 0)
     assert_array_equal(grads, np.array([[6., 4., -6., -4.]]) / np.sqrt(2.))
 
