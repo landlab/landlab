@@ -129,6 +129,7 @@ def setup_D4_grid():
     z = mg.node_x.copy()*0.001 + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
     z[lake_nodes] = 0.
+    mg.add_field('node', 'topographic__elevation', z, units='-')
     
     lfD8 = DepressionFinderAndRouter(mg, routing='D8')
     lfD4 = DepressionFinderAndRouter(mg, routing='D4')

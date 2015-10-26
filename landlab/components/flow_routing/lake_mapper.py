@@ -96,6 +96,7 @@ class DepressionFinderAndRouter(Component):
         self.current_time = current_time
         if routing is not 'D8':
             assert routing is 'D4'
+        self._routing = routing
         if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
                 (routing is 'D8')):
             self._D8 = True
@@ -185,7 +186,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths = np.ones(4, dtype=float)
         else:
             self._link_lengths = self._grid.link_length
-        self.lake_outlets = []  # a list of each unique lake outlet
+        self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
         self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
@@ -583,7 +584,7 @@ class DepressionFinderAndRouter(Component):
         Route flow across lake flats, which have already been identified.
         """
         for outlet_node in self.lake_outlets:
-            nodes_in_lake = np.where(self.depression_outlet ==
+            nodes_in_lake = np.where(self.depression_outlet_map ==
                                      outlet_node)[0]
             if len(nodes_in_lake) > 0:
                 nodes_routed = np.array([outlet_node])
