@@ -18,7 +18,7 @@ import numpy as np
 DEFAULT_SLOPE = 1.e-5
 
 
-class HoleFiller(Component):
+class SinkFiller(Component):
     """
     This component identifies depressions in a topographic surface, then fills
     them in in the topography.  No attempt is made to conserve sediment mass.
@@ -173,9 +173,10 @@ class HoleFiller(Component):
             self.lake_nodes_treated = np.array([], dtype=int)
             while unstable:
                 while 1:
-                    for outlet_node in set(self._lf.lake_outlets):
+                    for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
+                                                        self._lf.lake_codes):
                         self.apply_slope_current_lake(apply_slope, outlet_node,
-                                                      sublake)
+                                                      lake_code, sublake)
                     # Call the mapper again here. Bail out if no core pits are
                     # found.
                     # This is necessary as there are some configs where adding
@@ -211,7 +212,7 @@ class HoleFiller(Component):
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
-    def add_slopes(self, slope, outlet_node):
+    def add_slopes(self, slope, outlet_node, lake_code):
         """
         Assuming you have already run the lake_mapper, adds an incline towards
         the outlet to the nodes in the lake.
@@ -219,7 +220,7 @@ class HoleFiller(Component):
         new_elevs = self._elev.copy()
         outlet_coord = (self._grid.node_x[outlet_node],
                         self._grid.node_y[outlet_node])
-        lake_nodes = np.where(self._lf.depression_outlet == outlet_node)[0]
+        lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
         dists = self._grid.get_distances_of_nodes_to_point(outlet_coord,
@@ -248,7 +249,8 @@ class HoleFiller(Component):
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
-    def apply_slope_current_lake(self, apply_slope, outlet_node, sublake):
+    def apply_slope_current_lake(self, apply_slope, outlet_node, lake_code,
+                                 sublake):
         """
         Wraps the add_slopes method to allow handling of conditions where the
         drainage structure would be changed or we're dealing with a sublake.
@@ -256,7 +258,7 @@ class HoleFiller(Component):
         while 1:
             starting_elevs = self._elev.copy()
             self._elev[:], lake_nodes = self.add_slopes(apply_slope,
-                                                        outlet_node)
+                                                        outlet_node, lake_code)
             ext_edge = self.get_lake_ext_margin(lake_nodes)
             if sublake:
                 break
