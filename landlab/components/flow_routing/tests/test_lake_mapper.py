@@ -116,6 +116,21 @@ def setup_dans_grid():
     
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
+
+def setup_D4_grid():
+    """
+    Test functionality of routing when D4 is specified.
+    """
+    global fr, lf, mg
+    global z, lake_nodes
+
+    mg = RasterModelGrid(7,7,1.)
+    z = mg.node_x.copy()*0.001 + 1.
+    lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
+    z[lake_nodes] = 0.
+    
+    lfD8 = DepressionFinderAndRouter(mg, routing='D8')
+    lfD4 = DepressionFinderAndRouter(mg, routing='D4')
     
     
 def check_fields(grid):
@@ -396,6 +411,41 @@ def test_edge_draining():
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
     assert_array_equal(lf.depression_outlet, depr_outlet_target)
 
+def test_degenerate_drainage():
+    """
+    This "hourglass" configuration should be one of the hardest to correctly
+    re-route.
+    """
+    mg = RasterModelGrid(9,5)
+    z_init = mg.node_x.copy()*0.0001 + 1.
+    lake_pits = np.array([7, 11, 12, 13, 17, 27, 31, 32, 33, 37])
+    z_init[lake_pits] = -1.
+    z_init[22] = 0.  # the common spill pt for both lakes
+    z_init[21] = 0.1  # an adverse bump in the spillway
+    z_init[20] = -0.2  # the spillway
+    z = mg.add_field('node', 'topographic__elevation', z_init)
+
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+    fr.route_flow()
+    lf.map_depressions()
+
+    correct_A = np.array([ 1.,   1.,   1.,   1.,   1.,
+                           1.,   1.,   1.,   1.,   1.,
+                           1.,   4.,   1.,   3.,   1.,
+                           1.,   1.,  10.,   1.,   1.,
+                          22.,  21.,   1.,   1.,   1.,
+                           1.,   1.,   9.,   1.,   1.,
+                           1.,   4.,   1.,   3.,   1.,
+                           1.,   1.,   1.,   1.,   1.,
+                           1.,   1.,   1.,   1.,   1.])
+    
+    thelake = np.concatenate((lake_pits, [22])).sort()
+
+    assert_array_almost_equal(mg.at_node['drainage_area'], correct_A)
+    
+    # assert np.all(np.equal(lf.lake_map[thelake], lf.lake_map[thelake[0]]))
+    # assert not lf.lake_map[thelake[0]] == XX
 
 def test_three_pits():
     """
@@ -439,7 +489,14 @@ def test_three_pits():
                      3.,   2.,   1.,   1.,   1.,   1.,   3.,   2.,   1.,   1.,
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.])
     assert_array_equal(mg.at_node['drainage_area'], nA)
-    
-    
+
+@with_setup(setup_D4_grid)
+def test_D8_D4():
+    """
+    Tests the functionality of D4 routing.
+    """
+    pass
+
+
 if __name__=='__main__':
     test_lake_mapper()
