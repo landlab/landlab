@@ -32,6 +32,12 @@ class DepressionFinderAndRouter(Component):
     'route_flow_dn' component, it will then modify the drainage directions and
     accumulations already stored in the grid to route flow across these
     depressions.
+
+    Note that in general properties of this class named "depression" identify
+    each individual pit in the topography, including those that will merge
+    once the fill is performed. Those named "lake" return the unique lakes
+    created by the fill, and are probably the properties most users will
+    want.
     """
 
     _name = 'DepressionFinderAndRouter'
