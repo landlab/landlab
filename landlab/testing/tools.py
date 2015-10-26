@@ -98,6 +98,10 @@ def assert_array_is_int(x):
     assert_true(x.dtype == np.int32 or x.dtype == np.int64)
 
 
+def assert_close(val1, val2, msg=None):
+    assert_true(np.allclose(val1, val2), msg=msg)
+
+
 def assert_is(expr1, expr2, msg=None):
     assert_true(expr1 is expr2, msg=msg)
 
