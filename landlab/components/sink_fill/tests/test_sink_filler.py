@@ -187,20 +187,20 @@ def test_get_lake_int_margin():
 
 @with_setup(setup_dans_grid1)
 def test_drainage_directions_change():
-    lake = np.array([23, 24])
+    lake = np.array([22, 23])
     old_elevs = np.ones(49, dtype=float)
     old_elevs[lake] = 0.
     new_elevs = old_elevs.copy()
     new_elevs[40] = 2.
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert_false(cond)
-    new_elevs[24] = 0.5
+    new_elevs[23] = 0.5
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert_false(cond)
-    new_elevs[24] = 1.
+    new_elevs[23] = 1.
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert_false(cond)
-    new_elevs[24] = 1.2
+    new_elevs[23] = 1.2
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert_true(cond)
 

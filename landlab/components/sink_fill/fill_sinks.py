@@ -6,6 +6,7 @@ Created on Mon Oct 19.
 """
 from __future__ import print_function
 
+import landlab
 from landlab import ModelParameterDictionary, Component, FieldError, \
                     FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -47,12 +48,37 @@ class SinkFiller(Component):
                                          'node',
                  }
 
-    def __init__(self, grid, input_stream=None, current_time=0.):
+    def __init__(self, grid, input_stream=None, current_time=0.,
+                 routing='D8'):
         """
         Constructor assigns a copy of the grid, and calls the initialize
         method.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A landlab RasterModelGrid.
+        input_stream : str, file_like, or ModelParameterDictionary, optional
+            ModelParameterDictionary that holds the input parameters.
+        current_time : float, optional
+            The current time for the mapper.
+        routing : 'D8' or 'D4' (optional)
+            If grid is a raster type, controls whether fill connectivity can
+            occur on diagonals ('D8', default), or only orthogonally ('D4').
+            Has no effect if grid is not a raster.
         """
         self._grid = grid
+        if routing is not 'D8':
+            assert routing is 'D4'
+        self._routing = routing
+        if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
+                (routing is 'D8')):
+            self._D8 = True
+            self.num_nbrs = 8
+        else:
+            self._D8 = False  # useful shorthand for thia test we do a lot
+            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+                self.num_nbrs = 4
         self.initialize(input_stream)
 
     def initialize(self, input_stream=None):
@@ -106,7 +132,7 @@ class SinkFiller(Component):
         self.sed_fill_depth = self._grid.add_zeros('node',
                                                    'sediment_fill__depth')
 
-        self._lf = DepressionFinderAndRouter(self._grid)
+        self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowRouter(self._grid)
 
     def fill_pits(self, apply_slope=None):
@@ -154,7 +180,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow()
+        self._fr.route_flow(method=self._routing)
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
@@ -223,9 +249,9 @@ class SinkFiller(Component):
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
-        dists = self._grid.get_distances_of_nodes_to_point(outlet_coord,
-                                                        node_subset=lake_nodes)
-        add_vals = slope*dists
+        d = self._grid.get_distances_of_nodes_to_point(outlet_coord,
+                                                       node_subset=lake_nodes)
+        add_vals = slope*d
         new_elevs[lake_nodes] += add_vals
         self.lake_nodes_treated = np.union1d(self.lake_nodes_treated,
                                              lake_nodes)
@@ -233,19 +259,28 @@ class SinkFiller(Component):
 
     def get_lake_ext_margin(self, lake_nodes):
         """
-        Returns the nodes forming the D8 external margin of the lake.
+        Returns the nodes forming the external margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable.
         """
-        all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
-                              self._grid.get_diagonal_list(lake_nodes))
+        if self._D8 is True:
+            all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
+                                  self._grid.get_diagonal_list(lake_nodes))
+        else:
+            all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes))
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
     def get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """
-        Returns the nodes forming the D8 external margin of the lake.
+        Returns the nodes forming the internal margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable.
         """
-        all_poss_int = np.union1d(self._grid.get_neighbor_list(lake_ext_edge),
-                                  self._grid.get_diagonal_list(lake_ext_edge))
+        lee = lake_ext_edge
+        if self._D8 is True:
+            all_poss_int = np.union1d(self._grid.get_neighbor_list(lee),
+                                      self._grid.get_diagonal_list(lee))
+        else:
+            all_poss_int = np.union1d(self._grid.get_neighbor_list(lee))
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
@@ -279,7 +314,13 @@ class SinkFiller(Component):
         True if the drainage structure at lake margin changes, False otherwise.
         """
         ext_edge = self.get_lake_ext_margin(lake_nodes)
-        edge_neighbors = self._grid.get_neighbor_list(ext_edge)
+        print(ext_edge)
+        if self._D8:
+            edge_neighbors = np.hstack((self._grid.get_neighbor_list(ext_edge),
+                                        self._grid.get_diagonal_list(
+                                            ext_edge)))
+        else:
+            edge_neighbors = self._grid.get_neighbor_list(ext_edge).copy()
         edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
