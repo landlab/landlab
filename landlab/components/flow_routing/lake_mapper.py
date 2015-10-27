@@ -583,9 +583,9 @@ class DepressionFinderAndRouter(Component):
 
         Route flow across lake flats, which have already been identified.
         """
-        for outlet_node in self.lake_outlets:
-            nodes_in_lake = np.where(self.depression_outlet_map ==
-                                     outlet_node)[0]
+        for outlet_node, lake_code in zip(self.lake_outlets, self.lake_codes):
+            nodes_in_lake = np.where(self.lake_map ==
+                                     lake_code)[0]
             if len(nodes_in_lake) > 0:
                 nodes_routed = np.array([outlet_node])
                 # ^using set on assumption of cythonizing later
@@ -610,17 +610,19 @@ class DepressionFinderAndRouter(Component):
                     # *in order*
                     # remember, 1st one is always -1
                     # I bet this is sloooooooooow
-                    drains_to = nodes_on_front[unique_indxs[1:] //
+                    good_nbrs = drains_from != -1
+                    drains_to = nodes_on_front[unique_indxs[good_nbrs] //
                                                self.num_nbrs]
                     # to run the accumulator successfully, we need receivers,
                     # and sinks only. So the priority is sorting out the
                     # receiver field, and sealing the filled sinks (once while
                     # loop is done)
-                    self.receivers[drains_from[1:]] = drains_to
+                    self.receivers[drains_from[good_nbrs]] = drains_to
                     # now put the relevant nodes in the relevant places:
-                    nodes_on_front = drains_from[1:]
+                    nodes_on_front = drains_from[good_nbrs]
                     nodes_routed = np.union1d(nodes_routed, nodes_on_front)
-                    self.grads[drains_from[1:]] = 0.  # downstream grad is 0.
+                    self.grads[drains_from[good_nbrs]] = 0.
+                    # ^downstream grad is 0.
         self.sinks[self.pit_node_ids] = False
 
     def reaccumulate_flow(self):
@@ -666,7 +668,7 @@ class DepressionFinderAndRouter(Component):
                     self._grid.get_diagonal_list(
                     outlet_node)))
             else:
-                outlet_neighbors = self._grid.get_neighbor_list(outlet_node)
+                outlet_neighbors = self._grid.get_neighbor_list(outlet_node).copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0
             outlet_neighbors[inlake] = -1
