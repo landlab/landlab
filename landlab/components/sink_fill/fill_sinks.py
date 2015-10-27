@@ -266,7 +266,7 @@ class SinkFiller(Component):
             all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
                                   self._grid.get_diagonal_list(lake_nodes))
         else:
-            all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes))
+            all_poss = np.unique(self._grid.get_neighbor_list(lake_nodes))
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
@@ -280,7 +280,7 @@ class SinkFiller(Component):
             all_poss_int = np.union1d(self._grid.get_neighbor_list(lee),
                                       self._grid.get_diagonal_list(lee))
         else:
-            all_poss_int = np.union1d(self._grid.get_neighbor_list(lee))
+            all_poss_int = np.unique(self._grid.get_neighbor_list(lee))
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
@@ -314,7 +314,6 @@ class SinkFiller(Component):
         True if the drainage structure at lake margin changes, False otherwise.
         """
         ext_edge = self.get_lake_ext_margin(lake_nodes)
-        print(ext_edge)
         if self._D8:
             edge_neighbors = np.hstack((self._grid.get_neighbor_list(ext_edge),
                                         self._grid.get_diagonal_list(
