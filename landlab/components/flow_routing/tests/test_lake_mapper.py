@@ -10,13 +10,14 @@ Created on Sun Sep 27 09:52:50, 2015
 import landlab
 from landlab import RasterModelGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+from landlab.components.flow_routing.lake_mapper import \
+    DepressionFinderAndRouter
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
 from nose.tools import (with_setup, assert_true, assert_false,
-                        assert_almost_equal)
+                        assert_almost_equal, assert_equal)
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -168,7 +169,7 @@ def check_array_values(rmg, lm):
       0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
       0.,   0.,   0.,   0.])
       
-    assert_array_equal(lm.depression_outlet, \
+    assert_array_equal(lm.depression_outlet_map, \
     [XX, XX, XX, XX, XX, XX,
      XX, XX, XX, XX, XX, XX,
      XX,  5,  5, XX, XX, XX,
@@ -218,17 +219,17 @@ def setup_dans_grid2():
 
     A_new = np.array([[[  1.,   2.,   2.,   2.,   2.,   2.,   1.,
                           1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                         16.,   9.,   4.,   3.,   2.,   1.,   1.,
+                          1.,   6.,   4.,   3.,   2.,   1.,   1.,
                           1.,   1.,   4.,   3.,   2.,   1.,   1.,
-                          1.,  14.,   4.,   3.,   2.,   1.,   1.,
-                         16.,   1.,   4.,   3.,   2.,   1.,   1.,
                           1.,   1.,   1.,   1.,   1.,   1.,   1.,
                           1.,   2.,   2.,   2.,   2.,   2.,   1.]]]).flatten()
 
     depr_outlet_target = np.array([ XX, XX, XX, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
-                                    XX, 28, 28, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
+                                    XX, 14, 14, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX,
                                     XX, XX, XX, XX, XX, XX, XX]).flatten()
     
@@ -288,7 +289,7 @@ def check_array_values(rmg, lm):
       0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
       0.,   0.,   0.,   0.])
       
-    assert_array_equal(lm.depression_outlet,
+    assert_array_equal(lm.depression_outlet_map,
     [XX, XX, XX, XX, XX, XX,
      XX, XX, XX, XX, XX, XX,
      XX,  5,  5, XX, XX, XX,
@@ -362,7 +363,7 @@ def test_filling_alone():
     """
     lf.map_depressions(pits=None, reroute_flow=False)
     assert_array_equal(mg.at_node['flow_receiver'], np.zeros(49, dtype=float))
-    assert_array_equal(lf.depression_outlet, depr_outlet_target)
+    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 @with_setup(setup_dans_grid)
 def test_filling_supplied_pits():
@@ -394,7 +395,7 @@ def test_edge_draining():
     fr.route_flow()
     lf.map_depressions()
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_equal(lf.depression_outlet, depr_outlet_target)
+    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 
 def test_three_pits():
@@ -431,8 +432,8 @@ def test_three_pits():
     nA = np.array([  1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
                      9.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   1.,
                      3.,   2.,   1.,   1.,   2.,   1.,   1.,   1.,   1.,   1.,
-                     3.,   2.,   1.,  15.,  11.,  10.,   9.,   8.,   1.,   1.,
-                    27.,  26.,  25.,   9.,   2.,   1.,   1.,   1.,   1.,   1.,
+                    27.,  26.,  25.,  15.,  11.,  10.,   9.,   8.,   1.,   1.,
+                     3.,   2.,   1.,   9.,   2.,   1.,   1.,   1.,   1.,   1.,
                      3.,   2.,   1.,   1.,   5.,   4.,   3.,   2.,   1.,   1.,
                      3.,   2.,   1.,   1.,   1.,   1.,   3.,   2.,   1.,   1.,
                     21.,  20.,  19.,  18.,  17.,  12.,   3.,   2.,   1.,   1.,
@@ -440,6 +441,87 @@ def test_three_pits():
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.])
     assert_array_equal(mg.at_node['drainage_area'], nA)
     
+    #test a couple more properties:
+    lc = np.empty(100, dtype=int)
+    lc.fill(XX)
+    lc[33] = 33
+    lc[43] = 33
+    lc[37] = 37
+    lc[74:76] = 74
+    assert_array_equal(lf.lake_map, lc)
+    assert_array_equal(lf.lake_codes, [33, 37, 74])
+    assert_equal(lf.number_of_lakes, 3)
+    assert_array_almost_equal(lf.lake_areas, [2., 1., 2.])
+    assert_array_almost_equal(lf.lake_volumes, [2., 2., 4.])
+
+def test_composite_pits():
+    """
+    A test to ensure the component correctly handles cases where there are
+    multiple pits, inset into each other.
+    """
+    mg = RasterModelGrid(10,10,1.)
+    z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    # a sloping plane
+    #np.random.seed(seed=0)
+    #z += np.random.rand(100)/10000.
+    # punch one big hole
+    z.reshape((10,10))[3:8,3:8] = 0.
+    # dig a couple of inset holes
+    z[57] = -1.
+    z[44] = -2.
+    z[54] = -10.
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+    fr.route_flow()
+    lf.map_depressions()
     
+    flow_sinks_target = np.zeros(100, dtype=bool)
+    flow_sinks_target[mg.boundary_nodes] = True
+    # no internal sinks now:
+    assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
+    
+    # test conservation of mass:
+    assert_almost_equal(mg.at_node['drainage_area'
+                                       ].reshape((10,10))[1:-1,1].sum(), 8.**2)
+    # ^all the core nodes
+    
+    # test the actual flow field:
+    nA = np.array([  1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                     9.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   1.,
+                     2.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                     2.,   1.,   1.,   4.,   2.,   2.,   8.,   4.,   1.,   1.,
+                     2.,   1.,   1.,   8.,   3.,  15.,   3.,   2.,   1.,   1.,
+                     2.,   1.,   1.,  13.,  25.,   6.,   3.,   2.,   1.,   1.,
+                     2.,   1.,   1.,  45.,   3.,   3.,   5.,   2.,   1.,   1.,
+                    51.,  50.,  49.,   3.,   2.,   2.,   2.,   4.,   1.,   1.,
+                     2.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
+                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.])
+    assert_array_equal(mg.at_node['drainage_area'], nA)
+    
+    # the lake code map:
+    lc = np.array([XX, XX, XX, XX, XX, XX, XX, XX, XX, XX,
+                   XX, XX, XX, XX, XX, XX, XX, XX, XX, XX,
+                   XX, XX, XX, XX, XX, XX, XX, XX, XX, XX,
+                   XX, XX, XX, 57, 57, 57, 57, 57, XX, XX,
+                   XX, XX, XX, 57, 57, 57, 57, 57, XX, XX,
+                   XX, XX, XX, 57, 57, 57, 57, 57, XX, XX,
+                   XX, XX, XX, 57, 57, 57, 57, 57, XX, XX,
+                   XX, XX, XX, 57, 57, 57, 57, 57, XX, XX,
+                   XX, XX, XX, XX, XX, XX, XX, XX, XX, XX,
+                   XX, XX, XX, XX, XX, XX, XX, XX, XX, XX])
+    
+    #test the remaining properties:
+    assert_equal(lf.lake_outlets.size, 1)
+    assert_equal(lf.lake_outlets[0], 72)
+    outlets_in_map = np.unique(lf.depression_outlet_map)
+    assert_equal(outlets_in_map.size, 2)
+    assert_equal(outlets_in_map[0], 72)
+    assert_equal(lf.number_of_lakes, 1)
+    assert_equal(lf.lake_codes[0], 57)
+    assert_array_equal(lf.lake_map, lc)
+    assert_almost_equal(lf.lake_areas[0], 25.)
+    assert_almost_equal(lf.lake_volumes[0], 63.)
+
+
 if __name__=='__main__':
     test_lake_mapper()
