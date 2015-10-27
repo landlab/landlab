@@ -16,7 +16,7 @@ import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
 from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal)
+                        assert_almost_equal, assert_equal)
 try:
     from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
 except ImportError:
@@ -93,9 +93,9 @@ def setup_dans_grid3():
     Create a 10x10 test grid with two well defined holes in it, into an
     inclined surface.
     """
-    global hf, mg
+    global hf, fr, mg
     global z, depr_outlet_target
-    global lake, lake1, lake2, outlet, outlet_array
+    global lake, lake1, lake2, outlet, outlet_array, rcvr
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
     lake2 = np.array([77, 78, 87, 88])
@@ -118,6 +118,7 @@ def setup_dans_grid3():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
+    fr = FlowRouter(mg)
     hf = SinkFiller(mg)
 
 
@@ -127,7 +128,7 @@ def setup_dans_grid4():
     inclined surface. This time, one of the holes is a stupid shape, which
     will require the component to arrange flow back "uphill".
     """
-    global hf, mg
+    global hf, fr, mg
     global z, depr_outlet_target
     global lake, lake1, lake2, outlet, outlet_array
 
@@ -152,6 +153,7 @@ def setup_dans_grid4():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
+    fr = FlowRouter(mg)
     hf = SinkFiller(mg)
 
 
@@ -162,7 +164,7 @@ def setup_dans_grid5():
     will require the component to arrange flow back "uphill". Exactly as
     V4, but this version tests D4 routing.
     """
-    global hf, mg
+    global hf, fr, mg
     global z, depr_outlet_target
     global lake, lake1, lake2, outlet, outlet_array
 
@@ -187,6 +189,7 @@ def setup_dans_grid5():
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
+    fr = FlowRouter(mg)
     hf = SinkFiller(mg, routing='D4')
 
 
@@ -296,34 +299,38 @@ def test_filler_inclined2():
     """
     Tests an inclined fill into an inclined surface, with two holes.
     """
-    hf.fill_pits(apply_slope=0.1)
-    hole1 = np.array([4.141421, 4.223607, 4.316228, 4.1, 4.2, 4.3, 4.141421,
-                      4.223607, 4.316228])
-    hole2 = np.array([7.1, 7.2, 7.141421, 7.223607])
+    z_init = z.copy()
+    hf.fill_pits(apply_slope=True)
+    hole1 = np.array([4.00009091, 4.00018182, 4.00027273, 4.00063636,
+                      4.00045455, 4.00036364, 4.00081818, 4.00072727,
+                      4.00054545])
+    hole2 = np.array([7.16666667, 7.33333333, 7.66666667, 7.5])
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
+    fr.route_flow()
+    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid4)
 def test_stupid_shaped_hole():
     """
     Tests inclined fill into a surface with a deliberately awkward shape.
-    Also tests the ability to pass a bool to fill_pits(), to use the default
-    value of 1.e-5.
     """
     hf.fill_pits(apply_slope=True)
-    hole1 = np.array([4.000014, 4.000022, 4.000032, 4.00001, 4.00002, 4.00003,
-                      4.000014, 4.000022, 4.000032, 4.000028, 4.000032])
-    hole2 = np.array([7.000022, 7.00001, 7.00002])
-    np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
+    hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00053846,
+                      4.00038462, 4.00030769, 4.00069231, 4.00061538,
+                      4.00046154, 4.00076923, 4.00084615])
+    hole2 = np.array([7.4, 7.2, 7.6])
     # print this to check out the funky drainage arrangement...
     # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
+    fr.route_flow()
+    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)
@@ -333,9 +340,10 @@ def test_D4_routing():
     This is testing D4 routing.
     """
     hf.fill_pits(apply_slope=True)
-    hole1 = np.array([4.000014, 4.000022, 4.000032, 4.00001, 4.00002, 4.00003,
-                      4.000014, 4.000022, 4.000032, 4.000028, 4.000032])
-    hole2 = np.array([7.000022, 7.00001, 7.00002])
+    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
+                      4.0005, 4.00083333, 4.00066667, 4.00058333, 4.00075,
+                      4.334])
+    hole2 = np.array([7.6, 7.2, 7.4])
     # np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     # print this to check out the funky drainage arrangement...
     # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
@@ -343,6 +351,8 @@ def test_D4_routing():
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
+    fr.route_flow(method='D4')
+    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)

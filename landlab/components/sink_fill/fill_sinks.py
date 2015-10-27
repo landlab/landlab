@@ -24,7 +24,9 @@ class SinkFiller(Component):
     This component identifies depressions in a topographic surface, then fills
     them in in the topography.  No attempt is made to conserve sediment mass.
     User may specify whether the holes should be filled to flat, or with a
-    slight gradient (~<10**-5) downwards towards the depression outlet.
+    gradient downwards towards the depression outlet. The gradient can be
+    spatially variable, and is chosen to not reverse any drainage directions
+    at the perimeter of each lake.
     """
     _name = 'HoleFiller'
 
@@ -137,6 +139,88 @@ class SinkFiller(Component):
 
     def fill_pits(self, apply_slope=None):
         """
+        This is the main method. Call it to fill depressions in a starting
+        topography.
+
+        Parameters
+        ----------
+        apply_slope : bool
+            Whether to leave the filled surface flat (default), or apply a
+            gradient downwards through all lake nodes towards the outlet.
+            A test is performed to ensure applying this slope will not alter
+            the drainage structure at the edge of the filled region (i.e.,
+            that we are not accidentally reversing the flow direction far
+            from the outlet.)
+
+        Return fields
+        -------------
+        'topographic__elevation' : the updated elevations
+        'sediment_fill__depth' : the depth of sediment added at each node
+        """
+        self.original_elev = self._elev.copy()
+        # We need this, as we'll have to do ALL this again if we manage
+        # to jack the elevs too high in one of the "subsidiary" lakes.
+        # We're going to implement the lake_mapper component to do the heavy
+        # lifting here, then delete its fields. This means we first need to
+        # test if these fields already exist, in which case, we should *not*
+        # delete them!
+        existing_fields = {}
+        spurious_fields = set()
+        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        try:
+            set_of_outputs.remove(self.topo_field_name)
+        except KeyError:
+            pass
+        for field in set_of_outputs:
+            try:
+                existing_fields[field] = self._grid.at_node[field].copy()
+            except FieldError:  # not there; good!
+                spurious_fields.add(field)
+
+        self._fr.route_flow(method=self._routing)
+        self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
+                                 reroute_flow=True)
+        # add the depression depths to get up to flat:
+        self._elev += self._grid.at_node['depression__depth']
+        # if apply_slope is none, we're now done! But if not...
+        if apply_slope:
+            # new way of doing this - use the upstream structure! Should be
+            # both more general and more efficient
+            for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
+                                                self._lf.lake_codes):
+                lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
+                lake_perim = self.get_lake_ext_margin(lake_nodes)
+                perim_elevs = self._elev[lake_perim]
+                out_elev = self._elev[outlet_node]
+                lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
+                # note we exclude the outlet node
+                elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
+                                  (lake_nodes.size + 2.))
+                assert elev_increment > 0.
+                all_ordering = self._grid.at_node['upstream_ID_order']
+                upstream_order_bool = np.in1d(all_ordering, lake_nodes,
+                                              assume_unique=True)
+                lake_upstream_order = all_ordering[upstream_order_bool]
+                argsort_lake = np.argsort(lake_upstream_order)
+                elevs_to_add = (np.arange(lake_nodes.size, dtype=float) +
+                                1.) * elev_increment
+                sorted_elevs_to_add = elevs_to_add[argsort_lake]
+                self._elev[lake_nodes] += sorted_elevs_to_add
+        # now put back any fields that were present initially, and wipe the
+        # rest:
+        for delete_me in spurious_fields:
+            self._grid.delete_field('node', delete_me)
+        for update_me in existing_fields.keys():
+            self.grid.at_node[update_me] = existing_fields[update_me]
+        # fill the output field
+        self.sed_fill_depth[:] = self._elev - self.original_elev
+
+    def fill_pits_old(self, apply_slope=None):
+        """
+
+        .. deprecated:: 0.1.38
+            Use :func:`fill_pits` instead.
+
         This is the main method. Call it to fill depressions in a starting
         topography.
 
