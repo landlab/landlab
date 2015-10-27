@@ -43,6 +43,9 @@ class DepressionFinderAndRouter(Component):
     guaranteed, and in particular, may not be symmetrical even if your
     boundary conditions are.
     However, the outputs from the lake will all still be correct.
+    
+    Note the routing part of this component is not yet compatible with
+    irregular grids.
     """
 
     _name = 'DepressionFinderAndRouter'
