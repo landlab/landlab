@@ -24,11 +24,16 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ndarray
         Gradients of the nodes values for each link.
 
+    .. deprecated:: 0.1
+        Use :func:`calculate_gradient_across_cell_faces`
+                or :func:`calculate_gradient_across_cell_corners` instead
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 3))
-    >>> node_values = [0., 0., 0., 1., 3., 1., 2., 2., 2.]
+    >>> node_values = [0., 0., 0.,
+    ...                1., 3., 1.,
+    ...                2., 2., 2.]
     >>> grid.calculate_gradients_at_links(node_values)
     array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
 
@@ -39,12 +44,18 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     >>> out
     array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
 
-    .. deprecated:: 0.1
-        Use :func:`calculate_gradient_across_cell_faces`
-                or :func:`calculate_gradient_across_cell_corners` instead
+    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> grid.calculate_gradients_at_links(node_values)
+    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
     """
     diffs = gradients.calculate_diff_at_links(grid, node_values, out=out)
-    return np.divide(diffs, grid.node_spacing, out=diffs)
+
+    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+    diffs[:n_vertical_links] /= grid.dy
+    diffs[n_vertical_links:] /= grid.dx
+
+    return diffs
+    #return np.divide(diffs, grid.node_spacing, out=diffs)
 
 
 def calculate_gradients_at_active_links(grid, node_values, out=None):
@@ -91,10 +102,27 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
            -1.,  1.,  1.,  1., -1.,  1.])
     >>> rtn is grad
     True
+
+    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> node_values = [0., 0., 0.,
+    ...                1., 3., 1.,
+    ...                2., 2., 2.]
+    >>> grid.calculate_gradients_at_active_links(node_values)
+    array([ 3., -1.,  1., -1.])
     """
     diffs = gradients.calculate_diff_at_active_links(grid, node_values,
                                                      out=out)
-    return np.divide(diffs, grid.node_spacing, out=diffs)
+
+    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+
+    vertical_active_links = np.where(grid.active_links < n_vertical_links)
+    horizontal_active_links = np.where(grid.active_links >= n_vertical_links)
+
+    diffs[vertical_active_links] /= grid.dy
+    diffs[horizontal_active_links] /= grid.dx
+
+    return diffs
+    #return np.divide(diffs, grid.node_spacing, out=diffs)
 
 
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
