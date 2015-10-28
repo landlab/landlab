@@ -129,11 +129,11 @@ class RasterModelGridPlotter(object):
 
         See Also
         --------
-        landlab.plot.imshow_field
+        landlab.plot.imshow_grid
         """
-        from landlab.plot import imshow_field
+        from landlab.plot import imshow_grid
         kwds['values_at'] = group
-        imshow_field(self, var_name, **kwds)
+        imshow_grid(self, var_name, **kwds)
 
 
 def grid_edge_is_closed_from_dict(boundary_conditions):

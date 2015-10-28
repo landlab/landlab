@@ -28,7 +28,7 @@ from landlab.components.radiation.radiation_field import Radiation
     import landlab's plotting function that has the capability of plotting
     'fields' stored on the grid.
 """
-from landlab.plot.imshow import imshow_field
+from landlab.plot.imshow import imshow_grid
 """
     import Numpy library. We will use 'random' module from numpy for this
     tutorial.
@@ -93,14 +93,14 @@ rad.update( current_time )
 plt.figure(0)
 """
     Plot the cellular field 'TotalShortWaveRadiation' that is available on the
-    grid. imshow_field is a Landlab plotting tool that reads the input of
+    grid. imshow_grid is a Landlab plotting tool that reads the input of
     grid, the variable name that needs to be plotted, and type of field (whether
     it is 'cell' or 'node', etc... It also reads optional inputs (keywords),
     grid_units (units of grid X and Y axes , e.g. 'm'). For more options, please refer
     documentation for landlab.plot.imshow.
 """
-imshow_field(grid,'TotalShortWaveRadiation', values_at = 'cell',
-             grid_units = ('m','m'))
+imshow_grid(grid,'TotalShortWaveRadiation', values_at = 'cell',
+            grid_units = ('m','m'))
 
 """
     The plot created can be saved using the function 'savefig' available in
@@ -118,7 +118,7 @@ plt.figure(1)
     Using Landlab plotting tool, lets plot another variable 'RadiationFactor'.
 
 """
-imshow_field(grid,'RadiationFactor', values_at = 'cell', grid_units = ('m','m'))
+imshow_grid(grid,'RadiationFactor', values_at = 'cell', grid_units = ('m','m'))
 """
     Save this figure.
 """

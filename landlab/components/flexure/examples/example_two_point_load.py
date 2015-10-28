@@ -4,7 +4,6 @@ import numpy as np
 
 from landlab.components.flexure import FlexureComponent
 from landlab import RasterModelGrid
-from landlab.plot import imshow_field
 
 
 SHAPE = (100, 100)
