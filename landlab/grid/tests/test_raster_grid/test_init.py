@@ -42,13 +42,15 @@ def test_init_with_kwds_classic():
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 1)
+    assert_equal(grid.dy, 1)
+    assert_equal(grid.dx, 1)
 
     grid = RasterModelGrid(3, 7, 2)
 
     assert_equal(grid.number_of_node_rows, 3)
     assert_equal(grid.number_of_node_columns, 7)
-    assert_equal(grid.node_spacing, 2.)
+    assert_equal(grid.dy, 2.)
+    assert_equal(grid.dx, 2.)
 
 
 def test_init_new_style():
@@ -56,23 +58,29 @@ def test_init_new_style():
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 2.)
+    assert_equal(grid.dy, 2.)
+    assert_equal(grid.dx, 2.)
 
     grid = RasterModelGrid((4, 5))
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 1.)
+    assert_equal(grid.dy, 1.)
+    assert_equal(grid.dx, 1.)
 
 
 def test_spacing_is_float():
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.node_spacing, 1.)
-    assert_is_instance(grid.node_spacing, float)
+    assert_equal(grid.dy, 1.)
+    assert_is_instance(grid.dy, float)
+    assert_equal(grid.dx, 1.)
+    assert_is_instance(grid.dx, float)
 
     grid = RasterModelGrid((4, 5), spacing=2)
-    assert_equal(grid.node_spacing, 2.)
-    assert_is_instance(grid.node_spacing, float)
+    assert_equal(grid.dy, 2.)
+    assert_is_instance(grid.dy, float)
+    assert_equal(grid.dx, 2.)
+    assert_is_instance(grid.dx, float)
 
 
 @with_setup(setup_grid)

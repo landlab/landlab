@@ -13,7 +13,7 @@ def setup_unit_grid():
 
 def setup_grid():
     globals().update({
-        '_RMG': RasterModelGrid(4, 5, 12.)
+        '_RMG': RasterModelGrid((4, 5), spacing=(3, 4))
     })
 
 
@@ -26,14 +26,16 @@ def test_unit_spacing():
 @with_setup(setup_grid)
 def test_non_unit_spacing():
     assert_array_equal(_RMG._calculate_link_length(),
-                       _RMG.node_spacing * np.ones(31))
+                       [3.] * 15 + [4.] * 16)
 
 
 @with_setup(setup_grid)
 def test_link_length():
-    assert_array_equal(_RMG.link_length, 12 * np.ones(31))
+    assert_array_equal(_RMG.link_length,
+                       [3.] * 15 + [4.] * 16)
 
 
 @with_setup(setup_grid)
 def test_active_link_length():
-    assert_array_equal(_RMG.active_link_length, 12 * np.ones(17))
+    assert_array_equal(_RMG.active_link_length,
+                       [3.] * 9  + [4.] * 8 )
