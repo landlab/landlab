@@ -55,7 +55,6 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     diffs[n_vertical_links:] /= grid.dx
 
     return diffs
-    #return np.divide(diffs, grid.node_spacing, out=diffs)
 
 
 def calculate_gradients_at_active_links(grid, node_values, out=None):
@@ -122,7 +121,6 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     diffs[horizontal_active_links] /= grid.dx
 
     return diffs
-    #return np.divide(diffs, grid.node_spacing, out=diffs)
 
 
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
@@ -160,7 +158,9 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid(3, 4)
-    >>> x = np.array([0., 0., 0., 0., 0., 0., 1., 1., 3., 3., 3., 3.])
+    >>> x = np.array([0., 0., 0., 0.,
+    ...               0., 0., 1., 1.,
+    ...               3., 3., 3., 3.])
 
     A decrease in quantity across a face is a negative gradient.
 
@@ -171,7 +171,15 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
                  mask =
      False,
            fill_value = 1e+20)
-    <BLANKLINE>
+
+    >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+    >>> grid.calculate_gradient_across_cell_faces(x)
+    masked_array(data =
+     [[ 1.   1.5  0.   0. ]
+     [ 0.   1.  -1.  -0.5]],
+                  mask =
+     False,
+           fill_value = 1e+20)
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -188,7 +196,9 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
-    out = np.multiply(out, 1. / grid.node_spacing, out=out)
+
+    out[:, (0, 2)] /= grid.dx
+    out[:, (1, 3)] /= grid.dy
 
     return out
 
@@ -225,7 +235,9 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid(3, 4)
-    >>> x = np.array([1., 0., 0., 1., 0., 0., 1., 1., 3., 3., 3., 3.])
+    >>> x = np.array([1., 0., 0., 1.,
+    ...               0., 0., 1., 1.,
+    ...               3., 3., 3., 3.])
 
     A decrease in quantity to a diagonal node is a negative gradient.
 
@@ -233,6 +245,11 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     >>> grid.calculate_gradient_across_cell_corners(x) * sqrt(2.)
     array([[ 3.,  3.,  1.,  0.],
            [ 2.,  2., -1.,  0.]])
+
+    >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+    >>> grid.calculate_gradient_across_cell_corners(x)
+    array([[ 0.6,  0.6,  0.2,  0. ],
+           [ 0.4,  0.4, -0.2,  0. ]])
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
@@ -241,7 +258,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
-    np.divide(out, np.sqrt(2.) * grid.node_spacing, out=out)
+    np.divide(out, np.sqrt(grid.dy ** 2. + grid.dx ** 2.), out=out)
 
     return out
 
@@ -284,7 +301,9 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid(3, 3)
-    >>> x = np.array([0., 0., 0., 0., 1., 2., 2., 2., 2.])
+    >>> x = np.array([0., 0., 0.,
+    ...               0., 1., 2.,
+    ...               2., 2., 2.])
 
     A decrease in quantity across a face is a negative gradient.
 
@@ -310,7 +329,30 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True False]
      [ True  True  True  True]],
            fill_value = 1e+20)
-    <BLANKLINE>
+
+    >>> grid = RasterModelGrid((3, 3), spacing=(2, 4))
+    >>> grid.calculate_gradient_along_node_links(x)
+    masked_array(data =
+     [[-- -- -- --]
+     [-- 0.5 -- --]
+     [-- -- -- --]
+     [0.25 -- -- --]
+     [0.25 0.5 0.25 0.5]
+     [-- -- 0.25 --]
+     [-- -- -- --]
+     [-- -- -- 0.5]
+     [-- -- -- --]],
+                 mask =
+     [[ True  True  True  True]
+     [ True False  True  True]
+     [ True  True  True  True]
+     [False  True  True  True]
+     [False False False False]
+     [ True  True False  True]
+     [ True  True  True  True]
+     [ True  True  True False]
+     [ True  True  True  True]],
+           fill_value = 1e+20)
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -328,6 +370,8 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
                 values_at_nodes, out=out[:, :2], **kwds)
     np.subtract(values_at_nodes, masked_neighbor_values[:, 2:],
                 out=out[:, 2:], **kwds)
-    out *= 1. / grid.node_spacing
+
+    out[:, (0, 2)] /= grid.dx
+    out[:, (1, 3)] /= grid.dy
 
     return out
