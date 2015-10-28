@@ -383,11 +383,15 @@ def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
     5
     >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
     11
+
+    >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+    >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
+    6
     """
     column_indices = np.int_(
-        np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing))
+        np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
     row_indices = np.int_(
-        np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing))
+        np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 
