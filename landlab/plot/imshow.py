@@ -297,7 +297,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
             raise ValueError(
                 'dimension of values must be 2 (%s)' % values.shape)
 
-        y = np.arange(values.shape[0] + 1) * grid.dx - grid.dx * .5
+        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * .5
         x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
 
         kwds = dict(cmap=cmap)
@@ -429,7 +429,7 @@ def imshow_active_cells(grid, values, var_name=None, var_units=None,
     data = values.view()
     data.shape = (grid.shape[0] - 2, grid.shape[1] - 2)
 
-    y = np.arange(data.shape[0]) - grid.dx * .5
+    y = np.arange(data.shape[0]) - grid.dy * .5
     x = np.arange(data.shape[1]) - grid.dx * .5
 
     if symmetric_cbar:
