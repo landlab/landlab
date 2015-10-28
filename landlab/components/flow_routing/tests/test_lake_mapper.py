@@ -117,8 +117,27 @@ def setup_dans_grid():
     
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
-    
-    
+
+def setup_D4_grid():
+    """
+    Test functionality of routing when D4 is specified.
+    """
+    global frD8, frD4, lfD8, lfD4, mg1, mg2
+    global z, lake_nodes
+
+    mg1 = RasterModelGrid(7,7,1.)
+    mg2 = RasterModelGrid(7,7,1.)
+    z = mg1.node_x.copy() + 1.
+    lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
+    z[lake_nodes] = 0.
+    mg1.add_field('node', 'topographic__elevation', z, units='-')
+    mg2.add_field('node', 'topographic__elevation', z, units='-')
+
+    frD8 = FlowRouter(mg1)
+    frD4 = FlowRouter(mg2)
+    lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
+    lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
+
 def check_fields(grid):
     """
     Check to make sure the right fields have been created.
@@ -397,6 +416,41 @@ def test_edge_draining():
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
+def test_degenerate_drainage():
+    """
+    This "hourglass" configuration should be one of the hardest to correctly
+    re-route.
+    """
+    mg = RasterModelGrid(9,5)
+    z_init = mg.node_x.copy()*0.0001 + 1.
+    lake_pits = np.array([7, 11, 12, 13, 17, 27, 31, 32, 33, 37])
+    z_init[lake_pits] = -1.
+    z_init[22] = 0.  # the common spill pt for both lakes
+    z_init[21] = 0.1  # an adverse bump in the spillway
+    z_init[20] = -0.2  # the spillway
+    z = mg.add_field('node', 'topographic__elevation', z_init)
+
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+    fr.route_flow()
+    lf.map_depressions()
+
+    correct_A = np.array([ 1.,   1.,   1.,   1.,   1.,
+                           1.,   1.,   1.,   1.,   1.,
+                           1.,   4.,   1.,   3.,   1.,
+                           1.,   1.,  10.,   1.,   1.,
+                          22.,  21.,   1.,   1.,   1.,
+                           1.,   1.,   9.,   1.,   1.,
+                           1.,   4.,   1.,   3.,   1.,
+                           1.,   1.,   1.,   1.,   1.,
+                           1.,   1.,   1.,   1.,   1.])
+    
+    thelake = np.concatenate((lake_pits, [22])).sort()
+
+    assert_array_almost_equal(mg.at_node['drainage_area'], correct_A)
+    
+    # assert np.all(np.equal(lf.lake_map[thelake], lf.lake_map[thelake[0]]))
+    # assert not lf.lake_map[thelake[0]] == XX
 
 def test_three_pits():
     """
@@ -521,6 +575,63 @@ def test_composite_pits():
     assert_array_equal(lf.lake_map, lc)
     assert_almost_equal(lf.lake_areas[0], 25.)
     assert_almost_equal(lf.lake_volumes[0], 63.)
+
+@with_setup(setup_D4_grid)
+def test_D8_D4_fill():
+    """
+    Tests the functionality of D4 filling.
+    """
+    lfD8.map_depressions(pits=None, reroute_flow=False)
+    lfD4.map_depressions(pits=None, reroute_flow=False)
+    assert_equal(lfD8.number_of_lakes, 1)
+    assert_equal(lfD4.number_of_lakes, 3)
+    
+    correct_D8_lake_map = np.empty(7*7, dtype=int)
+    correct_D8_lake_map.fill(XX)
+    correct_D8_lake_map[lake_nodes] = 10
+    correct_D4_lake_map = correct_D8_lake_map.copy()
+    correct_D4_lake_map[lake_nodes[5:]] = 32
+    correct_D4_lake_map[lake_nodes[-2]] = 38
+    correct_D8_depths = np.zeros(7*7, dtype=float)
+    correct_D8_depths[lake_nodes] = 2.
+    correct_D4_depths = correct_D8_depths.copy()
+    correct_D4_depths[lake_nodes[5:]] = 4.
+    correct_D4_depths[lake_nodes[-2]] = 3.
+    
+    assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
+    assert_array_equal(lfD4.lake_map, correct_D4_lake_map)
+    
+    assert_array_almost_equal(mg1.at_node['depression__depth'],
+                              correct_D8_depths)
+    assert_array_almost_equal(mg2.at_node['depression__depth'],
+                              correct_D4_depths)
+
+@with_setup(setup_D4_grid)
+def test_D8_D4_route():
+    """
+    Tests the functionality of D4 routing.
+    """
+    frD8.route_flow(method='D8')
+    frD4.route_flow(method='D4')
+    lfD8.map_depressions()
+    lfD4.map_depressions()
+    assert_equal(lfD8.number_of_lakes, 1)
+    assert_equal(lfD4.number_of_lakes, 3)
+    
+    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 16, 16, 18, 18,
+                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
+                           33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
+                           32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+    flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 18, 11,
+                           13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
+                           33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
+                           32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+    assert_array_equal(mg1.at_node['flow_receiver'], flow_recD8)
+    assert_array_equal(mg2.at_node['flow_receiver'], flow_recD4)
+    assert_array_almost_equal(mg1.at_node['drainage_area'].reshape((7,7))[:,
+                                  0].sum(),
+                              mg2.at_node['drainage_area'].reshape((7,7))[:,
+                                  0].sum())
 
 
 if __name__=='__main__':

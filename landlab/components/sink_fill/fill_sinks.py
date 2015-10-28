@@ -6,6 +6,7 @@ Created on Mon Oct 19.
 """
 from __future__ import print_function
 
+import landlab
 from landlab import ModelParameterDictionary, Component, FieldError, \
                     FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -23,7 +24,9 @@ class SinkFiller(Component):
     This component identifies depressions in a topographic surface, then fills
     them in in the topography.  No attempt is made to conserve sediment mass.
     User may specify whether the holes should be filled to flat, or with a
-    slight gradient (~<10**-5) downwards towards the depression outlet.
+    gradient downwards towards the depression outlet. The gradient can be
+    spatially variable, and is chosen to not reverse any drainage directions
+    at the perimeter of each lake.
     """
     _name = 'HoleFiller'
 
@@ -47,12 +50,37 @@ class SinkFiller(Component):
                                          'node',
                  }
 
-    def __init__(self, grid, input_stream=None, current_time=0.):
+    def __init__(self, grid, input_stream=None, current_time=0.,
+                 routing='D8'):
         """
         Constructor assigns a copy of the grid, and calls the initialize
         method.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A landlab RasterModelGrid.
+        input_stream : str, file_like, or ModelParameterDictionary, optional
+            ModelParameterDictionary that holds the input parameters.
+        current_time : float, optional
+            The current time for the mapper.
+        routing : 'D8' or 'D4' (optional)
+            If grid is a raster type, controls whether fill connectivity can
+            occur on diagonals ('D8', default), or only orthogonally ('D4').
+            Has no effect if grid is not a raster.
         """
         self._grid = grid
+        if routing is not 'D8':
+            assert routing is 'D4'
+        self._routing = routing
+        if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
+                (routing is 'D8')):
+            self._D8 = True
+            self.num_nbrs = 8
+        else:
+            self._D8 = False  # useful shorthand for thia test we do a lot
+            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+                self.num_nbrs = 4
         self.initialize(input_stream)
 
     def initialize(self, input_stream=None):
@@ -106,11 +134,93 @@ class SinkFiller(Component):
         self.sed_fill_depth = self._grid.add_zeros('node',
                                                    'sediment_fill__depth')
 
-        self._lf = DepressionFinderAndRouter(self._grid)
+        self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowRouter(self._grid)
 
     def fill_pits(self, apply_slope=None):
         """
+        This is the main method. Call it to fill depressions in a starting
+        topography.
+
+        Parameters
+        ----------
+        apply_slope : bool
+            Whether to leave the filled surface flat (default), or apply a
+            gradient downwards through all lake nodes towards the outlet.
+            A test is performed to ensure applying this slope will not alter
+            the drainage structure at the edge of the filled region (i.e.,
+            that we are not accidentally reversing the flow direction far
+            from the outlet.)
+
+        Return fields
+        -------------
+        'topographic__elevation' : the updated elevations
+        'sediment_fill__depth' : the depth of sediment added at each node
+        """
+        self.original_elev = self._elev.copy()
+        # We need this, as we'll have to do ALL this again if we manage
+        # to jack the elevs too high in one of the "subsidiary" lakes.
+        # We're going to implement the lake_mapper component to do the heavy
+        # lifting here, then delete its fields. This means we first need to
+        # test if these fields already exist, in which case, we should *not*
+        # delete them!
+        existing_fields = {}
+        spurious_fields = set()
+        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        try:
+            set_of_outputs.remove(self.topo_field_name)
+        except KeyError:
+            pass
+        for field in set_of_outputs:
+            try:
+                existing_fields[field] = self._grid.at_node[field].copy()
+            except FieldError:  # not there; good!
+                spurious_fields.add(field)
+
+        self._fr.route_flow(method=self._routing)
+        self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
+                                 reroute_flow=True)
+        # add the depression depths to get up to flat:
+        self._elev += self._grid.at_node['depression__depth']
+        # if apply_slope is none, we're now done! But if not...
+        if apply_slope:
+            # new way of doing this - use the upstream structure! Should be
+            # both more general and more efficient
+            for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
+                                                self._lf.lake_codes):
+                lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
+                lake_perim = self.get_lake_ext_margin(lake_nodes)
+                perim_elevs = self._elev[lake_perim]
+                out_elev = self._elev[outlet_node]
+                lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
+                # note we exclude the outlet node
+                elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
+                                  (lake_nodes.size + 2.))
+                assert elev_increment > 0.
+                all_ordering = self._grid.at_node['upstream_ID_order']
+                upstream_order_bool = np.in1d(all_ordering, lake_nodes,
+                                              assume_unique=True)
+                lake_upstream_order = all_ordering[upstream_order_bool]
+                argsort_lake = np.argsort(lake_upstream_order)
+                elevs_to_add = (np.arange(lake_nodes.size, dtype=float) +
+                                1.) * elev_increment
+                sorted_elevs_to_add = elevs_to_add[argsort_lake]
+                self._elev[lake_nodes] += sorted_elevs_to_add
+        # now put back any fields that were present initially, and wipe the
+        # rest:
+        for delete_me in spurious_fields:
+            self._grid.delete_field('node', delete_me)
+        for update_me in existing_fields.keys():
+            self.grid.at_node[update_me] = existing_fields[update_me]
+        # fill the output field
+        self.sed_fill_depth[:] = self._elev - self.original_elev
+
+    def fill_pits_old(self, apply_slope=None):
+        """
+
+        .. deprecated:: 0.1.38
+            Use :func:`fill_pits` instead.
+
         This is the main method. Call it to fill depressions in a starting
         topography.
 
@@ -154,7 +264,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow()
+        self._fr.route_flow(method=self._routing)
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
@@ -223,9 +333,9 @@ class SinkFiller(Component):
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
-        dists = self._grid.get_distances_of_nodes_to_point(outlet_coord,
-                                                        node_subset=lake_nodes)
-        add_vals = slope*dists
+        d = self._grid.get_distances_of_nodes_to_point(outlet_coord,
+                                                       node_subset=lake_nodes)
+        add_vals = slope*d
         new_elevs[lake_nodes] += add_vals
         self.lake_nodes_treated = np.union1d(self.lake_nodes_treated,
                                              lake_nodes)
@@ -233,19 +343,28 @@ class SinkFiller(Component):
 
     def get_lake_ext_margin(self, lake_nodes):
         """
-        Returns the nodes forming the D8 external margin of the lake.
+        Returns the nodes forming the external margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable.
         """
-        all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
-                              self._grid.get_diagonal_list(lake_nodes))
+        if self._D8 is True:
+            all_poss = np.union1d(self._grid.get_neighbor_list(lake_nodes),
+                                  self._grid.get_diagonal_list(lake_nodes))
+        else:
+            all_poss = np.unique(self._grid.get_neighbor_list(lake_nodes))
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
     def get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """
-        Returns the nodes forming the D8 external margin of the lake.
+        Returns the nodes forming the internal margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable.
         """
-        all_poss_int = np.union1d(self._grid.get_neighbor_list(lake_ext_edge),
-                                  self._grid.get_diagonal_list(lake_ext_edge))
+        lee = lake_ext_edge
+        if self._D8 is True:
+            all_poss_int = np.union1d(self._grid.get_neighbor_list(lee),
+                                      self._grid.get_diagonal_list(lee))
+        else:
+            all_poss_int = np.unique(self._grid.get_neighbor_list(lee))
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
@@ -279,7 +398,12 @@ class SinkFiller(Component):
         True if the drainage structure at lake margin changes, False otherwise.
         """
         ext_edge = self.get_lake_ext_margin(lake_nodes)
-        edge_neighbors = self._grid.get_neighbor_list(ext_edge)
+        if self._D8:
+            edge_neighbors = np.hstack((self._grid.get_neighbor_list(ext_edge),
+                                        self._grid.get_diagonal_list(
+                                            ext_edge)))
+        else:
+            edge_neighbors = self._grid.get_neighbor_list(ext_edge).copy()
         edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
