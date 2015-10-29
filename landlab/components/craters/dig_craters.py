@@ -66,7 +66,7 @@ class impactor(object):
             self.radius_auto_flag = 0
         try:
             self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = 0.5*grid.dx + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dx)
+            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -211,7 +211,7 @@ class impactor(object):
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
         self._xcoord = 0.5*grid.dx + random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = 0.5*grid.dx + random() * (grid.get_grid_ydimension() - grid.dx)
+        self._ycoord = 0.5*grid.dy + random() * (grid.get_grid_ydimension() - grid.dy)
         #Snap impact to grid:
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
@@ -237,6 +237,7 @@ class impactor(object):
         gridx = grid.get_grid_xdimension()
         gridy = grid.get_grid_ydimension()
         dx = grid.dx
+        dy - grid.dy
         x = self._xcoord
         y = self._ycoord
         height = self.closest_node_elev
@@ -250,9 +251,9 @@ class impactor(object):
             else: #travelling W
                 line_horiz = gridx - x - 0.5*dx
             if cos_alpha<0.: #travelling N
-                line_vert = -(y-0.5*dx)
+                line_vert = -(y-0.5*dy)
             else: #travelling S
-                line_vert = gridy - y - 0.5*dx
+                line_vert = gridy - y - 0.5*dy
             #How many divisions?
             hyp_line_vert = numpy.fabs(line_vert/cos_alpha)
             hyp_line_horiz = numpy.fabs(line_horiz/sin_alpha)
@@ -333,13 +334,13 @@ class impactor(object):
                                     height += numpy.sqrt((x-0.5*dx)**2. + (vert_coord-y)**2.)/numpy.tan(self._angle_to_vertical)
                             else: #vertical is shorter
                                 if cos_alpha>0.: #travelling S, line extends N
-                                    vert_coord = 0.50001*dx #ditto on switch
-                                    horiz_coord = x + (gridy-y-0.5*dx)*sin_alpha/cos_alpha
-                                    height += numpy.sqrt((gridy-y-0.5*dx)**2. + (horiz_coord-x)**2.)/numpy.tan(self._angle_to_vertical)
+                                    vert_coord = 0.50001*dy #ditto on switch
+                                    horiz_coord = x + (gridy-y-0.5*dy)*sin_alpha/cos_alpha
+                                    height += numpy.sqrt((gridy-y-0.5*dy)**2. + (horiz_coord-x)**2.)/numpy.tan(self._angle_to_vertical)
                                 else:
-                                    vert_coord = gridy - 0.50001*dx
-                                    horiz_coord = x - (y-0.5*dx)*sin_alpha/cos_alpha
-                                    height += numpy.sqrt((y-0.5*dx)**2. + (horiz_coord-x)**2.)/numpy.tan(self._angle_to_vertical)
+                                    vert_coord = gridy - 0.50001*dy
+                                    horiz_coord = x - (y-0.5*dy)*sin_alpha/cos_alpha
+                                    height += numpy.sqrt((y-0.5*dy)**2. + (horiz_coord-x)**2.)/numpy.tan(self._angle_to_vertical)
                             #...& no break!
                             x = horiz_coord
                             y = vert_coord
@@ -909,7 +910,7 @@ class impactor(object):
             #self.z_difference[:i] = self.elev[self.crater_footprint_max[:i]] - self._vec_new_z[:i] #+ve when excavating
             numpy.less_equal(self.z_difference[:i], 0., self.dummy_bool[:i])
             self.z_difference[:i][self.dummy_bool[:i]] = 0.
-            excavated_volume += numpy.sum(self.z_difference[:i])*grid.dx*grid.dx
+            excavated_volume += numpy.sum(self.z_difference[:i])*grid.dx*grid.dy
             #excavated_volume += numpy.sum(numpy.where(self.z_difference[:i]>0.,self.z_difference[:i],0.))*grid.dx*grid.dx
         #This all assumes we're representing the surface slope accurately now. If we are, then the real radius will remain roughly as the calculated value as we shear the crater into the surface. If not, could have problems.
 
@@ -930,7 +931,7 @@ class impactor(object):
             volume_to_fill_inner_crater_divots = 0.
             numpy.less_equal(self.elevs_ground_less_new_z[:i], 0., self.dummy_bool[:i])
             self.elevs_ground_less_new_z[:i][self.dummy_bool[:i]] = 0.
-            volume_to_remove_highs = numpy.sum(self.elevs_ground_less_new_z[:i])*grid.dx*grid.dx
+            volume_to_remove_highs = numpy.sum(self.elevs_ground_less_new_z[:i])*grid.dx*grid.dy
             unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID((volume_to_remove_highs-volume_to_fill_inner_crater_divots)*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical*mass_bal_corrector_for_size)
             thickness_at_rim = unique_expression_for_local_thickness(_radius)
         else:
@@ -954,7 +955,7 @@ class impactor(object):
                 volume_to_fill_inner_crater_divots = 0.#numpy.sum(numpy.where(elevs_cavity_less_ground>0., elevs_cavity_less_ground, 0.))*grid.dx*grid.dx
                 numpy.less_equal(self.elevs_ground_less_new_z[:i], 0., self.dummy_bool[:i])
                 self.elevs_ground_less_new_z[:i][self.dummy_bool[:i]] = 0.
-                volume_to_remove_highs += numpy.sum(self.elevs_ground_less_new_z[:i])*grid.dx*grid.dx
+                volume_to_remove_highs += numpy.sum(self.elevs_ground_less_new_z[:i])*grid.dx*grid.dy
             unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID((volume_to_remove_highs-volume_to_fill_inner_crater_divots)*mass_bal_corrector_for_slope*mass_bal_corrector_for_angle_to_vertical*mass_bal_corrector_for_size)
             thickness_at_rim = unique_expression_for_local_thickness(_radius)
 
@@ -1123,7 +1124,7 @@ class impactor(object):
         assert type(center) == tuple
         assert len(center) == 2
         grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dx
+        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
         six.print_('center, r, x', center[0], eff_radius, grid_x)
         left_repeats = -int((center[0]-eff_radius)//grid_x)
         right_repeats = int((center[0]+eff_radius)//grid_x)
@@ -1228,6 +1229,7 @@ class impactor(object):
         else:
             center_array = numpy.array(center)
             dx = self.grid.dx
+            dy = self.grid.dy
             max_cols = self.grid.number_of_node_columns - 2
             max_rows = self.grid.number_of_node_rows - 2
             max_dims_array = numpy.array([max_cols,max_rows])
@@ -1538,7 +1540,7 @@ class impactor(object):
         This method is a generator.
         '''
         grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dx
+        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
         assert type(center_tuple) == tuple
 
         if flag_from_footprint_edge_type == 'I':

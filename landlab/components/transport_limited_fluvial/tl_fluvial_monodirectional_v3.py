@@ -241,7 +241,7 @@ class TransportLimitedEroder(object):
         self.Qs_power_onAthresh = twothirds*self._b*self._c
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
-            self.cell_areas = grid.node_spacing_horizontal*grid.node_spacing_vertical
+            self.cell_areas = grid.dx*grid.dy
         else:
             self.cell_areas = np.empty(grid.number_of_nodes)
             self.cell_areas.fill(np.mean(grid.cell_areas))

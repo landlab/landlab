@@ -246,8 +246,8 @@ class TransportLimitedEroder(object):
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
         self.cell_areas[grid.node_at_cell] = grid.cell_areas
-        self.dx2 = grid.node_spacing_horizontal**2
-        self.dy2 = grid.node_spacing_vertical**2
+        self.dx2 = grid.dx**2
+        self.dy2 = grid.dy**2
         self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
 
     def erode(self, grid, dt, node_drainage_areas='drainage_area',
@@ -308,8 +308,8 @@ class TransportLimitedEroder(object):
 
         RETURNS XXXXXX
         """
-        dx = grid.node_spacing_horizontal
-        dy = grid.node_spacing_vertical
+        dx = grid.dx
+        dy = grid.dy
         dx2 = self.dx2
         dy2 = self.dy2
         nrows = grid.number_of_node_rows
