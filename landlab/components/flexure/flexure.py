@@ -154,7 +154,7 @@ class FlexureComponent(Component):
         alpha = get_flexure_parameter(self._eet, self._youngs, 2)
         dx, dy = np.meshgrid(
             np.arange(self._grid.number_of_node_columns) * self._grid.dx,
-            np.arange(self._grid.number_of_node_rows) * self._grid.dx)
+            np.arange(self._grid.number_of_node_rows) * self._grid.dy)
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
