@@ -58,7 +58,7 @@ class impactor(object):
             self.radius_auto_flag = 0
         try:
             self._xcoord = inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dx)
+            self._ycoord = inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -155,7 +155,7 @@ class impactor(object):
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
         self._xcoord = random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = random() * (grid.get_grid_ydimension() - grid.dx)
+        self._ycoord = random() * (grid.get_grid_ydimension() - grid.dy)
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -307,6 +307,7 @@ class impactor(object):
         x = self._xcoord
         y = self._ycoord
         dx = grid.dx
+        dy = grid.dy
         slope_pts =numpy.array([[x-r,y-r],[x,y-r],[x+r,y-r],[x-r,y],[x,y],[x+r,y],[x-r,y+r],[x,y+r],[x+r,y+r]])
         if not numpy.all(grid.is_point_on_grid(slope_pts[:,0],slope_pts[:,1])):
             self.set_crater_mean_slope_v2()
@@ -315,7 +316,7 @@ class impactor(object):
             cardinal_elevs = self.elev[slope_pts_ongrid]
             #Now the Horn '81 algorithm for weighted max slope: (careful w signs! altered to give down as +ve)
             S_we = ((cardinal_elevs[6]+2*cardinal_elevs[3]+cardinal_elevs[0])-(cardinal_elevs[8]+2*cardinal_elevs[5]+cardinal_elevs[2]))/(8.*dx)
-            S_sn = ((cardinal_elevs[0]+2*cardinal_elevs[1]+cardinal_elevs[2])-(cardinal_elevs[6]+2*cardinal_elevs[7]+cardinal_elevs[8]))/(8.*dx)
+            S_sn = ((cardinal_elevs[0]+2*cardinal_elevs[1]+cardinal_elevs[2])-(cardinal_elevs[6]+2*cardinal_elevs[7]+cardinal_elevs[8]))/(8.*dy)
             self._surface_slope = numpy.sqrt(S_we*S_we + S_sn*S_sn)
             try:
                 angle_to_xaxis = numpy.arctan(S_sn/S_we) #+ve is CCW rotation from x axis
@@ -591,7 +592,7 @@ class impactor(object):
         _vec_new_z_excav.fill(self.closest_node_elev - 0.9*self._depth) #Arbitrary assumed scaling: rim is 0.1 of total depth
         _vec_new_z_excav += self._depth * (_vec_r_to_center_excav/_radius)**crater_bowl_exp #note there's another fix here - we've relaxed the constraint that slopes outside one radius are at repose. It will keep curling up, so poke out quicker
         z_difference = self.elev[excavation_nodes] - _vec_new_z_excav
-        excavated_volume = numpy.sum(numpy.where(z_difference>0.,z_difference,0.))*grid.dx*grid.dx
+        excavated_volume = numpy.sum(numpy.where(z_difference>0.,z_difference,0.))*grid.dx*grid.dy
 
         unique_expression_for_local_thickness = self.create_lambda_fn_for_ejecta_thickness_BAND_AID(excavated_volume)
         thickness_at_rim = unique_expression_for_local_thickness(_radius)
@@ -857,6 +858,7 @@ class impactor(object):
         assert len(center) == 2
         center_array = numpy.array(center)
         dx = self.grid.dx
+        dy = self.grid.dy
         max_cols = self.grid.number_of_node_columns
         max_rows = self.grid.number_of_node_rows
         left_bottom = ((center_array - eff_radius)//dx).astype(int) + 1
@@ -891,6 +893,7 @@ class impactor(object):
         assert len(center) == 2
         center_array = numpy.array(center)
         dx = self.grid.dx
+        dy = self.grid.dy
         max_cols = self.grid.number_of_node_columns
         max_rows = self.grid.number_of_node_rows
         left_bottom = ((center_array - eff_radius)//dx).astype(int) + 1
