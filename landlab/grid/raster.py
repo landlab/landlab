@@ -1637,16 +1637,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self._dx
 
     @property
-    def node_spacing_horizontal(self):
-        """Horizontal spacing, between columns."""
-        return self._dx
-
-    @property
-    def node_spacing_vertical(self):
-        """Vertical spacing, between rows."""
-        return self._dy
-
-    @property
     def corner_nodes(self):
         """Get array of the nodes in grid corners.
 
