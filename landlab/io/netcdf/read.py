@@ -246,8 +246,7 @@ def read_netcdf(nc_file, just_grid=False):
 
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
-                           dx=spacing)
+    grid = RasterModelGrid(shape, spacing=spacing)
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)
