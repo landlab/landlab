@@ -51,7 +51,7 @@ class TestLinkEndsToLink():
 class TestNodeToLinkMappers():
 
     def test_to_node(self):
-        rmg = RasterModelGrid(num_rows=4, num_cols=5, dx=1.)
+        rmg = RasterModelGrid((4, 5), spacing=(1., 1.))
         rmg.add_empty('node', 'values')
 
         node_values = rmg.at_node['values']
