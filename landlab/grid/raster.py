@@ -11,6 +11,7 @@ from six.moves import range
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
+from ..utils.decorators import deprecated
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
@@ -308,6 +309,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals = rmg.add_zeros('active_link', 'vals')
     >>> vals.size
     14
+
+    A `RasterModelGrid` can have different node spacings in the *x* and *y*
+    directions.
+
+    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid.dy, grid.dx
+    (1.0, 2.0)
+    >>> grid.node_y # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., 0., 0., 0., 0.,
+            1., 1., 1., 1., 1.,
+            2., 2., 2., 2., 2.,
+            3., 3., 3., 3., 3.])
+    >>> grid.node_x # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.])
     """
 
     def __init__(self, *args, **kwds):
@@ -322,7 +340,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         shape : tuple of int
             Shape of the grid in nodes.
-        spacing : float, optional
+        spacing : tuple or float, optional
             Row and column node spacing.
         bc : dict, optional
             Edge boundary conditions.
@@ -357,7 +375,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Set number of nodes, and initialize if caller has given dimensions
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
-            self._initialize(num_rows, num_cols, float(dx))
+            self._initialize(num_rows, num_cols, dx)
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -366,10 +384,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.looped_node_properties = {}
 
-    def _initialize(self, num_rows, num_cols, dx):
+    def _initialize(self, num_rows, num_cols, spacing):
         """Set up a raster grid.
 
-        Sets up a num_rows by num_cols grid with cell spacing dx and
+        Sets up a *num_rows* by *num_cols* grid with cell *spacing* and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
 
@@ -449,16 +467,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
                26])
         """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
-                       + str(num_cols) + ', ' + str(dx) + ')')
+        if isinstance(spacing, float) or isinstance(spacing, int):
+            spacing = (spacing, spacing)
 
         # Basic info about raster size and shape
         self._nrows = num_rows
         self._ncols = num_cols
 
-        self._dx = dx
-        self.cellarea = dx * dx
+        self._dy, self._dx = float(spacing[0]), float(spacing[1])
+        self.cellarea = self._dy * self._dx
 
         self._num_nodes = sgrid.node_count(self.shape)
         self._num_active_nodes = self.number_of_nodes
@@ -504,7 +521,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (self._node_x, self._node_y) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dx, self._dx), (0., 0.))
+            (num_rows, num_cols), (self._dy, self._dx), (0., 0.))
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate
@@ -624,7 +641,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         It is not meant to be called manually.
         """
         self._cell_areas = np.empty(self.number_of_cells)
-        self._cell_areas.fill(self._dx ** 2)
+        self._cell_areas.fill(self._dy * self._dx)
         return self._cell_areas
 
     def _setup_cell_areas_array_force_inactive(self):
@@ -638,7 +655,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         It is not meant to be called manually.
         """
         self._forced_cell_areas = np.empty(self.number_of_nodes)
-        self._forced_cell_areas.fill(self._dx ** 2)
+        self._forced_cell_areas.fill(self._dy * self._dx)
         return self._forced_cell_areas
 
     @property
@@ -716,11 +733,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.dy
         1.0
-        >>> grid = RasterModelGrid(4, 5, 2.0)
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
         >>> grid.dy
         2.0
         """
-        return self._dx
+        return self._dy
 
     def node_links(self, *args):
         """node_links([node_ids])
@@ -1408,6 +1425,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5, 2.)
         >>> grid.get_grid_xdimension()
         8.0
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.get_grid_xdimension()
+        12.0
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
@@ -1434,9 +1455,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5, 0.5)
         >>> grid.get_grid_ydimension()
         1.5
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.get_grid_ydimension()
+        6.0
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14, as above.
-        return ((self.number_of_node_rows - 1) * self._dx)
+        return ((self.number_of_node_rows - 1) * self._dy)
 
     @property
     def number_of_interior_nodes(self):
@@ -1585,6 +1610,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return 2 * self.number_of_patches
 
     @property
+    #@deprecated
     def node_spacing(self):
         """Spacing betweem node rows and columns.
 
@@ -1598,16 +1624,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.node_spacing
         3.0
         """
-        return self._dx
-
-    @property
-    def node_spacing_horizontal(self):
-        """Horizontal spacing, between columns."""
-        return self._dx
-
-    @property
-    def node_spacing_vertical(self):
-        """Vertical spacing, between rows."""
+        if self._dx != self._dy:
+            raise RuntimeError('dx and dy are not the same')
         return self._dx
 
     @property
@@ -1671,11 +1689,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         bool
             ``True`` if the point is on the grid. Otherwise, ``False``.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 1))
+        >>> grid.is_point_on_grid(1, 1)
+        True
+        >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
+        array([ True,  True, False], dtype=bool)
+        >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
+        array([False, True,  True, False], dtype=bool)
         """
-        x_condition = np.logical_and(np.less(0., xcoord), np.less(
-            xcoord, (self.get_grid_xdimension() - self._dx)))
-        y_condition = np.logical_and(np.less(0., ycoord), np.less(
-            ycoord, (self.get_grid_ydimension() - self._dx)))
+        xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
+
+        x_condition = (xcoord > 0.) & (xcoord < (self.shape[1] - 1) * self.dx)
+        y_condition = (ycoord > 0.) & (ycoord < (self.shape[0] - 1) * self.dy)
+
         if np.all(self._node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.right_edge_node_ids(self.shape)] == 3):
             try:
                 x_condition[:] = 1
@@ -1686,7 +1716,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 y_condition[:] = 1
             except:
                 y_condition = 1
-        return np.logical_and(x_condition, y_condition)
+
+        return x_condition & y_condition
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """Get the nodes surrounding a point.
@@ -1722,18 +1753,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 8,  9],
                [ 9, 10],
                [ 5,  6]])
+
+        >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+        >>> grid.get_nodes_around_point(.5, 1.5)
+        array([0, 4, 5, 1])
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.get_nodes_around_point(.5, 1.5)
+        array([4, 8, 9, 5])
         """
         xcoord, ycoord = np.broadcast_arrays(xcoord, ycoord)
 
         # Method added 4/29/13 by DEJH, modified 9/24/13.
-        ID = (ycoord // self._dx * self.number_of_node_columns +
-              xcoord // self._dx)
+        id_ = (ycoord // self._dy * self.number_of_node_columns +
+               xcoord // self._dx)
         try:
-            ID = int(ID)
+            id_ = int(id_)
         except:
-            ID = as_id_array(ID)
-        return np.array([ID, ID + self.number_of_node_columns,
-                         ID + self.number_of_node_columns + 1, ID + 1])
+            id_ = as_id_array(id_)
+        return np.array([id_, id_ + self.number_of_node_columns,
+                         id_ + self.number_of_node_columns + 1, id_ + 1])
 
     def snap_coords_to_grid(self, xcoord, ycoord):
         """Snap coordinates to the nearest node.
@@ -1821,16 +1859,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Return the horizontal length of the shortest active link in the grid.
         Overrides :meth:`~.ModelGrid.min_active_link_length`.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.min_active_link_length()
+        2.0
         """
-        return self._dx
+        return np.min((self._dy, self._dx))
 
     def max_active_link_length(self):
         """Length of longest active link.
 
         Returns the horizontal length of the longest active link in the grid.
         Overrides ModelGrid.max_active_link_length().
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.max_active_link_length()
+        3.0
         """
-        return self._dx
+        return np.max((self._dy, self._dx))
 
     @property
     def link_length(self):
@@ -1870,17 +1922,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self._link_length
 
     def _calculate_link_length(self):
-        """Calculate link lengths for a raster grid."""
+        """Calculate link lengths for a raster grid.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        array([ 2., 2., 2., 2.,
+                2., 2., 2., 2.,
+                3., 3., 3.,
+                3., 3., 3.,
+                3., 3., 3.])
+        """
         if self._link_length is None:
+            n_vertical_links = (self.shape[0] - 1) * self.shape[1]
+            n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
             if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
-                self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = np.sqrt(
-                    2. * self._dx * self._dx)
+                    self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-                self._link_length.fill(self._dx)
+            self._link_length[:n_vertical_links] = self._dy
+            self._link_length[n_vertical_links:self.number_of_links] = self._dx
 
         return self._link_length
 
@@ -1967,6 +2033,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         D8 algorithm. Slopes downward from the cell are reported as positive.
 
         This doesn't deal with the fixed gradient boundary condition.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> import numpy as np
+
+        Create a grid with different row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(1, 2))
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 1., 1.,
+        ...               4., 2., 2., 2.])
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        9
+
+        Create a grid with equal row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4))
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        6
+
+        The maximum gradient can be to a diagonal node.
+
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 2., 2.,
+        ...               4., 2., 0., 2.])
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        10
         """
         # NMG Update.  This is super clumsy.
 
@@ -1989,10 +2083,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # if neighbor_cells[3]!=-1:
         diagonal_nodes.extend([neighbor_nodes[3] - 1, neighbor_nodes[3] + 1])
         slopes = []
-        diagonal_dx = np.sqrt(2.)
+        diagonal_len = np.sqrt(self.dx ** 2. + self.dy ** 2.)
         for a in neighbor_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / self.dx
+                if np.abs(node_id - a) == 1:
+                    link_len = self.dx
+                else:
+                    link_len = self.dy
+                single_slope = (u[node_id] - u[a]) / link_len
             else:
                 single_slope = -9999
             # This should no longer be necessary, but retained in case
@@ -2002,7 +2100,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 six.print_('NaNs present in the grid!')
         for a in diagonal_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / diagonal_dx
+                single_slope = (u[node_id] - u[a]) / diagonal_len
             else:
                 single_slope = -9999
             if not np.isnan(single_slope):
@@ -2049,6 +2147,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         D8 algorithm. Slopes downward from the cell are reported as positive.
 
         This doesn't deal with the fixed gradient boundary condition.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> import numpy as np
+
+        Create a grid with different row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(1, 2))
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 1., 1.,
+        ...               4., 2., 2., 2.])
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        9
+
+        Create a grid with equal row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4))
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        6
+
+        The maximum gradient cannot be to a diagonal node.
+
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 2., 2.,
+        ...               4., 4., 0., 2.])
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        6
         """
         # NMG Update.  This is super clumsy.
 
@@ -2062,7 +2188,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         slopes = []
         for a in neighbor_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / self.dx
+                if np.abs(node_id - a) == 1:
+                    link_len = self.dx
+                else:
+                    link_len = self.dy
+                single_slope = (u[node_id] - u[a]) / link_len
             else:
                 single_slope = -9999
             # This should no longer be necessary, but retained in case
@@ -3162,22 +3292,57 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # no fixed grad boundaries have been set
             pass
 
-    def calculate_gradients_at_d8_active_links(self, node_values, out=None):
+    def calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 
         .. deprecated:: 0.1
             Use :func:`calculate_gradient_across_cell_faces`
                     or :func:`calculate_gradient_across_cell_corners` instead
-        """
 
-        diag_dist = 1.4142 * self._dx
-        straight_link_slopes = (
-            (node_values[self.activelink_tonode] -
-             node_values[self.activelink_fromnode]) / self._dx)
+        Parameters
+        ----------
+        node_values : ndarray
+            Values at nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid 
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> z = np.array([3., 3., 3., 3.,
+        ...               3., 3., 0., 0.,
+        ...               3., 0., 0., 0.])
+        >>> grid.calculate_gradients_at_d8_active_links(z)
+        ...     # doctest: +NORMALIZE_WHITESPACE
+        array([ 0. , -1.  ,  -1. ,  0.  , 0. , -0.75, 0. ,
+                0. , -0.6 ,   0. , -0.6 , 0. , -0.6 , 0. , 0. ])
+        """
+        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
+
+        n_vertical_links = (self.shape[0] - 1) * self.shape[1]
+        n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
+
+        (active_links, _, _) = self.d8_active_links()
+        vertical_links = np.where(active_links < n_vertical_links)
+        horizontal_links = np.where(
+            (active_links >= n_vertical_links) &
+            (active_links < n_vertical_links + n_horizontal_links))
+
+        vertical_link_slopes = (
+            node_values[self.activelink_tonode[vertical_links]] -
+            node_values[self.activelink_fromnode[vertical_links]]
+        ) / self.dy
+        horizontal_link_slopes = (
+            node_values[self.activelink_tonode[horizontal_links]] -
+            node_values[self.activelink_fromnode[horizontal_links]]
+        ) / self.dx
+
         diagonal_link_slopes = (
             (node_values[self._diag_activelink_tonode] -
              node_values[self._diag_activelink_fromnode]) / diag_dist)
-        return np.concatenate((straight_link_slopes, diagonal_link_slopes))
+
+        return np.concatenate((vertical_link_slopes, horizontal_link_slopes,
+                               diagonal_link_slopes))
 
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
@@ -3200,6 +3365,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Method will currently preferentially route flow according the priority
         scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in
         these cases.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> z = np.array([9., 0., 9.,
+        ...               9., 3., 9.,
+        ...               6., 9., 6.])
+        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grads = grid.calculate_gradients_at_active_links(z)
+        >>> max_grad, dest_node = (
+        ...     grid.calculate_steepest_descent_on_nodes(z, grads))
+        >>> max_grad # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.2, -0. ,  1.2,
+                1.8,  1. ,  1.8,
+                0.6,  2. ,  0.6])
+        >>> dest_node # doctest: +NORMALIZE_WHITESPACE
+        array([ 4, -1,  4,
+                1,  1,  1,
+                4,  4,  4])
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
@@ -3244,8 +3429,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         slopes_diagonal_nodes = (
             ((elevs[diagonal_nodes]) - np.tile(elevs_in, (4, 1))) /
-            (1.41421356 * self.dx))
-
+            np.sqrt(self.dy ** 2. + self.dx ** 2.))
         # Debug:
         gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         # The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
@@ -3337,11 +3521,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             six.print_('q: ' + q[self.faces[id, 0:4]])
 
         fd = (
-            - (q[self.faces[id, 2]] + # left face (positive=in)
-               q[self.faces[id, 3]]) + # bottom face (positive=in)
-            q[self.faces[id, 0]] + # right face (positive=out)
-            q[self.faces[id, 1]] # top face (positive=out)
-        ) / self._dx
+            (q[self.faces[id, 0]] - q[self.faces[id, 2]]) / self.dx +
+            (q[self.faces[id, 1]] - q[self.faces[id, 3]]) / self.dy
+        )
 
         return fd
 
@@ -3940,9 +4122,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """Set up array of face widths.
 
         Produces an array of length nfaces containing the face width (dx).
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> grid._setup_face_widths() # doctest: +NORMALIZE_WHITESPACE
+        array([ 3., 3., 3., 3.,
+                2., 2., 2.])
         """
+        n_horizontal_faces = (self.shape[0] - 1) * (self.shape[1] - 2)
+
         self._face_widths = np.empty(self.number_of_faces)
-        self._face_widths.fill(self.dx)
+        self._face_widths[:n_horizontal_faces] = self.dx
+        self._face_widths[n_horizontal_faces:] = self.dy
+
         return self._face_widths
 
     def _unit_test(self):
@@ -4114,7 +4308,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         dz_dx = ((top_right + 2 * right + bottom_right) -
                  (top_left + 2 * left + bottom_left)) / (8. * self._dx)
         dz_dy = ((bottom_left + 2 * bottom + bottom_right) -
-                 (top_left + 2 * top + top_right)) / (8. * self._dx)
+                 (top_left + 2 * top + top_right)) / (8. * self._dy)
 
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
