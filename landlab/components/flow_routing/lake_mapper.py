@@ -185,14 +185,18 @@ class DepressionFinderAndRouter(Component):
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
-            self._link_lengths[[0, 2]].fill(dx)
-            self._link_lengths[[1, 3]].fill(dy)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
             self._link_lengths[4:].fill(np.sqrt(dx*dx + dy*dy))
         elif ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
                 (self._routing is 'D4')):
             self._link_lengths = np.empty(4, dtype=float)
-            self._link_lengths[[0, 2]].fill(dx)
-            self._link_lengths[[1, 3]].fill(dy)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
         else:
             self._link_lengths = self._grid.link_length
         self._lake_outlets = []  # a list of each unique lake outlet
@@ -685,7 +689,7 @@ class DepressionFinderAndRouter(Component):
             unique_outs, unique_indxs = np.unique(outlet_neighbors,
                                                   return_index=True)
             out_draining = unique_outs[1:]
-            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if isinstance(self._grid, landlab.grid.raster.RasterModelGrid):
                 link_l = self._link_lengths
             else:  # Voronoi
                 link_l = self._link_lengths[self._grid.node_links[:,
