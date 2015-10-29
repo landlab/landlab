@@ -53,7 +53,7 @@ class SurfaceFlowTransport(object):
 
     def set_and_return_dynamic_timestep(self):
         # Calculate time-step size for this iteration (Bates et al., eq 14)
-        self.dtmax = self.alpha*self.grid.dx/np.sqrt(self.g*np.amax(self.h))
+        self.dtmax = self.alpha*min(self.grid.dx, self.grid.dy)/np.sqrt(self.g*np.amax(self.h))
         return self.dtmax
 
     def set_timestep(self, timestep_in):
