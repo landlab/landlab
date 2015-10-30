@@ -405,10 +405,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
                dtype=int8)
-        >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
-        True
-        >>> rmg.node_corecell[8]
-        2
         >>> rmg.node_numinlink
         array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
@@ -539,7 +535,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # or None if it has no associated active cell (i.e., it is a boundary)
         self._node_at_cell = sgrid.node_at_cell(self.shape)
         self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
-        self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
         self.activecell_node = self._node_at_cell.copy()

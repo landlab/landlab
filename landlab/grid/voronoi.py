@@ -334,9 +334,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_core_nodes = len(core_nodes)
         self._num_core_cells = len(core_nodes)
         self._core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
-        self.node_corecell = numpy.empty(node_status.size, dtype=numpy.int)
-        self.node_corecell.fill(BAD_INDEX_VALUE)
-        self.node_corecell[core_nodes] = self._core_cells
         self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self._node_at_cell = core_nodes
         self.activecell_node = core_nodes
