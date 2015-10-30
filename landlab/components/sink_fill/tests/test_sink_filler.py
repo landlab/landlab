@@ -280,7 +280,6 @@ def test_filler_flat():
     assert_array_equal(hf._elev[lake], np.ones(9, dtype=float))
     assert_array_equal(mg.at_node['topographic__elevation'][lake],
                        np.ones(9, dtype=float))
->>>>>>> Changed to use int when using numpy.ones.
 
 
 @with_setup(setup_dans_grid3)
