@@ -106,3 +106,19 @@ def test_has_group():
 
     assert_true(fields.has_group('node'))
     assert_false(fields.has_group('cell'))
+
+
+def test_delete_field():
+    fields = ModelDataFields()
+    fields.new_field_location('link', 17)
+
+    assert_dict_equal(dict(), fields.at_link)
+    assert_raises(AttributeError, lambda: fields.at_node)
+
+    fields.add_zeros('link', 'vals')
+    assert_array_equal(np.zeros(17), fields.at_link['vals'])
+
+    assert_raises(KeyError, lambda: fields.delete_field('node', 'vals'))
+    fields.delete_field('link', 'vals')
+    assert_raises(KeyError, lambda: fields.field_units('link', 'vals'))
+    assert_raises(KeyError, lambda: fields.at_link['vals'])

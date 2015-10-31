@@ -534,7 +534,7 @@ class ModelDataFields(object):
                               ModelDataFields.ones(self, group, **kwds),
                               units=units)
 
-    def add_zeros(self, group, name, units=None, **kwds):
+    def add_zeros(self, group, name, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -648,7 +648,7 @@ class ModelDataFields(object):
         name: str
             Name of the field.
         units: str
-            Units for the field
+            Units for the field.
 
         Raises
         ------
@@ -656,6 +656,24 @@ class ModelDataFields(object):
             If the named field does not exist.
         """
         self[group].set_units(name, units)
+
+    def delete_field(self, group, name):
+        """Erases an existing field.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name: str
+            Name of the field.
+
+        Raises
+        ------
+        KeyError
+            If the named field does not exist.
+        """
+        del self._groups[group].units[name]
+        del self._groups[group][name]
 
     def __getitem__(self, group):
         """Get a group of fields."""

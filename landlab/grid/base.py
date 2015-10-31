@@ -581,7 +581,7 @@ class ModelGrid(ModelDataFields):
         """Get array of core nodes."""
         try:
             return self._core_nodes
-        except:
+        except AttributeError:
             (core_node_ids, ) = numpy.where(self._node_status == CORE_NODE)
             return core_node_ids
 
@@ -1208,66 +1208,6 @@ class ModelGrid(ModelDataFields):
         except KeyError:
             raise TypeError(centering)
 
-    def calculate_diff_at_links(self, node_values, out=None):
-        """Get differences at links.
-
-        Calculates the difference in quantity *node_values* at every link
-        in the grid. Note that this is tonode-fromnode along links, and is
-        thus equivalent to positive gradient up.
-
-        Parameters
-        ----------
-        node_values : ndarary
-            Values at grid nodes.
-
-        Returns
-        -------
-        ndarray
-            Differences over links.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 3)
-        >>> z = np.zeros(9)
-        >>> z[4] = 1.
-        >>> rmg.calculate_diff_at_links(z)
-        array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
-        """
-        return gfuncs.calculate_diff_at_links(self, node_values, out=out)
-
-    def calculate_diff_at_active_links(self, node_values, out=None):
-        """Get differences at active links.
-
-        Calculates the difference in quantity *node_values* at each active link
-        in the grid. Note that this is tonode-fromnode along links, and is
-        thus equivalent to positive gradient up.
-        """
-        return gfuncs.calculate_diff_at_active_links(self, node_values,
-                                                     out=out)
-
-    @track_this_method
-    def calculate_gradients_at_links(self, node_values, out=None):
-        """Get gradients at links.
-
-        Calculates the gradient in quantity *node_values* at every link
-        in the grid.
-        This method follows the convention POSITIVE UP.
-        """
-        return gfuncs.calculate_gradients_at_links(self, node_values, out=out)
-
-    @track_this_method
-    def calculate_gradients_at_active_links(self, node_values, out=None):
-        """Get gradients at active links.
-
-        Calculates the gradient in quantity *node_values* at each active link
-        in the grid.
-        This method follows the convention POSITIVE UP.
-        """
-        return gfuncs.calculate_gradients_at_active_links(self, node_values,
-                                                          out=out)
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
@@ -1459,7 +1399,7 @@ class ModelGrid(ModelDataFields):
                         'Assuming your solar properties are in degrees, '
                         'but your slopes and aspects are in radians...')
                     (alt, az) = (numpy.radians(alt), numpy.radians(az))
-                    #...because it would be super easy to specify radians,
+                    # ...because it would be super easy to specify radians,
                     # but leave the default params alone...
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
@@ -1823,7 +1763,8 @@ class ModelGrid(ModelDataFields):
                             u[self.activelink_tonode[i]])
         else:
             for i in range(0, self.number_of_active_links):
-                if v[self.activelink_fromnode[i]] > v[self.activelink_tonode[i]]:
+                if (v[self.activelink_fromnode[i]] >
+                        v[self.activelink_tonode[i]]):
                     fv[i] = u[self.activelink_fromnode[i]]
                 else:
                     fv[i] = u[self.activelink_tonode[i]]
@@ -1839,9 +1780,11 @@ class ModelGrid(ModelDataFields):
         A link is inactive if either node is closed.
         A link is fixed if either node is fixed gradient.
 
-        Note that any link which has been previously set as fixed will remain
-        so, and if a closed-core node pair is found at each of its ends, the
-        closed node will be converted to a fixed gradient node.
+        Note that by default, any link which has been previously set as fixed
+        will remain so, and if a closed-core node pair is found at each of its
+        ends, the closed node will be converted to a fixed gradient node. If
+        you want to close a node which has a fixed link already connected to
+        it, first change the link status to inactive.
 
         A further test is performed to ensure that the final maps of node and
         link status are internally consistent.
@@ -1857,30 +1800,54 @@ class ModelGrid(ModelDataFields):
         fromnode_status = self._node_status[self.node_at_link_tail]
         tonode_status = self._node_status[self.node_at_link_head]
 
-        if not numpy.all((fromnode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY) |
-                         (tonode_status[already_fixed] == FIXED_GRADIENT_BOUNDARY)):
-            assert numpy.all(fromnode_status[already_fixed] == CLOSED_BOUNDARY !=
-                             tonode_status[already_fixed] == CLOSED_BOUNDARY)
+        if not numpy.all((fromnode_status[already_fixed] ==
+                          FIXED_GRADIENT_BOUNDARY) |
+                         (tonode_status[already_fixed] ==
+                          FIXED_GRADIENT_BOUNDARY)):
+            assert numpy.all(np.logical_not((fromnode_status[already_fixed] ==
+                                             CLOSED_BOUNDARY) &
+                                            (tonode_status[already_fixed] ==
+                                             CLOSED_BOUNDARY)))
             fromnode_status[already_fixed] = numpy.where(
-                fromnode_status[already_fixed] == CLOSED_BOUNDARY,
+                (fromnode_status[already_fixed] == CLOSED_BOUNDARY) &
+                (tonode_status[already_fixed] == CORE_NODE),
                 FIXED_GRADIENT_BOUNDARY,
                 fromnode_status[already_fixed])
             tonode_status[already_fixed] = numpy.where(
-                tonode_status[already_fixed] == CLOSED_BOUNDARY,
+                (tonode_status[already_fixed] == CLOSED_BOUNDARY) &
+                (fromnode_status[already_fixed] == CORE_NODE),
                 FIXED_GRADIENT_BOUNDARY,
                 tonode_status[already_fixed])
+            print("""
+                  Remember, fixed_links are dominant over node statuses.
+                  Your grid may have had an incompatibility between
+                  fixed_links and closed nodes, which has been resolved by
+                  converting the closed nodes to fixed gradient nodes. If
+                  you were trying to deliberately close a node which had
+                  once been set to fixed gradient, you need to open the
+                  links before changing the node statuses. If you were
+                  setting a node to fixed_value, you can ignore this
+                  message.
+                  """)
 
         active_links = (((fromnode_status == CORE_NODE) & ~
                          (tonode_status == CLOSED_BOUNDARY)) |
                         ((tonode_status == CORE_NODE) & ~
                          (fromnode_status == CLOSED_BOUNDARY)))
-        #...this still includes things that will become fixed_link
+        # ...this still includes things that will become fixed_link
 
         fixed_links = ((((fromnode_status == FIXED_GRADIENT_BOUNDARY) &
                          (tonode_status == CORE_NODE)) |
                         ((tonode_status == FIXED_GRADIENT_BOUNDARY) &
                          (fromnode_status == CORE_NODE))) |
                        already_fixed)
+        
+        fixed_link_fixed_val = (((fromnode_status == FIXED_VALUE_BOUNDARY) |
+                                 (tonode_status == FIXED_VALUE_BOUNDARY)) &
+                                already_fixed)                        
+        # these are the "special cases", where the user is probably trying to
+        # adjust an individual fixed_link back to fixed value. We'll allow it:
+        fixed_links[fixed_link_fixed_val] = False
 
         try:
             self._link_status.fill(4)
@@ -3179,6 +3146,7 @@ class ModelGrid(ModelDataFields):
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
+add_module_functions_to_class(ModelGrid, 'gradients.py', pattern='calculate_*')
 
 
 if __name__ == '__main__':

@@ -7,7 +7,8 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid import raster_funcs as rfuncs
+from landlab.grid.raster_steepest_descent import (
+    calculate_steepest_descent_across_cell_faces)
 
 
 _GRID = None
@@ -29,7 +30,7 @@ def setup_3x3_grid():
 
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
-    grad = rfuncs.calculate_steepest_descent_across_cell_faces(
+    grad = calculate_steepest_descent_across_cell_faces(
         _GRID, _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
@@ -40,7 +41,7 @@ def test_scalar_arg():
 
 @with_setup(setup_unit_grid)
 def test_iterable():
-    grad = rfuncs.calculate_steepest_descent_across_cell_faces(
+    grad = calculate_steepest_descent_across_cell_faces(
         _GRID, _VALUES_AT_NODES, [0, 4])
     assert_array_equal(grad, [-5., -5.])
 
