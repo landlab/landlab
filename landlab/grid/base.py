@@ -1521,7 +1521,8 @@ class ModelGrid(ModelDataFields):
         node_net_unit_flux = self.calculate_flux_divergence_at_nodes(
             active_link_flux)
 
-        net_unit_flux = node_net_unit_flux[self.corecell_node]
+        node_at_core_cell = self.node_at_cell[self.core_cells]
+        net_unit_flux = node_net_unit_flux[node_at_core_cell]
 
         return net_unit_flux
 
@@ -1873,23 +1874,11 @@ class ModelGrid(ModelDataFields):
         >>> grid.core_cells
         array([0, 2, 3, 4, 5])
         """
-        self.activecell_node = as_id_array(
-            numpy.where(self._node_status != CLOSED_BOUNDARY)[0])
-        self.corecell_node = as_id_array(
-            numpy.where(self._node_status == CORE_NODE)[0])
+        (self._core_nodes, ) = numpy.where(self._node_status == CORE_NODE)
+        self._num_core_nodes = self._core_nodes.size
 
-        self._num_core_cells = self.corecell_node.size
-        self._num_core_nodes = self._num_core_cells
-        self._num_active_nodes = self.activecell_node.size
-        self._num_active_cells = self._num_core_cells
-        self.active_cells = numpy.arange(self._num_active_cells)
-
-        #self._core_cells = self.cell_at_node[self.core_nodes]
-        self._core_cells = numpy.arange(self._num_core_cells)
-
-        self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
-        self.node_activecell.fill(BAD_INDEX_VALUE)
-        self.node_activecell.flat[self.activecell_node] = self.active_cells
+        self._core_cells = self.cell_at_node[self._core_nodes]
+        self._num_core_cells = self._core_cells.size
 
         self._boundary_nodes = as_id_array(
             numpy.where(self._node_status != CORE_NODE)[0])
