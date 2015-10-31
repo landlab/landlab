@@ -51,8 +51,9 @@ class HexCTS(CellLabCTSModel):
             Starting values for node-state grid
         prop_data : array (x number of nodes in grid) (optional)
             Array of properties associated with each node/cell
-        prop_reset_value : float (same type as entries in prop_data), optional
-            Default or initial value for a node/cell property (e.g., 0.0)
+        prop_reset_value : number or object, optional
+            Default or initial value for a node/cell property (e.g., 0.0).
+            Must be same type as *prop_data*.
         """
 
         # Make sure caller has sent the right grid type
