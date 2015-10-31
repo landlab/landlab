@@ -66,7 +66,7 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux' : 'link',
                   }
 
-    _var_defs = {'topographic__elevation' : 'Land surface topographic elevation',
+    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
                   'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
                   'water__volume_flux_magnitude' : 'Magnitude of volumetric water flux through each node',
                   'water__volume_flux_xcomponent' : 'x component of resolved water flux through node',

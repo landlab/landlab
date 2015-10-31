@@ -67,7 +67,7 @@ class DepressionFinderAndRouter(Component):
                     'depression__outlet_node': 'node',
                     }
 
-    _var_defs = {
+    _var_doc = {
         'topographic__elevation': 'Surface topographic elevation',
         'depression__depth': 'Depth of depression below its spillway point',
         'depression__outlet_node':
