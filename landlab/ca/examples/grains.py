@@ -20,8 +20,8 @@ _DEBUG = False
 import time
 from landlab import HexModelGrid
 from numpy import where, logical_and, sqrt
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
 
 def setup_transition_list():

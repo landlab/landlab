@@ -18,10 +18,8 @@ from pylab import figure, show, clf
 from numpy import where, exp, amin
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
-
-
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
 
 class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):

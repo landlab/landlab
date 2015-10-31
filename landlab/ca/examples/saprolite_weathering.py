@@ -1,25 +1,28 @@
+#!/usr/env/python
+
 """
-settle_test.py
+saprolite_weathering.py
 
-Tests "external update" capability in landlab_ca.py.
+Example of a continuous-time, stochastic, pair-based cellular automaton model,
+which simulates weathering of rock into saprolite.
 
-GT Nov 2014
+GT, August 2014 (adapted to new Landlab cellular automata framework Sep 2014)
 """
 from __future__ import print_function
 
 _DEBUG = False
 
 import time
-from numpy import where
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.raster_cts import RasterCTS
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+from landlab.ca.landlab_ca import Transition, CAPlotter
+from landlab.ca.raster_lca import RasterLCA
+from landlab.components.fracture_grid.fracture_grid import make_frac_grid
+
 
 def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent state
-    transitions for particles that simply settle under gravity.
+    transitions for a weathering model.
 
     Parameters
     ----------
@@ -36,18 +39,16 @@ def setup_transition_list():
 
     Pair state      Transition to       Process     Rate
     ==========      =============       =======     ====
-    0 (0-0,0)
-    1 (0-1,0)
-    2 (1-0,0)
-    3 (1-1,0)
-    4 (0-0,1)
-    5 (0-1,1)
-    1 (0-1)         2 (1-0)             settling    1.0
+    0 (0-0)         (none)              -           -
+    1 (0-1)         3 (1-1)             weathering  1.0
+    2 (1-0)         3 (1-1)             weathering  1.0
+    3 (1-1)         (none)              -           -
 
     """
     xn_list = []
 
-    xn_list.append( Transition(5, 6, 1., 'settling') )
+    xn_list.append( Transition(1, 3, 1., 'weathering') ) # rock-sap to sap-sap
+    xn_list.append( Transition(2, 3, 1., 'weathering') ) # sap-rock to sap-sap
 
     if _DEBUG:
         print()
@@ -63,10 +64,11 @@ def main():
     # INITIALIZE
 
     # User-defined parameters
-    nr = 10
-    nc = 10
+    nr = 128
+    nc = 128
+    fracture_spacing = 10  # fracture spacing, cell widths
     plot_interval = 0.25
-    run_duration = 40.0
+    run_duration = 4.0
     report_interval = 5.0  # report interval, in real-time seconds
 
     # Remember the clock time, and calculate when we next want to report
@@ -76,7 +78,6 @@ def main():
 
     # Create grid
     mg = RasterModelGrid(nr, nc, 1.0)
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Set up the states and pair transitions.
     # Transition data here represent a body of fractured rock, with rock
@@ -84,16 +85,19 @@ def main():
     # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
     # can undergo a transition to 1-1, representing chemical weathering of the
     # rock.
-    ns_dict = { 0 : 'air', 1 : 'particle' }
+    ns_dict = { 0 : 'rock', 1 : 'saprolite' }
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
-    node_state_grid[where(mg.node_y>nr-3)[0]] = 1
 
-        # Create the CA model
-    ca = OrientedRasterCTS(mg, ns_dict, xn_list, node_state_grid)
-    #ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid)
+    # Initialize the node-state array as a "fracture grid" in which randomly
+    # oriented fractures are represented as lines of saprolite embedded in
+    # bedrock.
+    node_state_grid[:] = make_frac_grid(fracture_spacing, model_grid=mg)
+
+    # Create the CA model
+    ca = RasterLCA(mg, ns_dict, xn_list, node_state_grid)
 
     # Debug output if needed
     if _DEBUG:
@@ -112,7 +116,6 @@ def main():
 
     # RUN
     current_time = 0.0
-    updated = False
     while current_time < run_duration:
 
         # Once in a while, print out simulation and real time to let the user
@@ -126,13 +129,6 @@ def main():
         ca.run(current_time+plot_interval, ca.node_state,
                plot_each_transition=False) #, plotter=ca_plotter)
         current_time += plot_interval
-
-        # Add a bunch of particles
-        if current_time > run_duration/2. and not updated:
-            print('updating...')
-            node_state_grid[where(ca.grid.node_y>(nc/2.0))[0]] = 1
-            ca.update_link_states_and_transitions(current_time)
-            updated = True
 
         # Plot the current grid
         ca_plotter.update_plot()

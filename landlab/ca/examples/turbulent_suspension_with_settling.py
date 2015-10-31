@@ -15,8 +15,8 @@ import matplotlib
 from pylab import figure, plot, show
 from numpy import where, zeros, mean
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
 
 def setup_transition_list():
