@@ -11,6 +11,7 @@ from six.moves import range
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
+from landlab.grid import structured_quad as squad
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
@@ -534,12 +535,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
         self._node_at_cell = sgrid.node_at_cell(self.shape)
-        self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
+        self._cell_at_node = squad.cells.cell_id_at_nodes(
+            self.shape).reshape((-1, ))
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
-        self.activecell_node = self._node_at_cell.copy()
-        self.corecell_node = self._node_at_cell
-        #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face

@@ -123,6 +123,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
         net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
 
     # Now divide by cell areas ... where there are active cells.
-    net_unit_flux[grid.activecell_node] /= grid.active_cell_areas
+    node_at_active_cell = grid.node_at_cell[grid.core_cells]
+    net_unit_flux[node_at_active_cell] /= grid.active_cell_areas
 
     return net_unit_flux

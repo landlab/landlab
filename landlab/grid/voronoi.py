@@ -178,19 +178,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_active_cells = self.number_of_cells
         [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
             self._node_status, self.number_of_cells)
-        self.node_activecell = self._cell_at_node
-        self.activecell_node = self._node_at_cell
+        active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
         vor = Voronoi(pts)
         self.vor = vor
         self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
-        for node in self.activecell_node:
+        for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self.active_cell_areas[self.node_activecell[
-                node]] = simple_poly_area(xv, yv)
+            self.active_cell_areas[self.cell_at_node[node]] = (
+                simple_poly_area(xv, yv))
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
@@ -336,8 +335,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
         self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self._node_at_cell = core_nodes
-        self.activecell_node = core_nodes
-        self.corecell_node = core_nodes
         self._boundary_nodes = boundary_nodes
 
         # Return the results
