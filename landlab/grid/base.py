@@ -566,7 +566,20 @@ class ModelGrid(ModelDataFields):
 
     @property
     def cell_at_node(self):
-        """Node ID associated with grid cells"""
+        """Node ID associated with grid cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> grid = RasterModelGrid((4, 5))
+        >>> ids = grid.cell_at_node
+        >>> ids[ids == BAD_INDEX_VALUE] = -1
+        >>> ids # doctest: +NORMALIZE_WHITESPACE
+        array([-1, -1, -1, -1, -1,
+               -1,  0,  1,  2, -1,
+               -1,  3,  4,  5, -1,
+               -1, -1, -1, -1, -1])
+        """
         return self._cell_at_node
 
     @property
