@@ -53,7 +53,7 @@ class DepressionFinderAndRouter(Component):
     _input_var_names = set(['topographic__elevation',
                             ])
 
-    _output_var_names = set(['depression__depth',
+    _output_var_names = set(['depression__depth',  # depth below spill point
                              'depression__outlet_node',
                              ])
 
