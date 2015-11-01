@@ -88,6 +88,19 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     -------
     ndarray
         Net unit fluxes at nodes.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.grid_funcs import calculate_flux_divergence_at_nodes
+    >>> grid = RasterModelGrid((4, 5))
+    >>> link_flux = np.ones(grid.number_of_active_links, dtype=float)
+    >>> calculate_flux_divergence_at_nodes(grid, link_flux)
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  1.,  1.,  1.,  0.,
+            1.,  0.,  0.,  0., -1.,
+            1.,  0.,  0.,  0., -1.,
+            0., -1., -1., -1.,  0.])
     """
     assert len(active_link_flux) == grid.number_of_active_links, (
         "incorrect length of active_link_flux array")
@@ -106,7 +119,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # active link, so we are multiplying the unit flux at each link by the
     # width of its corresponding face.
     flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid.face_width
+    flux[:len(active_link_flux)] = active_link_flux * grid.face_widths
 
     # Next, we need to add up the incoming and outgoing fluxes.
     #
@@ -122,8 +135,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
         net_unit_flux += flux[grid.node_active_outlink_matrix[i][:]]
         net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
 
-    # Now divide by cell areas ... where there are active cells.
+    # Now divide by cell areas ... where there are core cells.
     node_at_active_cell = grid.node_at_cell[grid.core_cells]
-    net_unit_flux[node_at_active_cell] /= grid.active_cell_areas
+    net_unit_flux[node_at_active_cell] /= grid.cell_areas[grid.core_cells]
 
     return net_unit_flux
