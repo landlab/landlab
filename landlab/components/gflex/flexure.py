@@ -73,7 +73,7 @@ class gFlex(Component):
                   'lithosphere__vertical_displacement' : 'node',
                   }
 
-    _var_defs = {'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
+    _var_doc = {'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
                   'earth_material_load__x_positions' : 'x position of any surface load',
                   'earth_material_load__y_positions' : 'y position of any surface load',
                   'earth_material_load__force' : 'Force exerted by surface load',

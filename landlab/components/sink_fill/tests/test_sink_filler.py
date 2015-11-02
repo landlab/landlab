@@ -277,9 +277,9 @@ def test_filler_flat():
     the flat surface surrounding it.
     """
     hf.fill_pits()
-    assert_array_equal(hf._elev[lake], np.ones(9.))
+    assert_array_equal(hf._elev[lake], np.ones(9, dtype=float))
     assert_array_equal(mg.at_node['topographic__elevation'][lake],
-                       np.ones(9.))
+                       np.ones(9, dtype=float))
 
 
 @with_setup(setup_dans_grid3)
@@ -289,9 +289,9 @@ def test_filler_inclined():
     """
     hf.fill_pits()
     assert_array_equal(mg.at_node['topographic__elevation'][lake1],
-                       np.ones(9.)*4.)
+                       np.ones(9, dtype=float)*4.)
     assert_array_equal(mg.at_node['topographic__elevation'][lake2],
-                       np.ones(4.)*7.)
+                       np.ones(4, dtype=float)*7.)
 
 
 @with_setup(setup_dans_grid3)
