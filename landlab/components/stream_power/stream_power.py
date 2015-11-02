@@ -1,16 +1,17 @@
 from __future__ import print_function
 
 import numpy as np
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
-
-from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
+from landlab.core.model_parameter_dictionary import (MissingKeyError,
+                                                     ParameterValueError)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
-class StreamPowerEroder(object):
+
+class StreamPowerEroder(Component):
     """
-    This component is now verified stable for simple m,n specified, followup-to-
-    Fastscape-flow-routing cases. Threshold appears stable.
+    This component is now verified stable for simple m,n specified, followup-
+    to-Fastscape-flow-routing cases. Threshold appears stable.
     The more exciting cases (e.g., specifying a,b,c; forcing with W or Q) are
     untested, but should run.
     There is as yet no explicit stabilization check on the timestep. If your
@@ -24,13 +25,21 @@ class StreamPowerEroder(object):
     def __init__(self, grid, params):
         self.initialize(grid, params)
 
-#This draws attention to a potential problem. It will be easy to have modules update z, but because noone "owns" the data, to forget to also update dz/dx...
-#How about a built in grid utility that updates "derived" data (i.e., using only grid fns, e.g., slope, curvature) at the end of any given tstep loop?
-#Or an explicit flagging system for all variables in the modelfield indicating if they have been updated this timestep. (Currently implemented)
-#Or wipe the existance of any derived grid data at the end of a timestep entirely, so modules find they don't have it next timestep.
+        # This draws attention to a potential problem. It will be easy to have
+        # modules update z, but because noone "owns" the data, to forget to
+        # also update dz/dx...
+        # How about a built in grid utility that updates "derived" data (i.e.,
+        # using only grid fns, e.g., slope, curvature) at the end of any given
+        # tstep loop?
+        # Or an explicit flagging system for all variables in the modelfield
+        # indicating if they have been updated this timestep. (Currently
+        # implemented)
+        # Or wipe the existance of any derived grid data at the end of a
+        # timestep entirely, so modules find they don't have it next timestep.
 
     def initialize(self, grid, params_file):
-        '''
+        """initialize(grid, params_file)
+        
         params_file is the name of the text file containing the parameters
         needed for this stream power component.
 
@@ -44,47 +53,51 @@ class StreamPowerEroder(object):
 
         E = K * A**m * S**n / W - sp_crit
 
-        ***Parameters for input file***
-        OBLIGATORY:
-            K_sp -> positive float, the prefactor. This is defined per unit
-                time, not per tstep. Type the string 'array' to cause the
-                component's erode method to look for an array of values of K
-                (see documentation for 'erode').
-        ALTERNATIVES:
-        *either*
-            m_sp -> positive float, the power on A
-        and
-            n_sp -> positive float, the power on S
-        *or*
-            sp_type -> String. Must be one of 'Total', 'Unit', or 'Shear_stress'.
-        and (following Whipple & Tucker 1999)
-            a_sp -> +ve float. The power on the SP/shear term to get the erosion
-                rate.
-            b_sp -> +ve float. The power on discharge to get width, "hydraulic
-                geometry". Unnecessary if sp_type='Total'.
-            c_sp -> +ve float. The power on area to get discharge, "basin
-                hydology".
-            ... If 'Total', m=a*c, n=a.
-            ... If 'Unit', m=a*c*(1-b), n=a.
-            ... If 'Shear_stress', m=2*a*c*(1-b)/3, n = 2*a/3.
-        OPTIONS:
-            threshold_sp -> +ve float; the threshold sp_crit. Defaults to 0.
-                This threshold is assumed to be in "stream power" units, i.e.,
-                if 'Shear_stress', the value should be tau**a.
-            dt -> +ve float. If set, this is the fixed timestep for this
-                component. Can be overridden easily as a parameter in erode().
-                If not set (default), this parameter MUST be set in erode().
-            use_W -> Bool; if True, component will look for node-centered data
-                describing channel width in grid.at_node['channel_width'], and
-                use it to implement incision ~ stream power per unit width.
-                Defaults to False. If you set sp_m and sp_n, follows the
-                equation given above. If you set sp_type, it will be ignored if
-                'Total', but used directly if you want 'Unit' or 'Shear_stress'.
-            use_Q -> Bool. If true, the equation becomes E=K*Q**m*S**n.
-                Effectively sets c=1 in Wh&T's 1999 derivation, if you are
-                setting m and n through a, b, and c.
+        The obligatory input file parameters (or dictionary keys) are:
+        K_sp: float
+            The prefactor, +ve. This is defined per unit time, not per tstep.
+            Type the string 'array' to cause the component's erode method to
+            look for an array of values of K (see documentation for 'erode').
+        ...Then either:
+        m_sp, n_sp: floats
+            The powers on A and S, respectively.
+        ...or:
+        sp_type, a_sp, b_sp, c_sp: string, float, float, float
+            sp_type must be one of 'Total', 'Unit', or 'Shear_stress'. a, b,
+            and c are +ve floats - the exponents dictating various empirical
+            relations used to derive stream power, following Whipple & Tucker,
+            1999:
+                stream power ~ (stress-like term) ** a
+                width ~ discharge ** b
+                discharge ~ (drainage area) ** c
+            These are used to define m and n; how this happens is controlled by
+            sp_type (again following Whipple & Tucker, 1999):
+                If 'Total', m=a*c, n=a.
+                If 'Unit', m=a*c*(1-b), n=a.
+                'Shear_stress', m=2*a*c*(1-b)/3, n = 2*a/3.
 
-        '''
+        The optional input file parameters/dict keys are:
+        threshold_sp: float, default 0.
+            the threshold sp_crit, as defined above. +ve. Defaults to 0.
+            This threshold is assumed to be in "stream power" units, i.e.,
+            if 'Shear_stress', the value should be tau**a.
+        dt: float
+            If set, this is the fixed timestep for this component. Can be
+            overridden easily as a parameter in erode(). If not set (default),
+            this parameter MUST be set in erode().
+        use_W: Bool, default False
+            If True, component will look for node-centered data describing
+            channel width in grid.at_node['channel_width'], and use it to
+            implement incision ~ stream power per unit width.
+            If you set sp_m and sp_n, follows the equation given above.
+            If you set sp_type, it will be ignored if 'Total', but used
+            directly if you want 'Unit' or 'Shear_stress'.
+        use_Q: Bool, default False
+            If true, the equation becomes E=K*Q**m*S**n.
+            Effectively sets c=1 in Wh&T's 1999 derivation, if you are
+            setting m and n through a, b, and c.
+        """
+
         self.grid = grid
         self.fraction_gradient_change = 1.
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
