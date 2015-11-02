@@ -68,16 +68,16 @@ class FlowRouter(Component):
                   'flow_sinks': '-',
                   }
 
-    _var_grid_element = {'topographic__elevation': 'node',
-                         'water__volume_flux_in': 'node',
-                         'drainage_area': 'node',
-                         'flow_receiver': 'node',
-                         'topographic__steepest_slope': 'node',
-                         'water__volume_flux': 'node',
-                         'upstream_ID_order': 'node',
-                         'links_to_flow_receiver': 'node',
-                         'flow_sinks': 'node',
-                         }
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'water__volume_flux_in': 'node',
+                          'drainage_area': 'node',
+                          'flow_receiver': 'node',
+                          'topographic__steepest_slope': 'node',
+                          'water__volume_flux': 'node',
+                          'upstream_ID_order': 'node',
+                          'links_to_flow_receiver': 'node',
+                          'flow_sinks': 'node',
+                          }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',

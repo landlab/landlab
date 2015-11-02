@@ -95,7 +95,7 @@ class FlexureComponent(Component):
     #...the units for each field. In the future, there may be unit casting
     # required, as there's nothing stopping you passing in the wrong units!!!
 
-    _var_grid_element = {
+    _var_grid_elements = {
         'lithosphere__overlying_pressure': 'node',
         'lithosphere__elevation': 'node',
         'lithosphere__elevation_increment': 'node',

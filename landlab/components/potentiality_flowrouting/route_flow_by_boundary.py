@@ -56,15 +56,15 @@ class PotentialityFlowRouter(Component):
                   'water__volume_flux': 'm**3/s',
                   }
 
-    _var_grid_element = {'topographic__elevation': 'node',
-                         'water__volume_flux_in': 'node',
-                         'water__volume_flux_magnitude': 'node',
-                         'water__volume_flux_xcomponent': 'node',
-                         'water__volume_flux_ycomponent': 'node',
-                         'potentiality_field': 'node',
-                         'water__depth': 'node',
-                         'water__volume_flux': 'link',
-                         }
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'water__volume_flux_in': 'node',
+                          'water__volume_flux_magnitude': 'node',
+                          'water__volume_flux_xcomponent': 'node',
+                          'water__volume_flux_ycomponent': 'node',
+                          'potentiality_field': 'node',
+                          'water__depth': 'node',
+                          'water__volume_flux': 'link',
+                          }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
@@ -175,12 +175,12 @@ class PotentialityFlowRouter(Component):
         self._corecore = (slice(2,-2),slice(2,-2)) #the actual, LL-sense core (interior) nodes of the grid
 
         for out_field in self._output_var_names:
-            if self._var_grid_element[out_field]=='node':
+            if self._var_grid_elements[out_field]=='node':
                 try:
                     self._grid.at_node[out_field]
                 except FieldError:
                     self._grid.at_node[out_field] = np.empty(self._grid.number_of_nodes, dtype=float)
-            elif self._var_grid_element[out_field]=='link':
+            elif self._var_grid_elements[out_field]=='link':
                 try:
                     self._grid.at_link[out_field]
                 except FieldError:

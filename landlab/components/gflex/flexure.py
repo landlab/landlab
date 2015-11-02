@@ -65,13 +65,13 @@ class gFlex(Component):
                   'lithosphere__vertical_displacement': 'm',
                   }
 
-    _var_grid_element = {'earth_material_load__magnitude_of_stress': 'node',
-                         'earth_material_load__x_positions': 'node',
-                         'earth_material_load__y_positions': 'node',
-                         'earth_material_load__force': 'node',
-                         'lithosphere__elastic_thickness': 'node',
-                         'lithosphere__vertical_displacement': 'node',
-                         }
+    _var_grid_elements = {'earth_material_load__magnitude_of_stress': 'node',
+                          'earth_material_load__x_positions': 'node',
+                          'earth_material_load__y_positions': 'node',
+                          'earth_material_load__force': 'node',
+                          'lithosphere__elastic_thickness': 'node',
+                          'lithosphere__vertical_displacement': 'node',
+                          }
 
     _var_doc = {
         'earth_material_load__magnitude_of_stress':

@@ -76,12 +76,12 @@ class OverlandFlow(Component):
                   'water_surface_slope_at_nodes': 'm/m',
                   'topographic__elevation': 'm'}
 
-    _var_grid_element = {'water_depth': 'node',
-                         'topographic__elevtation': 'node',
-                         'water_discharge': 'active_link',
-                         'shear_stress': 'node',
-                         'water_discharge_at_nodes': 'node',
-                         'water_surface_slope_at_nodes': 'node'}
+    _var_grid_elements = {'water_depth': 'node',
+                          'topographic__elevtation': 'node',
+                          'water_discharge': 'active_link',
+                          'shear_stress': 'node',
+                          'water_discharge_at_nodes': 'node',
+                          'water_surface_slope_at_nodes': 'node'}
 
     _var_doc = {
         'water_depth': 'The depth of water at each node.',
@@ -473,7 +473,7 @@ class OverlandFlow(Component):
 
     @property
     def var_mapping(self):
-        return self._var_grid_element
+        return self._var_grid_elements
 
 def find_active_neighbors_for_fixed_links(grid):
     '''

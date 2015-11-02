@@ -40,23 +40,27 @@ class Component(object):
         return self._var_doc
 
     @property
+    def var_doc(self):
+        return self._var_doc
+
+    @property
     def var_mapping(self):
         """var_mapping
 
         .. deprecated:: 0.1.39
            Use :func:`var_grid_element` instead.
-   
+
         This is 'node', 'cell', 'active_link', etc.
         """
-        return self._var_grid_element
+        return self._var_grid_elements
 
     @property
-    def var_grid_element(self):
-        """var_grid_element
+    def var_grid_elements(self):
+        """var_grid_elements
 
         This is 'node', 'cell', 'active_link', etc.
         """
-        return self._var_grid_element
+        return self._var_grid_elements
 
     @property
     def shape(self):

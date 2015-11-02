@@ -62,10 +62,10 @@ class DepressionFinderAndRouter(Component):
                   'depression__outlet_node': '-'
                   }
 
-    _var_grid_element = {'topographic__elevation': 'node',
-                         'depression__depth': 'node',
-                         'depression__outlet_node': 'node',
-                         }
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'depression__depth': 'node',
+                          'depression__outlet_node': 'node',
+                          }
 
     _var_doc = {
         'topographic__elevation': 'Surface topographic elevation',
