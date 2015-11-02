@@ -50,13 +50,10 @@ class VideoPlotter(object):
         Start, stop, and step control when a frame is added. They are absolute
         times in the model run. All are optional.
         """
-        options_for_data_centering = ['node',
-                                      'active_node',
-                                      'core_node',
-                                      'cell',
-                                      'active_cell']
+        options_for_data_centering = ['node', 'cell']
 
-        assert data_centering in options_for_data_centering, 'data_centering is not a valid type!'
+        if data_centering not in options_for_data_centering:
+            raise ValueError('data_centering not valid')
 
         self.grid = grid
         #self.image_list = []
@@ -75,18 +72,9 @@ class VideoPlotter(object):
         if data_centering == 'node':
             self.centering = 'n'
             self.plotfunc = imshow.imshow_node_grid
-        elif data_centering == 'active_node':
-            self.centering = 'n'
-            self.plotfunc = imshow.imshow_active_node_grid
-        elif data_centering == 'core_node':
-            self.centering = 'n'
-            self.plotfunc = imshow.imshow_core_node_grid
         elif data_centering == 'cell':
             self.centering = 'c'
             self.plotfunc = imshow.imshow_cell_grid
-        else:
-            self.centering = 'c'
-            self.plotfunc = imshow.imshow_active_cell_grid
 
         self.randomized_name = "my_animation_" + \
             str(int(np.random.random() * 10000))
