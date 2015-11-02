@@ -64,35 +64,36 @@ class OverlandFlow(Component):
     _input_var_names = set(['water_depth', 'topographic__elevation'])
 
     _output_var_names = set(['water_depth',
-     'water_discharge',
-     'shear_stress',
-     'water_discharge_at_nodes',
-     'water_surface_slope_at_nodes'])
+                             'water_discharge',
+                             'shear_stress',
+                             'water_discharge_at_nodes',
+                             'water_surface_slope_at_nodes'])
 
     _var_units = {'water_depth': 'm',
-     'water_discharge': 'm3/s',
-     'shear_stress': 'Pa',
-     'water_discharge_at_nodes': 'm3/s',
-     'water_surface_slope_at_nodes': 'm/m',
-     'topographic__elevation': 'm'}
+                  'water_discharge': 'm3/s',
+                  'shear_stress': 'Pa',
+                  'water_discharge_at_nodes': 'm3/s',
+                  'water_surface_slope_at_nodes': 'm/m',
+                  'topographic__elevation': 'm'}
 
-    _var_mapping = {'water_depth': 'node',
-     'topographic__elevtation': 'node',
-     'water_discharge': 'active_link',
-     'shear_stress': 'node',
-     'water_discharge_at_nodes': 'node',
-     'water_surface_slope_at_nodes': 'node'}
+    _var_grid_element = {'water_depth': 'node',
+                         'topographic__elevtation': 'node',
+                         'water_discharge': 'active_link',
+                         'shear_stress': 'node',
+                         'water_discharge_at_nodes': 'node',
+                         'water_surface_slope_at_nodes': 'node'}
 
-    _var_mapping = {'water_depth': 'The depth of water at each node.',
-     'topographic__elevtation': 'The land surface elevation.',
-     'water_discharge': 'The discharge of water on active links.',
-     'shear_stress': 'The calculated shear stress at each node.',
-     'water_discharge_at_nodes':
-         'The water discharge from surrounding links mapped onto nodes.',
-     'water_surface_slope_at_nodes':
-         'The slope of the water surface at each node.'}
+    _var_doc = {
+        'water_depth': 'The depth of water at each node.',
+        'topographic__elevtation': 'The land surface elevation.',
+        'water_discharge': 'The discharge of water on active links.',
+        'shear_stress': 'The calculated shear stress at each node.',
+        'water_discharge_at_nodes':
+            'The water discharge from surrounding links mapped onto nodes.',
+        'water_surface_slope_at_nodes':
+            'The slope of the water surface at each node.'}
 
-    def __init__(self, grid, input_file = None, use_fixed_links=False, **kwds):
+    def __init__(self, grid, input_file=None, use_fixed_links=False, **kwds):
 
         super(OverlandFlow, self).__init__(grid, **kwds)
 
@@ -472,7 +473,7 @@ class OverlandFlow(Component):
 
     @property
     def var_mapping(self):
-        return self._var_mapping
+        return self._var_grid_element
 
 def find_active_neighbors_for_fixed_links(grid):
     '''

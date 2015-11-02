@@ -46,35 +46,44 @@ class PotentialityFlowRouter(Component):
                              'water__volume_flux',
                              ])
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'water__volume_flux_in' : 'm**3/s',
-                  'water__volume_flux_magnitude' : 'm**3/s',
-                  'water__volume_flux_xcomponent' : 'm**3/s',
-                  'water__volume_flux_ycomponent' : 'm**3/s',
-                  'potentiality_field' : 'm**3/s',
+    _var_units = {'topographic__elevation': 'm',
+                  'water__volume_flux_in': 'm**3/s',
+                  'water__volume_flux_magnitude': 'm**3/s',
+                  'water__volume_flux_xcomponent': 'm**3/s',
+                  'water__volume_flux_ycomponent': 'm**3/s',
+                  'potentiality_field': 'm**3/s',
                   'water__depth': 'm',
-                  'water__volume_flux' : 'm**3/s',
+                  'water__volume_flux': 'm**3/s',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                  'water__volume_flux_in' : 'node',
-                  'water__volume_flux_magnitude' : 'node',
-                  'water__volume_flux_xcomponent' : 'node',
-                  'water__volume_flux_ycomponent' : 'node',
-                  'potentiality_field' : 'node',
-                  'water__depth': 'node',
-                  'water__volume_flux' : 'link',
-                  }
+    _var_grid_element = {'topographic__elevation': 'node',
+                         'water__volume_flux_in': 'node',
+                         'water__volume_flux_magnitude': 'node',
+                         'water__volume_flux_xcomponent': 'node',
+                         'water__volume_flux_ycomponent': 'node',
+                         'potentiality_field': 'node',
+                         'water__depth': 'node',
+                         'water__volume_flux': 'link',
+                         }
 
-    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
-                  'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
-                  'water__volume_flux_magnitude' : 'Magnitude of volumetric water flux through each node',
-                  'water__volume_flux_xcomponent' : 'x component of resolved water flux through node',
-                  'water__volume_flux_ycomponent' : 'y component of resolved water flux through node',
-                  'potentiality_field' : 'Value of the hypothetical field "K", used to force water flux to flow downhill',
-                  'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
-                  'water__volume_flux' : 'Water fluxes on links',
-                  }
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'water__volume_flux_in':
+            'External volume water input to each node (e.g., rainfall)',
+        'water__volume_flux_magnitude':
+            'Magnitude of volumetric water flux through each node',
+        'water__volume_flux_xcomponent':
+            'x component of resolved water flux through node',
+        'water__volume_flux_ycomponent':
+            'y component of resolved water flux through node',
+        'potentiality_field':
+            ('Value of the hypothetical field "K", used to force water flux ' +
+                'to flow downhill'),
+        'water__depth':
+            ('If Manning or Chezy specified, the depth of flow in the cell, ' +
+                'calculated assuming flow occurs over the whole surface'),
+        'water__volume_flux': 'Water fluxes on links',
+        }
 
     _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
 
@@ -166,12 +175,12 @@ class PotentialityFlowRouter(Component):
         self._corecore = (slice(2,-2),slice(2,-2)) #the actual, LL-sense core (interior) nodes of the grid
 
         for out_field in self._output_var_names:
-            if self._var_mapping[out_field]=='node':
+            if self._var_grid_element[out_field]=='node':
                 try:
                     self._grid.at_node[out_field]
                 except FieldError:
                     self._grid.at_node[out_field] = np.empty(self._grid.number_of_nodes, dtype=float)
-            elif self._var_mapping[out_field]=='link':
+            elif self._var_grid_element[out_field]=='link':
                 try:
                     self._grid.at_link[out_field]
                 except FieldError:

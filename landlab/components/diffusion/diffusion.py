@@ -74,20 +74,22 @@ class LinearDiffuser(Component):
                              'unit_flux',
                              ])
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'surface_gradient' : '-',
-                  'unit_flux' : 'm**3/s',
+    _var_units = {'topographic__elevation': 'm',
+                  'surface_gradient': '-',
+                  'unit_flux': 'm**3/s',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                    'surface_gradient' : 'link',
-                    'unit_flux' : 'link',
-                    }
+    _var_grid_element = {'topographic__elevation': 'node',
+                         'surface_gradient': 'link',
+                         'unit_flux': 'link',
+                         }
 
-    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation; can be overwritten in initialization',
-                 'surface_gradient' : 'Gradient of surface, on links',
-                 'unit_flux' : 'Volume flux per unit width along links',
-                  }
+    _var_doc = {
+        'topographic__elevation': ('Land surface topographic elevation; can ' +
+                                   'be overwritten in initialization'),
+        'surface_gradient': 'Gradient of surface, on links',
+        'unit_flux': 'Volume flux per unit width along links',
+    }
 
     def __init__(self, grid, input_stream=None, current_time=0.):
         self._grid = grid
@@ -121,7 +123,7 @@ class LinearDiffuser(Component):
             for mysets in (self._input_var_names, self._output_var_names):
                 mysets.remove('topographic__elevation')
                 mysets.add(self.values_to_diffuse)
-            for mydicts in (self._var_units, self._var_mapping, self._var_doc):
+            for mydicts in (self._var_units, self._var_grid_element, self._var_doc):
                 mydicts[self.values_to_diffuse] = mydicts.pop('topographic__elevation')
 
         try:

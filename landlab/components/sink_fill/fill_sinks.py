@@ -41,14 +41,13 @@ class SinkFiller(Component):
                   'sediment_fill__depth': 'm',
                   }
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'sediment_fill__depth': 'node',
-                    }
+    _var_grid_element = {'topographic__elevation': 'node',
+                         'sediment_fill__depth': 'node',
+                         }
 
     _var_doc = {'topographic__elevation': 'Surface topographic elevation',
-                 'sediment_fill__depth': 'Depth of sediment added at each' +
-                                         'node',
-                 }
+                'sediment_fill__depth': 'Depth of sediment added at each node',
+                }
 
     def __init__(self, grid, input_stream=None, current_time=0.,
                  routing='D8'):

@@ -57,38 +57,48 @@ class FlowRouter(Component):
                              'flow_sinks',
                              ])
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'water__volume_flux_in' : 'm**3/s',
-                  'drainage_area' : 'm**2',
-                  'flow_receiver' : '-',
-                  'topographic__steepest_slope' : '-',
-                  'water__volume_flux' : 'm**3/s',
-                  'upstream_ID_order' : '-',
-                  'links_to_flow_receiver' : '-',
-                  'flow_sinks' : '-',
+    _var_units = {'topographic__elevation': 'm',
+                  'water__volume_flux_in': 'm**3/s',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'water__volume_flux': 'm**3/s',
+                  'upstream_ID_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'flow_sinks': '-',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                    'water__volume_flux_in' : 'node',
-                    'drainage_area' : 'node',
-                    'flow_receiver' : 'node',
-                    'topographic__steepest_slope' : 'node',
-                    'water__volume_flux' : 'node',
-                    'upstream_ID_order' : 'node',
-                    'links_to_flow_receiver' : 'node',
-                    'flow_sinks' : 'node',
-                    }
+    _var_grid_element = {'topographic__elevation': 'node',
+                         'water__volume_flux_in': 'node',
+                         'drainage_area': 'node',
+                         'flow_receiver': 'node',
+                         'topographic__steepest_slope': 'node',
+                         'water__volume_flux': 'node',
+                         'upstream_ID_order': 'node',
+                         'links_to_flow_receiver': 'node',
+                         'flow_sinks': 'node',
+                         }
 
-    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
-                 'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
-                 "drainage_area" : "Upstream accumulated surface area contributing to the node's discharge",
-                 'flow_receiver' : 'Node array of receivers (node that receives flow from current node)',
-                 'topographic__steepest_slope' : 'Node array of steepest *downhill* slopes',
-                 'water__volume_flux' : 'Discharge of water through each node',
-                 'upstream_ID_order' : 'Node array containing downstream-to-upstream ordered list of node IDs',
-                 'links_to_flow_receiver' : 'ID of link downstream of each node, which carries the discharge',
-                 'flow_sinks' : 'Boolean array, True at local lows',
-                  }
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'water__volume_flux_in':
+            'External volume water input to each node (e.g., rainfall)',
+        "drainage_area":
+            ("Upstream accumulated surface area contributing to the node's " +
+                "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)'),
+        'topographic__steepest_slope':
+            'Node array of steepest *downhill* slopes',
+        'water__volume_flux': 'Discharge of water through each node',
+        'upstream_ID_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+                'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        'flow_sinks': 'Boolean array, True at local lows',
+        }
 
 
     def __init__(self, model_grid, input_params=None):

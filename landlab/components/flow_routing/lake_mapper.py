@@ -62,17 +62,17 @@ class DepressionFinderAndRouter(Component):
                   'depression__outlet_node': '-'
                   }
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'depression__depth': 'node',
-                    'depression__outlet_node': 'node',
-                    }
+    _var_grid_element = {'topographic__elevation': 'node',
+                         'depression__depth': 'node',
+                         'depression__outlet_node': 'node',
+                         }
 
     _var_doc = {
         'topographic__elevation': 'Surface topographic elevation',
         'depression__depth': 'Depth of depression below its spillway point',
         'depression__outlet_node':
-            'If a depression, the id of the outlet node for that depression, '
-            'otherwise BAD_INDEX_VALUE'
+            ('If a depression, the id of the outlet node for that ' +
+             'depression, otherwise BAD_INDEX_VALUE')
     }
 
     def __init__(self, grid, input_stream=None, current_time=0.,

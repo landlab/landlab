@@ -51,35 +51,42 @@ class gFlex(Component):
     _name = 'gFlex'
 
     _input_var_names = set(['surface_load__stress',
-                        ])
+                            ])
 
     _output_var_names = set(['lithosphere__vertical_displacement',
                              'topographic__elevation',
-                        ])
+                             ])
 
-    _var_units = {'earth_material_load__magnitude_of_stress' : 'Pa',
-                  'earth_material_load__x_positions' : 'm',
-                  'earth_material_load__y_positions' : 'm',
-                  'earth_material_load__force' : 'N',
-                  'lithosphere__elastic_thickness' : 'm',
-                  'lithosphere__vertical_displacement' : 'm',
+    _var_units = {'earth_material_load__magnitude_of_stress': 'Pa',
+                  'earth_material_load__x_positions': 'm',
+                  'earth_material_load__y_positions': 'm',
+                  'earth_material_load__force': 'N',
+                  'lithosphere__elastic_thickness': 'm',
+                  'lithosphere__vertical_displacement': 'm',
                   }
 
-    _var_mapping = {'earth_material_load__magnitude_of_stress' : 'node',
-                  'earth_material_load__x_positions' : 'node',
-                  'earth_material_load__y_positions' : 'node',
-                  'earth_material_load__force' : 'node',
-                  'lithosphere__elastic_thickness' : 'node',
-                  'lithosphere__vertical_displacement' : 'node',
-                  }
+    _var_grid_element = {'earth_material_load__magnitude_of_stress': 'node',
+                         'earth_material_load__x_positions': 'node',
+                         'earth_material_load__y_positions': 'node',
+                         'earth_material_load__force': 'node',
+                         'lithosphere__elastic_thickness': 'node',
+                         'lithosphere__vertical_displacement': 'node',
+                         }
 
-    _var_doc = {'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
-                  'earth_material_load__x_positions' : 'x position of any surface load',
-                  'earth_material_load__y_positions' : 'y position of any surface load',
-                  'earth_material_load__force' : 'Force exerted by surface load',
-                  'lithosphere__elastic_thickness' : 'Elastic thickness of the lithosphere',
-                  'lithosphere__vertical_displacement' : 'Vertical deflection of the surface and of the lithospheric plate',
-                  }
+    _var_doc = {
+        'earth_material_load__magnitude_of_stress':
+            'Magnitude of stress exerted by surface load',
+        'earth_material_load__x_positions':
+            'x position of any surface load',
+        'earth_material_load__y_positions':
+            'y position of any surface load',
+        'earth_material_load__force':
+            'Force exerted by surface load',
+        'lithosphere__elastic_thickness':
+            'Elastic thickness of the lithosphere',
+        'lithosphere__vertical_displacement':
+            'Vertical deflection of the surface and of the lithospheric plate',
+        }
 
     def __init__(self, grid, params):
         self.initialize(grid, params)
