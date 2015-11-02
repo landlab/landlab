@@ -1,12 +1,13 @@
 #! /usr/env/python
 
-"""
+"""Create 2D grid with randomly generated fractures.
+
 fracture_grid: creates and returns a 2D grid with randomly generated fractures.
 The grid contains the value 1 where fractures (one cell wide) exist, and
 0 elsewhere. The idea is to use this for simulations based on weathering and
 erosion of, and/or flow within, fracture networks.
 
-The entry point is the function:
+The entry point is the function::
 
     make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None)
 
@@ -34,13 +35,14 @@ import random
 
 
 def calculate_fracture_starting_position(numrows, numcols, seed):
-    """
-    Chooses a random starting position along the x or y axis (random choice).
+    """Choose a random starting position along the x or y axis (random choice).
 
     Parameters
     ----------
-    numrows, numcols : int
-        Number of rows and columns in the grid
+    numrows : int
+        Number of rows in the grid
+    numcols : int
+        Number of columns in the grid
     seed : int
         Seeds the random number generator, so that a particular random
         sequence can be recreated.
@@ -62,13 +64,14 @@ def calculate_fracture_starting_position(numrows, numcols, seed):
 
 
 def calculate_fracture_orientation(x, y, seed):
-    """
-    Chooses a random orientation for the fracture.
+    """Choose a random orientation for the fracture.
 
     Parameters
     ----------
-    x, y : int
-        Starting coordinates (one of which should be zero)
+    x : int
+        Starting x-coordinate (either *x* or *y* should be 0).
+    y : int
+        Starting y-coordinate (either *x* or *y* should be 0).
     seed : int
         Seed value for random number generator
 
@@ -94,22 +97,25 @@ def calculate_fracture_orientation(x, y, seed):
 
 
 def calculate_fracture_step_sizes(startx, starty, ang):
-    """
+    """Calculate sizes of steps of the fracture.
+
     Calculates the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
     Parameters
     ----------
-    startx, starty : int
-        Starting grid coordinates
+    startx : int
+        Starting grid x-coordinate.
+    starty : int
+        Starting grid y-coordinate.
     ang : float
         Fracture angle relative to horizontal (radians)
 
     Returns
     -------
-    dx, dy : float
+    (dx, dy) : float
         Step sizes in x and y directions. One will always be unity, and the
-    other will always be <1.
+        other will always be less than 1.
     """
     if startx==0:  # frac starts on left side
         dx = 1
@@ -122,18 +128,23 @@ def calculate_fracture_step_sizes(startx, starty, ang):
 
 
 def trace_fracture_through_grid(m, x0, y0, dx, dy):
-    """
+    """Create a "fracture" in a 2D grid.
+
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity along
     the trace of the fracture (i.e., "drawing" a line throuh the grid).
 
     Parameters
     ----------
     m : 2D Numpy array
-        Array that represents the grid
-    x0, y0 : int
-        Starting grid coordinates for fracture
-    dx, dy : float
-        Step sizes in x and y directions
+        Array that represents the grid.
+    x0 : int
+        Starting x-coordinate for fracture.
+    y0 : int
+        Starting y-coordinate for fracture.
+    dx : float
+        Step sizes in x direction.
+    dy : float
+        Step sizes in y direction.
 
     Returns
     -------
@@ -151,7 +162,8 @@ def trace_fracture_through_grid(m, x0, y0, dx, dy):
 
 def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
                    seed=0):
-    """
+    """Create a grid that contains a network of random fractures.
+
     Creates and returns a grid containing a network of random fractures, which
     are represented as 1's embedded in a grid of 0's.
 
@@ -159,12 +171,15 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     ----------
     frac_spacing : int
         Average spacing of fractures (in grid cells)
-    (optional) numrows, numcols : int
-        Number of rows and columns in grid (if model_grid parameter is given,
+    numrows : int, optional
+        Number of rows in grid (if model_grid parameter is given,
         uses values from the model grid instead)
-    (optional) model_grid : Landlab RasterModelGrid object
+    numcols : int, optional
+        Number of columns in grid (if model_grid parameter is given,
+        uses values from the model grid instead)
+    model_grid : Landlab RasterModelGrid object, optiona
         RasterModelGrid to use for grid size
-    (optional) seed : int
+    seed : int, optional
         Seed used for random number generator
 
     Returns
