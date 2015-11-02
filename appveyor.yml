@@ -9,13 +9,10 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
-    - PYTHON_VERSION: "2.6"
-    - PYTHON_VERSION: "3.3"
-    - PYTHON_VERSION: "3.4"
+    - PYTHON_VERSION: "2.7"
 
 platform:
   - x64
-  - x86
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
