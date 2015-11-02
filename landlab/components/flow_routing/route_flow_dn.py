@@ -79,7 +79,7 @@ class FlowRouter(Component):
                     'flow_sinks' : 'node',
                     }
 
-    _var_defs = {'topographic__elevation' : 'Land surface topographic elevation',
+    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
                  'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
                  "drainage_area" : "Upstream accumulated surface area contributing to the node's discharge",
                  'flow_receiver' : 'Node array of receivers (node that receives flow from current node)',

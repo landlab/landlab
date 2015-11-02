@@ -37,7 +37,7 @@ class Component(object):
 
     @property
     def var_definitions(self):
-        return self._var_defs
+        return self._var_doc
 
     @property
     def var_mapping(self):

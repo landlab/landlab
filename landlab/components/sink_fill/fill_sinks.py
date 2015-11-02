@@ -45,7 +45,7 @@ class SinkFiller(Component):
                     'sediment_fill__depth': 'node',
                     }
 
-    _var_defs = {'topographic__elevation': 'Surface topographic elevation',
+    _var_doc = {'topographic__elevation': 'Surface topographic elevation',
                  'sediment_fill__depth': 'Depth of sediment added at each' +
                                          'node',
                  }
