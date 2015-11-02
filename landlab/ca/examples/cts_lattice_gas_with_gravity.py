@@ -1,10 +1,10 @@
 #!/usr/env/python
 """
-cts_lattice_gas_with_gravity_and_friction.py:
+cts_lattice_gas_with_gravity.py:
 continuous-time stochastic version of a lattice-gas cellular
 automaton model.
 
-GT Oct 2014
+GT Sep 2014
 """
 from __future__ import print_function
 
@@ -13,11 +13,11 @@ _DEBUG = False
 import time
 import random
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
 
-def setup_transition_list(g=1.0, f=0.0):
+def setup_transition_list(g=1.0):
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for simple granular mechanics model.
@@ -49,14 +49,6 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((8,5,1), (8,2,1), 1.0, 'wall rebound') )
     xn_list.append( Transition((8,6,2), (8,3,2), 1.0, 'wall rebound') )
 
-    # Transitions for wall impact frictional stop
-    xn_list.append( Transition((1,8,0), (7,8,0), f, 'wall stop') )
-    xn_list.append( Transition((2,8,1), (7,8,1), f, 'wall stop') )
-    xn_list.append( Transition((3,8,2), (7,8,2), f, 'wall stop') )
-    xn_list.append( Transition((8,4,0), (8,7,0), f, 'wall stop') )
-    xn_list.append( Transition((8,5,1), (8,7,1), f, 'wall stop') )
-    xn_list.append( Transition((8,6,2), (8,7,2), f, 'wall stop') )
-
     # Transitions for head-on collision
     xn_list.append( Transition((1,4,0), (3,6,0), 0.5, 'head-on collision') )
     xn_list.append( Transition((1,4,0), (5,2,0), 0.5, 'head-on collision') )
@@ -64,9 +56,6 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((2,5,1), (6,3,1), 0.5, 'head-on collision') )
     xn_list.append( Transition((3,6,2), (1,4,2), 0.5, 'head-on collision') )
     xn_list.append( Transition((3,6,2), (5,2,2), 0.5, 'head-on collision') )
-    xn_list.append( Transition((1,4,0), (7,7,0), f, 'head-on collision') )
-    xn_list.append( Transition((2,5,1), (7,7,1), f, 'head-on collision') )
-    xn_list.append( Transition((3,6,2), (7,7,2), f, 'head-on collision') )
 
     # Transitions for glancing collision
     xn_list.append( Transition((1,3,0), (3,1,0), 1.0, 'glancing collision') )
@@ -95,18 +84,6 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((3,4,2), (4,3,2), 1.0, 'oblique') )
     xn_list.append( Transition((1,6,2), (6,1,2), 1.0, 'oblique') )
     xn_list.append( Transition((5,6,2), (6,5,2), 1.0, 'oblique') )
-    xn_list.append( Transition((1,2,0), (7,7,0), f, 'oblique') )
-    xn_list.append( Transition((1,6,0), (7,7,0), f, 'oblique') )
-    xn_list.append( Transition((3,4,0), (7,7,0), f, 'oblique') )
-    xn_list.append( Transition((5,4,0), (7,7,0), f, 'oblique') )
-    xn_list.append( Transition((2,1,1), (7,7,1), f, 'oblique') )
-    xn_list.append( Transition((2,3,1), (7,7,1), f, 'oblique') )
-    xn_list.append( Transition((4,5,1), (7,7,1), f, 'oblique') )
-    xn_list.append( Transition((6,5,1), (7,7,1), f, 'oblique') )
-    xn_list.append( Transition((3,2,2), (7,7,2), f, 'oblique') )
-    xn_list.append( Transition((3,4,2), (7,7,2), f, 'oblique') )
-    xn_list.append( Transition((1,6,2), (7,7,2), f, 'oblique') )
-    xn_list.append( Transition((5,6,2), (7,7,2), f, 'oblique') )
 
     # Transitions for direct-from-behind collisions
     xn_list.append( Transition((1,1,0), (2,6,0), 0.5, 'behind') )
@@ -121,12 +98,6 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((3,3,2), (4,2,2), 0.5, 'behind') )
     xn_list.append( Transition((6,6,2), (1,5,2), 0.5, 'behind') )
     xn_list.append( Transition((6,6,2), (5,1,2), 0.5, 'behind') )
-    xn_list.append( Transition((1,1,0), (7,1,0), f, 'behind') )
-    xn_list.append( Transition((4,4,0), (4,7,0), f, 'behind') )
-    xn_list.append( Transition((2,2,1), (7,2,1), f, 'behind') )
-    xn_list.append( Transition((5,5,1), (5,7,1), f, 'behind') )
-    xn_list.append( Transition((3,3,2), (7,3,2), f, 'behind') )
-    xn_list.append( Transition((6,6,2), (6,7,2), f, 'behind') )
 
     # Transitions for collision with stationary (resting) particle
     xn_list.append( Transition((1,7,0), (7,2,0), 0.5, 'rest') )
@@ -141,12 +112,6 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((3,7,2), (7,4,2), 0.5, 'rest') )
     xn_list.append( Transition((7,6,2), (1,7,2), 0.5, 'rest') )
     xn_list.append( Transition((7,6,2), (5,7,2), 0.5, 'rest') )
-    xn_list.append( Transition((1,7,0), (7,7,0), f, 'rest') )
-    xn_list.append( Transition((7,4,0), (7,7,0), f, 'rest') )
-    xn_list.append( Transition((2,7,1), (7,7,1), f, 'rest') )
-    xn_list.append( Transition((7,5,1), (7,7,1), f, 'rest') )
-    xn_list.append( Transition((3,7,2), (7,7,2), f, 'rest') )
-    xn_list.append( Transition((7,6,2), (7,7,2), f, 'rest') )
 
     # Gravity rules
     xn_list.append( Transition((1,0,0), (7,0,0), g, 'up to rest') )
@@ -166,24 +131,22 @@ def setup_transition_list(g=1.0, f=0.0):
     xn_list.append( Transition((6,1,0), (6,7,0), g, 'up to rest') )
     xn_list.append( Transition((7,1,0), (7,7,0), g, 'up to rest') )
 
-    #xn_list.append( Transition((7,0,0), (4,0,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,1,0), (4,1,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,2,0), (4,2,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,3,0), (4,3,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,4,0), (4,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,5,0), (4,5,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,6,0), (4,6,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,7,0), (4,7,0), g, 'rest to down') )
+    xn_list.append( Transition((7,0,0), (4,0,0), g, 'rest to down') )
+    xn_list.append( Transition((7,1,0), (4,1,0), g, 'rest to down') )
+    xn_list.append( Transition((7,2,0), (4,2,0), g, 'rest to down') )
+    xn_list.append( Transition((7,3,0), (4,3,0), g, 'rest to down') )
+    xn_list.append( Transition((7,4,0), (4,4,0), g, 'rest to down') )
+    xn_list.append( Transition((7,5,0), (4,5,0), g, 'rest to down') )
+    xn_list.append( Transition((7,6,0), (4,6,0), g, 'rest to down') )
+    xn_list.append( Transition((7,7,0), (4,7,0), g, 'rest to down') )
     xn_list.append( Transition((0,7,0), (0,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((1,7,0), (1,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((2,7,0), (2,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((3,7,0), (3,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((4,7,0), (4,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((5,7,0), (5,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((6,7,0), (6,4,0), g, 'rest to down') )
-    #xn_list.append( Transition((7,7,0), (7,4,0), g, 'rest to down') )
-    xn_list.append( Transition((7,0,2), (3,0,2), g, 'rest to right-down') )
-    xn_list.append( Transition((0,7,1), (0,5,1), g, 'rest to left-down') )
+    xn_list.append( Transition((1,7,0), (1,4,0), g, 'rest to down') )
+    xn_list.append( Transition((2,7,0), (2,4,0), g, 'rest to down') )
+    xn_list.append( Transition((3,7,0), (3,4,0), g, 'rest to down') )
+    xn_list.append( Transition((4,7,0), (4,4,0), g, 'rest to down') )
+    xn_list.append( Transition((5,7,0), (5,4,0), g, 'rest to down') )
+    xn_list.append( Transition((6,7,0), (6,4,0), g, 'rest to down') )
+    xn_list.append( Transition((7,7,0), (7,4,0), g, 'rest to down') )
 
     xn_list.append( Transition((2,0,1), (3,0,1), g, 'right up to right down') )
     xn_list.append( Transition((2,1,1), (3,1,1), g, 'right up to right down') )
@@ -235,12 +198,11 @@ def main():
     # User-defined parameters
     nr = 41
     nc = 61
-    g = 0.8
-    f = 1.0
+    g = 0.05
     plot_interval = 1.0
-    run_duration = 200.0
+    run_duration = 100.0
     report_interval = 5.0  # report interval, in real-time seconds
-    p_init = 0.4  # probability that a cell is occupied at start
+    p_init = 0.1  # probability that a cell is occupied at start
     plot_every_transition = False
 
     # Remember the clock time, and calculate when we next want to report
@@ -267,7 +229,7 @@ def main():
                 6 : 'moving left and up',
                 7 : 'rest',
                 8 : 'wall'}
-    xn_list = setup_transition_list(g, f)
+    xn_list = setup_transition_list(g)
 
     # Create data and initialize values.
     node_state_grid = hmg.add_zeros('node', 'node_state_grid')
