@@ -13,11 +13,11 @@ and depth units in millimeters (mm)
 import os
 import numpy as np
 import random
-from landlab import Component,ModelParameterDictionary
+from landlab import Component, ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
-                                  'preciptest.in')
+                                   'preciptest.in')
 
 class PrecipitationDistribution(Component):
     """Landlab component that generates precipitation events

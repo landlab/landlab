@@ -5,7 +5,7 @@ from landlab.grid.base import BAD_INDEX_VALUE
 
 # these ones only so we can run this module ad-hoc:
 # import pylab
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, Component
 # from copy import copy
 
 # Things to add: 1. Explicit stability check.
@@ -13,7 +13,7 @@ from landlab import ModelParameterDictionary
 #    subdivide dt automatically.
 
 
-class PerronNLDiffuse(object):
+class PerronNLDiffuse(Component):
     '''
     This module uses Taylor Perron's implicit (2011) method to solve the
     nonlinear hillslope diffusion equation across a rectangular, regular grid

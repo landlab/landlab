@@ -31,9 +31,9 @@ import pandas as pd
 import six
 from six.moves import zip
 
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, Component
 
-class impactor(object):
+class impactor(Component):
     '''
     This class holds all parameters decribing properties of a single impact
     structure, and contains methods for recalculating fresh and internally

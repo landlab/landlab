@@ -8,12 +8,12 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 """
 
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 import numpy as np
 import six
 
 
-class SurfaceFlowTransport(object):
+class SurfaceFlowTransport(Component):
 
     def __init__(self, grid, input_stream):
         #grid here is a true model field. i.e., we should be able to do grid.at_node['topographic__elevation']

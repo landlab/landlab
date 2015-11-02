@@ -18,9 +18,10 @@ Last updated NG 8/2013
 
 #from landlab.model_grid import RasterModelGrid
 from numpy import *
+from landlab import Component
 
 
-class RouteFlowD8(object):
+class RouteFlowD8(Component):
     """
     This class finds the steepest path among 8 possible directions, so
     diagonals are considered.

@@ -9,11 +9,11 @@
 from __future__ import print_function
 
 import landlab
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 import numpy as np
 
 
-class AccumFlow(object):
+class AccumFlow(Component):
     """
     This class allows the routing of flow around a landscape according to a previously calculated flow direction vector. It is not sensitive to grid type. It will eventually be able to work with discharges which are split across more than one node, but at the moment, assumes a single line of descent for a given node.
     """

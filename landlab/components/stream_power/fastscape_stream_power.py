@@ -7,7 +7,7 @@ Created DEJH, March 2014.
 from __future__ import print_function
 
 import numpy
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton, fsolve
@@ -15,7 +15,7 @@ from scipy.optimize import newton, fsolve
 
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
-class SPEroder(object):
+class SPEroder(Component):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the amount
     of erosion at each node in a grid, following a stream power framework.

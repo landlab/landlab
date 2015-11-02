@@ -10,10 +10,10 @@
 import numpy as np
 import six
 
-from landlab import CLOSED_BOUNDARY
+from landlab import CLOSED_BOUNDARY, Component
 
 
-class AccumFlow(object):
+class AccumFlow(Component):
     """
     This class allows the routing of flow around a landscape according to a previously calculated flow direction vector. It is not sensitive to grid type. It will eventually be able to work with discharges which are split across more than one node, but at the moment, assumes a single line of descent for a given node.
     """

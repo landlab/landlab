@@ -23,9 +23,9 @@ from sympy.solvers import solve
 from sympy.utilities.lambdify import lambdify
 import six
 
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, Component
 
-class impactor(object):
+class impactor(Component):
     '''
     This class holds all parameters decribing properties of a single impact
     structure, and contains methods for recalculating fresh and internally

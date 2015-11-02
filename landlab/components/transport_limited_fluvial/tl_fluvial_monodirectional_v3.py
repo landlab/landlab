@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import inspect
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 from landlab import RasterModelGrid
 from time import sleep
 from landlab.utils import structured_grid as sgrid
@@ -13,7 +13,7 @@ from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
 
-class TransportLimitedEroder(object):
+class TransportLimitedEroder(Component):
     """
     This component implements transport limited erosion for a landscape in which
     flow directions are fully convergent. i.e., all nodes in the landscape have

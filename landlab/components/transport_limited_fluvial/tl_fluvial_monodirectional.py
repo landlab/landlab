@@ -1,14 +1,14 @@
 from __future__ import print_function
 
 import numpy as np
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 from time import sleep
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 
 
-class TransportLimitedEroder(object):
+class TransportLimitedEroder(Component):
     """
     This component implements transport limited erosion for a landscape in which
     flow directions are fully convergent. i.e., all nodes in the landscape have

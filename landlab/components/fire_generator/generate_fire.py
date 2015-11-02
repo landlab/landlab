@@ -18,11 +18,11 @@ Written by Jordan Marie Adams, 2013.
 import os
 from random import weibullvariate
 from scipy import special
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, Component
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 
-class FireGenerator:
+class FireGenerator(Component):
 
     def __init__(self, input_file=None):
         """All initial values are set to zero until initalized

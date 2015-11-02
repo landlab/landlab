@@ -1,12 +1,13 @@
 import numpy as np
 import numpy.ma as ma
+from landlab import Component
 
 """
 Preliminary work for a submarine delta foreset sed router. Not yet functioning!
 DEJH, Sept 2013
 """
 
-class Littoral(object):
+class Littoral(Component):
     def __init__(self, grid, dry_land_Qs_array, elev):
         #dry_land_Qs_array is a np array of -1s for any cell <SL, with Qs for any dry land cell.
         #Very important that when sed is routed on dry land, sea cells act as hard boundaries, BC=4.

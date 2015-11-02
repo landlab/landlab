@@ -2,14 +2,14 @@ from __future__ import print_function
 
 import numpy as np
 from time import sleep
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
 
-class SedDepEroder(object):
+class SedDepEroder(Component):
     """
     This class implements sediment flux dependent fluvial incision. It is built
     on the back of the simpler stream power class, stream_power.py, also in this
