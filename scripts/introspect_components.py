@@ -40,6 +40,8 @@ from Component'.
 This file goes on to build a set of all field names used in named LL
 components, called 'all_field_names'. (If a component doesn't have a _name,
 its fields won't be included.)
+
+NOTE TO DEJH: This is missing some names; see, e.g., gFlex.
 """
 
 import os.path as path
