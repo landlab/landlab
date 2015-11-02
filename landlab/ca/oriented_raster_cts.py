@@ -59,7 +59,7 @@ class OrientedRasterCTS(CellLabCTSModel):
             Starting values for node-state grid
         prop_data : array (x number of nodes in grid) (optional)
             Array of properties associated with each node/cell
-        prop_reset_value : float (same type as entries in prop_data), optional
+        prop_reset_value : flaot (same type as entries in prop_data), optional
             Default or initial value for a node/cell property (e.g., 0.0)
         """
 
