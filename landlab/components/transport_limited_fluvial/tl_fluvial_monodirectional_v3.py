@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import inspect
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from landlab import RasterModelGrid
 from time import sleep
 from landlab.utils import structured_grid as sgrid
@@ -11,6 +11,7 @@ import pylab
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
+
 
 class TransportLimitedEroder(object):
     """
@@ -515,7 +516,7 @@ class TransportLimitedEroder(object):
 
         self.grid=grid
 
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] += node_z[active_nodes]

@@ -10,6 +10,8 @@
 import numpy as np
 import six
 
+from landlab import CLOSED_BOUNDARY
+
 
 class AccumFlow(object):
     """
@@ -30,7 +32,7 @@ class AccumFlow(object):
             assert(len(data.flowacc) == len(self.flow_accum_by_area[:-1]))
 
     def calc_flowacc(self, grid, data):
-        active_cell_ids = grid.get_active_cell_node_ids()
+        active_cell_ids = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         #Perform test to see if the flowdir data is a single vector, or multidimensional, here. Several ways possible: 1. Is the vector multidimensional?, e.g., try: data.flowdirs.shape[1] 2. set a flag in flowdir.
 
         try:

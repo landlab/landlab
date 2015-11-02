@@ -1,13 +1,14 @@
 from __future__ import print_function
 
 import numpy as np
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from time import sleep
 from landlab.utils import structured_grid as sgrid
 import pylab
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
+
 
 class TransportLimitedEroder(object):
     """
@@ -426,9 +427,9 @@ class TransportLimitedEroder(object):
         #
         ##to see if this is actually necessary
         ##grid.at_node[node_elevs][sgrid.interior_nodes((nrows,ncols))] = node_z_asgrid.ravel()
-        self.grid=grid
+        self.grid = grid
 
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] += node_z_asgrid.ravel()[active_nodes]
