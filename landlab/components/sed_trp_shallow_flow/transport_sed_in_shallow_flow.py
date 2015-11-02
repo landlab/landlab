@@ -8,7 +8,7 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 """
 
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 import numpy as np
 import six
 
@@ -87,7 +87,7 @@ class SurfaceFlowTransport(object):
         erode_start_time = self.erode_start_time
         ten_thirds = 10./3.
 
-        interior_cells = grid.get_active_cell_node_ids()
+        interior_cells = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
 
         # Calculate the effective flow depth at active links. Bates et al. 2010

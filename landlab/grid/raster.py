@@ -11,6 +11,7 @@ from six.moves import range
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
+from landlab.grid import structured_quad as squad
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
@@ -129,11 +130,11 @@ class RasterModelGridPlotter(object):
 
         See Also
         --------
-        landlab.plot.imshow_field
+        landlab.plot.imshow_grid
         """
-        from landlab.plot import imshow_field
+        from landlab.plot import imshow_grid
         kwds['values_at'] = group
-        imshow_field(self, var_name, **kwds)
+        imshow_grid(self, var_name, **kwds)
 
 
 def grid_edge_is_closed_from_dict(boundary_conditions):
@@ -403,40 +404,51 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
         >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-               dtype=int8)
-        >>> rmg.node_corecell[3] == BAD_INDEX_VALUE
-        True
-        >>> rmg.node_corecell[8]
-        2
+        array([1, 1, 1, 1, 1,
+               1, 0, 0, 0, 1,
+               1, 0, 0, 0, 1,
+               1, 1, 1, 1, 1], dtype=int8)
         >>> rmg.node_numinlink
-        array([0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2])
+        array([0, 1, 1, 1, 1,
+               1, 2, 2, 2, 2,
+               1, 2, 2, 2, 2,
+               1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
                 11, 12, 13, 14],
                [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
                 27, 28, 29, 30]])
-        >>> rmg.node_numoutlink
-        array([2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0])
+        >>> rmg.node_numoutlink # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2, 1,
+               2, 2, 2, 2, 1,
+               2, 2, 2, 2, 1,
+               1, 1, 1, 1, 0])
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
                -1, -1, -1, -1, -1])
-        >>> rmg.node_numactiveinlink
-        array([0, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0, 2, 2, 2, 1, 0, 1, 1, 1, 0])
+        >>> rmg.node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
+        array([0, 0, 0, 0, 0,
+               0, 2, 2, 2, 1,
+               0, 2, 2, 2, 1,
+               0, 1, 1, 1, 0])
         >>> rmg.node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,
                  6, 7,  8, -1],
                [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
                 -1, -1, -1, -1]])
-        >>> rmg.node_numactiveoutlink
-        array([0, 1, 1, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0])
+        >>> rmg.node_numactiveoutlink # doctest: +NORMALIZE_WHITESPACE
+        array([0, 1, 1, 1, 0,
+               1, 2, 2, 2, 0,
+               1, 2, 2, 2, 0,
+               0, 0, 0, 0, 0])
         >>> rmg.node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1,
                 -1, -1, -1, -1],
                [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
                 -1, -1, -1, -1]])
-        >>> rmg.node_at_cell
-        array([ 6,  7,  8, 11, 12, 13])
+        >>> rmg.node_at_cell # doctest: +NORMALIZE_WHITESPACE
+        array([ 6,  7,  8,
+               11, 12, 13])
         >>> rmg.node_at_link_tail # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,
                 1, 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
@@ -475,7 +487,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_links = sgrid.link_count(self.shape)
         self._num_active_links = sgrid.active_link_count(self.shape)
 
-        self._num_faces = sgrid.face_count(self.shape)
+        self._num_faces = squad.faces.number_of_faces(self.shape)
         self._num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
@@ -538,13 +550,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
         self._node_at_cell = sgrid.node_at_cell(self.shape)
-        self.node_activecell = sgrid.active_cell_index_at_nodes(self.shape)
-        self.node_corecell = sgrid.core_cell_index_at_nodes(self.shape)
+        self._cell_at_node = squad.cells.cell_id_at_nodes(
+            self.shape).reshape((-1, ))
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
-        self.activecell_node = self._node_at_cell.copy()
-        self.corecell_node = self._node_at_cell
-        #self.active_faces = sgrid.active_face_index(self.shape)
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
@@ -3939,10 +3948,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def _setup_face_widths(self):
         """Set up array of face widths.
 
-        Produces an array of length nfaces containing the face width (dx).
+        Produces an array of length nfaces containing the face width.
+
+        Returns
+        -------
+        ndarray of float
+            Width of faces (listed as horizontal, then vertical).
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> grid.face_widths
+        array([ 1.,  1.,  1.,  1.])
         """
-        self._face_widths = np.empty(self.number_of_faces)
-        self._face_widths.fill(self.dx)
+        n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
+
+        self._face_widths = np.empty(squad.faces.number_of_faces(self.shape))
+        self._face_widths[:n_horizontal_faces] = self.dx
+        self._face_widths[n_horizontal_faces:] = self.dy
         return self._face_widths
 
     def _unit_test(self):
