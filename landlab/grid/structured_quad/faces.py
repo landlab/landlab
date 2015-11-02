@@ -18,6 +18,13 @@ def number_of_faces(shape):
     --------
     >>> from landlab.grid.structured_quad.faces import number_of_faces
     >>> number_of_faces((3, 4))
-    17
+    7
     """
-    return links.number_of_links(shape)
+    if len(shape) != 2:
+        raise ValueError('shape must be size 2')
+
+    if min(shape) > 2:
+        return ((shape[0] - 1) * (shape[1] - 2) +
+                (shape[0] - 2) * (shape[1] - 1))
+    else:
+        return 0

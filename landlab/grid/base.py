@@ -561,8 +561,35 @@ class ModelGrid(ModelDataFields):
 
     @property
     def node_at_cell(self):
-        """Node ID associated with grid cells"""
+        """Node ID associated with grid cells.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.node_at_cell # doctest: +NORMALIZE_WHITESPACE
+        array([ 6,  7,  8,
+               11, 12, 13])
+        """
         return self._node_at_cell
+
+    @property
+    def cell_at_node(self):
+        """Node ID associated with grid cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> grid = RasterModelGrid((4, 5))
+        >>> ids = grid.cell_at_node
+        >>> ids[ids == BAD_INDEX_VALUE] = -1
+        >>> ids # doctest: +NORMALIZE_WHITESPACE
+        array([-1, -1, -1, -1, -1,
+               -1,  0,  1,  2, -1,
+               -1,  3,  4,  5, -1,
+               -1, -1, -1, -1, -1])
+        """
+        return self._cell_at_node
 
     @property
     @return_readonly_id_array
@@ -652,11 +679,6 @@ class ModelGrid(ModelDataFields):
         """Get array of nodes associated with core cells."""
         (core_cell_ids, ) = numpy.where(self._node_status == CORE_NODE)
         return core_cell_ids
-
-    @property
-    def core_cell_index_at_nodes(self):
-        """Get array of core cells associated with nodes."""
-        return self.node_corecell
 
     @property
     def core_cells(self):
@@ -1521,7 +1543,8 @@ class ModelGrid(ModelDataFields):
         node_net_unit_flux = self.calculate_flux_divergence_at_nodes(
             active_link_flux)
 
-        net_unit_flux = node_net_unit_flux[self.corecell_node]
+        node_at_core_cell = self.node_at_cell[self.core_cells]
+        net_unit_flux = node_net_unit_flux[node_at_core_cell]
 
         return net_unit_flux
 
@@ -1608,21 +1631,13 @@ class ModelGrid(ModelDataFields):
         self._forced_cell_areas = numpy.empty(self.number_of_nodes)
         mean_cell_area = numpy.mean(self.active_cell_areas)
         self._forced_cell_areas.fill(mean_cell_area)
-        cell_node_ids = self.get_active_cell_node_ids()
+        cell_node_ids = np.where(self.status_at_node != CLOSED_BOUNDARY)[0]
         try:
             self._forced_cell_areas[cell_node_ids] = self.cell_areas
         except AttributeError:
             # in the case of the Voronoi
             self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
         return self._forced_cell_areas
-
-    def get_active_cell_node_ids(self):
-        """Nodes of active cells.
-
-        Return an integer vector of the node IDs of all active (i.e., core +
-        open boundary) cells.
-        """
-        return self.activecell_node
 
     def get_active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.
@@ -1890,25 +1905,22 @@ class ModelGrid(ModelDataFields):
         * corecell_node *
         * active_cells
         * core_cells
-        * node_corecell
         * _boundary_nodes
+
+        Examples
+        --------
+        >>> import landlab
+        >>> grid = landlab.RasterModelGrid((4, 5))
+        >>> grid.status_at_node[7] = landlab.CLOSED_BOUNDARY
+        >>> grid.core_cells
+        array([0, 2, 3, 4, 5])
         """
-        self.activecell_node = as_id_array(
-            numpy.where(self._node_status != CLOSED_BOUNDARY)[0])
-        self.corecell_node = as_id_array(
-            numpy.where(self._node_status == CORE_NODE)[0])
-        self._num_core_cells = self.corecell_node.size
-        self._num_core_nodes = self._num_core_cells
-        self._num_active_nodes = self.activecell_node.size
-        self._num_active_cells = self._num_core_cells
-        self.active_cells = numpy.arange(self._num_active_cells)
-        self._core_cells = numpy.arange(self._num_core_cells)
-        self.node_corecell = numpy.empty(self.number_of_nodes, dtype=int)
-        self.node_corecell.fill(BAD_INDEX_VALUE)
-        self.node_corecell[self.corecell_node] = self._core_cells
-        self.node_activecell = numpy.empty(self.number_of_nodes, dtype=int)
-        self.node_activecell.fill(BAD_INDEX_VALUE)
-        self.node_activecell.flat[self.activecell_node] = self.active_cells
+        (self._core_nodes, ) = numpy.where(self._node_status == CORE_NODE)
+        self._num_core_nodes = self._core_nodes.size
+
+        self._core_cells = self.cell_at_node[self._core_nodes]
+        self._num_core_cells = self._core_cells.size
+
         self._boundary_nodes = as_id_array(
             numpy.where(self._node_status != CORE_NODE)[0])
 

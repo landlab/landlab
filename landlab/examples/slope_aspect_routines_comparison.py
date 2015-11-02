@@ -7,7 +7,7 @@
 from landlab import RasterModelGrid
 import matplotlib.pyplot as plt
 import numpy as np
-from landlab.plot.imshow import imshow_field, imshow_grid
+from landlab.plot.imshow import imshow_grid
 
 # Elevation_NS.npy is predetermined elevation profile that has
 # a North and a South facing slope with a flat valley in the middle
@@ -35,7 +35,7 @@ slope_NSP = grid.node_slopes_using_patches(elevs='Elevation', unit='degrees')
 
 pic = 0
 plt.figure(pic)
-imshow_field(grid, 'Elevation', values_at='node', grid_units=('m', 'm'))
+imshow_grid(grid, 'Elevation', values_at='node', grid_units=('m', 'm'))
 plt.title('Elevation in m')
 # plt.savefig('Elevation_NS')
 

@@ -30,8 +30,7 @@ so these values need not be passed in.  Elevationare eroded and sent back.
 
 """
 
-#import landlab
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import numpy as np
@@ -83,7 +82,7 @@ class PowerLawIncision(object):
         frac = self.frac
 
         #interior_nodes are the nodes on which you will be calculating incision
-        interior_nodes = grid.get_active_cell_node_ids()
+        interior_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
         #instantiate variable of type RouteFlowD8 Class
         flow_router = RouteFlowD8(len(z))

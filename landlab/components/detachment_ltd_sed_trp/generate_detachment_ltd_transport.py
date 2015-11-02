@@ -9,7 +9,7 @@ E = K*f(qs)*(A**m)*(S**n)
 
 """
 
-from landlab import Component, ModelParameterDictionary
+from landlab import Component, ModelParameterDictionary, CLOSED_BOUNDARY
 from landlab.components.flow_accum import flow_accumulation
 import pylab
 import numpy as np
@@ -64,7 +64,8 @@ this does not assume an erosion threshold (8/29/14).
         self.Q = q
         self.Q_to_m = self.Q**self.m
         self.S_to_n = self.slope**self.n
-        self.interior_nodes = self.rg.get_active_cell_node_ids()
+        self.interior_nodes = (
+            np.where(self.rg.status_at_node != CLOSED_BOUNDARY)[0])
 
         self.dzdt = self.U - (self.K*self.f_qs*self.Q_to_m*self.S_to_n)
 

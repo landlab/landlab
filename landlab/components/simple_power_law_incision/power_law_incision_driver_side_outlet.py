@@ -2,12 +2,13 @@ from __future__ import print_function
 
 import numpy as np
 import pylab
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from random import uniform
 from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
 from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import matplotlib.pyplot as plt
+
 
 def main():
     nr = 50
@@ -38,7 +39,7 @@ def main():
 
     #print "elevations before ", rg.node_vector_to_raster(z)
     #interior_nodes are the nodes on which you will be operating
-    interior_nodes = rg.get_active_cell_node_ids()
+    interior_nodes = np.where(rg.status_at_node != CLOSED_BOUNDARY)[0]
 
     while elapsed_time < total_run_time:
         #erode the landscape
