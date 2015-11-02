@@ -124,9 +124,13 @@ component.name 		          a string
 component.input_var_names 	  a set giving input field names
 component.output_var_names	  a set giving output field names
 component.var_units 		  a dict, with var_name keys
-component.var_mapping		  a dict with var_name keys, giving ‘node’, ‘link’, etc
-component.var_doc	          a dict with var_name keys, giving short descriptions
+component.var_grid_elements   a dict with var_name keys, giving ‘node’, ‘link’, etc
+component.var_definitions	  a dict with var_name keys, giving short descriptions
 ============================  ======================================================
+
+(NB: developers need to add to their component the internal properties used by these
+methods: _name, _input_var_names, _output_var_names, _var_units, _var_grid_elements,
+and _var_doc.)
 
 See `the tutorials <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.
 
