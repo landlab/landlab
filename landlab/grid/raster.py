@@ -11,7 +11,6 @@ from six.moves import range
 from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
 from landlab.utils import count_repeated_values
-from landlab.grid import structured_quad as squad
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
@@ -22,7 +21,9 @@ from landlab.field.scalar_data_fields import FieldError
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
-from landlab.grid.structured_quad import links
+from landlab.grid.structured_quad import links as squad_links
+from landlab.grid.structured_quad import faces as squad_faces
+from landlab.grid.structured_quad import cells as squad_cells
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import return_id_array
@@ -503,7 +504,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_links = sgrid.link_count(self.shape)
         self._num_active_links = sgrid.active_link_count(self.shape)
 
-        self._num_faces = squad.faces.number_of_faces(self.shape)
+        self._num_faces = squad_faces.number_of_faces(self.shape)
         self._num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
@@ -566,7 +567,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
         self._node_at_cell = sgrid.node_at_cell(self.shape)
-        self._cell_at_node = squad.cells.cell_id_at_nodes(
+        self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
@@ -3652,7 +3653,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
 
-        self._face_widths = np.empty(squad.faces.number_of_faces(self.shape))
+        self._face_widths = np.empty(squad_faces.number_of_faces(self.shape))
         self._face_widths[:n_horizontal_faces] = self.dx
         self._face_widths[n_horizontal_faces:] = self.dy
         return self._face_widths
@@ -4246,7 +4247,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             # Finding the link and node IDs along the bottom edge of the raster
             # grid.
-            bottom_edge = links.bottom_edge_vertical_ids(self.shape)
+            bottom_edge = squad_links.bottom_edge_vertical_ids(self.shape)
             bottom_nodes = self.bottom_edge_node_ids()
 
             # Set the node and link boundary statuses to
@@ -4262,7 +4263,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if right_is_fixed:
 
             # Find the IDs...
-            right_edge = links.right_edge_horizontal_ids(self.shape)
+            right_edge = squad_links.right_edge_horizontal_ids(self.shape)
             right_nodes = self.right_edge_node_ids()
 
             # Set the new boundary statuses
@@ -4276,7 +4277,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if top_is_fixed:
 
             # Find the IDs...
-            top_edge = links.top_edge_vertical_ids(self.shape)
+            top_edge = squad_links.top_edge_vertical_ids(self.shape)
             top_nodes = self.top_edge_node_ids()
 
             # Set the new boundary statuses
@@ -4290,7 +4291,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if left_is_fixed:
 
             # Find the IDs...
-            left_edge = links.left_edge_horizontal_ids(self.shape)
+            left_edge = squad_links.left_edge_horizontal_ids(self.shape)
             left_nodes = self.left_edge_node_ids()
 
             # Set the new boundary statuses
