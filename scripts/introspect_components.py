@@ -37,6 +37,9 @@ bad_components is a dict. The keys are again the filenames. The values are one
 of two strings: 'Component lacks std interface', or 'No class in file inherits
 from Component'.
 
+This script will ignore anything inside an examples subfolder inside the
+components folder.
+
 This file goes on to build a set of all field names used in named LL
 components, called 'all_field_names'. (If a component doesn't have a _name,
 its fields won't be included.)
@@ -81,6 +84,9 @@ total_props = len(props_to_strip)
 
 for LLcomp in poss_comp_files:
     # print LLcomp
+    if 'example' in LLcomp.lower():
+        print('Ignored ' + LLcomp)
+        continue
     found_a_name = False
     accumulated_props = set()
     for prop in props_to_strip_list:
