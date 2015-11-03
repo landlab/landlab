@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-"""
+"""Create mp4 animation of Landlab output.
+
 This component allows creation of mp4 animations of output from Landlab.
 It does so by stitching together output from the conventional Landlab
 static plotting routines from plot/imshow.py.
@@ -18,9 +19,9 @@ number of pixels (nodes) in the image not exceed XXXXXXXXX.
 
 Due to some issues with codecs in matplotlib, at the moment on .gif output
 movies are recommended. If this irritates you, you can modify your own
-PYTHONPATH to allow .mp4 compilation (try a google search for the warning raised
-by this method for some hints). These (known) issues are apparently likely to
-resolve themselves in a future release of matplotlib.
+PYTHONPATH to allow .mp4 compilation (try a google search for the warning
+raised by this method for some hints). These (known) issues are apparently
+likely to resolve themselves in a future release of matplotlib.
 """
 import six
 import numpy as np
@@ -31,32 +32,56 @@ from landlab.plot import imshow
 
 class VideoPlotter(object):
 
-    def __init__(self, grid, data_centering='node', start=None, stop=None, step=None):
+    """Create animations of landlab output."""
+
+    def __init__(self, grid, data_centering='node', start=None, stop=None,
+                 step=None):
+        """Create Landlab movies.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A RasterModelGrid.
+        data_centering : {'node', 'cell'}, optional
+            Where data are centered.
+        start : float, optional
+            Model time at which filming starts.
+        stop : float, optional
+            Model time at which filming stops.
+        step : float, optional
+            Model time frequency at which frames are made.
+        """
         self.initialize(grid, data_centering, start, stop, step)
 
     def initialize(self, grid, data_centering, start, stop, step):
-        """
+        """Set up the plotter.
+
         A copy of the grid is required.
 
         *data_centering* controls the type of data the video will be plotting.
 
-        It can be set to:
-            'node' (default)
-            'active_node'
-            'core_node'
-            'cell'
-            'active_cell'
+        It can be set to: `"node"` (default) or `"cell"`.
 
-        Start, stop, and step control when a frame is added. They are absolute
-        times in the model run. All are optional.
+        *start*, *stop,* and *step* control when a frame is added. They are
+        absolute times in the model run. All are optional.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A RasterModelGrid.
+        data_centering : {'node', 'cell'}, optional
+            Where data are centered.
+        start : float
+            Model time at which filming starts.
+        stop : float
+            Model time at which filming stops.
+        step : float
+            Model time frequency at which frames are made.
         """
-        options_for_data_centering = ['node',
-                                      'active_node',
-                                      'core_node',
-                                      'cell',
-                                      'active_cell']
+        options_for_data_centering = ['node', 'cell']
 
-        assert data_centering in options_for_data_centering, 'data_centering is not a valid type!'
+        if data_centering not in options_for_data_centering:
+            raise ValueError('data_centering not valid')
 
         self.grid = grid
         #self.image_list = []
@@ -75,25 +100,17 @@ class VideoPlotter(object):
         if data_centering == 'node':
             self.centering = 'n'
             self.plotfunc = imshow.imshow_node_grid
-        elif data_centering == 'active_node':
-            self.centering = 'n'
-            self.plotfunc = imshow.imshow_active_node_grid
-        elif data_centering == 'core_node':
-            self.centering = 'n'
-            self.plotfunc = imshow.imshow_core_node_grid
         elif data_centering == 'cell':
             self.centering = 'c'
             self.plotfunc = imshow.imshow_cell_grid
-        else:
-            self.centering = 'c'
-            self.plotfunc = imshow.imshow_active_cell_grid
 
-        self.randomized_name = "my_animation_" + \
-            str(int(np.random.random() * 10000))
+        self.randomized_name = ("my_animation_" +
+                                str(int(np.random.random() * 10000)))
         self.fig = plt.figure(self.randomized_name)  # randomized name
 
     def add_frame(self, grid, data, elapsed_t, **kwds):
-        """
+        """Add a frame to the video.
+
         data can be either the data to plot (nnodes, or appropriately lengthed
         numpy array), or a string for grid field access.
 
@@ -128,8 +145,8 @@ class VideoPlotter(object):
                            elapsed_t)
                 self.data_list.append(data_in.copy())
             else:
-                excess_fraction = normalized_elapsed_t % self.step_control_tuple[
-                    2]
+                excess_fraction = (normalized_elapsed_t %
+                                   self.step_control_tuple[2])
                 # Problems with rounding errors make this double check
                 # necessary
                 if excess_fraction < self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]):
@@ -139,17 +156,22 @@ class VideoPlotter(object):
                 self.last_remainder = excess_fraction
         self.last_t = elapsed_t
 
-    def produce_video(self, interval=200, repeat_delay=2000, filename='video_output.gif', override_min_max=None):
-        """
-        Finalize and save the video of the data.
+    def produce_video(self, interval=200, repeat_delay=2000,
+                      filename='video_output.gif', override_min_max=None):
+        """Finalize and save the video of the data.
 
-        interval and repeat_delay are the interval between frames and the repeat
-            delay before restart, both in milliseconds.
-        filename is the name of the file to save in the present working
-            directory. At present, only .gifs will implement reliably without
+        Parameters
+        ----------
+        interval : int, optional
+            Interval between frames in milliseconds.
+        repeat_delay : int, optional
+            Repeat delay before restart in milliseconds.
+        filename : str, optional
+            Name of the file to save in the present working directory. At
+            present, only *.gifs* will implement reliably without
             tweaking Python's PATHs.
-        override_min_max allows the user to set their own maximum and minimum
-            for the scale on the plot. Use a len-2 tuple, (min, max).
+        override_min_max : tuple of float
+            Minimum and maximum for the scale on the plot as (*min*, *max*).
         """
         six.print_("Assembling video output, may take a while...")
         plt.figure(self.randomized_name)
@@ -157,8 +179,10 @@ class VideoPlotter(object):
         if not override_min_max:
             self.min_limit = np.amin(self.data_list[0])
             self.max_limit = np.amax(self.data_list[0])
-            assert len(
-                self.data_list) > 1, 'You must include at least two frames to make an animation!'
+
+            if len(self.data_list) <= 1:
+                raise ValueError('Animation must have at least one frame.')
+
             # assumes there is more than one frame in the loop
             for i in self.data_list[1:]:
                 self.min_limit = min((self.min_limit, np.amin(i)))
@@ -167,10 +191,15 @@ class VideoPlotter(object):
             self.min_limit = override_min_max[0]
             self.max_limit = override_min_max[1]
 
-        self.fig.colorbar(self.plotfunc(self.grid, self.data_list[0], limits=(
-            self.min_limit, self.max_limit), allow_colorbar=False, **self.kwds))
-        ani = animation.FuncAnimation(self.fig, _make_image, frames=self._yield_image,
-                                      interval=interval, blit=True, repeat_delay=repeat_delay)
+        self.fig.colorbar(
+            self.plotfunc(self.grid, self.data_list[0],
+                          limits=(self.min_limit, self.max_limit),
+                          allow_colorbar=False, **self.kwds))
+
+        ani = animation.FuncAnimation(self.fig, _make_image,
+                                      frames=self._yield_image,
+                                      interval=interval, blit=True,
+                                      repeat_delay=repeat_delay)
         ani.save(filename, fps=1000. / interval)
         plt.close()
 
@@ -182,10 +211,12 @@ class VideoPlotter(object):
 
         for i in self.data_list:
             # yield self.grid.node_vector_to_raster(i)
-            yield (i, self.plotfunc, (self.min_limit, self.max_limit), self.grid, self.kwds)
+            yield (i, self.plotfunc, (self.min_limit, self.max_limit),
+                   self.grid, self.kwds)
 
     def clear_module(self):
-        """
+        """Clear internally held data.
+
         Wipe all internally held data that would cause trouble if module
         were to be rerun without being reinstantiated.
         """

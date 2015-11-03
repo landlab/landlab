@@ -153,9 +153,9 @@ def trace_fracture_through_grid(m, x0, y0, dx, dy):
     x = x0
     y = y0
 
-    while round(x)<size(m, 1) and round(y)<size(m, 0) \
-            and round(x)>=0 and round(y)>=0:
-        m[round(y),round(x)] = 1
+    while round(x) < size(m, 1) and round(y) < size(m, 0) \
+            and round(x) >= 0 and round(y) >= 0:
+        m[int(round(y)), int(round(x))] = 1
         x += dx
         y += dy
 
