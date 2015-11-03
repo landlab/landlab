@@ -79,13 +79,13 @@ class SPEroder(Component):
     _var_units = {'topographic__elevation': 'm',
                   'upstream_ID_order': '-',
                   'links_to_flow_receiver': '-',
-                  'drainage_area': 'm**2'
+                  'drainage_area': 'm**2',
                   'flow_receiver': '-'}
 
     _var_grid_elements = {'topographic__elevation': 'node',
                           'upstream_ID_order': 'node',
                           'links_to_flow_receiver': 'node',
-                          'drainage_area': 'node'
+                          'drainage_area': 'node',
                           'flow_receiver': 'node'}
 
     _var_doc = {
