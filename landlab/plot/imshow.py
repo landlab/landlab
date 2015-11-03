@@ -144,7 +144,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         if values.ndim != 2:
             raise ValueError('values must have ndim == 2')
 
-        y = np.arange(values.shape[0] + 1) * grid.dx - grid.dx * .5
+        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * .5
         x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
 
         kwds = dict(cmap=cmap)

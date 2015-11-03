@@ -83,8 +83,8 @@ class PerronNLDiffuse(object):
                        input_timestep(timestep_in) as part of your run
                        loop.''')
 
-        self._delta_x = grid.node_spacing
-        self._delta_y = self._delta_x
+        self._delta_x = grid.dx
+        self._delta_y = grid.dy
         self._one_over_delta_x = 1./self._delta_x
         self._one_over_delta_y = 1./self._delta_y
         self._one_over_delta_x_sqd = self._one_over_delta_x**2.
@@ -314,10 +314,11 @@ class PerronNLDiffuse(object):
         max_offset = numpy.nanmax(numpy.fabs(
             extended_elevs[:-1][node_neighbors] -
             extended_elevs[:-1].reshape((self.grid.number_of_nodes, 1))))
-        if max_offset > numpy.tan(self._S_crit) * self.grid.dx:
+        if max_offset > numpy.tan(self._S_crit) * min(self.grid.dx,
+                                                      self.grid.dy):
             # ^using S not tan(S) adds a buffer - but not appropriate
             self.internal_repeats = int(max_offset//(numpy.tan(self._S_crit) *
-                                        self.grid.dx)) + 1
+                                        min(self.grid.dx, self.grid.dy))) + 1
             # now we rig it so the actual timestep is an integer divisor
             # of T_in:
             self._delta_t = timestep_in / self.internal_repeats

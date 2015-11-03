@@ -310,6 +310,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> vals = rmg.add_zeros('active_link', 'vals')
     >>> vals.size
     14
+
+    A `RasterModelGrid` can have different node spacings in the *x* and *y*
+    directions.
+
+    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid.dy, grid.dx
+    (1.0, 2.0)
+    >>> grid.node_y # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., 0., 0., 0., 0.,
+            1., 1., 1., 1., 1.,
+            2., 2., 2., 2., 2.,
+            3., 3., 3., 3., 3.])
+    >>> grid.node_x # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.,
+            0., 2., 4., 6., 8.])
     """
 
     def __init__(self, *args, **kwds):
@@ -324,7 +341,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         shape : tuple of int
             Shape of the grid in nodes.
-        spacing : float, optional
+        spacing : tuple or float, optional
             Row and column node spacing.
         bc : dict, optional
             Edge boundary conditions.
@@ -359,7 +376,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Set number of nodes, and initialize if caller has given dimensions
         self._num_nodes = num_rows * num_cols
         if self.number_of_nodes > 0:
-            self._initialize(num_rows, num_cols, float(dx))
+            self._initialize(num_rows, num_cols, dx)
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -368,10 +385,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.looped_node_properties = {}
 
-    def _initialize(self, num_rows, num_cols, dx):
+    def _initialize(self, num_rows, num_cols, spacing):
         """Set up a raster grid.
 
-        Sets up a num_rows by num_cols grid with cell spacing dx and
+        Sets up a *num_rows* by *num_cols* grid with cell *spacing* and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
 
@@ -462,16 +479,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
                26])
         """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('RasterModelGrid._initialize(' + str(num_rows) + ', '
-                       + str(num_cols) + ', ' + str(dx) + ')')
+        if isinstance(spacing, float) or isinstance(spacing, int):
+            spacing = (spacing, spacing)
 
         # Basic info about raster size and shape
         self._nrows = num_rows
         self._ncols = num_cols
 
-        self._dx = dx
-        self.cellarea = dx * dx
+        self._dy, self._dx = float(spacing[0]), float(spacing[1])
+        self.cellarea = self._dy * self._dx
 
         self._num_nodes = sgrid.node_count(self.shape)
         self._num_active_nodes = self.number_of_nodes
@@ -517,7 +533,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (self._node_x, self._node_y) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dx, self._dx), (0., 0.))
+            (num_rows, num_cols), (self._dy, self._dx), (0., 0.))
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate
@@ -634,7 +650,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         It is not meant to be called manually.
         """
         self._cell_areas = np.empty(self.number_of_cells)
-        self._cell_areas.fill(self._dx ** 2)
+        self._cell_areas.fill(self._dy * self._dx)
         return self._cell_areas
 
     def _setup_cell_areas_array_force_inactive(self):
@@ -648,7 +664,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         It is not meant to be called manually.
         """
         self._forced_cell_areas = np.empty(self.number_of_nodes)
-        self._forced_cell_areas.fill(self._dx ** 2)
+        self._forced_cell_areas.fill(self._dy * self._dx)
         return self._forced_cell_areas
 
     @property
@@ -726,11 +742,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.dy
         1.0
-        >>> grid = RasterModelGrid(4, 5, 2.0)
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
         >>> grid.dy
         2.0
         """
-        return self._dx
+        return self._dy
 
     def node_links(self, *args):
         """node_links([node_ids])
@@ -1418,6 +1434,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5, 2.)
         >>> grid.get_grid_xdimension()
         8.0
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.get_grid_xdimension()
+        12.0
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
@@ -1444,9 +1464,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid(4, 5, 0.5)
         >>> grid.get_grid_ydimension()
         1.5
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.get_grid_ydimension()
+        6.0
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14, as above.
-        return ((self.number_of_node_rows - 1) * self._dx)
+        return ((self.number_of_node_rows - 1) * self._dy)
 
     @property
     def number_of_interior_nodes(self):
@@ -1595,6 +1619,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return 2 * self.number_of_patches
 
     @property
+    #@deprecated
     def node_spacing(self):
         """Spacing betweem node rows and columns.
 
@@ -1608,16 +1633,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.node_spacing
         3.0
         """
-        return self._dx
-
-    @property
-    def node_spacing_horizontal(self):
-        """Horizontal spacing, between columns."""
-        return self._dx
-
-    @property
-    def node_spacing_vertical(self):
-        """Vertical spacing, between rows."""
+        if self._dx != self._dy:
+            raise RuntimeError('dx and dy are not the same')
         return self._dx
 
     @property
@@ -1681,11 +1698,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         bool
             ``True`` if the point is on the grid. Otherwise, ``False``.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 1))
+        >>> grid.is_point_on_grid(1, 1)
+        True
+        >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
+        array([ True,  True, False], dtype=bool)
+        >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
+        array([False, True,  True, False], dtype=bool)
         """
-        x_condition = np.logical_and(np.less(0., xcoord), np.less(
-            xcoord, (self.get_grid_xdimension() - self._dx)))
-        y_condition = np.logical_and(np.less(0., ycoord), np.less(
-            ycoord, (self.get_grid_ydimension() - self._dx)))
+        xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
+
+        x_condition = (xcoord > 0.) & (xcoord < (self.shape[1] - 1) * self.dx)
+        y_condition = (ycoord > 0.) & (ycoord < (self.shape[0] - 1) * self.dy)
+
         if np.all(self._node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.right_edge_node_ids(self.shape)] == 3):
             try:
                 x_condition[:] = 1
@@ -1696,7 +1725,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 y_condition[:] = 1
             except:
                 y_condition = 1
-        return np.logical_and(x_condition, y_condition)
+
+        return x_condition & y_condition
 
     def get_nodes_around_point(self, xcoord, ycoord):
         """Get the nodes surrounding a point.
@@ -1732,18 +1762,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 8,  9],
                [ 9, 10],
                [ 5,  6]])
+
+        >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+        >>> grid.get_nodes_around_point(.5, 1.5)
+        array([0, 4, 5, 1])
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.get_nodes_around_point(.5, 1.5)
+        array([4, 8, 9, 5])
         """
         xcoord, ycoord = np.broadcast_arrays(xcoord, ycoord)
 
         # Method added 4/29/13 by DEJH, modified 9/24/13.
-        ID = (ycoord // self._dx * self.number_of_node_columns +
-              xcoord // self._dx)
+        id_ = (ycoord // self._dy * self.number_of_node_columns +
+               xcoord // self._dx)
         try:
-            ID = int(ID)
+            id_ = int(id_)
         except:
-            ID = as_id_array(ID)
-        return np.array([ID, ID + self.number_of_node_columns,
-                         ID + self.number_of_node_columns + 1, ID + 1])
+            id_ = as_id_array(id_)
+        return np.array([id_, id_ + self.number_of_node_columns,
+                         id_ + self.number_of_node_columns + 1, id_ + 1])
 
     def snap_coords_to_grid(self, xcoord, ycoord):
         """Snap coordinates to the nearest node.
@@ -1831,16 +1868,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Return the horizontal length of the shortest active link in the grid.
         Overrides :meth:`~.ModelGrid.min_active_link_length`.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.min_active_link_length()
+        2.0
         """
-        return self._dx
+        return np.min((self._dy, self._dx))
 
     def max_active_link_length(self):
         """Length of longest active link.
 
         Returns the horizontal length of the longest active link in the grid.
         Overrides ModelGrid.max_active_link_length().
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.max_active_link_length()
+        3.0
         """
-        return self._dx
+        return np.max((self._dy, self._dx))
 
     @property
     def link_length(self):
@@ -1880,17 +1931,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self._link_length
 
     def _calculate_link_length(self):
-        """Calculate link lengths for a raster grid."""
+        """Calculate link lengths for a raster grid.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        array([ 2., 2., 2., 2.,
+                2., 2., 2., 2.,
+                3., 3., 3.,
+                3., 3., 3.,
+                3., 3., 3.])
+        """
         if self._link_length is None:
+            n_vertical_links = (self.shape[0] - 1) * self.shape[1]
+            n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
             if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
-                self._link_length[:self.number_of_links] = self._dx
                 self._link_length[self.number_of_links:] = np.sqrt(
-                    2. * self._dx * self._dx)
+                    self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-                self._link_length.fill(self._dx)
+            self._link_length[:n_vertical_links] = self._dy
+            self._link_length[n_vertical_links:self.number_of_links] = self._dx
 
         return self._link_length
 
@@ -1977,6 +2042,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         D8 algorithm. Slopes downward from the cell are reported as positive.
 
         This doesn't deal with the fixed gradient boundary condition.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> import numpy as np
+
+        Create a grid with different row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(1, 2))
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 1., 1.,
+        ...               4., 2., 2., 2.])
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        9
+
+        Create a grid with equal row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4))
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        6
+
+        The maximum gradient can be to a diagonal node.
+
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 2., 2.,
+        ...               4., 2., 0., 2.])
+        >>> grid.find_node_in_direction_of_max_slope(z, 5)
+        10
         """
         # NMG Update.  This is super clumsy.
 
@@ -1999,10 +2092,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # if neighbor_cells[3]!=-1:
         diagonal_nodes.extend([neighbor_nodes[3] - 1, neighbor_nodes[3] + 1])
         slopes = []
-        diagonal_dx = np.sqrt(2.)
+        diagonal_len = np.sqrt(self.dx ** 2. + self.dy ** 2.)
         for a in neighbor_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / self.dx
+                if np.abs(node_id - a) == 1:
+                    link_len = self.dx
+                else:
+                    link_len = self.dy
+                single_slope = (u[node_id] - u[a]) / link_len
             else:
                 single_slope = -9999
             # This should no longer be necessary, but retained in case
@@ -2012,7 +2109,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 six.print_('NaNs present in the grid!')
         for a in diagonal_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / diagonal_dx
+                single_slope = (u[node_id] - u[a]) / diagonal_len
             else:
                 single_slope = -9999
             if not np.isnan(single_slope):
@@ -2059,6 +2156,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         D8 algorithm. Slopes downward from the cell are reported as positive.
 
         This doesn't deal with the fixed gradient boundary condition.
+
+        Examples
+        --------
+        >>> import landlab
+        >>> import numpy as np
+
+        Create a grid with different row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(1, 2))
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 1., 1.,
+        ...               4., 2., 2., 2.])
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        9
+
+        Create a grid with equal row and column spacing.
+
+        >>> grid = landlab.RasterModelGrid((3, 4))
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        6
+
+        The maximum gradient cannot be to a diagonal node.
+
+        >>> z = np.array([4., 4., 4., 4.,
+        ...               4., 4., 2., 2.,
+        ...               4., 4., 0., 2.])
+        >>> grid.find_node_in_direction_of_max_slope_d4(z, 5)
+        6
         """
         # NMG Update.  This is super clumsy.
 
@@ -2072,7 +2197,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         slopes = []
         for a in neighbor_nodes:
             if self._node_status[a] != CLOSED_BOUNDARY:
-                single_slope = (u[node_id] - u[a]) / self.dx
+                if np.abs(node_id - a) == 1:
+                    link_len = self.dx
+                else:
+                    link_len = self.dy
+                single_slope = (u[node_id] - u[a]) / link_len
             else:
                 single_slope = -9999
             # This should no longer be necessary, but retained in case
@@ -2562,499 +2691,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 'Switching a boundary between fixed gradient and looped will '
                 'result in bad BC handling! Bailing out...')
 
-    def set_fixed_gradient_boundaries(
-            self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
-            gradient_in=np.nan, gradient_of='topographic__elevation'):
-        """
-        *Deprecated(?)*.
-
-        .. deprecated:: 0.29
-            Use :func:`set_fixed_link_boundaries_at_grid_edges` instead
-
-        Create fixed gradient boundaries.
-
-        Handles boundary conditions by setting each of the four sides of the
-        rectangular grid to 'active (fixed gradient)' (==2) status.
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left are fixed gradient (True) or fixed value (False).
-
-        This method assumes you are storing the values on the grid as fields in
-        the grid object, e.g., as grid.at_node('my_values').
-
-        Parameters
-        ----------
-        bottom_is_fixed : boolean
-            Make bottom edge a fix-gradient boundary.
-        left_is_fixed : boolean
-            Make left edge a fix-gradient boundary.
-        top_is_fixed : boolean
-            Make top edge a fix-gradient boundary.
-        right_is_fixed : boolean
-            Make right edge a fix-gradient boundary.
-
-        Notes
-        -----
-
-        For a fixed gradient boundary:
-            - the nodes on the specified edges are flagged
-              FIXED_GRADIENT_BOUNDARY (== 2). Other edges are ignored, and
-              presumed to be set elsewhere.
-
-            - the links between them and the adjacent interior nodes are
-              active, but the links between each other are not. Corners are an
-              awkward special case; they do not have any active links, but when
-              boundary conditions are updated, each corner has a "pseudo-active"
-              link that connects to one of its edge neighbors that lets it
-              update (see examples below).
-
-            - the gradient is assumed by default to be the surface elevation,
-              and this is assumed to be named "topographic__elevation" in the
-              grid. If the gradient is in another surface, or the elevation
-              surface is named differently, you need to set 'gradient_of' equal
-              to the relevant string.
-              self.fixed_gradient_node_properties['fixed_gradient_of'] stores
-              this string for access elsewhere.
-
-            - The critical IDs and values relevant to the boundary conditions
-              are stored in two special dictionaries,
-                grid.fixed_gradient_link_properties, &
-                grid.fixed_gradient_node_properties.
-              The link dictionary stores the fixed gradients and the IDs of the
-              links these are defined on: 'boundary_link_gradients',
-              'boundary_link_IDs'.
-              The node dictionary stores the nodes on the boundary which are
-              fixed gradient, the nodes at the other end of the links from each
-              of these nodes, and the (fixed) value differences between these
-              two pairs of nodes: 'boundary_node_IDs', 'anchor_node_IDs',
-              'values_to_add'. These can be used to update the boundaries fast,
-              without needing to interrogate the links.
-
-            - if *gradient* is provided, either as a float or an as a iterable
-              of length number_of_boundary_nodes, then 'boundary_link_gradients'
-              is set equal to *gradient*, and all the other properties updated
-              using these values. If it is not, then this method will
-              attempt to access the link gradients and/or node elevations which
-              were already in the grid when the method was called (i.e., the
-              initial conditions), and use these to set the properties.
-              Remember, gradient is as a fractional slope, not radians or
-              degrees, and downslope gradients are negative!
-              If gradient is a negative float, this method will assume you mean
-              downslope flow out of all the edges of the grid.
-              If it is a positive float, the method will use this value and
-              incline the edges inwards, but will print a warning message that
-              it is doing so.
-              If you want some edges pointing in and some out, you'll need to
-              call the function more than once, or provide an array of values.
-
-            - If initial conditions are present in the grid ::and:: *gradient*
-              is set, *gradient* will override the initial conditions provided.
-
-            - if *gradient* is not provided (or is the wrong length), and
-              initial conditions have not yet been set, the method will raise an
-              exception.
-
-            - Note that the four corners are treated as follows:
-                * bottom left = BOTTOM
-                * bottom right = BOTTOM
-                * top right = TOP
-                * top left = TOP,
-              ...and the gradient on the link (if supplied) corresponds to the
-              link which points in the same direction as the rest of its edge
-              (i.e., the fixed gradient links of the bottom left and right
-              corners point up). This handling is necessary for internal
-              consistency with looped BCs.
-
-        Examples
-        --------
-        The following example sets all boundaries as fixed gradient in a
-        four-row by five-column grid, but does so three times. The first time,
-        initial conditions are allowed to set the fixed value. The second time,
-        this is overridden by setting *gradient* in the function call as a
-        constant. The third time, values are specified in an array:
-
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> import landlab.utils.structured_grid as sgrid
-        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
-        >>> rmg.number_of_active_links
-        17
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=int8)
-        >>> rmg.create_node_array_zeros('topographic__elevation')
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg['node']['topographic__elevation'] += 1.
-        >>> rmg['node']['topographic__elevation'][sgrid.boundary_nodes(rmg.shape)] = 0.8
-        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True) #first case
-        Fixed gradients will be set according to existing data in the grid...
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2],
-              dtype=int8)
-        >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
-        'topographic__elevation'
-        >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
-        array([ 0,  1,  2,  3,  4,  9, 14, 15, 16, 17, 18, 19,  5, 10])
-        >>> rmg.fixed_gradient_link_properties['boundary_link_IDs']
-        array([ 0,  1,  2,  3,  4, 22, 26, 10, 11, 12, 13, 14, 19, 23])
-        >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([ 0. ,  0.2,  0.2,  0.2,  0. , -0.2, -0.2,  0. , -0.2, -0.2, -0.2,
-                0. ,  0.2,  0.2])
-        >>> rmg.set_fixed_gradient_boundaries(True, True, True, True, -0.1,
-        ...     gradient_of='topographic__elevation') #second case
-        >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([ 0. ,  0.1,  0.1,  0.1,  0. , -0.1, -0.1,  0. , -0.1, -0.1, -0.1,
-                0. ,  0.1,  0.1])
-        >>> rmg['node']['topographic__elevation']
-        array([ 0.9,  0.9,  0.9,  0.9,  0.9,  0.9,  1. ,  1. ,  1. ,  0.9,  0.9,
-                1. ,  1. ,  1. ,  0.9,  0.9,  0.9,  0.9,  0.9,  0.9])
-
-        All boundaries end up with the same dip outwards. Note that the
-        corners have been automatically set with "true" gradients of 0., so
-        they mimic their edge neighbor. This is almost always what you want to
-        happen.
-
-        >>> import numpy as np
-        >>> # Remember these are in edge, then ID order, with the corners
-        >>> # attached to the other edges
-        >>> my_gradients = np.array([-0.5,-0.5,-0.5,-0.5,])
-        >>> rmg.set_fixed_gradient_boundaries(False, True, False, True,
-        ...     my_gradients) #third case
-        >>> rmg.fixed_gradient_link_properties['boundary_link_gradients']
-        array([-0.5, -0.5, -0.5, -0.5,  0.6,  0.1,  0.1,  0.1, -0.4, -0.6, -0.1,
-               -0.1, -0.1,  0.4])
-        >>> rmg.fixed_gradient_node_properties['boundary_node_IDs']
-        array([ 9, 14,  5, 10,  0,  1,  2,  3,  4, 15, 16, 17, 18, 19])
-        >>> rmg.fixed_gradient_node_properties['anchor_node_IDs']
-        array([ 8, 13,  6, 11,  6,  6,  7,  8,  8, 11, 11, 12, 13, 13])
-        >>> rmg.fixed_gradient_node_properties['values_to_add']
-        array([-0.5, -0.5,  0.5,  0.5, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1,
-               -0.1, -0.1, -0.1])
-        >>> rmg['node']['topographic__elevation']
-        array([ 0.9,  0.9,  0.9,  0.9,  0.9,  1.5,  1. ,  1. ,  1. ,  0.5,  1.5,
-                1. ,  1. ,  1. ,  0.5,  0.9,  0.9,  0.9,  0.9,  0.9])
-
-        i.e.::
-
-            0.9  0.9  0.9  0.9  0.9
-            1.5  1.   1.   1.   0.5
-            1.5  1.   1.   1.   0.5
-            0.9  0.9  0.9  0.9  0.9
-
-        Now note we can easily update these boundary conditions much faster:
-
-        >>> elevs = rmg['node']['topographic__elevation']
-        >>> updated_elevs = elevs
-        >>> updated_elevs[rmg.fixed_gradient_node_properties['boundary_node_IDs']] = updated_elevs[rmg.fixed_gradient_node_properties['anchor_node_IDs']] + rmg.fixed_gradient_node_properties['values_to_add']
-        >>> np.all(np.equal(elevs, updated_elevs))
-        True
-        """
-        # Added DEJH Jan 2014
-
-        bottom_edge = np.arange(0, self.number_of_node_columns)
-        right_edge = np.arange(2 * self.number_of_node_columns - 1,
-                               self.number_of_nodes - 1,
-                               self.number_of_node_columns)
-        top_edge = np.arange((self.number_of_node_rows - 1) *
-                             self.number_of_node_columns, self.number_of_nodes)
-        left_edge = np.arange(
-            self.number_of_node_columns,
-            self.number_of_nodes - self.number_of_node_columns,
-            self.number_of_node_columns)
-
-        fixed_gradient_nodes = np.array([], dtype=int)
-        fixed_gradient_linked_nodes = np.array([], dtype=int)
-        boundary_links = np.array([], dtype=int)
-        #fixed_gradient_values_to_add = np.array([], dtype=float)
-
-        if bottom_is_fixed:
-            self._node_status[bottom_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = np.concatenate(
-                (fixed_gradient_nodes, bottom_edge))
-            bottom_anchor_nodes = bottom_edge + self.number_of_node_columns
-            bottom_anchor_nodes[0] = bottom_edge[
-                1] + self.number_of_node_columns
-            bottom_anchor_nodes[-1] = bottom_edge[-2] + \
-                self.number_of_node_columns
-            fixed_gradient_linked_nodes = np.concatenate(
-                (fixed_gradient_linked_nodes, bottom_anchor_nodes))
-            bottom_links = self.node_links(bottom_edge)[2, :]
-            boundary_links = np.concatenate((boundary_links, bottom_links))
-        if right_is_fixed:
-            self._node_status[right_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = np.concatenate(
-                (fixed_gradient_nodes, right_edge))
-            right_anchor_nodes = right_edge - 1
-            fixed_gradient_linked_nodes = np.concatenate(
-                (fixed_gradient_linked_nodes, right_anchor_nodes))
-            right_links = self.node_links(right_edge)[1, :]
-            boundary_links = np.concatenate((boundary_links, right_links))
-        if top_is_fixed:
-            self._node_status[top_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = np.concatenate(
-                (fixed_gradient_nodes, top_edge))
-            top_anchor_nodes = top_edge - self.number_of_node_columns
-            top_anchor_nodes[0] = top_edge[1] - self.number_of_node_columns
-            top_anchor_nodes[-1] = top_edge[-2] - self.number_of_node_columns
-            fixed_gradient_linked_nodes = np.concatenate(
-                (fixed_gradient_linked_nodes, top_anchor_nodes))
-            top_links = self.node_links(top_edge)[0, :]
-            boundary_links = np.concatenate((boundary_links, top_links))
-        if left_is_fixed:
-            self._node_status[left_edge] = FIXED_GRADIENT_BOUNDARY
-            fixed_gradient_nodes = np.concatenate(
-                (fixed_gradient_nodes, left_edge))
-            left_anchor_nodes = left_edge + 1
-            fixed_gradient_linked_nodes = np.concatenate(
-                (fixed_gradient_linked_nodes, left_anchor_nodes))
-            left_links = self.node_links(left_edge)[3, :]
-            boundary_links = np.concatenate((boundary_links, left_links))
-
-        self.update_links_nodes_cells_to_new_BCs()
-
-        try:
-            no_val_provided = np.all(np.isnan(gradient_in))
-        except:
-            no_val_provided = False
-        if no_val_provided:
-            # Set the gradients by reference to existing data on grid
-            six.print_('Fixed gradients will be set according to existing '
-                       'data in the grid...')
-
-            # this grid func gives slopes UP as positive
-            fixed_gradient_array = self.calculate_gradients_at_links(
-                self['node'][gradient_of])[boundary_links]
-            fixed_gradient_values_to_add = (
-                self['node'][gradient_of][fixed_gradient_nodes] -
-                self['node'][gradient_of][fixed_gradient_linked_nodes])
-        else:
-            try:
-                fixed_gradient = float(gradient_in)
-            except:
-                try:
-                    # an iterable of gradients was supplied
-                    fixed_gradient_array = np.array(gradient_in)
-                except TypeError:
-                    raise TypeError(
-                        'The supplied gradient parameter must be a single '
-                        'number or iterable of length '
-                        'number_of_fixed_gradient_nodes')
-                self.force_boundaries_from_gradients(
-                    boundary_links, fixed_gradient_array, gradient_of)
-                fixed_gradient_values_to_add = (
-                    self['node'][gradient_of][fixed_gradient_nodes] -
-                    self['node'][gradient_of][fixed_gradient_linked_nodes])
-            else:
-                if fixed_gradient > 0.:
-                    six.print_(
-                        '**********************************************')
-                    six.print_(
-                        '*** You supplied a positive gradient value. **')
-                    six.print_(
-                        '* Did you remember gradients are positive up? ')
-                    six.print_(
-                        '**********************************************')
-
-                # the supplied gradient was a single number
-                fixed_gradient_array = np.array([], dtype=float)
-                if bottom_is_fixed:
-                    bottom_fixed_gradients = np.ones(
-                        bottom_edge.size, dtype=float) * -fixed_gradient
-                    # force the corner gradient:
-                    bottom_fixed_gradients[0] = 0.
-                    bottom_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = np.concatenate(
-                        (fixed_gradient_array, bottom_fixed_gradients))
-                if right_is_fixed:
-                    right_fixed_gradients = np.ones(
-                        right_edge.size, dtype=float) * fixed_gradient
-                    #right_fixed_gradients[0] = 0.
-                    fixed_gradient_array = np.concatenate(
-                        (fixed_gradient_array, right_fixed_gradients))
-                if top_is_fixed:
-                    top_fixed_gradients = np.ones(
-                        top_edge.size, dtype=float) * fixed_gradient
-                    top_fixed_gradients[0] = 0.
-                    top_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = np.concatenate(
-                        (fixed_gradient_array, top_fixed_gradients))
-                if left_is_fixed:
-                    left_fixed_gradients = np.ones(
-                        left_edge.size, dtype=float) * -fixed_gradient
-                    #left_fixed_gradients[-1] = 0.
-                    fixed_gradient_array = np.concatenate(
-                        (fixed_gradient_array, left_fixed_gradients))
-                self.force_boundaries_from_gradients(
-                    boundary_links, fixed_gradient_array, gradient_of)
-                fixed_gradient_values_to_add = (
-                    self['node'][gradient_of][fixed_gradient_nodes] -
-                    self['node'][gradient_of][fixed_gradient_linked_nodes])
-
-        # Now we need to save the various fixed_gradient property arrays to the
-        # grid, but making sure we don't duplicate any entries that might already
-        # be in there from a previous (diff constant gradient?) run of this
-        # method...
-        try:
-            self.fixed_gradient_node_properties['boundary_node_IDs']
-        except AttributeError:
-            # easy case; there's nothing there already
-            self.fixed_gradient_node_properties = {}
-            self.fixed_gradient_link_properties = {}
-            self.fixed_gradient_node_properties[
-                'fixed_gradient_of'] = gradient_of
-            self.fixed_gradient_node_properties[
-                'boundary_node_IDs'] = as_id_array(fixed_gradient_nodes)
-            self.fixed_gradient_node_properties[
-                'anchor_node_IDs'] = as_id_array(fixed_gradient_linked_nodes)
-            self.fixed_gradient_node_properties[
-                'values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties[
-                'boundary_link_IDs'] = as_id_array(boundary_links)
-            # Update the link gradients over whole grid, as if there's values
-            # in the grid already, there could be compatibility issues...
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = (
-                self.calculate_gradients_at_links(
-                    self['node'][gradient_of])[boundary_links])
-
-        else:
-            # there's something in there, which we need to merge with, and
-            # overwrite some entries of if appropriate.
-            if self.fixed_gradient_node_properties['fixed_gradient_of'] != gradient_of:
-                # need to sort this ASAP...
-                raise ValueError(
-                    'At the moment, you have to define all your boundaries '
-                    'on the same set of values!')
-                # ...We probably want the syntax to be
-                # rmg.BCs['process_module']['node'][gradient_of] as AN OBJECT,
-                # to which we can pin these properties
-            # The fixed_gradient_nodes should be uniquely defined...
-            unrepeated_node_entries = np.logical_not(np.in1d(
-                self.fixed_gradient_node_properties['boundary_node_IDs'],
-                fixed_gradient_nodes))
-            unrepeated_link_entries = np.logical_not(np.in1d(
-                self.fixed_gradient_link_properties['boundary_link_IDs'],
-                boundary_links))
-            fixed_gradient_array = np.concatenate(
-                (fixed_gradient_array,
-                 self.fixed_gradient_link_properties['boundary_link_gradients'][unrepeated_link_entries]))
-            boundary_links = np.concatenate(
-                (boundary_links,
-                 self.fixed_gradient_link_properties['boundary_link_IDs'][unrepeated_link_entries]))
-            fixed_gradient_nodes = np.concatenate(
-                (fixed_gradient_nodes,
-                 self.fixed_gradient_node_properties['boundary_node_IDs'][unrepeated_node_entries]))
-            fixed_gradient_linked_nodes = np.concatenate(
-                (fixed_gradient_linked_nodes,
-                 self.fixed_gradient_node_properties['anchor_node_IDs'][unrepeated_node_entries]))
-            fixed_gradient_values_to_add = np.concatenate(
-                (fixed_gradient_values_to_add,
-                 self.fixed_gradient_node_properties['values_to_add'][unrepeated_node_entries]))
-
-            if np.any(self._node_status[fixed_gradient_nodes] == 3):
-                raise AttributeError(
-                    'Switching a boundary between fixed gradient and looped '
-                    'will result in bad BC handling! Bailing out...')
-
-            self.fixed_gradient_node_properties = {}
-            self.fixed_gradient_link_properties = {}
-            self.fixed_gradient_node_properties[
-                'fixed_gradient_of'] = gradient_of
-            self.fixed_gradient_node_properties[
-                'boundary_node_IDs'] = as_id_array(fixed_gradient_nodes)
-            self.fixed_gradient_node_properties[
-                'anchor_node_IDs'] = as_id_array(fixed_gradient_linked_nodes)
-            self.fixed_gradient_node_properties[
-                'values_to_add'] = fixed_gradient_values_to_add
-            self.fixed_gradient_link_properties[
-                'boundary_link_IDs'] = as_id_array(boundary_links)
-            # Update the link gradients over whole grid, as if there's values
-            # in the grid already, there could be compatibility issues...
-            self.fixed_gradient_link_properties['boundary_link_gradients'] = (
-                self.calculate_gradients_at_links(
-                    self['node'][gradient_of])[boundary_links])
-
-    def force_boundaries_from_gradients(self, link_IDs, link_gradients,
-                                        value='topographic__elevation'):
-        """Set values of fixed-gradient boundaries.
-
-        Calculates and updates new values at the boundary nodes of a grid, when
-        provided with a list of fixed gradient link IDs, and the fixed values
-        of the gradients on these links.
-
-        The "value" flag specifies which kind of data (e.g., elevation) the
-        gradients refer to.
-
-        This method follows the convention POSITIVE GRADIENT IS UP.
-
-        The routine will automatically test to ensure the provided links are
-        boundary links, and will raise an exception if they aren't. It is
-        clever enough to distinguish for itself if any of the links provided
-        are corner links (i.e., joining an edge node to a corner node). In
-        such cases, the values of the corner nodes are updated *last*, such
-        that the edge nodes they refer to have already been updated.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 4, 1.0) # rows, columns, spacing
-        >>> rmg.create_node_array_zeros('topographic__elevation')
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg['node']['topographic__elevation'] += 2.
-        >>> rmg.force_boundaries_from_gradients(
-        ...     np.array([  0,  1,  2,  5,  6,  7, 10, 11, 13, 14]),
-        ...     np.array([ 0., 1., 1.,-1.,-1., 0., 0., 1.,-1., 0.]))
-        >>> rmg['node']['topographic__elevation']
-        array([ 1.,  1.,  1.,  1.,  1.,  2.,  2.,  1.,  1.,  1.,  1.,  1.])
-        >>> rmg.force_boundaries_from_gradients(np.array([ 11, 13]),
-        ...     np.array([-2.,-2.]))
-        >>> rmg['node']['topographic__elevation']
-        array([ 1.,  1.,  1.,  1.,  4.,  2.,  2.,  0.,  1.,  1.,  1.,  1.])
-
-        ...and now we demonstrate an exception if an interior link is included:
-
-        >>> rmg.force_boundaries_from_gradients(np.array([ 12, 13]),
-        ...     np.array([-2.,-2.])) # doctest: +NORMALIZE_WHITESPACE
-        Traceback (most recent call last):
-            ...
-        ValueError: One or more of the supplied links was neither an edge
-                    link, nor a link to a corner!
-        """
-        # determine the grid corners. This method has to be clever enough to
-        # realize when it's been given them!
-        corner_nodes = self.corner_nodes
-        tonodes = self.node_at_link_head[link_IDs]
-        fromnodes = self.node_at_link_tail[link_IDs]
-        tonode_boundaries = self._node_status[tonodes] != 0
-        fromnode_boundaries = self._node_status[fromnodes] != 0
-        edge_links = np.logical_xor(tonode_boundaries, fromnode_boundaries)
-        edge_tonode_boundaries = np.logical_and(tonode_boundaries, edge_links)
-        edge_fromnode_boundaries = np.logical_and(
-            fromnode_boundaries, edge_links)
-        self['node'][value][tonodes[edge_tonode_boundaries]] = (
-            self['node'][value][fromnodes[edge_tonode_boundaries]] +
-            link_gradients[edge_tonode_boundaries] * self.dx)
-        self['node'][value][fromnodes[edge_fromnode_boundaries]] = (
-            self['node'][value][tonodes[edge_fromnode_boundaries]] -
-            link_gradients[edge_fromnode_boundaries] * self.dx)
-
-        if not np.all(edge_links):
-            corner_links = np.logical_not(edge_links)
-            tonode_is_corner = np.in1d(tonodes[corner_links], corner_nodes)
-            fromnode_is_corner = np.in1d(
-                fromnodes[np.logical_not(edge_links)], corner_nodes)
-            if not np.all(np.logical_xor(tonode_is_corner,
-                                         fromnode_is_corner)):
-                raise ValueError(
-                    'One or more of the supplied links was neither an edge '
-                    'link, nor a link to a corner!')
-            self['node'][value][(tonodes[corner_links])[tonode_is_corner]] = (
-                self['node'][value][(fromnodes[corner_links])[tonode_is_corner]] +
-                (link_gradients[corner_links])[tonode_is_corner] * self.dx)
-            self['node'][value][(fromnodes[corner_links])[fromnode_is_corner]] = (
-                self['node'][value][(tonodes[corner_links])[fromnode_is_corner]] -
-                (link_gradients[corner_links])[fromnode_is_corner] * self.dx)
-
     def set_noflux_boundaries(self, bottom, left, top, right, bc=None):
         """Set no-flux boundaries.
 
@@ -3172,22 +2808,57 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # no fixed grad boundaries have been set
             pass
 
-    def calculate_gradients_at_d8_active_links(self, node_values, out=None):
+    def calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 
         .. deprecated:: 0.1
             Use :func:`calculate_gradient_across_cell_faces`
                     or :func:`calculate_gradient_across_cell_corners` instead
-        """
 
-        diag_dist = 1.4142 * self._dx
-        straight_link_slopes = (
-            (node_values[self.activelink_tonode] -
-             node_values[self.activelink_fromnode]) / self._dx)
+        Parameters
+        ----------
+        node_values : ndarray
+            Values at nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid 
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> z = np.array([3., 3., 3., 3.,
+        ...               3., 3., 0., 0.,
+        ...               3., 0., 0., 0.])
+        >>> grid.calculate_gradients_at_d8_active_links(z)
+        ...     # doctest: +NORMALIZE_WHITESPACE
+        array([ 0. , -1.  ,  -1. ,  0.  , 0. , -0.75, 0. ,
+                0. , -0.6 ,   0. , -0.6 , 0. , -0.6 , 0. , 0. ])
+        """
+        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
+
+        n_vertical_links = (self.shape[0] - 1) * self.shape[1]
+        n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
+
+        (active_links, _, _) = self.d8_active_links()
+        vertical_links = np.where(active_links < n_vertical_links)
+        horizontal_links = np.where(
+            (active_links >= n_vertical_links) &
+            (active_links < n_vertical_links + n_horizontal_links))
+
+        vertical_link_slopes = (
+            node_values[self.activelink_tonode[vertical_links]] -
+            node_values[self.activelink_fromnode[vertical_links]]
+        ) / self.dy
+        horizontal_link_slopes = (
+            node_values[self.activelink_tonode[horizontal_links]] -
+            node_values[self.activelink_fromnode[horizontal_links]]
+        ) / self.dx
+
         diagonal_link_slopes = (
             (node_values[self._diag_activelink_tonode] -
              node_values[self._diag_activelink_fromnode]) / diag_dist)
-        return np.concatenate((straight_link_slopes, diagonal_link_slopes))
+
+        return np.concatenate((vertical_link_slopes, horizontal_link_slopes,
+                               diagonal_link_slopes))
 
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
@@ -3210,6 +2881,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Method will currently preferentially route flow according the priority
         scheme [N, E, S, W, NE, NW, SW, SE] for the equal height nodes in
         these cases.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> z = np.array([9., 0., 9.,
+        ...               9., 3., 9.,
+        ...               6., 9., 6.])
+        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grads = grid.calculate_gradients_at_active_links(z)
+        >>> max_grad, dest_node = (
+        ...     grid.calculate_steepest_descent_on_nodes(z, grads))
+        >>> max_grad # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.2, -0. ,  1.2,
+                1.8,  1. ,  1.8,
+                0.6,  2. ,  0.6])
+        >>> dest_node # doctest: +NORMALIZE_WHITESPACE
+        array([ 4, -1,  4,
+                1,  1,  1,
+                4,  4,  4])
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
@@ -3254,8 +2945,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         slopes_diagonal_nodes = (
             ((elevs[diagonal_nodes]) - np.tile(elevs_in, (4, 1))) /
-            (1.41421356 * self.dx))
-
+            np.sqrt(self.dy ** 2. + self.dx ** 2.))
         # Debug:
         gradients_all_nodes = np.vstack((node_links, slopes_diagonal_nodes))
         # The ordering of this array is now [N, E, S, W, NE, NW, SW, SE][:].
@@ -3347,11 +3037,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             six.print_('q: ' + q[self.faces[id, 0:4]])
 
         fd = (
-            - (q[self.faces[id, 2]] + # left face (positive=in)
-               q[self.faces[id, 3]]) + # bottom face (positive=in)
-            q[self.faces[id, 0]] + # right face (positive=out)
-            q[self.faces[id, 1]] # top face (positive=out)
-        ) / self._dx
+            (q[self.faces[id, 0]] - q[self.faces[id, 2]]) / self.dx +
+            (q[self.faces[id, 1]] - q[self.faces[id, 3]]) / self.dy
+        )
 
         return fd
 
@@ -4139,7 +3827,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         dz_dx = ((top_right + 2 * right + bottom_right) -
                  (top_left + 2 * left + bottom_left)) / (8. * self._dx)
         dz_dy = ((bottom_left + 2 * bottom + bottom_right) -
-                 (top_left + 2 * top + top_right)) / (8. * self._dx)
+                 (top_left + 2 * top + top_right)) / (8. * self._dy)
 
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)

@@ -38,12 +38,12 @@ class DepressionFinderAndRouter(Component):
     once the fill is performed. Those named "lake" return the unique lakes
     created by the fill, and are probably the properties most users will
     want.
-    
+
     Note also that the structure of drainage within the lakes is not
     guaranteed, and in particular, may not be symmetrical even if your
     boundary conditions are.
     However, the outputs from the lake will all still be correct.
-    
+
     Note the routing part of this component is not yet compatible with
     irregular grids.
     """
@@ -179,14 +179,24 @@ class DepressionFinderAndRouter(Component):
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
         self._node_nbrs = self._grid.get_neighbor_list()
+        dx = self._grid.dx
+        dy = self._grid.dy
         if self._D8:
             diag_nbrs = self._grid.get_diagonal_list()
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
-            self._link_lengths = np.ones(8, dtype=float)
-            self._link_lengths[4:].fill(np.sqrt(2.))
+            self._link_lengths = np.empty(8, dtype=float)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
+            self._link_lengths[4:].fill(np.sqrt(dx*dx + dy*dy))
         elif ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
-            (self._routing is 'D4')):
-            self._link_lengths = np.ones(4, dtype=float)
+                (self._routing is 'D4')):
+            self._link_lengths = np.empty(4, dtype=float)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
         else:
             self._link_lengths = self._grid.link_length
         self._lake_outlets = []  # a list of each unique lake outlet
@@ -671,14 +681,15 @@ class DepressionFinderAndRouter(Component):
                     self._grid.get_diagonal_list(
                     outlet_node)))
             else:
-                outlet_neighbors = self._grid.get_neighbor_list(outlet_node).copy()
+                outlet_neighbors = self._grid.get_neighbor_list(
+                    outlet_node).copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0
             outlet_neighbors[inlake] = -1
             unique_outs, unique_indxs = np.unique(outlet_neighbors,
                                                   return_index=True)
             out_draining = unique_outs[1:]
-            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if isinstance(self._grid, landlab.grid.raster.RasterModelGrid):
                 link_l = self._link_lengths
             else:  # Voronoi
                 link_l = self._link_lengths[self._grid.node_links[:,
