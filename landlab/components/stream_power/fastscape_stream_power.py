@@ -8,17 +8,19 @@ from __future__ import print_function
 
 import numpy
 from landlab import ModelParameterDictionary, Component
-from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
+from landlab.core.model_parameter_dictionary import (MissingKeyError,
+                                                     ParameterValueError)
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton, fsolve
 
-
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
+
 
 class SPEroder(Component):
     '''
-    This class uses the Braun-Willett Fastscape approach to calculate the amount
-    of erosion at each node in a grid, following a stream power framework.
+    This class uses the Braun-Willett Fastscape approach to calculate the
+    amount of erosion at each node in a grid, following a stream power
+    framework.
 
     On initialization, it takes *grid*, a reference to a ModelGrid, and
     *input_stream*, a string giving the filename (and optionally, path) of the
@@ -54,20 +56,57 @@ class SPEroder(Component):
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
 
-    If dt is not supplied, you must call gear_timestep(dt_in, rain_intensity_in)
-    each iteration to set these variables on-the-fly (rainfall_intensity will be
-    overridden if supplied in the input file).
+    If dt is not supplied in the input file, you must call
+    gear_timestep(dt_in, rain_intensity_in) each iteration to set these
+    variables on-the-fly (rainfall_intensity will be overridden if supplied in
+    the input file).
     If dt is supplied but rainfall_intensity is not, the module will assume you
     mean r_i = 1.
 
     The primary method of this class is :func:`erode`.
     '''
 
+    _name = 'SPEroder'
+
+    _input_var_names = set(['topographic__elevation',
+                            'upstream_ID_order',
+                            'links_to_flow_receiver',
+                            'drainage_area',
+                            'flow_receiver'])
+
+    _output_var_names = set(['topographic__elevation', ])
+
+    _var_units = {'topographic__elevation': 'm',
+                  'upstream_ID_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'drainage_area': 'm**2'
+                  'flow_receiver': '-'}
+
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'upstream_ID_order': 'node',
+                          'links_to_flow_receiver': 'node',
+                          'drainage_area': 'node'
+                          'flow_receiver': 'node'}
+
+    _var_doc = {
+        'topographic__elevation': 'Surface topographic elevation',
+        'upstream_ID_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+                'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        "drainage_area":
+            ("Upstream accumulated surface area contributing to the node's " +
+                "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)')}
+
     def __init__(self, grid, input_stream):
         self.grid = grid
         inputs = ModelParameterDictionary(input_stream)
 
-        #User sets:
+        # User sets:
         try:
             self.K = inputs.read_float('K_sp')
         except ParameterValueError:
@@ -82,8 +121,11 @@ class SPEroder(Component):
             self.n = 1.
         try:
             self.dt = inputs.read_float('dt')
-        except: #if dt isn't supplied, it must be set by another module, so look in the grid
-            print('Set dynamic timestep from the grid. You must call gear_timestep() to set dt each iteration.')
+        except:
+            # if dt isn't supplied, it must be set by another module, so look
+            # in the grid
+            print('Set dynamic timestep from the grid. You must call ' +
+                  'gear_timestep() to set dt each iteration.')
         try:
             self.r_i = inputs.read_float('rainfall_intensity')
         except:
@@ -92,28 +134,42 @@ class SPEroder(Component):
             self.value_field = inputs.read_str('value_field')
         except:
             self.value_field = 'topographic__elevation'
+        else:
+            for mysets in (self._input_var_names, self._output_var_names):
+                mysets.remove('topographic__elevation')
+                mysets.add(self.value_field)
+            for mydicts in (self._var_units, self._var_grid_elements,
+                            self._var_doc):
+                mydicts[self.value_field] = \
+                    mydicts.pop('topographic__elevation')
 
-        #make storage variables
+        # make storage variables
         self.A_to_the_m = grid.create_node_array_zeros()
         self.alpha = grid.empty(centering='node')
-        self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
+        self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
+                                                                    self.alpha)
 
-        self.grid.diagonal_links_at_node() #calculates the number of diagonal links
+        self.grid.diagonal_links_at_node()
+        # ^calculates the number of diagonal links
 
         if self.n != 1.:
-            #raise ValueError('The Braun Willett stream power algorithm requires n==1. at the moment, sorry...')
             self.nonlinear_flag = True
-            if self.n<1.:
-                print("***WARNING: With n<1 performance of the Fastscape algorithm is slow!***")
+            if self.n < 1.:
+                print("***WARNING: With n<1 performance of the Fastscape " +
+                      "algorithm is slow!***")
         else:
             self.nonlinear_flag = False
 
-        def func_for_newton(x, last_step_elev, receiver_elev, alpha_by_flow_link_lengthtothenless1, n):
-            y = x - last_step_elev + alpha_by_flow_link_lengthtothenless1*(x-receiver_elev)**n
+        def func_for_newton(x, last_step_elev, receiver_elev,
+                            alpha_by_flow_link_lengthtothenless1, n):
+            y = x - last_step_elev + (alpha_by_flow_link_lengthtothenless1 *
+                                      (x-receiver_elev)**n)
             return y
 
-        def func_for_newton_diff(x, last_step_elev, receiver_elev, alpha_by_flow_link_lengthtothenless1, n):
-            y = 1. + n*alpha_by_flow_link_lengthtothenless1*(x-receiver_elev)**(n-1.)
+        def func_for_newton_diff(x, last_step_elev, receiver_elev,
+                                 alpha_by_flow_link_lengthtothenless1, n):
+            y = 1. + (n * alpha_by_flow_link_lengthtothenless1 *
+                      (x-receiver_elev)**(n-1.))
             return y
 
         self.func_for_newton = func_for_newton
@@ -125,12 +181,12 @@ class SPEroder(Component):
             self.r_i = rainfall_intensity_in
         return self.dt, self.r_i
 
-
     def erode(self, grid_in, dt=None, K_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
-        be stable against larger timesteps than an explicit stream power scheme.
+        be stable against larger timesteps than an explicit stream power
+        scheme.
 
         The method takes *grid*, a reference to the model grid.
         Set 'K_if_used' as a field name or nnodes-long array if you set K_sp as
@@ -142,33 +198,27 @@ class SPEroder(Component):
         if dt:
             self.dt = dt
 
-        #self.grid = grid_in #the variables must be stored internally to the grid, in fields
         upstream_order_IDs = self.grid['node']['upstream_ID_order']
-        #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
-        #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
         z = self.grid['node'][self.value_field]
-        #interior_nodes = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'], -1)
-        #interior_nodes = (self.grid['node']['links_to_flow_receiver'][upstream_order_IDs])[nonboundaries]
-        #flow_link_lengths = self.grid.link_length[interior_nodes]
-        ##defined_flow_receivers = numpy.greater_equal(self.grid['node']['links_to_flow_receiver'],-1)
-        defined_flow_receivers = numpy.not_equal(self.grid['node']['links_to_flow_receiver'],UNDEFINED_INDEX)
-        #flow_link_lengths = numpy.zeros_like(self.alpha)
-        flow_link_lengths = self.grid.link_length[self.grid['node']['links_to_flow_receiver'][defined_flow_receivers]]
+        links_to_receiver = self.grid.at_node['links_to_flow_receiver']
+        defined_receivers = numpy.not_equal(links_to_receiver,
+                                            UNDEFINED_INDEX)
+        flow_link_lengths = self.grid.link_length[links_to_receiver[
+                                                  defined_receivers]]
 
-        if K_if_used!=None:
-            assert self.use_K, "An array of erodabilities was provided, but you didn't set K_sp to 'array' in your input file! Aborting..."
+        if K_if_used is not None:
+            assert self.use_K, ("An array of erodabilities was provided, " +
+                                "but you didn't set K_sp to 'array' in your " +
+                                "input file! Aborting...")
             try:
-                self.K = self.grid.at_node[K_if_used][defined_flow_receivers]
+                self.K = self.grid.at_node[K_if_used][defined_receivers]
             except TypeError:
-                self.K = K_if_used[defined_flow_receivers]
+                self.K = K_if_used[defined_receivers]
 
-        #regular_links = numpy.less(self.grid['node']['links_to_flow_receiver'][defined_flow_receivers],self.grid.number_of_links)
-        #flow_link_lengths[defined_flow_receivers][regular_links] = self.grid.link_length[(self.grid['node']['links_to_flow_receiver'])[defined_flow_receivers][regular_links]]
-        #diagonal_links = numpy.logical_not(regular_links)
-        #flow_link_lengths[defined_flow_receivers][diagonal_links] = numpy.sqrt(self.grid.node_spacing*self.grid.node_spacing)
-        numpy.power(self.grid['node']['drainage_area'], self.m, out=self.A_to_the_m)
-        #self.alpha[nonboundaries] = self.K * self.dt * self.A_to_the_m[nonboundaries] / flow_link_lengths
-        self.alpha[defined_flow_receivers] = self.r_i**self.m * self.K * self.dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+        numpy.power(self.grid['node']['drainage_area'], self.m,
+                    out=self.A_to_the_m)
+        self.alpha[defined_receivers] = self.r_i**self.m * self.K * \
+            self.dt * self.A_to_the_m[defined_receivers] / flow_link_lengths
 
         flow_receivers = self.grid['node']['flow_receiver']
         n_nodes = upstream_order_IDs.size
@@ -176,7 +226,7 @@ class SPEroder(Component):
 
         method = 'cython'
 
-        if self.nonlinear_flag == False: #n==1
+        if self.nonlinear_flag is False:  # n==1
             if method == 'cython':
                 from .cfuncs import erode_with_alpha
                 erode_with_alpha(upstream_order_IDs, flow_receivers, alpha, z)
@@ -185,20 +235,24 @@ class SPEroder(Component):
                     j = flow_receivers[i]
                     if i != j:
                         z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
-        else: #general, nonlinear n case
+        else:  # general, nonlinear n case
             print('Non-linear')
-            self.alpha_by_flow_link_lengthtothenless1[defined_flow_receivers] = alpha[defined_flow_receivers]/flow_link_lengths**(self.n-1.)
-            alpha_by_flow_link_lengthtothenless1 = self.alpha_by_flow_link_lengthtothenless1
+            self.alpha_by_flow_link_lengthtothenless1[defined_receivers] = \
+                alpha[defined_receivers]/flow_link_lengths**(self.n-1.)
+            alpha_by_flow_link_lengthtothenless1 = \
+                self.alpha_by_flow_link_lengthtothenless1
             n = float(self.n)
             if method == 'cython':
                 if n < 1.:
-                    #this is SLOOOOOOOOOOOW...
+                    # this is SLOOOOOOOOOOOW...
                     for i in upstream_order_IDs:
                         j = flow_receivers[i]
                         func_for_newton = self.func_for_newton
                         func_for_newton_diff = self.func_for_newton_diff
                         if i != j:
-                            z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
+                            longname = alpha_by_flow_link_lengthtothenless1[i]
+                            z[i] = fsolve(func_for_newton, z[i],
+                                          args=(z[i], z[j], longname, n))
                 else:
                     from .cfuncs import erode_with_link_alpha
                     erode_with_link_alpha(upstream_order_IDs, flow_receivers,
@@ -210,11 +264,13 @@ class SPEroder(Component):
                     func_for_newton = self.func_for_newton
                     func_for_newton_diff = self.func_for_newton_diff
                     if i != j:
-                        if n>=1.:
-                            z[i] = newton(func_for_newton, z[i], fprime=func_for_newton_diff, args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n), maxiter=10)
+                        longname = alpha_by_flow_link_lengthtothenless1[i]
+                        if n >= 1.:
+                            z[i] = newton(func_for_newton, z[i],
+                                          fprime=func_for_newton_diff,
+                                          args=(z[i], z[j], longname, n),
+                                          maxiter=10)
                         else:
-                            z[i] = fsolve(func_for_newton, z[i], args=(z[i], z[j], alpha_by_flow_link_lengthtothenless1[i], n))
-        #self.grid['node'][self.value_field] = z
-
+                            z[i] = fsolve(func_for_newton, z[i],
+                                          args=(z[i], z[j], longname, n))
         return self.grid
-
