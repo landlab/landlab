@@ -33,13 +33,13 @@ import numpy as np
 import random
 
 
-def calculate_fracture_starting_position(numrows, numcols, seed):
+def calculate_fracture_starting_position((numrows, numcols), seed):
     """
     Chooses a random starting position along the x or y axis (random choice).
 
     Parameters
     ----------
-    numrows, numcols : int
+    (numrows, numcols) : tuple of int
         Number of rows and columns in the grid
     seed : int
         Seeds the random number generator, so that a particular random
@@ -47,7 +47,7 @@ def calculate_fracture_starting_position(numrows, numcols, seed):
 
     Returns
     -------
-    x, y : int
+    (y, x) : tuple of int
         Fracture starting coordinates
     """
     random.seed(seed)
@@ -58,16 +58,16 @@ def calculate_fracture_starting_position(numrows, numcols, seed):
     else:
         x = random.randint(0, numcols-1)
         y = 0
-    return x, y
+    return (y, x)
 
 
-def calculate_fracture_orientation(x, y, seed):
+def calculate_fracture_orientation((y, x), seed):
     """
     Chooses a random orientation for the fracture.
 
     Parameters
     ----------
-    x, y : int
+    y, x : tuple of int
         Starting coordinates (one of which should be zero)
     seed : int
         Seed value for random number generator
@@ -93,22 +93,22 @@ def calculate_fracture_orientation(x, y, seed):
     return ang
 
 
-def calculate_fracture_step_sizes(startx, starty, ang):
+def calculate_fracture_step_sizes((starty, startx), ang):
     """
     Calculates the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
     Parameters
     ----------
-    startx, starty : int
+    starty, startx : tuple of int
         Starting grid coordinates
     ang : float
         Fracture angle relative to horizontal (radians)
 
     Returns
     -------
-    dx, dy : float
-        Step sizes in x and y directions. One will always be unity, and the
+    (dy, dx) : tuple of float
+        Step sizes in y and x directions. One will always be unity, and the
     other will always be <1.
     """
     if startx==0:  # frac starts on left side
@@ -118,10 +118,10 @@ def calculate_fracture_step_sizes(startx, starty, ang):
         dy = 1
         dx = -tan(ang-pi/2)
 
-    return dx, dy
+    return (dy, dx)
 
 
-def trace_fracture_through_grid(m, x0, y0, dx, dy):
+def trace_fracture_through_grid(m, (y0, x0), (dy, dx)):
     """
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity along
     the trace of the fracture (i.e., "drawing" a line throuh the grid).
@@ -130,10 +130,10 @@ def trace_fracture_through_grid(m, x0, y0, dx, dy):
     ----------
     m : 2D Numpy array
         Array that represents the grid
-    x0, y0 : int
+    (y0, x0) : int
         Starting grid coordinates for fracture
-    dx, dy : float
-        Step sizes in x and y directions
+    (dy, dx) : tuple of float
+        Step sizes in y and x directions
 
     Returns
     -------
@@ -141,10 +141,10 @@ def trace_fracture_through_grid(m, x0, y0, dx, dy):
     """
     x = x0
     y = y0
-
+    
     while round(x)<size(m, 1) and round(y)<size(m, 0) \
             and round(x)>=0 and round(y)>=0:
-        m[round(y),round(x)] = 1
+        m[int(y+0.5)][int(x+0.5)] = 1
         x += dx
         y += dy
 
@@ -186,11 +186,11 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     nfracs = (numrows+numcols)/frac_spacing
     for i in range(nfracs):
 
-        x, y = calculate_fracture_starting_position(numrows, numcols, seed+i)
-        ang = calculate_fracture_orientation(x, y, seed+i)
-        dx, dy = calculate_fracture_step_sizes(x, y, ang)
+        (y, x) = calculate_fracture_starting_position((numrows, numcols), seed+i)
+        ang = calculate_fracture_orientation((y, x), seed+i)
+        (dy, dx) = calculate_fracture_step_sizes((y, x), ang)
 
-        trace_fracture_through_grid(m, x, y, dx, dy)
+        trace_fracture_through_grid(m, (y, x), (dy, dx))
 
     # If we have a model_grid, flatten the frac grid so it's equivalent to
     # a node array.
