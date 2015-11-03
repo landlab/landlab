@@ -56,6 +56,13 @@ class PerronNLDiffuse(Component):
 
     The primary method of this class is :func:`diffuse`.
     '''
+    _name = "PerronNLDiffuse"
+    _input_var_names = set(['topographic__elevation', ])
+    _output_var_names = set(['topographic__elevation', ])
+    _var_units = {'topographic__elevation': 'm'}
+    _var_grid_elements = {'topographic__elevation': 'node'}
+    _var_doc = {'topographic__elevation': 'Surface topographic elevation'}
+
     def __init__(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
         self.inputs = inputs
@@ -75,6 +82,14 @@ class PerronNLDiffuse(Component):
             self.values_to_diffuse = inputs.read_str('values_to_diffuse')
         except:
             self.values_to_diffuse = 'topographic__elevation'
+        else:
+            for mysets in (self._input_var_names, self._output_var_names):
+                mysets.remove('topographic__elevation')
+                mysets.add(self.values_to_diffuse)
+            for mydicts in (self._var_units, self._var_grid_elements,
+                            self._var_doc):
+                mydicts[self.values_to_diffuse] = \
+                    mydicts.pop('topographic__elevation')
         try:
             self.timestep_in = inputs.read_float('dt')
         except:

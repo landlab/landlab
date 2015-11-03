@@ -22,7 +22,15 @@ from landlab import ModelParameterDictionary, Component
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 
+
 class FireGenerator(Component):
+
+    _name = "FireGenerator"
+    _input_var_names = set()
+    _output_var_names = set()
+    _var_units = {}
+    _var_grid_elements = {}
+    _var_doc = {}
 
     def __init__(self, input_file=None):
         """All initial values are set to zero until initalized
