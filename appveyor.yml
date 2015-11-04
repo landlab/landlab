@@ -28,6 +28,7 @@ init:
 install:
   - IF "%PLATFORM%"=="x64" (SET SUFFIX="-x64") ELSE (SET SUFFIX="")
   - "SET PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%\\Scripts;%PATH%"
+  - ECHO "Using %PYTHON%%SUFFIX%"
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   - "python --version"
