@@ -67,7 +67,7 @@ class PrecipitationDistribution(Component):
     _input_var_names = set()
     _output_var_names = set()
     _var_units = {}
-    _var_grid_mapping = {}
+    _var_grid_elements = {}
     _var_doc = {}
 
     def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None,

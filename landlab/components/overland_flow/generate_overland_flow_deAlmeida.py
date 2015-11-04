@@ -61,7 +61,8 @@ class OverlandFlow(Component):
     """
     _name = 'OverlandFlow'
 
-    _input_var_names = set(['water_depth', 'topographic__elevation'])
+    _input_var_names = set(['water_depth',
+                            'topographic__elevation'])
 
     _output_var_names = set(['water_depth',
                              'water_discharge',
@@ -77,7 +78,7 @@ class OverlandFlow(Component):
                   'topographic__elevation': 'm'}
 
     _var_grid_elements = {'water_depth': 'node',
-                          'topographic__elevtation': 'node',
+                          'topographic__elevation': 'node',
                           'water_discharge': 'active_link',
                           'shear_stress': 'node',
                           'water_discharge_at_nodes': 'node',
@@ -85,7 +86,7 @@ class OverlandFlow(Component):
 
     _var_doc = {
         'water_depth': 'The depth of water at each node.',
-        'topographic__elevtation': 'The land surface elevation.',
+        'topographic__elevation': 'The land surface elevation.',
         'water_discharge': 'The discharge of water on active links.',
         'shear_stress': 'The calculated shear stress at each node.',
         'water_discharge_at_nodes':

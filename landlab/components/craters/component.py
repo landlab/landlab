@@ -10,17 +10,28 @@ import landlab.components.craters as craters
 class CratersComponent(Component):
     _name = 'Craters'
 
-    _input_var_names = [
+    _input_var_names = set([
         'topographic__elevation',
-    ]
-    _output_var_names = [
+    ])
+    _output_var_names = set([
         'topographic__elevation',
         'topographic__elevation_increment',
-    ]
+    ])
 
     _var_units = {
         'topographic__elevation': 'm',
         'topographic__elevation_increment': 'm',
+    }
+
+    _var_grid_elements = {
+        'topographic__elevation': 'node',
+        'topographic__elevation_increment': 'node',
+    }
+
+    _var_doc = {
+        'topographic__elevation': 'The planetary surface elevation',
+        'topographic__elevation_increment':
+            'A map of changes in elevation produced during a single impact'
     }
 
     def __init__(self, grid, **kwds):
