@@ -63,6 +63,13 @@ class PrecipitationDistribution(Component):
     ...     total_t=100.0, delta_t=1)
     """
 
+    _name = 'PrecipitationDistribution'
+    _input_var_names = set()
+    _output_var_names = set()
+    _var_units = {}
+    _var_grid_mapping = {}
+    _var_doc = {}
+
     def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None,
                  mean_storm_depth=None, total_t=None, delta_t=None):
         """
