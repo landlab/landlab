@@ -9,7 +9,7 @@ by incomplete LL standard interface:
     _input_var_names (set)
     _output_var_names (set)
     _var_units (dict, name: unit)
-    _var_mapping (dict, name: centering)
+    _var_grid_elements (dict, name: centering)
     _var_doc (dict, name: description)
 
 The latter is any file in 'components' which contains a class, but either
@@ -66,7 +66,7 @@ props_to_strip_list = [' _name',
                        ' _input_var_names',
                        ' _output_var_names',
                        ' _var_units',
-                       ' _var_mapping',
+                       ' _var_grid_elements',
                        ' _var_doc']  # must be in order for first loop
 
 props_to_strip = set(props_to_strip_list)
@@ -98,7 +98,9 @@ for LLcomp in poss_comp_files:
                     accumulated_props.add(prop)
                     start_write = True
                     if prop != ' _name':
-                        assert ('{' in line) or ('[' in line)
+                        assert ('{' in line) or (('[' in line) or
+                                                 ('(' in line)), \
+                            LLcomp+', line was '+line
                     else:
                         found_a_name = True
                 if start_write:
@@ -108,7 +110,8 @@ for LLcomp in poss_comp_files:
                     nowhite = nowhite.lstrip()
                     no_nl = nowhite.replace('\\', '')
                     lines_captured.append(str(no_nl))
-                    if ('}' in line) or (']' in line) or (prop == ' _name'):
+                    if (('}' in line) or (']' in line) or (prop == ' _name') or
+                            ('()' in line)):  # need to capture 'set()'
                         break
         cat_lines = ''
         for expr in lines_captured:
