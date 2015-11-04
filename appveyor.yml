@@ -9,16 +9,16 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
-    - PYTHON: "C:\\Miniconda"
+    - PYTHON: "C:\\conda"
       PYTHON_VERSION: "2.6"
       ARCH: "86"
-    - PYTHON: "C:\\Miniconda-x64"
+    - PYTHON: "C:\\conda-x64"
       PYTHON_VERSION: "2.6"
       ARCH: "64"
-    - PYTHON: "C:\\Miniconda"
+    - PYTHON: "C:\\conda"
       PYTHON_VERSION: "2.7"
       ARCH: "86"
-    - PYTHON: "C:\\Miniconda-x64"
+    - PYTHON: "C:\\conda-x64"
       PYTHON_VERSION: "2.7"
       ARCH: "64"
 
