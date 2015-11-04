@@ -18,8 +18,7 @@ init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
 
 install:
-  - "powershell .\\.ci\\appveyor\\install-miniconda.ps1"
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PATH=C:\\Miniconda-x64;C:\\Miniconda-x64\\Scripts;%PATH%"
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   - "python --version"
