@@ -726,7 +726,15 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_cells(self):
-        """Total number of cells."""
+        """Total number of cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.number_of_cells
+        6
+        """
         return len(self._node_at_cell)
 
     @property
@@ -756,10 +764,14 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_core_nodes
         6
+
+        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.number_of_core_nodes
+        5
         """
         return self._core_nodes.size
 
@@ -779,10 +791,14 @@ class ModelGrid(ModelDataFields):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> grid = RasterModelGrid(4, 5)
         >>> grid.number_of_core_cells
         6
+
+        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.number_of_core_cells
+        5
         """
         return self._core_cells.size
 
