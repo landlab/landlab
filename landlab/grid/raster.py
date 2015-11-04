@@ -496,10 +496,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._num_cells = sgrid.cell_count(self.shape)
         self._num_active_cells = self.number_of_cells
 
-        self._num_core_nodes = self.number_of_cells
         self._num_core_cells = self.number_of_cells
 
-        self._num_core_nodes = self.number_of_cells
         self._num_core_cells = self.number_of_cells
 
         self._num_links = sgrid.link_count(self.shape)
@@ -1515,22 +1513,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         6
         """
         return sgrid.interior_node_count(self.shape)
-
-    @property
-    def number_of_core_nodes(self):
-        """Number of core nodes.
-
-        The number of core nodes on the grid (i.e., excluding all boundary
-        nodes).
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(4, 5)
-        >>> grid.number_of_core_nodes
-        6
-        """
-        return self._num_core_nodes
 
     @property
     def number_of_nodes(self):
