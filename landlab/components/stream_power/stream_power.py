@@ -22,6 +22,54 @@ class StreamPowerEroder(Component):
     This component *should* run on any grid, but untested.
     """
 
+    _name = 'StreamPowerEroder'
+
+    _input_var_names = set(['topographic__elevation',
+                            'upstream_ID_order',
+                            'links_to_flow_receiver',
+                            'drainage_area',
+                            'flow_receiver',
+                            'topographic__steepest_slope'])
+
+    _output_var_names = set(['topographic__elevation',
+                             'stream_power_erosion'])
+
+    _var_units = {'topographic__elevation': 'm',
+                  'upstream_ID_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'stream_power_erosion': 'm/y'}
+
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'upstream_ID_order': 'node',
+                          'links_to_flow_receiver': 'node',
+                          'drainage_area': 'node',
+                          'flow_receiver': 'node',
+                          'topographic__steepest_slope': 'node',
+                          'stream_power_erosion': 'node'}
+
+    _var_doc = {
+        'topographic__elevation': 'Surface topographic elevation',
+        'upstream_ID_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+                'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        "drainage_area":
+            ("Upstream accumulated surface area contributing to the node's " +
+                "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)'),
+        'topographic__steepest_slope':
+            ('The absolute value of the most negative gradient at the node. ' +
+             'This should typically be the *downhill* slope from the node.'),
+        'stream_power_erosion':
+            ('The value of K_sp * A**m_sp * S**n_sp. Not necessarily a true ' +
+             'stream power! Note the units of velocity.')}
+
     def __init__(self, grid, params):
         self.initialize(grid, params)
 
@@ -39,7 +87,7 @@ class StreamPowerEroder(Component):
 
     def initialize(self, grid, params_file):
         """initialize(grid, params_file)
-        
+
         params_file is the name of the text file containing the parameters
         needed for this stream power component.
 
@@ -319,7 +367,7 @@ class StreamPowerEroder(Component):
 
         # Operate the main function:
         if self.use_W is False and self.use_Q is False:  # normal case
-            stream_power_active_nodes = (self._K_unit_time * dt *
+            stream_power_active_nodes = (self._K_unit_time *
                                          node_A[active_nodes]**self._m *
                                          self.slopes[active_nodes]**self._n)
         elif self.use_W:
@@ -332,12 +380,12 @@ class StreamPowerEroder(Component):
                     Q_direct = grid.at_node[Q_if_used]
                 except TypeError:
                     Q_direct = Q_if_used
-                stream_power_active_nodes = (self._K_unit_time * dt *
+                stream_power_active_nodes = (self._K_unit_time *
                                              Q_direct[active_nodes]**self._m *
                                              self.slopes[active_nodes] **
                                              self._n / W)
             else:  # just W to be used
-                stream_power_active_nodes = (self._K_unit_time * dt *
+                stream_power_active_nodes = (self._K_unit_time *
                                              node_A[active_nodes]**self._m *
                                              self.slopes[active_nodes] **
                                              self._n / W)
@@ -347,7 +395,7 @@ class StreamPowerEroder(Component):
             except TypeError:
                 assert type(Q_if_used) in (np.ndarray, list)
                 Q_direct = Q_if_used
-            stream_power_active_nodes = (self._K_unit_time * dt *
+            stream_power_active_nodes = (self._K_unit_time *
                                          Q_direct[active_nodes]**self._m *
                                          self.slopes[active_nodes]**self._n)
 
@@ -357,8 +405,8 @@ class StreamPowerEroder(Component):
         # threshold
         self.stream_power_erosion[active_nodes] = stream_power_active_nodes
         grid.at_node['stream_power_erosion'] = self.stream_power_erosion
-        #print "max stream power: ", self.stream_power_erosion.max()
-        erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
+        erosion_increment = (self.stream_power_erosion -
+                             self.sp_crit).clip(0.) * dt
 
         # this prevents any node from incising below any node downstream of it
         # we have to go in upstream order in case our rate is so big we impinge
