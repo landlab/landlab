@@ -489,10 +489,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._dy, self._dx = float(spacing[0]), float(spacing[1])
         self.cellarea = self._dy * self._dx
 
+        self._node_at_cell = sgrid.node_at_cell(self.shape)
+        self._cell_at_node = squad_cells.cell_id_at_nodes(
+            self.shape).reshape((-1, ))
+
         self._num_nodes = sgrid.node_count(self.shape)
         self._num_active_nodes = self.number_of_nodes
 
-        self._num_cells = sgrid.cell_count(self.shape)
         self._num_active_cells = self.number_of_cells
 
         self._num_links = sgrid.link_count(self.shape)
@@ -560,9 +563,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # While we're at it, we will also build the node_activecell list. This
         # list records, for each node, the ID of its associated active cell,
         # or None if it has no associated active cell (i.e., it is a boundary)
-        self._node_at_cell = sgrid.node_at_cell(self.shape)
-        self._cell_at_node = squad_cells.cell_id_at_nodes(
-            self.shape).reshape((-1, ))
+        #self._node_at_cell = sgrid.node_at_cell(self.shape)
+        #self._cell_at_node = squad_cells.cell_id_at_nodes(
+        #    self.shape).reshape((-1, ))
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
 
