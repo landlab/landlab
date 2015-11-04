@@ -34,6 +34,90 @@ class TransportLimitedEroder(Component):
     (Only tested for raster grid so far)
     """
 
+    _name = 'TransportLimitedEroder'
+
+    _input_var_names = set(['topographic__elevation',
+                            'upstream_ID_order',
+                            'links_to_flow_receiver',
+                            'drainage_area',
+                            'flow_receiver',
+                            'topographic__steepest_slope'])
+
+    _output_var_names = set(['topographic__elevation',
+                             'fluvial_sediment_transport_capacity',
+                             'fluvial_sediment_flux_into_node',
+                             'effective_fluvial_diffusivity',
+                             'channel_discharge',
+                             'channel_bed_shear_stress',
+                             'channel_width',
+                             'channel_depth'])
+
+    _var_units = {'topographic__elevation': 'm',
+                  'upstream_ID_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'fluvial_sediment_transport_capacity': 'm**3/s',
+                  'fluvial_sediment_flux_into_node': 'm**3',
+                  'effective_fluvial_diffusivity': 'm**2/s',
+                  'channel_discharge': 'm**3/s',
+                  'channel_bed_shear_stress': 'Pa',
+                  'channel_width': 'm',
+                  'channel_depth': 'm'}
+
+    _var_grid_elements = {'topographic__elevation': 'node',
+                          'upstream_ID_order': 'node',
+                          'links_to_flow_receiver': 'node',
+                          'drainage_area': 'node',
+                          'flow_receiver': 'node',
+                          'topographic__steepest_slope': 'node',
+                          'fluvial_sediment_transport_capacity': 'node',
+                          'fluvial_sediment_flux_into_node': 'node',
+                          'effective_fluvial_diffusivity': 'node',
+                          'channel_discharge': 'node',
+                          'channel_bed_shear_stress': 'node',
+                          'channel_width': 'node',
+                          'channel_depth': 'node'}
+
+    _var_doc = {
+        'topographic__elevation': 'Surface topographic elevation',
+        'upstream_ID_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+                'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        "drainage_area":
+            ("Upstream accumulated surface area contributing to the node's " +
+                "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)'),
+        'topographic__steepest_slope':
+            ('The absolute value of the most negative gradient at the node. ' +
+             'This should typically be the *downhill* slope from the node.'),
+        'fluvial_sediment_transport_capacity':
+            ("The volumetric sediment transport capacity, as dictated by a " +
+             "slightly modified version of the Meyer-Peter Muller equation, " +
+             "per Hobley et al., 2011. The MPM threshold is sensitive to a " +
+             "characteristic bed grain size, either set by the user or set " +
+             "from Mike Lamb's (2008) slope-sensitive Shields equation."),
+        'fluvial_sediment_flux_into_node':
+            'The actual volumetric sediment flux reaching a node.',
+        'effective_fluvial_diffusivity':
+            ("A back-calculated effective diffusivity. Only produced if the " +
+             "stability_condition is set to 'tight'"),
+        'channel_discharge':
+            ('The water discharge used by the component, predicted from a ' +
+             'very simple basin hydrology relation, Q = k_q*A**c'),
+        'channel_bed_shear_stress':
+            ('Calculated channel bed shear stress, following a stream-power-' +
+             'like derivation'),
+        'channel_width':
+            '(Optional output) The channel width implied by the calculations.',
+        'channel_depth':
+            '(Optional output) the channel depth implied by the calculations.'}
+
     def __init__(self, grid, params):
         self.initialize(grid, params)
 

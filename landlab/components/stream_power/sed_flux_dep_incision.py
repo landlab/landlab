@@ -48,7 +48,7 @@ class SedDepEroder(Component):
                   'fluvial_sediment_flux_into_node': 'm**3',
                   'relative_sediment_flux': '-',
                   'channel_discharge': 'm**3/s',
-                  'channel_bed_shear_stress': 'N/m**2',
+                  'channel_bed_shear_stress': 'Pa',
                   'channel_width': 'm',
                   'channel_depth': 'm'}
 
