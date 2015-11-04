@@ -727,7 +727,7 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_cells(self):
         """Total number of cells."""
-        return self._num_cells
+        return len(self._node_at_cell)
 
     @property
     def number_of_links(self):
