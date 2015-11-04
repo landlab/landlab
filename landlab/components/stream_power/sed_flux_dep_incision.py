@@ -676,9 +676,9 @@ class SedDepEroder(Component):
                             vol_prefactor, dz_prefactor)
                     # note now dz_here may never create more sed than the out
                     # can transport...
-                    assert (sed_flux_out <= node_vol_capacity,
-                            'failed at node '+str(s_in.size-i)+' with rel ' +
-                            'sed flux '+str(sed_flux_out/node_capacity))
+                    assert sed_flux_out <= node_vol_capacity, \
+                        'failed at node '+str(s_in.size-i)+' with rel ' + \
+                        'sed flux ' + str(sed_flux_out/node_capacity)
                     rel_sed_flux[i] = rel_sed_flux_here
                     vol_pass = sed_flux_out
                 else:

@@ -350,9 +350,9 @@ class PrecipitationDistribution(Component):
         """
         delta_t = self.delta_t
         if delta_t is None:
-            assert (subdivide_interstorms is False, 'You specified you ' +
-                    'wanted storm subdivision, but did not provide a ' +
-                    'DELTA_T to allow this!')
+            assert subdivide_interstorms is False, 'You specified you ' + \
+                'wanted storm subdivision, but did not provide a ' + \
+                'DELTA_T to allow this!'
         self._elapsed_time = 0.
         while self._elapsed_time < self.run_time:
             storm_duration = self.get_precipitation_event_duration()
