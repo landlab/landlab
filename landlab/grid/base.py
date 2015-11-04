@@ -757,8 +757,15 @@ class ModelGrid(ModelDataFields):
         """Number of core cells.
 
         A core cell excludes all boundary cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid(4, 5)
+        >>> grid.number_of_core_cells
+        6
         """
-        return self._num_core_cells
+        return self._core_cells.size
 
     @property
     def number_of_active_links(self):
@@ -1907,7 +1914,6 @@ class ModelGrid(ModelDataFields):
         The updated attributes and arrays are:
         * _num_active_nodes
         * _num_active_cells
-        * _num_core_cells
         * activecell_node *
         * corecell_node *
         * active_cells
@@ -1925,7 +1931,6 @@ class ModelGrid(ModelDataFields):
         (self._core_nodes, ) = numpy.where(self._node_status == CORE_NODE)
 
         self._core_cells = self.cell_at_node[self._core_nodes]
-        self._num_core_cells = self._core_cells.size
 
         self._boundary_nodes = as_id_array(
             numpy.where(self._node_status != CORE_NODE)[0])
