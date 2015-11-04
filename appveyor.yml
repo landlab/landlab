@@ -9,23 +9,25 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
-    - PYTHON: "C:\\Miniconda-x64"
+    - PYTHON: "C:\\Miniconda"
       PYTHON_VERSION: "2.6"
-    - PYTHON: "C:\\Miniconda-x64"
+    - PYTHON: "C:\\Miniconda"
       PYTHON_VERSION: "2.7"
-    - PYTHON: "C:\\Miniconda3-x64"
+    - PYTHON: "C:\\Miniconda3"
       PYTHON_VERSION: "3.3"
-    - PYTHON: "C:\\Miniconda3-x64"
+    - PYTHON: "C:\\Miniconda3"
       PYTHON_VERSION: "3.4"
 
 platform:
   - x64
+  - x86
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
 
 install:
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - if %PLATFORM% == "x64" SUFFIX="-x64" else SUFFIX=""
+  - "SET PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%\\Scripts;%PATH%"
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   - "python --version"
