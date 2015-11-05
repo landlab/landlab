@@ -572,6 +572,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
 
+        self._neighbors_at_node = sgrid.neighbor_node_ids(self.shape).T
+
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
         # (if any) associated with the link. If the link does not intersect a
