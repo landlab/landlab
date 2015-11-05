@@ -68,7 +68,6 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        #self._num_nodes = num_rows * num_cols
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)

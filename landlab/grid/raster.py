@@ -371,12 +371,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if dx is None:
             dx = kwds.pop('spacing', _parse_grid_spacing_from_args(args) or 1.)
 
+        if num_nodes <= 0 or num_cols <= 0:
+            raise ValueError('number of rows and columns must be positive')
+
         self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._num_nodes = num_rows * num_cols
-        if self.number_of_nodes > 0:
-            self._initialize(num_rows, num_cols, dx)
+        self._initialize(num_rows, num_cols, dx)
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -493,7 +494,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
 
-        self._num_nodes = sgrid.node_count(self.shape)
         self._num_active_nodes = self.number_of_nodes
 
         self._num_active_cells = self.number_of_cells
@@ -1484,21 +1484,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         6
         """
         return sgrid.interior_node_count(self.shape)
-
-    @property
-    def number_of_nodes(self):
-        """Total number of nodes.
-
-        Returns total number of nodes, including boundaries.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(4, 5)
-        >>> grid.number_of_nodes
-        20
-        """
-        return self._num_nodes
 
     @property
     def number_of_node_columns(self):
