@@ -1698,9 +1698,23 @@ class ModelGrid(ModelDataFields):
         return numpy.array([active_link])
 
     @property
-    @make_return_array_immutable
     def area_of_cell(self):
         """Get areas of grid cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.area_of_cell # doctest: +NORMALIZE_WHITESPACE
+        array([ 6.,  6.,  6.,
+                6.,  6.,  6.])
+        """
+        return self._area_of_cell
+
+
+    @property
+    def active_link_length(self):
+        """Get array of lengths of active links.
 
         Returns
         -------

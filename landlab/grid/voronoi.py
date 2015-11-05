@@ -166,12 +166,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
         #
-        self._num_nodes = len(x)
         self._node_x = x
         self._node_y = y
         [self._node_status, self._core_nodes, self._boundary_nodes] = \
             self.find_perimeter_nodes(pts)
-        self._num_active_nodes = self.number_of_nodes
+        self._num_active_nodes = len(x)
         self._num_active_cells = self.number_of_cells
         [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
             self._node_status, self.number_of_cells)
@@ -181,11 +180,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         # each active cell.
         vor = Voronoi(pts)
         self.vor = vor
-        self._area_of_cell = numpy.zeros(self.number_of_active_cells)
+        self._area_of_cell = numpy.zeros(self.number_of_cells)
         for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self._area_of_cell[self.cell_at_node[node]] = (
+            self.area_of_cell[self.cell_at_node[node]] = (
                 simple_poly_area(xv, yv))
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
