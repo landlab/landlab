@@ -58,7 +58,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         7
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        #self._num_nodes = num_rows * num_cols
         if base_num_rows * base_num_cols > 0:
             self._initialize(base_num_rows, base_num_cols, dx, orientation,
                              shape, reorient_links)
@@ -94,7 +93,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Creates/modifies
         ----------------
-        Creates and initializes self._num_nodes and self._dx
+        Creates and initializes and self._dx
 
         Notes
         -----
@@ -144,23 +143,23 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation == 'horizontal' and shape == 'hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(
+            (pts, _) = HexModelGrid.make_hex_points_horizontal_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
         elif orientation == 'horizontal' and shape == 'rect':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(
+            (pts, _) = HexModelGrid.make_hex_points_horizontal_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
         elif orientation == 'vertical' and shape == 'hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(
+            (pts, _) = HexModelGrid.make_hex_points_vertical_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._ncols = base_num_cols
         else:
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(
+            (pts, _) = HexModelGrid.make_hex_points_vertical_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._nrows = base_num_rows
