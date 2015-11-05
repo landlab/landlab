@@ -721,8 +721,16 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_nodes(self):
-        """Total number of nodes."""
-        return self._num_nodes
+        """Total number of nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.number_of_nodes
+        20
+        """
+        return len(self._cell_at_node)
 
     @property
     def number_of_cells(self):
