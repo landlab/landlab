@@ -498,7 +498,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._num_active_cells = self.number_of_cells
 
-        self._num_links = sgrid.link_count(self.shape)
         self._num_active_links = sgrid.active_link_count(self.shape)
 
         self._num_faces = squad_faces.number_of_faces(self.shape)
@@ -603,6 +602,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Flag indicating whether we have created diagonal links.
         self._diagonal_links_created = False
+
+        self._link_status = np.full(squad_links.number_of_links(self.shape),
+                                    INACTIVE_LINK, dtype=int)
 
         #   set up the list of active links
         self._reset_link_status_list()

@@ -3,7 +3,8 @@
 import numpy
 from six.moves import range
 
-from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
+from landlab.grid.base import ModelGrid
+from landlab.grid.base import CORE_NODE, BAD_INDEX_VALUE, INACTIVE_LINK
 from landlab.core.utils import as_id_array
 
 from scipy.spatial import Voronoi
@@ -193,14 +194,14 @@ class VoronoiDelaunayGrid(ModelGrid):
          self._node_at_link_head,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+        self._num_faces = len(self._node_at_link_tail)
+        self._link_status = numpy.full(len(self._node_at_link_tail),
+                                       INACTIVE_LINK, dtype=int)
 
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
         if reorient_links:
             self.reorient_links_upper_right()
-
-        self._num_links = len(self.node_at_link_tail)
-        self._num_faces = self._num_links  # temporary: to be done right!
 
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,

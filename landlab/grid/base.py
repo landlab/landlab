@@ -728,8 +728,16 @@ class ModelGrid(ModelDataFields):
 
     @property
     def number_of_links(self):
-        """Total number of links."""
-        return self._num_links
+        """Total number of links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.number_of_links
+        17
+        """
+        return self._link_status.size
 
     @property
     def number_of_faces(self):
