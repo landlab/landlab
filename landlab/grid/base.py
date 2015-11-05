@@ -784,14 +784,6 @@ class ModelGrid(ModelDataFields):
         return self._core_nodes.size
 
     @property
-    def number_of_active_cells(self):
-        """Number of active cells.
-
-        An active cell includes any possible boundary cells.
-        """
-        return self._num_active_cells
-
-    @property
     def number_of_core_cells(self):
         """Number of core cells.
 
