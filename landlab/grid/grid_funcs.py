@@ -137,6 +137,6 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     # Now divide by cell areas ... where there are core cells.
     node_at_active_cell = grid.node_at_cell[grid.core_cells]
-    net_unit_flux[node_at_active_cell] /= grid.cell_areas[grid.core_cells]
+    net_unit_flux[node_at_active_cell] /= grid.area_of_cell[grid.core_cells]
 
     return net_unit_flux

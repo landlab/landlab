@@ -371,7 +371,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if dx is None:
             dx = kwds.pop('spacing', _parse_grid_spacing_from_args(args) or 1.)
 
-        if num_nodes <= 0 or num_cols <= 0:
+        if num_rows <= 0 or num_cols <= 0:
             raise ValueError('number of rows and columns must be positive')
 
         self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
@@ -622,6 +622,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # a face ID.
         self.link_face = sgrid.face_at_link(self.shape,
                                             actives=self.active_link_ids)
+        self._setup_cell_areas_array()
 
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via get_neighbor_list or
@@ -646,9 +647,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This method supports the creation of the array that stores cell areas.
         It is not meant to be called manually.
         """
-        self._cell_areas = np.empty(self.number_of_cells)
-        self._cell_areas.fill(self._dy * self._dx)
-        return self._cell_areas
+        self._area_of_cell = np.full(self.number_of_cells, self.dx * self.dy,
+                                     dtype=float)
+        return self._area_of_cell
 
     def _setup_cell_areas_array_force_inactive(self):
         """Set up array cell areas including extra cells for perimeter nodes.
@@ -660,8 +661,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         """
-        self._forced_cell_areas = np.empty(self.number_of_nodes)
-        self._forced_cell_areas.fill(self._dy * self._dx)
+        self._forced_cell_areas = np.full(self.number_of_nodes,
+                                          self.dx * self.dy, dtype=float)
         return self._forced_cell_areas
 
     @property
