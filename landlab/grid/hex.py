@@ -262,7 +262,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> p = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
+        >>> points = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
         >>> len(points)
         9
         >>> points[1, :]
