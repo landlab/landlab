@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup
+from nose.tools import with_setup, raises, assert_true
 
 from landlab import RasterModelGrid
 from landlab.grid.base import BAD_INDEX_VALUE as X
@@ -61,7 +61,18 @@ def test_neighbor_list_with_array_arg():
                        np.array([[7, 10, 5, 2], [X, X, 18, 15]]))
 
 
-def test_neighbor_list_boundary():
+@raises(ValueError)
+def test_neighbor_list_is_read_only():
+    rmg = RasterModelGrid(5, 4)
+    rmg.neighbors_at_node[0] = [1, 2, 3, 4]
+
+
+def test_neighbors_is_contiguous():
+    rmg = RasterModelGrid(5, 4)
+    assert_true(rmg.neighbors_at_node.flags['C_CONTIGUOUS'])
+
+
+def test_active_neighbor_list_boundary():
     """All of the neighbor IDs for a boundary cell are -1."""
     rmg = RasterModelGrid(5, 4)
     import landlab.utils.structured_grid as sgrid
@@ -70,3 +81,40 @@ def test_neighbor_list_boundary():
     for node_id in sgrid.boundary_iter(rmg.shape):
         assert_array_equal(rmg.get_active_neighbors_at_node(node_id),
                            np.array([X, X, X, X]))
+
+
+def test_all_diagonals():
+    rmg = RasterModelGrid((5, 4))
+    expected = np.array([
+        [ 5,  X, X,  X], [ 6,  4,  X,  X], [ 7,  5,  X,  X], [X,  6,  X,  X],
+        [ 9,  X, X,  1], [10,  8,  0,  2], [11,  9,  1,  3], [X, 10,  2,  X],
+        [13,  X, X,  5], [14, 12,  4,  6], [15, 13,  5,  7], [X, 14,  6,  X],
+        [17,  X, X,  9], [18, 16,  8, 10], [19, 17,  9, 11], [X, 18, 10,  X],
+        [ X,  X, X, 13], [ X,  X, 12, 14], [ X,  X, 13, 15], [X,  X, 14,  X],
+    ])
+    assert_array_equal(rmg.diagonals_at_node, expected)
+
+
+def test_diagonal_list_with_scalar_arg():
+    rmg = RasterModelGrid((5, 4))
+
+    assert_array_equal(rmg.diagonals_at_node[6], np.array([11, 9, 1, 3]))
+    assert_array_equal(rmg.diagonals_at_node[-1], np.array([X, X, 14, X]))
+    assert_array_equal(rmg.diagonals_at_node[-2], np.array([X, X, 13, 15]))
+
+
+def test_diagonal_list_with_array_arg():
+    rmg = RasterModelGrid(5, 4)
+    assert_array_equal(rmg.diagonals_at_node[(6, -1), :],
+                       np.array([[11, 9, 1, 3], [X, X, 14, X]]))
+
+
+@raises(ValueError)
+def test_diagonal_list_is_read_only():
+    rmg = RasterModelGrid(5, 4)
+    rmg.diagonals_at_node[0] = [1, 2, 3, 4]
+
+
+def test_diagonals_is_contiguous():
+    rmg = RasterModelGrid(5, 4)
+    assert_true(rmg.diagonals_at_node.flags['C_CONTIGUOUS'])
