@@ -573,7 +573,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
 
-        self._neighbors_at_node = sgrid.neighbor_node_ids(self.shape).transpose()
+        self._neighbors_at_node = (
+            sgrid.neighbor_node_ids(self.shape).transpose().copy())
         self._diagonals_at_node = sgrid.diagonal_node_array(self.shape,
                                                             contiguous=True)
 
