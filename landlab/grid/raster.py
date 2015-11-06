@@ -572,7 +572,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
 
-        self._neighbors_at_node = sgrid.neighbor_node_ids(self.shape).T
+        self._neighbors_at_node = sgrid.neighbor_node_ids(self.shape).transpose()
+        self._diagonals_at_node = sgrid.diagonal_node_array(self.shape,
+                                                            contiguous=True)
 
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
@@ -749,6 +751,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         2.0
         """
         return self._dy
+
+    @property
+    def diagonals_at_node(self):
+        """Get diagonally neighboring nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> grid = RasterModelGrid((4, 3))
+        >>> diagonals = grid.diagonals_at_node
+        >>> diagonals[diagonals == BAD_INDEX_VALUE] = -1
+        >>> diagonals # doctest: +NORMALIZE_WHITESPACE
+        array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
+               [ 7, -1, -1,  1], [ 8,  6,  0,  2], [-1,  7,  1, -1],
+               [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
+               [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
+        """
+        return self._diagonals_at_node
 
     def node_links(self, *args):
         """node_links([node_ids])
