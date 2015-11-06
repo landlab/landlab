@@ -249,7 +249,7 @@ class TransportLimitedEroder(object):
         self.cell_areas[grid.node_at_cell] = grid.cell_areas
         self.dx2 = grid.dx ** 2
         self.dy2 = grid.dy ** 2
-        self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
+        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
 
     def erode(self, grid, dt, node_drainage_areas='drainage_area',
                 node_elevs='topographic__elevation',
@@ -343,7 +343,7 @@ class TransportLimitedEroder(object):
 
         all_nodes_diffusivity = self.diffusivity_prefactor*node_A**self.diffusivity_power_on_A
         #########ALT
-        neighbor_nodes = grid.get_neighbor_list(bad_index=-1)
+        neighbor_nodes = grid.get_active_neighbors_at_node(bad_index=-1)
         #the -1 lets us get *some* value for all nodes, which we then mask:
         neighbor_diffusivities = np.ma.array(all_nodes_diffusivity[neighbor_nodes], mask=self.bad_neighbor_mask)
         #pylab.figure(1)
