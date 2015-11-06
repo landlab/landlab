@@ -430,7 +430,7 @@ class impactor(object):
                     depth_excavated = (pre_elev-_new_z)
                     crater_vol_below_ground += depth_excavated
                     self.mass_balance_in_impact -= depth_excavated
-                    neighbors_active_node = grid.get_neighbor_list(active_node)
+                    neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
                     for x in neighbors_active_node:
                         if not flag_already_in_the_list[x]:
                             if x!=-1: #Not an edge
@@ -465,7 +465,7 @@ class impactor(object):
                         self.mass_balance_in_impact += _thickness
 
                     if _thickness > self._minimum_ejecta_thickness:
-                        neighbors_active_node = grid.get_neighbor_list(active_node)
+                        neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
                         for x in neighbors_active_node:
                             if not flag_already_in_the_list[x]:
                                 if x!=-1:
