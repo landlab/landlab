@@ -560,6 +560,7 @@ class ModelGrid(ModelDataFields):
         self.update_links_nodes_cells_to_new_BCs()
 
     @property
+    @make_return_array_immutable
     def neighbors_at_node(self):
         """Get neighboring nodes.
 
@@ -567,7 +568,7 @@ class ModelGrid(ModelDataFields):
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> grid = RasterModelGrid((4, 3))
-        >>> neighbors = grid.neighbors_at_node
+        >>> neighbors = grid.neighbors_at_node.copy()
         >>> neighbors[neighbors == BAD_INDEX_VALUE] = -1
         >>> neighbors # doctest: +NORMALIZE_WHITESPACE
         array([[ 1,  3, -1, -1], [ 2,  4,  0, -1], [-1,  5,  1, -1],

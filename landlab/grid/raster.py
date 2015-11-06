@@ -18,6 +18,7 @@ from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK,
                    ACTIVE_LINK, INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
+from landlab.utils.decorators import make_return_array_immutable
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
@@ -753,6 +754,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self._dy
 
     @property
+    @make_return_array_immutable
     def diagonals_at_node(self):
         """Get diagonally neighboring nodes.
 
@@ -760,7 +762,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> grid = RasterModelGrid((4, 3))
-        >>> diagonals = grid.diagonals_at_node
+        >>> diagonals = grid.diagonals_at_node.copy()
         >>> diagonals[diagonals == BAD_INDEX_VALUE] = -1
         >>> diagonals # doctest: +NORMALIZE_WHITESPACE
         array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
