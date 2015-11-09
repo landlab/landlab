@@ -4,7 +4,7 @@ import numpy
 from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
-from landlab.core.utils import as_id_array
+from landlab.core.utils import as_id_array, sort_points_by_x_then_y
 
 from scipy.spatial import Voronoi
 

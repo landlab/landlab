@@ -250,3 +250,33 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     funcs = get_functions_from_module(mod, pattern=pattern)
     add_functions_to_class(cls, funcs)
+
+
+def sort_points_by_x_then_y(pts):
+    """Sort points by coordinates, first x then y.
+    
+    Parameters
+    ----------
+    pts : 2xN NumPy array of float
+        (x,y) points to be sorted
+
+    Returns
+    -------
+    pts : 2xN NumPy array of float
+        sorted (x,y) points
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> pts = np.array([[0., 0., 0., 1., 1., 1., 1., 2., 2., 2.], \
+                        [0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.]]) 
+    >>> pts = sort_points_by_x_then_y(pts)
+    >>> pts
+    array([[ 1. ,  0. ,  2. ,  1. ,  0. ,  2. ,  1. ,  0. ,  2. ,  1. ],
+           [-0.5,  0. ,  0. ,  0.5,  1. ,  1. ,  1.5,  2. ,  2. ,  2.5]])
+    """
+    a = pts[0,:].argsort(kind='mergesort')
+    b = pts[1,a].argsort(kind='mergesort')
+    pts[0,:] = pts[0,a[b]]
+    pts[1,:] = pts[1,a[b]]
+    return pts
