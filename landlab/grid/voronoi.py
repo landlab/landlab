@@ -134,7 +134,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
 
-    def _initialize(self, x, y, reorient_links=False):
+    def _initialize(self, x, y, reorient_links=True):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -148,8 +148,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts = numpy.zeros((len(x), 2))
         pts[:, 0] = x
         pts[:, 1] = y
-        self.pts = pts
-
+        self.pts = sort_points_by_x_then_y(pts)
+        
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
         #   - node x, y coordinates
