@@ -372,7 +372,7 @@ class TransportLimitedEroder(object):
                 delta_t_internal = dt_excess
 
             link_gradients = grid.calculate_gradients_at_links(node_z)
-            all_node_links = grid.node_links().T[:,::-1] #now is (N,4), ordered E,N,W,S
+            all_node_links = grid.links_at_node
 
             upslope_links = np.empty_like(all_node_links, dtype=bool)
             node_at_link_end = np.empty_like(all_node_links, dtype=int)
