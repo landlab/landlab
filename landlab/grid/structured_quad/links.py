@@ -423,6 +423,35 @@ def node_out_link_ids(shape):
     return _node_link_ids[_node_link_ids >= 0], offset
 
 
+def links_at_node(shape):
+    """Get link ids for each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    (N, 4) ndarray of int
+        Array of link ids.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import links_at_node
+    >>> links_at_node((4, 3)) # doctest: +NORMALIZE_WHITESPACE
+    array([[ 9,  0, -1, -1], [10,  1,  9, -1], [-1,  2, 10, -1],
+           [11,  3, -1,  0], [12,  4, 11,  1], [-1,  5, 12,  2],
+           [13,  6, -1,  3], [14,  7, 13,  4], [-1,  8, 14,  5],
+           [15, -1, -1,  6], [16, -1, 15,  7], [-1, -1, 16,  8]])
+    """
+    (south_links, west_links) = _node_in_link_ids(shape)
+    (north_links, east_links) = _node_out_link_ids(shape)
+
+    return np.vstack((east_links.flat, north_links.flat,
+                      west_links.flat, south_links.flat)).transpose().copy()
+
+
 def node_link_ids(shape):
     """Link IDs for links entering and leaving each node.
 
