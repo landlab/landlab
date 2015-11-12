@@ -693,8 +693,7 @@ class DepressionFinderAndRouter(Component):
             if isinstance(self._grid, landlab.grid.raster.RasterModelGrid):
                 link_l = self._link_lengths
             else:  # Voronoi
-                link_l = self._link_lengths[self._grid.node_links[:,
-                    outlet_node]][::-1]  # note order reversal
+                link_l = self._link_lengths[self._grid.links_at_node[outlet_node, :]]
             eff_slopes = ((self._elev[outlet_node] -
                            self._elev[out_draining]) /
                           link_l[unique_indxs[1:]])
