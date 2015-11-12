@@ -578,6 +578,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diagonals_at_node = sgrid.diagonal_node_array(self.shape,
                                                             contiguous=True)
 
+        self._links_at_node = squad_links.links_at_node(self.shape)
+
         # Link lists:
         # For all links, we encode the "from" and "to" nodes, and the face
         # (if any) associated with the link. If the link does not intersect a
