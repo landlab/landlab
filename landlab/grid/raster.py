@@ -3552,8 +3552,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if node_a == node_b:
             raise ValueError('nodes are the same')
 
-        links_at_a = self.node_links(node_a)
-        links_at_b = self.node_links(node_b)
+        links_at_a = self.links_at_node[node_a]
+        links_at_b = self.links_at_node[node_b]
 
         try:
             return np.intersect1d(links_at_a, links_at_b)[0]
