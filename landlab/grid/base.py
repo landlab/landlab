@@ -579,6 +579,23 @@ class ModelGrid(ModelDataFields):
         return self._neighbors_at_node
 
     @property
+    @make_return_array_immutable
+    def links_at_node(self):
+        """Get links of nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid.links_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 9,  0, -1, -1], [10,  1,  9, -1], [-1,  2, 10, -1],
+               [11,  3, -1,  0], [12,  4, 11,  1], [-1,  5, 12,  2],
+               [13,  6, -1,  3], [14,  7, 13,  4], [-1,  8, 14,  5],
+               [15, -1, -1,  6], [16, -1, 15,  7], [-1, -1, 16,  8]])
+        """
+        return self._links_at_node
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
 
