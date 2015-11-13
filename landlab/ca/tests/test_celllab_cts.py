@@ -163,9 +163,7 @@ def test_oriented_hex_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-
+    
     assert_equal(ohcts.num_link_states, 12)
     assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
-
-
 

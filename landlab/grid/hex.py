@@ -58,7 +58,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         7
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        #self._num_nodes = num_rows * num_cols
         if base_num_rows * base_num_cols > 0:
             self._initialize(base_num_rows, base_num_cols, dx, orientation,
                              shape, reorient_links)
