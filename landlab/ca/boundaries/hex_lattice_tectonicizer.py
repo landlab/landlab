@@ -17,7 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 
 from landlab import HexModelGrid
 from numpy import amax, zeros, arange, array
-from pylab import figure, draw, show
+from pylab import figure, show
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -347,6 +347,8 @@ def test_create_lnf(nr, nc):
     pdata = arange(nr*nc)
     grid = HexModelGrid(nr, nc, 1.0, orientation='vertical', shape='rect', reorient_links=True)
     lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    for i in range(grid.number_of_nodes):
+        print i, grid.node_x[i], grid.node_y[i]
     return lnf
 
 
@@ -373,8 +375,6 @@ def main():
     >>> lnf.propid
     array([ 0,  1,  2,  3, 18,  5,  6,  7, 19, 15,  4, 11, 14,  8,  9, 10, 16,
            17, 12, 13])
-
-
     """
     pid = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS, dtype=int)
     pdata = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS)
@@ -395,4 +395,3 @@ def main():
 if __name__=='__main__':
     import doctest
     doctest.testmod()
-    main()
