@@ -1,10 +1,10 @@
 """General decorators for the landlab library."""
 
 import warnings
-import types
 from functools import wraps
 
 import numpy as np
+import six
 
 
 class use_field_name_or_array(object):
@@ -37,7 +37,7 @@ class use_field_name_or_array(object):
     def __call__(self, func):
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
-            if isinstance(vals, types.StringTypes):
+            if isinstance(vals, six.string_types):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
