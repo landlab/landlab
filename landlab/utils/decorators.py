@@ -24,6 +24,14 @@ class use_field_name_or_array(object):
     """
 
     def __init__(self, at_element):
+        """Initialize the decorator.
+
+        Parameters
+        ----------
+        at_element : str
+            The element type that the field is defined on ('node', 'cell',
+            etc.)
+        """
         self._at = at_element
 
     def __call__(self, func):
