@@ -1988,12 +1988,17 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(3, 4, 1.0)
         >>> mg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-        >>> h = np.array([-9999, -9999, -9999, -9999, -9999, -9999, 12345.,
-        ...     0., -9999, 0., 0., 0.])
+        array([1, 1, 1, 1,
+               1, 0, 0, 1,
+               1, 1, 1, 1], dtype=int8)
+        >>> h = np.array([-9999, -9999, -9999, -9999,
+        ...               -9999, -9999, 12345.,   0.,
+        ...               -9999,    0.,     0.,   0.])
         >>> mg.set_nodata_nodes_to_inactive(h, -9999)
         >>> mg.status_at_node
-        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=int8)
+        array([4, 4, 4, 4,
+               4, 4, 0, 1,
+               4, 1, 1, 1], dtype=int8)
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
