@@ -1,7 +1,41 @@
 """General decorators for the landlab library."""
 
 import warnings
+import types
 from functools import wraps
+
+import numpy as np
+
+
+class use_field_name_or_array(object):
+
+    """Decorate a function so that it accepts a field name or array.
+
+    Parameters
+    ----------
+    func : function
+        A function that accepts a grid and array as arguments.
+
+    Returns
+    -------
+    func
+        A wrapped function that accepts a grid and either a field name or
+        a numpy array.
+    """
+
+    def __init__(self, at_element):
+        self._at = at_element
+
+    def __call__(self, func):
+        @wraps(func)
+        def _wrapped(grid, vals, *args, **kwds):
+            if isinstance(vals, types.StringTypes):
+                vals = grid[self._at][vals]
+            else:
+                vals = np.asarray(vals).flatten()
+
+            return func(grid, vals, *args, **kwds)
+        return _wrapped
 
 
 def make_return_array_immutable(func):
