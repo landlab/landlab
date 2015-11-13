@@ -226,7 +226,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
             except NameError:
                 neighbor_nodes = np.empty((grid.active_nodes.size, 8), dtype=int)
                 #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
-                neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
+                neighbor_nodes[:,:4] = grid.get_active_neighbors_at_node(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
                 neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
                 links_list = np.empty_like(neighbor_nodes)
                 links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)

@@ -9,10 +9,14 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
-    - PYTHON_VERSION: "2.6"
-    - PYTHON_VERSION: "2.7"
-    - PYTHON_VERSION: "3.3"
-    - PYTHON_VERSION: "3.4"
+    - PYTHON: "C:\\Miniconda"
+      PYTHON_VERSION: "2.6"
+    - PYTHON: "C:\\Miniconda"
+      PYTHON_VERSION: "2.7"
+    - PYTHON: "C:\\Miniconda3"
+      PYTHON_VERSION: "3.3"
+    - PYTHON: "C:\\Miniconda3"
+      PYTHON_VERSION: "3.4"
 
 platform:
   - x64
@@ -22,8 +26,9 @@ init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
 
 install:
-  - "powershell .\\.ci\\appveyor\\install-miniconda.ps1"
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - IF "%PLATFORM%"=="x64" (SET SUFFIX="-x64") ELSE (SET SUFFIX="")
+  - "SET PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%\\Scripts;%PATH%"
+  - ECHO "Using %PYTHON%%SUFFIX%"
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   - "python --version"

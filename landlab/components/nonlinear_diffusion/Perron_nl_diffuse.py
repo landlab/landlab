@@ -83,8 +83,8 @@ class PerronNLDiffuse(object):
                        input_timestep(timestep_in) as part of your run
                        loop.''')
 
-        self._delta_x = grid.node_spacing
-        self._delta_y = self._delta_x
+        self._delta_x = grid.dx
+        self._delta_y = grid.dy
         self._one_over_delta_x = 1./self._delta_x
         self._one_over_delta_y = 1./self._delta_y
         self._one_over_delta_x_sqd = self._one_over_delta_x**2.
@@ -309,15 +309,16 @@ class PerronNLDiffuse(object):
         """
         extended_elevs = numpy.empty(self.grid.number_of_nodes+1, dtype=float)
         extended_elevs[-1] = numpy.nan
-        node_neighbors = self.grid.get_neighbor_list()
+        node_neighbors = self.grid.get_active_neighbors_at_node()
         extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
         max_offset = numpy.nanmax(numpy.fabs(
             extended_elevs[:-1][node_neighbors] -
             extended_elevs[:-1].reshape((self.grid.number_of_nodes, 1))))
-        if max_offset > numpy.tan(self._S_crit) * self.grid.dx:
+        if max_offset > numpy.tan(self._S_crit) * min(self.grid.dx,
+                                                      self.grid.dy):
             # ^using S not tan(S) adds a buffer - but not appropriate
             self.internal_repeats = int(max_offset//(numpy.tan(self._S_crit) *
-                                        self.grid.dx)) + 1
+                                        min(self.grid.dx, self.grid.dy))) + 1
             # now we rig it so the actual timestep is an integer divisor
             # of T_in:
             self._delta_t = timestep_in / self.internal_repeats
@@ -410,7 +411,7 @@ class PerronNLDiffuse(object):
             elev[right_nodes[1:-1]] = elev[right_nodes[1:-1]-1]
 
         # replacing loop:
-        cell_neighbors = grid.get_neighbor_list()  # E,N,W,S
+        cell_neighbors = grid.get_active_neighbors_at_node()  # E,N,W,S
         cell_diagonals = grid.get_diagonal_list()  # NE,NW,SW,SE
         cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
         cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1

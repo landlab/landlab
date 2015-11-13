@@ -105,7 +105,7 @@ class FlexureComponent(Component):
     # TO define the same field name but with different centering within one
     # component; you'll need to distinguish the names.
 
-    _var_defs = {
+    _var_doc = {
         'lithosphere__overlying_pressure': 'The pressure at the base of the lithosphere',
         'lithosphere__elevation': 'The elevation of the top of the lithosphere, i.e., the land surface',
         'lithosphere__elevation_increment': 'The change in elevation of the top of the lithosphere (the land surface) in one timestep',
@@ -154,7 +154,7 @@ class FlexureComponent(Component):
         alpha = get_flexure_parameter(self._eet, self._youngs, 2)
         dx, dy = np.meshgrid(
             np.arange(self._grid.number_of_node_columns) * self._grid.dx,
-            np.arange(self._grid.number_of_node_rows) * self._grid.dx)
+            np.arange(self._grid.number_of_node_rows) * self._grid.dy)
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 

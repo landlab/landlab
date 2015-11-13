@@ -213,8 +213,8 @@ def read_netcdf(nc_file, just_grid=False):
     >>> grid = read_netcdf(NETCDF4_EXAMPLE_FILE)
     >>> grid.shape == (4, 3)
     True
-    >>> grid.node_spacing
-    1.0
+    >>> grid.dy, grid.dx
+    (1.0, 1.0)
     >>> [str(k) for k in grid.at_node.keys()]
     ['surface__elevation']
     >>> grid.at_node['surface__elevation']
@@ -228,8 +228,8 @@ def read_netcdf(nc_file, just_grid=False):
     >>> grid = read_netcdf(NETCDF3_64BIT_EXAMPLE_FILE)
     >>> grid.shape == (4, 3)
     True
-    >>> grid.node_spacing
-    1.0
+    >>> grid.dy, grid.dx
+    (1.0, 1.0)
     """
     from landlab import RasterModelGrid
 
@@ -246,8 +246,7 @@ def read_netcdf(nc_file, just_grid=False):
 
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
-                           dx=spacing)
+    grid = RasterModelGrid(shape, spacing=spacing)
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)

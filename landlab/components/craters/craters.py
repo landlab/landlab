@@ -430,7 +430,7 @@ class impactor(object):
                     depth_excavated = (pre_elev-_new_z)
                     crater_vol_below_ground += depth_excavated
                     self.mass_balance_in_impact -= depth_excavated
-                    neighbors_active_node = grid.get_neighbor_list(active_node)
+                    neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
                     for x in neighbors_active_node:
                         if not flag_already_in_the_list[x]:
                             if x!=-1: #Not an edge
@@ -465,7 +465,7 @@ class impactor(object):
                         self.mass_balance_in_impact += _thickness
 
                     if _thickness > self._minimum_ejecta_thickness:
-                        neighbors_active_node = grid.get_neighbor_list(active_node)
+                        neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
                         for x in neighbors_active_node:
                             if not flag_already_in_the_list[x]:
                                 if x!=-1:
@@ -698,7 +698,7 @@ class impactor(object):
 #The functions in this segment give control over the execution of this module. Adjust the params inside the functions to get different effects, and the final line of the file to determine whether you get one crater, or lots of craters.
 #These should really be in a separate driver file.
 
-def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, n_craters=1, surface_slope=0., **kwds):
+def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, dy_in=0.0025, n_craters=1, surface_slope=0., **kwds):
     '''
     Ad hoc driver code to make this file run as a standalone.
     If a surface_slope is specified, it should be in degrees, and the resulting surface will dip west.
@@ -709,12 +709,13 @@ def dig_some_craters(use_existing_grid=0, grid_dimension_in=1000, dx_in=0.0025, 
     nr = grid_dimension_in
     nc = grid_dimension_in
     dx = dx_in
+    dy = dy_in
     #dt = 1.
     nt = n_craters
 
     #Setup
     if not use_existing_grid:
-        mg = RasterModelGrid(nr, nc, dx)
+        mg = RasterModelGrid((nr, nc), spacing=(dy, dx))
         vectors = data(mg)
         if not surface_slope:
             vectors.elev[:] = 1.
@@ -753,7 +754,7 @@ def dig_one_crater_then_degrade(loops=1, step=500):
     #Build the dictionary:
     crater_time_sequ = {}
     #Initialize the starting condition:
-    cr, mg, vectors = dig_some_craters(grid_dimension_in=1000, dx_in=0.002, n_craters=1, forced_radius = 0.5, forced_angle=0., forced_pos=(0.5,0.5))
+    cr, mg, vectors = dig_some_craters(grid_dimension_in=1000, dx_in=0.002, dy_in=0.002, n_craters=1, forced_radius = 0.5, forced_angle=0., forced_pos=(0.5,0.5))
     #Save the starting conds:
     crater_time_sequ[0] = copy(vectors.impact_sequence)
     numpy.savetxt('saved_elevs0', vectors.viewing_raster)

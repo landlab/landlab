@@ -8,7 +8,7 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 """
 
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 import numpy as np
 import six
 
@@ -53,7 +53,7 @@ class SurfaceFlowTransport(object):
 
     def set_and_return_dynamic_timestep(self):
         # Calculate time-step size for this iteration (Bates et al., eq 14)
-        self.dtmax = self.alpha*self.grid.dx/np.sqrt(self.g*np.amax(self.h))
+        self.dtmax = self.alpha*min(self.grid.dx, self.grid.dy)/np.sqrt(self.g*np.amax(self.h))
         return self.dtmax
 
     def set_timestep(self, timestep_in):
@@ -87,7 +87,7 @@ class SurfaceFlowTransport(object):
         erode_start_time = self.erode_start_time
         ten_thirds = 10./3.
 
-        interior_cells = grid.get_active_cell_node_ids()
+        interior_cells = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
 
         # Calculate the effective flow depth at active links. Bates et al. 2010

@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 from time import sleep
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
@@ -432,7 +432,7 @@ class SedDepEroder(object):
             draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
             core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True)
             link_length[core_draining_nodes] = grid.link_length[grid.at_node[steepest_link][core_draining_nodes]]
-            #link_length=grid.node_spacing_horizontal
+            #link_length=grid.dx
         else:
             link_length = grid.link_length[steepest_link]
 
@@ -588,7 +588,7 @@ class SedDepEroder(object):
 
         self.grid=grid
 
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] = node_z[active_nodes]

@@ -81,7 +81,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.get_neighbor_list(node_ids)
+    neighbors = grid.get_active_neighbors_at_node(node_ids)
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -192,8 +192,11 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     >>> flux = - grad    # downhill flux proportional to gradient
     >>> rmg.calculate_flux_divergence_at_nodes(flux)
-    array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
-           -4.,  1.,  0., -1.,  0.,  1.,  0.])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., -1., -1.,  1.,  0.,
+           -1.,  2.,  4., -2.,  1.,
+           -1.,  0.,  1., -4.,  1.,
+            0., -1.,  0.,  1.,  0.])
 
     If calculate_gradients_at_nodes is called inside a loop, you can
     improve speed by creating an array outside the loop. For example, do
@@ -207,6 +210,18 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     the df array but instead puts values into the *df* array.
 
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
+
+    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grad = grid.calculate_gradients_at_active_links(2 * u)
+    >>> grad
+    array([ 2.,  2., -2., -2., -2., -2., -2.,  0.,  2.,  1.,  1., -1.,  1.,
+            1.,  1., -1.,  1.])
+    >>> grid.calculate_flux_divergence_at_nodes(- grad)
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([ 0., -1., -1.,  1.,  0.,
+           -1.,  2.,  4., -2.,  1.,
+           -1.,  0.,  1., -4.,  1.,
+            0., -1.,  0.,  1.,  0.])
     """
     assert len(active_link_flux) == grid.number_of_active_links, \
         "incorrect length of active_link_flux array"
@@ -219,8 +234,18 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     assert len(net_unit_flux) == grid.number_of_nodes
 
+    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+
+    vert_active_links = np.where(grid.active_links < n_vertical_links)
+    horiz_active_links = np.where(grid.active_links >= n_vertical_links)
+
+    vert_links = grid.active_links[vert_active_links]
+    horiz_links = grid.active_links[horiz_active_links]
+
     flux = np.zeros(grid.number_of_links + 1)
-    flux[grid.active_links] = active_link_flux * grid.dx
+
+    flux[vert_links] = active_link_flux[vert_active_links] * grid.dy
+    flux[horiz_links] = active_link_flux[horiz_active_links] * grid.dx
 
     net_unit_flux[:] = (
         (flux[grid.node_active_outlink_matrix2[0][:]] +
@@ -358,11 +383,15 @@ def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
     5
     >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
     11
+
+    >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+    >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
+    6
     """
     column_indices = np.int_(
-        np.around((coords[0] - rmg.node_x[0]) / rmg.node_spacing))
+        np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
     row_indices = np.int_(
-        np.around((coords[1] - rmg.node_y[0]) / rmg.node_spacing))
+        np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 

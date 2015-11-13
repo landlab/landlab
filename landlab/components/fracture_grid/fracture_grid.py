@@ -1,12 +1,13 @@
 #! /usr/env/python
 
-"""
+"""Create 2D grid with randomly generated fractures.
+
 fracture_grid: creates and returns a 2D grid with randomly generated fractures.
 The grid contains the value 1 where fractures (one cell wide) exist, and
 0 elsewhere. The idea is to use this for simulations based on weathering and
 erosion of, and/or flow within, fracture networks.
 
-The entry point is the function:
+The entry point is the function::
 
     make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None)
 
@@ -151,7 +152,8 @@ def trace_fracture_through_grid(m, (y0, x0), (dy, dx)):
 
 def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
                    seed=0):
-    """
+    """Create a grid that contains a network of random fractures.
+
     Creates and returns a grid containing a network of random fractures, which
     are represented as 1's embedded in a grid of 0's.
 
@@ -159,12 +161,15 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     ----------
     frac_spacing : int
         Average spacing of fractures (in grid cells)
-    (optional) numrows, numcols : int
-        Number of rows and columns in grid (if model_grid parameter is given,
+    numrows : int, optional
+        Number of rows in grid (if model_grid parameter is given,
         uses values from the model grid instead)
-    (optional) model_grid : Landlab RasterModelGrid object
+    numcols : int, optional
+        Number of columns in grid (if model_grid parameter is given,
+        uses values from the model grid instead)
+    model_grid : Landlab RasterModelGrid object, optiona
         RasterModelGrid to use for grid size
-    (optional) seed : int
+    seed : int, optional
         Seed used for random number generator
 
     Returns

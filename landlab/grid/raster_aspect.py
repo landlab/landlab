@@ -23,7 +23,7 @@ def _one_line_slopes(input_array, grid, vals):
              vals[diagonals[3]]) - (vals[diagonals[1]] +
                                     2. * vals[neighbors[:, 1]] +
                                     vals[diagonals[0]])
-        ) / (8. * grid.dx)
+        ) / (8. * grid.dy)
         return slope_we, slope_sn
     except IndexError:
         C = vals[node]
@@ -31,13 +31,13 @@ def _one_line_slopes(input_array, grid, vals):
         weighting_horizontals = 4.
         try:
             vertical_grad = (vals[neighbors[3]] -
-                             vals[neighbors[1]]) / (2. * grid.dx)
+                             vals[neighbors[1]]) / (2. * grid.dy)
         except IndexError:
             try:
-                vertical_grad = (C - vals[neighbors[1]]) / grid.dx
+                vertical_grad = (C - vals[neighbors[1]]) / grid.dy
             except IndexError:
                 try:
-                    vertical_grad = (vals[neighbors[3]] - C) / grid.dx
+                    vertical_grad = (vals[neighbors[3]] - C) / grid.dy
                 except IndexError:
                     vertical_grad = 0.
                     weighting_verticals -= 2.
@@ -85,7 +85,7 @@ def _one_line_slopes(input_array, grid, vals):
                     right_grad = (vals[diagonals[3]] - C) / grid.dx
         try:
             top_grad = (vals[diagonals[1]] -
-                        vals[diagonals[0]]) / (2. * grid.dx)
+                        vals[diagonals[0]]) / (2. * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[1]]
@@ -94,12 +94,12 @@ def _one_line_slopes(input_array, grid, vals):
                 weighting_horizontals -= 1.
             else:
                 try:
-                    top_grad = (C - vals[diagonals[0]]) / grid.dx
+                    top_grad = (C - vals[diagonals[0]]) / grid.dy
                 except IndexError:
-                    top_grad = (vals[diagonals[1]] - C) / grid.dx
+                    top_grad = (vals[diagonals[1]] - C) / grid.dy
         try:
             bottom_grad = (vals[diagonals[2]] -
-                           vals[diagonals[3]]) / (2. * grid.dx)
+                           vals[diagonals[3]]) / (2. * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[3]]
@@ -108,9 +108,9 @@ def _one_line_slopes(input_array, grid, vals):
                 weighting_horizontals -= 1.
             else:
                 try:
-                    bottom_grad = (C - vals[diagonals[3]]) / grid.dx
+                    bottom_grad = (C - vals[diagonals[3]]) / grid.dy
                 except IndexError:
-                    bottom_grad = (vals[diagonals[2]] - C) / grid.dx
+                    bottom_grad = (vals[diagonals[2]] - C) / grid.dy
 
         slope_we = (top_grad + 2. * horizontal_grad +
                     bottom_grad) / weighting_horizontals
@@ -234,7 +234,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
             raise IndexError('*vals* was not of a compatible length!')
 
     # [right, top, left, bottom]
-    neighbors = grid.get_neighbor_list(ids)
+    neighbors = grid.get_active_neighbors_at_node(ids)
     # [topright, topleft, bottomleft, bottomright]
     diagonals = grid.get_diagonal_list(ids)
 

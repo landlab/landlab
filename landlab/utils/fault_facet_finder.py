@@ -142,9 +142,9 @@ class find_facets(object):
         # solution - take a dip_dir input...
         angle_to_ft = (angle_to_ft + np.pi) % (2. * np.pi)
         self.angle_to_ft[subset] = angle_to_ft
-        #gridshow.imshow_core_node_grid(self.grid, self.distance_to_ft)
+        #gridshow.imshow_node_grid(self.grid, self.distance_to_ft)
         # show()
-        #gridshow.imshow_core_node_grid(self.grid, self.angle_to_ft)
+        #gridshow.imshow_node_grid(self.grid, self.angle_to_ft)
         # show()
         # the relevant condition is now that the local aspect and angle to fault
         # are the same...
@@ -163,20 +163,20 @@ class find_facets(object):
         self.diff_angles = np.empty(grid.core_nodes.size, dtype=float)
         self.diff_angles.fill(sys.float_info.max)
         self.diff_angles[subset] = diff_angles
-        #gridshow.imshow_core_node_grid(self.grid, self.angle_to_ft)
+        #gridshow.imshow_node_grid(self.grid, self.angle_to_ft)
         # show()
         figure(6)
-        gridshow.imshow_core_node_grid(self.grid, np.where(
+        gridshow.imshow_node_grid(self.grid, np.where(
             self.diff_angles < 100000., self.diff_angles, -1.))
         condition2 = np.less(diff_angles, angle_tolerance * np.pi / 180.)
         condition = np.logical_and(condition, condition2)
         core_nodes_size_condition = np.zeros(grid.core_nodes.size, dtype=bool)
         core_nodes_size_condition[subset] = condition
-        #gridshow.imshow_core_node_grid(self.grid, core_nodes_size_condition)
+        #gridshow.imshow_node_grid(self.grid, core_nodes_size_condition)
         # show()
         #core_nodes_size_condition = np.zeros(grid.core_nodes.size, dtype=bool)
         #core_nodes_size_condition[subset] = condition2
-        #gridshow.imshow_core_node_grid(self.grid, core_nodes_size_condition)
+        #gridshow.imshow_node_grid(self.grid, core_nodes_size_condition)
         # show()
         self.aspect_close_nodes = core_nodes_size_condition
         print('Calculated and stored nodes with aspects compatible with fault trace...')
@@ -196,7 +196,7 @@ class find_facets(object):
         threshold_in_rads = threshold_in_degrees * np.pi / 180.
         self.steep_nodes = np.greater(self.slopes, threshold_in_rads)
         print('Calculated and stored nodes with slopes exceeding slope threshold...')
-        #gridshow.imshow_core_node_grid(self.grid, self.steep_nodes)
+        #gridshow.imshow_node_grid(self.grid, self.steep_nodes)
         # show()
         return self.steep_nodes
 
@@ -211,11 +211,11 @@ class find_facets(object):
         figure(1)
         gridshow.imshow_node_grid(self.grid, self.elevs)
         figure(2)
-        gridshow.imshow_core_node_grid(self.grid, self.slopes)
+        gridshow.imshow_node_grid(self.grid, self.slopes)
         figure(3)
-        gridshow.imshow_core_node_grid(self.grid, self.aspect)
+        gridshow.imshow_node_grid(self.grid, self.aspect)
         figure(4)
-        gridshow.imshow_core_node_grid(self.grid, possible_core_nodes)
+        gridshow.imshow_node_grid(self.grid, possible_core_nodes)
         show()
 
     def find_coherent_facet_patches(self, tolerance=3., threshold_num_px=12):
@@ -238,8 +238,9 @@ class find_facets(object):
             patch_size = 1
             mean_slope = self.slopes[nodes_in_patch]
             while 1:
-                possible_neighbors = np.union1d(self.grid.get_neighbor_list(
-                    nodes_in_patch).flat, self.possible_core_nodes)
+                possible_neighbors = np.union1d(
+                    self.grid.get_active_neighbors_at_node(
+                        nodes_in_patch).flat, self.possible_core_nodes)
                 neighbor_slopes = self.slopes[possible_neighbors]
                 low_tol_condition = np.greater(
                     neighbor_slopes, mean_slope - tolerance)

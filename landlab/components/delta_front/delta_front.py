@@ -15,7 +15,7 @@ class Littoral(object):
 
     def assign_Qs_to_littoral_cells(self, grid, dry_land_Qs_array, elev):
         self.dry_land_Qs = dry_land_Qs_array[dry_land_Qs_array>0]
-        cell_neighbors = grid.get_neighbor_list(self.dry_land_Qs)
+        cell_neighbors = grid.get_active_neighbors_at_node(self.dry_land_Qs)
         cell_neighbor_heights = elev[cell_neighbors]
         number_wet_cell_neighbors = np.sum(cell_neighbor_heights<0, axis=1)
         wet_neighbor_nonzero = np.where(number_wet_cell_neighbors>0)

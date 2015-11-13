@@ -189,3 +189,43 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     funcs = get_functions_from_module(mod, pattern=pattern)
     add_functions_to_class(cls, funcs)
+
+
+def sort_points_by_x_then_y(pts):
+    """Sort points by coordinates, first x then y.
+    
+    Parameters
+    ----------
+    pts : Nx2 NumPy array of float
+        (x,y) points to be sorted
+
+    Returns
+    -------
+    pts : Nx2 NumPy array of float
+        sorted (x,y) points
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import sort_points_by_x_then_y
+    >>> pts = np.zeros((10, 2))
+    >>> pts[:,0] = np.array([0., 0., 0., 1., 1., 1., 1., 2., 2., 2.])
+    >>> pts[:,1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
+    >>> pts = sort_points_by_x_then_y(pts)
+    >>> pts
+    array([[ 1. , -0.5],
+           [ 0. ,  0. ],
+           [ 2. ,  0. ],
+           [ 1. ,  0.5],
+           [ 0. ,  1. ],
+           [ 2. ,  1. ],
+           [ 1. ,  1.5],
+           [ 0. ,  2. ],
+           [ 2. ,  2. ],
+           [ 1. ,  2.5]])
+    """
+    a = pts[:,0].argsort(kind='mergesort')
+    b = pts[a,1].argsort(kind='mergesort')
+    pts[:,0] = pts[a[b],0]
+    pts[:,1] = pts[a[b],1]
+    return pts

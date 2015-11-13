@@ -1,13 +1,14 @@
 from __future__ import print_function
 
 import numpy as np
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from time import sleep
 from landlab.utils import structured_grid as sgrid
 import pylab
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
+
 
 class TransportLimitedEroder(object):
     """
@@ -246,9 +247,9 @@ class TransportLimitedEroder(object):
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.cell_areas))
         self.cell_areas[grid.node_at_cell] = grid.cell_areas
-        self.dx2 = grid.node_spacing_horizontal**2
-        self.dy2 = grid.node_spacing_vertical**2
-        self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
+        self.dx2 = grid.dx ** 2
+        self.dy2 = grid.dy ** 2
+        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
 
     def erode(self, grid, dt, node_drainage_areas='drainage_area',
                 node_elevs='topographic__elevation',
@@ -307,8 +308,8 @@ class TransportLimitedEroder(object):
 
         RETURNS XXXXXX
         """
-        dx = grid.node_spacing_horizontal
-        dy = grid.node_spacing_vertical
+        dx = grid.dx
+        dy = grid.dy
         dx2 = self.dx2
         dy2 = self.dy2
         nrows = grid.number_of_node_rows
@@ -339,7 +340,7 @@ class TransportLimitedEroder(object):
 
         all_nodes_diffusivity = self.diffusivity_prefactor*node_A**self.diffusivity_power_on_A
         #########ALT
-        neighbor_nodes = grid.get_neighbor_list(bad_index=-1)
+        neighbor_nodes = grid.get_active_neighbors_at_node(bad_index=-1)
         #the -1 lets us get *some* value for all nodes, which we then mask:
         neighbor_diffusivities = np.ma.array(all_nodes_diffusivity[neighbor_nodes], mask=self.bad_neighbor_mask)
         #pylab.figure(1)
@@ -426,9 +427,9 @@ class TransportLimitedEroder(object):
         #
         ##to see if this is actually necessary
         ##grid.at_node[node_elevs][sgrid.interior_nodes((nrows,ncols))] = node_z_asgrid.ravel()
-        self.grid=grid
+        self.grid = grid
 
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] += node_z_asgrid.ravel()[active_nodes]

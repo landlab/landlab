@@ -27,6 +27,13 @@ def setup_non_unit_grid():
     _VALUES_AT_NODES = np.arange(20.)
 
 
+def setup_non_square_grid():
+    """Set up a test grid with different x and y spacing."""
+    global _GRID, _VALUES_AT_NODES
+    _GRID = RasterModelGrid((4, 5), spacing=(5, 2))
+    _VALUES_AT_NODES = np.arange(20.)
+
+
 @with_setup(setup_unit_grid)
 def test_unit_spacing():
     """Test on a grid with unit spacing."""
@@ -40,16 +47,22 @@ def test_unit_spacing():
     assert_array_equal(grads, diffs)
 
 
-@with_setup(setup_non_unit_grid)
+@with_setup(setup_non_square_grid)
 def test_non_unit_spacing():
     """Test on a grid with non-unit spacing."""
     grads = _GRID.calculate_gradients_at_links(_VALUES_AT_NODES)
     assert_array_equal(
-        grads, np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-                         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        dtype=float) / _GRID.node_spacing)
+        grads,
+        np.array(
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+             0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+             0.5, 0.5, 0.5],
+            dtype=float))
     diffs = _GRID.calculate_diff_at_links(_VALUES_AT_NODES)
-    assert_array_equal(grads, diffs / _GRID.node_spacing)
+    assert_array_equal(diffs,
+        np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                 dtype=float))
 
 
 @with_setup(setup_unit_grid)

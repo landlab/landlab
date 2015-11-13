@@ -4,7 +4,7 @@ import numpy
 from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
-from landlab.core.utils import as_id_array
+from landlab.core.utils import as_id_array, sort_points_by_x_then_y
 
 from scipy.spatial import Voronoi
 
@@ -134,7 +134,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
 
-    def _initialize(self, x, y, reorient_links=False):
+    def _initialize(self, x, y, reorient_links=True):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -148,8 +148,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts = numpy.zeros((len(x), 2))
         pts[:, 0] = x
         pts[:, 1] = y
-        self.pts = pts
-
+        self.pts = sort_points_by_x_then_y(pts)
+        
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
         #   - node x, y coordinates
@@ -177,19 +177,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_active_cells = self.number_of_cells
         [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
             self._node_status, self.number_of_cells)
-        self.node_activecell = self._cell_at_node
-        self.activecell_node = self._node_at_cell
+        active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
         vor = Voronoi(pts)
         self.vor = vor
         self.active_cell_areas = numpy.zeros(self.number_of_active_cells)
-        for node in self.activecell_node:
+        for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self.active_cell_areas[self.node_activecell[
-                node]] = simple_poly_area(xv, yv)
+            self.active_cell_areas[self.cell_at_node[node]] = (
+                simple_poly_area(xv, yv))
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
@@ -331,13 +330,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._num_core_nodes = len(core_nodes)
         self._num_core_cells = len(core_nodes)
         self._core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
-        self.node_corecell = numpy.empty(node_status.size, dtype=numpy.int)
-        self.node_corecell.fill(BAD_INDEX_VALUE)
-        self.node_corecell[core_nodes] = self._core_cells
         self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self._node_at_cell = core_nodes
-        self.activecell_node = core_nodes
-        self.corecell_node = core_nodes
         self._boundary_nodes = boundary_nodes
 
         # Return the results

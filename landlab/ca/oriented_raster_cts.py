@@ -113,7 +113,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         self.link_orientation = dy.astype(int)
 
         if _DEBUG:
-            print(self.active_link_orientation)
+            print(self.link_orientation)
 
 
 if __name__ == '__main__':
