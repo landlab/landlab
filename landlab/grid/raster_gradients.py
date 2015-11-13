@@ -5,8 +5,11 @@ import numpy as np
 from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE
+from landlab.utils.decorators import use_field_name_or_array
+from functools import wraps
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients over links.
 
@@ -46,6 +49,10 @@ def calculate_gradients_at_links(grid, node_values, out=None):
 
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
     >>> grid.calculate_gradients_at_links(node_values)
+    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
+
+    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> grid.calculate_gradients_at_links('elevation')
     array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
     """
     diffs = gradients.calculate_diff_at_links(grid, node_values, out=out)
