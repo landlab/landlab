@@ -138,7 +138,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
-
         assert type(x) == numpy.ndarray, 'x must be a numpy array'
         assert type(y) == numpy.ndarray, 'y must be a numpy array'
         assert len(x) == len(y), 'x and y arrays must have the same size'
@@ -149,6 +148,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
+        x = pts[:,0]
+        y = pts[:,1]
         
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
