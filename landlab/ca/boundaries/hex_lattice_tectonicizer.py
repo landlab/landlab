@@ -81,7 +81,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf = LatticeNormalFault(0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         1
         >>> lnf.num_fw_rows
@@ -92,7 +92,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         array([22, 23, 24, 18])
         """
         # Do the base class init
-        super(LatticeNormalFault, self).__init__(grid, node_state, propid, prop_data, prop_reset_value)
+        super(LatticeNormalFault, self).__init__(grid, node_state, propid, 
+                                                 prop_data, prop_reset_value)
 
         # Set up data structures:
         #   Make sure the footwall location is such that the fault actually
@@ -103,20 +104,33 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         assert (fault_x_intercept<amax(self.grid.node_x)-0.57735)
 
         #   Figure out which nodes are and are not within the footwall
-        in_footwall = (self.grid.node_y<_TAN60*(self.grid.node_x-fault_x_intercept))
+        in_footwall = (self.grid.node_y < _TAN60 * (self.grid.node_x -
+                       fault_x_intercept))
+                       
+        # Helpful to have an array of node IDs for the bottom full row. Because
+        # the nodes in the bottom row are staggered in a vertical, rectangular
+        # hex grid, the IDs go: 0, M, 1, M+1, 2, M+2, ... etc., where M is half
+        # the number of columns, rounded up (so, for example, 3 for a 5- or 6-
+        # column grid, etc.)
+        half_num_cols = (self.nc+1)/2
+        bottom_row_node_id = arange(self.nc)/2+(arange(self.nc)%2)*half_num_cols
 
-        #   Find the first of the bottom-row nodes that lies in the footwall
+        #   Find the first of the bottom-row nodes that lies in the footwall.
+        # This loop exploits the fact that nodes are numbered in an order 
+        # sorted by x then y, and that the bottom row is staggered, with node
+        # zero being "low", like: ,',', etc.
         self.first_fw_col = 0
         n = 0
-        while not in_footwall[n]:
-            n += self.nr
+        while not in_footwall[bottom_row_node_id[n]]:
+            n += 1
             self.first_fw_col += 1
+            assert n<self.nc, 'overflow in loop'
 
         #   Remember the number of footwall rows in each column
         self.num_fw_rows = zeros(self.nc, dtype=int)
         for c in range(self.nc):
             current_row = 0
-            while current_row<self.nr and in_footwall[current_row+c*self.nr]:
+            while current_row<self.nr and in_footwall[bottom_row_node_id[c]+self.nc*current_row]:
                 self.num_fw_rows[c] += 1
                 current_row += 1
 
@@ -347,8 +361,8 @@ def test_create_lnf(nr, nc):
     pdata = arange(nr*nc)
     grid = HexModelGrid(nr, nc, 1.0, orientation='vertical', shape='rect', reorient_links=True)
     lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-    for i in range(grid.number_of_nodes):
-        print i, grid.node_x[i], grid.node_y[i]
+    #for i in range(grid.number_of_nodes):
+    #    print i, grid.node_x[i], grid.node_y[i]
     return lnf
 
 
@@ -393,5 +407,6 @@ def main():
         lu.grid.hexplot(lu.node_state)
 
 if __name__=='__main__':
+    main()
     import doctest
     doctest.testmod()
