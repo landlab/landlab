@@ -538,6 +538,11 @@ class ModelGrid(ModelDataFields):
         self._node_unit_vector_sum_y = None
         self._link_unit_vec_x = None
         self._link_unit_vec_y = None
+        
+        # Sort links according to the x and y coordinates of their midpoints.
+        # Assumes 1) node_at_link_tail and node_at_link_head have been
+        # created, and 2) so have node_x and node_y.
+        
 
     def _initialize(self):
         raise NotImplementedError('_initialize')
@@ -970,31 +975,31 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2)
         >>> hmg.active_links_at_node(3)
-        array([[-1],
-               [-1],
-               [-1],
+        array([[ 2],
+               [ 3],
+               [ 5],
                [-1],
                [-1],
                [-1],
                [ 0],
                [ 1],
-               [ 2],
-               [ 3],
                [ 4],
-               [ 5]])
+               [-1],
+               [-1],
+               [-1]])
         >>> hmg.active_links_at_node()
-        array([[ 3,  5,  2, -1,  4,  1,  0],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1,  0, -1, -1, -1],
-               [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  2, -1, -1, -1],
+        array([[-1, -1, -1,  2,  4,  1,  0],
                [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [ 3,  5,  2,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
                [-1, -1, -1,  4, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1]])
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
@@ -1032,32 +1037,31 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2)
         >>> hmg.active_links_at_node2(3)
-        array([[-1],
-               [-1],
-               [-1],
+        array([[ 2],
+               [ 3],
+               [ 5],
                [-1],
                [-1],
                [-1],
                [ 0],
                [ 1],
-               [ 2],
-               [ 3],
                [ 4],
-               [ 5]])
+               [-1],
+               [-1],
+               [-1]])
         >>> hmg.active_links_at_node2()
-        array([[ 3,  5,  2, -1,  4,  1,  0],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1,  0, -1, -1, -1],
-               [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  2, -1, -1, -1],
+        array([[-1, -1, -1,  2,  4,  1,  0],
                [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [ 3,  5,  2,  0, -1, -1, -1],
+               [-1, -1, -1,  1, -1, -1, -1],
                [-1, -1, -1,  4, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1]])
-
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix2,
@@ -2256,23 +2260,23 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 2)
         >>> hg.node_numactiveinlink
-        array([1, 1, 1, 0, 1, 1, 1])
+        array([0, 0, 0, 3, 1, 1, 1])
         >>> hg.node_active_inlink_matrix2
-        array([[ 3,  5,  2, -1,  4,  1,  0],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
+        array([[-1, -1, -1,  2,  4,  1,  0],
+               [-1, -1, -1,  3, -1, -1, -1],
+               [-1, -1, -1,  5, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1]])
         >>> hg.node_numactiveoutlink
-        array([0, 0, 0, 6, 0, 0, 0])
+        array([1, 1, 1, 3, 0, 0, 0])
         >>> hg.node_active_outlink_matrix2
-        array([[-1, -1, -1,  0, -1, -1, -1],
+        array([[ 3,  5,  2,  0, -1, -1, -1],
                [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  2, -1, -1, -1],
-               [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  4, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1]])
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1, -1, -1, -1]])
         """
         # Create active in-link and out-link matrices.
         self.node_active_inlink_matrix = - numpy.ones(
@@ -2383,12 +2387,12 @@ class ModelGrid(ModelDataFields):
         >>> import landlab as ll
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
         >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.5, -0.5, -1. , -0.5,  1. ,  0.5,  0.5, -1. , -0.5,  0.5,
-                1. , -0.5,  0. ])
+        array([ 0.5, -0.5,  1. ,  0.5,  1. , -0.5,  -0.5,  1. ,  0.5, -0.5,
+                1. ,  0.5,  0. ])
         >>> hmg.link_unit_vec_y
-        array([ 0.8660254,  0.8660254,  0.       , -0.8660254,  0.       ,
-               -0.8660254, -0.8660254,  0.       , -0.8660254, -0.8660254,
-                0.       , -0.8660254,  0.       ])
+        array([ 0.8660254,  0.8660254,  0.       ,  0.8660254,  0.       ,
+                0.8660254,  0.8660254,  0.       ,  0.8660254,  0.8660254,
+                0.       ,  0.8660254,  0.       ])
         >>> hmg.node_unit_vector_sum_x
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
         >>> hmg.node_unit_vector_sum_y
@@ -3164,6 +3168,16 @@ class ModelGrid(ModelDataFields):
         assert numpy.all(self._all_node_distances_map >= 0.)
 
         return self._all_node_distances_map, self._all_node_azimuths_map
+
+    def sort_links_by_midpoint(self):
+        """Sort links in order first by midpoint x coordinate, then y.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        """
+        pass
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
