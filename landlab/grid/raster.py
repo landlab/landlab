@@ -579,7 +579,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                             contiguous=True)
 
         # Link lists:
-        # For all links, we encode the "from" and "to" nodes, and the face
+        # For all links, we encode the "tail" and "head" nodes, and the face
         # (if any) associated with the link. If the link does not intersect a
         # face, then face is assigned None.
         # For active links, we store the corresponding link ID.
@@ -591,21 +591,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #
         #  *--27-->*--28-->*--29-->*--30-->*
         #  ^       ^       ^       ^       ^
-        # 10      11      12      13      14
+        # 22      23      24      25      26
         #  |       |       |       |       |
-        #  *--23-->*--24-->*--25-->*--26-->*
+        #  *--18-->*--19-->*--20-->*--21-->*
         #  ^       ^       ^       ^       ^
-        #  5       6       7       8       9
+        # 13      14      15      16      17
         #  |       |       |       |       |
-        #  *--19-->*--20-->*--21-->*--22-->*
+        #  *---9-->*--10-->*--11-->*--12-->*
         #  ^       ^       ^       ^       ^
-        #  0       1       2       3       4
+        #  4       5       6       7       8
         #  |       |       |       |       |
-        #  *--15-->*--16-->*--17-->*--18-->*
+        #  *---0-->*---1-->*---2-->*---3-->*
         #
-        #   create the fromnode and tonode lists
+        #   create the tail-node and head-node lists
         (self._node_at_link_tail,
          self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+
+        # Sort them by midpoint coordinates
+        self.sort_links_by_midpoint()
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
