@@ -22,7 +22,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     """
 
     def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0,
-                 orientation='horizontal', shape='hex', reorient_links=False,
+                 orientation='horizontal', shape='hex', reorient_links=True,
                  **kwds):
         """Create a grid of hexagonal cells.
 
@@ -64,7 +64,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         super(HexModelGrid, self).__init__(**kwds)
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
-                    shape, reorient_links=False):
+                    shape, reorient_links=True):
         r"""Set up a hexagonal grid.
 
         Sets up a hexagonal grid with cell spacing dx and
