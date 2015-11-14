@@ -6,7 +6,6 @@ from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_field_name_or_array
-from functools import wraps
 
 
 @use_field_name_or_array('node')
