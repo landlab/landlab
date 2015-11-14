@@ -185,6 +185,7 @@ from six.moves import range
 
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
+from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from landlab.field import ModelDataFields, ScalarDataFields
 from landlab.field.scalar_data_fields import FieldError
@@ -542,7 +543,7 @@ class ModelGrid(ModelDataFields):
         # Sort links according to the x and y coordinates of their midpoints.
         # Assumes 1) node_at_link_tail and node_at_link_head have been
         # created, and 2) so have node_x and node_y.
-        
+        #self.sort_links_by_midpoint()
 
     def _initialize(self):
         raise NotImplementedError('_initialize')
@@ -2397,12 +2398,12 @@ class ModelGrid(ModelDataFields):
         >>> import landlab as ll
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
         >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.5, -0.5,  1. ,  0.5,  1. , -0.5,  -0.5,  1. ,  0.5, -0.5,
-                1. ,  0.5,  0. ])
+        array([ 1.0, -0.5,  0.5. , -0.5,  0.5,  1.0,  1.0,  0.5, -0.5,  0.5,
+               -0.5,  1.0,  0. ])
         >>> hmg.link_unit_vec_y
-        array([ 0.8660254,  0.8660254,  0.       ,  0.8660254,  0.       ,
-                0.8660254,  0.8660254,  0.       ,  0.8660254,  0.8660254,
-                0.       ,  0.8660254,  0.       ])
+        array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
+                0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
+                0.8660254,  0.       ,  0.       ])
         >>> hmg.node_unit_vector_sum_x
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
         >>> hmg.node_unit_vector_sum_y
@@ -3187,7 +3188,14 @@ class ModelGrid(ModelDataFields):
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         """
-        pass
+        pts = np.zeros((self.number_of_links, 2))
+        pts[:,0] = (self.node_x[self.node_at_link_tail] +
+                    self.node_x[self.node_at_link_head]) / 2
+        pts[:,1] = (self.node_y[self.node_at_link_tail] +
+                    self.node_y[self.node_at_link_head]) / 2
+        indices = argsort_points_by_x_then_y(pts)
+        self.node_at_link_tail[:] = self.node_at_link_tail[indices]
+        self.node_at_link_head[:] = self.node_at_link_head[indices]
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
