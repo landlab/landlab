@@ -63,6 +63,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     return diffs
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients over active links.
 
@@ -129,6 +130,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     return diffs
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
     Get gradients across the faces of a cell.
@@ -209,6 +211,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
     Get gradients to diagonally opposite nodes.
@@ -269,6 +272,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
     Get gradients along links touching a node.
