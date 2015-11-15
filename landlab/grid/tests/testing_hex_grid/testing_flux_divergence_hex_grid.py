@@ -121,15 +121,15 @@ def testing_flux_divergence_with_hex():
     -----
     Test grid looks like this:
 
-        (7)--1-.(8)-17-.(9)
+        (7)-17-.(8)-18-.(9)
         . .     . .     . .
-       0   2  18  11   9  16
+      11  12  13  14  15  16
       /     \ /     \ /     \ 
-    (3)--4-.(4)-12-.(5)-10-.(6)
+    (3)--8-.(4)--9-.(5)-10-.(6)
       .     . .     . .     .
-       3   6  15   8   7  13
+       2   3   4   5   6   7
         \ /     \ /     \ /
-        (0)--5-.(1)-14-.(2)
+        (0)--0-.(1)--1-.(2)
 
     Node numbers in parentheses; others are link numbers; period indicates
     link head.
@@ -138,7 +138,7 @@ def testing_flux_divergence_with_hex():
     
     f = hmg.add_zeros('link', 'test_flux')
     f[:] = np.arange(hmg.number_of_links)
-    
+
     print('Nodes:')
     for n in range(hmg.number_of_nodes):
         print(str(n)+' '+str(hmg.node_x[n])+' '+str(hmg.node_y[n]))
@@ -153,29 +153,27 @@ def testing_flux_divergence_with_hex():
     assert_array_equal(hmg.gt_num_links_at_node,
                        [3, 4, 3, 3, 6, 6, 3, 3, 4, 3])
                        
-    print(hmg.gt_links_at_node)
-                       
     assert_array_equal(hmg.gt_links_at_node,
-                       [[  3,  5,  7,  0,  2,  7, 10,  0,  1,  9],
-                        [  5,  8, 13,  3,  4,  8, 13,  1, 11, 16],
-                        [  6, 14, 14,  4,  6,  9, 16,  2, 17, 17],
-                        [ -1, 15, -1, -1, 12, 10, -1, -1, 18, -1],
-                        [ -1, -1, -1, -1, 15, 11, -1, -1, -1, -1],
-                        [ -1, -1, -1, -1, 18, 12, -1, -1, -1, -1]])
+                       [[  0,  0,  1,  2,  3,  5,  7, 11, 13, 15],
+                        [  2,  1,  6,  8,  4,  6, 10, 12, 14, 16],
+                        [  3,  4,  7, 11,  8,  9, 16, 17, 17, 18],
+                        [ -1,  5, -1, -1,  9, 10, -1, -1, 18, -1],
+                        [ -1, -1, -1, -1, 12, 14, -1, -1, -1, -1],
+                        [ -1, -1, -1, -1, 13, 15, -1, -1, -1, -1]])
                        
     assert_array_equal(hmg.gt_link_dirs_at_node,
-                       [[ -1,  1, -1, -1, -1,  1,  1,  1,  1,  1],
-                        [ -1, -1, -1,  1,  1,  1,  1, -1,  1,  1],
-                        [ -1, -1,  1, -1,  1, -1, -1,  1, -1,  1],
-                        [  0, -1,  0,  0, -1, -1,  0,  0,  1,  0],
-                        [  0,  0,  0,  0,  1, -1,  0,  0,  0,  0],
-                        [  0,  0,  0,  0, -1,  1,  0,  0,  0,  0]])
-                       
+                       [[ -1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
+                        [ -1, -1, -1, -1,  1,  1,  1,  1,  1,  1],
+                        [ -1, -1, -1, -1,  1,  1, -1, -1,  1,  1],
+                        [  0, -1,  0,  0, -1, -1,  0,  0, -1,  0],
+                        [  0,  0,  0,  0, -1, -1,  0,  0,  0,  0],
+                        [  0,  0,  0,  0, -1, -1,  0,  0,  0,  0]])
+
     raw_net_flux = np.zeros(hmg.number_of_nodes)
     for r in range(MAX_NUM_LINKS):
         raw_net_flux += f[hmg.gt_links_at_node[r,:]]*hmg.gt_link_dirs_at_node[r,:]
     assert_array_equal(raw_net_flux, 
-                       [-14., -32.,  -6.,  -1.,  -7.,  -3.,  7.,  1., 13., 42.])
+                       [ -5., -10., -12., -17., -19., -19.,  1.,  6., 26., 49.])
 
     nv = np.arange(hmg.number_of_nodes)
     #gt_calc_gradients_at_faces(hmg, nv)    
