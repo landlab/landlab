@@ -140,12 +140,17 @@ def vertical_link_ids(shape):
     --------
     >>> from landlab.grid.structured_quad.links import vertical_link_ids
     >>> vertical_link_ids((3, 4))
-    array([[0, 1, 2, 3],
-           [4, 5, 6, 7]])
+    array([[ 3,  4,  5,  6],
+           [10, 11, 12, 13]])
     """
-    link_ids = np.arange(number_of_vertical_links(shape), dtype=np.int)
-    return link_ids.reshape(shape_of_vertical_links(shape))
-
+    #link_ids = np.arange(number_of_vertical_links(shape), dtype=np.int)
+    #return link_ids.reshape(shape_of_vertical_links(shape))
+    a = shape[1] - 1  # num horiz links in each row
+    num_links_per_row = 2*shape[1] - 1  # each row has C-1 horiz + C vert
+    link_ids = np.zeros(shape_of_vertical_links(shape), dtype=np.int)
+    for r in range(shape[0]-1):  # num rows - 1
+        link_ids[r,:] = a + (r * num_links_per_row) + np.arange(shape[1])
+    return link_ids
 
 def horizontal_link_ids(shape):
     """Horizontal links in a structured quad grid.
@@ -164,14 +169,18 @@ def horizontal_link_ids(shape):
     --------
     >>> from landlab.grid.structured_quad.links import horizontal_link_ids
     >>> horizontal_link_ids((3, 4))
-    array([[ 8,  9, 10],
-           [11, 12, 13],
+    array([[ 0,  1,  2],
+           [ 7,  8,  9],
            [14, 15, 16]])
     """
-    link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
-                number_of_vertical_links(shape))
-    return link_ids.reshape(shape_of_horizontal_links(shape))
-
+#    link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
+#                number_of_vertical_links(shape))
+#    return link_ids.reshape(shape_of_horizontal_links(shape))
+    num_links_per_row = 2*shape[1] - 1  # each row has C-1 horiz + C vert
+    link_ids = np.zeros(shape_of_horizontal_links(shape), dtype=np.int)
+    for r in range(shape[0]):  # number of rows
+        link_ids[r,:] = (r * num_links_per_row) + np.arange(shape[1]-1)
+    return link_ids
 
 def number_of_links_per_node(shape):
     """Number of links touching each node.
@@ -287,12 +296,12 @@ def _node_out_link_ids(shape):
     >>> from landlab.grid.structured_quad.links import _node_out_link_ids
     >>> (vert, horiz) = _node_out_link_ids((3, 4))
     >>> vert
-    array([[ 0,  1,  2,  3],
-           [ 4,  5,  6,  7],
+    array([[ 3,  4,  5,  6],
+           [10, 11, 12, 13],
            [-1, -1, -1, -1]])
     >>> horiz
-    array([[ 8,  9, 10, -1],
-           [11, 12, 13, -1],
+    array([[ 0,  1,  2, -1],
+           [ 7,  8,  9, -1],
            [14, 15, 16, -1]])
     """
     node_horizontal_link_ids = np.empty(shape, np.int)
@@ -325,11 +334,11 @@ def _node_in_link_ids(shape):
     >>> (vert, horiz) = _node_in_link_ids((3, 4))
     >>> vert
     array([[-1, -1, -1, -1],
-           [ 0,  1,  2,  3],
-           [ 4,  5,  6,  7]])
+           [ 3,  4,  5,  6],
+           [10, 11, 12, 13]])
     >>> horiz
-    array([[-1,  8,  9, 10],
-           [-1, 11, 12, 13],
+    array([[-1,  0,  1,  2],
+           [-1,  7,  8,  9],
            [-1, 14, 15, 16]])
     """
     node_horizontal_link_ids = np.empty(shape, np.int)
@@ -361,7 +370,7 @@ def node_in_link_ids(shape):
     >>> from landlab.grid.structured_quad.links import node_in_link_ids
     >>> (links, offset) = node_in_link_ids((3, 4))
     >>> links
-    array([ 8,  9, 10,  0,  1, 11,  2, 12,  3, 13,  4,  5, 14,  6, 15,  7, 16])
+    array([ 0,  1,  2,  3,  4,  7,  5,  8,  6,  9, 10, 11, 14, 12, 15, 13, 16])
     >>> offset
     array([ 0,  0,  1,  2,  3,  4,  6,  8, 10, 11, 13, 15, 17])
 
@@ -371,8 +380,8 @@ def node_in_link_ids(shape):
     >>> offset[0] == offset[1]
     True
     >>> for link in [4, 11]: links[offset[link]:offset[link + 1]]
-    array([0])
-    array([ 7, 16])
+    array([3])
+    array([13, 16])
     """
     (in_vert, in_horiz) = _node_in_link_ids(shape)
     _node_link_ids = np.vstack((in_vert.flat, in_horiz.flat)).T
@@ -402,7 +411,7 @@ def node_out_link_ids(shape):
     >>> from landlab.grid.structured_quad.links import node_out_link_ids
     >>> (links, offset) = node_out_link_ids((3, 4))
     >>> links
-    array([ 0,  8,  1,  9,  2, 10,  3,  4, 11,  5, 12,  6, 13,  7, 14, 15, 16])
+    array([ 3,  0,  4,  1,  5,  2,  6, 10,  7, 11,  8, 12,  9, 13, 14, 15, 16])
     >>> offset
     array([ 0,  2,  4,  6,  7,  9, 11, 13, 14, 15, 16, 17, 17])
 
@@ -412,8 +421,8 @@ def node_out_link_ids(shape):
     >>> offset[11] == offset[12]
     True
     >>> for link in [0, 7]: links[offset[link]:offset[link + 1]]
-    array([0, 8])
-    array([7])
+    array([3, 0])
+    array([13])
     """
     (out_vert, out_horiz) = _node_out_link_ids(shape)
     _node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
@@ -441,20 +450,20 @@ def node_link_ids(shape):
     >>> from landlab.grid.structured_quad.links import node_link_ids
     >>> (links, offset) = node_link_ids((3, 4))
     >>> links
-    array([ 0,  8,  8,  1,  9,  9,  2, 10, 10,  3,  0,  4, 11,  1, 11,  5, 12,
-            2, 12,  6, 13,  3, 13,  7,  4, 14,  5, 14, 15,  6, 15, 16,  7, 16])
+    array([ 3,  0,  0,  4,  1,  1,  5,  2,  2,  6,  3, 10,  7,  4,  7, 11,  8,
+            5,  8, 12,  9,  6,  9, 13, 10, 14, 11, 14, 15, 12, 15, 16, 13, 16])
     >>> offset
     array([ 0,  2,  5,  8, 10, 13, 17, 21, 24, 26, 29, 32, 34])
 
     The links attached to node 0
 
     >>> links[offset[0]:offset[1]]
-    array([0, 8])
+    array([3, 0])
 
     The links attached to node 5
 
     >>> links[offset[5]:offset[6]]
-    array([ 1, 11,  5, 12])
+    array([ 4,  7, 11,  8])
     """
     (in_vert, in_horiz) = _node_in_link_ids(shape)
     (out_vert, out_horiz) = _node_out_link_ids(shape)
@@ -1051,15 +1060,15 @@ def horizontal_south_link_neighbor(shape, horizontal_ids,
 
 
 
-        *--23-->*--24-->*--25-->*--26-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--19-->*--20-->*--21-->*--22-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -1075,7 +1084,7 @@ def horizontal_south_link_neighbor(shape, horizontal_ids,
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> horizontal_south_link_neighbor(rmg.shape, horizontal_links)
-    array([-1, -1, -1, -1, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26])
+    array([-1, -1, -1, -1,  0,  1,  2,  3,  9, 10, 11, 12, 18, 19, 20, 21])
     """
     # First, we find the shape of the horizontal link array given the shape
     # of the raster model grid. In our example, the shape of horizontal links
@@ -1133,15 +1142,15 @@ def horizontal_west_link_neighbor(shape, horizontal_ids,
 
 
 
-        *--23-->*--24-->*--25-->*--26-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--19-->*--20-->*--21-->*--22-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -1157,7 +1166,7 @@ def horizontal_west_link_neighbor(shape, horizontal_ids,
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> horizontal_west_link_neighbor(rmg.shape, horizontal_links)
-    array([-1, 15, 16, 17, -1, 19, 20, 21, -1, 23, 24, 25, -1, 27, 28, 29])
+    array([-1,  0,  1,  2, -1,  9, 10, 11, -1, 18, 19, 20, -1, 27, 28, 29])
     """
     # First, we find the shape of the horizontal link array given the shape
     # of the raster model grid. In our example, the shape of horizontal links
@@ -1219,15 +1228,15 @@ def horizontal_north_link_neighbor(shape, horizontal_ids,
 
 
 
-        *--23-->*--24-->*--25-->*--26-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--19-->*--20-->*--21-->*--22-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -1243,7 +1252,7 @@ def horizontal_north_link_neighbor(shape, horizontal_ids,
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> horizontal_north_link_neighbor(rmg.shape, horizontal_links)
-    array([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, -1, -1, -1, -1])
+    array([ 9, 10, 11, 12, 18, 19, 20, 21, 27, 28, 29, 30, -1, -1, -1, -1])
     """
     # First, we find the shape of the horizontal link array given the shape
     # of the raster model grid. In our example, the shape of horizontal links
@@ -1303,15 +1312,15 @@ def horizontal_east_link_neighbor(shape, horizontal_ids,
 
 
 
-        *--23-->*--24-->*--25-->*--26-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--19-->*--20-->*--21-->*--22-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -1327,7 +1336,7 @@ def horizontal_east_link_neighbor(shape, horizontal_ids,
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> horizontal_east_link_neighbor(rmg.shape, horizontal_links)
-    array([16, 17, 18, -1, 20, 21, 22, -1, 24, 25, 26, -1, 28, 29, 30, -1])
+    array([ 1,  2,  3, -1, 10, 11, 12, -1, 19, 20, 21, -1, 28, 29, 30, -1])
     """
     # First, we find the shape of the horizontal link array given the shape
     # of the raster model grid. In our example, the shape of horizontal links
@@ -1382,21 +1391,21 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
 
     Examples
     --------
-    Sample grid, giving neighbors for link ID 20::
+    Sample grid, giving neighbors for link ID 10::
 
         *------>*------>*------>*------>*
 
 
 
-        *------>*--24-->*------>*------>*
+        *------>*--19-->*------>*------>*
 
 
 
-        *--19-->*--20-->*--21-->*------>*
+        *---9-->*--10-->*--11-->*------>*
 
 
 
-        *------>*--16-->*------>*------>*
+        *------>*---1-->*------>*------>*
 
     .. note::
 
@@ -1412,22 +1421,22 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> d4_horizontal_link_neighbors(rmg.shape, horizontal_links)
-    array([[-1, -1, 19, 16],
-           [-1, 15, 20, 17],
-           [-1, 16, 21, 18],
-           [-1, 17, 22, -1],
-           [15, -1, 23, 20],
-           [16, 19, 24, 21],
-           [17, 20, 25, 22],
-           [18, 21, 26, -1],
-           [19, -1, 27, 24],
-           [20, 23, 28, 25],
-           [21, 24, 29, 26],
-           [22, 25, 30, -1],
-           [23, -1, -1, 28],
-           [24, 27, -1, 29],
-           [25, 28, -1, 30],
-           [26, 29, -1, -1]])
+    array([[-1, -1,  9,  1],
+           [-1,  0, 10,  2],
+           [-1,  1, 11,  3],
+           [-1,  2, 12, -1],
+           [ 0, -1, 18, 10],
+           [ 1,  9, 19, 11],
+           [ 2, 10, 20, 12],
+           [ 3, 11, 21, -1],
+           [ 9, -1, 27, 19],
+           [10, 18, 28, 20],
+           [11, 19, 29, 21],
+           [12, 20, 30, -1],
+           [18, -1, -1, 28],
+           [19, 27, -1, 29],
+           [20, 28, -1, 30],
+           [21, 29, -1, -1]])
     """
     # First we find *south* neighbors...
     south = horizontal_south_link_neighbor(shape, horizontal_ids,
@@ -1556,15 +1565,15 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -1582,7 +1591,7 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_south_link_neighbor(rmg.shape, vertical_links)
-    array([-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9])
+    array([-1, -1, -1, -1, -1,  4,  5,  6,  7,  8, 13, 14, 15, 16, 17])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1637,15 +1646,15 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -1663,7 +1672,7 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_west_link_neighbor(rmg.shape, vertical_links)
-    array([-1,  0,  1,  2,  3, -1,  5,  6,  7,  8, -1, 10, 11, 12, 13])
+    array([-1,  4,  5,  6,  7, -1, 13, 14, 15, 16, -1, 22, 23, 24, 25])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1722,15 +1731,15 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -1748,7 +1757,7 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
     >>> vertical_north_link_neighbor(rmg.shape, vertical_ids)
-    array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1])
+    array([13, 14, 15, 16, 17, 22, 23, 24, 25, 26, -1, -1, -1, -1, -1])
 
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1806,15 +1815,15 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -1832,7 +1841,7 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_east_link_neighbor(rmg.shape, vertical_links)
-    array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
+    array([ 5,  6,  7,  8, -1, 14, 15, 16, 17, -1, 23, 24, 25, 26, -1])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1890,15 +1899,15 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -1916,21 +1925,21 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
     >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids)
-    array([[-1, -1,  5,  1],
-           [-1,  0,  6,  2],
-           [-1,  1,  7,  3],
-           [-1,  2,  8,  4],
-           [-1,  3,  9, -1],
-           [ 0, -1, 10,  6],
-           [ 1,  5, 11,  7],
-           [ 2,  6, 12,  8],
-           [ 3,  7, 13,  9],
-           [ 4,  8, 14, -1],
-           [ 5, -1, -1, 11],
-           [ 6, 10, -1, 12],
-           [ 7, 11, -1, 13],
-           [ 8, 12, -1, 14],
-           [ 9, 13, -1, -1]])
+    array([[-1, -1, 13,  5],
+           [-1,  4, 14,  6],
+           [-1,  5, 15,  7],
+           [-1,  6, 16,  8],
+           [-1,  7, 17, -1],
+           [ 4, -1, 22, 14],
+           [ 5, 13, 23, 15],
+           [ 6, 14, 24, 16],
+           [ 7, 15, 25, 17],
+           [ 8, 16, 26, -1],
+           [13, -1, -1, 23],
+           [14, 22, -1, 24],
+           [15, 23, -1, 25],
+           [16, 24, -1, 26],
+           [17, 25, -1, -1]])
     """
     south = vertical_south_link_neighbor(shape, vertical_ids, bad_index_value)
     west = vertical_west_link_neighbor(shape, vertical_ids, bad_index_value)
@@ -1965,15 +1974,15 @@ def d4_vertical_active_link_neighbors(shape, vertical_ids, bad_index_value=-1):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -2038,19 +2047,19 @@ def bottom_edge_horizontal_ids(shape):
     --------
     The following example uses this grid::
 
-        *--28-->*--29-->*--30-->*--31-->*
+        *--27-->*--28-->*--29-->*--30-->*
 
 
 
-        *--24-->*--25-->*--26-->*--27-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--20-->*--21-->*--22-->*--23-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -2066,7 +2075,7 @@ def bottom_edge_horizontal_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> bottom_edge_horizontal_ids(shape)
-    array([15, 16, 17, 18])
+    array([0, 1, 2, 3])
     """
     # First, we find all horizontal link ids for the RasterModelGrid shape.
     horizontal_id_array = horizontal_link_ids(shape)
@@ -2096,19 +2105,19 @@ def left_edge_horizontal_ids(shape):
     --------
     The following example uses this grid::
 
-        *--28-->*--29-->*--30-->*--31-->*
+        *--27-->*--28-->*--29-->*--30-->*
 
 
 
-        *--24-->*--25-->*--26-->*--27-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--20-->*--21-->*--22-->*--23-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -2123,7 +2132,7 @@ def left_edge_horizontal_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> left_edge_horizontal_ids(shape)
-    array([15, 19, 23, 27])
+    array([ 0,  9, 18, 27])
     """
 
     # First, we find all horizontal link ids for the RasterModelGrid shape.
@@ -2154,19 +2163,19 @@ def top_edge_horizontal_ids(shape):
     --------
     The following example uses this grid::
 
-        *--28-->*--29-->*--30-->*--31-->*
+        *--27-->*--28-->*--29-->*--30-->*
 
 
 
-        *--24-->*--25-->*--26-->*--27-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--20-->*--21-->*--22-->*--23-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -2211,19 +2220,19 @@ def right_edge_horizontal_ids(shape):
     --------
     The following example uses this grid::
 
-        *--28-->*--29-->*--30-->*--31-->*
+        *--27-->*--28-->*--29-->*--30-->*
 
 
 
-        *--24-->*--25-->*--26-->*--27-->*
+        *--18-->*--19-->*--20-->*--21-->*
 
 
 
-        *--20-->*--21-->*--22-->*--23-->*
+        *---9-->*--10-->*--11-->*--12-->*
 
 
 
-        *--15-->*--16-->*--17-->*--18-->*
+        *---0-->*---1-->*---2-->*---3-->*
 
     .. note::
 
@@ -2239,7 +2248,7 @@ def right_edge_horizontal_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> right_edge_horizontal_ids(shape)
-    array([18, 22, 26, 30])
+    array([ 3, 12, 21, 30])
     """
     # First, we find all horizontal link ids for the RasterModelGrid shape.
     horizontal_id_array = horizontal_link_ids(shape)
@@ -2272,15 +2281,15 @@ def bottom_edge_vertical_ids(shape):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -2297,7 +2306,7 @@ def bottom_edge_vertical_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> bottom_edge_vertical_ids(shape)
-    array([0, 1, 2, 3, 4])
+    array([4, 5, 6, 7, 8])
     """
     # First, we find all vertical link ids for the RasterModelGrid shape.
     vertical_id_array = vertical_link_ids(shape)
@@ -2329,15 +2338,15 @@ def left_edge_vertical_ids(shape):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -2354,7 +2363,7 @@ def left_edge_vertical_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> left_edge_vertical_ids(shape)
-    array([ 0,  5, 10])
+    array([ 4, 13, 22])
     """
     # First, we find all vertical link ids for the RasterModelGrid shape.
     vertical_id_array = vertical_link_ids(shape)
@@ -2386,15 +2395,15 @@ def top_edge_vertical_ids(shape):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -2411,7 +2420,7 @@ def top_edge_vertical_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> top_edge_vertical_ids(shape)
-    array([10, 11, 12, 13, 14])
+    array([22, 23, 24, 25, 26])
     """
     # First, we find all vertical link ids for the RasterModelGrid shape.
     vertical_id_array = vertical_link_ids(shape)
@@ -2443,15 +2452,15 @@ def right_edge_vertical_ids(shape):
 
         *       *       *       *       *
         ^       ^       ^       ^       ^
-       10       11      12      13      14
+       22      23      24      25      26
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        5       6       7       8       9
+       13      14      15      16      17
         |       |       |       |       |
         *       *       *       *       *
         ^       ^       ^       ^       ^
-        0       1       2       3       4
+        4       5       6       7       8
         |       |       |       |       |
         *       *       *       *       *
 
@@ -2468,7 +2477,7 @@ def right_edge_vertical_ids(shape):
     >>> rmg = RasterModelGrid(4, 5)
     >>> shape = rmg.shape
     >>> right_edge_vertical_ids(shape)
-    array([ 4,  9, 14])
+    array([ 8, 17, 26])
     """
     # First, we find all vertical link ids for the RasterModelGrid shape.
     vertical_id_array = vertical_link_ids(shape)

@@ -970,37 +970,42 @@ class ModelGrid(ModelDataFields):
             the nodes in the grid. M is the number of rows in the grid's
             node_active_inlink_matrix, which can vary depending on the type
             and structure of the grid; in a hex grid, for example, it is 6.
+            
+        Notes
+        -----
+        On it's way to being obsolete.
+        DEPRECATED!
 
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(3, 2)
-        >>> hmg.active_links_at_node(3)
-        array([[ 2],
-               [ 3],
-               [ 5],
-               [-1],
-               [-1],
-               [-1],
-               [ 0],
-               [ 1],
-               [ 4],
-               [-1],
-               [-1],
-               [-1]])
-        >>> hmg.active_links_at_node()
-        array([[-1, -1, -1,  2,  4,  1,  0],
-               [-1, -1, -1,  3, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [ 3,  5,  2,  0, -1, -1, -1],
-               [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  4, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
+#        Examples
+#        --------
+#        >>> from landlab import HexModelGrid
+#        >>> hmg = HexModelGrid(3, 2)
+#        >>> hmg.active_links_at_node(3)
+#        array([[ 2],
+#               [ 3],
+#               [ 5],
+#               [-1],
+#               [-1],
+#               [-1],
+#               [ 0],
+#               [ 1],
+#               [ 4],
+#               [-1],
+#               [-1],
+#               [-1]])
+#        >>> hmg.active_links_at_node()
+#        array([[-1, -1, -1,  2,  4,  1,  0],
+#               [-1, -1, -1,  3, -1, -1, -1],
+#               [-1, -1, -1,  5, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1],
+#               [ 3,  5,  2,  0, -1, -1, -1],
+#               [-1, -1, -1,  1, -1, -1, -1],
+#               [-1, -1, -1,  4, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1],
+#               [-1, -1, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
@@ -1044,22 +1049,22 @@ class ModelGrid(ModelDataFields):
                [-1],
                [-1],
                [-1],
-               [ 0],
-               [ 1],
-               [ 4],
+               [ 6],
+               [ 8],
+               [ 9],
                [-1],
                [-1],
                [-1]])
         >>> hmg.active_links_at_node2()
-        array([[-1, -1, -1,  2,  4,  1,  0],
+        array([[-1, -1, -1,  2,  6,  8,  9],
                [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  5, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
-               [ 3,  5,  2,  0, -1, -1, -1],
-               [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  4, -1, -1, -1],
+               [ 2,  3,  5,  6, -1, -1, -1],
+               [-1, -1, -1,  8, -1, -1, -1],
+               [-1, -1, -1,  9, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1]])
@@ -1528,8 +1533,8 @@ class ModelGrid(ModelDataFields):
         >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
-        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
+        array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
+                1., -1.,  0.,  1.])
         >>> flux = -grad    # downhill flux proportional to gradient
         >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
         >>> divflux
@@ -1775,7 +1780,7 @@ class ModelGrid(ModelDataFields):
         >>> grid = RasterModelGrid(3, 3)
         >>> u = np.arange(9.)
         >>> grid.assign_upslope_vals_to_active_links(u)
-        array([ 4.,  7.,  4.,  5.])
+        array([ 4.,  4.,  5.,  7.])
         """
         if v is None:
             v = numpy.array((0., ))
@@ -2263,7 +2268,7 @@ class ModelGrid(ModelDataFields):
         >>> hg.node_numactiveinlink
         array([0, 0, 0, 3, 1, 1, 1])
         >>> hg.node_active_inlink_matrix2
-        array([[-1, -1, -1,  2,  4,  1,  0],
+        array([[-1, -1, -1,  2,  6,  8,  9],
                [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  5, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
@@ -2272,9 +2277,9 @@ class ModelGrid(ModelDataFields):
         >>> hg.node_numactiveoutlink
         array([1, 1, 1, 3, 0, 0, 0])
         >>> hg.node_active_outlink_matrix2
-        array([[ 3,  5,  2,  0, -1, -1, -1],
-               [-1, -1, -1,  1, -1, -1, -1],
-               [-1, -1, -1,  4, -1, -1, -1],
+        array([[ 2,  3,  5,  6, -1, -1, -1],
+               [-1, -1, -1,  8, -1, -1, -1],
+               [-1, -1, -1,  9, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1]])
@@ -2388,8 +2393,8 @@ class ModelGrid(ModelDataFields):
         >>> import landlab as ll
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
         >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
-        array([ 1.0, -0.5,  0.5. , -0.5,  0.5,  1.0,  1.0,  0.5, -0.5,  0.5,
-               -0.5,  1.0,  0. ])
+        array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
+                1. ,  0. ])
         >>> hmg.link_unit_vec_y
         array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
                 0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
