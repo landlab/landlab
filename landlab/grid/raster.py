@@ -469,16 +469,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 6,  7,  8,
                11, 12, 13])
         >>> rmg.node_at_link_tail # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,
-                1, 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
+        array([ 0,  1,  2,  3,  0,  1,  2,  3,  4,  5,  6,  7,  8,  5,  6,  7,
+                8,  9, 10, 11, 12, 13, 10, 11, 12, 13, 14, 15, 16, 17, 18])
         >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
-        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,
-                2,  3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
+        array([ 1,  2,  3,  4,  5,  6,  7,  8,  9,  6,  7,  8,  9, 10, 11, 12,
+               13, 14, 11, 12, 13, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19])
         >>> rmg.link_face[20]
         10
         >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
-        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
-               26])
+        array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
+               25])
         """
         if isinstance(spacing, float) or isinstance(spacing, int):
             spacing = (spacing, spacing)
