@@ -1966,15 +1966,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import landlab
         >>> grid = landlab.RasterModelGrid((3, 4), spacing=(2, 3))
         >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
-        array([ 2., 2., 2., 2.,
+        array([ 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.,
-                3., 3., 3.,
+                2., 2., 2., 2.,
                 3., 3., 3.])
         """
         if self._link_length is None:
-            n_vertical_links = (self.shape[0] - 1) * self.shape[1]
-            n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
+            #n_vertical_links = (self.shape[0] - 1) * self.shape[1]
+            #n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
             if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
@@ -1982,8 +1982,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-            self._link_length[:n_vertical_links] = self._dy
-            self._link_length[n_vertical_links:self.number_of_links] = self._dx
+            #self._link_length[:n_vertical_links] = self._dy
+            #self._link_length[n_vertical_links:self.number_of_links] = self._dx
+            self._link_length[:] = self._dy
+            links_per_row = self.shape[0] + self.shape[1]
+            one_row_horiz_links = np.arange(self.shape[1] - 1)
+            for r in range(self.shape[0]):
+                this_row = (r * links_per_row) + one_row_horiz_links
+                self._link_length[this_row] = self._dx
 
         return self._link_length
 
