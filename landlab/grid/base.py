@@ -1719,18 +1719,6 @@ class ModelGrid(ModelDataFields):
         """
         return self._area_of_cell
 
-
-    @property
-    def active_link_length(self):
-        """Get array of lengths of active links.
-
-        Returns
-        -------
-        ndarray
-            Areas of cells, in ID order.
-        """
-        return self.link_length[self._active_links]
-
     @property
     def link_length(self):
         """Get lengths of links.
