@@ -659,10 +659,10 @@ class ModelGrid(ModelDataFields):
     def active_links(self):
         """Get array of active links."""
         try:
-            return self.active_link_ids
+            return self._active_links
         except AttributeError:
             self._reset_link_status_list()
-            return self.active_link_ids
+            return self._active_links
 
     @property
     def fixed_links(self):
@@ -1730,7 +1730,7 @@ class ModelGrid(ModelDataFields):
         ndarray
             Lengths of active links, in ID order.
         """
-        return self.link_length[self.active_link_ids]
+        return self.link_length[self._active_links]
 
     @property
     def link_length(self):
@@ -1765,7 +1765,7 @@ class ModelGrid(ModelDataFields):
         float
             Length of the shortest active link in the grid.
         """
-        return numpy.amin(self.link_length[self.active_link_ids])
+        return numpy.amin(self.link_length[self._active_links])
 
     def max_active_link_length(self):
         """Get the length of the longest active link.
@@ -1775,7 +1775,7 @@ class ModelGrid(ModelDataFields):
         float
             Length of the longest active link in the grid.
         """
-        return numpy.amax(self.link_length[self.active_link_ids])
+        return numpy.amax(self.link_length[self._active_links])
 
     def _calculate_link_length(self):
         """Get array of the lengths of all links.
@@ -1929,9 +1929,9 @@ class ModelGrid(ModelDataFields):
         self._link_status[fixed_links] = 2
 
         active_links = self._link_status == 0  # now it's correct
-        (self.active_link_ids, ) = numpy.where(active_links)
+        (self._active_links, ) = numpy.where(active_links)
         (self.fixed_link_ids, ) = numpy.where(fixed_links)
-        self.active_link_ids = as_id_array(self.active_link_ids)
+        self._active_links = as_id_array(self._active_links)
         self.fixed_link_ids = as_id_array(self.fixed_link_ids)
 
         self._num_active_links = (active_links).sum()
@@ -2757,7 +2757,7 @@ class ModelGrid(ModelDataFields):
                       self.node_y[self.node_at_link_head[i]]], 'k-')
 
         # Draw active links
-        for link in self.active_link_ids:
+        for link in self._active_links:
             plt.plot([self.node_x[self.node_at_link_tail[link]],
                       self.node_x[self.node_at_link_head[link]]],
                      [self.node_y[self.node_at_link_tail[link]],
