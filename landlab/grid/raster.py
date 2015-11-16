@@ -1874,21 +1874,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
-    def min_active_link_length(self):
-        """Length of shortest active link.
-
-        Return the horizontal length of the shortest active link in the grid.
-        Overrides :meth:`~.ModelGrid.min_active_link_length`.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
-        >>> grid.min_active_link_length()
-        2.0
-        """
-        return np.min((self._dy, self._dx))
-
     def max_active_link_length(self):
         """Length of longest active link.
 
