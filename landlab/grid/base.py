@@ -1756,16 +1756,6 @@ class ModelGrid(ModelDataFields):
         else:
             return self._link_length
 
-    def max_active_link_length(self):
-        """Get the length of the longest active link.
-
-        Returns
-        -------
-        float
-            Length of the longest active link in the grid.
-        """
-        return numpy.amax(self.link_length[self._active_links])
-
     def _calculate_link_length(self):
         """Get array of the lengths of all links.
 

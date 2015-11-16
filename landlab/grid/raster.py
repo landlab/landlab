@@ -1874,21 +1874,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
-    def max_active_link_length(self):
-        """Length of longest active link.
-
-        Returns the horizontal length of the longest active link in the grid.
-        Overrides ModelGrid.max_active_link_length().
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
-        >>> grid.max_active_link_length()
-        3.0
-        """
-        return np.max((self._dy, self._dx))
-
     @property
     def link_length(self):
         """Get lengths of links.
