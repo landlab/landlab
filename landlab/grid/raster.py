@@ -1326,19 +1326,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.faces_at_cell(0)
-        array([ 0,  9,  3, 10])
+        array([ 0, 3, 7, 4])
 
         >>> rmg.faces_at_cell([0, 5])
-        array([[ 0,  9,  3, 10],
-               [ 5, 15,  8, 16]])
+        array([[ 0,  3,  7,  4],
+               [ 9, 12, 16, 13]])
 
         >>> rmg.faces_at_cell()
-        array([[ 0,  9,  3, 10],
-               [ 1, 10,  4, 11],
-               [ 2, 11,  5, 12],
-               [ 3, 13,  6, 14],
-               [ 4, 14,  7, 15],
-               [ 5, 15,  8, 16]])
+        array([[ 0,  3,  7,  4],
+               [ 1,  4,  8,  5],
+               [ 2,  5,  9,  6],
+               [ 7, 10, 14, 11],
+               [ 8, 11, 15, 12],
+               [ 9, 12, 16, 13]])
         """
         if len(args) == 0:
             cell_ids = np.arange(self.number_of_cells)
@@ -1371,10 +1371,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.link_at_face(0)
-        array([1])
+        array([5])
 
         >>> mg.link_at_face([0, 4, 13])
-        array([ 1,  7, 23])
+        array([ 5, 10, 21])
+
+        Notes
+        -----
+        The algorithm is based on the following considerations:
+        1. To get the link ID associated with a face ID, we start with the face
+           ID and add something to it.
+        2. Face 0 crosses the second vertical link. The first NC-1 links are
+           horizontal, and run along the bottom of the grid. Then there's a
+           vertical link on the lower-left side of the grid. Thus the link that
+           crosses face 0 will be ID number NC, where NC is the number of cols.
+        3. The offset between face ID and link ID increases by 1 every time we
+           finish a row of horizontal faces (NC-2 of them) with vertical links,
+           and again when we finish a row of vertical faces (NC-1 of them) with
+           horizontal links. Together, a "row" of horizontal and vertical faces
+           makes up 2NC-3 faces; this is the variable "fpr" (for "faces per 
+           row") below.
+        4. The quantity 2 * (face_ids // fpr) increases by 2 for every "full"
+           (horizontal plus vertical) row of faces.
+        5. The quantity ((face_ids % fpr) >= (NC-2)) increases by 1 every time
+           we shift from a horizontal to a vertical row of faces (because
+           each "full row" has NC-2 horizontal faces, then NC-1 vertical ones.)
+        6. So, to find the offset, we add the "basic" offset, NC, to the "full
+           row" offset, 2*(face_ids//fpr), and the "mid-row" offset, 
+           ((face_ids % fpr)>=(NC-2)).
         """
         if len(args) == 0:
             face_ids = np.arange(self.number_of_faces)
@@ -1388,19 +1412,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # if type(face_ids) != np.ndarray:
         #    face_ids = np.array(face_ids)
 
-        row = face_ids // (self.shape[1] - 2)
-        in_rows = np.less(row, self.shape[0] - 1)
-        in_cols = np.logical_not(in_rows)
-        excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
-                                          (self.shape[1] - 2))
-        col = excess_col // (self.shape[1] - 1)
-        links = np.empty_like(face_ids)
-        links[in_rows] = (row[in_rows] * self.shape[1] +
-                          face_ids[in_rows] % (self.shape[1] - 2) + 1)
-        links[in_cols] = (
-            self.shape[1] * (self.shape[0] - 1) +
-            (col + 1) * (self.shape[1] - 1) +
-            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
+        fpr = (2 * self.number_of_node_columns) - 3  # Number of faces per row
+        links = self.number_of_node_columns + (2 * (face_ids // fpr)) + \
+                ((face_ids % fpr) >= (self.number_of_node_columns - 2)) + \
+                face_ids
+
+#        row = face_ids // (self.shape[1] - 2)
+#        in_rows = np.less(row, self.shape[0] - 1)
+#        in_cols = np.logical_not(in_rows)
+#        excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
+#                                          (self.shape[1] - 2))
+#        col = excess_col // (self.shape[1] - 1)
+#        links = np.empty_like(face_ids)
+#        links[in_rows] = (row[in_rows] * self.shape[1] +
+#                          face_ids[in_rows] % (self.shape[1] - 2) + 1)
+#        links[in_cols] = (
+#            self.shape[1] * (self.shape[0] - 1) +
+#            (col + 1) * (self.shape[1] - 1) +
+#            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
                                               # term
         return links
 
@@ -1973,8 +2002,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 3., 3., 3.])
         """
         if self._link_length is None:
-            #n_vertical_links = (self.shape[0] - 1) * self.shape[1]
-            #n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
             if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
@@ -1982,8 +2009,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-            #self._link_length[:n_vertical_links] = self._dy
-            #self._link_length[n_vertical_links:self.number_of_links] = self._dx
             self._link_length[:] = self._dy
             links_per_row = self.shape[0] + self.shape[1]
             one_row_horiz_links = np.arange(self.shape[1] - 1)
