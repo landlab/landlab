@@ -1757,16 +1757,6 @@ class ModelGrid(ModelDataFields):
         else:
             return self._link_length
 
-    def min_active_link_length(self):
-        """Get length of the shortest active link.
-
-        Returns
-        -------
-        float
-            Length of the shortest active link in the grid.
-        """
-        return numpy.amin(self.link_length[self._active_links])
-
     def max_active_link_length(self):
         """Get the length of the longest active link.
 

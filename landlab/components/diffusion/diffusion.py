@@ -138,8 +138,8 @@ class LinearDiffuser(Component):
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is
         #   adaptive/changing
-        dx = self._grid.min_active_link_length()  # smallest active link length
-        self.dt = _ALPHA*dx*dx/self.kd  # CFL condition
+        dx = np.amin(self._grid.link_length[self._grid.active_links])
+        self.dt = _ALPHA * dx * dx / self.kd  # CFL condition
         try:
             self.tstep_ratio = self.timestep_in/self.dt
         except AttributeError:
