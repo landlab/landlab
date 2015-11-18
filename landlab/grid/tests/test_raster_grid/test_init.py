@@ -307,16 +307,26 @@ def test_active_links_at_node_with_no_args():
 def test_node_at_link_tail():
     assert_array_equal(
         rmg.node_at_link_tail,
-        np.array([0, 1, 2, 3, 4, 5, 6, 7,  8,  9, 10, 11, 12, 13, 14,
-                  0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18]))
+        np.array([0, 1, 2, 3, 
+                  0, 1, 2, 3, 4,
+                  5, 6, 7, 8,
+                  5, 6, 7, 8, 9,
+                  10, 11, 12, 13, 
+                  10, 11, 12, 13, 14,
+                  15, 16, 17, 18]))
 
 
 @with_setup(setup_grid)
 def test_node_at_link_head():
     assert_array_equal(
         rmg.node_at_link_head,
-        np.array([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                  1, 2, 3, 4, 6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19]))
+        np.array([ 1,  2,  3,  4,
+                   5,  6,  7,  8,  9,
+                   6,  7,  8,  9,
+                  10, 11, 12, 13, 14,
+                  11, 12, 13, 14,
+                  15, 16, 17, 18, 19,
+                  16, 17, 18, 19]))
 
 
 @with_setup(setup_grid)
