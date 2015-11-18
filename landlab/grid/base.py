@@ -1894,10 +1894,8 @@ class ModelGrid(ModelDataFields):
         statuses. Call this function whenever you make changes to the
         boundary conditions in the grid.
         The updated attributes and arrays are:
-        * _num_active_cells
         * activecell_node *
         * corecell_node *
-        * active_cells
         * core_cells
         * _boundary_nodes
 
