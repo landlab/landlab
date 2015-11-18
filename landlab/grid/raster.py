@@ -494,8 +494,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
 
-        self._num_active_cells = self.number_of_cells
-
         self._num_faces = squad_faces.number_of_faces(self.shape)
         self._num_active_faces = sgrid.active_face_count(self.shape)
 
@@ -538,9 +536,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Cell lists:
         # For all cells, we create a list of the corresponding node ID for
         # each cell.
-        # We also have a list of the cell IDs of all active cells. By default,
-        # all cells are active, so for example if there are six cells, the
-        # self.active_cells list reads: 0, 1, 2, 3, 4, 5
         #
         # Cells and faces in a five-column, four-row grid look like this
         # (where the numbers are cell IDs and lines show faces):
@@ -561,7 +556,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #self._node_at_cell = sgrid.node_at_cell(self.shape)
         #self._cell_at_node = squad_cells.cell_id_at_nodes(
         #    self.shape).reshape((-1, ))
-        self.active_cells = sgrid.active_cell_index(self.shape)
         self._core_cells = sgrid.core_cell_index(self.shape)
 
         # Link lists:
