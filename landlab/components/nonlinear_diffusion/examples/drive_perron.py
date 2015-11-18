@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import numpy
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 import pylab
@@ -52,8 +52,11 @@ while elapsed_time < time_to_run:
     print(elapsed_time)
     if elapsed_time+dt<time_to_run:
         diffusion_component.input_timestep(dt)
-    mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
-    #mg.at_node['topographic__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
+
+    (non_boundary_nodes, ) = numpy.where(mg.node_status != CLOSED_BOUNDARY)
+
+    mg.at_node['topographic__elevation'][non_boundary_nodes[:non_boundary_nodes.shape[0] // 2]] += uplift * dt # half block uplift
+    #mg.at_node['topographic__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) # nodes are tagged with their ID
     #pylab.figure(1)
     #pylab.close()
     #elev = mg['node']['topographic__elevation']
