@@ -917,9 +917,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Neighbor node IDs for the source nodes.
         """
 
-        if not self.diagonal_list_created:
+        if not self._diagonal_links_created:
             self._setup_diagonal_links()
-            self.diagonal_list_created = True
 
         try:
             self._diagonal_links_at_node
@@ -1639,7 +1638,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.number_of_diagonal_links
         24
         """
-        assert self.diagonal_list_created, \
+        assert self._diagonal_links_created, \
                "No diagonal links have been created in the grid yet!"
         return 2 * self.number_of_patches
 
