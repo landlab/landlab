@@ -499,8 +499,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._num_active_cells = self.number_of_cells
 
-        self._num_active_links = sgrid.active_link_count(self.shape)
-
         self._num_faces = squad_faces.number_of_faces(self.shape)
         self._num_active_faces = sgrid.active_face_count(self.shape)
 
