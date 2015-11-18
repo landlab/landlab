@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import numpy
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 import pylab

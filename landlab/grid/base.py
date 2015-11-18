@@ -612,17 +612,6 @@ class ModelGrid(ModelDataFields):
 
     @property
     @return_readonly_id_array
-    def active_nodes(self):
-        """Get array of active nodes.
-
-        Node IDs of all active (core & open boundary) nodes.
-        core_nodes will return just core nodes.
-        """
-        (active_node_ids, ) = numpy.where(self._node_status != CLOSED_BOUNDARY)
-        return active_node_ids
-
-    @property
-    @return_readonly_id_array
     def core_nodes(self):
         """Get array of core nodes."""
         try:
@@ -762,14 +751,6 @@ class ModelGrid(ModelDataFields):
     def number_of_faces(self):
         """Total number of faces."""
         return self._num_faces
-
-    @property
-    def number_of_active_nodes(self):
-        """Number of active nodes.
-
-        An active node is either a core node or an open-boundary node.
-        """
-        return self._num_active_nodes
 
     @property
     def number_of_core_nodes(self):
@@ -1913,7 +1894,6 @@ class ModelGrid(ModelDataFields):
         statuses. Call this function whenever you make changes to the
         boundary conditions in the grid.
         The updated attributes and arrays are:
-        * _num_active_nodes
         * _num_active_cells
         * activecell_node *
         * corecell_node *

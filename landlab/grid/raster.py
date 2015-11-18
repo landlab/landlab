@@ -495,8 +495,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
 
-        self._num_active_nodes = self.number_of_nodes
-
         self._num_active_cells = self.number_of_cells
 
         self._num_faces = squad_faces.number_of_faces(self.shape)
