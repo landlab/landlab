@@ -48,7 +48,7 @@ class SPEroder(object):
 
     This module assumes you have already run
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
-    in the same timestep. It looks for 'upstream_ID_order',
+    in the same timestep. It looks for 'upstream_node_order',
     'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
     'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
@@ -143,7 +143,7 @@ class SPEroder(object):
             self.dt = dt
 
         #self.grid = grid_in #the variables must be stored internally to the grid, in fields
-        upstream_order_IDs = self.grid['node']['upstream_ID_order']
+        upstream_order_IDs = self.grid['node']['upstream_node_order']
         #ordered_receivers = self.grid['node']['flow_receiver'][upstream_order_IDs]  #"j" in GT's sketch
         #nonboundaries = numpy.not_equal(upstream_order_IDs, ordered_receivers)
         z = self.grid['node'][self.value_field]

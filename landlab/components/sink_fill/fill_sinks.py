@@ -197,7 +197,7 @@ class SinkFiller(Component):
                 elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
                                   (lake_nodes.size + 2.))
                 assert elev_increment > 0.
-                all_ordering = self._grid.at_node['upstream_ID_order']
+                all_ordering = self._grid.at_node['upstream_node_order']
                 upstream_order_bool = np.in1d(all_ordering, lake_nodes,
                                               assume_unique=True)
                 lake_upstream_order = all_ordering[upstream_order_bool]

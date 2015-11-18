@@ -654,7 +654,7 @@ class DepressionFinderAndRouter(Component):
         # finish the property updating:
         self._grid.at_node['drainage_area'][:] = self.a
         self._grid.at_node['water__volume_flux'][:] = q
-        self._grid.at_node['upstream_ID_order'][:] = s
+        self._grid.at_node['upstream_node_order'][:] = s
         # ## TODO: No obvious easy way to recover the receiver_link.
         # ## Think more on this.
         # ## Right now, we're just not updating it.
