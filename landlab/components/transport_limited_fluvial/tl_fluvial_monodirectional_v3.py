@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import inspect
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from landlab import RasterModelGrid
 from time import sleep
 from landlab.utils import structured_grid as sgrid
@@ -11,6 +11,7 @@ import pylab
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
+
 
 class TransportLimitedEroder(object):
     """
@@ -241,12 +242,12 @@ class TransportLimitedEroder(object):
         self.Qs_power_onAthresh = twothirds*self._b*self._c
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
-            self.cell_areas = grid.node_spacing_horizontal*grid.node_spacing_vertical
+            self.cell_areas = grid.dx * grid.dy
         else:
             self.cell_areas = np.empty(grid.number_of_nodes)
             self.cell_areas.fill(np.mean(grid.cell_areas))
             self.cell_areas[grid.node_at_cell] = grid.cell_areas
-        self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
+        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
 
         self.routing_code = """
             double sed_flux_into_this_node;
@@ -426,7 +427,7 @@ class TransportLimitedEroder(object):
             draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
             core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True)
             link_length[core_draining_nodes] = grid.link_length[grid.at_node[steepest_link][core_draining_nodes]]
-            #link_length=grid.node_spacing_horizontal
+            #link_length=grid.dx
         else:
             link_length = grid.link_length[steepest_link]
         square_link_length = np.square(link_length) #nans propagate forward
@@ -515,7 +516,7 @@ class TransportLimitedEroder(object):
 
         self.grid=grid
 
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] += node_z[active_nodes]

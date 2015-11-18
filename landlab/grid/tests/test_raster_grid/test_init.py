@@ -42,13 +42,15 @@ def test_init_with_kwds_classic():
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 1)
+    assert_equal(grid.dy, 1)
+    assert_equal(grid.dx, 1)
 
     grid = RasterModelGrid(3, 7, 2)
 
     assert_equal(grid.number_of_node_rows, 3)
     assert_equal(grid.number_of_node_columns, 7)
-    assert_equal(grid.node_spacing, 2.)
+    assert_equal(grid.dy, 2.)
+    assert_equal(grid.dx, 2.)
 
 
 def test_init_new_style():
@@ -56,23 +58,29 @@ def test_init_new_style():
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 2.)
+    assert_equal(grid.dy, 2.)
+    assert_equal(grid.dx, 2.)
 
     grid = RasterModelGrid((4, 5))
 
     assert_equal(grid.number_of_node_rows, 4)
     assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.node_spacing, 1.)
+    assert_equal(grid.dy, 1.)
+    assert_equal(grid.dx, 1.)
 
 
 def test_spacing_is_float():
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.node_spacing, 1.)
-    assert_is_instance(grid.node_spacing, float)
+    assert_equal(grid.dy, 1.)
+    assert_is_instance(grid.dy, float)
+    assert_equal(grid.dx, 1.)
+    assert_is_instance(grid.dx, float)
 
     grid = RasterModelGrid((4, 5), spacing=2)
-    assert_equal(grid.node_spacing, 2.)
-    assert_is_instance(grid.node_spacing, float)
+    assert_equal(grid.dy, 2.)
+    assert_is_instance(grid.dy, float)
+    assert_equal(grid.dx, 2.)
+    assert_is_instance(grid.dx, float)
 
 
 @with_setup(setup_grid)
@@ -98,14 +106,14 @@ def test_nodes_around_point():
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_scalar_arg():
-    assert_array_equal(rmg.get_neighbor_list(6), np.array([7, 11, 5, 1]))
-    assert_array_equal(rmg.get_neighbor_list(-1), np.array([X, X, X, X]))
-    assert_array_equal(rmg.get_neighbor_list(-2), np.array([X, X, X, 13]))
+    assert_array_equal(rmg.get_active_neighbors_at_node(6), np.array([7, 11, 5, 1]))
+    assert_array_equal(rmg.get_active_neighbors_at_node(-1), np.array([X, X, X, X]))
+    assert_array_equal(rmg.get_active_neighbors_at_node(-2), np.array([X, X, X, 13]))
 
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_array_arg():
-    assert_array_equal(rmg.get_neighbor_list([6, -1]),
+    assert_array_equal(rmg.get_active_neighbors_at_node([6, -1]),
                        np.array([[7, 11, 5, 1], [X, X, X, X]]))
 
 
@@ -121,7 +129,7 @@ def test_neighbor_list_with_no_args():
         [X,  X,  X,  X], [X,  X,  X, 11], [X,  X,  X, 12], [X,  X,  X, 13],
         [X,  X,  X,  X]])
 
-    assert_array_equal(rmg.get_neighbor_list(), expected)
+    assert_array_equal(rmg.get_active_neighbors_at_node(), expected)
 
 
 @with_setup(setup_grid)

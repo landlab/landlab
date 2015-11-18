@@ -1,6 +1,6 @@
 import numpy as np
 from pylab import *
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab.plot.imshow import imshow_grid
 from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
 from random import uniform
@@ -57,7 +57,7 @@ def main():
 
     #print "elevations before ", rg.node_vector_to_raster(z)
     #interior_nodes are the nodes on which you will be operating
-    interior_nodes = rg.get_active_cell_node_ids()
+    interior_nodes = np.where(rg.status_at_node != CLOSED_BOUNDARY)[0]
 
     while elapsed_time < total_run_time:
         #uplift the landscape

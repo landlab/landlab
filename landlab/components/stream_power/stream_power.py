@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import numpy as np
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
@@ -231,7 +231,7 @@ class StreamPowerEroder(object):
         is not an excess stream power; any specified erosion threshold is not
         incorporated into it.
         """
-        active_nodes = grid.get_active_cell_node_ids()
+        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
         if W_if_used!=None:
             assert self.use_W, "Widths were provided, but you didn't set the use_W flag in your input file! Aborting..."

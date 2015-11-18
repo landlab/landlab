@@ -105,7 +105,7 @@ def read_netcdf(nc_file, just_grid=False):
     if spacing[0] != spacing[1]:
         raise NotRasterGridError()
 
-    grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1], dx=spacing[0])
+    grid = RasterModelGrid(shape, spacing=spacing)
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)
