@@ -794,11 +794,7 @@ class ModelGrid(ModelDataFields):
     @property
     def number_of_active_links(self):
         """Number of active links."""
-        try:
-            return self._num_active_links
-        except AttributeError:
-            self._reset_link_status_list()
-            return self._num_active_links
+        return self.active_links.size
 
     @property
     def number_of_active_faces(self):
@@ -1902,8 +1898,7 @@ class ModelGrid(ModelDataFields):
         self._active_links = as_id_array(self._active_links)
         self.fixed_link_ids = as_id_array(self.fixed_link_ids)
 
-        self._num_active_links = (active_links).sum()
-        self._num_active_faces = self._num_active_links
+        self._num_active_faces = (active_links).sum()
         self._num_fixed_links = fixed_links.sum()
         self._num_fixed_faces = self._num_fixed_links
         self.activelink_fromnode = self.node_at_link_tail[active_links]
