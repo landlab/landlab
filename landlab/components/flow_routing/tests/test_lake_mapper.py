@@ -373,7 +373,7 @@ def test_rerouting_with_supplied_pits():
     assert_array_equal(mg.at_node['flow_receiver'], r_new)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
     assert_array_almost_equal(mg.at_node['water__volume_flux'], A_new)
-    assert_array_equal(mg.at_node['upstream_ID_order'], s_new)
+    assert_array_equal(mg.at_node['upstream_node_order'], s_new)
 
 @with_setup(setup_dans_grid)
 def test_filling_alone():

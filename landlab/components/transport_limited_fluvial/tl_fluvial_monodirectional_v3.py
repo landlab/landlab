@@ -266,7 +266,7 @@ class TransportLimitedEroder(object):
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
                 node_drainage_areas='drainage_area',
                 node_receiving_flow='flow_receiver',
-                node_order_upstream='upstream_ID_order',
+                node_order_upstream='upstream_node_order',
                 node_slope='topographic__steepest_slope',
                 steepest_link='links_to_flow_receiver',
                 runoff_rate_if_used=None,

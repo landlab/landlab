@@ -52,7 +52,7 @@ class FlowRouter(Component):
                              'flow_receiver',
                              'topographic__steepest_slope',
                              'water__volume_flux',
-                             'upstream_ID_order',
+                             'upstream_node_order',
                              'links_to_flow_receiver',
                              'flow_sinks',
                              ])
@@ -63,7 +63,7 @@ class FlowRouter(Component):
                   'flow_receiver' : '-',
                   'topographic__steepest_slope' : '-',
                   'water__volume_flux' : 'm**3/s',
-                  'upstream_ID_order' : '-',
+                  'upstream_node_order' : '-',
                   'links_to_flow_receiver' : '-',
                   'flow_sinks' : '-',
                   }
@@ -74,7 +74,7 @@ class FlowRouter(Component):
                     'flow_receiver' : 'node',
                     'topographic__steepest_slope' : 'node',
                     'water__volume_flux' : 'node',
-                    'upstream_ID_order' : 'node',
+                    'upstream_node_order' : 'node',
                     'links_to_flow_receiver' : 'node',
                     'flow_sinks' : 'node',
                     }
@@ -85,7 +85,7 @@ class FlowRouter(Component):
                  'flow_receiver' : 'Node array of receivers (node that receives flow from current node)',
                  'topographic__steepest_slope' : 'Node array of steepest *downhill* slopes',
                  'water__volume_flux' : 'Discharge of water through each node',
-                 'upstream_ID_order' : 'Node array containing downstream-to-upstream ordered list of node IDs',
+                 'upstream_node_order' : 'Node array containing downstream-to-upstream ordered list of node IDs',
                  'links_to_flow_receiver' : 'ID of link downstream of each node, which carries the discharge',
                  'flow_sinks' : 'Boolean array, True at local lows',
                   }
@@ -150,7 +150,7 @@ class FlowRouter(Component):
         self.receiver = model_grid.create_node_array_zeros('flow_receiver')
         self.steepest_slope = model_grid.create_node_array_zeros('topographic__steepest_slope')
         self.discharges = model_grid.create_node_array_zeros('water__volume_flux')
-        self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
+        self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_node_order')
         self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
 
 
@@ -171,7 +171,7 @@ class FlowRouter(Component):
             - Node array of discharges: *'water__volume_flux'*
             - Node array of steepest downhill slopes: *'topographic__steepest_slope'*
             - Node array containing downstream-to-upstream ordered list of node
-              IDs: *'upstream_ID_order'*
+              IDs: *'upstream_node_order'*
             - Node array containing ID of link that leads from each node to its
               receiver (or ITS OWN ID if there is no receiver):
               *'links_to_flow_receiver'*
@@ -274,7 +274,7 @@ class FlowRouter(Component):
         self._grid['node']['flow_receiver'] = receiver
         self._grid['node']['topographic__steepest_slope'] = steepest_slope
         self._grid['node']['water__volume_flux'] = q
-        self._grid['node']['upstream_ID_order'] = s
+        self._grid['node']['upstream_node_order'] = s
         self._grid['node']['links_to_flow_receiver'] = recvr_link
         self._grid['node']['flow_sinks'] = numpy.zeros_like(receiver, dtype=bool)
         self._grid['node']['flow_sinks'][sink] = True
@@ -299,7 +299,7 @@ class FlowRouter(Component):
 
     @property
     def node_order_upstream(self):
-        return self._grid['node']['upstream_ID_order']
+        return self._grid['node']['upstream_node_order']
 
     @property
     def link_to_flow_receiving_node(self):
