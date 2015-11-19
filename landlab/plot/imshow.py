@@ -70,8 +70,11 @@ def imshow_node_grid(grid, values, **kwds):
     values_at_node = np.ma.masked_where(
         grid.status_at_node == CLOSED_BOUNDARY, values_at_node)
 
-    myimage = _imshow_grid_values(grid, values_at_node.reshape(grid.shape),
-                                  **kwds)
+    try:
+        myimage = _imshow_grid_values(grid, values_at_node.reshape(grid.shape),
+                                      **kwds)
+    except AttributeError:  # Voronois lack "shape"
+        myimage = _imshow_grid_values(grid, values_at_node.flatten(), **kwds)
 
     if isinstance(values, str):
         plt.title(values)
