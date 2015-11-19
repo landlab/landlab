@@ -225,8 +225,8 @@ class TransportLimitedEroder(object):
             self.shields_prefactor_noD = 1./((self.sed_sensity-self.fluid_density)*self.g)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.node_at_cell] = grid.cell_areas
+        self.cell_areas.fill(np.mean(grid.area_of_cell))
+        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
 
 
     def sed_capacity_equation(self, grid, shields_stress, slopes_at_nodes=None, areas_at_node=None):
