@@ -581,7 +581,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
@@ -1615,15 +1615,9 @@ class ModelGrid(ModelDataFields):
     @property
     @make_return_array_immutable
     def forced_cell_areas(self):
-        """Cell areas.
+        """Cell areas, returned as an nnodes-long array.
 
-        Returns an array of grid cell areas. In the cases of inactive nodes,
-        this method forces the area of those nodes so it can return an nnodes-
-        long array. For a raster, it assumes areas are equal to the normal
-        case.
-
-        For a voronoi, all cells get their true area. Boundary cells with
-        undefined areas get the mean cell area.
+        Zeros are entered at all perimeter nodes, which lack cells.
         """
         try:
             return self._forced_cell_areas
@@ -1642,20 +1636,12 @@ class ModelGrid(ModelDataFields):
         """
         Sets up an array of cell areas which is nnodes long. Nodes which have
         cells receive the area of that cell. Nodes which do not receive
-        numpy.nan entries.
-        Note this method is typically only required for some raster purposes,
-        and is overridden in raster.py. It is unlikely this parent method will
-        ever need to be called.
+        zeros.
         """
-        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
-        mean_cell_area = numpy.mean(self.active_cell_areas)
-        self._forced_cell_areas.fill(mean_cell_area)
-        cell_node_ids = np.where(self.status_at_node != CLOSED_BOUNDARY)[0]
-        try:
-            self._forced_cell_areas[cell_node_ids] = self.cell_areas
-        except AttributeError:
-            # in the case of the Voronoi
-            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
+        _forced_cell_areas_zero = numpy.zeros(self.number_of_nodes,
+                                              dtype=float)
+        _forced_cell_areas_zero[self.node_at_cell] = self.cell_areas
+        self._forced_cell_areas = _forced_cell_areas_zero
         return self._forced_cell_areas
 
     def get_active_link_connecting_node_pair(self, node1, node2):

@@ -659,20 +659,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_areas.fill(self._dy * self._dx)
         return self._cell_areas
 
-    def _setup_cell_areas_array_force_inactive(self):
-        """Set up array cell areas including extra cells for perimeter nodes.
-
-        This method supports the creation of the array that stores cell areas.
-        It differs from _setup_cell_areas_array in that it forces ALL nodes to
-        have a surrounding cell, which is not actually the case for the generic
-        perimeter node (these are unbounded). This is only possible because the
-        grid is a raster.
-        It is not meant to be called manually.
-        """
-        self._forced_cell_areas = np.empty(self.number_of_nodes)
-        self._forced_cell_areas.fill(self._dy * self._dx)
-        return self._forced_cell_areas
-
     @property
     def shape(self):
         """Get the shape of the grid.
