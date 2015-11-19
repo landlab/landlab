@@ -39,6 +39,12 @@ class FlowRouter(Component):
     input field 'water__volume_flux_in', and will override it if both are set.
     If neither are set, value will default to 1.
 
+    Note that because this router is generalizd across both regular and
+    irregular grids, perimeter nodes can NEVER contribute to the accumulating
+    flux, even if the gradients from them point inwards to the main body of
+    the grid. This is because under Landlab definitions, perimeter nodes lack
+    cells, so cannot accumulate any discharge.
+
     The primary method of this class is :func:`route_flow`.
     """
 
@@ -199,8 +205,8 @@ class FlowRouter(Component):
         array([ 0,  1,  2,  3,  4,  1,  2,  7,  8,  6,  6, 11, 12, 10, 10, 15, 16,
                17, 18, 19])
         >>> mg.at_node['drainage_area']
-        array([ 1.,  2.,  6.,  1.,  1.,  1.,  5.,  1.,  1.,  1.,  3.,  1.,  1.,
-                1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([ 0.,  1.,  5.,  0.,  0.,  1.,  5.,  0.,  0.,  1.,  3.,  0.,  0.,
+                1.,  1.,  0.,  0.,  0.,  0.,  0.])
 
         Now let's change the cell area and the runoff rates:
 
@@ -212,9 +218,9 @@ class FlowRouter(Component):
         >>> _ = mg.add_field('node', 'water__volume_flux_in', runoff_rate)
         >>> mg = fr.route_flow()
         >>> mg.at_node['water__volume_flux']
-        array([    0.,   600.,  5400.,   300.,   400.,   500.,  5200.,   700.,
-                 800.,   900.,  3700.,  1100.,  1200.,  1300.,  1400.,  1500.,
-                1600.,  1700.,  1800.,  1900.])
+        array([    0.,   500.,  5200.,     0.,     0.,   500.,  5200.,     0.,
+                   0.,   900.,  3700.,     0.,     0.,  1300.,  1400.,     0.,
+                   0.,     0.,     0.,     0.])
 
         """
 
