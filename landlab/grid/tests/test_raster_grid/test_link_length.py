@@ -37,5 +37,5 @@ def test_link_length():
 
 @with_setup(setup_grid)
 def test_active_link_length():
-    assert_array_equal(_RMG.active_link_length,
+    assert_array_equal(_RMG.link_length[_RMG.active_links],
                        [3.] * 9  + [4.] * 8 )

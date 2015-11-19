@@ -1628,7 +1628,7 @@ class ModelGrid(ModelDataFields):
         self._forced_cell_areas.fill(mean_cell_area)
         cell_node_ids = np.where(self.status_at_node != CLOSED_BOUNDARY)[0]
         try:
-            self._forced_cell_areas[cell_node_ids] = self.cell_areas
+            self._forced_cell_areas[cell_node_ids] = self.area_of_cell
         except AttributeError:
             # in the case of the Voronoi
             self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
@@ -1670,7 +1670,7 @@ class ModelGrid(ModelDataFields):
         Returns
         -------
         ndarray
-            Lengths of active links, in ID order.
+            Areas of cells, in ID order.
         """
         # return self._area_of_cell
         try:
