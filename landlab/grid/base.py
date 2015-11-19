@@ -1624,14 +1624,14 @@ class ModelGrid(ModelDataFields):
         ever need to be called.
         """
         self._forced_cell_areas = numpy.empty(self.number_of_nodes)
-        mean_cell_area = numpy.mean(self.active_cell_areas)
+        mean_cell_area = numpy.mean(self.area_of_cell)
         self._forced_cell_areas.fill(mean_cell_area)
         cell_node_ids = np.where(self.status_at_node != CLOSED_BOUNDARY)[0]
         try:
             self._forced_cell_areas[cell_node_ids] = self.area_of_cell
         except AttributeError:
             # in the case of the Voronoi
-            self._forced_cell_areas[cell_node_ids] = self.active_cell_areas
+            self._forced_cell_areas[cell_node_ids] = self.area_of_cell
         return self._forced_cell_areas
 
     def get_active_link_connecting_node_pair(self, node1, node2):
