@@ -1590,30 +1590,6 @@ class ModelGrid(ModelDataFields):
 
     @property
     @make_return_array_immutable
-    def cell_areas(self):
-        """Cell areas.
-
-        Returns
-        -------
-        ndarray
-            Array of grid-cell areas.
-
-        Notes
-        -----
-
-        Sometimes it may make sense for a grid to not always calculate
-        its cell areas but, instead, only calculate them once they are
-        required. In such cases, the grid class must implement a
-        _setup_cell_areas_array method, which will be called the first
-        time cell areas are requested.
-        """
-        try:
-            return self._cell_areas
-        except AttributeError:
-            return self._setup_cell_areas_array()
-
-    @property
-    @make_return_array_immutable
     def forced_cell_areas(self):
         """Cell areas.
 
@@ -1687,15 +1663,20 @@ class ModelGrid(ModelDataFields):
         return numpy.array([active_link])
 
     @property
-    def active_link_length(self):
-        """Get array of lengths of active links.
+    @make_return_array_immutable
+    def area_of_cell(self):
+        """Get areas of grid cells.
 
         Returns
         -------
         ndarray
             Lengths of active links, in ID order.
         """
-        return self.link_length[self.active_link_ids]
+        # return self._area_of_cell
+        try:
+            return self._area_of_cell
+        except AttributeError:
+            return self._setup_cell_areas_array()
 
     @property
     def link_length(self):
