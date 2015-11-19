@@ -12,8 +12,9 @@ Sinks are tested as part of the lake_mapper.
 """
 
 import landlab
-from landlab import RasterModelGrid, FieldError
+from landlab import RasterModelGrid, RadialModelGrid, FieldError
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab import CLOSED_BOUNDARY
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -44,11 +45,11 @@ def setup_dans_grid1():
 
     Q_in = np.full(25, 2.)
 
-    A_target = np.array([1.,  1.,  1.,  1.,  1.,
-                         4.,  3.,  2.,  1.,  1.,
-                         4.,  3.,  2.,  1.,  1.,
-                         4.,  3.,  2.,  1.,  1.,
-                         1.,  1.,  1.,  1.,  1.])*100.
+    A_target = np.array([0.,  0.,  0.,  0.,  0.,
+                         3.,  3.,  2.,  1.,  0.,
+                         3.,  3.,  2.,  1.,  0.,
+                         3.,  3.,  2.,  1.,  0.,
+                         0.,  0.,  0.,  0.,  0.])*100.
 
     frcvr_target = np.array([0,  1,  2,  3,  4,
                              5,  5,  6,  7,  9,
@@ -98,17 +99,17 @@ def setup_dans_grid2():
                   7.,  1.,  2.,  4.,  7.,
                   7.,  0.,  7.,  7.,  7.])
 
-    A_target_D8 = np.array([100.,   100.,   100.,   100.,   100.,
-                            100.,   100.,   200.,   100.,   100.,
-                            100.,   400.,   100.,   100.,   100.,
-                            100.,   600.,   300.,   100.,   100.,
-                            100.,  1000.,   100.,   100.,   100.])
+    A_target_D8 = np.array([0.,     0.,     0.,     0.,     0.,
+                            0.,   100.,   200.,   100.,     0.,
+                            0.,   400.,   100.,   100.,     0.,
+                            0.,   600.,   300.,   100.,     0.,
+                            0.,   900.,     0.,     0.,     0.])
 
-    A_target_D4 = np.array([100.,   100.,   100.,   100.,   100.,
-                            100.,   100.,   200.,   100.,   100.,
-                            100.,   200.,   400.,   100.,   100.,
-                            100.,   900.,   600.,   100.,   100.,
-                            100.,  1000.,   100.,   100.,   100.])
+    A_target_D4 = np.array([0.,     0.,     0.,     0.,     0.,
+                            0.,   100.,   200.,   100.,     0.,
+                            0.,   200.,   400.,   100.,     0.,
+                            0.,   900.,   600.,   100.,     0.,
+                            0.,   900.,     0.,     0.,     0.])
 
     frcvr_target_D8 = np.array([0, 1, 2, 3, 4, 5, 11, 11, 7, 9, 10, 16, 16, 17,
                                 14, 15, 21, 21, 17, 19, 20, 21, 22, 23, 24])
@@ -147,6 +148,36 @@ def setup_dans_grid2():
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
 
+def setup_voronoi():
+    """
+    Setup a simple 20 point Voronoi Delaunay grid (radial for ease)
+    """
+    global fr, vmg
+    global A_target_core
+    global A_target_outlet
+    vmg = RadialModelGrid(2, dr=2.)
+    z = np.full(20, 10., dtype=float)
+    vmg.status_at_node[8:] = CLOSED_BOUNDARY
+    z[7] = 0.  # outlet
+    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
+    z[:7] = np.array(inner_elevs)
+    vmg.add_field('node', 'topographic__elevation', z, units='-')
+    fr = FlowRouter(vmg)
+
+    nodes_contributing = [np.array([0, 3, 4, 5]),
+                          np.array([0, 1, 2, 3, 4, 5, 6]),
+                          np.array([2, ]),
+                          np.array([3, ]),
+                          np.array([4, ]),
+                          np.array([5, ]),
+                          np.array([6, ])]
+
+    A_target_core = np.zeros(vmg.number_of_core_nodes)
+    for i in xrange(7):
+        A_target_core[i] = vmg.cell_areas[nodes_contributing[i]].sum()
+    A_target_outlet = vmg.cell_areas[:9].sum()
+
+
 @with_setup(setup_dans_grid1)
 def test_check_fields():
     """
@@ -183,7 +214,7 @@ def test_accumulate_D8():
     fr.route_flow()
     assert_array_equal(A_target, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target, mg.at_node['upstream_ID_order'])
+    assert_array_equal(upids_target, mg.at_node['upstream_node_order'])
     assert_array_equal(links2rcvr_target, mg.at_node['links_to_flow_receiver'])
     assert_array_equal(A_target, mg.at_node['water__volume_flux'])
     assert_array_equal(steepest_target,
@@ -217,7 +248,7 @@ def test_irreg_topo():
     fr.route_flow(method='D8')
     assert_array_equal(A_target_D8, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target_D8, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target_D8, mg.at_node['upstream_ID_order'])
+    assert_array_equal(upids_target_D8, mg.at_node['upstream_node_order'])
     assert_array_equal(links2rcvr_target_D8,
                        mg.at_node['links_to_flow_receiver'])
     assert_array_almost_equal(steepest_target_D8,
@@ -233,7 +264,7 @@ def test_irreg_topo():
     fr.route_flow(method='D4')
     assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target_D4, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target_D4, mg.at_node['upstream_ID_order'])
+    assert_array_equal(upids_target_D4, mg.at_node['upstream_node_order'])
     assert_array_equal(links2rcvr_target_D4,
                        mg.at_node['links_to_flow_receiver'])
     assert_array_almost_equal(steepest_target_D4,
