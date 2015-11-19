@@ -13,7 +13,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     the radial spacing between "shells" is dr, the nodes are placed around the
     circular shell at regular intervals that get as close as possible to dr.
     The points are then arranged in a Delaunay triangulation with Voronoi
-    cells.
+    cells. Within each ring, nodes are numbered according to Landlab
+    convention, from the first node counterclockwise of east. Numbering
+    begins at the centermost node and works outwards through the rings.
 
     Examples
     --------
@@ -98,10 +100,20 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         for i in numpy.arange(0, num_shells):
             theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
                      dtheta[i] / (i + 1))
-            pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                0] = r[i] * numpy.cos(theta)
-            pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                1] = r[i] * numpy.sin(theta)
+            ycoord = r[i] * numpy.sin(theta)
+            if numpy.isclose(ycoord[-1], 0.):
+                # this modification necessary to force the first ring to
+                # follow our new CCW from E numbering convention (DEJH, Nov15)
+                ycoord[-1] = 0.
+                pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                    0] = numpy.roll(r[i] * numpy.cos(theta), 1)
+                pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                    1] = numpy.roll(ycoord, 1)
+            else:
+                pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                    0] = r[i] * numpy.cos(theta)
+                pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                    1] = ycoord
             startpt += int(n_pts_in_shell[i])
         pts[:, 0] += origin_x
         pts[:, 1] += origin_y
