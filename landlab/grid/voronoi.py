@@ -338,15 +338,13 @@ class VoronoiDelaunayGrid(ModelGrid):
         return node_status, core_nodes, boundary_nodes
 
     def _setup_cell_areas_array(self):
-        """
-        Sets up an array of cell areas.
-        """
+        """Set up an array of cell areas."""
         self._cell_areas = self.active_cell_areas
         return self._cell_areas
 
     @staticmethod
     def setup_node_cell_connectivity(node_status, ncells):
-        """Setup node connectivity
+        """Set up node connectivity.
 
         Creates and returns the following arrays:
         1. For each node, the ID of the corresponding cell, or
