@@ -228,6 +228,8 @@ class FlowRouter(Component):
         elevs = self._grid['node'][self.value_field]
 
         node_cell_area = self._grid.forced_cell_areas
+        node_cell_area[self._grid.closed_boundary_nodes] = 0.
+        # closed cells can't contribute
 
 
         # Calculate the downhill-positive slopes at the d8 active links
