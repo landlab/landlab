@@ -891,11 +891,15 @@ def vertical_link_ids(shape):
 
 def horizontal_link_ids(shape):
     """Array of links oriented horizontally."""
-    link_id_offset = vertical_link_count(shape)
-    link_ids = np.arange(link_id_offset,
-                         link_id_offset + horizontal_link_count(shape),
-                         dtype=np.int)
-    link_ids.shape = (shape[0], shape[1] - 1)
+    link_ids = np.empty((shape[0], shape[1] - 1), dtype=np.int)
+    num_links_per_row = (2 * shape[1]) - 1
+    for r in range(shape[0]):
+        link_ids[r, :] = (r * num_links_per_row) + np.arange(shape[1] - 1)
+#    link_id_offset = vertical_link_count(shape)
+#    link_ids = np.arange(link_id_offset,
+#                         link_id_offset + horizontal_link_count(shape),
+#                         dtype=np.int)
+#    link_ids.shape = (shape[0], shape[1] - 1)
     return link_ids
 
 
@@ -1140,8 +1144,8 @@ def west_links(shape):
     --------
     >>> from landlab.utils.structured_grid import west_links
     >>> west_links((3, 4))
-    array([[-1,  8,  9, 10],
-           [-1, 11, 12, 13],
+    array([[-1,  0,  1,  2],
+           [-1,  7,  8,  9],
            [-1, 14, 15, 16]])
     """
     link_ids = horizontal_link_ids(shape)
@@ -1156,8 +1160,8 @@ def north_links(shape):
     --------
     >>> from landlab.utils.structured_grid import north_links
     >>> north_links((3, 4))
-    array([[ 0,  1,  2,  3],
-           [ 4,  5,  6,  7],
+    array([[ 3,  4,  5,  6],
+           [10, 11, 12, 13],
            [-1, -1, -1, -1]])
     """
     link_ids = vertical_link_ids(shape)
@@ -1173,8 +1177,8 @@ def south_links(shape):
     >>> from landlab.utils.structured_grid import south_links
     >>> south_links((3, 4))
     array([[-1, -1, -1, -1],
-           [ 0,  1,  2,  3],
-           [ 4,  5,  6,  7]])
+           [ 3,  4,  5,  6],
+           [10, 11, 12, 13]])
     """
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
@@ -1188,8 +1192,8 @@ def east_links(shape):
     --------
     >>> from landlab.utils.structured_grid import east_links
     >>> east_links((3, 4))
-    array([[ 8,  9, 10, -1],
-           [11, 12, 13, -1],
+    array([[ 0,  1,  2, -1],
+           [ 7,  8,  9, -1],
            [14, 15, 16, -1]])
     """
     link_ids = horizontal_link_ids(shape)
@@ -1204,8 +1208,8 @@ def active_north_links(shape, node_status=None):
     --------
     >>> from landlab.utils.structured_grid import active_north_links
     >>> active_north_links((3, 4))
-    array([[-1,  0,  1, -1],
-           [-1,  2,  3, -1],
+    array([[-1,  4,  5, -1],
+           [-1, 11, 12, -1],
            [-1, -1, -1, -1]])
     """
     active_north_links_ = np.empty(shape, dtype=int)
@@ -1226,8 +1230,8 @@ def active_north_links2(shape, node_status=None):
 
     >>> from landlab.utils.structured_grid import active_north_links2
     >>> active_north_links2((3, 4))
-    array([[-1,  1,  2, -1],
-           [-1,  5,  6, -1],
+    array([[-1,  4,  5, -1],
+           [-1, 11, 12, -1],
            [-1, -1, -1, -1]])
     """
     active_north_links_ = np.empty(shape, dtype=int)
@@ -1251,8 +1255,8 @@ def active_south_links(shape, node_status=None):
     >>> from landlab.utils.structured_grid import active_south_links
     >>> active_south_links((3, 4))
     array([[-1, -1, -1, -1],
-           [-1,  0,  1, -1],
-           [-1,  2,  3, -1]])
+           [-1,  4,  5, -1],
+           [-1, 11, 12, -1]])
     """
     active_south_links_ = np.empty(shape, dtype=int)
     links = vertical_active_link_ids(shape, node_status=node_status)
@@ -1287,8 +1291,8 @@ def active_south_links2(shape, node_status=None):
     >>> from landlab.utils.structured_grid import active_south_links2
     >>> active_south_links2((3, 4))
     array([[-1, -1, -1, -1],
-           [-1,  1,  2, -1],
-           [-1,  5,  6, -1]])
+           [-1,  4,  5, -1],
+           [-1, 11, 12, -1]])
 
     Notes
     -----
@@ -1333,7 +1337,7 @@ def active_west_links2(shape, node_status=None):
     >>> from landlab.utils.structured_grid import active_west_links2
     >>> active_west_links2((3, 4))
     array([[-1, -1, -1, -1],
-           [-1, 11, 12, 13],
+           [-1,  7,  8,  9],
            [-1, -1, -1, -1]])
     """
     active_west_links_ = -np.ones(shape, dtype=int)
@@ -1375,7 +1379,7 @@ def active_east_links2(shape, node_status=None):
     >>> from landlab.utils.structured_grid import active_east_links2
     >>> active_east_links2((3, 4))
     array([[-1, -1, -1, -1],
-           [11, 12, 13, -1],
+           [ 7,  8,  9, -1],
            [-1, -1, -1, -1]])
     """
     active_east_links_ = -np.ones(shape, dtype=int)
