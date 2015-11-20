@@ -2,7 +2,7 @@
 This script introspects the contents of the LL components folder.
 
 It has two aims.
-Firstly, to create dynamic dictionaries of "problematic components" and
+The first aim is to create dynamic dictionaries of "problematic components" and
 "bad components". The former is any component with a partially declared
 but incomplete Landlab standard interface:
     _name (str)
@@ -14,24 +14,23 @@ but incomplete Landlab standard interface:
 
 The latter is any file in 'components' which contains a class, but either
 inherits from Component but lacks any interface at all (always wrong), or
-lacks an interface and does not inherit from the Landlab base Component class.
-Note the latter will catch any non-component class in the folder which *isn't
-meant* to be a Landlab component! Files which aren't meant to have a Landlab component
-class inside them can be declared as exceptions by adding to the
+lacks an interface and also does not inherit from the Landlab base Component class.
+The script will erroneously catch any non-component class in the folder even classes which *aren't
+meant* to be a Landlab components! Files which aren't meant to have a Landlab component
+class inside them can be declared as exceptions by adding the File(??? or Class???) name to the
 'file_exceptions' tuple below.
 
-comp_elements is a dict of dict of dicts/sets, where the value at the end
-is the dict or set produced by that component property. The first key is the
+comp_elements is a dict of dict of dicts/sets, where the dict/set
+is the dict or set of ``field_names`` produced by that component property. The first key is the
 _name property for that component. i.e., it looks like
-    comp_elements[_name][_input_var_names] = set(*field_names*)
+    comp_elements[_name][_input_var_names] = set(*field_names*)I THINK A BETTER EXAMPLE WOULD HAVE THIS IN THE FORM OF A DICTIONARY
 
-Note that if no _name is provided, but other components are, no entry will be
-recorded in comp_elements; the component will only appear under
+Note that if no _name is provided, but other properties are, no entry will be
+recorded in comp_elements; however, the component will appear under
 problematic_components.
 
 problematic_components is a dict. The keys are the filenames. The values are
-a list of strings describing the format problem(s) with the component
-standardization.
+a list of strings describing the component's format problem(s).
 
 bad_components is a dict. The keys are again the filenames. The values are one
 of two strings: 'Component lacks std interface', or 'No class in file inherits
@@ -40,9 +39,9 @@ from Component'.
 This script will ignore anything inside an examples subfolder inside the
 components folder.
 
-This file goes on to build a set of all field names used in named LL
+This file goes on to build a set of all field names used in named Landlab
 components, called 'all_field_names'. (If a component doesn't have a _name,
-its fields won't be included.)
+its fields won't be included in 'all_field_names'.)
 
 NOTE TO DEJH: This is missing some names; see, e.g., gFlex.
 """
