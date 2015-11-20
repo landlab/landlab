@@ -187,9 +187,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
             A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
         """
-        self._cell_areas = 0.8660254 * self._dx**2 + \
-            numpy.zeros(self.number_of_cells)
-        return self._cell_areas
+        self._area_of_cell = (0.8660254 * self._dx ** 2 +
+                              numpy.zeros(self.number_of_cells))
+        return self._area_of_cell
 
     @staticmethod
     def make_hex_points_horizontal_hex(num_rows, base_num_cols, dxh):
