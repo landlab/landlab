@@ -1613,12 +1613,12 @@ class ModelGrid(ModelDataFields):
             return self._setup_cell_areas_array()
 
     @property
-    @make_return_array_immutable
     def forced_cell_areas(self):
         """Cell areas, returned as an nnodes-long array.
 
         Zeros are entered at all perimeter nodes, which lack cells.
         """
+        # we deliberately allow this array to be mutable.
         try:
             return self._forced_cell_areas
         except AttributeError:
