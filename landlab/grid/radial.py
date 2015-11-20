@@ -7,7 +7,9 @@ from .voronoi import VoronoiDelaunayGrid
 
 
 class RadialModelGrid(VoronoiDelaunayGrid):
-    """
+
+    """Grid of concentric circles.
+
     This inherited class implements a circular grid in which grid nodes are
     placed at regular radial and semi-regular arc-wise intervals. That is, if
     the radial spacing between "shells" is dr, the nodes are placed around the
@@ -87,7 +89,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
 
     def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
-        """
+        """Create a set of points on concentric circles.
+
         Creates and returns a set of (x,y) points placed in a series of
         concentric circles around the origin.
         """
@@ -125,42 +128,58 @@ class RadialModelGrid(VoronoiDelaunayGrid):
 
     @property
     def number_of_shells(self):
-        """
-        Returns the number of node shells in the radial grid (not counting the
-        center node).
+        """Number of node shells in grid.
+
+        Returns
+        -------
+        int
+            The number of node shells in the radial grid (not counting the
+            center node).
         """
         return self._n_shells
 
     @property
     def shell_spacing(self):
-        "Returns the (fixed) distance between the shells."
+        """Fixed distance between shells."""
         return self._dr
 
     @property
     def number_of_nodes_in_shell(self):
-        """
-        Returns the number of nodes in each shell, excluding the center node.
+        """Number of nodes in each shell.
+
+        Returns
+        -------
+        int
+            Number of nodes in each shell, excluding the center node.
         """
         try:
             return self._nnodes_inshell
         except AttributeError:
-            n_pts_in_shell = numpy.round(2.*numpy.pi*(
+            n_pts_in_shell = numpy.round(2. * numpy.pi * (
                 numpy.arange(self.number_of_shells, dtype=float) + 1.))
             self._nnodes_inshell = n_pts_in_shell.astype(int)
             return self._nnodes_inshell
 
     @property
     def radius_to_shell(self):
-        """
-        Returns the distance from the central node to each shell.
+        """Distance from central node to each shell.
+
+        Returns
+        -------
+        ndarray of float
+            The distance from the central node to each shell.
         """
         return ((numpy.arange(self.number_of_shells, dtype=float) + 1.) *
                 self.shell_spacing)
 
     @property
     def radius_at_node(self):
-        """
-        Returns the distance from the center node of each node.
+        """Distance for center node to each node.
+
+        Returns
+        -------
+        ndarray of float
+            The distance from the center node of each node.
         """
         try:
             return self._node_radii
