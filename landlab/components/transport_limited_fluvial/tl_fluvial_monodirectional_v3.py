@@ -247,7 +247,7 @@ class TransportLimitedEroder(object):
             self.cell_areas = np.empty(grid.number_of_nodes)
             self.cell_areas.fill(np.mean(grid.area_of_cell))
             self.cell_areas[grid.node_at_cell] = grid.area_of_cell
-        self.bad_neighbor_mask = np.equal(grid.get_neighbor_list(bad_index=-1),-1)
+        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
 
         self.routing_code = """
             double sed_flux_into_this_node;
