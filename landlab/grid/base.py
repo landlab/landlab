@@ -1590,8 +1590,8 @@ class ModelGrid(ModelDataFields):
 
     @property
     @make_return_array_immutable
-    def forced_cell_areas(self):
-        """Cell areas.
+    def cell_area_at_node(self):
+        """Cell areas in a nnodes-long array.
 
         Zeros are entered at all perimeter nodes, which lack cells.
 
@@ -1604,15 +1604,15 @@ class ModelGrid(ModelDataFields):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
-        >>> grid.forced_cell_areas
+        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.cell_area_at_node
         array([  0.,   0.,   0.,   0.,   0.,
                  0.,  12.,  12.,  12.,   0.,
                  0.,  12.,  12.,  12.,   0.,
                  0.,   0.,   0.,   0.,   0.])
         """
-        # we deliberately allow this array to be mutable.
         try:
-            return self._forced_cell_areas
+            return self._cell_area_at_node
         except AttributeError:
             return self._setup_cell_areas_array_force_inactive()
 
@@ -1631,11 +1631,11 @@ class ModelGrid(ModelDataFields):
         cells receive the area of that cell. Nodes which do not, receive
         zeros.
         """
-        _forced_cell_areas_zero = numpy.zeros(self.number_of_nodes,
+        _cell_area_at_node_zero = numpy.zeros(self.number_of_nodes,
                                               dtype=float)
-        _forced_cell_areas_zero[self.node_at_cell] = self.area_of_cell
-        self._forced_cell_areas = _forced_cell_areas_zero
-        return self._forced_cell_areas
+        _cell_area_at_node_zero[self.node_at_cell] = self.area_of_cell
+        self._cell_area_at_node = _cell_area_at_node_zero
+        return self._cell_area_at_node
 
     def get_active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.

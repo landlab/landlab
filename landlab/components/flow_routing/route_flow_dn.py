@@ -265,7 +265,7 @@ class FlowRouter(Component):
         # be provided as grid
         elevs = self._grid['node'][self.value_field]
 
-        node_cell_area = self._grid.forced_cell_areas.copy()
+        node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
         # closed cells can't contribute
 
