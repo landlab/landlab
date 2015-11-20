@@ -1589,6 +1589,7 @@ class ModelGrid(ModelDataFields):
                                                          out=out)
 
     @property
+    @make_return_array_immutable
     def forced_cell_areas(self):
         """Cell areas.
 
@@ -1624,9 +1625,10 @@ class ModelGrid(ModelDataFields):
             return self._setup_face_widths()
 
     def _setup_cell_areas_array_force_inactive(self):
-        """
-        Sets up an array of cell areas which is nnodes long. Nodes which have
-        cells receive the area of that cell. Nodes which do not receive
+        """Set up an array of cell areas that is n_nodes long.
+
+        Sets up an array of cell areas that is nnodes long. Nodes that have
+        cells receive the area of that cell. Nodes which do not, receive
         zeros.
         """
         _forced_cell_areas_zero = numpy.zeros(self.number_of_nodes,
