@@ -1590,9 +1590,24 @@ class ModelGrid(ModelDataFields):
 
     @property
     def forced_cell_areas(self):
-        """Cell areas, returned as an nnodes-long array.
+        """Cell areas.
 
         Zeros are entered at all perimeter nodes, which lack cells.
+
+        Returns
+        -------
+        ndarray
+            Cell areas as an n_nodes-long array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+        >>> grid.forced_cell_areas
+        array([  0.,   0.,   0.,   0.,   0.,
+                 0.,  12.,  12.,  12.,   0.,
+                 0.,  12.,  12.,  12.,   0.,
+                 0.,   0.,   0.,   0.,   0.])
         """
         # we deliberately allow this array to be mutable.
         try:
