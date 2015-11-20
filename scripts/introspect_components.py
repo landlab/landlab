@@ -3,11 +3,10 @@ This script introspects the contents of the Landlab components folder.
 
 It has two aims:
 
-The first aim is to create dynamic dictionaries of "problematic components" 
+The first aim is to create dynamic dictionaries of "problematic components"
 and "bad components". A "problematic component" is any component with a
-partially declared but incomplete Landlab standard interface.
-
-A standard interface for a Landlab component includes:
+partially declared but incomplete Landlab standard interface. This means
+one or more of these properties is defined or wrongly formatted:
     _name (str)
     _input_var_names (set)
     _output_var_names (set)
@@ -17,22 +16,32 @@ A standard interface for a Landlab component includes:
 
 A "bad component" is any file in 'components' which contains a class and either
 inherits from Component but lacks any interface at all (always wrong), or
-lacks an interface and also does not inherit from the Landlab base Component 
-class. Note: the script will erroneously catch any non-component class in the 
-folder, even classes which *aren't meant* to be a Landlab components! 
-Files which aren't meant to have a Landlab component class inside them 
-can be declared as exceptions by adding the file name to the 'file_exceptions' 
+lacks an interface and also does not inherit from the Landlab base Component
+class. Note: the script will erroneously catch any non-component class in the
+folder, even classes which *aren't meant* to be Landlab components!
+Files which aren't meant to have a Landlab component class inside them
+can be declared as exceptions by adding the file name to the 'file_exceptions'
 tuple below.
 
+The second aim is to compile information about all the field names and
+properties used by the various components in one place, to allow them to be
+compared and checked for compatibility. To allow this, we create
+'all_field_names', which records a list of all field names used anywhere, and
+'comp_elements', which records all the various component properties.
+
 'comp_elements' is a dict of dict of dicts/sets, where the dict/set
-is the dict or set of 'field_names' produced by that component property. The first key is the
-_name property for that component. e.g., it looks like:
-I THINK A BETTER EXAMPLE WOULD HAVE THIS IN THE FORM OF A DICT OF DICT:
-    comp_elements[_name][_input_var_names] = set(*field_names*)
-    
-Note that if no _name is provided, but other properties are, the component will appear
-under problematic_components but will not be
-recorded in comp_elements.
+is the dict or set of 'field_names' produced by that component property.
+The first key is the _name property for that component. The second is one of
+the other properties.
+e.g., it looks like:
+    comp_elements[_name][_input_var_names] = set(*input field names*)
+    comp_elements[_name][_var_units] = {field1: unit1,
+                                        field2: unit2,
+                                        ...}
+
+Note that if no _name is provided, but other properties are, the component
+will appear under problematic_components but will not be recorded in
+comp_elements.
 
 'problematic_components' is a dict. The keys are the filenames. The values are
 a list of strings describing the component's format problem(s).
@@ -41,7 +50,6 @@ a list of strings describing the component's format problem(s).
 one of two strings: 'Component lacks std interface', or 'No class in file
 inherits from Component'.
 
-IS THIS THE SECOND AIM????
 This file goes on to build a set of all field names used in named Landlab
 components, called 'all_field_names'. (If a component doesn't have a _name,
 its fields won't be included in 'all_field_names'.)
@@ -220,5 +228,5 @@ for (key, vals) in problematic_components.items():
     if len(vals) == 0:
         problematic_components.pop(key)
     elif type(vals) is dict:
-        problematic_components[key] = ('The following LL standard interface properties are ' +
-                'not defined: ' + str(vals))
+        problematic_components[key] = ('The following LL standard interface ' +
+                'properties are not defined: ' + str(vals))
