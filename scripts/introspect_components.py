@@ -4,7 +4,7 @@ This script introspects the contents of the LL components folder.
 It has two aims.
 Firstly, to create dynamic dictionaries of "problematic components" and
 "bad components". The former is any component with a partially declared
-by incomplete LL standard interface:
+but incomplete Landlab standard interface:
     _name (str)
     _input_var_names (set)
     _output_var_names (set)
@@ -14,9 +14,9 @@ by incomplete LL standard interface:
 
 The latter is any file in 'components' which contains a class, but either
 inherits from Component but lacks any interface at all (always wrong), or
-lacks an interface and does not inherit from the LL base Component class.
+lacks an interface and does not inherit from the Landlab base Component class.
 Note the latter will catch any non-component class in the folder which *isn't
-meant* to be a LL component! Files which aren't meant to have a LL component
+meant* to be a Landlab component! Files which aren't meant to have a Landlab component
 class inside them can be declared as exceptions by adding to the
 'file_exceptions' tuple below.
 
