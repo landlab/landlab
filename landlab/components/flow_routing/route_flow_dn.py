@@ -20,7 +20,7 @@ from landlab import FieldError, Component
 from landlab import ModelParameterDictionary
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 import numpy
-import inspect
+
 
 #output_suppression_flag = True
 
@@ -102,7 +102,7 @@ class FlowRouter(Component):
             'node IDs',
         'links_to_flow_receiver':
             'ID of link downstream of each node, which carries the discharge',
-        'flow_sinks' : 'Boolean array, True at local lows',
+        'flow_sinks': 'Boolean array, True at local lows',
     }
 
     def __init__(self, model_grid, input_params=None):
@@ -265,7 +265,7 @@ class FlowRouter(Component):
         # be provided as grid
         elevs = self._grid['node'][self.value_field]
 
-        node_cell_area = self._grid.forced_cell_areas
+        node_cell_area = self._grid.forced_cell_areas.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
         # closed cells can't contribute
 
@@ -284,7 +284,7 @@ class FlowRouter(Component):
                              self._grid.status_at_node == 2))
 
         # Calculate flow directions
-        if method=='D4':
+        if method == 'D4':
             num_d4_active = self._grid.number_of_active_links  # only d4
             receiver, steepest_slope, sink, recvr_link  = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
