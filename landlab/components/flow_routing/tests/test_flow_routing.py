@@ -223,8 +223,8 @@ def setup_voronoi():
 
     A_target_core = np.zeros(vmg.number_of_core_nodes)
     for i in xrange(7):
-        A_target_core[i] = vmg.cell_areas[nodes_contributing[i]].sum()
-    A_target_outlet = vmg.cell_areas.sum()
+        A_target_core[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
+    A_target_outlet = vmg.area_of_cell.sum()
 
 
 def setup_voronoi_closedinternal():
@@ -253,8 +253,8 @@ def setup_voronoi_closedinternal():
 
     A_target_internal = np.zeros(vmg.number_of_core_nodes+1, dtype=float)
     for i in xrange(7):
-        A_target_internal[i] = vmg.cell_areas[nodes_contributing[i]].sum()
-    A_target_outlet = vmg.cell_areas[vmg.cell_at_node[vmg.core_nodes]].sum()
+        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
+    A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
 
 
 @with_setup(setup_dans_grid1)
