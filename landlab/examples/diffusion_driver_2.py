@@ -80,6 +80,6 @@ pylab.ylabel('Elevation')
 
 # figure 2 is the map of the final elevations
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 pylab.show()  # this line displays all of the figures you've issued plot commands for, since you last called show()
