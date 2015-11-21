@@ -2452,7 +2452,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5, 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5), spacing=(1, 1))
         >>> rmg.number_of_active_links
         17
 
@@ -2462,15 +2462,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.at_node['topographic__elevation'] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4],
-              dtype=int8)
+        array([4, 4, 4, 4, 4,
+               4, 0, 0, 0, 4,
+               4, 0, 0, 0, 4,
+               4, 4, 4, 4, 4], dtype=int8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(
         ...     False, False, True, True)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=int8)
+        array([4, 4, 4, 4, 4,
+               4, 0, 0, 0, 1,
+               4, 0, 0, 0, 1,
+               1, 1, 1, 1, 1], dtype=int8)
 
         Note that the four corners are treated as follows:
         * bottom left = BOTTOM
@@ -2548,6 +2552,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 grid fields.
                 *************************************************
                 """)
+
             # set a flag to indicate no internal values
             self.fixed_value_node_properties['internal_flag'] = False
         else:
