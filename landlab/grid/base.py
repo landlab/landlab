@@ -1081,49 +1081,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def create_node_array_zeros(self, name=None, **kwds):
-        """Create an array of the given type, filled with zeros.
-
-        Returns a 1D numpy array the same length as the number of nodes. If
-        user gives optional argument *name*, we add this data to the grid with
-        the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array.
-
-        Parameters
-        ----------
-        name : str, optional
-            Name of the quantity.
-
-        Returns
-        -------
-        ndarray
-            The newly created array.
-
-        See Also
-        --------
-        zeros
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4,5)
-        >>> mydata = np.arange(20, dtype=float)
-        >>> rmg.add_zeros('topographic__elevation', at='node')
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg.at_node['topographic__elevation'] = mydata
-        >>> rmg.at_node['topographic__elevation']
-        ...     # doctest: +NORMALIZE_WHITESPACE
-        array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,
-                10., 11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
-        """
-        if name is None:
-            return numpy.zeros(self.number_of_nodes, **kwds)
-        else:
-            self.add_zeros('node', name, **kwds)
-            return self.at_node[name]
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
