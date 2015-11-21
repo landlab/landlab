@@ -186,7 +186,7 @@ from six.moves import range
 from landlab.testing.decorators import track_this_method
 from landlab.utils import count_repeated_values
 from landlab.utils.decorators import make_return_array_immutable, deprecated
-from landlab.field import ModelDataFields, ScalarDataFields
+from landlab.field import ModelDataFields, ModelDataFieldsMixIn
 from landlab.field.scalar_data_fields import FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from . import grid_funcs as gfuncs
@@ -464,7 +464,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(ModelDataFields):
+class ModelGrid(ModelDataFieldsMixIn):
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -521,11 +521,7 @@ class ModelGrid(ModelDataFields):
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
         for element_name in _ARRAY_LENGTH_ATTRIBUTES:
-            array_length = self.number_of_elements(element_name)
-            try:
-                self.new_field_location(element_name, array_length)
-            except AttributeError:
-                pass
+            self.new_field_location(element_name)
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get(
@@ -1145,106 +1141,6 @@ class ModelGrid(ModelDataFields):
         else:
             self.add_zeros('link', name)
             return self.at_link[name]
-
-    def zeros(self, **kwds):
-        """Array, filled with zeros, for a given element.
-
-        Returns a numpy array of zeros that is the same length as the number
-        of nodes in the grid. Use the *centering* keyword to return an
-        array for other elements of the grid. *centering* is a string that is
-        one of *node*, *cell*, *link*, or *face*.
-
-        All other keywords are the same as for the numpy zeros function.
-
-        Parameters
-        ----------
-        centering : str, optional
-            Grid element on which the values are defined.
-
-        Returns
-        -------
-        ndarray
-            A newly-allocated array.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.zeros()
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        """
-        centering = kwds.pop('centering', 'node')
-        try:
-            return numpy.zeros(self.number_of_elements(centering), **kwds)
-        except KeyError:
-            raise TypeError(centering)
-
-    def empty(self, **kwds):
-        """Array, filled with unititialized values, for a given element.
-
-        Returns a numpy array of uninitialized values that is the same length
-        as the number of nodes in the grid. Use the *centering* keyword to
-        return an array for other elements of the grid. *centering* is a
-        string that is one of *node*, *cell*, *link*, or *face*.
-
-        All other keywords are the same as for the numpy zeros function.
-
-        Parameters
-        ----------
-        centering : str, optional
-            Grid element on which the values are defined.
-
-        Returns
-        -------
-        ndarray
-            A newly-allocated array.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> len(grid.empty())
-        20
-        """
-        centering = kwds.pop('centering', 'node')
-        try:
-            return numpy.empty(self.number_of_elements(centering), **kwds)
-        except KeyError:
-            raise TypeError(centering)
-
-    def ones(self, **kwds):
-        """Array, filled with ones, for a given element.
-
-        Returns a numpy array of ones that is the same length as the number
-        of nodes in the grid. Use the *centering* keyword to return an
-        array for other elements of the grid. *centering* is a string that is
-        one of *node*, *cell*, *link*, or *face*.
-
-        All other keywords are the same as for the numpy zeros function.
-
-        Parameters
-        ----------
-        centering : str, optional
-            Grid element on which the values are defined.
-
-        Returns
-        -------
-        ndarray
-            A newly-allocated array.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.zeros(dtype=int)
-        array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        """
-        centering = kwds.pop('centering', 'node')
-        try:
-            return numpy.ones(self.number_of_elements(centering), **kwds)
-        except KeyError:
-            raise TypeError(centering)
 
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
