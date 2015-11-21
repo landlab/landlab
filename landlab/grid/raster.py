@@ -494,7 +494,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
 
-        self._num_faces = squad_faces.number_of_faces(self.shape)
         self._num_active_faces = sgrid.active_face_count(self.shape)
 
         # We need at least one row or column of boundary cells on each
@@ -1315,9 +1314,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.squeeze(np.concatenate(
             (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
 
-    def link_at_face(self, *args):
-        """link_at_face([face_id])
-        Get links associated with faces.
+    def _setup_link_at_face(self):
+        """Set up links associated with faces.
 
         Returns an array of the link IDs for the links which intersect the
         faces specificed by *face_id*. *face_id* can be either a scalar or an
@@ -1332,23 +1330,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
-        >>> mg.link_at_face(0)
-        array([1])
+        >>> mg.link_at_face[0]
+        1
 
-        >>> mg.link_at_face([0, 4, 13])
+        >>> mg.link_at_face[(0, 4, 13), ]
         array([ 1,  7, 23])
         """
-        if len(args) == 0:
-            face_ids = np.arange(self.number_of_faces)
-        elif len(args) == 1:
-            face_ids = np.broadcast_arrays(args[0])[0]
-        else:
-            raise ValueError()
-        face_ids.shape = (-1, )
-
-        #face_ids = _make_arg_into_array(face_id)
-        # if type(face_ids) != np.ndarray:
-        #    face_ids = np.array(face_ids)
+        number_of_faces = squad_faces.number_of_faces(self.shape)
+        face_ids = np.arange(number_of_faces)
 
         row = face_ids // (self.shape[1] - 2)
         in_rows = np.less(row, self.shape[0] - 1)
@@ -1364,7 +1353,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             (col + 1) * (self.shape[1] - 1) +
             excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
                                               # term
-        return links
+        self._link_at_face = links
+        return self._link_at_face
 
     def face_at_link(self, *args):
         """face_at_link([link_id])
