@@ -164,8 +164,8 @@ class LinearDiffuser(Component):
 #        else:
 #            # Create data arrays for variables that won't (?) be shared with other
 #            # components
-#            self.g = self._grid.create_active_link_array_zeros()  # surface gradients
-#            self.qs = self._grid.create_active_link_array_zeros()  # unit sediment flux
+#            self.g = self._grid.zeros('active_link')  # surface gradients
+#            self.qs = self._grid.zeros('active_link')  # unit sediment flux
 #            self.dqds = self._grid.create_node_array_zeros()  # sed flux derivative
 
         self.z = self._grid.at_node[self.values_to_diffuse]
