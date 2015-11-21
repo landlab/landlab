@@ -41,14 +41,14 @@ class SurfaceFlowTransport(object):
 
         #build the internally necessary params:
         self.rhog = 9810.          # water unit weight, kg/m2s2 (N/m3)
-        self.q = grid.zeros('active_link')       # unit discharge (m2/s)
-        self.dhdt = grid.create_node_array_zeros()           # rate of water-depth change
-        self.tau = grid.zeros('active_link')     # shear stress (Pa)
-        self.qs = grid.zeros('active_link')      # sediment flux (m2/s)
-        self.dqsds = grid.create_node_array_zeros()
+        self.q = grid.zeros(at='active_link')       # unit discharge (m2/s)
+        self.dhdt = grid.zeros(at='node')           # rate of water-depth change
+        self.tau = grid.zeros(at='active_link')     # shear stress (Pa)
+        self.qs = grid.zeros(at='active_link')      # sediment flux (m2/s)
+        self.dqsds = grid.zeros(at='node')
         self.dzdt = self.dhdt
-        self.dzaccum = grid.create_node_array_zeros()
-        self.zm = grid.create_node_array_zeros()
+        self.dzaccum = grid.zeros(at='node')
+        self.zm = grid.zeros(at='node')
         self.zm[:] = self.z[:]
 
     def set_and_return_dynamic_timestep(self):

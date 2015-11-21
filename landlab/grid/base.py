@@ -1109,7 +1109,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4,5)
         >>> mydata = np.arange(20, dtype=float)
-        >>> rmg.create_node_array_zeros('topographic__elevation')
+        >>> rmg.add_zeros('topographic__elevation', at='node')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg.at_node['topographic__elevation'] = mydata
@@ -1950,7 +1950,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                1, 0, 0, 0, 0, 0, 0, 0, 1,
                1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=int8)
 
-        >>> z = rmg.create_node_array_zeros()
+        >>> z = rmg.zeros(at='node')
         >>> z = np.array([
         ...     -99., -99., -99., -99., -99., -99., -99., -99., -99.,
         ...     -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
