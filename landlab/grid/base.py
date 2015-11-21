@@ -1124,41 +1124,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self.add_zeros('node', name, **kwds)
             return self.at_node[name]
 
-    def create_active_link_array_zeros(self, name=None):
-        """Array, filled with zeros, for values at active links.
-
-        Returns a 1D numpy array the same length as the number of nodes. If
-        user gives optional argument 'name', we add this data to the grid with
-        the specified name and return a reference to it; otherwise, we just
-        create and return a 1D numpy array.
-
-        Parameters
-        ----------
-        name : str
-            Name of the quantity.
-
-        Returns
-        -------
-        ndarray
-            The newly created array.
-
-        See Also
-        --------
-        zeros
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 3)
-        >>> grid.create_active_link_array_zeros()
-        array([ 0.,  0.,  0.,  0.])
-        """
-        if name is None:
-            return numpy.zeros(self.number_of_active_links)
-        else:
-            self.add_zeros('link', name)
-            return self.at_link[name]
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
