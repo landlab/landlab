@@ -743,8 +743,21 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @property
     def number_of_faces(self):
-        """Total number of faces."""
-        return self._num_faces
+        """Total number of faces.
+
+        Returns
+        -------
+        int
+            Total number of faces in the grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.number_of_faces
+        7
+        """
+        return len(self.link_at_face)
 
     @property
     def number_of_core_nodes(self):
@@ -956,6 +969,26 @@ class ModelGrid(ModelDataFieldsMixIn):
     def status_at_node(self, new_status_array):
         self._node_status[:] = new_status_array[:]
         self.update_links_nodes_cells_to_new_BCs()
+
+    @property
+    @make_return_array_immutable
+    def link_at_face(self):
+        """Get links associated with faces.
+
+        Returns an array of the link IDs for the links that intersect
+        faces.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg.link_at_face
+        array([ 1,  2,  5,  6, 11, 12, 13])
+        """
+        try:
+            return self._link_at_face
+        except AttributeError:
+            return self._setup_link_at_face()
 
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
