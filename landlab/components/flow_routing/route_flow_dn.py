@@ -146,12 +146,12 @@ class FlowRouter(Component):
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = model_grid.add_zeros('node', 'drainage_area')
-        self.receiver = model_grid.create_node_array_zeros('flow_receiver')
-        self.steepest_slope = model_grid.create_node_array_zeros('topographic__steepest_slope')
-        self.discharges = model_grid.create_node_array_zeros('water__volume_flux')
-        self.upstream_ordered_nodes = model_grid.create_node_array_zeros('upstream_ID_order')
-        self.links_to_receiver = model_grid.create_node_array_zeros('links_to_flow_receiver')
+        self.drainage_area = model_grid.add_zeros('drainage_area', at='node')
+        self.receiver = model_grid.add_zeros('flow_receiver', at='node')
+        self.steepest_slope = model_grid.add_zeros('topographic__steepest_slope', at='node')
+        self.discharges = model_grid.add_zeros('water__volume_flux', at='node')
+        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_ID_order', at='node')
+        self.links_to_receiver = model_grid.add_zeros('links_to_flow_receiver', at='node')
 
 
     def route_flow(self, method='D8'):

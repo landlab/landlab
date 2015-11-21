@@ -166,7 +166,7 @@ class LinearDiffuser(Component):
 #            # components
 #            self.g = self._grid.zeros('active_link')  # surface gradients
 #            self.qs = self._grid.zeros('active_link')  # unit sediment flux
-#            self.dqds = self._grid.create_node_array_zeros()  # sed flux derivative
+#            self.dqds = self._grid.zeros(at='node')  # sed flux derivative
 
         self.z = self._grid.at_node[self.values_to_diffuse]
         g = self._grid.zeros(centering='link')

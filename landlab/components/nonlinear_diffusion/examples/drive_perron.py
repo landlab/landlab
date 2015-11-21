@@ -24,8 +24,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 ##Now add a step to diffuse out:

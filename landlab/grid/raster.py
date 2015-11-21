@@ -2553,7 +2553,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
-        >>> rmg.create_node_array_zeros('topographic__elevation')
+        >>> rmg.add_zeros('topographic__elevation', at='node')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg.set_looped_boundaries(True, True)
@@ -3092,7 +3092,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 3, 1.)
-        >>> data = rmg.add_zeros('node', 'test_data')
+        >>> data = rmg.add_zeros('test_data', at='node')
         >>> data[:] = np.arange(12)
         >>> rmg.roll_nodes_ud('test_data', 1)
         >>> data # doctest: +NORMALIZE_WHITESPACE
