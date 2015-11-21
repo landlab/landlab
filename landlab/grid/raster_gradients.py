@@ -37,30 +37,27 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ...                1., 3., 1.,
     ...                2., 2., 2.]
     >>> grid.calculate_gradients_at_links(node_values)
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> out = np.empty(grid.number_of_links, dtype=float)
     >>> rtn = grid.calculate_gradients_at_links(node_values, out=out)
     >>> rtn is out
     True
     >>> out
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
     >>> grid.calculate_gradients_at_links(node_values)
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
-
-    >>> _ = grid.add_field('node', 'elevation', node_values)
-    >>> grid.calculate_gradients_at_links('elevation')
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     """
-    diffs = gradients.calculate_diff_at_links(grid, node_values, out=out)
+    grads = gradients.calculate_diff_at_links(grid, node_values, out=out)
+    grads /= grid.link_length
 
-    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-    diffs[:n_vertical_links] /= grid.dy
-    diffs[n_vertical_links:] /= grid.dx
+#    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+#    diffs[:n_vertical_links] /= grid.dy
+#    diffs[n_vertical_links:] /= grid.dx
 
-    return diffs
+    return grads
 
 
 @use_field_name_or_array('node')
