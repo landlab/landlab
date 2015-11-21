@@ -211,7 +211,7 @@ class ModelDataFields(object):
         """
         return self[group].size
 
-    def new_field_location(self, group, size):
+    def new_field_location(self, group, size=None):
         """Add a new quantity to a field.
 
         Create an empty group into which new fields can be added. The new group
@@ -222,8 +222,9 @@ class ModelDataFields(object):
         ----------
         group: str
             Name of the new group to add to the field.
-        size: int
-            Number of elements in the new quantity.
+        size: int, optional
+            Number of elements in the new quantity. If not provided, the
+            size is set to be the size of the first field added to the goup.
 
         Raises
         ------
@@ -252,6 +253,13 @@ class ModelDataFields(object):
 
         >>> fields.at_cell, fields.at_node
         ({}, {})
+
+        >>> fields.new_field_location('core_node')
+        >>> fields.at_core_node.size is None
+        True
+        >>> fields.at_core_node['air__temperature'] = [0, 1]
+        >>> fields.at_core_node.size
+        2
         """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
@@ -338,7 +346,6 @@ class ModelDataFields(object):
         ------
         KeyError
             If either *field* or *group* does not exist.
-
         """
         return self[group].units[field]
 
@@ -479,8 +486,7 @@ class ModelDataFields(object):
             initializes the data to 0.
         """
         units = kwds.pop('units', None)
-        return self.add_field(group, name,
-                              ModelDataFields.empty(self, group, **kwds),
+        return self.add_field(group, name, self.empty(group, **kwds),
                               units=units)
 
     def add_ones(self, group, name, units=None, **kwds):
@@ -531,7 +537,7 @@ class ModelDataFields(object):
         """
         units = kwds.pop('units', None)
         return self.add_field(group, name,
-                              ModelDataFields.ones(self, group, **kwds),
+                              self.ones(group, **kwds),
                               units=units)
 
     def add_zeros(self, group, name, **kwds):
@@ -566,7 +572,7 @@ class ModelDataFields(object):
         """
         units = kwds.pop('units', None)
         return self.add_field(group, name,
-                              ModelDataFields.zeros(self, group, **kwds),
+                              self.zeros(group, **kwds),
                               units=units)
 
     def add_field(self, group, name, value_array, **kwds):
