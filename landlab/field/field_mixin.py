@@ -45,7 +45,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
         20
         """
         if len(args) == 0:
-            group = kwds.pop('centering', 'node')
+            group = kwds.pop('at', kwds.pop('centering', 'node'))
         else:
             group = args[0]
 
@@ -87,7 +87,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
                 0., 0., 0.])
         """
         if len(args) == 0:
-            group = kwds.pop('centering', 'node')
+            group = kwds.pop('at', kwds.pop('centering', 'node'))
         else:
             group = args[0]
 
@@ -124,7 +124,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
         """
         if len(args) == 0:
-            group = kwds.pop('centering', 'node')
+            group = kwds.pop('at', kwds.pop('centering', 'node'))
         else:
             group = args[0]
 
