@@ -646,7 +646,8 @@ class DepressionFinderAndRouter(Component):
         """
         # Calculate drainage area, discharge, and downstr->upstr order
         Q_in = self._grid.at_node['water__volume_flux_in']
-        areas = self._grid.forced_cell_areas
+        areas = self._grid.cell_area_at_node.copy()
+        areas[self._grid.closed_boundary_nodes] = 0.
         self.a, q, s = flow_accum_bw.flow_accumulation(self.receivers,
                                                        np.where(self.sinks)[0],
                                                        node_cell_area=areas,
@@ -766,7 +767,7 @@ class DepressionFinderAndRouter(Component):
         lake_areas = np.empty(self.number_of_lakes)
         lake_counter = 0
         for lake_code in self.lake_codes:
-            each_cell_in_lake = self._grid.forced_cell_areas[self.lake_map ==
+            each_cell_in_lake = self._grid.cell_area_at_node[self.lake_map ==
                                                              lake_code]
             lake_areas[lake_counter] = each_cell_in_lake.sum()
             lake_counter += 1
@@ -780,7 +781,7 @@ class DepressionFinderAndRouter(Component):
         """
         lake_vols = np.empty(self.number_of_lakes)
         lake_counter = 0
-        col_vols = self._grid.forced_cell_areas * self.depression_depth
+        col_vols = self._grid.cell_area_at_node * self.depression_depth
         for lake_code in self.lake_codes:
             each_cell_in_lake = col_vols[self.lake_map == lake_code]
             lake_vols[lake_counter] = each_cell_in_lake.sum()

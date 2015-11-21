@@ -99,7 +99,7 @@ pylab.ylabel('Elevation')
 # figure 2 is the map of the final elevations
 pylab.figure(2)
 # display a colored image
-im_nl = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 pylab.figure(3)
 # turn the 1-D array of elevation values into a spatially accurate 2-D
@@ -140,7 +140,7 @@ pylab.ylabel('Elevation')
 
 # figure 5 is the map of the final elevations
 pylab.figure(5)
-im = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 # superpose this final form onto figure 3:
 pylab.figure(3)

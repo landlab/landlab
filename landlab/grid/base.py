@@ -581,7 +581,7 @@ class ModelGrid(ModelDataFields):
     @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
@@ -1590,19 +1590,29 @@ class ModelGrid(ModelDataFields):
 
     @property
     @make_return_array_immutable
-    def forced_cell_areas(self):
-        """Cell areas.
+    def cell_area_at_node(self):
+        """Cell areas in a nnodes-long array.
 
-        Returns an array of grid cell areas. In the cases of inactive nodes,
-        this method forces the area of those nodes so it can return an nnodes-
-        long array. For a raster, it assumes areas are equal to the normal
-        case.
+        Zeros are entered at all perimeter nodes, which lack cells.
 
-        For a voronoi, all cells get their true area. Boundary cells with
-        undefined areas get the mean cell area.
+        Returns
+        -------
+        ndarray
+            Cell areas as an n_nodes-long array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.cell_area_at_node
+        array([  0.,   0.,   0.,   0.,   0.,
+                 0.,  12.,  12.,  12.,   0.,
+                 0.,  12.,  12.,  12.,   0.,
+                 0.,   0.,   0.,   0.,   0.])
         """
         try:
-            return self._forced_cell_areas
+            return self._cell_area_at_node
         except AttributeError:
             return self._setup_cell_areas_array_force_inactive()
 
@@ -1615,24 +1625,17 @@ class ModelGrid(ModelDataFields):
             return self._setup_face_widths()
 
     def _setup_cell_areas_array_force_inactive(self):
+        """Set up an array of cell areas that is n_nodes long.
+
+        Sets up an array of cell areas that is nnodes long. Nodes that have
+        cells receive the area of that cell. Nodes which do not, receive
+        zeros.
         """
-        Sets up an array of cell areas which is nnodes long. Nodes which have
-        cells receive the area of that cell. Nodes which do not receive
-        numpy.nan entries.
-        Note this method is typically only required for some raster purposes,
-        and is overridden in raster.py. It is unlikely this parent method will
-        ever need to be called.
-        """
-        self._forced_cell_areas = numpy.empty(self.number_of_nodes)
-        mean_cell_area = numpy.mean(self.area_of_cell)
-        self._forced_cell_areas.fill(mean_cell_area)
-        cell_node_ids = np.where(self.status_at_node != CLOSED_BOUNDARY)[0]
-        try:
-            self._forced_cell_areas[cell_node_ids] = self.area_of_cell
-        except AttributeError:
-            # in the case of the Voronoi
-            self._forced_cell_areas[cell_node_ids] = self.area_of_cell
-        return self._forced_cell_areas
+        _cell_area_at_node_zero = numpy.zeros(self.number_of_nodes,
+                                              dtype=float)
+        _cell_area_at_node_zero[self.node_at_cell] = self.area_of_cell
+        self._cell_area_at_node = _cell_area_at_node_zero
+        return self._cell_area_at_node
 
     def get_active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.
