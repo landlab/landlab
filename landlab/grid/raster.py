@@ -801,20 +801,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.node_links(5)
-        array([[ 1],
+        array([[ 4],
+               [ 7],
                [11],
-               [ 5],
-               [12]])
+               [ 8]])
         >>> grid.node_links((5, 6))
-        array([[ 1,  2],
+        array([[ 4,  5],
+               [ 7,  8],
                [11, 12],
-               [ 5,  6],
-               [12, 13]])
+               [ 8,  9]])
         >>> grid.node_links()
-        array([[-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7],
-               [-1,  8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16],
-               [ 0,  1,  2,  3,  4,  5,  6,  7, -1, -1, -1, -1],
-               [ 8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16, -1]])
+        array([[-1, -1, -1, -1,  3,  4,  5,  6, 10, 11, 12, 13],
+               [-1,  0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16],
+               [ 3,  4,  5,  6, 10, 11, 12, 13, -1, -1, -1, -1],
+               [ 0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16, -1]])
         """
         if len(args) == 0:
             return np.vstack((self.node_inlink_matrix,
@@ -1326,7 +1326,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.faces_at_cell(0)
-        array([ 0, 3, 7, 4])
+        array([0, 3, 7, 4])
 
         >>> rmg.faces_at_cell([0, 5])
         array([[ 0,  3,  7,  4],
@@ -3562,7 +3562,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Nodes 6 and 7 are connected by link 20.
 
         >>> rmg.get_link_connecting_node_pair(6, 7)
-        20
+        10
 
         Nodes 6 and 8 are not connected by a link, so raise an exception.
 
