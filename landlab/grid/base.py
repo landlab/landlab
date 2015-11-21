@@ -520,8 +520,6 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
-        for element_name in _ARRAY_LENGTH_ATTRIBUTES:
-            self.new_field_location(element_name)
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get(

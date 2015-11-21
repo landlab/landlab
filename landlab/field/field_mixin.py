@@ -2,7 +2,21 @@
 from .grouped import ModelDataFields
 
 
+_GROUPS = ('node', 'cell', 'link', 'face', 'core_node', 'core_cell',
+           'active_link', 'active_face', )
+
+
 class ModelDataFieldsMixIn(ModelDataFields):
+    def __init__(self, **kwds):
+        super(ModelDataFieldsMixIn, self).__init__(**kwds)
+        for group in _GROUPS:
+            ModelDataFields.new_field_location(self, group)
+
+    def new_field_location(self, group, size=None):
+        raise AttributeError(
+            "'ModelDataFieldsMixIn' object has no attribute "
+            "'new_field_location'")
+
     def empty(self, *args, **kwds):
         """Array, filled with unititialized values, for a given element.
 
