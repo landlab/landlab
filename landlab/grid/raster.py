@@ -433,9 +433,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
-                11, 12, 13, 14],
-               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+        array([[-1, -1, -1, -1, -1,  4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22,
+                23, 24, 25, 26],
+               [-1,  0,  1,  2,  3, -1,  9, 10, 11, 12, -1, 18, 19, 20, 21, -1,
                 27, 28, 29, 30]])
         >>> rmg.node_numoutlink # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 1,
@@ -443,7 +443,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                2, 2, 2, 2, 1,
                1, 1, 1, 1, 0])
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        array([ 4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26,
                -1, -1, -1, -1, -1])
         >>> rmg.node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 0, 0, 0, 0,
@@ -474,8 +474,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
         array([ 1,  2,  3,  4,  5,  6,  7,  8,  9,  6,  7,  8,  9, 10, 11, 12,
                13, 14, 11, 12, 13, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19])
-        >>> rmg.link_face[20]
-        10
+        >>> rmg.face_at_link[20]
+        12
         >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
         array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
                25])
@@ -850,15 +850,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(3, 4)
         >>> rmg.node_links(5)
-        array([[ 1],
+        array([[ 4],
+               [ 7],
                [11],
-               [ 5],
-               [12]])
+               [ 8]])
         >>> rmg.active_links_at_node((5, 6))
-        array([[0, 1],
-               [4, 5],
-               [2, 3],
-               [5, 6]])
+        array([[ 4,  5],
+               [ 7,  8],
+               [11, 12],
+               [ 8,  9]])
         >>> rmg.active_links_at_node()
         array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
@@ -2000,6 +2000,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.])
+
+        >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        array([ 2., 2.,
+                1., 1., 1.,
+                2., 2.,
+                1., 1., 1.,
+                2., 2.])
+
+        Notes
+        -----
+        We initially set all lengths to dy. Then we loop over each row, setting
+        the horizontal links in that row to dx.
         """
         if self._link_length is None:
             if self._diagonal_links_created:
@@ -2010,7 +2023,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
             self._link_length[:] = self._dy
-            links_per_row = self.shape[0] + self.shape[1]
+            links_per_row = (2 * self.shape[1]) - 1
             one_row_horiz_links = np.arange(self.shape[1] - 1)
             for r in range(self.shape[0]):
                 this_row = (r * links_per_row) + one_row_horiz_links

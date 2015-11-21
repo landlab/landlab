@@ -40,8 +40,13 @@ def test_unit_spacing():
     grads = _GRID.calculate_gradients_at_links(_VALUES_AT_NODES)
     assert_array_equal(
         grads,
-        np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        np.array([1, 1, 1, 1, 
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1],
                  dtype=float))
     diffs = _GRID.calculate_diff_at_links(_VALUES_AT_NODES)
     assert_array_equal(grads, diffs)
@@ -64,8 +69,13 @@ def test_non_unit_spacing():
             dtype=float))
     diffs = _GRID.calculate_diff_at_links(_VALUES_AT_NODES)
     assert_array_equal(diffs,
-        np.array([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        np.array([1, 1, 1, 1,
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5, 5, 5,
+                  1, 1, 1, 1],
                  dtype=float))
 
 
