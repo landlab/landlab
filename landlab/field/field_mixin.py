@@ -4,6 +4,32 @@ from .grouped import ModelDataFields
 
 class ModelDataFieldsMixIn(ModelDataFields):
     def empty(self, *args, **kwds):
+        """Array, filled with unititialized values, for a given element.
+
+        Returns a numpy array of uninitialized values that is the same length
+        as the number of nodes in the grid. Use the *centering* keyword to
+        return an array for other elements of the grid. *centering* is a
+        string that is one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> len(grid.empty())
+        20
+        """
         if len(args) == 0:
             group = kwds.pop('centering', 'node')
         else:
@@ -14,6 +40,38 @@ class ModelDataFieldsMixIn(ModelDataFields):
         return ModelDataFields.empty(self, group, **kwds)
 
     def ones(self, *args, **kwds):
+        """Array, filled with ones, for a given element.
+
+        Returns a numpy array of ones that is the same length as the number
+        of nodes in the grid. Use the *centering* keyword to return an
+        array for other elements of the grid. *centering* is a string that is
+        one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.zeros(dtype=int) # doctest: +NORMALIZE_WHITESPACE
+        array([0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0])
+        >>> grid.zeros('cell') # doctest: +NORMALIZE_WHITESPACE
+        array([ 0., 0., 0.,
+                0., 0., 0.])
+        """
         if len(args) == 0:
             group = kwds.pop('centering', 'node')
         else:
@@ -24,6 +82,33 @@ class ModelDataFieldsMixIn(ModelDataFields):
         return ModelDataFields.ones(self, group, **kwds)
 
     def zeros(self, *args, **kwds):
+        """Array, filled with zeros, for a given element.
+
+        Returns a numpy array of zeros that is the same length as the number
+        of nodes in the grid. Use the *centering* keyword to return an
+        array for other elements of the grid. *centering* is a string that is
+        one of *node*, *cell*, *link*, or *face*.
+
+        All other keywords are the same as for the numpy zeros function.
+
+        Parameters
+        ----------
+        centering : str, optional
+            Grid element on which the values are defined.
+
+        Returns
+        -------
+        ndarray
+            A newly-allocated array.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.zeros()
+        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        """
         if len(args) == 0:
             group = kwds.pop('centering', 'node')
         else:
