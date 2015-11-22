@@ -15,8 +15,8 @@ from landlab.utils import count_repeated_values
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK,
-                   ACTIVE_LINK, INACTIVE_LINK)
+                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK, 
+                   INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable
 from . import raster_funcs as rfuncs
@@ -866,13 +866,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
-            return np.vstack((self.node_active_inlink_matrix,
-                              self.node_active_outlink_matrix))
+            return np.vstack((self.node_active_inlink_matrix2,
+                              self.node_active_outlink_matrix2))
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
             return (
-                np.vstack((self.node_active_inlink_matrix[:, node_ids],
-                           self.node_active_outlink_matrix[:, node_ids])
+                np.vstack((self.node_active_inlink_matrix2[:, node_ids],
+                           self.node_active_outlink_matrix2[:, node_ids])
                           ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
@@ -1453,11 +1453,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.face_at_link(2)
-        1
+        >>> rmg.face_at_link(5)
+        0
         >>> rmg.face_at_link([0, 1, 15, 19, 12, 26])
-        array([2147483647,          0, 2147483647,          9,          7,
-                       16])
+        array([2147483647, 2147483647,          8,         11,
+                        6, 2147483647])
         """
         if len(args) == 0:
             #face_ids = np.arange(self.number_of_faces)
