@@ -28,7 +28,7 @@ class use_field_name_or_array(object):
     >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
 
     >>> def my_func(grid, vals):
-    ...     return grid.cell_areas * vals
+    ...     return grid.area_of_cell * vals
     >>> my_func(grid, np.arange(grid.number_of_cells))
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -40,7 +40,7 @@ class use_field_name_or_array(object):
     >>> from landlab.utils.decorators import use_field_name_or_array
     >>> @use_field_name_or_array('cell')
     ... def my_func(grid, vals):
-    ...     return grid.cell_areas * vals
+    ...     return grid.area_of_cell * vals
 
     The array of values now can be list or anything that can be converted to
     a numpy array.
