@@ -492,12 +492,17 @@ def node_id_at_link_start(shape):
     Examples
     --------
     >>> from landlab.grid.structured_quad.links import node_id_at_link_start
-    >>> node_id_at_link_start((3, 4))
-    array([ 0,  1,  2,  0,  1,  2,  3,  4,  5,  6,  4,  5,  6,  7,  8,  9, 10])
+    >>> node_id_at_link_start((3, 4)) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0, 1, 2,
+            0, 1, 2, 3,
+            4, 5, 6,
+            4, 5, 6, 7,
+            8, 9, 10])
     """
     all_node_ids = nodes.node_ids(shape)
-    return np.concatenate((all_node_ids[:-1, :].flat,
-                           all_node_ids[:, :-1].flat))
+    link_tails_with_extra_row = np.hstack((all_node_ids[:, :-1],
+                                           all_node_ids)).reshape((-1, ))
+    return link_tails_with_extra_row[:-shape[1]]
 
 
 def node_id_at_link_end(shape):
@@ -516,11 +521,17 @@ def node_id_at_link_end(shape):
     Examples
     --------
     >>> from landlab.grid.structured_quad.links import node_id_at_link_end
-    >>> node_id_at_link_end((3, 4))
-    array([ 4,  5,  6,  7,  8,  9, 10, 11,  1,  2,  3,  5,  6,  7,  9, 10, 11])
+    >>> node_id_at_link_end((3, 4)) # doctest: +NORMALIZE_WHITESPACE
+    array([ 1, 2, 3,
+            4, 5, 6, 7,
+            5, 6, 7,
+            8, 9, 10, 11,
+            9, 10, 11])
     """
     all_node_ids = nodes.node_ids(shape)
-    return np.concatenate((all_node_ids[1:, :].flat, all_node_ids[:, 1:].flat))
+    link_heads_missing_row = np.hstack((all_node_ids[:-1, 1:],
+                                        all_node_ids[1:, :])).reshape((-1, ))
+    return np.concatenate((link_heads_missing_row, all_node_ids[-1, 1:]))
 
 
 def is_active_link(shape, node_status):
