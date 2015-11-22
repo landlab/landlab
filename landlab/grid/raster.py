@@ -495,8 +495,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._cell_at_node = squad_cells.cell_id_at_nodes(
             self.shape).reshape((-1, ))
 
-        self._num_active_faces = sgrid.active_face_count(self.shape)
-
         # We need at least one row or column of boundary cells on each
         # side, so the grid has to be at least 3x3
         assert(np.min((num_rows, num_cols)) >= 3)

@@ -795,6 +795,31 @@ class ModelGrid(ModelDataFieldsMixIn):
         return len(self.link_at_face)
 
     @property
+    def number_of_active_faces(self):
+        """Total number of active faces.
+
+        Returns
+        -------
+        int
+            Total number of active faces in the grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.number_of_active_faces
+        7
+
+        The number of active faces is updated when a node status changes.
+
+        >>> from landlab import CLOSED_BOUNDARY
+        >>> grid.status_at_node[6] = CLOSED_BOUNDARY
+        >>> grid.number_of_active_faces
+        3
+        """
+        return self.active_faces.size
+
+    @property
     def number_of_core_nodes(self):
         """Number of core nodes.
 
@@ -837,11 +862,6 @@ class ModelGrid(ModelDataFieldsMixIn):
     def number_of_active_links(self):
         """Number of active links."""
         return self.active_links.size
-
-    @property
-    def number_of_active_faces(self):
-        """Number of active faces."""
-        return self.active_faces.size
 
     @property
     def number_of_fixed_links(self):
@@ -1758,7 +1778,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._active_links = as_id_array(self._active_links)
         self.fixed_link_ids = as_id_array(self.fixed_link_ids)
 
-        self._num_active_faces = (active_links).sum()
         self._num_fixed_links = fixed_links.sum()
         self._num_fixed_faces = self._num_fixed_links
         self.activelink_fromnode = self.node_at_link_tail[active_links]
