@@ -474,7 +474,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
         array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,
                 2,  3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
-        >>> rmg.link_face[20]
+        >>> rmg.face_at_link[20]
         10
         >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
         array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
@@ -611,8 +611,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.face_at_link(self.shape,
-                                            actives=self.active_links)
         self._setup_cell_areas_array()
 
         # List of neighbors for each cell: we will start off with no
@@ -1312,7 +1310,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
-            (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
+            (self.face_at_link[inlinks], self.face_at_link[outlinks]), axis=1))
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
@@ -1356,9 +1354,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._link_at_face = links
         return self._link_at_face
 
-    def face_at_link(self, *args):
-        """face_at_link([link_id])
-        Get array of faces associated with links.
+    def _setup_active_faces(self):
+        self._active_faces = self.face_at_link[self.active_links]
+        return self._active_faces
+
+    def _setup_face_at_link(self):
+        """Set up array of faces associated with links.
 
         Return an array of the face IDs for the faces that intersect the links
         specified by *link_id*. *link_id* can be either a scalar or array. If
@@ -1375,22 +1376,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.face_at_link(2)
+        >>> rmg = RasterModelGrid((4, 5))
+        >>> rmg.face_at_link[2]
         1
-        >>> rmg.face_at_link([0, 1, 15, 19, 12, 26])
+        >>> rmg.face_at_link[(0, 1, 15, 19, 12, 26), ]
         array([2147483647,          0, 2147483647,          9,          7,
                        16])
         """
-        if len(args) == 0:
-            #face_ids = np.arange(self.number_of_faces)
-            return self.link_face[:]
-        elif len(args) == 1:
-            link_ids = np.broadcast_arrays(args[0])[0]
-        else:
-            raise ValueError()
-        #link_ids = _make_arg_into_array(link_id)
-        return self.link_face[link_ids]
+        self._face_at_link = sgrid.face_at_link(self.shape)
+        return self._face_at_link
 
     def get_grid_xdimension(self):
         """Length of the grid in the x-dimension.
