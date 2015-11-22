@@ -37,9 +37,22 @@ def extend_array(x, fill=0):
     >>> arr
     array([[0, 1],
            [2, 3]])
-    >>> arr.x
+    >>> arr.ext
     array([0, 1, 2, 3, 0])
+
+    If the array is already extended, don't extend it more. However,
+    possibly change its fill value.
+
+    >>> rtn = extend_array(arr, fill=999)
+    >>> rtn is arr
+    True
+    >>> rtn.ext
+    array([  0,   1,   2,   3, 999])
     """
+    if hasattr(x, 'ext'):
+        x.ext[-1] = fill
+        return x
+
     extended = np.empty(x.size + 1, dtype=x.dtype)
     extended[:-1] = x.flat
     extended[-1] = fill
@@ -49,7 +62,7 @@ def extend_array(x, fill=0):
         def __new__(cls, arr):
             """Instantiate the class with a view of the base array."""
             obj = np.asarray(arr).view(cls)
-            obj.x = extended
+            obj.ext = extended
             return obj
 
     return array(x)
