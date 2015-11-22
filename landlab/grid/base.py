@@ -699,13 +699,14 @@ class ModelGrid(ModelDataFieldsMixIn):
             return self._active_links
 
     @property
+    @return_readonly_id_array
     def fixed_links(self):
         """Get array of fixed links."""
         try:
-            return self.fixed_link_ids
+            return self._fixed_links
         except AttributeError:
             self._reset_link_status_list()
-            return self.fixed_link_ids
+            return self._fixed_links
 
     @property
     @return_readonly_id_array
@@ -1763,20 +1764,20 @@ class ModelGrid(ModelDataFieldsMixIn):
         fixed_links[fixed_link_fixed_val] = False
 
         try:
-            self._link_status.fill(4)
+            self._link_status.fill(INACTIVE_LINK)
         except AttributeError:
             self._link_status = numpy.empty(self.number_of_links, dtype=int)
-            self._link_status.fill(4)
+            self._link_status.fill(INACTIVE_LINK)
 
-        self._link_status[active_links] = 0
+        self._link_status[active_links] = ACTIVE_LINK
 
-        self._link_status[fixed_links] = 2
+        self._link_status[fixed_links] = FIXED_LINK
 
-        active_links = self._link_status == 0  # now it's correct
+        active_links = self._link_status == ACTIVE_LINK  # now it's correct
         (self._active_links, ) = numpy.where(active_links)
-        (self.fixed_link_ids, ) = numpy.where(fixed_links)
+        (self._fixed_links, ) = numpy.where(fixed_links)
         self._active_links = as_id_array(self._active_links)
-        self.fixed_link_ids = as_id_array(self.fixed_link_ids)
+        self._fixed_links = as_id_array(self._fixed_links)
 
         self._num_fixed_links = fixed_links.sum()
         self._num_fixed_faces = self._num_fixed_links
