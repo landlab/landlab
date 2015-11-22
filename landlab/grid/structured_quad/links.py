@@ -152,6 +152,7 @@ def vertical_link_ids(shape):
         link_ids[r,:] = a + (r * num_links_per_row) + np.arange(shape[1])
     return link_ids
 
+
 def horizontal_link_ids(shape):
     """Horizontal links in a structured quad grid.
 
@@ -173,14 +174,12 @@ def horizontal_link_ids(shape):
            [ 7,  8,  9],
            [14, 15, 16]])
     """
-#    link_ids = (np.arange(number_of_horizontal_links(shape), dtype=np.int) +
-#                number_of_vertical_links(shape))
-#    return link_ids.reshape(shape_of_horizontal_links(shape))
     num_links_per_row = 2*shape[1] - 1  # each row has C-1 horiz + C vert
     link_ids = np.zeros(shape_of_horizontal_links(shape), dtype=np.int)
     for r in range(shape[0]):  # number of rows
         link_ids[r,:] = (r * num_links_per_row) + np.arange(shape[1]-1)
     return link_ids
+
 
 def number_of_links_per_node(shape):
     """Number of links touching each node.
@@ -494,7 +493,7 @@ def node_id_at_link_start(shape):
     --------
     >>> from landlab.grid.structured_quad.links import node_id_at_link_start
     >>> node_id_at_link_start((3, 4))
-    array([ 0,  1,  2,  3,  4,  5,  6,  7,  0,  1,  2,  4,  5,  6,  8,  9, 10])
+    array([ 0,  1,  2,  0,  1,  2,  3,  4,  5,  6,  4,  5,  6,  7,  8,  9, 10])
     """
     all_node_ids = nodes.node_ids(shape)
     return np.concatenate((all_node_ids[:-1, :].flat,
@@ -546,8 +545,8 @@ def is_active_link(shape, node_status):
     >>> from landlab.grid.structured_quad.links import is_active_link
     >>> status = status_with_perimeter_as_boundary((3, 4))
     >>> is_active_link((3, 4), status)
-    array([False, False, False, False, False, False, False, False, False,
-           False, False, False,  True, False, False, False, False], dtype=bool)
+    array([False, False, False, False, False, False, False, False, True,
+           False, False, False, False, False, False, False, False], dtype=bool)
     """
     if np.prod(shape) != node_status.size:
         raise ValueError('node status array does not match size of grid '
@@ -910,12 +909,28 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
     ...     vertical_active_link_ids)
     >>> rmg = RasterModelGrid(4, 5)
+    >>> active_ids = active_link_ids((4,5), rmg.status_at_node)
+    >>> vertical_active_link_ids((4, 5), active_ids)
+    array([-1,  5,  6,  7, -1, -1, 14, 15, 16, -1, -1, 23, 24, 25, -1])
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> status = rmg.status_at_node
     >>> active_ids = active_link_ids((4,5), status)
     >>> vertical_active_link_ids((4,5), active_ids)
-    array([-1, -1, -1, -1, -1, -1,  6,  7,  8, -1, -1, -1, -1, -1, -1])
+    array([-1, -1, -1, -1, -1, -1, 14, 15, 16, -1, -1, -1, -1, -1, -1])
     """
+    
+    # THE BELOW IS GT'S LAME ATTEMPT TO GET THIS TO WORK WITH NEW NUMBERING;
+    # STILL IN PROGRESS, SO COMMENTED OUT FOR NOW
+#    num_links = (shape[0] * (shape[1] - 1)) + (shape[1] * (shape[0] - 1))
+#    link_is_active = np.zeros(num_links, dtype=bool)
+#    link_is_active[active_ids] = True
+#    
+#    vertical_ids = vertical_link_ids(shape)
+#    vertical_ids = vertical_ids.flatten()
+#    
+#    vertical_links = vertical_ids * link_is_active[vertical_ids] + \
+#                     (1 - link_is_active[vertical_ids]) * bad_index_value
+    
     # Set up an array of '-1' indices with length of number_of_vertical_links
     vertical_links = np.ones(number_of_vertical_links(shape)) * bad_index_value
 
