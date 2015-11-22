@@ -91,9 +91,8 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', np.arange(17.))
     >>> map_mean_of_inlinks_to_node(rmg, 'z')
-    array([  0. ,  0. ,   1. ,   2. ,
-             3. ,  5.5,   6.5,   7.5,
-            10. ,  12.5, 13.5,  14.5])
+    array([  0. ,   0. ,   0.5,   1. ,   1.5,   5.5,   6.5,   7.5,   5. ,
+            12.5,  13.5,  14.5])
     """
     if out is None:
         out = grid.empty(centering='node')
@@ -193,8 +192,8 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', np.arange(17.))
     >>> map_min_of_inlinks_to_node(rmg, 'z')
-    array([ 0.,  0.,  1.,  2.,  3.,  4.,  5.,  6., 10., 11., 12., 13.])
-    """
+    array([  0.,   0.,   0.,   0.,   0.,   4.,   5.,   6.,   0.,  11.,  12.,
+            13.])    """
     if out is None:
         out = grid.empty(centering='node')
 
@@ -291,8 +290,8 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', np.arange(17.))
     >>> map_mean_of_outlinks_to_node(rmg, 'z')
-    array([ 1.5,  2.5,  3.5,  6. ,  8.5,  9.5, 10.5, 13.0, 14. , 15. , 16. ,
-            0. ])
+    array([  1.5,   2.5,   3.5,   3. ,   8.5,   9.5,  10.5,   6.5,   7. ,
+             7.5,   8. ,   0. ])
     """
     if out is None:
         out = grid.empty(centering='node')
@@ -391,7 +390,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', np.arange(17.))
     >>> map_min_of_outlinks_to_node(rmg, 'z')
-    array([ 0.,  1.,  2.,  6.,  7.,  8.,  9., 13., 14., 15., 16.,  0.])
+    array([ 0.,  1.,  2.,  0.,  7.,  8.,  9.,  0.,  0.,  0.,  0.,  0.])
     """
     if out is None:
         out = grid.empty(centering='node')
@@ -440,7 +439,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', np.arange(17.))
     >>> map_mean_of_links_to_node(rmg, 'z')
-    array([  1.5       ,   1.66666667,   2.66666667,   3.5       ,
+    array([  1.5       ,   1.66666667,   2.66666667,   4.        ,
              6.66666667,   7.5       ,   8.5       ,   9.33333333,
             12.        ,  13.33333333,  14.33333333,  14.5       ])
     """
