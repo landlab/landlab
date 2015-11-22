@@ -639,8 +639,40 @@ class ModelGrid(ModelDataFieldsMixIn):
         return fixed_value_boundary_node_ids
 
     @property
+    @return_readonly_id_array
+    def active_faces(self):
+        """Get array of active faces.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.active_faces
+        array([0, 1, 2, 3, 4, 5, 6])
+
+        >>> from landlab import CLOSED_BOUNDARY
+        >>> grid.status_at_node[6] = CLOSED_BOUNDARY
+        >>> grid.active_faces
+        array([0, 2, 4])
+        """
+        try:
+            return self._active_faces
+        except AttributeError:
+            self._setup_active_faces()
+            return self._active_faces
+
+    @property
+    @return_readonly_id_array
     def active_links(self):
-        """Get array of active links."""
+        """Get array of active links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.active_links
+        array([ 1,  2,  5,  6, 11, 12, 13])
+        """
         try:
             return self._active_links
         except AttributeError:
@@ -681,7 +713,10 @@ class ModelGrid(ModelDataFieldsMixIn):
     @property
     def face_at_link(self):
         """Get array of faces associated with links."""
-        return self.link_face
+        try:
+            return self._face_at_link
+        except AttributeError:
+            return self._setup_face_at_link()
 
     @property
     def number_of_nodes(self):
@@ -787,11 +822,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @property
     def number_of_active_faces(self):
         """Number of active faces."""
-        try:
-            return self._num_active_faces
-        except AttributeError:
-            self._reset_link_status_list()
-            return self._num_active_faces
+        return self.active_faces.size
 
     @property
     def number_of_fixed_links(self):
@@ -952,7 +983,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         self.update_links_nodes_cells_to_new_BCs()
 
     @property
-    @make_return_array_immutable
+    @return_readonly_id_array
     def link_at_face(self):
         """Get links associated with faces.
 
@@ -1774,6 +1805,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
+        self._setup_active_faces()
         try:
             if self.diagonal_list_created:
                 self.diagonal_list_created = False
