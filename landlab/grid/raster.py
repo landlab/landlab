@@ -1467,7 +1467,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.face_at_link(5)
         0
@@ -2009,8 +2009,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> import landlab
-        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
         >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
