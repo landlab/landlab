@@ -555,9 +555,16 @@ def is_active_link(shape, node_status):
     ...     status_with_perimeter_as_boundary)
     >>> from landlab.grid.structured_quad.links import is_active_link
     >>> status = status_with_perimeter_as_boundary((3, 4))
-    >>> is_active_link((3, 4), status)
-    array([False, False, False, False, False, False, False, False, True,
-           False, False, False, False, False, False, False, False], dtype=bool)
+    >>> status # doctest: +NORMALIZE_WHITESPACE
+    array([[4, 4, 4, 4],
+           [4, 0, 0, 4],
+           [4, 4, 4, 4]])
+    >>> is_active_link((3, 4), status) # doctest: +NORMALIZE_WHITESPACE
+    array([False, False, False,
+           False, False, False, False,
+           False, True, False,
+           False, False, False, False,
+           False, False, False], dtype=bool)
     """
     if np.prod(shape) != node_status.size:
         raise ValueError('node status array does not match size of grid '
