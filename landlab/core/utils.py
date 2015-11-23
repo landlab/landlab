@@ -7,6 +7,67 @@ import numpy as np
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
+def extend_array(x, fill=0):
+    """Extend an array by one element.
+
+    The new array will appear as a view of the input array. However, its
+    data now points to a newly-allocated buffer that's one element longer
+    and contains a copy of the contents of *x*. The last element of the
+    buffer is filled with *fill*. To access the extended array, use the
+    *x* attribute of the returned array.
+
+    Parameters
+    ----------
+    x : ndarray
+        The array to extend.
+    fill : number, optional
+        The value to fill the extra element with.
+
+    Returns
+    -------
+    ndarray
+        A view of the original array with the data buffer extended by one
+        element.
+
+    Examples
+    --------
+    >>> from landlab.core.utils import extend_array
+    >>> import numpy as np
+    >>> arr = extend_array(np.arange(4).reshape((2, 2)))
+    >>> arr
+    array([[0, 1],
+           [2, 3]])
+    >>> arr.ext
+    array([0, 1, 2, 3, 0])
+
+    If the array is already extended, don't extend it more. However,
+    possibly change its fill value.
+
+    >>> rtn = extend_array(arr, fill=999)
+    >>> rtn is arr
+    True
+    >>> rtn.ext
+    array([  0,   1,   2,   3, 999])
+    """
+    if hasattr(x, 'ext'):
+        x.ext[-1] = fill
+        return x
+
+    extended = np.empty(x.size + 1, dtype=x.dtype)
+    extended[:-1] = x.flat
+    extended[-1] = fill
+    x.data = extended.data
+
+    class array(np.ndarray):
+        def __new__(cls, arr):
+            """Instantiate the class with a view of the base array."""
+            obj = np.asarray(arr).view(cls)
+            obj.ext = extended
+            return obj
+
+    return array(x)
+
+
 def as_id_array(array):
     """Convert an array to an array of ids.
 
