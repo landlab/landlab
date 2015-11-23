@@ -1581,7 +1581,7 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
 
     Returns
     -------
-    ndarray :
+    ndarray
         Array of 4 horizontal link neighbors for a given link ID. Returned in
         [S, W, N, E]. Returns array for only ACTIVE horizontal links.
 
@@ -1589,15 +1589,16 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
     --------
     Sample grid, giving neighbors for link ID 20::
 
+
         *------>*------>*------>*------>*
 
 
 
-        *------>*--24-->*------>*------>*
+        *------>*--19-->*--20-->*------>*
 
 
 
-        *------>*--20-->*--21-->*------>*
+        *------>*--10-->*--11-->*------>*
 
 
 
@@ -1615,16 +1616,16 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
-    >>> rmg = RasterModelGrid(4, 5)
+    >>> rmg = RasterModelGrid((4, 5))
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> active_ids = active_link_ids(rmg.shape, rmg.status_at_node)
     >>> horizontal_ids = horizontal_active_link_ids(
     ...     rmg.shape, active_ids)
     >>> d4_horizontal_active_link_neighbors(rmg.shape, horizontal_ids)
-    array([[-1, -1, 24, 21],
-           [-1, 20, 25, -1],
-           [20, -1, -1, 25],
-           [21, 24, -1, -1]])
+    array([[-1, -1, 19, 11],
+           [-1, 10, 20, -1],
+           [10, -1, -1, 20],
+           [11, 19, -1, -1]])
     """
     # To do this we simply call the find_d4_horizontal_neighbors() function
     # which gives the neighbors for ALL horizontal links in an array, even
