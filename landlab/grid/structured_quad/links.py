@@ -695,11 +695,16 @@ def fixed_link_ids(shape, node_status):
     >>> rmg = RasterModelGrid(4, 5)
     >>> z = np.arange(0, rmg.number_of_nodes)
     >>> s = np.arange(0, rmg.number_of_links)
-    >>> rmg['node']['topographic__elevation'] = z
-    >>> rmg['link']['topographic__slope'] = s
+    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_link['topographic__slope'] = s
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
+    array([2, 2, 2, 2, 2,
+           2, 0, 0, 0, 2,
+           2, 0, 0, 0, 2,
+           2, 2, 2, 2, 2], dtype=int8)
     >>> fixed_link_ids(rmg.shape, rmg.status_at_node)
-    array([ 1,  2,  3, 11, 12, 13, 19, 22, 23, 26])
+    array([ 5,  6,  7,  9, 12, 18, 21, 23, 24, 25])
     """
     return as_id_array(np.where(is_fixed_link(shape, node_status))[0])
 
