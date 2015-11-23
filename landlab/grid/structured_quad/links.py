@@ -584,7 +584,7 @@ def is_active_link(shape, node_status):
 
 
 def active_link_ids(shape, node_status):
-    """returns link ids of active links.
+    """Get active links.
 
     Parameters
     ----------
@@ -602,11 +602,18 @@ def active_link_ids(shape, node_status):
     --------
     >>> from landlab.grid import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import active_link_ids
-    >>> rmg = RasterModelGrid(3, 4)
+
+    >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
     >>> status = rmg.status_at_node
+    >>> status # doctest: +NORMALIZE_WHITESPACE
+    array([4, 4, 4, 4,
+           4, 0, 0, 4,
+           4, 4, 4, 4], dtype=int8)
+
     >>> active_link_ids((3, 4), status)
-    array([12])
+    array([8])
     """
     return as_id_array(np.where(is_active_link(shape, node_status))[0])
 
