@@ -638,16 +638,24 @@ def is_fixed_link(shape, node_status):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import is_fixed_link
     >>> import numpy as np
-    >>> rmg = RasterModelGrid(4, 5)
+
+    >>> rmg = RasterModelGrid((4, 5))
     >>> z = np.arange(0, rmg.number_of_nodes)
     >>> s = np.arange(0, rmg.number_of_links)
-    >>> rmg['node']['topographic__elevation'] = z
-    >>> rmg['link']['topographic__slope'] = s
+    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_link['topographic__slope'] = s
+
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
+    array([2, 2, 2, 2, 2,
+           2, 0, 0, 0, 2,
+           2, 0, 0, 0, 2,
+           2, 2, 2, 2, 2], dtype=int8)
+
     >>> is_fixed_link(rmg.shape, rmg.status_at_node)
-    array([False,  True,  True,  True, False, False, False, False, False,
-           False, False,  True,  True,  True, False, False, False, False,
-           False,  True, False, False,  True,  True, False, False,  True,
+    array([False, False, False, False, False,  True,  True,  True, False,
+            True, False, False,  True, False, False, False, False, False,
+            True, False, False,  True, False,  True,  True,  True, False,
            False, False, False, False], dtype=bool)
     """
     if np.prod(shape) != node_status.size:
