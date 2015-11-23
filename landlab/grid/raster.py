@@ -422,12 +422,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
         ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
-        >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1,
                1, 0, 0, 0, 1,
                1, 0, 0, 0, 1,
                1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.node_numinlink
+        >>> rmg.node_numinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 1, 1, 1, 1,
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2,
@@ -474,7 +474,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
         array([ 1,  2,  3,  4,  5,  6,  7,  8,  9,  6,  7,  8,  9, 10, 11, 12,
                13, 14, 11, 12, 13, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19])
-        >>> rmg.face_at_link[20]
+        >>> rmg.face_at_link(20)
         12
         >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
         array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
@@ -848,7 +848,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 4)
+        >>> rmg = RasterModelGrid((3, 4))
         >>> rmg.node_links(5)
         array([[ 4],
                [ 7],
@@ -860,6 +860,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [11, 12],
                [ 8,  9]])
         >>> rmg.active_links_at_node()
+        array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
+               [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
+               [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
+
         array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
@@ -1248,13 +1253,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         rows (only one vertical link).
 
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(3, 4, 2.0)
-        >>> mg.link_unit_vec_x
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  0.])
-        >>> mg.link_unit_vec_y
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.])
+        >>> mg = RasterModelGrid((3, 4), spacing=(2.0, 2.0))
+
+        >>> mg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
+                1.,  1.,  1.,  0.,  0.,  0.,  0.,
+                1.,  1.,  1.,  0.])
+        >>> mg.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
+                0.,  0.,  0.,  1.,  1.,  1.,  1.,
+                0.,  0.,  0.,  0.])
+
         >>> mg.node_unit_vector_sum_x
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
         >>> mg.node_unit_vector_sum_y
@@ -1265,12 +1274,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assume that the order of links is:
         # - The first (R-1)*C are vertical and oriented upward
         # - The remaining R*(C-1) are horizontal and oriented rightward
-        self._link_unit_vec_x = np.zeros(self.number_of_links + 1)
-        self._link_unit_vec_y = np.zeros(self.number_of_links + 1)
-        n_vert_links = (self.number_of_node_rows - 1) * \
-            self.number_of_node_columns
-        self._link_unit_vec_y[:n_vert_links] = 1.0
-        self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        self._link_unit_vec_x = np.zeros(self.number_of_links + 1, dtype=float)
+        self._link_unit_vec_y = np.zeros(self.number_of_links + 1, dtype=float)
+
+        # n_vert_links = (self.number_of_node_rows - 1) * \
+        #     self.number_of_node_columns
+        # self._link_unit_vec_y[:n_vert_links] = 1.0
+        # self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+
+        self._link_unit_vec_x[squad_links.horizontal_link_ids(self.shape)] = 1.
+        self._link_unit_vec_y[squad_links.vertical_link_ids(self.shape)] = 1.
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
@@ -1455,9 +1468,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.face_at_link(5)
         0
-        >>> rmg.face_at_link([0, 1, 15, 19, 12, 26])
-        array([2147483647, 2147483647,          8,         11,
-                        6, 2147483647])
+        >>> faces = rmg.face_at_link([0, 1, 15, 19, 12, 26])
+        >>> faces[faces == BAD_INDEX_VALUE] = -1
+        >>> faces
+        array([-1, -1,  8, 11,  6, -1])
         """
         if len(args) == 0:
             #face_ids = np.arange(self.number_of_faces)
@@ -1765,7 +1779,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
         array([ True,  True, False], dtype=bool)
         >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
-        array([False, True,  True, False], dtype=bool)
+        array([False,  True,  True, False], dtype=bool)
         """
         xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
 
@@ -3068,8 +3082,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
-        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
+        array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
+                1., -1.,  0.,  1.])
         >>> flux = -grad    # downhill flux proportional to gradient
         >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
         >>> df
