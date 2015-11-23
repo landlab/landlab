@@ -874,6 +874,63 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     return as_id_array(horizontal_links)
 
 
+def is_vertical_link(shape, links):
+    """Test if links are vertical.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    links : array of int
+        Array of link ids to test.
+
+    Returns
+    -------
+    ndarray of bool
+        `True` for links that are vertical.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import is_vertical_link
+    >>> shape = (3, 4)
+    >>> links = np.arange(number_of_links(shape))
+    >>> is_vertical_link(shape, links) # doctest: +NORMALIZE_WHITESPACE
+    array([False, False, False,  True,  True,  True,  True,
+           False, False, False,  True,  True,  True,  True,
+           False, False, False], dtype=bool)
+    """
+    return (links % (2 * shape[1] - 1)) >= shape[1] - 1
+
+
+def nth_vertical_link(shape, links):
+    """Convert link ID to vertical link ID.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    links : array of int
+        Array of link ids to test.
+
+    Returns
+    -------
+    ndarray of int
+        The link ID as the nth vertical links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import nth_vertical_link
+    >>> shape = (3, 4)
+    >>> nth_vertical_link(shape, 4)
+    1
+    >>> nth_vertical_link(shape, (3, 4, 11))
+    array([0, 1, 5])
+    """
+    links = np.asarray(links)
+    return ((links / (2 * shape[1] - 1)) * shape[1] +
+            links % (2 * shape[1] - 1) - (shape[1] - 1))
+
+
 def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     """ID of vertical active links.
 
@@ -926,51 +983,36 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
     ...     vertical_active_link_ids)
-    >>> rmg = RasterModelGrid(4, 5)
-    >>> active_ids = active_link_ids((4,5), rmg.status_at_node)
+
+    >>> rmg = RasterModelGrid((4, 5))
+    >>> active_ids = active_link_ids((4, 5), rmg.status_at_node)
+    >>> active_ids # doctest: +NORMALIZE_WHITESPACE
+    array([ 5,  6,  7,
+            9, 10, 11, 12,
+           14, 15, 16,
+           18, 19, 20, 21,
+           23, 24, 25])
+
     >>> vertical_active_link_ids((4, 5), active_ids)
-    array([-1,  5,  6,  7, -1, -1, 14, 15, 16, -1, -1, 23, 24, 25, -1])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1,  5,  6,  7, -1,
+           -1, 14, 15, 16, -1,
+           -1, 23, 24, 25, -1])
+
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> status = rmg.status_at_node
-    >>> active_ids = active_link_ids((4,5), status)
-    >>> vertical_active_link_ids((4,5), active_ids)
-    array([-1, -1, -1, -1, -1, -1, 14, 15, 16, -1, -1, -1, -1, -1, -1])
+    >>> active_ids = active_link_ids((4, 5), status)
+    >>> vertical_active_link_ids((4, 5), active_ids)
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1, -1, -1, -1, -1,
+           -1, 14, 15, 16, -1,
+           -1, -1, -1, -1, -1])
     """
-    
-    # THE BELOW IS GT'S LAME ATTEMPT TO GET THIS TO WORK WITH NEW NUMBERING;
-    # STILL IN PROGRESS, SO COMMENTED OUT FOR NOW
-#    num_links = (shape[0] * (shape[1] - 1)) + (shape[1] * (shape[0] - 1))
-#    link_is_active = np.zeros(num_links, dtype=bool)
-#    link_is_active[active_ids] = True
-#    
-#    vertical_ids = vertical_link_ids(shape)
-#    vertical_ids = vertical_ids.flatten()
-#    
-#    vertical_links = vertical_ids * link_is_active[vertical_ids] + \
-#                     (1 - link_is_active[vertical_ids]) * bad_index_value
-    
-    # Set up an array of '-1' indices with length of number_of_vertical_links
-    vertical_links = np.ones(number_of_vertical_links(shape)) * bad_index_value
+    out = np.full(number_of_vertical_links(shape), bad_index_value, dtype=int)
+    vertical_ids = active_ids[np.where(is_vertical_link(shape, active_ids))]
 
-    # We will need the number of rows and columns from input argument 'shape'
-    rows = shape[0]
-    cols = shape[1]
-
-    # In a structured quad, the maximum vertical link id is one less than the
-    # number of columns * (number of rows - 1)
-    max_vert_id = cols * (rows - 1)
-
-    # We will use list comprehension to get *just* the vertical link ids
-    # from the active_link_ids input argument.
-    vertical_ids = [i for i in active_ids if i < max_vert_id]
-
-    # In the array of '-1's, we input the active link ids.
-    vertical_links[vertical_ids] = vertical_ids
-    vertical_links = vertical_links.astype(int)
-
-    # Return an array with length of number_of_vertical_links that has '-1' for
-    # inactive links and the active link id for active links
-    return vertical_links
+    out[nth_vertical_link(shape, vertical_ids)] = vertical_ids
+    return out
 
 
 def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
