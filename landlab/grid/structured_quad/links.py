@@ -749,41 +749,31 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
     ...     horizontal_active_link_ids)
+
     >>> rmg = RasterModelGrid(4, 5)
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
     >>> status = rmg.status_at_node
+    >>> status # doctest: +NORMALIZE_WHITESPACE
+    array([4, 4, 4, 4, 4,
+           4, 0, 0, 0, 4,
+           4, 0, 0, 0, 4,
+           4, 4, 4, 4, 4], dtype=int8)
     >>> active_ids = active_link_ids((4,5), status)
+
     >>> horizontal_active_link_ids((4,5), active_ids)
-    array([-1, -1, -1, -1, -1, 20, 21, -1, -1, 24, 25, -1, -1, -1, -1, -1])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1, -1, -1, -1,
+           -1, 10, 11, -1,
+           -1, 19, 20, -1,
+           -1, -1, -1, -1])
     """
-    # For horizontal links, we need to start with a list of '-1' indices with
-    # length of number_of_links
-    horizontal_links = np.ones(number_of_links(shape)) * bad_index_value
+    out = np.full(number_of_horizontal_links(shape), bad_index_value,
+                  dtype=int)
+    horizontal_ids = active_ids[np.where(~ is_vertical_link(shape, active_ids))]
 
-    # We will need the number of rows and columns from input argument 'shape'
-    rows = shape[0]
-    cols = shape[1]
-
-    # In a structured quad, the minimum horizontal link id is equal to the
-    # number of columns * (number of rows - 1)
-    min_hori_id = cols * (rows - 1)
-
-    # We will use list comprehension to get *just* the horizontal link ids
-    # from the active_link_ids input argument.
-    horizontal_ids = [i for i in active_ids if i >= min_hori_id]
-
-    # In the array of '-1' we input the horizontal active link ids
-    horizontal_links[horizontal_ids] = horizontal_ids
-
-    # To get an array of len number_of_horizontal_links, we need to clip off
-    # the number of vertical links. We do this by starting at the "minimum
-    # horizontal link id" found above and going to the end of the list.
-    horizontal_links = horizontal_links[min_hori_id:]
-    horizontal_links = horizontal_links.astype(int)
-
-    # Return an array with length of number_of_vertical_links that has '-1' for
-    # inactive/fixed links and the active link id for active links
-    return horizontal_links
+    out[nth_horizontal_link(shape, horizontal_ids)] = horizontal_ids
+    return out
 
 
 def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
@@ -936,6 +926,35 @@ def nth_vertical_link(shape, links):
     links = np.asarray(links)
     return ((links / (2 * shape[1] - 1)) * shape[1] +
             links % (2 * shape[1] - 1) - (shape[1] - 1))
+
+
+def nth_horizontal_link(shape, links):
+    """Convert link ID to horizontal link ID.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    links : array of int
+        Array of link ids to test.
+
+    Returns
+    -------
+    ndarray of int
+        The link ID as the nth horizontal links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import nth_horizontal_link
+    >>> shape = (3, 4)
+    >>> nth_horizontal_link(shape, 16)
+    8
+    >>> nth_horizontal_link(shape, (1, 7, 8))
+    array([1, 3, 4])
+    """
+    links = np.asarray(links)
+    return ((links / (2 * shape[1] - 1)) * (shape[1] - 1) +
+            links % (2 * shape[1] - 1))
 
 
 def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
