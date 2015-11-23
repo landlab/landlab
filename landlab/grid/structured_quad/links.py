@@ -892,7 +892,9 @@ def is_vertical_link(shape, links):
 
     Examples
     --------
-    >>> from landlab.grid.structured_quad.links import is_vertical_link
+    >>> from landlab.grid.structured_quad.links import (is_vertical_link,
+    ...     number_of_links)
+    >>> import numpy as np
     >>> shape = (3, 4)
     >>> links = np.arange(number_of_links(shape))
     >>> is_vertical_link(shape, links) # doctest: +NORMALIZE_WHITESPACE
