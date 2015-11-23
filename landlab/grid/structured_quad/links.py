@@ -810,11 +810,11 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
           ^       ^       ^       ^       ^
           I       V       V       V       I
           |       |       |       |       |
-          *--23-->o------>o------>o--26-->*
+          *--18-->o------>o------>o--21-->*
           ^       ^       ^       ^       ^
           I       V       V       V       I
           |       |       |       |       |
-          *--19-->o------>o------>o--22-->*
+          *---9-->o------>o------>o--12-->*
           ^       ^       ^       ^       ^
           I       V       V       V       I
           |       |       |       |       |
@@ -839,44 +839,35 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import (fixed_link_ids,
     ...     horizontal_fixed_link_ids)
     >>> import numpy
+
     >>> rmg = RasterModelGrid(4, 5)
-    >>> rmg['node']['topographic__elevation'] = numpy.arange(
+    >>> rmg.at_node['topographic__elevation'] = numpy.arange(
     ...     0, rmg.number_of_nodes)
-    >>> rmg['link']['topographic__slope'] = numpy.arange(
+    >>> rmg.at_link['topographic__slope'] = numpy.arange(
     ...     0, rmg.number_of_links)
+
     >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
     >>> status = rmg.status_at_node
-    >>> fixed_ids = fixed_link_ids((4,5), status)
-    >>> horizontal_fixed_link_ids((4,5), fixed_ids)
-    array([-1, -1, -1, -1, 19, -1, -1, 22, 23, -1, -1, 26, -1, -1, -1, -1])
+    >>> status # doctest: +NORMALIZE_WHITESPACE
+    array([2, 2, 2, 2, 2,
+           2, 0, 0, 0, 2,
+           2, 0, 0, 0, 2,
+           2, 2, 2, 2, 2], dtype=int8)
+
+    >>> fixed_ids = fixed_link_ids((4, 5), status)
+    >>> horizontal_fixed_link_ids((4, 5), fixed_ids)
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1, -1, -1, -1,
+            9, -1, -1, 12,
+           18, -1, -1, 21,
+           -1, -1, -1, -1])
     """
-    # For horizontal links, we need to start with a list of '-1' indices with
-    # length of number_of_links
-    horizontal_links = np.ones(number_of_links(shape)) * bad_index_value
+    out = np.full(number_of_horizontal_links(shape), bad_index_value,
+                  dtype=int)
+    horizontal_ids = fixed_ids[np.where(~ is_vertical_link(shape, fixed_ids))]
 
-    # We will need the number of rows and columns from input argument 'shape'
-    rows = shape[0]
-    cols = shape[1]
-
-    # In a structured quad, the minimum horizontal link id is equal to the
-    # number of columns * (number of rows - 1)
-    min_hori_id = cols * (rows - 1)
-
-    # We will use list comprehension to get *just* the horizontal link ids
-    # from the fixed_link_ids input argument.
-    horizontal_ids = [i for i in fixed_ids if i >= min_hori_id]
-
-    # In the array of '-1' we input the horizontal fixed link ids
-    horizontal_links[horizontal_ids] = horizontal_ids
-
-    # To get an array of len number_of_horizontal_links, we need to clip off
-    # the number of vertical links. We do this by starting at the "minimum
-    # horizontal link id" found above and going to the end of the list.
-    horizontal_links = horizontal_links[min_hori_id:]
-
-    # Return an array with length of number_of_vertical_links that has '-1' for
-    # inactive links and the active link id for active links
-    return as_id_array(horizontal_links)
+    out[nth_horizontal_link(shape, horizontal_ids)] = horizontal_ids
+    return out
 
 
 def is_vertical_link(shape, links):
