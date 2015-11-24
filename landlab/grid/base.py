@@ -2460,8 +2460,8 @@ class ModelGrid(ModelDataFields):
         >>> len(grid.link_unit_vec_x) == grid.number_of_links + 1
         True
         >>> grid.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,
-                1.,  1.,  1.,  1.,  1.,  1.,  0.])
+        array([ 1.,  1.,  0.,  0.,  0.,
+                1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
         """
         if self._link_unit_vec_x is None:
             self._make_link_unit_vectors()
@@ -2478,8 +2478,8 @@ class ModelGrid(ModelDataFields):
         >>> len(grid.link_unit_vec_y) == grid.number_of_links + 1
         True
         >>> grid.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        array([ 0.,  0.,  1.,  1.,  1.,
+                0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
         """
         if self._link_unit_vec_y is None:
             self._make_link_unit_vectors()
@@ -2647,7 +2647,7 @@ class ModelGrid(ModelDataFields):
 
         >>> import numpy as np
         >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid(3, 4, 2.0)
+        >>> rmg = ll.RasterModelGrid((3, 4), spacing=(2., 2.))
         >>> rmg.node_unit_vector_sum_x
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
         >>> rmg.node_unit_vector_sum_y
