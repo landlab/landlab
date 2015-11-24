@@ -2036,15 +2036,15 @@ def d4_vertical_active_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> vertical_active_ids = vertical_active_link_ids(
     ...     rmg.shape, active_link_ids)
     >>> d4_vertical_active_link_neighbors(rmg.shape, vertical_active_ids)
-    array([[-1, -1,  6,  2],
-           [-1,  1,  7,  3],
-           [-1,  2,  8, -1],
-           [ 1, -1, 11,  7],
-           [ 2,  6, 12,  8],
-           [ 3,  7, 13, -1],
-           [ 6, -1, -1, 12],
-           [ 7, 11, -1, 13],
-           [ 8, 12, -1, -1]])
+    array([[ 2,  6, -1, -1],
+           [ 3,  7,  1, -1],
+           [-1,  8,  2, -1],
+           [ 7, 11, -1,  1],
+           [ 8, 12,  6,  2],
+           [-1, 13,  7,  3],
+           [12, -1, -1,  6],
+           [13, -1, 11,  7],
+           [-1, -1, 12,  8]])
     """
     # To do this we simply call the find_d4_vertical_neighbors() function
     # which gives the neighbors for ALL vertical links in an array, even
