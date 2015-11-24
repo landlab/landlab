@@ -2095,14 +2095,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 3)
+        >>> grid = RasterModelGrid((3, 3))
         >>> (links, from_nodes, to_nodes) = grid.d8_active_links()
         >>> links
-        array([ 1,  4,  8,  9, 12, 15, 17, 18])
+        array([ 3,  5,  6,  8, 12, 15, 17, 18])
         >>> from_nodes
-        array([1, 4, 3, 4, 0, 2, 4, 4])
+        array([1, 3, 4, 4, 0, 2, 4, 4])
         >>> to_nodes
-        array([4, 7, 4, 5, 4, 4, 6, 8])
+        array([4, 4, 5, 7, 4, 4, 6, 8])
         """
         if not self._diagonal_links_created:
             self._setup_diagonal_links()
