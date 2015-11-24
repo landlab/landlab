@@ -2142,12 +2142,9 @@ class ModelGrid(ModelDataFields):
                2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
 
         >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 4, 0, 0, 0, 0, 0, 4,
-               4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 4, 4, 4, 4, 4, 4,
-               4, 4, 2, 0, 0, 0, 0, 2,
-               4, 4, 2, 0, 0, 0, 0, 2,
+        array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4,
+               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 0, 0, 0, 0, 0, 4,
+               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 4, 4, 4, 4, 4])
         """
         # Find locations where value equals the NODATA code and set these nodes
