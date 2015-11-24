@@ -1986,18 +1986,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3))
+        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
         >>> grid.link_length
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        >>> grid = RasterModelGrid((3, 3))
+        # array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
         >>> _ = grid.diagonal_links_at_node()
         >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
-        array([
-            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
-            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
-            1.        ,  1.        ,  1.41421356,  1.41421356,  1.41421356,
-            1.41421356,  1.41421356,  1.41421356,  1.41421356,  1.41421356])
+        array([ 3.,  3.,  4.,  4.,  4.,
+                3.,  3.,  4.,  4.,  4.,
+                3.,  3.,  5.,  5.,  5.,
+                5.,  5.,  5.,  5.,  5.])
         """
         if self._link_length is None:
             return self._calculate_link_length()
@@ -2039,12 +2040,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-            self._link_length[:] = self._dy
-            links_per_row = (2 * self.shape[1]) - 1
-            one_row_horiz_links = np.arange(self.shape[1] - 1)
-            for r in range(self.shape[0]):
-                this_row = (r * links_per_row) + one_row_horiz_links
-                self._link_length[this_row] = self._dx
+
+            vertical_links = squad_links.vertical_link_ids(self.shape)
+
+            self._link_length[:self.number_of_links] = self.dx
+            self._link_length[vertical_links] = self._dy
 
         return self._link_length
 
