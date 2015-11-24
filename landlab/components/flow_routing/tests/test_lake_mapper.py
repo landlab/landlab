@@ -138,7 +138,7 @@ def setup_D4_grid():
     lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
     lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
 
-def check_fields(grid):
+def check_fields1(grid):
     """
     Check to make sure the right fields have been created.
     """
@@ -153,7 +153,7 @@ def check_fields(grid):
         raise
 
 
-def check_array_values(rmg, lm):
+def check_array_values1(rmg, lm):
     """
     Check values of the various fields against known values.
     """
@@ -258,7 +258,7 @@ def setup_dans_grid2():
     lf = DepressionFinderAndRouter(mg)
     
     
-def check_fields(grid):
+def check_fields2(grid):
     """
     Check to make sure the right fields have been created.
     """
@@ -273,7 +273,7 @@ def check_fields(grid):
         raise
 
 
-def check_array_values(rmg, lm):
+def check_array_values2(rmg, lm):
     """
     Check values of the various fields against known values.
     """
@@ -351,8 +351,10 @@ def test_lake_mapper():
     lm.map_depressions()
     
     # Run tests
-    check_fields(rmg)
-    check_array_values(rmg, lm)
+    check_fields1(rmg)
+    check_array_values1(rmg, lm)
+    check_fields2(rmg)
+    check_array_values2(rmg, lm)
 
 @with_setup(setup_dans_grid)
 def test_initial_routing():
