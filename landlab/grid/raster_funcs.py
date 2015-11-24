@@ -3,6 +3,7 @@ import six
 from six.moves import range
 
 from ..core.utils import make_optional_arg_into_id_array
+from .structured_quad import links as squad_links
 
 
 def active_link_id_of_cell_neighbor(grid, inds, *args):
@@ -241,18 +242,14 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     assert len(net_unit_flux) == grid.number_of_nodes
 
-    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-
-    vert_active_links = np.where(grid.active_links < n_vertical_links)
-    horiz_active_links = np.where(grid.active_links >= n_vertical_links)
-
-    vert_links = grid.active_links[vert_active_links]
-    horiz_links = grid.active_links[horiz_active_links]
+    is_vert_link = squad_links.is_vertical_link(grid.shape, grid.active_links)
+    vert_links = grid.active_links[is_vert_link]
+    horiz_links = grid.active_links[~ is_vert_link]
 
     flux = np.zeros(grid.number_of_links + 1)
 
-    flux[vert_links] = active_link_flux[vert_active_links] * grid.dy
-    flux[horiz_links] = active_link_flux[horiz_active_links] * grid.dx
+    flux[vert_links] = active_link_flux[is_vert_link] * grid.dy
+    flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
 
     net_unit_flux[:] = (
         (flux[grid.node_active_outlink_matrix2[0][:]] +
