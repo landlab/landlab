@@ -588,7 +588,7 @@ def is_active_link(shape, node_status):
 
 
 def active_link_ids(shape, node_status):
-    """returns link ids of active links.
+    """Get ids of active links.
 
     Parameters
     ----------
@@ -1408,7 +1408,7 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
     -------
     ndarray :
         Array of 4 horizontal link neighbors for a given link ID. Returned in
-        [S, W, N, E].
+        [E, N, W, S].
 
     Examples
     --------
@@ -1503,7 +1503,7 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
     -------
     ndarray :
         Array of 4 horizontal link neighbors for a given link ID. Returned in
-        [S, W, N, E]. Returns array for only ACTIVE horizontal links.
+        [E, N, W, S]. Returns array for only ACTIVE horizontal links.
 
     Examples
     --------
@@ -1609,10 +1609,13 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
-    >>> rmg = RasterModelGrid(4, 5)
+    >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_south_link_neighbor(rmg.shape, vertical_links)
-    array([-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1, -1, -1, -1, -1,
+            0,  1,  2,  3,  4,
+            5,  6,  7,  8,  9])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1693,7 +1696,10 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_west_link_neighbor(rmg.shape, vertical_links)
-    array([-1,  0,  1,  2,  3, -1,  5,  6,  7,  8, -1, 10, 11, 12, 13])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([-1,  0,  1,  2,  3,
+           -1,  5,  6,  7,  8,
+           -1, 10, 11, 12, 13])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1778,7 +1784,10 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
     >>> vertical_north_link_neighbor(rmg.shape, vertical_ids)
-    array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, -1, -1, -1, -1, -1])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([ 5,  6,  7,  8,  9,
+           10, 11, 12, 13, 14,
+           -1, -1, -1, -1, -1])
 
     """
     # First, we find the shape of the vertical link array given the shape
@@ -1862,7 +1871,10 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_east_link_neighbor(rmg.shape, vertical_links)
-    array([ 1,  2,  3,  4, -1,  6,  7,  8,  9, -1, 11, 12, 13, 14, -1])
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    array([ 1,  2,  3,  4, -1,
+            6,  7,  8,  9, -1,
+            11, 12, 13, 14, -1])
     """
     # First, we find the shape of the vertical link array given the shape
     # of the raster model grid. In our example, the shape of vertical links for
@@ -1912,7 +1924,7 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     -------
     ndarray :
         Array of 4 vertical link neighbors for a given link ID. Returned in
-        [S, W, N, E].
+        [E, N, W, S].
 
     Examples
     --------
@@ -1945,28 +1957,28 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
-    >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids)
-    array([[-1, -1,  5,  1],
-           [-1,  0,  6,  2],
-           [-1,  1,  7,  3],
-           [-1,  2,  8,  4],
-           [-1,  3,  9, -1],
-           [ 0, -1, 10,  6],
-           [ 1,  5, 11,  7],
-           [ 2,  6, 12,  8],
-           [ 3,  7, 13,  9],
-           [ 4,  8, 14, -1],
-           [ 5, -1, -1, 11],
-           [ 6, 10, -1, 12],
-           [ 7, 11, -1, 13],
-           [ 8, 12, -1, 14],
-           [ 9, 13, -1, -1]])
+    >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids) # doctest: +NORMALIZE_WHITESPACE
+    array([[ 1,  5, -1, -1],
+           [ 2,  6,  0, -1],
+           [ 3,  7,  1, -1],
+           [ 4,  8,  2, -1],
+           [-1,  9,  3, -1],
+           [ 6, 10, -1,  0],
+           [ 7, 11,  5,  1],
+           [ 8, 12,  6,  2],
+           [ 9, 13,  7,  3],
+           [-1, 14,  8,  4],
+           [11, -1, -1,  5],
+           [12, -1, 10,  6],
+           [13, -1, 11,  7],
+           [14, -1, 12,  8],
+           [-1, -1, 13,  9]])
     """
     south = vertical_south_link_neighbor(shape, vertical_ids, bad_index_value)
     west = vertical_west_link_neighbor(shape, vertical_ids, bad_index_value)
     north = vertical_north_link_neighbor(shape, vertical_ids, bad_index_value)
     east = vertical_east_link_neighbor(shape, vertical_ids, bad_index_value)
-    neighbor_array = np.array([south, west, north, east])
+    neighbor_array = np.array([east, north, west, south])
     neighbor_array = np.transpose(neighbor_array)
     return neighbor_array
 
@@ -1987,7 +1999,7 @@ def d4_vertical_active_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     -------
     ndarray :
         Array of 4 vertical link neighbors for a given ACTIVE link ID.
-        Returned in [S, W, N, E].
+        Returned in [E, N, W, S].
 
     Examples
     --------
