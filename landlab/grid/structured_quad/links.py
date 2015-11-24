@@ -954,7 +954,7 @@ def is_diagonal_link(shape, links):
 
     Examples
     --------
-    >>> from landlab.grid.structured_quad.links import (is_vertical_link,
+    >>> from landlab.grid.structured_quad.links import (is_diagonal_link,
     ...     number_of_links)
     >>> import numpy as np
     >>> shape = (3, 4)
