@@ -470,25 +470,26 @@ def node_link_ids(shape):
     >>> from landlab.grid.structured_quad.links import node_link_ids
     >>> (links, offset) = node_link_ids((3, 4))
     >>> links
-    array([ 0,  8,  8,  1,  9,  9,  2, 10, 10,  3,  0,  4, 11,  1, 11,  5, 12,
-            2, 12,  6, 13,  3, 13,  7,  4, 14,  5, 14, 15,  6, 15, 16,  7, 16])
+    array([ 8,  0,  9,  1,  8, 10,  2,  9,  3, 10, 11,  4,  0, 12,  5, 11,  1,
+           13,  6, 12,  2,  7, 13,  3, 14,  4, 15, 14,  5, 16, 15,  6, 16,  7])
+
     >>> offset
     array([ 0,  2,  5,  8, 10, 13, 17, 21, 24, 26, 29, 32, 34])
 
     The links attached to node 0
 
     >>> links[offset[0]:offset[1]]
-    array([0, 8])
+    array([8, 0])
 
     The links attached to node 5
 
     >>> links[offset[5]:offset[6]]
-    array([ 1, 11,  5, 12])
+    array([12,  5, 11,  1])
     """
     (in_vert, in_horiz) = _node_in_link_ids(shape)
     (out_vert, out_horiz) = _node_out_link_ids(shape)
-    _node_link_ids = np.vstack((in_vert.flat, in_horiz.flat,
-                                out_vert.flat, out_horiz.flat)).T
+    _node_link_ids = np.vstack((out_horiz.flat, out_vert.flat,
+                                in_horiz.flat, in_vert.flat)).T
 
     offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
     np.cumsum(number_of_links_per_node(shape), out=offset[1:])
