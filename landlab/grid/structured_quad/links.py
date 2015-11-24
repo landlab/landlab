@@ -1441,22 +1441,22 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
     >>> rmg = RasterModelGrid(4, 5)
     >>> horizontal_links = horizontal_link_ids(rmg.shape).flatten()
     >>> d4_horizontal_link_neighbors(rmg.shape, horizontal_links)
-    array([[-1, -1, 19, 16],
-           [-1, 15, 20, 17],
-           [-1, 16, 21, 18],
-           [-1, 17, 22, -1],
-           [15, -1, 23, 20],
-           [16, 19, 24, 21],
-           [17, 20, 25, 22],
-           [18, 21, 26, -1],
-           [19, -1, 27, 24],
-           [20, 23, 28, 25],
-           [21, 24, 29, 26],
-           [22, 25, 30, -1],
-           [23, -1, -1, 28],
-           [24, 27, -1, 29],
-           [25, 28, -1, 30],
-           [26, 29, -1, -1]])
+    array([[16, 19, -1, -1],
+           [17, 20, 15, -1],
+           [18, 21, 16, -1],
+           [-1, 22, 17, -1],
+           [20, 23, -1, 15],
+           [21, 24, 19, 16],
+           [22, 25, 20, 17],
+           [-1, 26, 21, 18],
+           [24, 27, -1, 19],
+           [25, 28, 23, 20],
+           [26, 29, 24, 21],
+           [-1, 30, 25, 22],
+           [28, -1, -1, 23],
+           [29, -1, 27, 24],
+           [30, -1, 28, 25],
+           [-1, -1, 29, 26]])
     """
     # First we find *south* neighbors...
     south = horizontal_south_link_neighbor(shape, horizontal_ids,
@@ -1476,7 +1476,7 @@ def d4_horizontal_link_neighbors(shape, horizontal_ids, bad_index_value=-1):
 
     # Combine all 4 neighbor arrays into one large array
     # (4 x len_horizontal_links)
-    neighbor_array = np.array([south, west, north, east])
+    neighbor_array = np.array([east, north, west, south])
 
     # Transpose the 4 neighbor arrays into a (len_horizontal_links x 4) array.
     neighbor_array = np.transpose(neighbor_array)
