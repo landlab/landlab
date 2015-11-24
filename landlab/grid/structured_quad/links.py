@@ -1540,10 +1540,10 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids,
     >>> horizontal_ids = horizontal_active_link_ids(
     ...     rmg.shape, active_ids)
     >>> d4_horizontal_active_link_neighbors(rmg.shape, horizontal_ids)
-    array([[-1, -1, 24, 21],
-           [-1, 20, 25, -1],
-           [20, -1, -1, 25],
-           [21, 24, -1, -1]])
+    array([[21, 24, -1, -1],
+           [-1, 25, 20, -1],
+           [25, -1, -1, 20],
+           [-1, -1, 24, 21]])
     """
     # To do this we simply call the find_d4_horizontal_neighbors() function
     # which gives the neighbors for ALL horizontal links in an array, even
