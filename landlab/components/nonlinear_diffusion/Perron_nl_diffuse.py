@@ -61,12 +61,15 @@ class PerronNLDiffuse(object):
         self.inputs = inputs
         self.grid = grid
 
-        self.internal_uplifts = True
+        self.internal_uplifts = False
 
-        try:
-            self._uplift = inputs.read_float('uplift')
-        except:
-            self._uplift = inputs.read_float('uplift_rate')
+        if self.internal_uplifts:
+            try:
+                self._uplift = inputs.read_float('uplift')
+            except:
+                self._uplift = inputs.read_float('uplift_rate')
+        else:
+            self._uplift = 0.
         self._rock_density = inputs.read_float('rock_density')
         self._sed_density = inputs.read_float('sed_density')
         self._kappa = inputs.read_float('kappa')  # ==_a
@@ -309,7 +312,7 @@ class PerronNLDiffuse(object):
         """
         extended_elevs = numpy.empty(self.grid.number_of_nodes+1, dtype=float)
         extended_elevs[-1] = numpy.nan
-        node_neighbors = self.grid.get_active_neighbors_at_node()
+        node_neighbors = self.grid.get_active_neighbors_at_node(bad_index=-1)
         extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
         max_offset = numpy.nanmax(numpy.fabs(
             extended_elevs[:-1][node_neighbors] -
@@ -411,7 +414,8 @@ class PerronNLDiffuse(object):
             elev[right_nodes[1:-1]] = elev[right_nodes[1:-1]-1]
 
         # replacing loop:
-        cell_neighbors = grid.get_active_neighbors_at_node()  # E,N,W,S
+        cell_neighbors = grid.get_active_neighbors_at_node(bad_index=-1)
+        # ^E,N,W,S
         cell_diagonals = grid.get_diagonal_list()  # NE,NW,SW,SE
         cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
         cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1

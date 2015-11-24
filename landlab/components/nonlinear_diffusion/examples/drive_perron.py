@@ -52,7 +52,8 @@ while elapsed_time < time_to_run:
     print(elapsed_time)
     if elapsed_time+dt<time_to_run:
         diffusion_component.input_timestep(dt)
-    mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
+    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
+    #mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
     #mg.at_node['topographic__elevation'][mg.active_nodes] += (numpy.arange(len(mg.active_nodes))) #nodes are tagged with their ID
     #pylab.figure(1)
     #pylab.close()
