@@ -1685,7 +1685,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.number_of_diagonal_links
         24
         """
-        assert self.diagonal_list_created, \
+        assert self._diagonal_links_created, \
                "No diagonal links have been created in the grid yet!"
         return 2 * self.number_of_patches
 
