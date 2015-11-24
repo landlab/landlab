@@ -1572,8 +1572,6 @@ class ModelGrid(ModelDataFields):
 
         node_net_unit_flux = self.calculate_flux_divergence_at_nodes(
             active_link_flux)
-        print('nnuf')
-        print(node_net_unit_flux)
 
         node_at_core_cell = self.node_at_cell[self.core_cells]
         net_unit_flux = node_net_unit_flux[node_at_core_cell]
