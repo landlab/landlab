@@ -705,7 +705,7 @@ class PerronNLDiffuse(object):
             bottom_op_mat_row_add[-2:] = corner_interior_IDs[
                 bottom_corner_coords]
             bottom_op_mat_col_add[-2:] = self.operating_matrix_corner_int_IDs[
-                (top_corner_coords[0], top_corner_coords[0]), abs(
+                (top_corner_coords[0], top_corner_coords[0]), (
                     top_corner_coords[1], top_corner_coords[1])].flatten()
             bottom_op_mat_data_add[-6:-4] = _delta_t*nine_node_map[
                 _interior_corners[0], :][corners_antimasks[
