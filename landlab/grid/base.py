@@ -2640,7 +2640,9 @@ class ModelGrid(ModelDataFields):
         Examples
         --------
 
-        Example 1: q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
+        **Example 1**
+        
+        q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
         :math:`(1,1)`.
 
         >>> import numpy as np
@@ -2657,10 +2659,14 @@ class ModelGrid(ModelDataFields):
         >>> nvy
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-        Example 2: Vector magnitude is 5, angle is 30 degrees from horizontal,
+        **Example 2**
+        
+        Vector magnitude is 5, angle is 30 degrees from horizontal,
         forming a 3-4-5 triangle.
-        >>> q[:8] = 3.
-        >>> q[8:] = 4.
+
+        >>> q = np.array([4., 4., 4., 3., 3., 3., 3.,
+        ...               4., 4., 4., 3., 3., 3., 3.,
+        ...               4., 4., 4])
         >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
         >>> nvx
         array([ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.])
