@@ -902,7 +902,67 @@ def is_vertical_link(shape, links):
            False, False, False,  True,  True,  True,  True,
            False, False, False], dtype=bool)
     """
-    return (links % (2 * shape[1] - 1)) >= shape[1] - 1
+    return (((links % (2 * shape[1] - 1)) >= shape[1] - 1) &
+            (links < number_of_links(shape)))
+
+
+def is_horizontal_link(shape, links):
+    """Test if a link is horizontal.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    links : array of int
+        Array of link ids to test.
+
+    Returns
+    -------
+    ndarray of bool
+        `True` for links that are horizontal.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import (is_horizontal_link,
+    ...     number_of_links)
+    >>> import numpy as np
+    >>> shape = (3, 4)
+    >>> links = np.arange(number_of_links(shape))
+    >>> is_horizontal_link(shape, links) # doctest: +NORMALIZE_WHITESPACE
+    array([ True,  True,  True, False, False, False, False,
+            True,  True,  True, False, False, False, False,
+            True,  True,  True], dtype=bool)
+    """
+    return ((~ is_vertical_link(shape, links)) &
+            (links < number_of_links(shape)))
+
+
+def is_diagonal_link(shape, links):
+    """Test if a link is diagonal.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    links : array of int
+        Array of link ids to test.
+
+    Returns
+    -------
+    ndarray of bool
+        `True` for links that are diagonal.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import (is_vertical_link,
+    ...     number_of_links)
+    >>> import numpy as np
+    >>> shape = (3, 4)
+    >>> links = np.array([0, 3, 16, 17])
+    >>> is_diagonal_link(shape, links) # doctest: +NORMALIZE_WHITESPACE
+    array([False, False, False,  True], dtype=bool)
+    """
+    return links >= number_of_links(shape)
 
 
 def nth_vertical_link(shape, links):
