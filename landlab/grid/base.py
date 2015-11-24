@@ -2167,10 +2167,12 @@ class ModelGrid(ModelDataFields):
         --------
         >>> import numpy as np
         >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
-        >>> h = np.array([2.,2.,8.,0.,8.,0.,3.,0.,5.,6.,8.,3.])
+        >>> mg = ll.RasterModelGrid((3, 4), spacing=(1., 1.))
+        >>> h = np.array([ 2., 2., 8., 0.,
+        ...                8., 0., 3., 0.,
+        ...                5., 6., 8., 3.])
         >>> mg.max_of_link_end_node_values(h)
-        array([ 2.,  8.,  6.,  8.,  8.,  3.,  3.])
+        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
