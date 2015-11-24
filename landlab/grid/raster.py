@@ -2919,35 +2919,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...               3., 0., 0., 0.])
         >>> grid.calculate_gradients_at_d8_active_links(z)
         ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0. , -1.  ,  -1. ,  0.  , 0. , -0.75, 0. ,
-                0. , -0.6 ,   0. , -0.6 , 0. , -0.6 , 0. , 0. ])
+        array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
+                0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
         """
-        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
-
-        n_vertical_links = (self.shape[0] - 1) * self.shape[1]
-        n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
-
         (active_links, _, _) = self.d8_active_links()
-        vertical_links = np.where(active_links < n_vertical_links)
-        horizontal_links = np.where(
-            (active_links >= n_vertical_links) &
-            (active_links < n_vertical_links + n_horizontal_links))
+        diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
+        active_links = active_links[~ diagonal_links]
 
-        vertical_link_slopes = (
-            node_values[self.activelink_tonode[vertical_links]] -
-            node_values[self.activelink_fromnode[vertical_links]]
-        ) / self.dy
-        horizontal_link_slopes = (
-            node_values[self.activelink_tonode[horizontal_links]] -
-            node_values[self.activelink_fromnode[horizontal_links]]
-        ) / self.dx
+        vertical_links = squad_links.is_vertical_link(
+            self.shape, active_links)
+        horizontal_links = squad_links.is_horizontal_link(
+            self.shape, active_links)
 
+        diffs = (node_values[self.activelink_tonode] -
+                 node_values[self.activelink_fromnode])
+
+        diffs[vertical_links] /= self.dy
+        diffs[horizontal_links] /= self.dx
+
+        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
         diagonal_link_slopes = (
             (node_values[self._diag_activelink_tonode] -
              node_values[self._diag_activelink_fromnode]) / diag_dist)
 
-        return np.concatenate((vertical_link_slopes, horizontal_link_slopes,
-                               diagonal_link_slopes))
+        return np.concatenate((diffs, diagonal_link_slopes))
 
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
