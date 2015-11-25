@@ -245,8 +245,8 @@ class TransportLimitedEroder(object):
             self.cell_areas = grid.dx * grid.dy
         else:
             self.cell_areas = np.empty(grid.number_of_nodes)
-            self.cell_areas.fill(np.mean(grid.cell_areas))
-            self.cell_areas[grid.node_at_cell] = grid.cell_areas
+            self.cell_areas.fill(np.mean(grid.area_of_cell))
+            self.cell_areas[grid.node_at_cell] = grid.area_of_cell
         self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
 
         self.routing_code = """
@@ -266,7 +266,7 @@ class TransportLimitedEroder(object):
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
                 node_drainage_areas='drainage_area',
                 node_receiving_flow='flow_receiver',
-                node_order_upstream='upstream_ID_order',
+                node_order_upstream='upstream_node_order',
                 node_slope='topographic__steepest_slope',
                 steepest_link='links_to_flow_receiver',
                 runoff_rate_if_used=None,

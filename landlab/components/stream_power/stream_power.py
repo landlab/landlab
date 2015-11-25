@@ -164,7 +164,7 @@ class StreamPowerEroder(object):
     def erode(self, grid, dt, node_elevs='topographic__elevation',
             node_drainage_areas='drainage_area',
             flow_receiver='flow_receiver',
-            node_order_upstream='upstream_ID_order',
+            node_order_upstream='upstream_node_order',
             slopes_at_nodes='topographic__steepest_slope',
             link_node_mapping='links_to_flow_receiver',
             link_slopes=None, slopes_from_elevs=None,

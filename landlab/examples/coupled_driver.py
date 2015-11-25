@@ -77,20 +77,21 @@ print('Completed the simulation. Plotting...')
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = imshow_node_grid(mg, 'water__volume_flux',
-                      cmap='PuBu')  # display a colored image
+
+# display a colored image
+imshow_node_grid(mg, 'water__volume_flux', cmap='PuBu')
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
+imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
-im = pylab.plot(mg.dx * np.arange(nrows), elev_r[:, int(ncols // 2)])
+pylab.plot(mg.dx * np.arange(nrows), elev_r[:, int(ncols // 2)])
 pylab.title('N-S cross_section')
 
 pylab.figure(4)
-im = pylab.plot(mg.dx * np.arange(ncols), elev_r[int(nrows // 4), :])
+pylab.plot(mg.dx * np.arange(ncols), elev_r[int(nrows // 4), :])
 pylab.title('E-W cross_section')
 
 drainage_areas = mg['node']['drainage_area'][mg.core_nodes]

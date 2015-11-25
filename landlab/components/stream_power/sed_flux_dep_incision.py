@@ -268,8 +268,8 @@ class SedDepEroder(object):
             print("Threshold derived from grain size and Shields number is: ", self.thresh)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.node_at_cell] = grid.cell_areas
+        self.cell_areas.fill(np.mean(grid.area_of_cell))
+        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
         #new 11/12/14
         self.point6onelessb = 0.6*(1.-self._b)
         self.shear_stress_prefactor = self.fluid_density*self.g*(self.mannings_n/self.k_w)**0.6
@@ -354,7 +354,7 @@ class SedDepEroder(object):
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
                 node_drainage_areas='drainage_area',
                 node_receiving_flow='flow_receiver',
-                node_order_upstream='upstream_ID_order',
+                node_order_upstream='upstream_node_order',
                 node_slope='topographic__steepest_slope',
                 steepest_link='links_to_flow_receiver',
                 runoff_rate_if_used=None,

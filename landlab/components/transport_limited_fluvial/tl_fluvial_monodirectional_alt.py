@@ -245,8 +245,8 @@ class TransportLimitedEroder(object):
         self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.node_at_cell] = grid.cell_areas
+        self.cell_areas.fill(np.mean(grid.area_of_cell))
+        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
         self.dx2 = grid.dx ** 2
         self.dy2 = grid.dy ** 2
         self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
