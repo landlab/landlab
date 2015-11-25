@@ -35,7 +35,7 @@ mg.create_node_array_zeros('water__volume_flux_in')
 
 #Set boundary conditions
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, False, False)
+mg.set_fixed_value_boundaries_at_grid_edges(False, False, False, True)
 inlet_node = np.array((mg.number_of_node_columns + 1))
 mg.at_node['water__volume_flux_in'].fill(0.)
 mg.at_node['water__volume_flux_in'][inlet_node] = 1.
