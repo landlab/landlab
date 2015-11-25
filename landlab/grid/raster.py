@@ -2263,8 +2263,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return steepest_node
 
-    def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
-                                top_is_inactive, left_is_inactive):
+    def set_inactive_boundaries(self, right_is_inactive, top_is_inactive,
+                                left_is_inactive, bottom_is_inactive):
         """Set boundary nodes to be inactive.
 
         .. deprecated:: 0.6
@@ -2306,7 +2306,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
-        >>> rmg.set_inactive_boundaries(False, False, True, True)
+        >>> rmg.set_inactive_boundaries(False, True, True, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -4449,10 +4449,10 @@ def from_dict(param_dict):
     right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
     top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
     bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
-    grid.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
-                                 _is_closed_boundary(right_boundary_type),
+    grid.set_inactive_boundaries(_is_closed_boundary(right_boundary_type),
                                  _is_closed_boundary(top_boundary_type),
-                                 _is_closed_boundary(left_boundary_type))
+                                 _is_closed_boundary(left_boundary_type),
+                                 _is_closed_boundary(bottom_boundary_type))
 
     # Return the created and initialized grid
     return grid
