@@ -219,7 +219,7 @@ class FlowRouter(Component):
         ...                  0., 32., 30., 0.,
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
-        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> fr = FlowRouter(mg)
         >>> mg = fr.route_flow()
         >>> mg.at_node['flow_receiver'] # doctest: +NORMALIZE_WHITESPACE
@@ -241,8 +241,8 @@ class FlowRouter(Component):
 
         Put the data back into the new grid.
 
-        >>> _ = mg.add_field('node','topographic__elevation', elev)
-        >>> mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+        >>> _ = mg.add_field('node','topographic__elevation', elev) #put the data back into the new grid
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> _ = mg.add_field('node', 'water__volume_flux_in', runoff_rate)

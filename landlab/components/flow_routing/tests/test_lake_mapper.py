@@ -40,8 +40,8 @@ def create_test_grid():
     z[:] = sin(2*pi*rmg.node_x/PERIOD_X) * sin(2*pi*rmg.node_y/PERIOD_Y)
 
     # Set 3 sides of the grid to be closed boundaries
-    rmg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-
+    rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    
     return rmg
 
 
