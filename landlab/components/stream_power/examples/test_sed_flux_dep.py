@@ -49,7 +49,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
 #set up grid's boundary conditions (bottom, left, top, right is inactive)
 mg.set_inactive_boundaries(False, True, False, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False, value_of='topographic__elevation')
+mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True, value_of='topographic__elevation')
 print('fixed vals in grid: ', mg.fixed_value_node_properties['values'])
 
 # Display a message

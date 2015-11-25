@@ -2458,8 +2458,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_fixed_value_boundaries_at_grid_edges(
-            self, bottom_is_fixed_val, left_is_fixed_val, top_is_fixed_val,
-            right_is_fixed_val, value=None, value_of='topographic__elevation'):
+        self, right_is_fixed_val, top_is_fixed_val, left_is_fixed_val,
+        bottom_is_fixed_val, value=None, value_of='topographic__elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2521,7 +2521,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(
-        ...     False, False, True, True)
+        ...     True, True, False, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
