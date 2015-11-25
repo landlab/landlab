@@ -50,7 +50,7 @@ def test_fixed_gradient_and_value_boundary():
     grid['node']['topographic__elevation'] = np.zeros(grid.number_of_nodes)
     grid['link']['topographic__slope'] = np.zeros(grid.number_of_links)
 
-    grid.set_closed_boundaries_at_grid_edges(True, False, True, False)
+    grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     grid.status_at_node[4] = FG
     grid.status_at_node[7] = FG
     grid.status_at_node[1] = 1
