@@ -32,7 +32,7 @@ z = (3000.-mg.node_x)*0.5
 mg.at_node['topographic__elevation'] = z
 
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
-mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 figure(3)
 imshow_node_grid(mg, mg.status_at_node)
 
@@ -105,8 +105,8 @@ mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
 #mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)
 mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
-#mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
-#mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
+#mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+#mg.set_closed_boundaries_at_grid_edges(True, False, True, True)
 
 print( 'Running ...' )
 

@@ -165,7 +165,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     --------
     >>> from landlab.grid.raster import grid_edge_is_closed_from_dict
     >>> grid_edge_is_closed_from_dict(dict(bottom='closed', top='open'))
-    [True, False, False, False]
+    [False, False, False,  True]
     >>> grid_edge_is_closed_from_dict({})
     [False, False, False, False]
     """
@@ -175,7 +175,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
                              condition)
 
     return [boundary_conditions.get(loc, 'open') == 'closed'
-            for loc in ['bottom', 'left', 'top', 'right']]
+            for loc in ['right', 'top', 'left', 'bottom']]
 
 
 def _old_style_args(args):
@@ -2356,10 +2356,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.update_links_nodes_cells_to_new_BCs()
 
-    def set_closed_boundaries_at_grid_edges(self, bottom_is_closed,
-                                            left_is_closed,
+    def set_closed_boundaries_at_grid_edges(self, right_is_closed,
                                             top_is_closed,
-                                            right_is_closed):
+                                            left_is_closed,
+                                            bottom_is_closed):
         """Set boundary not to be closed.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2391,14 +2391,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        bottom_is_closed : boolean
-            If ``True`` bottom-edge nodes are closed boundaries.
-        left_is_closed : boolean
-            If ``True`` left-edge nodes are closed boundaries.
-        top_is_closed : boolean
-            If ``True`` top-edge nodes are closed boundaries.
         right_is_closed : boolean
             If ``True`` right-edge nodes are closed boundaries.
+        top_is_closed : boolean
+            If ``True`` top-edge nodes are closed boundaries.
+        left_is_closed : boolean
+            If ``True`` left-edge nodes are closed boundaries.
+        bottom_is_closed : boolean
+            If ``True`` bottom-edge nodes are closed boundaries.
 
         Notes
         -----
@@ -2423,7 +2423,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
-        >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+        >>> rmg.set_closed_boundaries_at_grid_edges(True, True, False, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
