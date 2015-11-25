@@ -23,7 +23,7 @@ time_to_run = inputs.read_int('run_time')
 inlet_nodes = [0,1,2, ncols, 2*ncols]
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(False, True, False, True)
+mg.set_inactive_boundaries(True, False, True, False)
 #mg.status_at_node[inlet_nodes] = 1
 #mg.status_at_node[-5] = 1 #Fixed lip outlet
 #print sgrid.node_tolink_index(mg.shape)[1]

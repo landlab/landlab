@@ -17,7 +17,7 @@ def main():
     dx=10
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    rg.set_inactive_boundaries(False, True, True, True)
+    rg.set_inactive_boundaries(True, True, True, False)
 
     z  = np.zeros( nnodes )
     #set-up interior elevations with random numbers

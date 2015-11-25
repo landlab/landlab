@@ -20,7 +20,7 @@ class data(object):
 
 #Make grid, set the elevs
 mg = raster.RasterModelGrid(5, 5, 1.)
-mg.set_inactive_boundaries(True, True, False, True)
+mg.set_inactive_boundaries(True, False, True, True)
 vectors = data(mg)
 
 vectors.elev = np.array([10.,10.,0.,10.,10.,10.,8.,8.,9.,10.,10.,4.,6.,7.,10.,10.,1.,3.,8.,10.,10.,0.,10.,10.,10.])
