@@ -31,6 +31,7 @@ class TransportLimitedEroder(object):
 
     DEJH Sept 14.
     Currently only runs on a raster grid
+    Not well tested
     """
 
     def __init__(self, grid, params):

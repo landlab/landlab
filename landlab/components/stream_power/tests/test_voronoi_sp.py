@@ -6,9 +6,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.plot.imshow import imshow_node_grid
 import numpy as np
-from matplotlib.pyplot import figure, show
 
 def test_sp_voronoi():
     nnodes = 100
