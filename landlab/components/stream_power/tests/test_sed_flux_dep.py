@@ -1,22 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
+"""Test the SedDepEroder component.
+
 Test the sed dep eroder by turning it over a few times. No attempt has been
 made to ensure the solution is stable. Takes a topo already output and runs it
 a few more times, to ensure repeatability.
 """
+import os
 
+import numpy as np
 from numpy.testing import assert_array_almost_equal
 
+from landlab import RasterModelGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
 from landlab import ModelParameterDictionary
 
-from landlab import RasterModelGrid
-import numpy as np
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sed_dep():
-    input_file = '../landlab/components/stream_power/tests/sed_dep_params.txt'
+    input_file = os.path.join(_THIS_DIR, 'sed_dep_params.txt')
     inputs = ModelParameterDictionary(input_file)
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
@@ -34,7 +37,7 @@ def test_sed_dep():
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
 
     mg.create_node_array_zeros('topographic__elevation')
-    z = np.loadtxt('../landlab/components/stream_power/tests/seddepinit.gz')
+    z = np.loadtxt(os.path.join(_THIS_DIR, 'seddepinit.gz'))
     mg['node']['topographic__elevation'] = z
 
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -47,7 +50,7 @@ def test_sed_dep():
         mg = fr.route_flow()
         mg, _ = sde.erode(mg, dt)
 
-    z_tg = np.loadtxt('../landlab/components/stream_power/tests/seddepz_tg.gz')
+    z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'seddepz_tg.gz'))
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'][
         mg.core_nodes], z_tg[mg.core_nodes])

@@ -1,19 +1,21 @@
-'''
-Test simple stream power functionality when a discharge array is specified.
-'''
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
+"""Test simple stream power functionality when a discharge array is specified."""
+import os
 
 import numpy
 import numpy as np
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
+from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.stream_power.stream_power import StreamPowerEroder
+
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 def test_sp_discharges():
-    input_str = ('../landlab/components/stream_power/tests/' +
-                 'test_sp_params_discharge.txt')
+    input_str = os.path.join(_THIS_DIR, 'test_sp_params_discharge.txt')
     inputs = ModelParameterDictionary(input_str)
     nrows = 5
     ncols = 5

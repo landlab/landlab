@@ -1,23 +1,26 @@
-'''
-simple_sp_driver.py
+"""Test Braun-Willett flow routing and fastscape stream power.
 
 A simple driver implementing Braun-Willett flow routing and then the
 fastscape stream power component.
-DEJH, 09/15/14
-'''
+"""
+# DEJH, 09/15/14
+import os
+
+import numpy
 from numpy.testing import assert_array_almost_equal
 
+from landlab import RasterModelGrid
+from landlab import ModelParameterDictionary
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import \
     SPEroder as Fsc
 
-import numpy
-from landlab import RasterModelGrid
-from landlab import ModelParameterDictionary
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_fastscape():
-    input_str = '../landlab/components/stream_power/tests/drive_sp_params.txt'
+    input_str = os.path.join(_THIS_DIR, 'drive_sp_params.txt')
     inputs = ModelParameterDictionary(input_str)
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')

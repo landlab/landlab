@@ -1,4 +1,12 @@
-# -*- coding: utf-8 -*-
+"""Test potentiality flowrouter.
+
+This tester turns over the potentiality flowrouter to ensure basic
+functionality is working.
+
+Probably doesn't account for cell area yet.
+"""
+import os
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 try:
@@ -10,18 +18,14 @@ from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.components.potentiality_flowrouting.route_flow_by_boundary \
     import PotentialityFlowRouter
 
-"""
-This tester turns over the potentiality flowrouter to ensure basic
-functionality is working.
+NROWS = 10
+NCOLS = 10
+DX = 1000.
 
-Probably doesn't account for cell area yet.
-"""
 
-inputs = ('../landlab/components/potentiality_flowrouting/tests/' +
-          'pot_fr_params.txt')
-nrows = 10
-ncols = 10
-dx = 1000.
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+
+INPUTS = os.path.join(_THIS_DIR, 'pot_fr_params.txt')
 
 
 def test_sheetflow():
@@ -48,14 +52,14 @@ def test_sheetflow():
         0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000]
         )
 
-    mg = RasterModelGrid((nrows, ncols), (dx, dx))
+    mg = RasterModelGrid((NROWS, NCOLS), (DX, DX))
     z = (3000.-mg.node_x)*0.5
     mg.at_node['topographic__elevation'] = z
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     mg.at_node['water__volume_flux_in'] = np.ones_like(z, dtype=float)
 
-    pfr = PotentialityFlowRouter(mg, inputs)
+    pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(route_on_diagonals=True)
 
     assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)
@@ -150,14 +154,14 @@ def test_in_network():
                       0.00000000,    0.00000000,    0.00000000,    0.00000000,
                       0.00000000,    0.00000000,    0.00000000,    0.00000000])
 
-    mg = RasterModelGrid((nrows, ncols), (dx, dx))
+    mg = RasterModelGrid((NROWS, NCOLS), (DX, DX))
 
     mg.add_field('node', 'topographic__elevation', z)
 
-    mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)*100./(
+    mg.at_node['water__volume_flux_in'] = DX*DX*np.ones_like(z)*100./(
         60.*60.*24.*365.25)  # remember, flux is /s, so this is a small number!
 
-    pfr = PotentialityFlowRouter(mg, inputs)
+    pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(return_components=True)
 
     assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)

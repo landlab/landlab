@@ -1,12 +1,16 @@
-"""
-Test the Voronoi compatibility of the grid.
-"""
+"""Test the Voronoi compatibility of the grid."""
+import os
 
+import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+
 from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
-import numpy as np
+
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 def test_sp_voronoi():
     nnodes = 100
@@ -22,8 +26,8 @@ def test_sp_voronoi():
                      np.random.rand(nnodes)/10000., copy=False)
 
     fr = FlowRouter(mg)
-    spe = StreamPowerEroder(mg, ('../landlab/components/stream_power/tests/' +
-                                 'drive_sp_params_voronoi.txt'))
+    spe = StreamPowerEroder(mg, os.path.join(_THIS_DIR,
+                                             'drive_sp_params_voronoi.txt'))
 
     for i in xrange(10):
         z[mg.core_nodes] += 0.01

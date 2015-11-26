@@ -1,3 +1,10 @@
+"""Test the diffuser component.
+
+This tester turns over the diffuser a couple of times to ensure basic
+functionality is working.
+"""
+import os
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 try:
@@ -8,15 +15,13 @@ except ImportError:
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.components.diffusion.diffusion import LinearDiffuser
 
-"""
-This tester turns over the diffuser a couple of times to ensure basic
-functionality is working.
-"""
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_diffusion():
-    inputs = ModelParameterDictionary('../landlab/components/diffusion/' +
-                                      'tests/diffusion_params.txt')
+    inputs = ModelParameterDictionary(os.path.join(_THIS_DIR,
+                                                   'diffusion_params.txt'))
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')

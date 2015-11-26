@@ -1,17 +1,5 @@
-from __future__ import print_function
+"""Test non-linear diffuser.
 
-import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
-
-from landlab import RasterModelGrid, ModelParameterDictionary
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import \
-    PerronNLDiffuse
-
-"""
 This tester turns over the nonlinear diffuser a couple of times to ensure basic
 functionality is working.
 
@@ -21,10 +9,26 @@ boundary conditions correctly. Nevertheless, this test stands for the moment
 to prevent grid changes damaging core component functionality.
 ***
 """
+from __future__ import print_function
+import os
+
+import numpy as np
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+
+try:
+    from nose.tools import assert_is
+except ImportError:
+    from landlab.testing.tools import assert_is
+
+from landlab import RasterModelGrid, ModelParameterDictionary
+from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import \
+    PerronNLDiffuse
 
 
-inputs = ('../landlab/components/nonlinear_diffusion/tests/' +
-          'drive_perron_params.txt')
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+
+INPUTS = os.path.join(_THIS_DIR, 'drive_perron_params.txt')
+
 nrows = 10
 ncols = 20
 dx = 1.
@@ -78,7 +82,7 @@ def test_sniff_Perron():
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
     mg.create_node_array_zeros('topographic__elevation')
-    diffusion_component = PerronNLDiffuse(mg, inputs)
+    diffusion_component = PerronNLDiffuse(mg, INPUTS)
 
     elapsed_time = 0.
     while elapsed_time < time_to_run:
