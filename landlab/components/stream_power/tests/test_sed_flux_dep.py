@@ -31,7 +31,7 @@ def test_sed_dep():
     runtime = inputs.read_float('total_time')
     dt = inputs.read_float('dt')
 
-    nt = int(runtime//dt)
+    nt = int(runtime // dt)
     uplift_per_step = uplift_rate * dt
 
     mg = RasterModelGrid((nrows, ncols), (dx, dx))

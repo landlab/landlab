@@ -19,11 +19,11 @@ def test_sp_voronoi():
     x = np.random.rand(nnodes)
     np.random.seed(1)
     y = np.random.rand(nnodes)
-    mg = VoronoiDelaunayGrid(x,y)
+    mg = VoronoiDelaunayGrid(x, y)
 
     np.random.seed(2)
     z = mg.add_field('node', 'topographic__elevation',
-                     np.random.rand(nnodes)/10000., copy=False)
+                     np.random.rand(nnodes) / 10000., copy=False)
 
     fr = FlowRouter(mg)
     spe = StreamPowerEroder(mg, os.path.join(_THIS_DIR,

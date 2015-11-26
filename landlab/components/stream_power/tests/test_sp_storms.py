@@ -37,7 +37,7 @@ def test_storms():
 
     mg.create_node_array_zeros('topographic__elevation')
     z = mg.create_node_array_zeros()
-    mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
+    mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
     mg.add_zeros('node', 'water__volume_flux_in')
 
     precip = PrecipitationDistribution(input_file=input_file_string)

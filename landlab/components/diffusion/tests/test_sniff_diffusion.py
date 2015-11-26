@@ -30,13 +30,13 @@ def test_diffusion():
     init_elev = inputs.read_float('init_elev')
 
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
-    uplift_rate = mg.node_y[mg.core_cells]/100000.
+    uplift_rate = mg.node_y[mg.core_cells] / 100000.
 
     # create the fields in the grid
     mg.create_node_array_zeros('topographic__elevation')
     z = mg.create_node_array_zeros() + init_elev
     np.random.seed(0)
-    mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
+    mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
 
     mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
@@ -46,10 +46,10 @@ def test_diffusion():
     # perform the loop:
     elapsed_time = 0.  # total time in simulation
     while elapsed_time < time_to_run:
-        if elapsed_time+dt > time_to_run:
+        if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         dfn.diffuse(dt)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_rate*dt
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_rate * dt
         elapsed_time += dt
 
     z_target = np.array([5.48813504e-04,   7.15189366e-04,   6.02763376e-04,

@@ -37,7 +37,6 @@ class TransportLimitedEroder(object):
     def __init__(self, grid, params):
         self.initialize(grid, params)
 
-
     def initialize(self, grid, params_file):
         '''
         params_file is the name of the text file containing the parameters
@@ -118,11 +117,14 @@ class TransportLimitedEroder(object):
                 additional math, so is suppressed for speed by default).
 
         '''
-        #this is the fraction we allow any given slope in the grid to evolve by in one go (suppresses numerical instabilities)
+        # this is the fraction we allow any given slope in the grid to evolve
+        # by in one go (suppresses numerical instabilities)
         self.fraction_gradient_change = 0.25
         self.grid = grid
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
+        # needs to be filled with values in execution
+        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
+        self.count_active_links = np.zeros_like(
+            self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
         inputs = ModelParameterDictionary(params_file)
         try:
@@ -148,7 +150,7 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             raise MissingKeyError("Qc must be 'MPM' or a grid field name!")
         else:
-            if self.Qc=='MPM':
+            if self.Qc == 'MPM':
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
@@ -163,7 +165,9 @@ class TransportLimitedEroder(object):
             self.lamb_flag = False
         try:
             self.shields_crit = inputs.read_float('threshold_shields')
-            self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
+            # flag for sed_flux_dep_incision to see if the threshold was
+            # manually set.
+            self.set_threshold = True
             print("Found a threshold to use: ", self.shields_crit)
             assert self.lamb_flag == False
         except MissingKeyError:
@@ -208,14 +212,14 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             pass
 
-        #assume Manning's equation to set the power on A for shear stress:
-        self.shear_area_power = 0.6*self._c*(1.-self._b)
+        # assume Manning's equation to set the power on A for shear stress:
+        self.shear_area_power = 0.6 * self._c * (1. - self._b)
 
         self.k_Q = inputs.read_float('k_Q')
         self.k_w = inputs.read_float('k_w')
         mannings_n = inputs.read_float('mannings_n')
         self.mannings_n = mannings_n
-        if mannings_n<0. or mannings_n>0.2:
+        if mannings_n < 0. or mannings_n > 0.2:
             print("***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***")
             sleep(2)
 
@@ -223,23 +227,29 @@ class TransportLimitedEroder(object):
             self.C_MPM = inputs.read_float('C_MPM')
         except MissingKeyError:
             self.C_MPM = 1.
-        self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
+        self.diffusivity_power_on_A = 0.9 * self._c * \
+            (1. - self._b)  # i.e., q/D**(1/6)
 
-        #new for v3:
-        #set thresh in shear stress if poss at this stage:
-        try: #fails if no Dchar provided, or shields crit is being set dynamically from slope
-            self.thresh = self.shields_crit*(self.sed_density-self.fluid_density)*self.g*self.Dchar_in
+        # new for v3:
+        # set thresh in shear stress if poss at this stage:
+        try:  # fails if no Dchar provided, or shields crit is being set dynamically from slope
+            self.thresh = self.shields_crit * \
+                (self.sed_density - self.fluid_density) * self.g * self.Dchar_in
         except AttributeError:
             try:
-                self.shields_prefactor_to_shear = (self.sed_density-self.fluid_density)*self.g*self.Dchar_in
-            except AttributeError: #no Dchar
-                self.shields_prefactor_to_shear_noDchar = (self.sed_density-self.fluid_density)*self.g
-        twothirds = 2./3.
-        self.Qs_prefactor = 4.*self.C_MPM**twothirds*self.fluid_density**twothirds/(self.sed_density-self.fluid_density)**twothirds*self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.)*self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds
-        self.Qs_thresh_prefactor = 4.*(self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density**0.5/(self.sed_density-self.fluid_density)/self.g/self.sed_density)**twothirds
-        #both these are divided by sed density to give a vol flux
-        self.Qs_power_onA = self._c*(0.6+self._b/15.)
-        self.Qs_power_onAthresh = twothirds*self._b*self._c
+                self.shields_prefactor_to_shear = (
+                    self.sed_density - self.fluid_density) * self.g * self.Dchar_in
+            except AttributeError:  # no Dchar
+                self.shields_prefactor_to_shear_noDchar = (
+                    self.sed_density - self.fluid_density) * self.g
+        twothirds = 2. / 3.
+        self.Qs_prefactor = 4. * self.C_MPM**twothirds * self.fluid_density**twothirds / (self.sed_density - self.fluid_density)**twothirds * self.g**(
+            twothirds / 2.) * mannings_n**0.6 * self.k_w**(1. / 15.) * self.k_Q**(0.6 + self._b / 15.) / self.sed_density**twothirds
+        self.Qs_thresh_prefactor = 4. * (self.C_MPM * self.k_w * self.k_Q**self._b / self.fluid_density**0.5 / (
+            self.sed_density - self.fluid_density) / self.g / self.sed_density)**twothirds
+        # both these are divided by sed density to give a vol flux
+        self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
+        self.Qs_power_onAthresh = twothirds * self._b * self._c
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
             self.cell_areas = grid.dx * grid.dy
@@ -247,7 +257,8 @@ class TransportLimitedEroder(object):
             self.cell_areas = np.empty(grid.number_of_nodes)
             self.cell_areas.fill(np.mean(grid.area_of_cell))
             self.cell_areas[grid.node_at_cell] = grid.area_of_cell
-        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
+        self.bad_neighbor_mask = np.equal(
+            grid.get_active_neighbors_at_node(bad_index=-1), -1)
 
         self.routing_code = """
             double sed_flux_into_this_node;
@@ -262,18 +273,16 @@ class TransportLimitedEroder(object):
             }
             """
 
-
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
-                node_drainage_areas='drainage_area',
-                node_receiving_flow='flow_receiver',
-                node_order_upstream='upstream_node_order',
-                node_slope='topographic__steepest_slope',
-                steepest_link='links_to_flow_receiver',
-                runoff_rate_if_used=None,
-                #W_if_used=None, Q_if_used=None,
-                stability_condition='loose',
-                Dchar_if_used=None, io=None):
-
+              node_drainage_areas='drainage_area',
+              node_receiving_flow='flow_receiver',
+              node_order_upstream='upstream_node_order',
+              node_slope='topographic__steepest_slope',
+              steepest_link='links_to_flow_receiver',
+              runoff_rate_if_used=None,
+              # W_if_used=None, Q_if_used=None,
+              stability_condition='loose',
+              Dchar_if_used=None, io=None):
         """
         This method calculates the fluvial sediment transport capacity at all
         nodes, then erodes or deposits sediment as required.
@@ -376,152 +385,183 @@ class TransportLimitedEroder(object):
         else:
             runoff_rate = 1.
 
-        if dt==None:
+        if dt == None:
             dt = self.tstep
         try:
-            self.Dchar=self.Dchar_in
+            self.Dchar = self.Dchar_in
         except AttributeError:
             try:
-                self.Dchar=grid.at_node[Dchar_if_used]
+                self.Dchar = grid.at_node[Dchar_if_used]
             except FieldError:
-                assert type(Dchar_if_used)==np.ndarray
-                self.Dchar=Dchar_if_used
+                assert type(Dchar_if_used) == np.ndarray
+                self.Dchar = Dchar_if_used
 
-        if type(node_elevs)==str:
+        if type(node_elevs) == str:
             node_z = grid.at_node[node_elevs]
         else:
             node_z = node_elevs
 
-        if type(node_drainage_areas)==str:
+        if type(node_drainage_areas) == str:
             node_A = grid.at_node[node_drainage_areas]
         else:
             node_A = node_drainage_areas
 
-        if type(node_receiving_flow)==str:
+        if type(node_receiving_flow) == str:
             flow_receiver = grid.at_node[node_receiving_flow]
         else:
             flow_receiver = node_receiving_flow
 
-        #new V3:
-        if type(node_order_upstream)==str:
+        # new V3:
+        if type(node_order_upstream) == str:
             s_in = grid.at_node[node_order_upstream]
         else:
             s_in = node_order_upstream
 
-        if type(node_slope)==str:
+        if type(node_slope) == str:
             node_S = grid.at_node[node_slope]
         else:
             node_S = node_slope
 
         if self.lamb_flag:
-            variable_shields_crit = 0.15*node_S**0.25
+            variable_shields_crit = 0.15 * node_S**0.25
             try:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear
+                variable_thresh = variable_shields_crit * self.shields_prefactor_to_shear
             except AttributeError:
-                variable_thresh = variable_shields_crit*self.shields_prefactor_to_shear_noDchar*self.Dchar
+                variable_thresh = variable_shields_crit * \
+                    self.shields_prefactor_to_shear_noDchar * self.Dchar
 
-
-        if type(steepest_link)==str:
-            link_length = np.empty(grid.number_of_nodes,dtype=float)
+        if type(steepest_link) == str:
+            link_length = np.empty(grid.number_of_nodes, dtype=float)
             link_length.fill(np.nan)
-            draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
-            core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True)
-            link_length[core_draining_nodes] = grid.link_length[grid.at_node[steepest_link][core_draining_nodes]]
-            #link_length=grid.dx
+            draining_nodes = np.not_equal(
+                grid.at_node[steepest_link], BAD_INDEX_VALUE)
+            core_draining_nodes = np.intersect1d(
+                np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True)
+            link_length[core_draining_nodes] = grid.link_length[
+                grid.at_node[steepest_link][core_draining_nodes]]
+            # link_length=grid.dx
         else:
             link_length = grid.link_length[steepest_link]
-        square_link_length = np.square(link_length) #nans propagate forward
+        square_link_length = np.square(link_length)  # nans propagate forward
 
         try:
-            transport_capacities_thresh = self.thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
+            transport_capacities_thresh = self.thresh * self.Qs_thresh_prefactor * \
+                runoff_rate**(0.66667 * self._b) * \
+                node_A**self.Qs_power_onAthresh
         except AttributeError:
-            transport_capacities_thresh = variable_thresh*self.Qs_thresh_prefactor*runoff_rate**(0.66667*self._b)*node_A**self.Qs_power_onAthresh
+            transport_capacities_thresh = variable_thresh * self.Qs_thresh_prefactor * \
+                runoff_rate**(0.66667 * self._b) * \
+                node_A**self.Qs_power_onAthresh
 
-        transport_capacity_prefactor_withA = self.Qs_prefactor*runoff_rate**(0.6+self._b/15.)*node_A**self.Qs_power_onA
+        transport_capacity_prefactor_withA = self.Qs_prefactor * \
+            runoff_rate**(0.6 + self._b / 15.) * node_A**self.Qs_power_onA
 
         internal_t = 0.
         break_flag = False
-        dt_secs = dt*31557600.
+        dt_secs = dt * 31557600.
         counter = 0
 
-        while 1: #use the break flag, to improve computational efficiency for runs which are very stable
-            #we assume the drainage structure is forbidden to change during the whole dt
-            #print "loop..."
-            #note slopes will be *negative* at pits
-            #track how many loops we perform:
+        while 1:  # use the break flag, to improve computational efficiency for runs which are very stable
+            # we assume the drainage structure is forbidden to change during the whole dt
+            # print "loop..."
+            # note slopes will be *negative* at pits
+            # track how many loops we perform:
             counter += 1
             downward_slopes = node_S.clip(0.)
             #positive_slopes = np.greater(downward_slopes, 0.)
-            transport_capacities_S = transport_capacity_prefactor_withA*(downward_slopes)**0.7
-            trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(0.)
-            transport_capacities = np.sqrt(trp_diff*trp_diff*trp_diff)
+            transport_capacities_S = transport_capacity_prefactor_withA * \
+                (downward_slopes)**0.7
+            trp_diff = (transport_capacities_S -
+                        transport_capacities_thresh).clip(0.)
+            transport_capacities = np.sqrt(trp_diff * trp_diff * trp_diff)
 
             if stability_condition == 'tight':
-                mock_diffusivities = np.zeros_like(transport_capacities, dtype=float)
-                mock_diffusivities = transport_capacities/downward_slopes
-                tstep_each_node = 10.*square_link_length/mock_diffusivities #we're relaxing the condition fivefold here, as the true VonNeumann condition is VERY restrictive
-                #if no node exceeds crit, tstep_each_node will just be nans and infs
-                delta_t_internal = np.nanmin(tstep_each_node) #in seconds, nanmin avoids the pit nodes
-                if delta_t_internal == np.inf: #no node exceeds crit
-                    delta_t_internal = dt_secs #nothing happened, so let the loop complete, awaiting more uplift
+                mock_diffusivities = np.zeros_like(
+                    transport_capacities, dtype=float)
+                mock_diffusivities = transport_capacities / downward_slopes
+                # we're relaxing the condition fivefold here, as the true
+                # VonNeumann condition is VERY restrictive
+                tstep_each_node = 10. * square_link_length / mock_diffusivities
+                # if no node exceeds crit, tstep_each_node will just be nans
+                # and infs
+                # in seconds, nanmin avoids the pit nodes
+                delta_t_internal = np.nanmin(tstep_each_node)
+                if delta_t_internal == np.inf:  # no node exceeds crit
+                    # nothing happened, so let the loop complete, awaiting more
+                    # uplift
+                    delta_t_internal = dt_secs
                 if internal_t + delta_t_internal >= dt_secs:
-                    dt_this_step = dt_secs-internal_t #now in seconds
+                    dt_this_step = dt_secs - internal_t  # now in seconds
                     break_flag = True
                 else:
-                    dt_this_step = delta_t_internal #a min tstep was found (seconds). We terminate the loop
-            else: #loose, gradient based method
-                dt_this_step = dt_secs-internal_t #and the adjustment is made AFTER the dz calc
+                    # a min tstep was found (seconds). We terminate the loop
+                    dt_this_step = delta_t_internal
+            else:  # loose, gradient based method
+                # and the adjustment is made AFTER the dz calc
+                dt_this_step = dt_secs - internal_t
 
             sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
             dz = np.zeros(grid.number_of_nodes, dtype=float)
             len_s_in = s_in.size
             cell_areas = self.cell_areas
 
-            for i in s_in[::-1]: #work downstream
+            for i in s_in[::-1]:  # work downstream
                 sed_flux_into_this_node = sed_into_node[i]
-                sed_flux_out_of_this_node = transport_capacities[i] #we work in volume flux, not volume per se here
-                flux_excess = sed_flux_into_this_node - sed_flux_out_of_this_node #gets deposited
-                dz[i] = flux_excess/cell_areas*dt_this_step
+                # we work in volume flux, not volume per se here
+                sed_flux_out_of_this_node = transport_capacities[i]
+                flux_excess = sed_flux_into_this_node - \
+                    sed_flux_out_of_this_node  # gets deposited
+                dz[i] = flux_excess / cell_areas * dt_this_step
                 sed_into_node[flow_receiver[i]] += sed_flux_out_of_this_node
 
             if stability_condition == 'loose':
                 elev_diff = node_z - node_z[flow_receiver]
                 delta_dz = dz[flow_receiver] - dz
-                node_flattening = self.fraction_gradient_change*elev_diff - delta_dz #note the condition is that gradient may not change by >X%, not must be >0
-                #note all these things are zero for a pit node
-                most_flattened_nodes = np.argmin(node_flattening[grid.core_nodes])
-                most_flattened_nodes = np.take(grid.core_nodes, most_flattened_nodes) #get it back to node number, not core_node number
-                most_flattened_val = np.take(node_flattening, most_flattened_nodes)
-                if most_flattened_val>=0.:
-                    break_flag = True #all nodes are stable
-                else: # a fraction < 1
-                    dt_fraction = self.fraction_gradient_change*np.take(elev_diff, most_flattened_nodes)/np.take(delta_dz, most_flattened_nodes)
-                    #print dt_fraction
-                    #correct those elevs
+                # note the condition is that gradient may not change by >X%,
+                # not must be >0
+                node_flattening = self.fraction_gradient_change * elev_diff - delta_dz
+                # note all these things are zero for a pit node
+                most_flattened_nodes = np.argmin(
+                    node_flattening[grid.core_nodes])
+                # get it back to node number, not core_node number
+                most_flattened_nodes = np.take(
+                    grid.core_nodes, most_flattened_nodes)
+                most_flattened_val = np.take(
+                    node_flattening, most_flattened_nodes)
+                if most_flattened_val >= 0.:
+                    break_flag = True  # all nodes are stable
+                else:  # a fraction < 1
+                    dt_fraction = self.fraction_gradient_change * \
+                        np.take(elev_diff, most_flattened_nodes) / \
+                        np.take(delta_dz, most_flattened_nodes)
+                    # print dt_fraction
+                    # correct those elevs
                     dz *= dt_fraction
                     dt_this_step *= dt_fraction
 
-            #print np.amax(dz), np.amin(dz)
+            # print np.amax(dz), np.amin(dz)
 
             node_z[grid.core_nodes] += dz[grid.core_nodes]
 
             if break_flag:
                 break
-            #do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
-            #BUT could be important not for the stability, but for the actual calc. So YES.
+            # do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
+            # BUT could be important not for the stability, but for the actual
+            # calc. So YES.
             node_S = np.zeros_like(node_S)
-            #print link_length[core_draining_nodes]
-            node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[core_draining_nodes]/link_length[core_draining_nodes]
-            internal_t += dt_this_step #still in seconds, remember
+            # print link_length[core_draining_nodes]
+            node_S[core_draining_nodes] = (
+                node_z - node_z[flow_receiver])[core_draining_nodes] / link_length[core_draining_nodes]
+            internal_t += dt_this_step  # still in seconds, remember
 
-        self.grid=grid
+        self.grid = grid
 
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
             try:
                 io[active_nodes] += node_z[active_nodes]
             except TypeError:
-                if type(io)==str:
+                if type(io) == str:
                     elev_name = io
             else:
                 return grid, io
@@ -530,24 +570,24 @@ class TransportLimitedEroder(object):
             elev_name = node_elevs
 
         if self.return_ch_props:
-            #add the channel property field entries,
+            # add the channel property field entries,
             #'channel_width', 'channel_depth', and 'channel_discharge'
-            Q = self.k_Q*runoff_rate*node_A**self._c
-            W = self.k_w*Q**self._b
-            H = Q**(0.6*(1.-self._b))*(self.mannings_n/self.k_w)**0.6*node_S**-0.3
-            tau = self.fluid_density*self.g*H*node_S
+            Q = self.k_Q * runoff_rate * node_A**self._c
+            W = self.k_w * Q**self._b
+            H = Q**(0.6 * (1. - self._b)) * \
+                (self.mannings_n / self.k_w)**0.6 * node_S**-0.3
+            tau = self.fluid_density * self.g * H * node_S
             grid.at_node['channel_width'] = W
             grid.at_node['channel_depth'] = H
             grid.at_node['channel_discharge'] = Q
             grid.at_node['channel_bed_shear_stress'] = tau
 
-
-        grid.at_node['fluvial_sediment_transport_capacity'] = transport_capacities
+        grid.at_node[
+            'fluvial_sediment_transport_capacity'] = transport_capacities
         grid.at_node['fluvial_sediment_flux_into_node'] = sed_into_node
-        #elevs set automatically to the name used in the function call.
+        # elevs set automatically to the name used in the function call.
         if stability_condition == 'tight':
             grid.at_node['effective_fluvial_diffusivity'] = mock_diffusivities
         self.iterations_in_dt = counter
 
         return grid, grid.at_node[elev_name]
-

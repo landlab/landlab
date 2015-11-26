@@ -36,17 +36,18 @@ def test_fastscape():
     mg.create_node_array_zeros('topographic__elevation')
     z = mg.create_node_array_zeros() + init_elev
     numpy.random.seed(0)
-    mg['node']['topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
+    mg['node']['topographic__elevation'] = z + \
+        numpy.random.rand(len(z)) / 1000.
 
     fr = FlowRouter(mg)
     sp = StreamPowerEroder(mg, input_str)
     elapsed_time = 0.
     while elapsed_time < time_to_run:
-        if elapsed_time+dt > time_to_run:
+        if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         fr.route_flow(method='D8')
         sp.erode(mg, dt)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
 
     z_trg = numpy.array([5.48813504e-04,   7.15189366e-04,   6.02763376e-04,
