@@ -13,27 +13,27 @@ state. Unlike a conventional CA, the updating process is stochastic, and takes
 place in continuous rather than discrete time. Any given pair (or "doublet")
 of adjacent cell states has a certain specified probability of transition to a
 different pair of states. The transition probability is given in the form of an
-average *transition rate*, :math:\lambda (with dimensions of 1/T); the actual
+average *transition rate*, :math:`\lambda` (with dimensions of 1/T); the actual
 time of transition is a random variable drawn from an exponential probability
-distribution with mean :math:1/\lambda
+distribution with mean :math:`1/\lambda`.
 
 Subclasses
 ----------
 
 Landlab provides for several different lattice and connection types:
-    - RasterCTS: regular raster grid with transitions between horizontal and
-        vertical cell pairs
-    - OrientedRasterCTS: like a RasterLCA, but different transition rates can
-        be assigned to vertical and horizontal pairs. This property of
-        orientation can be used, for example, to implement rules representing
-        gravitational attraction, or flow of a fluid with a particular
-        direction.
-    - RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
-        and horizontal cell pairs.
-    - OrientedRasterD8CTS: as above but orientation also matters.
-    - HexCTS: hexagonal grid
-    - OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
-        according to orientation.
+- RasterCTS: regular raster grid with transitions between horizontal and
+  vertical cell pairs
+- OrientedRasterCTS: like a RasterLCA, but different transition rates can
+  be assigned to vertical and horizontal pairs. This property of
+  orientation can be used, for example, to implement rules representing
+  gravitational attraction, or flow of a fluid with a particular
+  direction.
+- RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
+  and horizontal cell pairs.
+- OrientedRasterD8CTS: as above but orientation also matters.
+- HexCTS: hexagonal grid
+- OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
+  according to orientation.
 
 Encoding of "states"
 --------------------
