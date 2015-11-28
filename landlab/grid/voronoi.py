@@ -192,8 +192,8 @@ class VoronoiDelaunayGrid(ModelGrid):
          self._node_at_link_head,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
-        self._link_status = numpy.full(len(self._node_at_link_tail),
-                                       INACTIVE_LINK, dtype=int)
+        self._status_at_link = numpy.full(len(self._node_at_link_tail),
+                                          INACTIVE_LINK, dtype=int)
 
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
