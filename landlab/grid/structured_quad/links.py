@@ -1957,7 +1957,8 @@ def d4_vertical_link_neighbors(shape, vertical_ids, bad_index_value=-1):
     >>> from landlab.grid.structured_quad.links import *
     >>> rmg = RasterModelGrid(4, 5)
     >>> vertical_ids = vertical_link_ids(rmg.shape)
-    >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids) # doctest: +NORMALIZE_WHITESPACE
+    >>> d4_vertical_link_neighbors(rmg.shape, vertical_ids)
+    ...     # doctest: +NORMALIZE_WHITESPACE
     array([[ 1,  5, -1, -1],
            [ 2,  6,  0, -1],
            [ 3,  7,  1, -1],

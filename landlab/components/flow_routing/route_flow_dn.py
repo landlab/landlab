@@ -241,7 +241,7 @@ class FlowRouter(Component):
 
         Put the data back into the new grid.
 
-        >>> _ = mg.add_field('node','topographic__elevation', elev) #put the data back into the new grid
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
