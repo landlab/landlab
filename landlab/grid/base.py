@@ -756,7 +756,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_links
         17
         """
-        return self._link_status.size
+        return self._status_at_link.size
 
     @property
     def number_of_faces(self):
@@ -996,7 +996,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @make_return_array_immutable
     def status_at_link(self):
         """Get array of the status of all links."""
-        return self._link_status
+        return self._status_at_link
 
     @status_at_node.setter
     def status_at_node(self, new_status_array):
@@ -1708,7 +1708,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             six.print_('ModelGrid._reset_link_status_list')
 
         try:
-            already_fixed = self._link_status == FIXED_LINK
+            already_fixed = self._status_at_link == FIXED_LINK
         except AttributeError:
             already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
 
@@ -1765,16 +1765,16 @@ class ModelGrid(ModelDataFieldsMixIn):
         fixed_links[fixed_link_fixed_val] = False
 
         try:
-            self._link_status.fill(INACTIVE_LINK)
+            self._status_at_link.fill(INACTIVE_LINK)
         except AttributeError:
-            self._link_status = numpy.empty(self.number_of_links, dtype=int)
-            self._link_status.fill(INACTIVE_LINK)
+            self._status_at_link = numpy.empty(self.number_of_links, dtype=int)
+            self._status_at_link.fill(INACTIVE_LINK)
 
-        self._link_status[active_links] = ACTIVE_LINK
+        self._status_at_link[active_links] = ACTIVE_LINK
 
-        self._link_status[fixed_links] = FIXED_LINK
+        self._status_at_link[fixed_links] = FIXED_LINK
 
-        active_links = self._link_status == ACTIVE_LINK  # now it's correct
+        active_links = self._status_at_link == ACTIVE_LINK  # now it's correct
         (self._active_links, ) = numpy.where(active_links)
         (self._fixed_links, ) = numpy.where(fixed_links)
         self._active_links = as_id_array(self._active_links)
