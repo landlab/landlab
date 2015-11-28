@@ -1082,7 +1082,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (_diag_active_links, ) = np.where(diag_active_links)
         _diag_active_links = as_id_array(_diag_active_links)
 
-        self._num_diag_active_links = len(_diag_active_links)
         self._diag_activelink_fromnode = self._diag_link_fromnode[
             _diag_active_links]
         self._diag_activelink_tonode = self._diag_link_tonode[
@@ -1143,7 +1142,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                      np.logical_not(diag_fixed_links)))
         _diag_active_links = _diag_active_links.astype(np.int, copy=False)
 
-        self._num_diag_active_links = len(_diag_active_links)
         self._num_diag_fixed_links = np.sum(diag_fixed_links).astype(int)
         self._diag_activelink_fromnode = self._diag_link_fromnode[
             _diag_active_links]
