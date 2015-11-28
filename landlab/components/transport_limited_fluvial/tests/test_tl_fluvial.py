@@ -39,8 +39,8 @@ def test_tl_fluvial():
     z = np.loadtxt(os.path.join(_THIS_DIR, 'tl_init.gz'))
     mg['node']['topographic__elevation'] = z
 
-    mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    mg.set_fixed_value_boundaries_at_grid_edges(True, False, True, False,
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+    mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True,
                                                 value_of='topographic__elevation')
 
     fr = FlowRouter(mg)
