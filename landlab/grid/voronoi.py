@@ -436,7 +436,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # save the results
         #self.node_at_link_tail = link_fromnode
         #self.node_at_link_head = link_tonode
-        #self._num_links = num_links
 
         # Return the results
         return link_fromnode, link_tonode, num_links
