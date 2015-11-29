@@ -43,11 +43,14 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     >>> rtn = grid.calculate_gradients_at_links(node_values, out=out)
     >>> rtn is out
     True
-    >>> out
+    >>> out 
     array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
     >>> grid.calculate_gradients_at_links(node_values)
+    array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
+    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> grid.calculate_gradients_at_links('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     """
     grads = gradients.calculate_diff_at_links(grid, node_values, out=out)
