@@ -1,24 +1,17 @@
-# -*- coding: utf-8 -*-
-"""
-test_flow_routing:
-
-Created on Thurs Nov 12, 2015
-
-@author: dejh
+"""Test the flow router component.
 
 This just tests the functionality of the router in toto - no attempt is made
 to test the submodules.
 Sinks are tested as part of the lake_mapper.
-"""
 
-import landlab
-from landlab import RasterModelGrid, RadialModelGrid, FieldError
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab import CLOSED_BOUNDARY
-from numpy import sin, pi
-import numpy as np  # for use of np.round
+@author: dejh
+"""
+# Created on Thurs Nov 12, 2015
+import os
+
+import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import BAD_INDEX_VALUE as XX
+
 from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
                         assert_almost_equal, assert_equal)
 try:
@@ -26,6 +19,15 @@ try:
 except ImportError:
     from landlab.testing.tools import (assert_is, assert_set_equal,
                                        assert_dict_equal)
+
+import landlab
+from landlab import RasterModelGrid, RadialModelGrid, FieldError
+from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab import CLOSED_BOUNDARY
+from landlab import BAD_INDEX_VALUE as XX
+
+
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def setup_dans_grid1():
@@ -39,7 +41,7 @@ def setup_dans_grid1():
 
     mg = RasterModelGrid((5, 5), spacing=(10., 10.))
 
-    infile = '../landlab/components/flow_routing/tests/test_fr_input.txt'
+    infile = os.path.join(_THIS_DIR, 'test_fr_input.txt')
 
     z = mg.node_x.copy()
 
@@ -91,7 +93,7 @@ def setup_dans_grid2():
 
     mg = RasterModelGrid((5, 5), spacing=(10., 10.))
 
-    infile = '../landlab/components/flow_routing/tests/test_fr_input.txt'
+    infile = os.path.join(_THIS_DIR, 'test_fr_input.txt')
 
     z = np.array([7.,  7.,  7.,  7.,  7.,
                   7.,  5., 3.2,  6.,  7.,
@@ -259,9 +261,7 @@ def setup_voronoi_closedinternal():
 
 @with_setup(setup_dans_grid1)
 def test_check_fields():
-    """
-    Check to make sure the right fields have been created.
-    """
+    """Check to make sure the right fields have been created."""
     fr = FlowRouter(mg)
     assert_array_equal(z, mg.at_node['topographic__elevation'])
     assert_array_equal(np.zeros(25), mg.at_node['drainage_area'])
@@ -273,9 +273,7 @@ def test_check_fields():
 
 @with_setup(setup_dans_grid1)
 def test_check_field_input():
-    """
-    Check we can successfully pass water__volume_flux_in
-    """
+    """Check we can successfully pass water__volume_flux_in."""
     mg.add_field('node', 'water__volume_flux_in',
                  np.full(25, 3.), units='m**3/s')
     fr = FlowRouter(mg)
@@ -286,9 +284,7 @@ def test_check_field_input():
 
 @with_setup(setup_dans_grid1)
 def test_accumulate_D8():
-    """
-    Test accumulation works for D8 in a simple scenario
-    """
+    """Test accumulation works for D8 in a simple scenario."""
     fr = FlowRouter(mg)
     fr.route_flow()
     assert_array_equal(A_target, mg.at_node['drainage_area'])
@@ -302,9 +298,7 @@ def test_accumulate_D8():
 
 @with_setup(setup_dans_grid1)
 def test_variable_Qin():
-    """
-    Tests a variable Qin field.
-    """
+    """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.
     mg.add_field('node', 'water__volume_flux_in',
@@ -320,9 +314,7 @@ def test_variable_Qin():
 
 @with_setup(setup_dans_grid2)
 def test_irreg_topo():
-    """
-    Tests D8 routing on a toy irregular topo.
-    """
+    """Test D8 routing on a toy irregular topo."""
     fr = FlowRouter(mg)
     fr.route_flow(method='D8')
     assert_array_equal(A_target_D8, mg.at_node['drainage_area'])
@@ -336,9 +328,7 @@ def test_irreg_topo():
 
 @with_setup(setup_dans_grid2)
 def test_irreg_topo():
-    """
-    Tests D4 routing on a toy irregular topo.
-    """
+    """Test D4 routing on a toy irregular topo."""
     fr = FlowRouter(mg)
     fr.route_flow(method='D4')
     assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
@@ -352,9 +342,7 @@ def test_irreg_topo():
 
 @with_setup(setup_internal_closed)
 def test_internal_closed():
-    """
-    Test closed nodes in the core of the grid.
-    """
+    """Test closed nodes in the core of the grid."""
     fr = FlowRouter(mg)
     fr.route_flow()
     assert_array_almost_equal(A_target, mg.at_node['drainage_area'])
@@ -367,9 +355,7 @@ def test_internal_closed():
 
 @with_setup(setup_voronoi)
 def test_voronoi():
-    """
-    Tests routing on a (radial) voronoi.
-    """
+    """Test routing on a (radial) voronoi."""
     fr.route_flow()
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_core)
@@ -378,9 +364,7 @@ def test_voronoi():
 
 @with_setup(setup_voronoi_closedinternal)
 def test_voronoi_closedinternal():
-    """
-    Tests routing on a (radial) voronoi, but with a closed interior node.
-    """
+    """Test routing on a (radial) voronoi, but with a closed interior node."""
     fr.route_flow()
     assert_array_almost_equal(vmg.at_node['drainage_area'][:7],
                               A_target_internal)

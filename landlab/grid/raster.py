@@ -941,45 +941,59 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def patches_at_node(self, nodata=-1, *args):
+    def patches_at_node(self, nodata=-1, masked=True, *args):
         """Get array of patches attached to nodes.
 
-        This is a placeholder method until improved using jagged array
-        operations.
         Returns a (N,4) array of the patches associated with each node in the
         grid.
-        The four possible patches are returned in id order, with any
-        null or nonexistent patches recorded after the ids of existing faces.
+        The four possible patches are returned in order CCW from east, i.e.,
+        NE, NW, SW, SE.
         The nodata argument allows control of the array value used to indicate
-        nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
-        Note that this method returns a *masked* array, with the normal provisos
-        that integer indexing with a masked array removes the mask.
+        nodata. It defaults to -1, but you can also specify 'bad_value'.
+
+        The "masked" parameter controls whether or not bad index values in the
+        grid are masked. If True, note the normal
+        provisos that integer indexing with a masked array removes the mask.
         """
+        if nodata == 'bad_value':
+            nodata = BAD_INDEX_VALUE
         try:
-            return self.node_patch_matrix
+            existing_nodata = (self.node_patch_matrix ==
+                               self._patches_at_node_nodata)
+            if self._patches_at_node_nodata != nodata:
+                self._patches_at_node_nodata = nodata
+                self.node_patch_matrix[existing_nodata] = nodata
+            if masked is True:
+                return np.ma.masked_where(existing_nodata,
+                                          self.node_patch_matrix, copy=False)
+            else:
+                return self.node_patch_matrix
         except AttributeError:
-            if nodata == 'nan':
-                nodata = np.nan
-            elif nodata == 'bad_value':
-                nodata = BAD_INDEX_VALUE
-            self.node_patch_matrix = np.ma.empty(
-                (self.number_of_nodes, 4), dtype=int)
-            self.node_patch_matrix.fill(BAD_INDEX_VALUE)
-            self.node_patch_matrix[:, 0][
-                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
-                                                                         self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)
-            self.node_patch_matrix[:, 1][
-                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
-                                                                         self.bottom_edge_node_ids()))] = np.arange(self.number_of_patches)
+            self._patches_at_node_nodata = nodata
+            self.node_patch_matrix = np.full((self.number_of_nodes, 4),
+                                             BAD_INDEX_VALUE, dtype=int)
             self.node_patch_matrix[:, 2][
-                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.left_edge_node_ids(),
-                                                                         self.top_edge_node_ids()))] = np.arange(self.number_of_patches)
+                np.setdiff1d(np.arange(self.number_of_nodes),
+                             np.union1d(self.left_edge_node_ids(),
+                                        self.bottom_edge_node_ids()))] = \
+                np.arange(self.number_of_patches)
             self.node_patch_matrix[:, 3][
-                np.setdiff1d(np.arange(self.number_of_nodes), np.union1d(self.right_edge_node_ids(),
-                                                                         self.top_edge_node_ids()))] = np.arange(self.number_of_patches)
-            self.node_patch_matrix.sort(axis=1)
-            self.node_patch_matrix[
-                self.node_patch_matrix == BAD_INDEX_VALUE] = nodata
+                np.setdiff1d(np.arange(self.number_of_nodes),
+                             np.union1d(self.right_edge_node_ids(),
+                                        self.bottom_edge_node_ids()))] = \
+                np.arange(self.number_of_patches)
+            self.node_patch_matrix[:, 1][
+                np.setdiff1d(np.arange(self.number_of_nodes),
+                             np.union1d(self.left_edge_node_ids(),
+                                        self.top_edge_node_ids()))] = \
+                np.arange(self.number_of_patches)
+            self.node_patch_matrix[:, 0][
+                np.setdiff1d(np.arange(self.number_of_nodes),
+                             np.union1d(self.right_edge_node_ids(),
+                                        self.top_edge_node_ids()))] = \
+                np.arange(self.number_of_patches)
+            self.node_patch_matrix[self.node_patch_matrix ==
+                                   BAD_INDEX_VALUE] = nodata
             # now we blank out any patches that have a closed node as any
             # vertex:
             patch_nodes = self.nodes_at_patch
@@ -988,24 +1002,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # IDs of patches with dead nodes
             dead_patches = np.where(np.any(dead_nodes_in_patches, axis=1))
             self.node_patch_matrix.ravel()[np.in1d(
-                self.node_patch_matrix, dead_patches)] = nodata  # in1d would remove any mask
-            self.node_patch_matrix = np.ma.masked_equal(
-                self.node_patch_matrix, nodata)
-            return self.node_patch_matrix
+                self.node_patch_matrix, dead_patches)] = nodata
+            # ^in1d would remove any mask
+            if masked is True:
+                return np.ma.masked_equal(self.node_patch_matrix, nodata,
+                                          copy=False)
+            else:
+                return self.node_patch_matrix
 
     @property
     def nodes_at_patch(self):
         """Get array of nodes of a patch.
 
         Returns the four nodes at the corners of each patch in a regular grid.
-        Shape of the returned array is (nnodes, 4).
+        Shape of the returned array is (nnodes, 4). Returns in order CCW from
+        east, i.e., [NE, NW, SW, SE].
         """
         base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base // (self._ncols - 1)
-        return np.column_stack((bottom_left_corner,
-                                bottom_left_corner + 1,
+        return np.column_stack((bottom_left_corner + self._ncols + 1,
                                 bottom_left_corner + self._ncols,
-                                bottom_left_corner + self._ncols + 1))
+                                bottom_left_corner,
+                                bottom_left_corner + 1))
 
     def _setup_inlink_and_outlink_matrices(self):
         """Set up matrices that hold the inlinks and outlinks for each node.

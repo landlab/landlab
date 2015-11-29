@@ -1286,7 +1286,8 @@ class ModelGrid(ModelDataFields):
         unit is 'degrees' or 'radians'.
         If return_components=False (the default), returns the slope magnitude.
         If return_components=True, returns the slope magnitude, then the vector
-        (a tuple) of the slope components in the x, y directions.
+        (a tuple) of the slope components in the x, y directions. Note the
+        slope components will always be returned as rise/run.
         If closed nodes were present in the original array, their values will
         be masked.
         """

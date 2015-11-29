@@ -1,25 +1,40 @@
 #These values are for building the grid-
 nrows:
-100
+10
 ncols:
-100
+10
 dx:
-1.
+1000.
 dt:
-0.1
+500.
 uplift_rate: #per time, not per timestep
-0.01
+0.0001
 run_time:
-30
-init_elev:
-0.
+3000.
 
 #These values are for running the process-
 rock_density:
 2.7
 sed_density:
 2.7
-kappa:
+K_sp:
+0.0001
+m_sp:
+0.5
+n_sp:
+1.
+threshold_sp:
+1.
+use_Q:
+True
+
+MEAN_STORM:
 100.
-S_crit:
-0.56
+MEAN_DEPTH:
+5.
+MEAN_INTERSTORM:
+400.
+RUN_TIME:
+3000000.
+DELTA_T:
+500.
