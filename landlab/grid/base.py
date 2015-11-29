@@ -1595,6 +1595,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return numpy.array([active_link])
 
     @property
+    @make_return_array_immutable
     def area_of_cell(self):
         """Get areas of grid cells.
 
