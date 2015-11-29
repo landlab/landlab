@@ -208,24 +208,40 @@ def setup_voronoi():
     global A_target_core, A_target_outlet
     vmg = RadialModelGrid(2, dr=2.)
     z = np.full(20, 10., dtype=float)
-    vmg.status_at_node[8:] = CLOSED_BOUNDARY
-    z[7] = 0.  # outlet
-    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
-    z[:7] = np.array(inner_elevs)
+    #vmg.status_at_node[8:] = CLOSED_BOUNDARY
+    all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
+    vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
+    #z[7] = 0.  # outlet
+    z[12] = 0.  # outlet
+    #inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
+    inner_elevs = (8., 7., 3., 1., 6., 4., 5.)
+    #z[:7] = np.array(inner_elevs)
+    z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field('node', 'topographic__elevation', z, units='-')
     fr = FlowRouter(vmg)
 
-    nodes_contributing = [np.array([0, 3, 4, 5]),
+#    nodes_contributing = [np.array([0, 3, 4, 5]),
+#                          np.array([0, 1, 2, 3, 4, 5, 6]),
+#                          np.array([2, ]),
+#                          np.array([3, ]),
+#                          np.array([4, ]),
+#                          np.array([5, ]),
+#                          np.array([6, ])]
+
+    # The follow list contains arrays with the IDs of cells contributing flow
+    # to nodes 5, 6, 8, 9, 10, 13, and 14, respectively (which correspond to
+    # cells 0-6)
+    cells_contributing = [np.array([0, ]),
+                          np.array([1, ]),
+                          np.array([1, 2, 4, 6]),
                           np.array([0, 1, 2, 3, 4, 5, 6]),
-                          np.array([2, ]),
-                          np.array([3, ]),
                           np.array([4, ]),
                           np.array([5, ]),
                           np.array([6, ])]
 
     A_target_core = np.zeros(vmg.number_of_core_nodes)
     for i in xrange(7):
-        A_target_core[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
+        A_target_core[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell.sum()
 
 
