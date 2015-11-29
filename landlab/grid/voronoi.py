@@ -183,7 +183,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self.area_of_cell[self.cell_at_node[node]] = (
+            self._area_of_cell[self.cell_at_node[node]] = (
                 simple_poly_area(xv, yv))
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
