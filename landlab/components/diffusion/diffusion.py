@@ -13,6 +13,8 @@ Last updated May 2015 DEJH
 
 from __future__ import print_function
 
+import numpy as np
+
 from landlab import ModelParameterDictionary, Component, FieldError
 from landlab import create_and_initialize_grid
 from landlab.core.model_parameter_dictionary import MissingKeyError
