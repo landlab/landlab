@@ -654,8 +654,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         """
-        self._forced_cell_areas = np.full(self.number_of_nodes,
-                                          self.dx * self.dy, dtype=float)
+        self._forced_cell_areas = np.full(self.shape, self.dx * self.dy,
+                                          dtype=float)
+        self._forced_cell_areas[(0, -1), :] = 0.
+        self._forced_cell_areas[:, (0, -1)] = 0.
+        self._forced_cell_areas.shape = (-1, )
         return self._forced_cell_areas
 
     @property
