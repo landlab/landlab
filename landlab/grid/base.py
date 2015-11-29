@@ -682,7 +682,27 @@ class ModelGrid(ModelDataFieldsMixIn):
     @property
     @return_readonly_id_array
     def fixed_links(self):
-        """Get array of fixed links."""
+        """Get array of fixed links.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([1, 1, 1, 1,
+               1, 0, 0, 1,
+               1, 1, 1, 1], dtype=int8)
+        >>> grid.fixed_links.size
+        0
+
+        >>> grid.status_at_node[:4] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([2, 2, 2, 2,
+               1, 0, 0, 1,
+               1, 1, 1, 1], dtype=int8)
+        >>> grid.fixed_links
+        array([1, 2])
+        """
         try:
             return self._fixed_links
         except AttributeError:
