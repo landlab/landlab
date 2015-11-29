@@ -849,10 +849,10 @@ class ModelGrid(ModelDataFieldsMixIn):
     def number_of_fixed_links(self):
         """Number of fixed links."""
         try:
-            return self._num_fixed_links
+            return self._fixed_links.size
         except AttributeError:
             self._reset_link_status_list()
-            return self._num_fixed_links
+            return self._fixed_links.size
 
     @property
     def number_of_fixed_faces(self):
@@ -1780,8 +1780,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._active_links = as_id_array(self._active_links)
         self._fixed_links = as_id_array(self._fixed_links)
 
-        self._num_fixed_links = fixed_links.sum()
-        self._num_fixed_faces = self._num_fixed_links
+        self._num_fixed_faces = fixed_links.sum()
         self.activelink_fromnode = self.node_at_link_tail[active_links]
         self.activelink_tonode = self.node_at_link_head[active_links]
 
