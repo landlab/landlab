@@ -893,15 +893,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_link_status_list()
             return self._fixed_links.size
 
-    @property
-    def number_of_fixed_faces(self):
-        """Number of fixed faces."""
-        try:
-            return self._num_fixed_faces
-        except AttributeError:
-            self._reset_link_status_list()
-            return self._num_fixed_faces
-
     def number_of_elements(self, element_name):
         """Number of instances of an element.
 
@@ -1799,7 +1790,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._active_links = as_id_array(self._active_links)
         self._fixed_links = as_id_array(self._fixed_links)
 
-        self._num_fixed_faces = fixed_links.sum()
         self.activelink_fromnode = self.node_at_link_tail[active_links]
         self.activelink_tonode = self.node_at_link_head[active_links]
 
