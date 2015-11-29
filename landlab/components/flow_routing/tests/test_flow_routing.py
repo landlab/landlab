@@ -152,7 +152,7 @@ def setup_dans_grid2():
 
 def setup_internal_closed():
     """
-    Create a 5x5 test grid, but with one internal node closed.
+    Create a 6x5 test grid, but with two internal nodes closed.
     This is a sheet flow test.
     """
     global fr, mg
@@ -184,10 +184,10 @@ def setup_internal_closed():
                             25, 26, 27, 28, 29])
 
     links2rcvr_target = np.full(mg.number_of_nodes, XX)
-    links2rcvr_target[mg.core_nodes] = np.array([29, 62,
-                                                 33, 34, 35,
-                                                 67, 39,
-                                                 41, 42, 43])
+    links2rcvr_target[mg.core_nodes] = np.array([ 9, 62,
+                                                 18, 19, 20,
+                                                 67, 29,
+                                                 36, 37, 38])
 
     steepest_target = np.array([0.,  0.,  0.,  0.,  0.,
                                 0.,  1.,  0.,  0.,  0.,
