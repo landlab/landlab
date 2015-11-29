@@ -2082,6 +2082,10 @@ class ModelGrid(ModelDataFieldsMixIn):
             num_nbrs[self.node_at_link_head[link]] += 1
         return num_nbrs
 
+    def _setup_active_faces(self):
+        self._active_faces = self.face_at_link[self.active_links]
+        return self._active_faces
+
     def _setup_inlink_and_outlink_matrices(self):
         """Create data structured for number of inlinks and outlinks.
 

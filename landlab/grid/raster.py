@@ -1394,10 +1394,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._link_at_face = links
         return self._link_at_face
 
-    def _setup_active_faces(self):
-        self._active_faces = self.face_at_link[self.active_links]
-        return self._active_faces
-
     def _setup_face_at_link(self):
         """Set up array of faces associated with links.
 
