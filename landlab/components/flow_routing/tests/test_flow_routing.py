@@ -253,25 +253,39 @@ def setup_voronoi_closedinternal():
     global A_target_internal, A_target_outlet
     vmg = RadialModelGrid(2, dr=2.)
     z = np.full(20, 10., dtype=float)
-    vmg.status_at_node[8:] = CLOSED_BOUNDARY
-    vmg.status_at_node[0] = CLOSED_BOUNDARY  # new internal closed
-    z[7] = 0.  # outlet
-    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
-    z[:7] = np.array(inner_elevs)
+#    vmg.status_at_node[8:] = CLOSED_BOUNDARY
+#    vmg.status_at_node[0] = CLOSED_BOUNDARY  # new internal closed
+#    z[7] = 0.  # outlet
+#    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
+#    z[:7] = np.array(inner_elevs)
+    all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
+    vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
+    vmg.status_at_node[8] = CLOSED_BOUNDARY  # new internal closed
+    z[12] = 0.  # outlet
+    inner_elevs = (8., 7., 1., 6., 4., 5.)
+    z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field('node', 'topographic__elevation', z, units='-')
     fr = FlowRouter(vmg)
 
-    nodes_contributing = [[],
-                          np.array([1, 2, 3, 4, 5, 6]),
-                          np.array([2, 3, 4, 5]),
-                          np.array([3, 4, 5]),
-                          np.array([4, 5]),
-                          np.array([5, ]),
-                          np.array([6, ])]
+#    nodes_contributing = [[],
+#                          np.array([1, 2, 3, 4, 5, 6]),
+#                          np.array([2, 3, 4, 5]),
+#                          np.array([3, 4, 5]),
+#                          np.array([4, 5]),
+#                          np.array([5, ]),
+#                          np.array([6, ])]
 
-    A_target_internal = np.zeros(vmg.number_of_core_nodes+1, dtype=float)
-    for i in xrange(7):
-        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
+    cells_contributing = [np.array([0, ]),
+                          np.array([1, ]),
+                          np.array([0, 1, 3, 4, 5, 6]),
+                          np.array([1, 4]),
+                          np.array([1, 4, 5, 6]),
+                          np.array([1, 4, 6])]
+
+    A_target_internal = np.zeros(vmg.number_of_core_nodes, dtype=float)
+    for i in xrange(6):
+        A_target_internal[i] = vmg.area_of_cell[cells_contributing[i]].sum()
+#        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
 
 
@@ -375,13 +389,18 @@ def test_voronoi():
     fr.route_flow()
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_core)
-    assert_almost_equal(vmg.at_node['drainage_area'][7], A_target_outlet)
+    assert_almost_equal(vmg.at_node['drainage_area'][12], A_target_outlet)
 
 
 @with_setup(setup_voronoi_closedinternal)
 def test_voronoi_closedinternal():
     """Test routing on a (radial) voronoi, but with a closed interior node."""
     fr.route_flow()
-    assert_array_almost_equal(vmg.at_node['drainage_area'][:7],
+    for i in range(vmg.number_of_nodes):
+        print i, vmg.node_x[i], vmg.node_y[i], vmg.status_at_node[i], \
+                vmg.at_node['drainage_area'][i], vmg.at_node['flow_receiver'][i], \
+                vmg.at_node['topographic__elevation'][i]
+
+    assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_internal)
-    assert_almost_equal(vmg.at_node['drainage_area'][7], A_target_outlet)
+    assert_almost_equal(vmg.at_node['drainage_area'][12], A_target_outlet)
