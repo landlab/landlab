@@ -26,7 +26,6 @@ def set_status_at_node_on_edges(grid, status_at_edge=None):
            1, 0, 0, 4,
            1, 1, 1, 4], dtype=int8)
 
-    >>> from collections import OrderedDict
     >>> from landlab import FIXED_GRADIENT_BOUNDARY
     >>> grid = RasterModelGrid((3, 4))
 
@@ -35,8 +34,8 @@ def set_status_at_node_on_edges(grid, status_at_edge=None):
     share a corner, it is the value of the last edge set that gives the value
     of the corner node.
 
-    >>> status_at_edge = OrderedDict(left=CLOSED_BOUNDARY,
-    ...     bottom=FIXED_GRADIENT_BOUNDARY)
+    >>> status_at_edge = [('left', CLOSED_BOUNDARY),
+    ...                   ('bottom', FIXED_GRADIENT_BOUNDARY)]
     >>> grid.set_status_at_node_on_edges(status_at_edge=status_at_edge)
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2,
