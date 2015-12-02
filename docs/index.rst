@@ -87,10 +87,10 @@ Tutorials
 Start with the :ref:`10 minute Landlab introduction tutorial <getting_started>`, then choose from:
 
 * A super-basic intro to Python and Numpy: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/python_intro/Python_intro.ipynb
-* An introduction to modelling with Landlab: http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/LandlabFaultScarpDemo.ipynb
-* Using the Landlab component library: http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb
-* The Landlab flexure component: http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/flexure/lots_of_loads.ipynb
-* The Landlab ecohydrology components: http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/Ecohydrology/cellular_automaton_vegetation_DEM/cellular_automaton_vegetation_DEM.ipynb
+* An introduction to modelling with Landlab: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/fault_scarp_notebook/landlab-fault-scarp.ipynb
+* Using the Landlab component library: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb
+* The Landlab flexure component: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/flexure/lots_of_loads.ipynb
+* The Landlab ecohydrology components: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/ecohydrology/cellular_automaton_vegetation_DEM/cellular_automaton_vegetation_DEM.ipynb
 
 
 Simple guides to functionality
