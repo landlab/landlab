@@ -649,6 +649,100 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # given *cell ids* can be created if requested by the user.
         self.looped_second_ring_cell_neighbor_list_created = False
 
+    @property
+    def nodes_at_right_edge(self):
+        """Get nodes along the right edge of a grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> vals = [ 0,  1,  2,  3,
+        ...          4,  5,  6,  7,
+        ...          8,  9, 10, 11]
+        >>> vals[grid.nodes_at_right_edge]
+        [3, 7, 11]
+        """
+        return slice(self.shape[1] - 1,
+                     self.number_of_nodes,
+                     self.shape[1])
+
+    @property
+    def nodes_at_top_edge(self):
+        """Get nodes along the top edge of a grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> vals = [ 0,  1,  2,  3,
+        ...          4,  5,  6,  7,
+        ...          8,  9, 10, 11]
+        >>> vals[grid.nodes_at_top_edge]
+        [8, 9, 10, 11]
+        """
+        return slice(self.number_of_nodes - self.shape[1],
+                     self.number_of_nodes)
+
+    @property
+    def nodes_at_left_edge(self):
+        """Get nodes along the left edge of a grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> vals = [ 0,  1,  2,  3,
+        ...          4,  5,  6,  7,
+        ...          8,  9, 10, 11]
+        >>> vals[grid.nodes_at_left_edge]
+        [0, 4, 8]
+        """
+        return slice(0, self.number_of_nodes, self.shape[1])
+
+    @property
+    def nodes_at_bottom_edge(self):
+        """Get nodes along the bottom edge of a grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> vals = [ 0,  1,  2,  3,
+        ...          4,  5,  6,  7,
+        ...          8,  9, 10, 11]
+        >>> vals[grid.nodes_at_bottom_edge]
+        [0, 1, 2, 3]
+        """
+        return slice(0, self.shape[1])
+
+    def nodes_at_edge(self, edge):
+        """Get edge nodes by edge name.
+
+        Parameters
+        ----------
+        edge : {'right', 'top', 'left', 'bottom'}
+            Edge location.
+
+        Returns
+        -------
+        slice
+            Slice of the nodes on an edge.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> vals = [ 0,  1,  2,  3,
+        ...          4,  5,  6,  7,
+        ...          8,  9, 10, 11]
+        >>> vals[grid.nodes_at_edge('left')]
+        [0, 4, 8]
+        """
+        if edge not in ('right', 'top', 'left', 'bottom'):
+            raise ValueError('value for edge not understood')
+        return getattr(self, 'nodes_at_{edge}_edge'.format(edge=edge))
+
     def _setup_cell_areas_array(self):
         """Set up array of cell areas.
 
