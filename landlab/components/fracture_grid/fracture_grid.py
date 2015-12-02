@@ -96,7 +96,7 @@ def calculate_fracture_orientation((y, x), seed):
 
 def calculate_fracture_step_sizes((starty, startx), ang):
     """
-    Calculates the sizes of steps dx and dy to be used when "drawing" the
+    Calculate the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
     Parameters
