@@ -649,23 +649,58 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # given *cell ids* can be created if requested by the user.
         self.looped_second_ring_cell_neighbor_list_created = False
 
+    def _setup_nodes(self):
+        self._nodes = np.arange(self.number_of_nodes,
+                                dtype=int).reshape(self.shape)
+        return self._nodes
+
+    @property
+    @make_return_array_immutable
+    def nodes(self):
+        """Get a shaped array of nodes.
+
+        Returns
+        -------
+        ndarray
+            Node IDs in an array shaped as *number_of_node_rows* by
+            *number_of_node_columns*.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> grid.nodes
+        array([[ 0,  1,  2,  3],
+               [ 4,  5,  6,  7],
+               [ 8,  9, 10, 11]])
+
+        You can't change node ids.
+
+        >>> grid.nodes[0] = 99 # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: assignment destination is read-only
+        """
+        try:
+            return self._nodes
+        except AttributeError:
+            return self._setup_nodes()
+
     @property
     def nodes_at_right_edge(self):
         """Get nodes along the right edge of a grid.
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> vals = [ 0,  1,  2,  3,
-        ...          4,  5,  6,  7,
-        ...          8,  9, 10, 11]
+        >>> vals = np.array([ 0,  1,  2,  3,
+        ...                   4,  5,  6,  7,
+        ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_right_edge]
-        [3, 7, 11]
+        array([ 3,  7, 11])
         """
-        return slice(self.shape[1] - 1,
-                     self.number_of_nodes,
-                     self.shape[1])
+        return self.nodes[:, -1]
 
     @property
     def nodes_at_top_edge(self):
@@ -673,16 +708,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> vals = [ 0,  1,  2,  3,
-        ...          4,  5,  6,  7,
-        ...          8,  9, 10, 11]
+        >>> vals = np.array([ 0,  1,  2,  3,
+        ...                   4,  5,  6,  7,
+        ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_top_edge]
-        [8, 9, 10, 11]
+        array([ 8,  9, 10, 11])
         """
-        return slice(self.number_of_nodes - self.shape[1],
-                     self.number_of_nodes)
+        return self.nodes[-1, :]
 
     @property
     def nodes_at_left_edge(self):
@@ -690,15 +725,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> vals = [ 0,  1,  2,  3,
-        ...          4,  5,  6,  7,
-        ...          8,  9, 10, 11]
+        >>> vals = np.array([ 0,  1,  2,  3,
+        ...                   4,  5,  6,  7,
+        ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_left_edge]
-        [0, 4, 8]
+        array([0, 4, 8])
         """
-        return slice(0, self.number_of_nodes, self.shape[1])
+        return self.nodes[:, 0]
 
     @property
     def nodes_at_bottom_edge(self):
@@ -706,15 +742,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> vals = [ 0,  1,  2,  3,
-        ...          4,  5,  6,  7,
-        ...          8,  9, 10, 11]
+        >>> vals = np.array([ 0,  1,  2,  3,
+        ...                   4,  5,  6,  7,
+        ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_bottom_edge]
-        [0, 1, 2, 3]
+        array([0, 1, 2, 3])
         """
-        return slice(0, self.shape[1])
+        return self.nodes[0, :]
 
     def nodes_at_edge(self, edge):
         """Get edge nodes by edge name.
@@ -731,13 +768,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> vals = [ 0,  1,  2,  3,
-        ...          4,  5,  6,  7,
-        ...          8,  9, 10, 11]
+        >>> vals = np.array([ 0,  1,  2,  3,
+        ...                   4,  5,  6,  7,
+        ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_edge('left')]
-        [0, 4, 8]
+        array([0, 4, 8])
         """
         if edge not in ('right', 'top', 'left', 'bottom'):
             raise ValueError('value for edge not understood')
@@ -1837,12 +1875,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         x_condition = (xcoord > 0.) & (xcoord < (self.shape[1] - 1) * self.dx)
         y_condition = (ycoord > 0.) & (ycoord < (self.shape[0] - 1) * self.dy)
 
-        if np.all(self._node_status[sgrid.left_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.right_edge_node_ids(self.shape)] == 3):
+        if np.all(self._node_status[self.nodes_at_left_edge] == 3) or np.all(self._node_status[self.nodes_at_right_edge] == 3):
             try:
                 x_condition[:] = 1
             except:
                 x_condition = 1
-        if np.all(self._node_status[sgrid.top_edge_node_ids(self.shape)] == 3) or np.all(self._node_status[sgrid.bottom_edge_node_ids(self.shape)] == 3):
+        if np.all(self._node_status[self.nodes_at_top_edge] == 3) or np.all(self._node_status[self.nodes_at_bottom_edge] == 3):
             try:
                 y_condition[:] = 1
             except:
