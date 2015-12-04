@@ -435,19 +435,21 @@ def test_degenerate_drainage():
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
     z = mg.add_field('node', 'topographic__elevation', z_init)
+    print z_init
 
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
     fr.route_flow()
     lf.map_depressions()
+    print fr.node_receiving_flow
 
     correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
-                           0.,   1.,   1.,   1.,   0.,
-                           0.,   4.,   1.,   3.,   0.,
+                           0.,   1.,   3.,   1.,   0.,
+                           0.,   5.,   1.,   2.,   0.,
                            0.,   1.,  10.,   1.,   0.,
                           21.,  21.,   1.,   1.,   0.,
                            0.,   1.,   9.,   1.,   0.,
-                           0.,   4.,   1.,   3.,   0.,
+                           0.,   3.,   1.,   2.,   0.,
                            0.,   1.,   1.,   1.,   0.,
                            0.,   0.,   0.,   0.,   0.])
     
