@@ -88,10 +88,10 @@ def test_sniff_Perron():
     while elapsed_time < time_to_run:
         diffusion_component.input_timestep(dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
-        mg.at_node['topographic__elevation'][
-            mg.left_edge_node_ids()] += uplift * dt
-        mg.at_node['topographic__elevation'][
-            mg.bottom_edge_node_ids()] += uplift * dt
+        mg.at_node['topographic__elevation'][mg.nodes_at_left_edge] += (
+            uplift * dt)
+        mg.at_node['topographic__elevation'][mg.nodes_at_bottom_edge] += (
+            uplift * dt)
         mg = diffusion_component.diffuse(mg, elapsed_time)
         elapsed_time += dt
 
