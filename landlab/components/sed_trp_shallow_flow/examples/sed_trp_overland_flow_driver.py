@@ -41,8 +41,7 @@ x = mg.get_node_x_coords()
 y = mg.get_node_y_coords()
 zinit = mg.create_node_array_zeros()
 zinit = z0-initial_slope*x
-rightside = mg.right_edge_node_ids()
-zinit[rightside] = 0.
+zinit[mg.nodes_at_right_edge] = 0.
 mg['node']['topographic__elevation'] = zinit
 
 # Display a message
