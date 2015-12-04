@@ -132,7 +132,8 @@ def setup_D4_grid():
     mg2 = RasterModelGrid(7, 7, 1.)
     z = mg1.node_x.copy() + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
-    z[lake_nodes] = 0.
+    #z[lake_nodes] *= 0.01  #z[lake_nodes] = 0.
+    z[lake_nodes] = 0.    
     mg1.add_field('node', 'topographic__elevation', z, units='-')
     mg2.add_field('node', 'topographic__elevation', z, units='-')
 
@@ -603,6 +604,8 @@ def test_D8_D4_fill():
     correct_D4_depths[lake_nodes[5:]] = 4.
     correct_D4_depths[lake_nodes[-2]] = 3.
     
+    print lfD8.lake_map
+    
     assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
     assert_array_equal(lfD4.lake_map, correct_D4_lake_map)
     
@@ -622,12 +625,12 @@ def test_D8_D4_route():
     lfD4.map_depressions()
     assert_equal(lfD8.number_of_lakes, 1)
     assert_equal(lfD4.number_of_lakes, 3)
-    
-    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 16, 16, 18, 18,
+
+    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
                            13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
                            33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
                            32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
-    flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 18, 11,
+    flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 10, 17, 10, 11,
                            13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
                            33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
                            32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
