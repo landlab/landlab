@@ -4,6 +4,7 @@
 import numpy as np
 
 
+
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
@@ -278,7 +279,8 @@ def argsort_points_by_x_then_y(pts):
     """
     a = pts[:,0].argsort(kind='mergesort')
     b = pts[a,1].argsort(kind='mergesort')
-    return a[b]
+    return as_id_array(a[b])
+
 
 def sort_points_by_x_then_y(pts):
     """Sort points by coordinates, first x then y.
