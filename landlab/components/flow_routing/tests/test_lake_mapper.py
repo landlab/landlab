@@ -72,7 +72,7 @@ def setup_dans_grid():
                      14, 14, 17, 17, 17, 20, 20,
                      21, 21, 17, 17, 17, 27, 27,
                      28, 28, 37, 38, 39, 34, 34,
-                     35, 44, 44, 44, 46, 47, 41,
+                     35, 44, 44, 44, 46, 41, 41,
                      42, 43, 44, 45, 46, 47, 48]).flatten()
 
     r_new = np.array([0,  1,  2,  3,  4,  5,  6,
@@ -80,7 +80,7 @@ def setup_dans_grid():
                      14, 14, 23, 23, 24, 20, 20,
                      21, 21, 30, 30, 24, 27, 27,
                      28, 28, 37, 38, 39, 34, 34,
-                     35, 44, 44, 44, 46, 47, 41,
+                     35, 44, 44, 44, 46, 41, 41,
                      42, 43, 44, 45, 46, 47, 48]).flatten()
 
     A_old = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
@@ -88,24 +88,24 @@ def setup_dans_grid():
                        1.,  1.,  1.,  6.,  1.,  1.,  1.,
                        1.,  1.,  1.,  1.,  1.,  1.,  1.,
                        1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                       0.,  1.,  2.,  2.,  2.,  1.,  0.,
-                       0.,  0.,  5.,  0.,  2.,  1.,  0.]]).flatten()
+                       0.,  1.,  2.,  2.,  2.,  1.,  1.,
+                       0.,  0.,  5.,  0.,  2.,  0.,  0.]]).flatten()
 
     A_new = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
                        0.,  1.,  1.,  1.,  1.,  1.,  0.,
                        1.,  1.,  1.,  1.,  1.,  1.,  1.,
                        1.,  1.,  3.,  3.,  1.,  1.,  1.,
                        1.,  1.,  7.,  1.,  1.,  1.,  1.,
-                       0.,  1.,  8.,  2.,  2.,  1.,  0.,
-                       0.,  0., 11.,  0.,  2.,  1.,  0.]]).flatten()
+                       0.,  1.,  8.,  2.,  2.,  1.,  1.,
+                       0.,  0., 11.,  0.,  2.,  0.,  0.]]).flatten()
 
     s_new = np.array([0,  1,  8,  2,  9,  3, 10,
                       4, 11,  5, 12,  6,  7, 13,
                      14, 15, 20, 19, 21, 22, 27,
                      26, 28, 29, 34, 33, 35, 41,
-                     42, 43, 44, 36, 37, 30, 23,
-                     16, 17, 24, 18, 25, 38, 31,
-                     45, 46, 39, 32, 47, 40, 48]).flatten()
+                     40, 42, 43, 44, 36, 37, 30,
+                     23, 16, 17, 24, 18, 25, 38,
+                     31, 45, 46, 39, 32, 47, 48]).flatten()
 
     depr_outlet_target = np.array([XX, XX, XX, XX, XX, XX, XX,
                                    XX, XX, XX, XX, XX, XX, XX,
@@ -161,13 +161,18 @@ def check_array_values1(rmg, lm):
     """
     Check values of the various fields against known values.
     """
+#    for i in range(rmg.number_of_nodes):
+#        print i, rmg.at_node['topographic__elevation'][i], lm.is_pit[i]
+
     assert_array_equal(lm.is_pit, \
-    [False, False, False, False, False, False, False, False, False, False, False, False,
-     False, False,  True, False, False, False, False, False, False, False, False, False,
-     False, False,  True, False, False, False, False, False, False, False, False, False,
-     False, False, False, False, False, False, False, False, False, False,  True, False,
-     False,  True, False, False, False, False, False, False, False, False, False, False,
-     False, False, False, False])
+    [False, False, False, False, False, False, False, False,
+     False, False, False, False, False, False,  True, False,
+     False, False, False, False, False, False, False, False,
+     False, False,  True, False, False, False, False, False,
+     False, False, False, False, False, False, False, False,
+     False, False, False, False, False, False,  True, False,
+     False,  True, False, False, False, False, False, False,
+     False, False, False, False, False, False, False, False])
 
     assert_array_equal(lm.flood_status, \
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
@@ -435,7 +440,6 @@ def test_degenerate_drainage():
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
     z = mg.add_field('node', 'topographic__elevation', z_init)
-    print z_init
 
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
@@ -645,4 +649,7 @@ def test_D8_D4_route():
 
 
 if __name__=='__main__':
-    test_lake_mapper()
+    setup_dans_grid()
+    test_initial_routing()
+    test_pits_as_IDs()
+    test_rerouting_with_supplied_pits()
