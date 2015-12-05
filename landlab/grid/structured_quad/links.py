@@ -989,7 +989,7 @@ def nth_vertical_link(shape, links):
     >>> nth_vertical_link(shape, (3, 4, 11))
     array([0, 1, 5])
     """
-    links = np.asarray(links)
+    links = np.asarray(links, dtype=np.int)
     return ((links // (2 * shape[1] - 1)) * shape[1] +
             links % (2 * shape[1] - 1) - (shape[1] - 1))
 
@@ -1018,7 +1018,7 @@ def nth_horizontal_link(shape, links):
     >>> nth_horizontal_link(shape, (1, 7, 8))
     array([1, 3, 4])
     """
-    links = np.asarray(links)
+    links = np.asarray(links, dtype=np.int)
     return ((links // (2 * shape[1] - 1)) * (shape[1] - 1) +
             links % (2 * shape[1] - 1))
 
