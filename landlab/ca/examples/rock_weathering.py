@@ -13,8 +13,8 @@ from __future__ import print_function
 import time
 import numpy as np
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.raster_cts import RasterCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.raster_cts import RasterCTS
 from landlab.components.fracture_grid.fracture_grid import make_frac_grid
 import matplotlib
 from landlab.io.netcdf import write_netcdf

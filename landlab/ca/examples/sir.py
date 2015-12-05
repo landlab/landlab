@@ -15,8 +15,8 @@ _DEBUG = False
 import time
 from landlab import HexModelGrid
 from numpy import where, logical_and
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.hex_cts import HexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.hex_cts import HexCTS
 import pylab
 
 

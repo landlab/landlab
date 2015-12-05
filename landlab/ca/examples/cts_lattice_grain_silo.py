@@ -13,8 +13,8 @@ import time
 import random
 import numpy
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 from pylab import savefig
 
 def setup_transition_list(g=0.0, f=0.0, d=0.0, w=0.0):
@@ -389,7 +389,7 @@ def setup_transition_list(g=0.0, f=0.0, d=0.0, w=0.0):
             print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
         
     return xn_list
-    
+
     
 def main():
     
@@ -509,7 +509,7 @@ def main():
     
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca)
-    
+
     # Plot the initial grid
     ca_plotter.update_plot()
 

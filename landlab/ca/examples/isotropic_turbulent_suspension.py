@@ -14,8 +14,8 @@ import time
 import matplotlib
 from numpy import where
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.raster_cts import RasterCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.raster_cts import RasterCTS
 
 
 def setup_transition_list():
