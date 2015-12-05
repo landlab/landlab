@@ -14,8 +14,8 @@ import random
 from numpy import zeros, bincount, arange
 from pylab import subplots, plot, show, xlabel, ylabel, title, axis
 from landlab import HexModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-from landlab.components.cellular_automata.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
 
 def setup_transition_list():
