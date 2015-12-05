@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
@@ -50,7 +52,7 @@ sp = SPEroder(mg, input_file)
 
 time_on = time()
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()
     mg = sp.erode(mg)

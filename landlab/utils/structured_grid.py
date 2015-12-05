@@ -1054,7 +1054,7 @@ def vertical_active_link_ids2(shape, node_status=None):
     """
     link_ids = np.empty((shape[0] - 1, shape[1] - 2), dtype=np.int)
     num_links_per_row = (2 * shape[1]) - 1
-    for r in xrange(shape[0] - 1):
+    for r in range(shape[0] - 1):
         link_ids[r,:] = shape[1] + (r * num_links_per_row) \
                         + np.arange(shape[1] - 2)
 
@@ -1127,7 +1127,7 @@ def horizontal_active_link_ids2(shape, node_status=None):
     """
     link_ids = np.empty((shape[0] - 2, shape[1] - 1), dtype=np.int)
     num_links_per_row = (2 * shape[1]) - 1
-    for r in xrange(shape[0] - 2):
+    for r in range(shape[0] - 2):
         link_ids[r,:] = ((r + 1) * num_links_per_row) + np.arange(shape[1] - 1)
     if node_status is not None:
         inactive_links = horizontal_inactive_link_mask(shape, node_status)

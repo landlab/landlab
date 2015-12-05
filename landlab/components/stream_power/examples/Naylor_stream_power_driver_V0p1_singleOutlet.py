@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab import ModelParameterDictionary
@@ -47,7 +49,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 print('Running ...')
 
 # MN: Loop over several changes in the outlet position
-for t in xrange(5):
+for t in range(5):
 
     # Set a new random outlet position
     mg.set_inactive_boundaries(True, True, True, True)
@@ -68,7 +70,7 @@ for t in xrange(5):
     time_on = time()
 
     #perform the inner time loops:
-    for i in xrange(nt):
+    for i in range(nt):
         mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg = sp.erode(mg)

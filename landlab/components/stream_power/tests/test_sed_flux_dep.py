@@ -6,6 +6,8 @@ a few more times, to ensure repeatability.
 """
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
@@ -45,7 +47,7 @@ def test_sed_dep():
     fr = FlowRouter(mg)
     sde = SedDepEroder(mg, input_file)
 
-    for i in xrange(nt):
+    for i in range(nt):
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg, _ = sde.erode(mg, dt)

@@ -9,6 +9,8 @@ Created on Wed Mar 4 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
@@ -51,7 +53,7 @@ interior_nodes = mg.core_nodes
 section_downfan = []
 
 # do the loop
-for i in xrange(2000):
+for i in range(2000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
@@ -79,5 +81,5 @@ imshow_node_grid(mg, 'water__depth')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)
-for i in xrange(len(section_downfan)):
+for i in range(len(section_downfan)):
     plot(section_downfan[i], '-')

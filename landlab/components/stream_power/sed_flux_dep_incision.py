@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 import numpy as np
 from time import sleep
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
@@ -331,7 +333,7 @@ class SedDepEroder(object):
         else:
             raise MissingKeyError('Provided sed flux sensitivity type in input file was not recognised!')
 
-        for i in xrange(self.pseudoimplicit_repeats):
+        for i in range(self.pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added = prefactor_for_volume*sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added/trans_cap_vol_out

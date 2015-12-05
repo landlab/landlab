@@ -6,9 +6,10 @@
 
     Created DEJH, 8/2013
 """
+import warnings
 
+from six.moves import range
 import numpy as np
-import six
 
 from landlab import CLOSED_BOUNDARY
 
@@ -28,7 +29,8 @@ class AccumFlow(object):
         except:
             data.flowacc = self.flow_accum_by_area[:-1]
         else:
-            six.print_("Another module has created the flow accumulation grid. Undesirable conflicts may occur!")
+            warnings.warn("Another module has created the flow accumulation "
+                          "grid. Undesirable conflicts may occur!")
             assert(len(data.flowacc) == len(self.flow_accum_by_area[:-1]))
 
     def calc_flowacc(self, grid, data):
@@ -38,12 +40,15 @@ class AccumFlow(object):
         try:
             height_order_active_cells = np.argsort(data.elev[active_cell_ids])[::-1] #descending order
         except:
-            six.print_('Cells could not be sorted by elevation. Does the data object contain the elevation vector?')
+            warnings.warn("Cells could not be sorted by elevation. Does the "
+                          "data object contain the elevation vector?")
 
         try:
             sorted_flowdirs = (data.flowdirs[active_cell_ids])[height_order_active_cells]
         except:
-            six.print_('Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?')
+            warnings.warn("Flow directions could not be sorted by elevation. "
+                          "Does the data object contain the flow direction "
+                          "vector?")
         # print grid.area_of_cell
         self.flow_accum_by_area[active_cell_ids] = grid.area_of_cell # This is only the active nodes == cells by definition
 
@@ -69,7 +74,7 @@ printf ('Test');
 
 #---
         ##inefficient Python code to mimic the above weave:
-        for i in xrange(len(sorted_flowdirs)):
+        for i in range(len(sorted_flowdirs)):
             iter_height_order = height_order_active_cells[i]
             iter_sorted_fldirs = sorted_flowdirs[i]
             self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]

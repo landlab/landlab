@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
@@ -50,7 +52,7 @@ diffuse = PerronNLDiffuse(mg, input_file)
 lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     # note the input arguments here are not totally standardized between modules
     #mg = diffuse.diffuse(mg, i*dt)
     mg = lin_diffuse.diffuse(dt)

@@ -9,6 +9,8 @@ Sinks are tested as part of the lake_mapper.
 # Created on Thurs Nov 12, 2015
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -243,7 +245,7 @@ def setup_voronoi():
                           np.array([6, ])]
 
     A_target_core = np.zeros(vmg.number_of_core_nodes)
-    for i in xrange(7):
+    for i in range(7):
         A_target_core[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell.sum()
 
@@ -286,7 +288,7 @@ def setup_voronoi_closedinternal():
                           np.array([1, 4, 6])]
 
     A_target_internal = np.zeros(vmg.number_of_core_nodes, dtype=float)
-    for i in xrange(6):
+    for i in range(6):
         A_target_internal[i] = vmg.area_of_cell[cells_contributing[i]].sum()
 #        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()

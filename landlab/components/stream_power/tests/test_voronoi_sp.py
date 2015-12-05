@@ -1,6 +1,8 @@
 """Test the Voronoi compatibility of the grid."""
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -30,7 +32,7 @@ def test_sp_voronoi():
     spe = StreamPowerEroder(mg, os.path.join(_THIS_DIR,
                                              'drive_sp_params_voronoi.txt'))
 
-    for i in xrange(10):
+    for i in range(10):
         z[mg.core_nodes] += 0.01
         fr.route_flow()
         spe.erode(mg, 1.)

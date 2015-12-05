@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary
 
@@ -43,8 +45,8 @@ slope = np.empty(nt)
 angle = np.empty(nt)
 az = np.empty(nt)
 mass_balance = np.empty(nt)
-for i in xrange(loops):
-    for j in xrange(nt):
+for i in range(loops):
+    for j in range(nt):
         mg = craters_component.excavate_a_crater_furbish(mg)
         x[j] = craters_component.impact_xy_location[0]
         y[j] = craters_component.impact_xy_location[1]

@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 import numpy as np
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from time import sleep
@@ -385,7 +387,7 @@ class TransportLimitedEroder(object):
         # print 'num reps: ', num_reps_internal
         dt_excess = dt % delta_t_internal
 
-        for reps in xrange(num_reps_internal + 1):
+        for reps in range(num_reps_internal + 1):
             # check if last loop
             if reps == num_reps_internal:
                 delta_t_internal = dt_excess
@@ -426,7 +428,7 @@ class TransportLimitedEroder(object):
         # we won't be adjusting the flow paths during step subdivision, so this fortunately stays linear, and we only do it once...
         #one_less_delta_t_times_sumofDs = 1. - delta_t_internal*sum_of_Ds
         #
-        # for reps in xrange(num_reps_internal+1):
+        # for reps in range(num_reps_internal+1):
         #    #check if last loop
         #    if reps==num_reps_internal:
         #        delta_t_internal = dt_excess

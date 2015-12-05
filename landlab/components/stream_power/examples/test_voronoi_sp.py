@@ -1,3 +1,5 @@
+from six.moves import range
+
 from landlab import VoronoiDelaunayGrid  # , RasterModelGrid
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
@@ -16,7 +18,7 @@ z = mg.add_field('node', 'topographic__elevation', np.random.rand(nnodes)/10000.
 fr = FlowRouter(mg)
 spe = StreamPowerEroder(mg, 'drive_sp_params_voronoi.txt')
 
-for i in xrange(100):
+for i in range(100):
     z[mg.core_nodes] += 0.01
     fr.route_flow()
     spe.erode(mg, 1.)

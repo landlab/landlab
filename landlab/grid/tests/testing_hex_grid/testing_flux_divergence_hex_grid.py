@@ -36,6 +36,7 @@ IN A HEX-SHAPED OR RECTANGULAR HEX, SLIGHTLY MORE COMPLICATED BUT NOT TOO BAD.
 IN A GENERAL VORONOI...??
 FIRST THING PROBABLY IS TO FIX LINK_AT_FACE FOR RASTER, THEN IMPLEMENT FOR HEX.
 """
+from six.moves import range
 
 from landlab import HexModelGrid
 import numpy as np
@@ -85,7 +86,7 @@ def make_links_at_node_array(grid):
     grid.gt_num_active_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
     
     # Sweep over all links
-    for lk in xrange(grid.number_of_links):
+    for lk in range(grid.number_of_links):
         
         # Find the ID of the tail node
         t = grid.node_at_link_tail[lk]
@@ -184,7 +185,7 @@ def testing_flux_divergence_with_hex():
     
     # Some time trials
     start = time.time()
-    for i in xrange(1000):
+    for i in range(1000):
         gt_grads_at_faces1(hmg, nv)
     endtime = time.time()
     print('Time:'+str(endtime-start))
