@@ -112,8 +112,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         # hex grid, the IDs go: 0, M, 1, M+1, 2, M+2, ... etc., where M is half
         # the number of columns, rounded up (so, for example, 3 for a 5- or 6-
         # column grid, etc.)
-        half_num_cols = (self.nc+1)/2
-        bottom_row_node_id = arange(self.nc)/2+(arange(self.nc)%2)*half_num_cols
+        half_num_cols = (self.nc + 1) // 2
+        bottom_row_node_id = (arange(self.nc) // 2 +
+                              (arange(self.nc) % 2) * half_num_cols)
 
         #   Find the first of the bottom-row nodes that lies in the footwall.
         # This loop exploits the fact that nodes are numbered in an order 
