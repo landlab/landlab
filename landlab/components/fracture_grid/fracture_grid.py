@@ -34,13 +34,12 @@ import numpy as np
 import random
 
 
-def calculate_fracture_starting_position((numrows, numcols), seed):
-    """
-    Chooses a random starting position along the x or y axis (random choice).
+def calculate_fracture_starting_position(shape, seed):
+    """Choose a random starting position along the x or y axis (random choice).
 
     Parameters
     ----------
-    (numrows, numcols) : tuple of int
+    shape : tuple of int
         Number of rows and columns in the grid
     seed : int
         Seeds the random number generator, so that a particular random
@@ -53,23 +52,22 @@ def calculate_fracture_starting_position((numrows, numcols), seed):
     """
     random.seed(seed)
 
-    if random.randint(0, 1)==0:
+    if random.randint(0, 1) == 0:
         x = 0
-        y = random.randint(0, numrows-1)
+        y = random.randint(0, shape[0] - 1)
     else:
-        x = random.randint(0, numcols-1)
+        x = random.randint(0, shape[1] - 1)
         y = 0
     return (y, x)
 
 
-def calculate_fracture_orientation((y, x), seed):
-    """
-    Chooses a random orientation for the fracture.
+def calculate_fracture_orientation(coords, seed):
+    """Choose a random orientation for the fracture.
 
     Parameters
     ----------
-    y, x : tuple of int
-        Starting coordinates (one of which should be zero)
+    coords : tuple of int
+        Starting coordinates (one of which should be zero) as *y*, *x*.
     seed : int
         Seed value for random number generator
 
@@ -84,9 +82,11 @@ def calculate_fracture_orientation((y, x), seed):
     will be between 45 and 135 degrees from horizontal (counter-clockwise).
     Otherwise, it will be between -45 and 45 degrees.
     """
+    y, x = coords
+
     np.random.seed(seed)
     ang = (pi/2)*np.random.rand()
-    if y==0:
+    if y == 0:
         ang += pi/4
     else:
         ang -= pi/4
@@ -94,14 +94,14 @@ def calculate_fracture_orientation((y, x), seed):
     return ang
 
 
-def calculate_fracture_step_sizes((starty, startx), ang):
+def calculate_fracture_step_sizes(start_yx, ang):
     """
     Calculate the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
     Parameters
     ----------
-    starty, startx : tuple of int
+    start_yx : tuple of int
         Starting grid coordinates
     ang : float
         Fracture angle relative to horizontal (radians)
@@ -110,8 +110,9 @@ def calculate_fracture_step_sizes((starty, startx), ang):
     -------
     (dy, dx) : tuple of float
         Step sizes in y and x directions. One will always be unity, and the
-    other will always be <1.
+        other will always be <1.
     """
+    y, x = start_yx
     if startx==0:  # frac starts on left side
         dx = 1
         dy = tan(ang)
@@ -122,8 +123,9 @@ def calculate_fracture_step_sizes((starty, startx), ang):
     return (dy, dx)
 
 
-def trace_fracture_through_grid(m, (y0, x0), (dy, dx)):
-    """
+def trace_fracture_through_grid(m, start_yx, spacing):
+    """Create a 2D fracture in a grid.
+
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity along
     the trace of the fracture (i.e., "drawing" a line throuh the grid).
 
@@ -131,21 +133,24 @@ def trace_fracture_through_grid(m, (y0, x0), (dy, dx)):
     ----------
     m : 2D Numpy array
         Array that represents the grid
-    (y0, x0) : int
+    start_yx : tuple of int
         Starting grid coordinates for fracture
-    (dy, dx) : tuple of float
+    spacing : tuple of float
         Step sizes in y and x directions
 
     Returns
     -------
     None, but changes contents of m
     """
+    y0, x0 = start_yx
+    dy, dx = spacing
+
     x = x0
     y = y0
     
-    while round(x)<size(m, 1) and round(y)<size(m, 0) \
-            and round(x)>=0 and round(y)>=0:
-        m[int(y+0.5)][int(x+0.5)] = 1
+    while round(x) < size(m, 1) and round(y) < size(m, 0) \
+            and round(x) >= 0 and round(y) >= 0:
+        m[int(y + 0.5)][int(x + 0.5)] = 1
         x += dx
         y += dy
 
