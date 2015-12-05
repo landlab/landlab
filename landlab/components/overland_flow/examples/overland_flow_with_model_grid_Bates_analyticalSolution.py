@@ -56,9 +56,8 @@ slope = mg.add_zeros('link', 'topographic_slope')    # dimensionless slope
 h_links = mg.add_zeros('link', 'water_depth')+h_init # water depth (m) on links
 dhdt = mg.add_zeros('node', 'water_depth_time_derivative')  # rate of water-depth change
 
-# Left side has deep water
-leftside = mg.left_edge_node_ids()
-leftside = leftside+1                     # One column in to prevent issues with BC
+# Left side has deep water. One column in to prevent issues with BC
+inside_left_edge = rmg.nodes[1: -1, 1]
 
 # Get a list of the core nodes
 core_nodes = mg.core_nodes
@@ -71,13 +70,13 @@ start_time = time.time()
 dtmax = 1.0 # a dt to start things off...
 # Main loop
 while elapsed_time <= run_time:
-
-
     # First we calculate our updated boundary water depth
-    h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m)
+    # water depth at left side (m)
+    h_boundary = (seven_over_three * n * n * u * u * u *
+                  elapsed_time) ** three_over_seven
 
     # And now we add it to the second column, in all rows that are not boundary rows.
-    h[(leftside)[1:len(leftside)-1]] = h_boundary
+    h[inside_left_edge] = h_boundary
 
     # Calculate the effective flow depth at active links. Bates et al. 2010
     # and de Almeida et al. 2012 both recommend using the the difference
@@ -106,7 +105,7 @@ while elapsed_time <= run_time:
     h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m)
 
     # And now we add it to the second column, in all rows that are not boundary rows.
-    h[(leftside)[1:len(leftside)-1]] = h_boundary
+    h[inside_left_edge] = h_boundary
 
     # Calculate time-step size for this iteration (Bates et al., eq 14)
     dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
