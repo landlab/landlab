@@ -29,10 +29,10 @@ mg = RasterModelGrid(nrows, ncols, dx)
 # attempt to implement diffusion with flow routing...
 
 #modify the fields in the grid
-z = mg.create_node_array_zeros() + init_elev
+z = mg.zeros(at='node') + init_elev
 z_slope = (49000. - mg.node_y)/mg.node_y.max()/20.
 mg.at_node['topographic__elevation'] = z + z_slope #+ np.random.rand(len(z))/1000.
-mg.create_node_array_zeros('water__volume_flux_in')
+mg.add_zeros('water__volume_flux_in', at='node')
 
 #Set boundary conditions
 inlet_node = np.array((int((1.5*mg.number_of_node_columns)//1)))

@@ -183,7 +183,7 @@ class OverlandFlow(Component):
         self.elapsed_time = 1.0
 
         self.dt = None
-        self.dhdt = grid.create_node_array_zeros()
+        self.dhdt = grid.zeros(at='node')
 
         # When we instantiate the class we recognize that neighbors have not
         # been found. After the user either calls self.set_up_neighbor_array

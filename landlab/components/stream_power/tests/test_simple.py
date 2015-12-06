@@ -33,8 +33,8 @@ def test_fastscape():
     mg = RasterModelGrid(nrows, ncols, dx)
     mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
 
-    mg.create_node_array_zeros('topographic__elevation')
-    z = mg.create_node_array_zeros() + init_elev
+    mg.add_zeros('topographic__elevation', at='node')
+    z = mg.zeros(at='node') + init_elev
     numpy.random.seed(0)
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.

@@ -35,7 +35,7 @@ def test_tl_fluvial():
     uplift_per_step = uplift_rate * dt
 
     mg = RasterModelGrid(nrows, ncols, dx)
-    mg.create_node_array_zeros('topographic__elevation')
+    mg.add_zeros('topographic__elevation', at='node')
     z = np.loadtxt(os.path.join(_THIS_DIR, 'tl_init.gz'))
     mg['node']['topographic__elevation'] = z
 

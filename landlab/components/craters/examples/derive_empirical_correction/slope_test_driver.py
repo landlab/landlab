@@ -21,7 +21,7 @@ loops = inputs.read_int('number_of_loops')
 
 mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_looped_boundaries(True, True)
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 
 def fitFunc(t, a,b,c,d,e,f,g):
     return a*t**6. + b*t**5. +c*t**4. + d*t**3. + e*t**2. + f*t + g
@@ -52,7 +52,7 @@ for i in range(repeats):
         #print 'Slope is ', k
         #create the fields in the grid
         initial_slope = k
-        z = mg.create_node_array_zeros() + leftmost_elev
+        z = mg.zeros(at='node') + leftmost_elev
         z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
         mg.at_node[ 'topographic__elevation'] = z
 

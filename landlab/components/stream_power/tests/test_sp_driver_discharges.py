@@ -23,7 +23,7 @@ def test_sp_discharges():
     dt = inputs.read_float('dt')
 
     mg = RasterModelGrid(nrows, ncols, dx)
-    mg.create_node_array_zeros('topographic__elevation')
+    mg.add_zeros('topographic__elevation', at='node')
     z = np.array([5., 5., 0., 5., 5.,
                   5., 2., 1., 2., 5.,
                   5., 3., 2., 3., 5.,

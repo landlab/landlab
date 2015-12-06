@@ -13,6 +13,8 @@ Last updated May 2015 DEJH
 
 from __future__ import print_function
 
+import numpy as np
+
 from landlab import ModelParameterDictionary, Component, FieldError
 from landlab import create_and_initialize_grid
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -138,8 +140,8 @@ class LinearDiffuser(Component):
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is
         #   adaptive/changing
-        dx = self._grid.min_active_link_length()  # smallest active link length
-        self.dt = _ALPHA*dx*dx/self.kd  # CFL condition
+        dx = np.amin(self._grid.link_length[self._grid.active_links])
+        self.dt = _ALPHA * dx * dx / self.kd  # CFL condition
         try:
             self.tstep_ratio = self.timestep_in/self.dt
         except AttributeError:
@@ -164,9 +166,9 @@ class LinearDiffuser(Component):
 #        else:
 #            # Create data arrays for variables that won't (?) be shared with other
 #            # components
-#            self.g = self._grid.create_active_link_array_zeros()  # surface gradients
-#            self.qs = self._grid.create_active_link_array_zeros()  # unit sediment flux
-#            self.dqds = self._grid.create_node_array_zeros()  # sed flux derivative
+#            self.g = self._grid.zeros('active_link')  # surface gradients
+#            self.qs = self._grid.zeros('active_link')  # unit sediment flux
+#            self.dqds = self._grid.zeros(at='node')  # sed flux derivative
 
         self.z = self._grid.at_node[self.values_to_diffuse]
         g = self._grid.zeros(centering='link')

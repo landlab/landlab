@@ -23,7 +23,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 mg['node'][ 'topographic__elevation'] = np.load('init.npy')
 
 # Display a message
