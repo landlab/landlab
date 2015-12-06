@@ -31,7 +31,7 @@ so these values need not be passed in.  Elevationare eroded and sent back.
 """
 
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
+from landlab.components.flow_routing import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import numpy as np
 #import matplotlib.pyplot as plt

@@ -5,12 +5,10 @@ from landlab.plot.imshow import imshow_grid
 from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
 from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
+from landlab.components.flow_routing import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import matplotlib.pyplot as plt
-#reload(flow_routing_D8)
-#reload(flow_accumulation)
-#reload(raster)
+
 
 def main():
     nr = 5

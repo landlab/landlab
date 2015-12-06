@@ -14,7 +14,7 @@ from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
 from landlab.components.potentiality_flowrouting.route_flow_by_boundary import PotentialityFlowRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder
 
 nrows = 100

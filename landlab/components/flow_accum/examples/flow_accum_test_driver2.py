@@ -3,14 +3,12 @@ from __future__ import print_function
 import numpy as np
 from pylab import show, imshow, colorbar, plot
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
+from landlab.components.flow_routing import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 from landlab.plot.imshow import imshow_grid
 from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
-#reload(flow_routing_D8)
-#reload(flow_accumulation)
-#reload(raster)
+
 
 def main():
     nr = 5

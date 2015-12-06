@@ -5,7 +5,7 @@ import pylab
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from random import uniform
 from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
+from landlab.components.flow_routing import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 import matplotlib.pyplot as plt
 

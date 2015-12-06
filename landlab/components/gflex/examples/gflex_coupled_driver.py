@@ -9,7 +9,7 @@ Created on Fri Feb 20 11:17:52 2015
 from __future__ import print_function
 
 from landlab.components.gFlex.flexure import gFlex
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
 from landlab.components.stream_power.stream_power import StreamPowerEroder
 import numpy as np
