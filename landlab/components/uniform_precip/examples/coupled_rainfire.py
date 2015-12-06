@@ -18,7 +18,7 @@ Written by Jordan Marie Adams, 2014.
 import os
 from matplotlib import pyplot as plt
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
-from landlab.components.fire_generator.generate_fire import FireGenerator
+from landlab.components.fire_generator import FireGenerator
 import numpy as np
 from math import ceil
 
