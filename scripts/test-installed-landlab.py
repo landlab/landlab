@@ -26,7 +26,7 @@ import landlab
 
 result = landlab.test(label=options.mode, verbose=options.verbose,
                       doctests=options.doctests, coverage=options.coverage,
-                      extra_argv=args)
+                      extra_argv=args, raise_warnings='release')
 
 if result.wasSuccessful():
     sys.exit(0)

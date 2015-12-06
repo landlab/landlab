@@ -70,13 +70,15 @@ def imshow_node_grid(grid, values, **kwds):
     values_at_node = np.ma.masked_where(
         grid.status_at_node == CLOSED_BOUNDARY, values_at_node)
 
-    myimage = _imshow_grid_values(grid, values_at_node.reshape(grid.shape),
-                                  **kwds)
+    try:
+        shape = grid.shape
+    except AttributeError:
+        shape = (-1, )
+
+    _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
 
     if isinstance(values, str):
         plt.title(values)
-
-    return myimage
 
 
 def imshow_cell_grid(grid, values, **kwds):

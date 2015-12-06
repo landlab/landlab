@@ -5,8 +5,10 @@ import numpy as np
 from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE
+from landlab.utils.decorators import use_field_name_or_array
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients over links.
 
@@ -47,6 +49,10 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
     >>> grid.calculate_gradients_at_links(node_values)
     array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
+
+    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> grid.calculate_gradients_at_links('elevation')
+    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
     """
     diffs = gradients.calculate_diff_at_links(grid, node_values, out=out)
 
@@ -57,6 +63,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     return diffs
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients over active links.
 
@@ -123,6 +130,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     return diffs
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
     Get gradients across the faces of a cell.
@@ -203,6 +211,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
     Get gradients to diagonally opposite nodes.
@@ -263,6 +272,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
     Get gradients along links touching a node.

@@ -27,7 +27,7 @@ except ImportError:
 
 def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
     if threshold == None:
-        threshold = 2. * numpy.amin(grid.cell_areas)
+        threshold = 2. * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
     #top_two_pc = len(boundary_nodes)//50
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
@@ -125,7 +125,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
         assert len(
             starting_nodes) == number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
         if threshold == None:
-            threshold = 2. * numpy.amin(grid.cell_areas)
+            threshold = 2. * numpy.amin(grid.area_of_cell)
         profile_IDs = []
         for i in starting_nodes:
             j = i

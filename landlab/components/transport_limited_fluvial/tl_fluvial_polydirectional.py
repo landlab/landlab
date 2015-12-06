@@ -31,15 +31,17 @@ class TransportLimitedEroder(object):
 
     DEJH Sept 14.
     Currently only runs on a raster grid
+    Not well tested
     """
 
     def __init__(self, grid, params):
         self.initialize(grid, params)
 
-#This draws attention to a potential problem. It will be easy to have modules update z, but because noone "owns" the data, to forget to also update dz/dx...
-#How about a built in grid utility that updates "derived" data (i.e., using only grid fns, e.g., slope, curvature) at the end of any given tstep loop?
-#Or an explicit flagging system for all variables in the modelfield indicating if they have been updated this timestep. (Currently implemented)
-#Or wipe the existance of any derived grid data at the end of a timestep entirely, so modules find they don't have it next timestep.
+# This draws attention to a potential problem. It will be easy to have modules update z, but because noone "owns" the data, to forget to also update dz/dx...
+# How about a built in grid utility that updates "derived" data (i.e., using only grid fns, e.g., slope, curvature) at the end of any given tstep loop?
+# Or an explicit flagging system for all variables in the modelfield indicating if they have been updated this timestep. (Currently implemented)
+# Or wipe the existance of any derived grid data at the end of a timestep
+# entirely, so modules find they don't have it next timestep.
 
     def initialize(self, grid, params_file):
         '''
@@ -128,8 +130,10 @@ class TransportLimitedEroder(object):
 
         '''
         self.grid = grid
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
+        # needs to be filled with values in execution
+        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
+        self.count_active_links = np.zeros_like(
+            self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
         inputs = ModelParameterDictionary(params_file)
         try:
@@ -155,7 +159,7 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             raise MissingKeyError("Qc must be 'MPM' or a grid field name!")
         else:
-            if self.Qc=='MPM':
+            if self.Qc == 'MPM':
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
@@ -166,7 +170,9 @@ class TransportLimitedEroder(object):
             self.lamb_flag = False
         try:
             self.shields_crit = inputs.read_float('threshold_shields')
-            self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
+            # flag for sed_flux_dep_incision to see if the threshold was
+            # manually set.
+            self.set_threshold = True
             print("Found a threshold to use: ", self.shields_crit)
             assert self.lamb_flag == False
         except MissingKeyError:
@@ -211,17 +217,18 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             pass
 
-        #assume Manning's equation to set the power on A for shear stress:
-        self.shear_area_power = 0.6*self._c*(1.-self._b)
+        # assume Manning's equation to set the power on A for shear stress:
+        self.shear_area_power = 0.6 * self._c * (1. - self._b)
 
         self.k_Q = inputs.read_float('k_Q')
         self.k_w = inputs.read_float('k_w')
         mannings_n = inputs.read_float('mannings_n')
-        if mannings_n<0. or mannings_n>0.2:
+        if mannings_n < 0. or mannings_n > 0.2:
             print("***STOP. LOOK. THINK. You appear to have set Manning's n outside it's typical range. Did you mean it? Proceeding...***")
             sleep(2)
-        self.depth_prefactor = self.rho_g*mannings_n*(self.k_Q**(1.-self._b)/self.k_w)**0.6
-        ##Note the depth_prefactor we store already holds rho*g
+        self.depth_prefactor = self.rho_g * mannings_n * \
+            (self.k_Q**(1. - self._b) / self.k_w)**0.6
+        # Note the depth_prefactor we store already holds rho*g
         try:
             epsilon = inputs.read_float('Parker_epsilon')
         except MissingKeyError:
@@ -232,30 +239,38 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             self.C_MPM = 1.
         try:
-            self.shields_prefactor = 1./((self.sed_density-self.fluid_density)*self.g*self.Dchar_in)
-            self.MPM_prefactor = 8.*self.C_MPM*np.sqrt(self.relative_weight*self.Dchar_in*self.Dchar_in*self.Dchar_in)
-            self.MPM_prefactor_alt = 4.*self.g**(-2./3.)/self.excess_SG/self.fluid_density/self.sed_density
+            self.shields_prefactor = 1. / \
+                ((self.sed_density - self.fluid_density) * self.g * self.Dchar_in)
+            self.MPM_prefactor = 8. * self.C_MPM * \
+                np.sqrt(self.relative_weight * self.Dchar_in *
+                        self.Dchar_in * self.Dchar_in)
+            self.MPM_prefactor_alt = 4. * \
+                self.g**(-2. / 3.) / self.excess_SG / \
+                self.fluid_density / self.sed_density
         except AttributeError:
-            #have to set these manually as needed
-            self.shields_prefactor_noD = 1./((self.sed_density-self.fluid_density)*self.g)
-        self.diffusivity_prefactor = 8.*np.sqrt(8.*self.g)/(self.sed_density/self.fluid_density-1.)*(epsilon/(epsilon+1.))**1.5*mannings_n**(5./6.)*self.k_w**-0.9*self.k_Q**(0.9*(1.-self._b)) #...this is multiplied by A**c(1-0.1*(1-b))
-        #we consciously skip out a factor of S**0.05-->1. in the diffusion prefactor, to avoid delinearizing the diffusion. Only a possible problem at tiny S (20% error @S==0.01; 37% error @S==10**-4)
-        #we could include this as a static adjustment in the actual looping code (i.e., just multiply by S**0.05, and don't work with it as part of the problem)
-        #in reality, Manning's n changes downstream too, so... whatever
-        self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
+            # have to set these manually as needed
+            self.shields_prefactor_noD = 1. / \
+                ((self.sed_density - self.fluid_density) * self.g)
+        self.diffusivity_prefactor = 8. * np.sqrt(8. * self.g) / (self.sed_density / self.fluid_density - 1.) * (epsilon / (
+            epsilon + 1.))**1.5 * mannings_n**(5. / 6.) * self.k_w**-0.9 * self.k_Q**(0.9 * (1. - self._b))  # ...this is multiplied by A**c(1-0.1*(1-b))
+        # we consciously skip out a factor of S**0.05-->1. in the diffusion prefactor, to avoid delinearizing the diffusion. Only a possible problem at tiny S (20% error @S==0.01; 37% error @S==10**-4)
+        # we could include this as a static adjustment in the actual looping code (i.e., just multiply by S**0.05, and don't work with it as part of the problem)
+        # in reality, Manning's n changes downstream too, so... whatever
+        self.diffusivity_power_on_A = 0.9 * self._c * \
+            (1. - self._b)  # i.e., q/D**(1/6)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.node_at_cell] = grid.cell_areas
+        self.cell_areas.fill(np.mean(grid.area_of_cell))
+        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
         self.dx2 = grid.dx ** 2
         self.dy2 = grid.dy ** 2
-        self.bad_neighbor_mask = np.equal(grid.get_active_neighbors_at_node(bad_index=-1),-1)
+        self.bad_neighbor_mask = np.equal(
+            grid.get_active_neighbors_at_node(bad_index=-1), -1)
 
     def erode(self, grid, dt, node_drainage_areas='drainage_area',
-                node_elevs='topographic__elevation',
-                W_if_used=None, Q_if_used=None,
-                Dchar_if_used=None, io=None):
-
+              node_elevs='topographic__elevation',
+              W_if_used=None, Q_if_used=None,
+              Dchar_if_used=None, io=None):
         """
         This method calculates the fluvial sediment transport capacity at all
         nodes, then erodes or deposits sediment as required.
@@ -316,90 +331,102 @@ class TransportLimitedEroder(object):
         ncols = grid.number_of_node_columns
 
         try:
-            self.Dchar=self.Dchar_in
+            self.Dchar = self.Dchar_in
         except AttributeError:
             try:
-                self.Dchar=grid.at_node[Dchar_if_used]
+                self.Dchar = grid.at_node[Dchar_if_used]
             except FieldError:
-                assert type(Dchar_if_used)==np.ndarray
-                self.Dchar=Dchar_if_used
+                assert type(Dchar_if_used) == np.ndarray
+                self.Dchar = Dchar_if_used
 
-        if type(node_elevs)==str:
+        if type(node_elevs) == str:
             node_z = grid.at_node[node_elevs]
         else:
             node_z = node_elevs
-        node_z_asgrid = node_z.view().reshape((nrows,ncols))
+        node_z_asgrid = node_z.view().reshape((nrows, ncols))
 
-        if type(node_drainage_areas)==str:
+        if type(node_drainage_areas) == str:
             node_A = grid.at_node[node_drainage_areas]
         else:
             node_A = node_drainage_areas
 
-        ###########this still "feels" the influence of closed nodes. Need to
-        ###########get rid of them.
+        # this still "feels" the influence of closed nodes. Need to
+        # get rid of them.
 
-        all_nodes_diffusivity = self.diffusivity_prefactor*node_A**self.diffusivity_power_on_A
-        #########ALT
+        all_nodes_diffusivity = self.diffusivity_prefactor * \
+            node_A**self.diffusivity_power_on_A
+        # ALT
         neighbor_nodes = grid.get_active_neighbors_at_node(bad_index=-1)
-        #the -1 lets us get *some* value for all nodes, which we then mask:
-        neighbor_diffusivities = np.ma.array(all_nodes_diffusivity[neighbor_nodes], mask=self.bad_neighbor_mask)
-        #pylab.figure(1)
-        #pylab.imshow(neighbor_diffusivities[:,3].reshape((nrows,ncols)))
-        #pylab.colorbar()
+        # the -1 lets us get *some* value for all nodes, which we then mask:
+        neighbor_diffusivities = np.ma.array(
+            all_nodes_diffusivity[neighbor_nodes], mask=self.bad_neighbor_mask)
+        # pylab.figure(1)
+        # pylab.imshow(neighbor_diffusivities[:,3].reshape((nrows,ncols)))
+        # pylab.colorbar()
         #order is E,N,W,S
-        mean_diffusivities_byspacing = neighbor_diffusivities+all_nodes_diffusivity.reshape((grid.number_of_nodes,1)) #not yet _byspacing...
-        mean_diffusivities_byspacing[:,[0,2]] /= (2.*dx)
-        mean_diffusivities_byspacing[:,[1,3]] /= (2.*dy) #now complete
-        #for in the loop
-        rate_of_z_change_store = np.ma.empty((mean_diffusivities_byspacing.shape[0],2),dtype=float)
-        #set up the Von Neumann stability criterion:
-        np.sum(mean_diffusivities_byspacing[:,[0,2]]/dx, axis=1, out=rate_of_z_change_store[:,0])
-        np.sum(mean_diffusivities_byspacing[:,[1,3]]/dy, axis=1, out=rate_of_z_change_store[:,1])
+        mean_diffusivities_byspacing = neighbor_diffusivities + \
+            all_nodes_diffusivity.reshape(
+                (grid.number_of_nodes, 1))  # not yet _byspacing...
+        mean_diffusivities_byspacing[:, [0, 2]] /= (2. * dx)
+        mean_diffusivities_byspacing[:, [1, 3]] /= (2. * dy)  # now complete
+        # for in the loop
+        rate_of_z_change_store = np.ma.empty(
+            (mean_diffusivities_byspacing.shape[0], 2), dtype=float)
+        # set up the Von Neumann stability criterion:
+        np.sum(mean_diffusivities_byspacing[
+               :, [0, 2]] / dx, axis=1, out=rate_of_z_change_store[:, 0])
+        np.sum(mean_diffusivities_byspacing[
+               :, [1, 3]] / dy, axis=1, out=rate_of_z_change_store[:, 1])
         max_sum_of_Ds = np.amax(np.sum(rate_of_z_change_store, axis=1))
 
-        #adjust the tstep for Von Neumann stability here:
-        delta_t_internal = 1./max_sum_of_Ds
-        num_reps_internal = int(dt//delta_t_internal)
-        #print 'num reps: ', num_reps_internal
-        dt_excess = dt%delta_t_internal
+        # adjust the tstep for Von Neumann stability here:
+        delta_t_internal = 1. / max_sum_of_Ds
+        num_reps_internal = int(dt // delta_t_internal)
+        # print 'num reps: ', num_reps_internal
+        dt_excess = dt % delta_t_internal
 
-        for reps in xrange(num_reps_internal+1):
-            #check if last loop
-            if reps==num_reps_internal:
+        for reps in xrange(num_reps_internal + 1):
+            # check if last loop
+            if reps == num_reps_internal:
                 delta_t_internal = dt_excess
 
             node_gradients = grid.calculate_gradient_along_node_links(node_z)
-            #pylab.figure(2)
-            #pylab.imshow(node_gradients[:,3].reshape((nrows,ncols)))
-            #pylab.colorbar()
-            #pylab.show()
-            #this method returns (nnodes,4), & masked values where links are inactive
-            #ordering is E,N,W,S, same as nieghbors and hence Ds
-            D_slope_product = node_gradients*mean_diffusivities_byspacing #the masks shoud be propagating forward still
-            np.sum(D_slope_product[:,:2], axis=1, out=rate_of_z_change_store[:,0])
-            np.sum(-D_slope_product[:,2:], axis=1, out=rate_of_z_change_store[:,1])
-            rate_of_z_change = np.sum(rate_of_z_change_store, axis=1) #this use of sum is necessary to preserve the right masking
-            node_z[grid.core_nodes] += delta_t_internal*rate_of_z_change[grid.core_nodes]
+            # pylab.figure(2)
+            # pylab.imshow(node_gradients[:,3].reshape((nrows,ncols)))
+            # pylab.colorbar()
+            # pylab.show()
+            # this method returns (nnodes,4), & masked values where links are inactive
+            # ordering is E,N,W,S, same as nieghbors and hence Ds
+            # the masks shoud be propagating forward still
+            D_slope_product = node_gradients * mean_diffusivities_byspacing
+            np.sum(D_slope_product[:, :2], axis=1,
+                   out=rate_of_z_change_store[:, 0])
+            np.sum(-D_slope_product[:, 2:], axis=1,
+                   out=rate_of_z_change_store[:, 1])
+            # this use of sum is necessary to preserve the right masking
+            rate_of_z_change = np.sum(rate_of_z_change_store, axis=1)
+            node_z[grid.core_nodes] += delta_t_internal * \
+                rate_of_z_change[grid.core_nodes]
 
         ##########
-        #all_nodes_diffusivity_asgrid = all_nodes_diffusivity.view().reshape((nrows,ncols)) #view prevents a copy from being made accidentally
+        # all_nodes_diffusivity_asgrid = all_nodes_diffusivity.view().reshape((nrows,ncols)) #view prevents a copy from being made accidentally
         #interior_nodes_diffusivity = all_nodes_diffusivity_asgrid[1:-1,1:-1]
-        ##the "subsets" are only defined on the interior nodes (non-perimeter)
+        # the "subsets" are only defined on the interior nodes (non-perimeter)
         #D_Ebydx2 = (all_nodes_diffusivity_asgrid[2:,1:-1]+interior_nodes_diffusivity)/2./dx2
         #D_Wbydx2 = (all_nodes_diffusivity_asgrid[:-2,1:-1]+interior_nodes_diffusivity)/2./dx2
-        #D_Nbydy2 = (all_nodes_diffusivity_asgrid[1:-1,:-2]+interior_nodes_diffusivity)/2./dy2 #remember, the grid is upside down by this reshape
+        # D_Nbydy2 = (all_nodes_diffusivity_asgrid[1:-1,:-2]+interior_nodes_diffusivity)/2./dy2 #remember, the grid is upside down by this reshape
         #D_Sbydy2 = (all_nodes_diffusivity_asgrid[1:-1,2:]+interior_nodes_diffusivity)/2./dy2
         #sum_of_Ds = D_Ebydx2 + D_Wbydx2 + D_Nbydy2 + D_Sbydy2
         #
-        ##adjust the tstep for Von Neumann stability here:
+        # adjust the tstep for Von Neumann stability here:
         #delta_t_internal = 1./np.amax(sum_of_Ds)
         #num_reps_internal = int(dt//delta_t_internal)
-        #print 'num reps: ', num_reps_internal
+        # print 'num reps: ', num_reps_internal
         #dt_excess = dt%delta_t_internal
-        ##we won't be adjusting the flow paths during step subdivision, so this fortunately stays linear, and we only do it once...
+        # we won't be adjusting the flow paths during step subdivision, so this fortunately stays linear, and we only do it once...
         #one_less_delta_t_times_sumofDs = 1. - delta_t_internal*sum_of_Ds
         #
-        #for reps in xrange(num_reps_internal+1):
+        # for reps in xrange(num_reps_internal+1):
         #    #check if last loop
         #    if reps==num_reps_internal:
         #        delta_t_internal = dt_excess
@@ -425,7 +452,7 @@ class TransportLimitedEroder(object):
         #    #...remember, because everything has hopefully been passed by reference, the
         #    #fields should already have updated to reflect changes to z here
         #
-        ##to see if this is actually necessary
+        # to see if this is actually necessary
         ##grid.at_node[node_elevs][sgrid.interior_nodes((nrows,ncols))] = node_z_asgrid.ravel()
         self.grid = grid
 
@@ -434,7 +461,7 @@ class TransportLimitedEroder(object):
             try:
                 io[active_nodes] += node_z_asgrid.ravel()[active_nodes]
             except TypeError:
-                if type(io)==str:
+                if type(io) == str:
                     elev_name = io
             else:
                 return grid, io
@@ -443,4 +470,3 @@ class TransportLimitedEroder(object):
             elev_name = 'topographic__elevation'
 
         return grid, grid.at_node[elev_name], all_nodes_diffusivity
-

@@ -41,8 +41,8 @@ class AccumFlow(object):
             sorted_flowdirs = (flowdirs[active_cell_ids])[height_order_active_cells]
         except:
             print('Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?')
-        #print grid.cell_areas
-        self.flow_accum_by_area[active_cell_ids] = grid.cell_areas #This is only the active nodes == cells by definition
+        # print grid.area_of_cell
+        self.flow_accum_by_area[active_cell_ids] = grid.area_of_cell # This is only the active nodes == cells by definition
 
         #print len(height_order_active_cells), len(sorted_flowdirs), len(self.flow_accum_by_area)
         #print height_order_active_cells

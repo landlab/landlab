@@ -74,11 +74,12 @@ time_off = time()
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = imshow_node_grid(mg, 'water__volume_flux',
-                      cmap='Blues')  # display a colored image
+
+# display a colored image
+imshow_node_grid(mg, 'water__volume_flux', cmap='Blues')
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
+imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)

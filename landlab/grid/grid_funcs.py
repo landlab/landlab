@@ -27,10 +27,10 @@ def resolve_values_on_active_links(grid, active_link_values):
     return (
         np.multiply(((grid.node_x[grid.activelink_tonode] -
                       grid.node_x[grid.activelink_fromnode]) /
-                     grid.active_link_length), active_link_values),
+                     grid.link_length[grid.active_links]), active_link_values),
         np.multiply(((grid.node_y[grid.activelink_tonode] -
                       grid.node_y[grid.activelink_fromnode]) /
-                     grid.active_link_length), active_link_values))
+                     grid.link_length[grid.active_links]), active_link_values))
 
 
 def resolve_values_on_links(grid, link_values):
@@ -137,6 +137,6 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
 
     # Now divide by cell areas ... where there are core cells.
     node_at_active_cell = grid.node_at_cell[grid.core_cells]
-    net_unit_flux[node_at_active_cell] /= grid.cell_areas[grid.core_cells]
+    net_unit_flux[node_at_active_cell] /= grid.area_of_cell[grid.core_cells]
 
     return net_unit_flux
