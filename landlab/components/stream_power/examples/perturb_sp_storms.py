@@ -10,9 +10,8 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, SPEroder
 from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
@@ -56,11 +55,11 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, input_file_string)
-#fsp = Fsc(mg, input_file_string)
+#fsp = SPEroder(mg, input_file_string)
 precip = PrecipitationDistribution(input_file=input_file_string)
 
 #load the Fastscape module too, to allow direct comparison
-fsp = Fsc(mg, input_file_string)
+fsp = SPEroder(mg, input_file_string)
 
 try:
     #raise NameError

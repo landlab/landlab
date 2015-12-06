@@ -532,7 +532,7 @@ class DepressionFinderAndRouter(Component):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing.lake_mapper import (
+        >>> from landlab.components.flow_routing import (
         ...     DepressionFinderAndRouter)
 
         >>> rg = RasterModelGrid(5, 5)
@@ -825,8 +825,7 @@ def main():
 
     # Now, route flow through.
     # First, find flow dirs without lakes. Then, adjust.
-    from landlab.components.flow_routing.flow_direction_DN import \
-        grid_flow_directions
+    from landlab.components.flow_routing import grid_flow_directions
     (rcvr, ss) = grid_flow_directions(grid, z)
     print(z)
     print(rcvr)

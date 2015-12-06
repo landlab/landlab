@@ -9,9 +9,8 @@ Created on Sun Sep 27 09:52:50, 2015
 
 import landlab
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.flow_routing.lake_mapper import \
-    DepressionFinderAndRouter
+from landlab.components.flow_routing import (FlowRouter,
+                                             DepressionFinderAndRouter)
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -50,9 +49,8 @@ def setup_dans_grid():
     Create a 7x7 test grid with a well defined hole in it.
     """
     from landlab import RasterModelGrid
-    from landlab.components.flow_routing.route_flow_dn import FlowRouter
-    from landlab.components.flow_routing.lake_mapper import \
-        DepressionFinderAndRouter
+    from landlab.components.flow_routing import (FlowRouter,
+                                                 DepressionFinderAndRouter)
 
     global fr, lf, mg
     global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
@@ -223,9 +221,8 @@ def setup_dans_grid2():
     Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
     """
     from landlab import RasterModelGrid
-    from landlab.components.flow_routing.route_flow_dn import FlowRouter
-    from landlab.components.flow_routing.lake_mapper import \
-        DepressionFinderAndRouter
+    from landlab.components.flow_routing import (FlowRouter,
+                                                 DepressionFinderAndRouter)
 
     global fr, lf, mg
     global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
