@@ -6,6 +6,7 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
@@ -79,12 +80,12 @@ SEs = (slice(0,-2),slice(2,n+2))
 
 for i in xrange(nt):
     if i%100==0:
-        print i
+        print(i)
     qE = np.zeros_like(hR)
     qW = np.zeros_like(hR)
     qN = np.zeros_like(hR)
     qS = np.zeros_like(hR)
-    
+
     #update the dummy edges of our variables:
     hR[0,1:-1] = hR[1,1:-1]
     hR[-1,1:-1] = hR[-2,1:-1]
@@ -106,7 +107,7 @@ for i in xrange(nt):
     vE[core] = sqrt(np.square(pgradEx[core])+np.square(pgradEy[core]))
     qE[core] = np.sign(hgradEx[core])*vE[core]*(CslopeE[core]-slope).clip(0.)*np.cos(thetaE[core])
 ###the clip should deal with the eastern edge, but return here to check if probs
-    
+
     hgradWx[core] = (hR[Ws]-hR[core])#/width
     hgradWy[core] = hR[SWs]-hR[NWs]+hR[Ss]-hR[Ns]
     hgradWy[core] *= 0.25
@@ -117,7 +118,7 @@ for i in xrange(nt):
     pgradWy[core] *= 0.25
     vW[core] = sqrt(np.square(pgradWx[core])+np.square(pgradWy[core]))
     qW[core] = np.sign(hgradWx[core])*vW[core]*(CslopeW[core]-slope).clip(0.)*np.cos(thetaW[core])
-    
+
     hgradNx[core] = hR[NWs]-hR[NEs]+hR[Ws]-hR[Es]
     hgradNx[core] *= 0.25
     hgradNy[core] = (hR[core]-hR[Ns])#/width
@@ -128,7 +129,7 @@ for i in xrange(nt):
     pgradNy[core] = (pR[core]-pR[Ns])#/width
     vN[core] = sqrt(np.square(pgradNx[core])+np.square(pgradNy[core]))
     qN[core] = np.sign(hgradNy[core])*vN[core]*(CslopeN[core]-slope).clip(0.)*np.sin(thetaN[core])
-    
+
     hgradSx[core] = hR[SWs]-hR[SEs]+hR[Ws]-hR[Es]
     hgradSx[core] *= 0.25
     hgradSy[core] = (hR[Ss]-hR[core])#/width
@@ -138,8 +139,8 @@ for i in xrange(nt):
     pgradSx[core] *= 0.25
     pgradSy[core] = (pR[Ss]-pR[core])#/width
     vS[core] = sqrt(np.square(pgradSx[core])+np.square(pgradSy[core]))
-    qS[core] = np.sign(hgradSy[core])*vS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core])    
-    
+    qS[core] = np.sign(hgradSy[core])*vS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core])
+
     hR[core] += dtwidth*(qS[core]+qW[core]-qN[core]-qE[core]+qsourceR[core])
 
     #while 1:
@@ -148,9 +149,9 @@ for i in xrange(nt):
     for j in xrange(100):
         pR[core] = pR[Ns]+pR[Ss]+pR[Es]+pR[Ws]+qspR[core]
         pR[core] *= 0.25
-        
+
         pR[core][mask] = 0.
-    
+
 X,Y = np.meshgrid(np.arange(n),np.arange(n))
 #imshow_node_grid(mg, h)
 figure(1)

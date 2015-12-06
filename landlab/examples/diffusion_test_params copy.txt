@@ -15,7 +15,7 @@ total_time:
 uplift_rate:
 10.
 
-#terms for the nonlinear diffuser
+# terms for the nonlinear diffuser
 rock_density:
 2.7
 sed_density:
@@ -25,6 +25,6 @@ kappa:
 S_crit:
 0.56
 
-#the linear diffuser uses this kappa term
+# the linear diffuser uses this kappa term
 linear_diffusivity:
 5.

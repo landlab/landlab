@@ -27,19 +27,19 @@ class RouteFlowD8(object):
     The class assumes that the model is using a rectangular, uniform (raster)
     grid.
     """
-    
+
     def __init__(self, num_cells):
         """
         This sets the num_cells parameter.
-        This class assumes that the number of cells does not change after a 
+        This class assumes that the number of cells does not change after a
         class item has been instantiated.
         """
 
         self.num_cells = num_cells
         self.initialize()
-        
-        #print 'RouteFlowD8.__init__'
-        
+
+        # print 'RouteFlowD8.__init__'
+
     def initialize(self):
         """
         This sets up the flow direction vector.
@@ -47,22 +47,22 @@ class RouteFlowD8(object):
         A -1 flowdirs value indicates a boundary node.
         Is this method really needed?  Can we just put this in __init__?
         """
-        
+
         self.flowdirs = -ones(self.num_cells, dtype=int)
-      
+
     def calc_flowdirs(self, mg, z):
         """
         This assigns the flow directions using the function
         find_node_in_direction_of_max_slope in the model_grid.
-        The flowdirs vector contains the node id that a node flows to. 
+        The flowdirs vector contains the node id that a node flows to.
         If the node is a boundary node, the flowdirs vector has a value of -1.
-        
-        Method inputs: the model grid and elevation vector 
+
+        Method inputs: the model grid and elevation vector
         Method returns: the flow direction vector
         """
-        
+
         for i in range(0, self.num_cells):
             if mg.is_interior(i):
                 self.flowdirs[i] = mg.find_node_in_direction_of_max_slope(z, i)
-        
-        return self.flowdirs        
+
+        return self.flowdirs

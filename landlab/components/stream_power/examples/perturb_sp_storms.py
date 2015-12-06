@@ -3,11 +3,12 @@ simple_sp_driver.py
 
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
-This version runs the model to something approximating steady 
+This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
 '''
+from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
@@ -44,7 +45,7 @@ z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 mg.add_zeros('node', 'water__volume_flux_in')
 
-#make some K values in a field to test 
+#make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 mg.at_node['K_values'] = numpy.empty(nrows*ncols, dtype=float)
 #mg.at_node['K_values'].fill(0.1+numpy.random.rand()/10.)
@@ -65,7 +66,7 @@ try:
     #raise NameError
     mg = copy.deepcopy(mg_mature)
 except NameError:
-    print 'building a new grid...'
+    print('building a new grid...')
     out_interval = 50000.
     last_trunc = time_to_run #we use this to trigger taking an output plot
     #run to a steady state:
@@ -80,7 +81,7 @@ except NameError:
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
-            print 'made it to loop ', out_interval*this_trunc
+            print('made it to loop ', out_interval*this_trunc)
             last_trunc=this_trunc
 
     mg_mature = copy.deepcopy(mg)
@@ -102,11 +103,11 @@ if True:
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
-    
+
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
         if this_trunc != last_trunc: #a new loop round
-            print 'saving a plot at perturbed loop ', out_interval*this_trunc
+            print('saving a plot at perturbed loop ', out_interval*this_trunc)
             pylab.figure("long_profiles")
             profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
                             mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
@@ -114,7 +115,7 @@ if True:
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
-    
+
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
@@ -146,4 +147,4 @@ pylab.show()
 
 print('Done.')
 
-    
+

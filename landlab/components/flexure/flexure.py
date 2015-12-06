@@ -65,7 +65,7 @@ class FlexureComponent(Component):
     >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
     False
     """
-    
+
     ###############THIS IS THE STANDARD DECLARATIONS EXAMPLE.
     #YOU NEED TO DECLARE ALL THE FOLLOWING LIKE THIS HERE IN YOUR COMPONENT!!
     _name = 'Flexure'
@@ -77,7 +77,7 @@ class FlexureComponent(Component):
         'planet_surface_sediment__deposition_increment',
     ])
     #...the component requires these values to do its calculation
-    
+
     _output_var_names = set([
         'lithosphere__elevation_increment',
         'lithosphere__elevation',
@@ -94,7 +94,7 @@ class FlexureComponent(Component):
     }
     #...the units for each field. In the future, there may be unit casting
     # required, as there's nothing stopping you passing in the wrong units!!!
-    
+
     _var_mapping = {
         'lithosphere__overlying_pressure': 'node',
         'lithosphere__elevation': 'node',
@@ -103,9 +103,9 @@ class FlexureComponent(Component):
     }
     #...the grid centering of each name. Note you CANNOT and SHOULD NOT TRY
     # TO define the same field name but with different centering within one
-    # component; you'll need to distinguish the names. 
-    
-    _var_defs = {
+    # component; you'll need to distinguish the names.
+
+    _var_doc = {
         'lithosphere__overlying_pressure': 'The pressure at the base of the lithosphere',
         'lithosphere__elevation': 'The elevation of the top of the lithosphere, i.e., the land surface',
         'lithosphere__elevation_increment': 'The change in elevation of the top of the lithosphere (the land surface) in one timestep',
@@ -113,12 +113,12 @@ class FlexureComponent(Component):
     }
     #...give the names a short description. [We still need to work out how
     # we deal with same name, but different description between components]
-    
+
     ###lastly, ---> 1. did you remember to import and inherit from Component?
     #do the import up top ->
     #from landlab import Component
     #& in the class declaration ->
-    #   class FlexureComponent(Component): 
+    #   class FlexureComponent(Component):
     #        ...
     ### ---> 2. Make sure that self._grid is an alias for the grid after
     # initialization, below
@@ -154,7 +154,7 @@ class FlexureComponent(Component):
         alpha = get_flexure_parameter(self._eet, self._youngs, 2)
         dx, dy = np.meshgrid(
             np.arange(self._grid.number_of_node_columns) * self._grid.dx,
-            np.arange(self._grid.number_of_node_rows) * self._grid.dx)
+            np.arange(self._grid.number_of_node_rows) * self._grid.dy)
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 

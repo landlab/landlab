@@ -1,18 +1,20 @@
 #! /usr/bin/env python
-"""Store collections of data fields.
-"""
-import types
-import inspect
+"""Store collections of data fields."""
 
-from .scalar_data_fields import ScalarDataFields, FieldError
+from .scalar_data_fields import ScalarDataFields
+
 
 class Error(Exception):
+
     """Base class for errors in this module."""
+
     pass
 
 
 class GroupError(Error, KeyError):
+
     """Raise this error for a missing group name."""
+
     def __init__(self, group):
         self._group = group
 
@@ -21,11 +23,13 @@ class GroupError(Error, KeyError):
 
 
 class ModelDataFields(object):
-    """
-    The ModelDataFields class holds a set of ScalarDataFields that are separated
-    into *groups*. A typical use for this class would be to define the groups as
-    being locations on a grid where the values are defined. For instance, the
-    groups could be *node*, *cell*, *link*, and *face*.
+
+    """Collection of grouped data-fields.
+
+    The ModelDataFields class holds a set of ScalarDataFields that are
+    separated into *groups*. A typical use for this class would be to define
+    the groups as being locations on a grid where the values are defined.
+    For instance, the groups could be *node*, *cell*, *link*, and *face*.
 
     Most of the method functions for ModelDataFields are the same as those for
     the ScalarDataFields class but with the first argument being a string that
@@ -76,9 +80,10 @@ class ModelDataFields(object):
     Each group acts as a `dict` so, for instance, to get the variables names
     in a group use the `keys` method,
 
-    >>> fields.at_cell.keys()
+    >>> list(fields.at_cell.keys())
     ['topographic__elevation']
     """
+
     def __init__(self, **kwds):
         self._groups = dict()
         super(ModelDataFields, self).__init__(**kwds)
@@ -175,10 +180,10 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 4)
-        >>> fields.keys('node')
+        >>> list(fields.keys('node'))
         []
         >>> _ = fields.add_empty('node', 'topographic__elevation')
-        >>> fields.keys('node')
+        >>> list(fields.keys('node'))
         ['topographic__elevation']
         """
         return self[group].keys()
@@ -297,13 +302,15 @@ class ModelDataFields(object):
 
         Raise FieldError if *field* does not exist in *group*.
 
-        >>> fields.field_values('node', 'planet_surface__temperature') # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.field_values('node', 'planet_surface__temperature')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: planet_surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.field_values('cell', 'topographic__elevation') # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.field_values('cell', 'topographic__elevation')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
         """
@@ -366,7 +373,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].empty(**kwds)
@@ -402,7 +409,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].ones(**kwds)
@@ -436,7 +443,7 @@ class ModelDataFields(object):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         []
         """
         return self[group].zeros(**kwds)
@@ -515,7 +522,7 @@ class ModelDataFields(object):
         >>> field.new_field_location('node', 4)
         >>> field.add_ones('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
-        >>> field.keys('node')
+        >>> list(field.keys('node'))
         ['topographic__elevation']
         >>> field['node']['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
@@ -527,7 +534,7 @@ class ModelDataFields(object):
                               ModelDataFields.ones(self, group, **kwds),
                               units=units)
 
-    def add_zeros(self, group, name, units=None, **kwds):
+    def add_zeros(self, group, name, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -619,11 +626,13 @@ class ModelDataFields(object):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('node', 'topographic__elevation', values, copy=True)
+        >>> field.add_field('node', 'topographic__elevation', values,
+        ...     copy=True)
         array([1, 1, 1, 1])
         >>> field.at_node['topographic__elevation'] is values
         False
-        >>> field.add_field('node', 'topographic__elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('node', 'topographic__elevation', values,
+        ...     noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
         """
@@ -639,7 +648,7 @@ class ModelDataFields(object):
         name: str
             Name of the field.
         units: str
-            Units for the field
+            Units for the field.
 
         Raises
         ------
@@ -648,7 +657,26 @@ class ModelDataFields(object):
         """
         self[group].set_units(name, units)
 
+    def delete_field(self, group, name):
+        """Erases an existing field.
+
+        Parameters
+        ----------
+        group : str
+            Name of the group.
+        name: str
+            Name of the field.
+
+        Raises
+        ------
+        KeyError
+            If the named field does not exist.
+        """
+        del self._groups[group].units[name]
+        del self._groups[group][name]
+
     def __getitem__(self, group):
+        """Get a group of fields."""
         try:
             return self._groups[group]
         except KeyError:

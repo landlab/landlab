@@ -28,9 +28,13 @@ Grid creation
 
 *These methods are used to create grids.*
 
+.. _RMG_link:
 .. automethod:: landlab.grid.raster.RasterModelGrid.__init__
+.. _VMG_link:
 .. automethod:: landlab.grid.voronoi.VoronoiDelaunayGrid.__init__
+.. _Radial_link:
 .. automethod:: landlab.grid.radial.RadialModelGrid.__init__
+.. _Hex_link:
 .. automethod:: landlab.grid.hex.HexModelGrid.__init__
 
 

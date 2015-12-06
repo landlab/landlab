@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
+import six
 
 from .voronoi import VoronoiDelaunayGrid
 
@@ -13,7 +14,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     circular shell at regular intervals that get as close as possible to dr.
     The points are then arranged in a Delaunay triangulation with Voronoi
     cells.
-    
+
     Examples
     --------
     >>> from landlab import RadialModelGrid
@@ -21,7 +22,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     >>> omg.number_of_nodes
     7
     """
-    
+
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
         """Create a circular grid.
 
@@ -31,7 +32,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         circular shell at regular intervals that get as close as possible to
         *dr*.  The points are then arranged in a Delaunay triangulation with
         Voronoi cells.
-        
+
         Parameters
         ----------
         num_shells : int
@@ -72,14 +73,14 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
 
-    def _initialize( self, num_shells, dr, origin_x=0.0, origin_y=0.0):
+    def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         if self._DEBUG_TRACK_METHODS:
-            print 'RadialModelGrid._initialize('+str(num_shells)+', '+str(dr)+')'
-        
+            six.print_('RadialModelGrid._initialize(' + str(num_shells) + ', '
+                       + str(dr) + ')')
+
         [pts, npts] = self.make_radial_points(num_shells, dr)
-        super(RadialModelGrid, self)._initialize(pts[:,0], pts[:,1])
-        
-        
+        super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
+
     def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """
         Creates and returns a set of (x,y) points placed in a series of
@@ -87,7 +88,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         """
         shells = numpy.arange(0, num_shells) + 1
         twopi = 2 * numpy.pi
-        n_pts_in_shell = numpy.round(twopi * shells) # number of points in each shell
+        # number of points in each shell
+        n_pts_in_shell = numpy.round(twopi * shells)
         dtheta = twopi / n_pts_in_shell
         npts = int(sum(n_pts_in_shell) + 1)
         pts = numpy.zeros((npts, 2))
@@ -96,10 +98,12 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         for i in numpy.arange(0, num_shells):
             theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
                      dtheta[i] / (i + 1))
-            pts[startpt:(startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(theta)
-            pts[startpt:(startpt + int(n_pts_in_shell[i])), 1] = r[i] * numpy.sin(theta)
+            pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                0] = r[i] * numpy.cos(theta)
+            pts[startpt:(startpt + int(n_pts_in_shell[i])),
+                1] = r[i] * numpy.sin(theta)
             startpt += int(n_pts_in_shell[i])
-        pts[:,0] += origin_x
-        pts[:,1] += origin_y
-        
+        pts[:, 0] += origin_x
+        pts[:, 1] += origin_y
+
         return pts, npts

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab.grid.raster import RasterModelGrid 
+from landlab.grid.raster import RasterModelGrid
 from landlab import Component
 import landlab.components.craters as craters
 
@@ -35,7 +35,7 @@ class CratersComponent(Component):
         self._grid.add_field('node', 'topographic__elevation',
                              self._vectors.elev, units='m')
 
-        self._grid.add_field('node', 'topographic__elevation_increment', 
+        self._grid.add_field('node', 'topographic__elevation_increment',
                              np.zeros(self._grid.shape, dtype=np.float),
                              units='m')
 

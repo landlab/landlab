@@ -143,7 +143,7 @@ class SoilMoisture( Component ):
         #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         #if LAIt.all() == 0.:
         #    self._fr = np.zeros(self.grid.number_of_cells)
-        #else:            
+        #else:
         #    self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
@@ -167,7 +167,7 @@ class SoilMoisture( Component ):
                 sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
             else:
                 sc = scc
-                
+
             Inf_cap = self._soil_Ib[cell]*(1-self._vegcover[cell]) +         \
                                     self._soil_Iv[cell]*self._vegcover[cell]
                                                         # Infiltration capacity

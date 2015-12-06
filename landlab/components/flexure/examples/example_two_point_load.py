@@ -4,7 +4,6 @@ import numpy as np
 
 from landlab.components.flexure import FlexureComponent
 from landlab import RasterModelGrid
-from landlab.plot import imshow_field
 
 
 SHAPE = (100, 100)
@@ -48,7 +47,7 @@ def main():
     flex.update()
 
     grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False,
-                show=True) 
+                show=True)
 
 
 if __name__ == '__main__':

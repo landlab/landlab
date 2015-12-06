@@ -1,8 +1,9 @@
 import itertools
 
 import numpy as np
+from six.moves import range
 
-from ..base import CORE_NODE, FIXED_VALUE_BOUNDARY
+from ..base import CORE_NODE, CLOSED_BOUNDARY
 
 
 def number_of_nodes(shape):
@@ -131,7 +132,7 @@ def top_iter(shape):
     shape : tuple of int
         Shape of grid of nodes.
     """
-    return xrange(shape[1] * (shape[0] - 1), shape[0] * shape[1])
+    return range(shape[1] * (shape[0] - 1), shape[0] * shape[1])
 
 
 def bottom_iter(shape):
@@ -142,7 +143,7 @@ def bottom_iter(shape):
     shape : tuple of int
         Shape of grid of nodes.
     """
-    return xrange(0, shape[1])
+    return range(0, shape[1])
 
 
 def left_iter(shape):
@@ -153,7 +154,7 @@ def left_iter(shape):
     shape : tuple of int
         Shape of grid of nodes.
     """
-    return xrange(0, shape[0] * shape[1], shape[1])
+    return range(0, shape[0] * shape[1], shape[1])
 
 
 def right_iter(shape):
@@ -164,7 +165,7 @@ def right_iter(shape):
     shape : tuple of int
         Shape of grid of nodes.
     """
-    return xrange(shape[1] - 1, shape[0] * shape[1], shape[1])
+    return range(shape[1] - 1, shape[0] * shape[1], shape[1])
 
 
 def left_right_iter(shape, *args):
@@ -198,13 +199,13 @@ def left_right_iter(shape, *args):
     array([ 3,  5,  9, 11])
     """
     if len(args) == 0:
-        iter_rows = xrange(0, shape[0], 1)
+        iter_rows = range(0, shape[0], 1)
     elif len(args) == 1:
-        iter_rows = xrange(0, args[0], 1)
+        iter_rows = range(0, args[0], 1)
     elif len(args) == 2:
-        iter_rows = xrange(args[0], args[1], 1)
+        iter_rows = range(args[0], args[1], 1)
     elif len(args) == 3:
-        iter_rows = xrange(args[0], args[1], args[2])
+        iter_rows = range(args[0], args[1], args[2])
 
     for row in iter_rows:
         yield row * shape[1]
@@ -273,7 +274,7 @@ def perimeter(shape):
 
 
 def status_with_perimeter_as_boundary(shape,
-                                      node_status=FIXED_VALUE_BOUNDARY):
+                                      node_status=CLOSED_BOUNDARY):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
@@ -292,9 +293,9 @@ def status_with_perimeter_as_boundary(shape,
     --------
     >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
     >>> status_with_perimeter_as_boundary((3, 4))
-    array([[1, 1, 1, 1],
-           [1, 0, 0, 1],
-           [1, 1, 1, 1]])
+    array([[4, 4, 4, 4],
+           [4, 0, 0, 4],
+           [4, 4, 4, 4]])
     >>> status_with_perimeter_as_boundary((3, 4), node_status=-1)
     array([[-1, -1, -1, -1],
            [-1,  0,  0, -1],

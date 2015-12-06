@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
@@ -47,7 +49,7 @@ diffusion_component = PerronNLDiffuse(mg, './drive_perron_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt<time_to_run:
         diffusion_component.input_timestep(dt)
     mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]] += uplift*dt #half block uplift
@@ -59,7 +61,7 @@ while elapsed_time < time_to_run:
     #pylab.figure(1)
     #im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)
     #pylab.show()
-    
+
     mg = diffusion_component.diffuse(mg, elapsed_time)
     elapsed_time += dt
 
@@ -74,7 +76,7 @@ pylab.close()
 # Plot topography
 pylab.figure(1)
 im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-print elev_r
+print(elev_r)
 pylab.colorbar(im)
 pylab.title('Topography')
 
@@ -85,4 +87,4 @@ pylab.title('Vertical cross section')
 pylab.show()
 
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))

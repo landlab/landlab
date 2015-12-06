@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Read data from a NetCDF file into a RasterModelGrid.
-"""
+"""Read data from a NetCDF file into a RasterModelGrid."""
 
 try:
     import netCDF4 as nc4
@@ -10,10 +8,6 @@ except ImportError:
     warnings.warn('Unable to import netCDF4.', ImportWarning)
 
 from scipy.io import netcdf as nc
-
-import os
-import types
-import re
 
 import numpy as np
 
@@ -24,6 +18,20 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
 
 
 def _length_of_axis_dimension(root, axis_name):
+    """Get the size of an axis by axis name.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF object.
+    axis_name : str
+        Name of the axis in the NetCDF file.
+
+    Returns
+    -------
+    int
+        Size of the dimension.
+    """
     try:
         return len(root.dimensions[axis_name])
     except TypeError:
@@ -31,36 +39,85 @@ def _length_of_axis_dimension(root, axis_name):
 
 
 def _read_netcdf_grid_shape(root):
+    """Get the shape of a raster grid.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF object.
+
+    Returns
+    -------
+    (rows, columns)
+        Shape of the grid.
+    """
     shape = []
     for axis_name in _AXIS_DIMENSION_NAMES:
         try:
             shape.append(_length_of_axis_dimension(root, axis_name))
         except KeyError:
             pass
-    return shape
+    return tuple(shape)
 
 
 def _read_netcdf_coordinate_values(root):
+    """Get arrays of coordinates for grid points.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+
+    Returns
+    -------
+    tuple of ndarray
+        Node coordinates for each dimension.
+    """
     values = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
         try:
             values.append(root.variables[coordinate_name][:].copy())
         except KeyError:
             pass
-    return values
+    return tuple(values)
 
 
 def _read_netcdf_coordinate_units(root):
+    """Get units for coodinate values.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+
+    Returns
+    -------
+    tuple of str
+        Units for each coordinate.
+    """
     units = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
         try:
             units.append(root.variables[coordinate_name].units)
         except KeyError:
             pass
-    return units
+    return tuple(units)
 
 
 def _read_netcdf_structured_grid(root):
+    """Get node coordinates for a structured grid.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+
+    Returns
+    -------
+    tuple of ndarray
+        Node coordinates for each dimension reshaped to match the shape
+        of the grid.
+    """
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
     units = _read_netcdf_coordinate_units(root)
@@ -72,31 +129,52 @@ def _read_netcdf_structured_grid(root):
 
 
 def _read_netcdf_structured_data(root):
+    """Get data values for a structured grid.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+
+    Returns
+    -------
+    dict
+        Data values, reshaped to match that of the grid. Keys are the
+        variable names as read from the NetCDF file.
+    """
     fields = dict()
     for (name, var) in root.variables.items():
-        if not name in _COORDINATE_NAMES:
+        if name not in _COORDINATE_NAMES:
             fields[name] = var[:].copy()
             fields[name].shape = (fields[name].size, )
     return fields
 
 
 def _get_raster_spacing(coords):
+    """Get the row and column spacing of a raster grid.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF object.
+
+    Returns
+    -------
+    (dy, dx)
+        Spacing of grid rows and columns.
+    """
     spacing = np.empty(len(coords), dtype=np.float64)
 
     for (axis, coord) in enumerate(coords):
         coord_spacing = np.diff(coord, axis=axis)
-        try:
-            assert(np.all(coord_spacing == coord_spacing.flat[0]))
-        except AssertionError:
+        if not np.all(coord_spacing == coord_spacing.flat[0]):
             raise NotRasterGridError()
         spacing[axis] = coord_spacing.flat[0]
 
-    try:
-        assert(np.all(spacing == spacing[0]))
-    except AssertionError:
+    if not np.all(spacing == spacing[0]):
         raise NotRasterGridError()
-    else:
-        return spacing[0]
+
+    return spacing[0]
 
 
 def read_netcdf(nc_file, just_grid=False):
@@ -135,10 +213,10 @@ def read_netcdf(nc_file, just_grid=False):
     >>> grid = read_netcdf(NETCDF4_EXAMPLE_FILE)
     >>> grid.shape == (4, 3)
     True
-    >>> grid.node_spacing
-    1.0
-    >>> grid.at_node.keys()
-    [u'surface__elevation']
+    >>> grid.dy, grid.dx
+    (1.0, 1.0)
+    >>> [str(k) for k in grid.at_node.keys()]
+    ['surface__elevation']
     >>> grid.at_node['surface__elevation']
     array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
             11.])
@@ -150,8 +228,8 @@ def read_netcdf(nc_file, just_grid=False):
     >>> grid = read_netcdf(NETCDF3_64BIT_EXAMPLE_FILE)
     >>> grid.shape == (4, 3)
     True
-    >>> grid.node_spacing
-    1.0
+    >>> grid.dy, grid.dx
+    (1.0, 1.0)
     """
     from landlab import RasterModelGrid
 
@@ -162,14 +240,13 @@ def read_netcdf(nc_file, just_grid=False):
 
     node_coords = _read_netcdf_structured_grid(root)
 
-    assert(len(node_coords) == 2)
+    assert len(node_coords) == 2
 
     spacing = _get_raster_spacing(node_coords)
 
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(num_rows=shape[0], num_cols=shape[1],
-                           dx=spacing)
+    grid = RasterModelGrid(shape, spacing=spacing)
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)

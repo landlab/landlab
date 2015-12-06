@@ -1,8 +1,13 @@
-MANNINGS_N: n value in manning's velocity equation, generally 0.01 to 0.1
-0.04
+#MANNINGS_N: n value in manning's velocity equation, generally 0.01 to 0.1
+#0.04
 
-RAINFALL_DURATION: in seconds
-900
+#rainfall_duration: in seconds
+#1800
 
-RAINFALL_INTENSITY: in m/s
-0.0000137778
+#rainfall_intensity: in m/s 
+#0.0000137778
+#0.0000093133
+#0.0
+Mannings_n:
+#0.06
+#0.01

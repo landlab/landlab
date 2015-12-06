@@ -5,6 +5,7 @@ import numpy as np
 import datetime as datetime
 from scipy.sparse import csr_matrix
 from scipy.sparse import linalg
+import six
 
 
 class Glacier(Component):
@@ -31,8 +32,8 @@ class Glacier(Component):
 		Initialize values for calculation:
 
 		S: ice surface ice_elevation
-		B: bed elevation 
-		b_dot: mass of ice added or subtracted from each cell 
+		B: bed elevation
+		b_dot: mass of ice added or subtracted from each cell
 		dt: time interval
 		t_STOP: ending time for modeling
 		t: starting time for modeling
@@ -50,12 +51,12 @@ class Glacier(Component):
 		self.dx = kwds.pop('dx',dictionary['dx'])
 		self.nx = kwds.pop('nx',dictionary['nx'])
 		self.ny = kwds.pop('ny',dictionary['ny'])
-		self.N = self.nx * self.ny 
+		self.N = self.nx * self.ny
 		self.setupIndexArrays()
 
 	def step_update(self):
 		'''
-		calculate S (ice surface elevation) for each timestep 
+		calculate S (ice surface elevation) for each timestep
 
 		H_max: maximum ice thickness
 		S_max: maximum ice surface elevation
@@ -65,19 +66,19 @@ class Glacier(Component):
 		self.H_max = np.max(SB)
 		self.k_H_max = np.argmax(SB)
 		self.S_max = np.max(self.S)
-		self.k_S_max = np.argmax(self.S)		
+		self.k_S_max = np.argmax(self.S)
 
 	def recursive_steps(self):
 		'''
-		Iterate over each time step to update the ice surface elevation 
+		Iterate over each time step to update the ice surface elevation
 		'''
 		while 1:
 			self.step_update()
 			# print self.S[0:5]
 			self.ALPHA_I = 100*np.sum(self.S > self.B)/float(self.N)
-			
-			print 'BKS: At t={:8.2f} yr ALPHA_I={:.2f}% and maxima are: H({:d}) = {:f} \
-			S({:d})={:f}\n'.format(self.t, self.ALPHA_I, self.k_H_max, self.H_max, self.k_S_max, self.S_max)
+
+			six.print_('BKS: At t={:8.2f} yr ALPHA_I={:.2f}% and maxima are: H({:d}) = {:f} \
+			S({:d})={:f}\n'.format(self.t, self.ALPHA_I, self.k_H_max, self.H_max, self.k_S_max, self.S_max))
 
 			### Stop iterating until the final timestep
 			if self.t > self.t_STOP:
@@ -86,7 +87,7 @@ class Glacier(Component):
 
 				# S_map = self.S.reshape(self.ny,self.nx)
 				# B_map = self.B.reshape(self.ny,self.nx)
-				# I_map = I.reshape(self.ny,self.nx) 
+				# I_map = I.reshape(self.ny,self.nx)
 
 				### Note: the difference between python and matlab in matrix orders
 				S_map = self.S.reshape(self.nx,self.ny).T
@@ -99,10 +100,10 @@ class Glacier(Component):
 				self.grid['node']['ice_thickness'] = H_map
 				now = datetime.datetime.now().strftime('%H:%M:%S')
 				file_str = 'S_map.txt'
-				print 'main(): Output stored in file "{:s}" at time {:s} \n'.format(file_str,now)
+				six.print_('main(): Output stored in file "{:s}" at time {:s} \n'.format(file_str,now))
 				break
 
-	def step(self): 
+	def step(self):
 		'''
 		For each timestep, a sparse linear system (Ax = C) need to be solved to update ice surface elevation
 		'''
@@ -110,13 +111,13 @@ class Glacier(Component):
 		### update diffusivity for each timestep
 		self.diffusion_update()
 		D_sum = self.D_IC_jc + self.D_IP_jc + self.D_ic_JC + self.D_ic_JP
-		
+
 		row = np.int64([[self.ic_jc],[self.ic_jc],[self.ic_jc],[self.ic_jc],[self.ic_jc]]).flatten()
 		col = np.int64([[self.im_jc],[self.ip_jc],[self.ic_jm],[self.ic_jp],[self.ic_jc]]).flatten()
 		val = np.array([[-self.OMEGA * self.D_IC_jc],[-self.OMEGA * self.D_IP_jc],[-self.OMEGA * self.D_ic_JC],[-self.OMEGA * self.D_ic_JP],[1/self.dt + self.OMEGA * D_sum]]).flatten()
 		C = (1 - self.OMEGA) * ((self.D_IC_jc * self.S[self.im_jc]) + self.D_IP_jc * self.S[self.ip_jc] + self.D_ic_JC * self.S[self.ic_jm] + self.D_ic_JP * \
-			self.S[self.ic_jp]) + (1/self.dt - (1 - self.OMEGA) * D_sum) * self.S[self.ic_jc] + self.b_dot 
-		C = C.flatten()	
+			self.S[self.ic_jp]) + (1/self.dt - (1 - self.OMEGA) * D_sum) * self.S[self.ic_jc] + self.b_dot
+		C = C.flatten()
 
 		### construct a sparse matrix A
 		A = csr_matrix( (val,(row,col)), shape=(self.N, self.N))
@@ -125,7 +126,7 @@ class Glacier(Component):
 		# print 'solved'
 
 		### ice thickness couldn't be negative, ice surface elevation should not be less than bed elevation
-		S_out[S_out < self.B] = self.B[S_out < self.B]	
+		S_out[S_out < self.B] = self.B[S_out < self.B]
 
 		t_n = self.t + self.dt
 		return S_out, t_n
@@ -140,31 +141,31 @@ class Glacier(Component):
 		npl = self.n_GLEN + 1
 		mm_half = (self.m_SLIDE - 1) / 2.0  ### @
 		ml = self.m_SLIDE
-		
+
 		SB = self.S - self.B
 		SB[SB<0] = 0
 		H = SB
-		
+
 		H_IC_jc = 0.5*(H[self.ic_jc] + H[self.im_jc])
 		H_ic_JC = 0.5*(H[self.ic_jc] + H[self.ic_jm])
-		
+
 		H_IC_jc_up = H[self.im_jc]
 		H_ic_JC_up = H[self.ic_jm]
-		
+
 		ix = (self.S[self.ic_jc]>self.S[self.im_jc]).reshape(-1)
 		H_IC_jc_up[self.S[self.ic_jc]>self.S[self.im_jc]] = H[self.ic_jc[ix]].reshape(-1)
 
 		ix = (self.S[self.ic_jc]>self.S[self.ic_jm]).reshape(-1)
 		H_ic_JC_up[self.S[self.ic_jc]>self.S[self.ic_jm]] = H[self.ic_jc[ix]].reshape(-1)
-		
+
 		dS_dx_IC_jc = (self.S[self.ic_jc] - self.S[self.im_jc])/self.dx
 		dS_dy_IC_jc = (self.S[self.ic_jp] + self.S[self.im_jp] - self.S[self.ic_jm] - self.S[self.im_jm])/(4*self.dx)
 		dS_dx_ic_JC = (self.S[self.ip_jc] + self.S[self.ip_jm] - self.S[self.im_jc] - self.S[self.im_jm])/(4*self.dx)
 		dS_dy_ic_JC = (self.S[self.ic_jc] - self.S[self.ic_jm])/self.dx
-		
+
 		S2_IC_jc = np.square(dS_dx_IC_jc) + np.square(dS_dy_IC_jc) + self.K_eps
 		S2_ic_JC = np.square(dS_dx_ic_JC) + np.square(dS_dy_ic_JC) + self.K_eps
-		
+
 		if C_tilde == 0:    ### No sliding case
 			self.D_IC_jc = A_tilde*H_IC_jc_up*np.power(H_IC_jc,npl)*np.power(S2_IC_jc,nm_half)
 			self.D_ic_JC = A_tilde*H_ic_JC_up*np.power(H_ic_JC,npl)*np.power(S2_ic_JC,nm_half)
@@ -174,13 +175,13 @@ class Glacier(Component):
 			self.D_ic_JC = A_tilde*H_ic_JC_up*np.power(H_ic_JC,npl)*np.power(S2_ic_JC,nm_half) \
 					+ C_tilde*H_ic_JC_up*np.power(H_ic_JC,ml)*np.power(S2_ic_JC,mm_half)
 		else:
-			print 'diffusion(): C_tilde is undefined or incorrectly defined'
-			
+			six.print_('diffusion(): C_tilde is undefined or incorrectly defined')
+
 		self.D_IP_jc  = self.D_IC_jc[self.ip_jc]
 		self.D_ic_JP  = self.D_ic_JC[self.ic_jp]
-		
+
 	def setupIndexArrays(self):
-		
+
 		ic = np.arange(self.nx)
 		ip = np.append(np.array([np.arange(1,self.nx)]),self.nx - 1)
 		im = np.append(0,np.array([np.arange(self.nx - 1)]))

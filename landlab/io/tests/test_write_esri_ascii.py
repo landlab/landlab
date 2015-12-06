@@ -15,13 +15,13 @@ from landlab import RasterModelGrid
 
 
 def test_grid_with_no_fields():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     with cdtemp() as _:
         assert_raises(ValueError, write_esri_ascii, 'test.asc', grid)
 
 
 def test_grid_with_one_field():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
     with cdtemp() as _:
         files = write_esri_ascii('test.asc', grid)
@@ -31,7 +31,7 @@ def test_grid_with_one_field():
 
 
 def test_grid_with_two_fields():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
     grid.add_field('node', 'land_surface__elevation', np.arange(20.))
     with cdtemp() as _:
@@ -44,7 +44,7 @@ def test_grid_with_two_fields():
 
 
 def test_names_keyword_as_str_or_list():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
     grid.add_field('node', 'land_surface__elevation', np.arange(20.))
 
@@ -60,7 +60,7 @@ def test_names_keyword_as_str_or_list():
 
 
 def test_names_keyword_multiple_names():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
     grid.add_field('node', 'land_surface__elevation', np.arange(20.))
 
@@ -76,7 +76,7 @@ def test_names_keyword_multiple_names():
 
 
 def test_names_keyword_with_bad_name():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
 
     with cdtemp() as _:
@@ -85,7 +85,7 @@ def test_names_keyword_with_bad_name():
 
 
 def test_clobber_keyword():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
 
     with cdtemp() as _:
@@ -97,7 +97,7 @@ def test_clobber_keyword():
 
 
 def test_write_then_read():
-    grid = RasterModelGrid(4, 5, dx=2.)
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
 
     with cdtemp() as _:

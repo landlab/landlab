@@ -6,6 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 from landlab.components.gFlex.flexure import gFlex
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
@@ -34,9 +35,9 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some surface load stresses in a field to test 
+#make some surface load stresses in a field to test
 mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
-    
+
 #instantiate:
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
 fsp = Fsc(mg, './coupled_SP_gflex_params.txt')
@@ -46,9 +47,9 @@ fr = FlowRouter(mg)
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #mg = fsp.erode(mg)

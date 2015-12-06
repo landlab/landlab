@@ -1,3 +1,5 @@
+.. _getting_started:
+
 A Tutorial on Quickly Building 2D Models in Landlab
 ===================================================
 
@@ -126,7 +128,7 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 	#Import statements so that you will have access to the necessary functions
 	import numpy
 	from landlab import RasterModelGrid
-	from landlab.components.diffusion.diffusion import DiffusionComponent
+	from landlab.components.diffusion.diffusion import LinearDiffuser
 	from landlab.plot.imshow import imshow_node_grid
 	from pylab import show, figure
 
@@ -135,7 +137,7 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 
 	#Create a field of node data (an array) on the grid called elevation.  
 	#Initially populate this array with zero values.
-	z = mg.add_zeros('node', 'elevation')
+	z = mg.add_zeros('node', 'topographic__elevation')
 
 	#Check the size of the array
 	len(z)
@@ -146,11 +148,11 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 	z[upthrown_nodes] += 10.0 + 0.01*mg.node_x[upthrown_nodes]
 
 	#Illustrate the grid
-	imshow_node_grid(mg, z, cmap='jet', grid_units=['m','m'])
+	imshow_node_grid(mg, 'topographic__elevation', cmap='jet', grid_units=['m','m'])
 	show()
 
 	#Instantiate the diffusion component:
-	linear_diffuse = DiffusionComponent(grid=mg, input_stream='./diffusion_input_file.txt')
+	linear_diffuse = LinearDiffuser(grid=mg, input_stream='./diffusion_input_file.txt')
 
 	#Set boundary conditions
 	mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -161,45 +163,41 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 	
         #Evolve landscape
 	for i in range(25):
-    		mg = linear_diffuse.diffuse(dt)
+    		linear_diffuse.diffuse(dt)
 
 	#Plot new landscape
 	figure()
-	imshow_node_grid(mg, z, cmap='jet', grid_units=['m','m'])
+	imshow_node_grid(mg, 'topographic__elevation', cmap='jet', grid_units=['m','m'])
 	show()
 
 
 Let's go through the model with a component and compare it to the non-component version presented in the previous section.
 
-The import statements are nearly the same, except that the model using a component has to import the ``DiffusionComponent`` class.  In Landlab components are built as classes, which among other things, means that they can have both their own data and methods (methods are functions that are part of a class).  The statement that imports the ``DiffusionComponent`` is repeated below:
+The import statements are nearly the same, except that the model using a component has to import the ``LinearDiffuser`` class.  In Landlab components are built as classes, which among other things, means that they can have both their own data and methods (methods are functions that are part of a class).  The statement that imports the ``LinearDiffuser`` is repeated below:
 
->>> from landlab.components.diffusion.diffusion import DiffusionComponent
+>>> from landlab.components.diffusion.diffusion import LinearDiffuser
 
-In this case the ``DiffusionComponent`` class is contained in a file called ``diffusion.py`` that is in the ``landlab/components/diffusion directory``.
+In this case the ``LinearDiffuser`` class is contained in a file called ``diffusion.py`` that is in the ``landlab/components/diffusion directory``.
 
 The code to create the raster grid (*mg*, an object of type ``RasterModelGrid``), the elevation array *z* (or elevation field on *mg*), and the scarp across the landscape are all the same between the two different models.  Similarly, the plotting is the same between the two models.
 
-Because the model is using the ``DiffusionComponent`` class, the code must instantiate a member of the class, or make an object of type ``DiffusionComponent``.  That step is repeated below, where *linear_diffuse* is an object of type ``DiffusionComponent``.
+Because the model is using the ``LinearDiffuser`` class, the code must instantiate a member of the class, or make an object of type ``LinearDiffuser``.  That step is repeated below, where *linear_diffuse* is an object of type ``LinearDiffuser``.
 
->>>  linear_diffuse = DiffusionComponent(grid=mg, input_stream='./diffusion_input_file.txt')
+>>>  linear_diffuse = LinearDiffuser(grid=mg, input_stream='./diffusion_input_file.txt')
 
-Note that in order to initialize an object of type ``DiffusionComponent``, a grid object must be passed, as well as an input file.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains::
+Note that in order to initialize an object of type ``LinearDiffuser``, a grid object must be passed, as well as an input file.  If you downloaded the example codes, you should also have a copy of ``diffusion_input_file.txt``.  Here is what it contains::
 
 	linear_diffusivity: in m2 per year
 	0.01  
-	dt: in years
-	2000.0
-	values_to_diffuse: name of field objects to diffuse
-	elevation
 
-In this case *linear_diffusivity*, *dt* and *values_to_diffuse* are all target words or phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``DiffusionComponent``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
+In this case *linear_diffusivity*, is a target phrases (targets for short, and there can be no spaces in a target) that Landlab is looking for in the input file when intializing an object of type ``LinearDiffuser``.  The Landlab code will read through the input file and look for each required target.  Once that target is found, it ignores the text on the rest of the line (so anything following the target on the same line is a comment), and takes the value for the parameter associated with the target from the next line of text.  
 
-Note that in the model without a component, we calculated a stable *dt* in the model.  With the component, the testing of timestep stability happens automatically, and the component will internally subdivide the timestep as necessary.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *elevation* to the code and we would like to diffuse elevation values.  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case the value to diffuse would have a different field name.  Setting the boundary conditions is the same between the two models. 
+Note that in the model without a component, we calculated a stable *dt* in the model.  With the component, the testing of timestep stability happens automatically, and the component will internally subdivide the timestep as necessary.  Finally, the diffusion model takes the name of the grid node field that it will be diffusing.  In this case, we have already added the field *topographic__elevation* to the code and we would like to diffuse elevation values. The component looks for a field called topographic__elevation by default, and this is why we chose this field name (though equally, we could have chosen a different field name and overridden the default in the component).  You can imagine that one might use the diffusion code in a very different way, say to calculate heat transfer, and in that case we could have declared a different field name using the 'values_to_diffuse' target phrase.  Setting the boundary conditions is the same between the two models. 
 
-The evolution loop in the model with the component is much shorter than the loop in the model without the component.  In this case all that is needed is to call the ``diffuse`` method of the ``DiffusionComponent`` class:
+The evolution loop in the model with the component is much shorter than the loop in the model without the component.  In this case all that is needed is to call the ``diffuse`` method of the ``LinearDiffuser`` class:
 
->>> mg = linear_diffuse.diffuse(dt)
+>>> linear_diffuse.diffuse(dt)
 
-The ``diffuse`` method essentially does everything that was typed out explicitely in the example without a component.  Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
+The ``diffuse`` method essentially does everything that was typed out explicitly in the example without a component.  Note that because the elevation data are a field on the grid, those data do not need to be passed to the method.
 
 Plotting the final landscape is the same between the two models and the result should be exactly the same between the two example models.

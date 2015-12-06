@@ -1,8 +1,22 @@
+"""General decorators for the landlab library."""
+
 import warnings
 from functools import wraps
 
 
 def make_return_array_immutable(func):
+    """Decorate a function so that its return array is read-only.
+
+    Parameters
+    ----------
+    func : function
+        A function that returns a numpy array.
+
+    Returns
+    -------
+    func
+        A wrapped function that returns a read-only view of an array.
+    """
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         array = func(self, *args, **kwds)
@@ -13,7 +27,17 @@ def make_return_array_immutable(func):
 
 
 def deprecated(func):
-    """Mark a function as deprecated
+    """Mark a function as deprecated.
+
+    Parameters
+    ----------
+    func : function
+        A function.
+
+    Returns
+    -------
+    func
+        A wrapped function that issues a deprecation warning.
     """
     @wraps(func)
     def _wrapped(*args, **kwargs):

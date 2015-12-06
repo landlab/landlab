@@ -6,6 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 from landlab.components.gflex.flexure import gFlex
 import numpy as np
@@ -29,20 +30,20 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some surface load stresses in a field to test 
+#make some surface load stresses in a field to test
 mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
 square_qs = mg.at_node['surface_load__stress'].view().reshape((nrows,ncols))
 square_qs[10:40, 10:40] += 1.e6
-    
+
 #instantiate:
 gf = gFlex(mg, './AW_gflex_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     gf.flex_lithosphere()
     elapsed_time += dt

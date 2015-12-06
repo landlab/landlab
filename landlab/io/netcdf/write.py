@@ -1,8 +1,9 @@
 #! /usr/bin/env python
+"""Write structured grids to NetCDF files."""
+
 import os
 import warnings
-import types
-
+import six
 
 try:
     import netCDF4 as nc4
@@ -16,21 +17,76 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
 
+
 def _set_netcdf_attributes(root, attrs):
-    """
+    """Set attributes of a netcdf file.
+
     Set attributes of the netCDF Database object, *root*. Attributes are
     given as key/value pairs from *attrs*.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    attrs : dict
+        Attributes as key-value pairs.
     """
     for (key, val) in attrs.items():
         setattr(root, key, val)
 
 
 def _get_dimension_names(shape):
+    """Get dimension names.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of a structured grid.
+
+    Returns
+    -------
+    tuple of str
+        Dimension names for the NetCDF file.
+
+    Examples
+    --------
+    >>> from landlab.io.netcdf.write import _get_dimension_names
+    >>> _get_dimension_names((4, ))
+    ['ni']
+    >>> _get_dimension_names((4, 5))
+    ['nj', 'ni']
+    >>> _get_dimension_names((4, 5, 6))
+    ['nk', 'nj', 'ni']
+    """
     names = _AXIS_DIMENSION_NAMES[- 1: - (len(shape) + 1): - 1]
     return names[::-1]
 
 
 def _get_dimension_sizes(shape):
+    """Get dimension sizes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of a structured grid.
+
+    Returns
+    -------
+    dict
+        Dimension sizes.
+
+    Examples
+    --------
+    >>> from landlab.io.netcdf.write import _get_dimension_sizes
+    >>> _get_dimension_sizes((4, ))
+    {'ni': 4}
+    >>> sizes = _get_dimension_sizes((4, 5))
+    >>> sizes['ni'], sizes['nj']
+    (5, 4)
+    >>> sizes = _get_dimension_sizes((4, 5, 6))
+    >>> sizes['ni'], sizes['nj'], sizes['nk']
+    (6, 5, 4)
+    """
     names = _AXIS_DIMENSION_NAMES[- 1: - (len(shape) + 1): - 1]
 
     sizes = dict()
@@ -41,12 +97,35 @@ def _get_dimension_sizes(shape):
 
 
 def _get_axes_names(shape):
+    """Get names of the axes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of a structured grid.
+
+    Returns
+    -------
+    tuple of str
+        Names of the axes for the NetCDF file.
+
+    Examples
+    --------
+    >>> from landlab.io.netcdf.write import _get_axes_names
+    >>> _get_axes_names((2, ))
+    ['x']
+    >>> _get_axes_names((2, 3))
+    ['y', 'x']
+    >>> _get_axes_names((2, 3, 4))
+    ['z', 'y', 'x']
+    """
     names = _AXIS_COORDINATE_NAMES[- 1: - (len(shape) + 1): - 1]
     return names[::-1]
 
 
 def _set_netcdf_structured_dimensions(root, shape):
-    """
+    """Set dimensions for a structured grid.
+
     Add dimensions to *root* for a structured grid of size *shape*. The
     dimension names will be 'ni', 'nj', and 'nk'. 'ni' is the length of the
     fast dimension, followed by 'nj', and then 'nk'.
@@ -54,8 +133,16 @@ def _set_netcdf_structured_dimensions(root, shape):
     For example, a grid with shape (3, 4, 5) will have dimensions ni=5,
     nj=4, and nk=3. Lower dimension grids simply drop the slowest dimension.
     Thus, a grid with shape (3, 4) has dimensions ni=4, and nj=3.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    shape : tuple of int
+        Shape of the grid.
     """
-    assert(len(shape) >= 1 and len(shape) <= 3)
+    if len(shape) < 1 or len(shape) > 3:
+        raise ValueError('grid dimension must be 1, 2, or 3')
 
     dimensions = _get_dimension_sizes(shape)
 
@@ -64,37 +151,48 @@ def _set_netcdf_structured_dimensions(root, shape):
         if name not in dims:
             root.createDimension(name, dim_size)
 
-    if not 'nt' in dims:
-        nt = root.createDimension('nt', None)
+    if 'nt' not in dims:
+        root.createDimension('nt', None)
 
 
 def _set_netcdf_variables(root, fields, **kwds):
     """Set the field variables.
-    
+
     First set the variables that define the grid and then the variables at
     the grid nodes and cells.
     """
     names = kwds.pop('names', None)
 
     _add_spatial_variables(root, fields, **kwds)
-    #_add_variables_at_points(root, fields['nodes'])
+    # _add_variables_at_points(root, fields['nodes'])
     _add_variables_at_points(root, fields, names=names)
 
 
 def _add_spatial_variables(root, grid, **kwds):
-    """Add the variables to *root* that define the structured grid, *grid*.
+    """Add spatial variables to a NetCDF file.
+
+    Add the variables to *root* that define the structured grid, *grid*.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    grid : RasterModelGrid
+        A structured grid.
+    long_name : dict, optional
+        Long name for each spatial variable to add. Keys are grid field
+        names, values are corresponding long names.
     """
     long_name = kwds.get('long_name', {})
 
-    vars = root.variables
-    dims = root.dimensions
+    netcdf_vars = root.variables
 
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
     for (axis, name) in enumerate(spatial_variable_names):
         try:
-            var = vars[name]
+            var = netcdf_vars[name]
         except KeyError:
             var = root.createVariable(name, 'f8', spatial_variable_shape)
 
@@ -110,23 +208,23 @@ def _add_spatial_variables(root, grid, **kwds):
 
 
 def _add_variables_at_points(root, fields, names=None):
-    if isinstance(names, types.StringTypes):
+    if isinstance(names, six.string_types):
         names = [names]
     names = names or fields['node'].keys()
 
-    vars = root.variables
+    netcdf_vars = root.variables
 
     spatial_variable_shape = _get_dimension_names(fields.shape)
 
     try:
-        n_times = len(vars['t']) - 1
+        n_times = len(netcdf_vars['t']) - 1
     except KeyError:
         n_times = 0
 
     node_fields = fields['node']
     for var_name in names:
         try:
-            var = vars[var_name]
+            var = netcdf_vars[var_name]
         except KeyError:
             var = root.createVariable(
                 var_name, _NP_TO_NC_TYPE[str(node_fields[var_name].dtype)],
@@ -147,23 +245,39 @@ def _add_variables_at_points(root, fields, names=None):
 
 
 def _add_time_variable(root, time, **kwds):
+    """Add a time value to a NetCDF file.
+
+    Append a new time value to the time variable of a NetCDF file. If there
+    is not time variable, create one. The time variable is named, ``t``.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    time : float
+        The time.
+    units : str, optional
+        Time units.
+    reference : str, optional
+        Reference time.
+    """
     units = kwds.get('units', 'days')
     reference = kwds.get('reference', '00:00:00 UTC')
 
-    vars = root.variables
+    netcdf_vars = root.variables
 
     try:
-        t = vars['t']
+        time_var = netcdf_vars['t']
     except KeyError:
-        t = root.createVariable('t', 'f8', ('nt', ))
-        t.units = ' '.join([units, 'since', reference])
-        t.long_name = 'time'
+        time_var = root.createVariable('t', 'f8', ('nt', ))
+        time_var.units = ' '.join([units, 'since', reference])
+        time_var.long_name = 'time'
 
-    n_times = len(t)
+    n_times = len(time_var)
     if time is not None:
-        t[n_times] = time
+        time_var[n_times] = time
     else:
-        t[n_times] = n_times
+        time_var[n_times] = n_times
 
 
 _VALID_NETCDF_FORMATS = set([
@@ -172,6 +286,7 @@ _VALID_NETCDF_FORMATS = set([
     'NETCDF4_CLASSIC',
     'NETCDF4',
 ])
+
 
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None):
@@ -199,6 +314,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.netcdf import write_netcdf
 
@@ -231,7 +347,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
     False
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
-           22.])
+            22.])
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')

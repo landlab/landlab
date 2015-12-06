@@ -45,7 +45,8 @@ title('hexagon shape, vertical orientation')
 show()
 
 
-# Case 3: Make and display a rectangular-shaped grid with horizontal rows of nodes
+# Case 3: Make and display a rectangular-shaped grid with horizontal rows
+# of nodes
 
 # Create the grid
 hg3 = HexModelGrid(5, 5, 1.0, orientation='horizontal', shape='rect')
@@ -61,7 +62,8 @@ title('rectangular shape, horizontal orientation')
 show()
 
 
-# Case 4: Make and display a rectangular-shaped grid with vertical rows of nodes
+# Case 4: Make and display a rectangular-shaped grid with vertical rows of
+# nodes
 
 # Create the grid
 hg4 = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
@@ -75,7 +77,3 @@ figure(4)
 hg4.hexplot(d)
 title('rectangular shape, vertical orientation')
 show()
-
-
-
-

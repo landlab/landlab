@@ -1,6 +1,9 @@
 What is Landlab?
 ================
 
+.. image:: images/landlab_logo.jpg
+   :scale: 70 %
+
 (originally authored by Greg Tucker, December 2013)
 
 Landlab is a Python software package that supports numerical modeling in earth science, 

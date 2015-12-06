@@ -37,6 +37,7 @@ def test_add_multiple_groups():
     fields.new_field_location('link', 7)
     assert_set_equal(set(['node', 'cell', 'face', 'link']), fields.groups)
 
+
 def test_ones():
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
@@ -47,6 +48,7 @@ def test_ones():
 
     value_array = fields.ones('cell')
     assert_array_equal(np.ones(2), value_array)
+
 
 def test_add_ones():
     fields = ModelDataFields()
@@ -60,6 +62,7 @@ def test_add_ones():
     fields.add_ones('cell', 'z')
     assert_array_equal(np.ones(2), fields['cell']['z'])
     assert_array_equal(np.ones(2), fields.field_values('cell', 'z'))
+
 
 def test_add_ones_return_value():
     fields = ModelDataFields()
@@ -75,6 +78,7 @@ def test_add_ones_return_value():
     assert_array_equal(rtn_value, np.ones(2))
     assert_is(rtn_value, fields['cell']['z'])
     assert_is(rtn_value, fields.field_values('cell', 'z'))
+
 
 def test_getitem():
     fields = ModelDataFields()
@@ -95,9 +99,26 @@ def test_at_attribute():
     fields.add_ones('node', 'z')
     assert_array_equal(np.ones(12), fields.at_node['z'])
 
+
 def test_has_group():
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
 
     assert_true(fields.has_group('node'))
     assert_false(fields.has_group('cell'))
+
+
+def test_delete_field():
+    fields = ModelDataFields()
+    fields.new_field_location('link', 17)
+
+    assert_dict_equal(dict(), fields.at_link)
+    assert_raises(AttributeError, lambda: fields.at_node)
+
+    fields.add_zeros('link', 'vals')
+    assert_array_equal(np.zeros(17), fields.at_link['vals'])
+
+    assert_raises(KeyError, lambda: fields.delete_field('node', 'vals'))
+    fields.delete_field('link', 'vals')
+    assert_raises(KeyError, lambda: fields.field_units('link', 'vals'))
+    assert_raises(KeyError, lambda: fields.at_link['vals'])

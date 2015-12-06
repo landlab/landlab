@@ -1,20 +1,17 @@
 #! /usr/env/python
 """
     A python flow accumulation module. It is designed to be general, and to operate across multiple grids and multiple flow direction patterns. However, at the moment, only a steepest descent (single path) routing scheme is implemented.
-    
+
     There remain some outstanding issues with the handling of boundary cells, which this component has inherited from flow_routing_D8.
-    
+
     Created DEJH, 8/2013
 """
-try:
-    from scipy import weave
-except ImportError:
-    import warnings
-    warnings.warn('unable to import scipy.weave')
 
 import numpy as np
-#weave.test()
-#import flow_routing_D8
+import six
+
+from landlab import CLOSED_BOUNDARY
+
 
 class AccumFlow(object):
     """
@@ -31,22 +28,22 @@ class AccumFlow(object):
         except:
             data.flowacc = self.flow_accum_by_area[:-1]
         else:
-            print "Another module has created the flow accumulation grid. Undesirable conflicts may occur!"
+            six.print_("Another module has created the flow accumulation grid. Undesirable conflicts may occur!")
             assert(len(data.flowacc) == len(self.flow_accum_by_area[:-1]))
 
     def calc_flowacc(self, grid, data):
-        active_cell_ids = grid.get_active_cell_node_ids()
+        active_cell_ids = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         #Perform test to see if the flowdir data is a single vector, or multidimensional, here. Several ways possible: 1. Is the vector multidimensional?, e.g., try: data.flowdirs.shape[1] 2. set a flag in flowdir.
-        
+
         try:
             height_order_active_cells = np.argsort(data.elev[active_cell_ids])[::-1] #descending order
         except:
-            print 'Cells could not be sorted by elevation. Does the data object contain the elevation vector?'
+            six.print_('Cells could not be sorted by elevation. Does the data object contain the elevation vector?')
 
         try:
             sorted_flowdirs = (data.flowdirs[active_cell_ids])[height_order_active_cells]
         except:
-            print 'Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?'
+            six.print_('Flow directions could not be sorted by elevation. Does the data object contain the flow direction vector?')
         #print grid.cell_areas
         self.flow_accum_by_area[active_cell_ids] = grid.cell_areas #This is only the active nodes == cells by definition
 
@@ -75,8 +72,8 @@ printf ('Test');
         for i in xrange(len(sorted_flowdirs)):
             iter_height_order = height_order_active_cells[i]
             iter_sorted_fldirs = sorted_flowdirs[i]
-            self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]                     
-                                                            
+            self.flow_accum_by_area[iter_sorted_fldirs] += (self.flow_accum_by_area[active_cell_ids])[iter_height_order]
+
         return self.flow_accum_by_area[:-1]
 
         #int downhill_node;

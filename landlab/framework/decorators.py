@@ -6,6 +6,8 @@ Decorators for TheLandlab package.
 import inspect
 import types
 
+import six
+
 
 def camel_case(text, sep=None):
     """
@@ -32,6 +34,7 @@ class InterfaceImplementationError(Error):
     """
     Raise this error if the class does not implement an interface.
     """
+
     def __init__(self, cls, interface):
         self.cls = cls.__name__
         self.interface = interface.__name__
@@ -55,19 +58,19 @@ def is_implementation(cls, interface):
                 cls_args = inspect.getargspec(getattr(cls, name))
                 interface_args = inspect.getargspec(value)
             except AttributeError:
-                print 'Missing attribute %s' % name
+                six.print_('Missing attribute %s' % name)
                 return False
             try:
                 assert(len(cls_args.args) == len(interface_args.args))
             except AssertionError:
-                print 'Mismatch in number of args for %s' % name
+                six.print_('Mismatch in number of args for %s' % name)
                 return False
         else:
             try:
                 assert(type(getattr(cls, name)) ==
                        type(getattr(interface, name)))
             except (AttributeError, AssertionError):
-                print 'Missing member or type mismatch for %s' % name
+                six.print_('Missing member or type mismatch for %s' % name)
                 return False
     return True
 
@@ -79,6 +82,7 @@ class ImplementsOrRaise(object):
     If the class does implement the interface, decorate it with a
     __implements__ data mamber that is a tuple of the interfaces it implements.
     """
+
     def __init__(self, *interfaces):
         self._interfaces = interfaces
 
@@ -94,12 +98,13 @@ class ImplementsOrRaise(object):
 
 class Implements(object):
     """
-    Decorator to indicate if a class implements interfaces. Similar to the 
+    Decorator to indicate if a class implements interfaces. Similar to the
     ImplementsOrRaise decorator except that this decorator silently ignores
     implemention errors. If the class does implement the interface, decorate
     it with a __implements__ data mamber that is a tuple of the interfaces it
     implements. Otherwise, don't do anything.
     """
+
     def __init__(self, *interfaces):
         self._interfaces = interfaces
 

@@ -8,6 +8,7 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
@@ -101,12 +102,12 @@ SEs = (slice(0,-2),slice(2,n+2))
 
 for i in xrange(nt):
     if i%100==0:
-        print i
+        print(i)
     qE = np.zeros_like(hR)
     qW = np.zeros_like(hR)
     qN = np.zeros_like(hR)
     qS = np.zeros_like(hR)
-    
+
     #update the dummy edges of our variables:
     hR[0,1:-1] = hR[1,1:-1]
     hR[-1,1:-1] = hR[-2,1:-1]
@@ -132,20 +133,20 @@ for i in xrange(nt):
     qE[core] = np.sign(hgradEx[core])*vmagE[core]*(CslopeE[core]-slope).clip(0.)*np.cos(thetaE[core])
     #the clip should deal with the eastern edge, but return here to check if probs
 
-    
+
     hgradWx[core] = (hR[Ws]-hR[core])#/width
     hgradWy[core] = hR[SWs]-hR[NWs]+hR[Ss]-hR[Ns]
     hgradWy[core] *= 0.25
     CslopeW[core] = sqrt(np.square(hgradWx[core])+np.square(hgradWy[core]))
     thetaW[core] = np.arctan(np.fabs(hgradWy[core])/(np.fabs(hgradWx[core])+1.e-10))
-    pgradWx[core] = uW[core]#/width 
+    pgradWx[core] = uW[core]#/width
     pgradWy[core] = uN[core]+uS[core]+uN[Ws]+uS[Ws]
     pgradWy[core] *= 0.25
     vmagW[core] = sqrt(np.square(pgradWx[core])+np.square(pgradWy[core]))
     theta_vW[core] = np.arctan(np.fabs(pgradWy[core])/(np.fabs(pgradWx[core])+1.e-10))
     vmagW[core] *= np.cos(np.fabs(thetaW[core]-theta_vW[core]))
     qW[core] = np.sign(hgradWx[core])*vmagW[core]*(CslopeW[core]-slope).clip(0.)*np.cos(thetaW[core])
-    
+
     hgradNx[core] = hR[NWs]-hR[NEs]+hR[Ws]-hR[Es]
     hgradNx[core] *= 0.25
     hgradNy[core] = (hR[core]-hR[Ns])#/width
@@ -158,7 +159,7 @@ for i in xrange(nt):
     theta_vN[core] = np.arctan(np.fabs(pgradNy[core])/(np.fabs(pgradNx[core])+1.e-10))
     vmagN[core] *= np.cos(np.fabs(thetaN[core]-theta_vN[core]))
     qN[core] = np.sign(hgradNy[core])*vmagN[core]*(CslopeN[core]-slope).clip(0.)*np.sin(thetaN[core])
-    
+
     hgradSx[core] = hR[SWs]-hR[SEs]+hR[Ws]-hR[Es]
     hgradSx[core] *= 0.25
     hgradSy[core] = (hR[Ss]-hR[core])#/width
@@ -170,13 +171,13 @@ for i in xrange(nt):
     vmagS[core] = sqrt(np.square(pgradSx[core])+np.square(pgradSy[core]))
     theta_vS[core] = np.arctan(np.fabs(pgradSy[core])/(np.fabs(pgradSx[core])+1.e-10))
     vmagS[core] *= np.cos(np.fabs(thetaS[core]-theta_vS[core]))
-    qS[core] = np.sign(hgradSy[core])*vmagS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core]) 
-    
+    qS[core] = np.sign(hgradSy[core])*vmagS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core])
+
     hR[core] += dtwidth*(qS[core]+qW[core]-qN[core]-qE[core]+qsourceR[core])
 
 
     ###P SOLVER
-    
+
     #mask for which core nodes get updated:
     mask = (hR[core]<p_thresh)
     #not_mask = np.logical_not(mask)
@@ -194,24 +195,24 @@ for i in xrange(nt):
     Wchanged[core] = np.less(hR[Ws]+hR[core],fixdis)
     Echanged[core] = np.less(hR[Es]+hR[core],fixdis)
     Nchanged[core] = np.less(hR[Ns]+hR[core],fixdis)
-    Schanged[core] = np.less(hR[Ss]+hR[core],fixdis)    
+    Schanged[core] = np.less(hR[Ss]+hR[core],fixdis)
 
     for j in xrange(10):
-        
+
         uW[Wchanged] = kW*(pR[Ws]-pR[core])[Wchanged[core]]
         uE[Echanged] = kE*(pR[Es]-pR[core])[Echanged[core]]
         uN[Nchanged] = kN*(pR[Ns]-pR[core])[Nchanged[core]]
         uS[Schanged] = kS*(pR[Ss]-pR[core])[Schanged[core]]
-        
+
         pR[core] += uW[core]
         pR[core] += uS[core]
         pR[core] -= uE[core]
         pR[core] -= uN[core]
         pR[core] += qspR[core]
         pR[core] /= kN+kS+kE+kW
-        
+
         pR[core][mask] = 0.
-    
+
 X,Y = np.meshgrid(np.arange(n),np.arange(n))
 uval = uW[core]+uE[core]
 vval = uN[core]+uS[core]

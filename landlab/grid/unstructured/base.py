@@ -18,6 +18,7 @@ def _default_axis_units(n_dims):
 
 
 class BaseGrid(object):
+
     def __init__(self, nodes, axis_name=None, axis_units=None, node_status=None,
                  links=None, cells=None):
         """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
@@ -68,8 +69,9 @@ class BaseGrid(object):
         >>> len(ngrid.links_entering_at_node(0)) == 0
         True
 
+        >>> tails, heads = zip(*links)
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
-        ...     node_status=[0, 0, 0, 4], links=zip(*links))
+        ...     node_status=[0, 0, 0, 4], links=[tails, heads])
         >>> grid.status_at_node
         array([0, 0, 0, 4])
         >>> len(grid.active_links_entering_at_node(0)) == 0
@@ -266,7 +268,7 @@ class BaseGrid(object):
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> links = [(0, 2), (1, 3), (0, 1), (2, 3), (0, 3)]
-        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=zip(*links))
+        >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=links)
         >>> grid.link_length()
         array([ 4.,  4.,  3.,  3.,  5.])
         >>> grid.link_length(0)

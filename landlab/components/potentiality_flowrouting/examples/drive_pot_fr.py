@@ -7,6 +7,7 @@ Created on Wed Mar 4 2015
 
 @author: danhobley
 """
+from __future__ import print_function
 
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
@@ -33,7 +34,7 @@ mg.at_node['topographic__elevation'] = z
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 figure(3)
-imshow_node_grid(mg, mg.node_boundary_status)
+imshow_node_grid(mg, mg.status_at_node)
 
 mg.at_node['water__volume_flux_in'] = np.ones_like(z)
 
@@ -47,14 +48,14 @@ figure(2)
 imshow_node_grid(mg, 'topographic__elevation')
 
 out_sum = np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))[-3,:])
-print out_sum
-print np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes])
-print out_sum - np.sum(mg.at_node['water__volume_flux_in'])
+print(out_sum)
+print(np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(out_sum - np.sum(mg.at_node['water__volume_flux_in']))
 
 show()
 
-print mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))
-print np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),axis=0)/3.
+print(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)))
+print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),axis=0)/3.)
 
 #now a run with a grid...
 
@@ -68,7 +69,7 @@ print np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 #time_to_run = inputs.read_float('run_time')
 #uplift = inputs.read_float('uplift_rate')
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
-##make some K values in a field to test 
+##make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+np.random.rand(nrows*ncols)/10.
 ##elapsed_time = 0. #total time in simulation
 ##while elapsed_time < time_to_run:
@@ -81,7 +82,7 @@ print np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 ##    mg = fr.route_flow(grid=mg)
 ##    mg,_,_ = sp.erode(mg)
 ##    elapsed_time += dt
-    
+
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
 nrows = 200#inputs.read_int('nrows')
 ncols = 200#inputs.read_int('ncols')
@@ -99,7 +100,7 @@ mg.create_node_array_zeros('topographic__elevation')
 z = mg.create_node_array_zeros() + init_elev
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some K values in a field to test 
+#make some K values in a field to test
 mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
 #mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)
@@ -117,9 +118,9 @@ fsp = SPEroder(mg, './pot_fr_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print elapsed_time
+    print(elapsed_time)
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
@@ -150,7 +151,7 @@ imshow_node_grid(mg, 'water__volume_flux_xcomponent')
 figure('ycomp')
 imshow_node_grid(mg, 'water__volume_flux_ycomponent')
 
-print 'flux in per node: ', mg.at_node['water__volume_flux_in'][0]
-print 'water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes])
-print -np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes])
-print (-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0]
+print('flux in per node: ', mg.at_node['water__volume_flux_in'][0])
+print('water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))
+print((-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0])
