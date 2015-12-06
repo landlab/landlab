@@ -15,7 +15,7 @@ import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
 from landlab.components.potentiality_flowrouting.route_flow_by_boundary import PotentialityFlowRouter
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.stream_power import SPEroder
 from landlab.grid.mappers import map_link_end_node_max_value_to_link
 
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
