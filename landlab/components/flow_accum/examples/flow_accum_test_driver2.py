@@ -6,7 +6,7 @@ from landlab import RasterModelGrid
 from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
 from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 from landlab.plot.imshow import imshow_grid
-from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
+from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
 #reload(flow_routing_D8)
 #reload(flow_accumulation)

@@ -2,7 +2,7 @@ import numpy as np
 from pylab import *
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab.plot.imshow import imshow_grid
-from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
+from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
 from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
 from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
