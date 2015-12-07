@@ -680,10 +680,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Traceback (most recent call last):
         ValueError: assignment destination is read-only
         """
-        try:
-            return self._nodes
-        except AttributeError:
-            return self._setup_nodes()
+        return super(RasterModelGrid, self).nodes
 
     @property
     def nodes_at_right_edge(self):
