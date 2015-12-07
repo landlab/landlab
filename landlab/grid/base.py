@@ -547,6 +547,20 @@ class ModelGrid(ModelDataFields):
         """Number of spatial dimensions of the grid"""
         return 2
 
+    def _setup_nodes(self):
+        """Set up the node id array."""
+        self._nodes = np.arange(self.number_of_nodes, dtype=int)
+        return self._nodes
+
+    @property
+    @make_return_array_immutable
+    def nodes(self):
+        """Get node ids for the grid."""
+        try:
+            return self._nodes
+        except AttributeError:
+            return self._setup_nodes()
+
     @property
     @override_array_setitem_and_reset('update_links_nodes_cells_to_new_BCs')
     def status_at_node(self):
