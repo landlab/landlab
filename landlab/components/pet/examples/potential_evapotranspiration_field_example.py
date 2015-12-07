@@ -3,7 +3,7 @@
 
 #import landlab
 from landlab import RasterModelGrid
-from landlab.components.radiation.radiation_field import Radiation
+from landlab.components.radiation import Radiation
 from landlab.components.pet import PotentialEvapotranspiration
 import numpy as np
 import matplotlib.pyplot as plt

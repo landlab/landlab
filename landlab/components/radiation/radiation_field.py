@@ -16,7 +16,7 @@ def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
 
-class Radiation( Component ):
+class Radiation(Component):
     """
     Landlab component that computes 1D and 2D total incident shortwave
     radiation. This code also computes relative incidence shortwave radiation
@@ -39,7 +39,7 @@ class Radiation( Component ):
         OPTAIRMASS: set optical air mass. default value is 0.0
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.radiation.radiation_field import Radiation
+    >>> from landlab.components.radiation import Radiation
     >>> import numpy as np
     >>> grid = RasterModelGrid( 5, 4, 0.2 )
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
