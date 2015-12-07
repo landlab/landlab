@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional import TransportLimitedEroder
+from landlab.components.transport_limited_fluvial import TransportLimitedEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
