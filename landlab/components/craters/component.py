@@ -4,7 +4,7 @@ import numpy as np
 
 from landlab.grid.raster import RasterModelGrid
 from landlab import Component
-import landlab.components.craters as craters
+from . import craters
 
 
 class CratersComponent(Component):
