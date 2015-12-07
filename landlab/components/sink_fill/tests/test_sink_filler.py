@@ -10,7 +10,7 @@ Created on Tues Oct 20, 2015
 import landlab
 from landlab import RasterModelGrid, FieldError
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.sink_fill.fill_sinks import SinkFiller
+from landlab.components.sink_fill import SinkFiller
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
