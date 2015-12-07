@@ -14,6 +14,8 @@ which this component has inherited from `flow_routing_D81.
 # Created DEJH, 8/2013
 from __future__ import print_function
 
+from six.moves import range
+
 import warnings
 
 import numpy as np
@@ -116,7 +118,7 @@ class AccumFlow(object):
                           "vector?")
 
         ## Inefficient Python code.
-        for i in xrange(len(sorted_flowdirs)):
+        for i in range(len(sorted_flowdirs)):
             iter_height_order = height_order_nodes[i]
             iter_sorted_fldirs = sorted_flowdirs[i]
             self._flow_accum_by_area[iter_sorted_fldirs] += (
