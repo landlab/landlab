@@ -9,7 +9,7 @@ Created on Sun Oct 18 09:47:59 2015
 @author: gtucker
 """
 
-from landlab.components.fracture_grid.fracture_grid import make_frac_grid
+from landlab.components.fracture_grid import make_frac_grid
 from numpy.testing import assert_array_equal
 
 
