@@ -6,7 +6,7 @@
 ##
 #########################################################
 from landlab import RasterModelGrid
-from landlab.components.soil_moisture.soil_moisture_field import SoilMoisture
+from landlab.components.soil_moisture import SoilMoisture
 from landlab.components.single_vegetation import Vegetation
 import numpy as np
 #import matplotlib.pyplot as plt
