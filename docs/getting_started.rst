@@ -128,7 +128,7 @@ Below is the entire code for the model which uses the pre-built linear diffusion
 	#Import statements so that you will have access to the necessary functions
 	import numpy
 	from landlab import RasterModelGrid
-	from landlab.components.diffusion.diffusion import LinearDiffuser
+	from landlab.components.diffusion import LinearDiffuser
 	from landlab.plot.imshow import imshow_node_grid
 	from pylab import show, figure
 
@@ -175,9 +175,9 @@ Let's go through the model with a component and compare it to the non-component 
 
 The import statements are nearly the same, except that the model using a component has to import the ``LinearDiffuser`` class.  In Landlab components are built as classes, which among other things, means that they can have both their own data and methods (methods are functions that are part of a class).  The statement that imports the ``LinearDiffuser`` is repeated below:
 
->>> from landlab.components.diffusion.diffusion import LinearDiffuser
+>>> from landlab.components.diffusion import LinearDiffuser
 
-In this case the ``LinearDiffuser`` class is contained in a file called ``diffusion.py`` that is in the ``landlab/components/diffusion directory``.
+In this case the ``LinearDiffuser`` class is located in the ``landlab/components/diffusion package``.
 
 The code to create the raster grid (*mg*, an object of type ``RasterModelGrid``), the elevation array *z* (or elevation field on *mg*), and the scarp across the landscape are all the same between the two different models.  Similarly, the plotting is the same between the two models.
 
