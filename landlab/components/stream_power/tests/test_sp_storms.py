@@ -16,8 +16,7 @@ from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder
-from landlab.components.uniform_precip.generate_uniform_precip import \
-    PrecipitationDistribution
+from landlab.components.uniform_precip import PrecipitationDistribution
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

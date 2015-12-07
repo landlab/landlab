@@ -1,18 +1,16 @@
-'''
-simple_sp_driver.py
-
+"""
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
-DEJH, 09/15/14
-'''
+"""
+# DEJH, 09/15/14
 from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder, SPEroder
-from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+from landlab.components.uniform_precip import PrecipitationDistribution
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
 from landlab.plot.imshow import imshow_node_grid
