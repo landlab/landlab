@@ -9,7 +9,7 @@ from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder
-from landlab.components.stream_power import SPEroder as Fsc
+from landlab.components.stream_power import FastscapeEroder as Fsc
 
 import numpy
 import numpy as np

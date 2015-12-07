@@ -50,7 +50,7 @@ Functional modules
 	:members: update
 	*This component implements a model to compute spatial radiation distribution.
 
-.. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
+.. autoclass:: landlab.components.stream_power.fastscape_stream_power.FastscapeEroder
 	:members: erode
 
 

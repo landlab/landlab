@@ -9,7 +9,7 @@ from __future__ import print_function
 
 from landlab.components.flow_routing import (FlowRouter,
                                              DepressionFinderAndRouter)
-from landlab.components.stream_power import StreamPowerEroder, SPEroder
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 
 import numpy
 from landlab import RasterModelGrid
@@ -47,7 +47,7 @@ fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 lf = DepressionFinderAndRouter(mg)
 #load the Fastscape module too, to allow direct comparison
-fsp = SPEroder(mg, './drive_sp_params.txt')
+fsp = FastscapeEroder(mg, './drive_sp_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation

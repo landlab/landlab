@@ -9,7 +9,7 @@ wave, then stores the propagation as a gif.
 from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder, SPEroder
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab.components.uniform_precip import PrecipitationDistribution
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
@@ -53,11 +53,11 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, input_file_string)
-#fsp = SPEroder(mg, input_file_string)
+#fsp = FastscapeEroder(mg, input_file_string)
 precip = PrecipitationDistribution(input_file=input_file_string)
 
 #load the Fastscape module too, to allow direct comparison
-fsp = SPEroder(mg, input_file_string)
+fsp = FastscapeEroder(mg, input_file_string)
 
 try:
     #raise NameError

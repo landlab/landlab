@@ -12,7 +12,7 @@ from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder
-from landlab.components.stream_power import SPEroder as Fsc
+from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot

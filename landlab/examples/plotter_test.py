@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.stream_power.fastscape_stream_power import FastscapeEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -47,7 +47,7 @@ print('Running ...')
 
 # instantiate the components:
 fr = FlowRouter(mg)
-sp = SPEroder(mg, input_file)
+sp = FastscapeEroder(mg, input_file)
 vid = VideoPlotter(mg, data_centering='node')
 
 time_on = time()

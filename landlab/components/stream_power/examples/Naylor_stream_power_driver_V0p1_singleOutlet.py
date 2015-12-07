@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import SPEroder
+from landlab.components.stream_power import FastscapeEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 
@@ -63,7 +63,7 @@ for t in xrange(5):
 
     #instantiate the components:
     fr = FlowRouter(mg)
-    sp = SPEroder(mg, input_file)
+    sp = FastscapeEroder(mg, input_file)
 
     time_on = time()
 

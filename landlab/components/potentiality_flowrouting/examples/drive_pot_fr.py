@@ -15,7 +15,7 @@ import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
 from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import SPEroder
+from landlab.components.stream_power import FastscapeEroder
 
 nrows = 100
 ncols = 100
@@ -63,7 +63,7 @@ print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 ##make a topo to test on:
 #mg.at_node['topographic__elevation'] = np.zeros(mg.number_of_nodes)
 #fr = FlowRouter(mg)
-#fsp = SPEroder(mg, './pot_fr_params.txt')
+#fsp = FastscapeEroder(mg, './pot_fr_params.txt')
 #inputs = ModelParameterDictionary('./pot_fr_params.txt')
 #dt = inputs.read_float('dt')
 #time_to_run = inputs.read_float('run_time')
@@ -113,7 +113,7 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 #load the Fastscape module too, to allow direct comparison
-fsp = SPEroder(mg, './pot_fr_params.txt')
+fsp = FastscapeEroder(mg, './pot_fr_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation

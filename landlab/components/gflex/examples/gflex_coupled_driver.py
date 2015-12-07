@@ -13,7 +13,7 @@ import pylab
 
 from landlab.components.gFlex.flexure import gFlex
 from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder, SPEroder
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
@@ -40,7 +40,7 @@ mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
 
 #instantiate:
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
-fsp = SPEroder(mg, './coupled_SP_gflex_params.txt')
+fsp = FastscapeEroder(mg, './coupled_SP_gflex_params.txt')
 sp = StreamPowerEroder(mg, './coupled_SP_gflex_params.txt')
 fr = FlowRouter(mg)
 

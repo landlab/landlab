@@ -33,7 +33,7 @@ The current library includes the following components in essentially full workin
 * a potential evapotranspiration module: :class:`~landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration`
 * a solar total incident shortwave radiation calculator: :class:`~landlab.components.radiation.radiation_field.Radiation`
 * a soil moisture module: :class:`~landlab.components.soil_moisture.soil_moisture_field.SoilMoisture`
-* a simple stream power (pure detachment limited) fluvial component: :class:`~landlab.components.stream_power.stream_power.StreamPowerEroder`, or :class:`~landlab.components.stream_power.fastscape_stream_power.SPEroder`
+* a simple stream power (pure detachment limited) fluvial component: :class:`~landlab.components.stream_power.stream_power.StreamPowerEroder`, or :class:`~landlab.components.stream_power.fastscape_stream_power.FastscapeEroder`
 * a transport-limited fluvial component: :class:`~landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3.TransportLimitedEroder`
 * a sediment-flux dependent shear stress based fluvial incision component: :class:`~landlab.components.stream_power.sed_flux_dep_incision.SedDepEroder`
 * a generator for storms over a landscape: :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`
