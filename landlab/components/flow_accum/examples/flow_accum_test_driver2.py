@@ -4,7 +4,7 @@ import numpy as np
 from pylab import show, imshow, colorbar, plot
 from landlab import RasterModelGrid
 from landlab.components.flow_routing import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.flow_accum import AccumFlow
 from landlab.plot.imshow import imshow_grid
 from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
@@ -47,7 +47,7 @@ def main():
     #insantiate variable of type AccumFlow Class
     accumulator = AccumFlow(rg)
     #initial flow accumulation
-    drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
+    drain_area = accumulator.calc_flowacc(z, flowdirs)
 
     print("elevations ", rg.node_vector_to_raster(z))
     print("flowdirs ", rg.node_vector_to_raster(flowdirs))

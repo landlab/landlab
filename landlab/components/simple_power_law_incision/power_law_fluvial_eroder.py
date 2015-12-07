@@ -32,9 +32,9 @@ so these values need not be passed in.  Elevationare eroded and sent back.
 
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 from landlab.components.flow_routing import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.flow_accum import AccumFlow
 import numpy as np
-#import matplotlib.pyplot as plt
+
 
 class PowerLawIncision(object):
 
@@ -92,7 +92,7 @@ class PowerLawIncision(object):
         #insantiate variable of type AccumFlow Class
         accumulator = AccumFlow(grid)
         #initial flow accumulation
-        drain_area = accumulator.calc_flowacc(grid, z, flowdirs)
+        drain_area = accumulator.calc_flowacc(z, flowdirs)
 
         time=0
         dt = storm_dur
@@ -148,7 +148,7 @@ class PowerLawIncision(object):
                 #recalculate flow directions
                 flowdirs, max_slopes = flow_router.calc_flowdirs(grid,z)
                 #recalculate drainage area
-                drain_area = accumulator.calc_flowacc(grid, z, flowdirs)
+                drain_area = accumulator.calc_flowacc(z, flowdirs)
 
         return z
 
