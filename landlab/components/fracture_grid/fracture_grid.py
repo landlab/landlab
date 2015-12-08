@@ -112,7 +112,7 @@ def calculate_fracture_step_sizes(start_yx, ang):
         Step sizes in y and x directions. One will always be unity, and the
         other will always be <1.
     """
-    y, x = start_yx
+    starty, startx = start_yx
     if startx==0:  # frac starts on left side
         dx = 1
         dy = tan(ang)

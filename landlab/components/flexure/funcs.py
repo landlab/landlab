@@ -22,7 +22,7 @@ def get_flexure_parameter(h, E, n_dim):
     Example
     -------
     >>> from __future__ import print_function
-    >>> from landlab.components.flexure.funcs import get_flexure_parameter
+    >>> from landlab.components.flexure import get_flexure_parameter
 
     >>> eet = 65000.
     >>> youngs = 7e10
@@ -102,7 +102,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     Example
     -------
 
-    >>> from landlab.components.flexure.funcs import subside_point_load
+    >>> from landlab.components.flexure import subside_point_load
 
     >>> params = dict(eet=65000., youngs=7e10)
     >>> load = 1e9

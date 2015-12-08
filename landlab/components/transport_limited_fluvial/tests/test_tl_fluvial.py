@@ -11,7 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional \
     import TransportLimitedEroder
 from landlab import ModelParameterDictionary

@@ -4,15 +4,13 @@ import numpy as np
 from pylab import *
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab.plot.imshow import imshow_grid
-from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
+from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
-from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.simple_power_law_incision import PowerLawIncision
+from landlab.components.flow_routing import RouteFlowD8
+from landlab.components.flow_accum import AccumFlow
 import matplotlib.pyplot as plt
-#reload(flow_routing_D8)
-#reload(flow_accumulation)
-#reload(raster)
+
 
 def main():
     nr = 5
@@ -78,7 +76,7 @@ def main():
     #insantiate variable of type AccumFlow Class
     accumulator = AccumFlow(rg)
     #initial flow accumulation
-    drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
+    drain_area = accumulator.calc_flowacc(z, flowdirs)
 
     #m,b = polyfit(log10(drain_area[interior_nodes]), log10(max_slopes[interior_nodes]), 1)
     z[interior_nodes] = z[interior_nodes]+uplift_rate * storm_duration

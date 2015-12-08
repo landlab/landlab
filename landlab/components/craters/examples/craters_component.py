@@ -2,7 +2,7 @@
 from six.moves import range
 
 from landlab.grid import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 
 
 def main():

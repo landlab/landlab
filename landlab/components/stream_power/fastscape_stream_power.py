@@ -15,7 +15,7 @@ from scipy.optimize import newton, fsolve
 
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
-class SPEroder(object):
+class FastscapeEroder(object):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the amount
     of erosion at each node in a grid, following a stream power framework.

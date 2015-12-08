@@ -14,7 +14,7 @@ from landlab import Component, ModelParameterDictionary
 import numpy as np
 import os
 
-class OverlandFlow(Component):
+class OverlandFlowBates(Component):
     """  Landlab component that simulates overland flow using the Bates et al., (2010) approximations
     of the 1D shallow water equations to be used for 2D flood inundation modeling.
 
@@ -48,10 +48,10 @@ class OverlandFlow(Component):
 
         >>> DEM_name = 'DEM_name.asc'
         >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-        >>> of = OverlandFlow(rg) # doctest: +SKIP
+        >>> of = OverlandFlowBates(rg) # doctest: +SKIP
 
     """
-    _name = 'OverlandFlow'
+    _name = 'OverlandFlowBates'
 
     _input_var_names = set(['water_depth', 'topographic__elevation'])
 
@@ -84,7 +84,7 @@ class OverlandFlow(Component):
 
     def __init__(self, grid, input_file = None, **kwds):
 
-        super(OverlandFlow, self).__init__(grid, **kwds)
+        super(OverlandFlowBates, self).__init__(grid, **kwds)
 
         # First we copy our grid
         self._grid = grid

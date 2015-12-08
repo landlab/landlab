@@ -24,7 +24,7 @@ except ImportError:
 
 import landlab
 from landlab import RasterModelGrid, RadialModelGrid, FieldError
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab import CLOSED_BOUNDARY
 from landlab import BAD_INDEX_VALUE as XX
 

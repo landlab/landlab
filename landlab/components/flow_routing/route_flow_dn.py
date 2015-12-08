@@ -211,7 +211,7 @@ class FlowRouter(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing.route_flow_dn import FlowRouter
+        >>> from landlab.components.flow_routing import FlowRouter
         >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,

@@ -12,8 +12,8 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import SedDepEroder
 from landlab import ModelParameterDictionary
 
 
