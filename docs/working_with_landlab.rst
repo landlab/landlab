@@ -64,7 +64,7 @@ As noted above, the process of creating a driver is essentially equivalent wheth
 1. Import the libraries and functions you need
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-Landlab handles a lot like numpy, and like numpy you’ll need to import the various libraries and functions that you’ll want to use. At the very least, we suspect you’ll need from outside Landlab:
+Landlab handles a lot like numpy, and like numpy you’ll need to import the various modules and functions that you’ll want to use. At the very least, we suspect you’ll need from outside Landlab:
 
 * *numpy* itself
 * rudimentary pylab plotting routines: *plot*, *show*, *figure*
@@ -88,7 +88,7 @@ A specific example might be:
     from pylab import show, figure, plot
     import time
     from landlab import RasterModelGrid
-    from landlab.components.flow_routing import route_flow_dn
+    from landlab.components.flow_routing import FlowRouter
     from landlab.plot.imshow import imshow_node_grid
 
 
@@ -99,7 +99,9 @@ As noted in previous sections, Landlab is coded in an `object-oriented style <ht
 
 Note that most components require the grid object be passed to them as one of their arguments during instantiation, so the first thing you’ll want to instantiate will be the grid.
 
-Check the docstrings for each class (grid, component) you want to instantiate for a detailed description of what you need to supply as arguments. For a RasterModelGrid, this will be (number_of_node_rows, number_of_node_columns, node_spacing(optional)). For a VoronoiDelaunayGrid, it will be (array_of_node_x_coords, array_of_node_y_coords). For a generic component, it will typically be (ModelGrid, ‘path_to_parameter_file.txt’), though there may be some variation, and optional inputs may also be available.
+Check the docstrings for each class (grid, component) you want to instantiate for a detailed description of what you need to supply as arguments. For a RasterModelGrid, this will be a tuple, (i, j), where i is the number of columns and j the number of rows. A second float (or tuple) is optional, specifying the node spacing - using a tuple to specify (dy, dx) if you want them to be different.
+[Landlab also recognises an older style of RasterModelGrid signature, which looks like (number_of_node_rows, number_of_node_columns, node_spacing(optional)), and is clever enough to work out this is what you're doing if your arguments are of this form.]
+For a VoronoiDelaunayGrid, it will be (array_of_node_x_coords, array_of_node_y_coords). For a generic component, it will typically be (ModelGrid, ‘path_to_parameter_file.txt’), though there may be some variation, and optional inputs may also be available.
 
 Give each object you instantiate a variable name. We like “mg” for ModelGrid objects, and some appropriate abbreviation for a component.
 
@@ -107,8 +109,8 @@ An example might be:
 
 .. code-block:: python
 
-    mg = RasterModelGrid(10,10,1.)  # 100 nodes, spacing of 1.
-    fr = route_flow_dn(mg, './params.txt')
+    mg = RasterModelGrid((10, 10), (1., 2.))  # 100 nodes, dy=1., dx=2.
+    fr = FlowRouter(mg, './params.txt')
     # ...this assumes params.txt is in the current directory
 
 
@@ -125,7 +127,7 @@ In both cases, we advocate a two step process: creating a numpy array of the dat
 
 .. code-block:: python
 
-    mg = RasterModelGrid(10,10,1.)  # make a grid
+    mg = RasterModelGrid((10, 10), 1.)  # make a grid
     z = np.zeros(100, dtype=float)  # make a flat surface, elev 0
     # or…
     z = mg.node_y*0.01  # a flat surface dipping shallowly south
@@ -164,16 +166,18 @@ If you’re working with, say, an ARC imported array with a null value on the cl
 
 If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs by hand. This means individually modifying the boundary condition status of each node or link that you want to be of the new type. Fortunately, Landlab uses some Python magic to make sure that when you update, for example, the status of a node, the statuses of attached links and cells change concomitantly. For example::
 
+    >>> # import the BC values we'll need:
+    >>> from landlab import FIXED_LINK, FIXED_GRADIENT_BOUNDARY
     >>> # find the ID of the lowest elevation core node.
     >>> # we'll make this a fixed gradient outlet:
     >>> outlet_id = mg.core_nodes[np.argmin(
                     mg.at_node['topographic__elevation'][mg.core_nodes])]
     >>> # show there are no FIXED_LINK boundary conditions in the grid yet:
-    >>> np.any(mg.status_at_link==2)
+    >>> np.any(mg.status_at_link==FIXED_LINK)
     False
-    >>> mg.status_at_node[outlet_id] = 2  # update the outlet node
-    >>> # remember, 0:core, 1:fixedval, 2:fixedgrad, 3:looped, 4:closed
-    >>> np.any(mg.status_at_link==2)
+    >>> # update the outlet node:
+    >>> mg.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+    >>> np.any(mg.status_at_link==FIXED_LINK)
     True
     >>> # the corresponding link has been automatically updated.
 
@@ -203,14 +207,13 @@ Both produce 1000 time units of run, with an explicit timestep of 10. Notice tha
 
 Landlab also however has a built in storm generator component,
 :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`,
-which (as its module name suggests) actually acts as a true `Python generator <http://www.python-course.eu/generators.php>`_. The main method is
+which acts as a true `Python generator <http://www.python-course.eu/generators.php>`_ (see its documentation!). The main method is
 :func:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity`.
 This means producing a storm series in Landlab is also very easy:
 
 .. code-block:: python
 
-    from landlab.components.uniform_precip.generate_uniform_precip \
-        import PrecipitationDistribution
+    from landlab.components.uniform_precip import PrecipitationDistribution
     time_to_run = 500000.
     precip_perturb = PrecipitationDistribution(input_file=input_file_string,
                                                total_t=time_to_run)

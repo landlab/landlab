@@ -22,19 +22,20 @@ def assert_method_is_valid(method):
 
 
 class PotentialEvapotranspiration( Component ):
-    """
-    Landlab component that calculates Potential Evapotranspiration.
+
+    """Landlab component that calculates Potential Evapotranspiration.
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.pet.potential_evapotranspiration_field import PotentialEvapotranspiration
+    >>> from landlab.components.pet import PotentialEvapotranspiration
 
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
+    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'Potential Evapotranspiration'
     """
+
     _name = 'Potential Evapotranspiration'
 
     _input_var_names = set([

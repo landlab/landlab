@@ -13,8 +13,9 @@ and depth units in millimeters (mm)
 import os
 import numpy as np
 import random
-from landlab import Component,ModelParameterDictionary
+from landlab import Component, ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError
+
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'preciptest.in')
@@ -43,7 +44,7 @@ class PrecipitationDistribution(Component):
 
     So, without an input file (selecting the default), we can call this component like...
 
-    >>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+    >>> from landlab.components.uniform_precip import PrecipitationDistribution
     >>> precip = PrecipitationDistribution()
 
     To use hard-coded values for mean storm, mean interstorm, mean depth, model run time and delta t...
@@ -125,7 +126,8 @@ class PrecipitationDistribution(Component):
         and intensity are needed, this method can be used to update those values
         one time.
 
-        >>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+        >>> from landlab.components.uniform_precip import (
+        ...     PrecipitationDistribution)
         >>> PD = PrecipitationDistribution()
         >>> PD.update()
 

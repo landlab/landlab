@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow import SurfaceFlowTransport
+from landlab.components.sed_trp_shallow_flow import SurfaceFlowTransport
 
 import time
 import pylab

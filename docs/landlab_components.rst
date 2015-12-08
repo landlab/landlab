@@ -33,7 +33,7 @@ The current library includes the following components in essentially full workin
 * a potential evapotranspiration module: :class:`~landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration`
 * a solar total incident shortwave radiation calculator: :class:`~landlab.components.radiation.radiation_field.Radiation`
 * a soil moisture module: :class:`~landlab.components.soil_moisture.soil_moisture_field.SoilMoisture`
-* a simple stream power (pure detachment limited) fluvial component: :class:`~landlab.components.stream_power.stream_power.StreamPowerEroder`, or :class:`~landlab.components.stream_power.fastscape_stream_power.SPEroder`
+* a simple stream power (pure detachment limited) fluvial component: :class:`~landlab.components.stream_power.stream_power.StreamPowerEroder`, or :class:`~landlab.components.stream_power.fastscape_stream_power.FastscapeEroder`
 * a transport-limited fluvial component: :class:`~landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3.TransportLimitedEroder`
 * a sediment-flux dependent shear stress based fluvial incision component: :class:`~landlab.components.stream_power.sed_flux_dep_incision.SedDepEroder`
 * a generator for storms over a landscape: :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`
@@ -90,6 +90,14 @@ ParameterValueError.
     ParameterValueError
     >>> MPD.read_bool['linear_diffusivity']
     ParameterValueError
+
+.. note::
+
+    The landlab component library will soon be updated so that you can either
+    pass a string giving the file name to your component, or instead in its
+    place you can pass an existing Python dictionary containing the same
+    information. Backwards compatibility will be maintained, but this will
+    give you more and more "pythonic" ways of feeding in instantiation data.
     
 
 Implementing a Component
@@ -99,7 +107,7 @@ Although the vagaries of their precise implementation vary due to their developm
 
 A component class is imported from the library as 
 
->>> from landlab.components.[noun].[what_component_does] import ComponentClass
+>>> from landlab.components.[what_the_component_does] import [ComponentClass]
 
 A component is instantiated like:
 
@@ -107,7 +115,7 @@ A component is instantiated like:
 
 A component has a primary method, which “does the thing”. The documentation for the component will typically tell you what is it called and how to work it (NB: you can get documentation for any object you have created in an interactive python environment by typing a “?” after it, e.g., “compobj?”; quit by pressing “q”). However, most components will run for a single timestep with a syntax something like:
 
->>> compobj.do_the_process(timestep, …[any other arguments])
+>>> compobj.[do_the_process](timestep, …[any other arguments])
 
 Running one of these methods will update the fields held in common by the single grid object which you linked to all your components during component instantiation. If you look inside the grid fields having run one of these methods, you’ll see the new fields it has created and populated. The docstrings for the component should make it clear which fields the component needs to have in the grid as inputs, and which it modifies and/or creates as outputs. **ALWAYS check the documentation for a component you are about to use!**
 
@@ -125,7 +133,7 @@ component.input_var_names 	  a set giving input field names
 component.output_var_names	  a set giving output field names
 component.var_units 		  a dict, with var_name keys
 component.var_mapping		  a dict with var_name keys, giving ‘node’, ‘link’, etc
-component.var_doc	          a dict with var_name keys, giving short descriptions
+component.var_definitions	  a dict with var_name keys, giving short descriptions
 ============================  ======================================================
 
 See `the tutorials <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for examples of use cases with one, two and more coupled components.

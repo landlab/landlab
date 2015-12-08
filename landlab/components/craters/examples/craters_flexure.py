@@ -3,7 +3,7 @@
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 import landlab.components.flexure as flexure
 
 

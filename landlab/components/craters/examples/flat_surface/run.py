@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from landlab.components.craters.dig_craters import impactor
+from landlab.components.craters import impactor
 from landlab import ModelParameterDictionary
 
 from landlab import RasterModelGrid

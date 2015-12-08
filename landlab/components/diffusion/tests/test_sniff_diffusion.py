@@ -13,7 +13,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid, ModelParameterDictionary
-from landlab.components.diffusion.diffusion import LinearDiffuser
+from landlab.components.diffusion import LinearDiffuser
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

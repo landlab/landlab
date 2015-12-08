@@ -6,9 +6,7 @@ test_script_for_route_flow_dn.py:
 Tests and illustrates use of route_flow_dn component.
 """
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-#from landlab import FlowRouter
-#components.flow_routing.route_flow_dn
+from landlab.components.flow_routing import FlowRouter
 from landlab.io import read_esri_ascii
 from landlab.plot.imshow import imshow_node_grid
 import os
