@@ -1,6 +1,6 @@
-from . import generate_overland_flow_Bates
-from . import generate_overland_flow_deAlmeida
+from .generate_overland_flow_Bates import OverlandFlowBates
+from .generate_overland_flow_deAlmeida import OverlandFlow
 
 
-__all__ = ['generate_overland_flow_Bates',
-           'generate_overland_flow_deAlmeida', ]
+__all__ = ['OverlandFlowBates',
+           'OverlandFlow', ]

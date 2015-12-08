@@ -36,7 +36,7 @@ Functional modules
 	:members: diffuse
 
 
-.. autoclass:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow
+.. autoclass:: landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow
 	:members: run_one_step
 	*This might not work...*
 
