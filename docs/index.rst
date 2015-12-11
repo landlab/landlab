@@ -24,8 +24,7 @@
 ..   getting_example_files
 
 
-Find Landlab's `User Guide on the Landlab Wiki
-<https://github.com/landlab/landlab/wiki/User-Guide>`_.
+Find Landlab's `User Guide on the Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_.
 ==============================
 
 .. toctree::
