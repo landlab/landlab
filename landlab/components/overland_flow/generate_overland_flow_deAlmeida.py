@@ -351,29 +351,28 @@ class OverlandFlow(Component):
         # to the end of the discharge array.
         self.q = np.append(self.q, [0])
 
+        horiz = self.horizontal_ids
+        vert = self.vertical_ids
+
         # Now we calculate discharge in the horizontal direction
-        self.q_horizontal = ((self.theta * self.q_horizontal + (1 - self.theta)
+        self.q[horiz] = ((self.theta * self.q[horiz] + (1 - self.theta)
             / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
             self.g * self.h_links[self.horizontal_ids] * self.dt *
             self.slope[self.horizontal_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q_horizontal) /
+            self.mannings_n_squared * abs(self.q[horiz]) /
             self.h_links[self.horizontal_ids] ** self.seven_over_three))
 
         # ... and in the vertical direction
-        self.q_vertical = ((self.theta * self.q_vertical + (1 - self.theta) /
+        self.q[vert] = ((self.theta * self.q[vert] + (1 - self.theta) /
             2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
             self.g * self.h_links[self.vertical_ids] * self.dt *
             self.slope[self.vertical_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q_vertical) /
+            self.mannings_n_squared * abs(self.q[vert]) /
             self.h_links[self.vertical_ids] ** self.seven_over_three))
 
         # Now to return the array to its original length (length of number of
         # all links), we delete the extra 0.0 value from the end of the array.
         self.q = np.delete(self.q, len(self.q) - 1)
-
-        # And put the horizontal and vertical arrays back together, to create
-        # the discharge array.
-        self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
 
         # Updating the discharge array to have the boundary links set to
         # their neighbor
