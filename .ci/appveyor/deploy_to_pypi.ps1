@@ -5,5 +5,7 @@ if (($env:appveyor_repo_tag -eq "true") -and ($env:appveyor_repo_tag_name.Starts
 } else {
     write-output "Not deploying."
     write-output "Repo tag is $env:appveyor_repo_tag"
-    write-output "Branch name $env:appveyor_repo_tag_name"
+    if (($env:appveyor_repo_tag -eq "true")) {
+      write-output "Branch name $env:appveyor_repo_tag_name"
+    }
 }
