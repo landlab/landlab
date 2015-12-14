@@ -102,6 +102,24 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
     25
+
+    >>> import numpy as np
+    >>> x = [0, 0, 0, 0,
+    ...      1, 1, 1, 1,
+    ...      2, 2, 2, 2,]
+    >>> y = [0, 1, 2, 3,
+    ...      0, 1, 2, 3,
+    ...      0, 1, 2, 3]
+    >>> zip(x, y) # doctest: +NORMALIZE_WHITESPACE
+    [(0, 0), (0, 1), (0, 2), (0, 3),
+     (1, 0), (1, 1), (1, 2), (1, 3),
+     (2, 0), (2, 1), (2, 2), (2, 3)]
+    >>> vmg = VoronoiDelaunayGrid(x, y)
+    >>> zip(vmg.node_x, vmg.node_y) # doctest: +NORMALIZE_WHITESPACE
+    [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0),
+     (0.0, 1.0), (1.0, 1.0), (2.0, 1.0),
+     (0.0, 2.0), (1.0, 2.0), (2.0, 2.0),
+     (0.0, 3.0), (1.0, 3.0), (2.0, 3.0)]
     """
 
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
@@ -139,9 +157,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
-        assert type(x) == numpy.ndarray, 'x must be a numpy array'
-        assert type(y) == numpy.ndarray, 'y must be a numpy array'
-        assert len(x) == len(y), 'x and y arrays must have the same size'
+        x = numpy.asarray(x, dtype=float).reshape((-1, ))
+        y = numpy.asarray(y, dtype=float).reshape((-1, ))
+
+        if x.size != y.size:
+            raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
