@@ -442,7 +442,6 @@ def test_degenerate_drainage():
     lf = DepressionFinderAndRouter(mg)
     fr.route_flow()
     lf.map_depressions()
-    print fr.node_receiving_flow
 
     correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
                            0.,   1.,   3.,   1.,   0.,
@@ -606,8 +605,6 @@ def test_D8_D4_fill():
     correct_D4_depths = correct_D8_depths.copy()
     correct_D4_depths[lake_nodes[5:]] = 4.
     correct_D4_depths[lake_nodes[-2]] = 3.
-    
-    print lfD8.lake_map
     
     assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
     assert_array_equal(lfD4.lake_map, correct_D4_lake_map)

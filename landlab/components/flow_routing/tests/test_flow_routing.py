@@ -401,10 +401,10 @@ def test_voronoi():
 def test_voronoi_closedinternal():
     """Test routing on a (radial) voronoi, but with a closed interior node."""
     fr.route_flow()
-    for i in range(vmg.number_of_nodes):
-        print i, vmg.node_x[i], vmg.node_y[i], vmg.status_at_node[i], \
-                vmg.at_node['drainage_area'][i], vmg.at_node['flow_receiver'][i], \
-                vmg.at_node['topographic__elevation'][i]
+    # for i in range(vmg.number_of_nodes):
+    #     print i, vmg.node_x[i], vmg.node_y[i], vmg.status_at_node[i], \
+    #             vmg.at_node['drainage_area'][i], vmg.at_node['flow_receiver'][i], \
+    #             vmg.at_node['topographic__elevation'][i]
 
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_internal)

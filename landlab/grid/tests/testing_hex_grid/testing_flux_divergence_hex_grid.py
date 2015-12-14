@@ -63,16 +63,11 @@ def gt_link_flux_divergence_at_cells_with_2darray(grid, f, out=None):
     for r in range(MAX_NUM_LINKS):
         links = grid.gt_links_at_node[r,grid.node_at_cell]
         net_flux += f[links]*grid.gt_link_dirs_at_node[r,:]
-        
-    print(net_flux)
-    
-    
-    
+
+
 def gt_calc_gradients_at_faces(grid, vn):
-    
     # vn = values at nodes
     print(grid.link_at_face)
-    
 
 
 def make_links_at_node_array(grid):
@@ -140,15 +135,6 @@ def testing_flux_divergence_with_hex():
     f = hmg.add_zeros('link', 'test_flux')
     f[:] = np.arange(hmg.number_of_links)
 
-    print('Nodes:')
-    for n in range(hmg.number_of_nodes):
-        print(str(n)+' '+str(hmg.node_x[n])+' '+str(hmg.node_y[n]))
-    
-    print('Links:')
-    for lk in range(hmg.number_of_links):
-        print(str(lk)+' '+str(hmg.node_at_link_tail[lk])+' '+
-              str(hmg.node_at_link_head[lk])+' '+str(f[lk]))
-              
     make_links_at_node_array(hmg)
     
     assert_array_equal(hmg.gt_num_links_at_node,
@@ -180,17 +166,12 @@ def testing_flux_divergence_with_hex():
     #gt_calc_gradients_at_faces(hmg, nv)    
     #gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
     
-    print(hmg.face_width)
-    
-    
     # Some time trials
     start = time.time()
     for i in range(1000):
         gt_grads_at_faces1(hmg, nv)
     endtime = time.time()
-    print('Time:'+str(endtime-start))
-    
-    
+
+
 if __name__=='__main__':
     testing_flux_divergence_with_hex()
-    
