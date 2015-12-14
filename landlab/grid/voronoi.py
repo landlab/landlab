@@ -110,16 +110,17 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> y = [0, 1, 2, 3,
     ...      0, 1, 2, 3,
     ...      0, 1, 2, 3]
-    >>> zip(x, y) # doctest: +NORMALIZE_WHITESPACE
-    [(0, 0), (0, 1), (0, 2), (0, 3),
-     (1, 0), (1, 1), (1, 2), (1, 3),
-     (2, 0), (2, 1), (2, 2), (2, 3)]
     >>> vmg = VoronoiDelaunayGrid(x, y)
-    >>> zip(vmg.node_x, vmg.node_y) # doctest: +NORMALIZE_WHITESPACE
-    [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0),
-     (0.0, 1.0), (1.0, 1.0), (2.0, 1.0),
-     (0.0, 2.0), (1.0, 2.0), (2.0, 2.0),
-     (0.0, 3.0), (1.0, 3.0), (2.0, 3.0)]
+    >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  1.,  2.,
+            0.,  1.,  2., 
+            0.,  1.,  2.,
+            0.,  1.,  2.])
+    >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  0.,  0.,
+            1.,  1.,  1.,
+            2.,  2.,  2.,
+            3.,  3.,  3.])
     """
 
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
