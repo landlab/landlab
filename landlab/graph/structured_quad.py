@@ -50,17 +50,114 @@ def setup_nodes_at_link(shape):
     return nodes_at_link.T[:- (shape[1])]
 
 
-class RasterGraph(Graph):
+class StructuredQuadGraph(Graph):
+
+    """Graph of a rectlinear grid.
+
+    Examples
+    --------
+    >>> from landlab.graph import RectilinearGraph
+    >>> node_y = [-1, -2, -3,
+    ...            0,  0,  0,
+    ...            1,  2,  3]
+    >>> node_x = [ 0,  1,  2,
+    ...            0,  2,  3,
+    ...            0,  1,  2]
+    >>> graph = StructuredQuadGraph((node_y, node_x), shape=(3, 3))
+    >>> graph.number_of_nodes
+    9
+    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([-1., -2., -3.,
+            0.,  0.,  0.,
+            1.,  2.,  3.])
+    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  1.,  2.,
+            0.,  2.,  3.,
+            0.,  1.,  2.])
+    """
+
+    def __init__(self, nodes, shape=None):
+        """Create a structured grid of quadrilaterals.
+
+        Parameters
+        ----------
+        nodes : tuple of array_like
+            Coordinates of every node. First *y*, then *x*.
+        shape : tuple, optional
+            Shape of the grid. Otherwise, use the shape of coordinate arrays.
+        """
+        node_y, node_x = (np.asarray(nodes[0], dtype=float),
+                          np.asarray(nodes[1], dtype=float))
+
+        if shape is not None:
+            node_y.shape = shape
+            node_x.shape = shape
+        else:
+            shape = node_y.shape
+
+        nodes_at_link = setup_nodes_at_link(shape)
+        links_at_patch = setup_links_at_patch(shape)
+
+        super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
+                                                  links=nodes_at_link,
+                                                  patches=links_at_patch)
+
+
+class RectilinearGraph(Graph):
+
+    """Graph of a rectlinear grid of nodes.
+
+    Examples
+    --------
+    >>> from landlab.graph import RectilinearGraph
+    >>> graph = RectilinearGraph(([0, 1, 2, 3], [1, 4, 8]))
+    >>> graph.number_of_nodes
+    12
+    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([0, 0, 0,
+           1, 1, 1,
+           2, 2, 2,
+           3, 3, 3])
+    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([1, 4, 8,
+           1, 4, 8,
+           1, 4, 8,
+           1, 4, 8])
+    """
+
+    def __init__(self, nodes):
+        node_y, node_x = np.meshgrid(nodes[0], nodes[1], indexing='ij')
+        shape = node_y.shape
+
+        nodes_at_link = setup_nodes_at_link(shape)
+        links_at_patch = setup_links_at_patch(shape)
+
+        super(RectilinearGraph, self).__init__((node_y.flat, node_x.flat),
+                                               links=nodes_at_link,
+                                               patches=links_at_patch)
+
+
+class UniformRectilinearGraph(Graph):
 
     """Graph of a structured grid of quadrilaterals.
 
     Examples
     --------
-    >>> from landlab.graph import RasterGraph
-    >>> graph = RasterGraph((4, 3))
+    >>> from landlab.graph import UniformRectilinearGraph
+    >>> graph = UniformRectilinearGraph((4, 3), spacing=(1, 2), origin=(-1, 0))
     >>> graph.number_of_nodes
     12
-    >>> graph.links_at_node
+    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([-1., -1., -1.,
+            0.,  0.,  0.,
+            1.,  1.,  1.,
+            2.,  2.,  2.])
+    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  2.,  4.,
+            0.,  2.,  4.,
+            0.,  2.,  4.,
+            0.,  2.,  4.])
+    >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
     array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
            [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
            [ 7, 10, 12, -1], [ 8, 10, 11, 13], [ 9, 11, 14, -1],
@@ -82,14 +179,13 @@ class RasterGraph(Graph):
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
 
-        rows = np.arange(shape[0]) * spacing[0] + origin[0]
-        cols = np.arange(shape[1]) * spacing[1] + origin[1]
-        node_y, node_x = np.meshgrid(rows, cols)
-        # nodes = np.arange(shape[0] * shape[1]).reshape(shape)
+        rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
+        cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
+        node_y, node_x = np.meshgrid(rows, cols, indexing='ij')
 
         nodes_at_link = setup_nodes_at_link(shape)
         links_at_patch = setup_links_at_patch(shape)
 
-        super(RasterGraph, self).__init__((node_y.flat, node_x.flat),
-                                          links=nodes_at_link,
-                                          patches=links_at_patch)
+        super(UniformRectilinearGraph, self).__init__(
+            (node_y.flat, node_x.flat), links=nodes_at_link,
+            patches=links_at_patch)
