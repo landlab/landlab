@@ -1,7 +1,11 @@
 from .unstructured import Graph
 from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
-                              UniformRectilinearGraph)
+                              UniformRectilinearGraph, )
+from .dual_structured_quad import (DualUniformRectilinearGraph,
+                                   DualRectilinearGraph,
+                                   DualStructuredQuadGraph, )
 
 
 __all__ = ['Graph', 'StructuredQuadGraph', 'RectilinearGraph',
-           'UniformRectilinearGraph', ]
+           'UniformRectilinearGraph', 'DualUniformRectilinearGraph',
+           'DualRectilinearGraph', 'DualStructuredQuadGraph', ]

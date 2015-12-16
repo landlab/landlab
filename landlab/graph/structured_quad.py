@@ -52,11 +52,11 @@ def setup_nodes_at_link(shape):
 
 class StructuredQuadGraph(Graph):
 
-    """Graph of a rectlinear grid.
+    """Graph of a structured grid of quadrilaterals.
 
     Examples
     --------
-    >>> from landlab.graph import RectilinearGraph
+    >>> from landlab.graph import StructuredQuadGraph
     >>> node_y = [-1, -2, -3,
     ...            0,  0,  0,
     ...            1,  2,  3]
@@ -95,12 +95,18 @@ class StructuredQuadGraph(Graph):
         else:
             shape = node_y.shape
 
+        self._shape = shape
+
         nodes_at_link = setup_nodes_at_link(shape)
         links_at_patch = setup_links_at_patch(shape)
 
         super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
                                                   links=nodes_at_link,
                                                   patches=links_at_patch)
+
+    @property
+    def shape(self):
+        return self._shape
 
 
 class RectilinearGraph(Graph):
