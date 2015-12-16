@@ -445,5 +445,3 @@ def _setup_nodes_at_patch(links_at_patch, nodes_at_link):
         nodes_at_patch[patch, :len(unique_nodes)] = unique_nodes
 
     return nodes_at_patch
-
-

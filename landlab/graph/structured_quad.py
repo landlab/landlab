@@ -1,6 +1,6 @@
 import numpy as np
 
-from .unstructured import Graph
+from .graph import Graph
 
 
 def setup_links_at_patch(shape):
