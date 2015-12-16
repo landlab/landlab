@@ -49,6 +49,8 @@ from six.moves import range
 
 import numpy as np
 
+from ..core.utils import as_id_array
+
 
 class Graph(object):
 
@@ -362,7 +364,7 @@ def _find_links_at_node(node, nodes_at_link):
 
     link_dirs_at_node = np.choose(is_inward, (-1, 1))
 
-    return links_at_node, link_dirs_at_node
+    return as_id_array(links_at_node), as_id_array(link_dirs_at_node)
 
 
 def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
