@@ -3,6 +3,39 @@ from six.moves import range
 import numpy as np
 
 
+def _find_links_at_node(node, nodes_at_link):
+    """Find links and link directions at a node.
+
+    Examples
+    --------
+    >>> nodes_at_link = ((0, 1), (1, 2),
+    ...                  (0, 3), (1, 4), (2, 5),
+    ...                  (3, 4), (4, 5),
+    ...                  (3, 6), (4, 7), (5, 8),
+    ...                  (6, 7), (7, 8))
+
+    The first node has only two links, both of which are directed outward.
+
+    >>> (links, dirs) = _find_links_at_node(0, nodes_at_link)
+    >>> links
+    array([0, 2])
+    >>> dirs
+    array([-1, -1])
+
+    >>> (links, dirs) = _find_links_at_node(4, nodes_at_link)
+    >>> links
+    array([3, 5, 6, 8])
+    >>> dirs
+    array([ 1,  1, -1, -1])
+    """
+    nodes_at_link = np.asarray(nodes_at_link)
+    (links_at_node, is_inward) = np.where(nodes_at_link == node)
+
+    link_dirs_at_node = np.choose(is_inward, (-1, 1))
+
+    return links_at_node, link_dirs_at_node
+
+
 def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
     """Set up data structures for node-to-link connectivity.
 
@@ -29,12 +62,14 @@ def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
     for node in range(number_of_nodes):
-        (link, is_outward) = np.where(nodes_at_link == node)
-        is_outward[is_outward == 1] = -1
-        is_outward[is_outward == 0] = 1
+        links, dirs = _find_links_at_node(node, nodes_at_link)
 
-        link_dirs_at_node[node, :len(is_outward)] = is_outward
-        links_at_node[node, :len(link)] = link
+        # (link, is_outward) = np.where(nodes_at_link == node)
+        # is_outward[is_outward == 1] = -1
+        # is_outward[is_outward == 0] = 1
+
+        link_dirs_at_node[node, :len(dirs)] = dirs
+        links_at_node[node, :len(links)] = links
 
     return links_at_node, link_dirs_at_node
 
@@ -123,8 +158,8 @@ class Graph(object):
                [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1]])
 
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1,  1,  0,  0], [-1,  1,  1,  0], [-1,  1,  0,  0],
-               [-1,  1,  1,  0], [-1, -1,  1,  1], [-1, -1,  1,  0]])
+        array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
+               [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0]])
 
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
@@ -393,7 +428,7 @@ class Graph(object):
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1,  1,  0,  0], [-1,  1,  1,  0], [-1,  1,  0,  0],
-               [-1,  1,  1,  0], [-1, -1,  1,  1], [-1, -1,  1,  0]])
+        array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
+               [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0]])
         """
         return self._link_dirs_at_node
