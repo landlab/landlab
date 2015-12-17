@@ -254,6 +254,8 @@ def _set_netcdf_cell_variables(root, fields, **kwds):
 
 def _add_cell_spatial_variables(root, grid, **kwds):
     """Add the spatial variables that describe the cell grid."""
+    long_name = kwds.get('long_name', {})
+
     cell_grid_shape = [dim - 1 for dim in grid.shape]
     spatial_variable_shape = _get_dimension_names(cell_grid_shape)
 
@@ -263,8 +265,23 @@ def _add_cell_spatial_variables(root, grid, **kwds):
 
     shape = spatial_variable_shape + ['nv']
     for name, values in bounds.items():
-        var = root.createVariable(name, 'f8', shape)
+        # var = root.createVariable(name, 'f8', shape)
+        # var[:] = values
+
+        try:
+            var = root.variables[name]
+        except KeyError:
+            var = root.createVariable(name, 'f8', shape)
+
         var[:] = values
+
+        axis = grid.axis_name.index(name[0])
+
+        var.units = grid.axis_units[axis]
+        try:
+            var.long_name = long_name[name]
+        except KeyError:
+            var.long_name = grid.axis_name[axis]
 
 
 def _add_spatial_variables(root, grid, **kwds):
