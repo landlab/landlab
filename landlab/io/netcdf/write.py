@@ -147,11 +147,11 @@ def _get_cell_bounds(shape, spacing=(1., 1.), origin=(0., 0.)):
     Examples
     --------
     >>> from landlab.io.netcdf.write import _get_cell_bounds
-    >>> y_bnds, x_bnds = _get_cell_bounds((3, 4))
-    >>> y_bnds # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds = _get_cell_bounds((3, 4))
+    >>> bounds['y_bnds'] # doctest: +NORMALIZE_WHITESPACE
     array([[[ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.]],
            [[ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.]]])
-    >>> x_bnds # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds['x_bnds'] # doctest: +NORMALIZE_WHITESPACE
     array([[[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]],
            [[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]]])
     """
@@ -165,8 +165,9 @@ def _get_cell_bounds(shape, spacing=(1., 1.), origin=(0., 0.)):
     x_bnds = np.vstack((corner_x[:-1, 1:].flat, corner_x[1:, 1:].flat,
                         corner_x[1:, :-1].flat, corner_x[:-1, :-1].flat)).T
 
-    return (y_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)),
-            x_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)))
+    return {'y_bnds': y_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)),
+            'x_bnds': x_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)),
+           }
 
 
 def _set_netcdf_cell_structured_dimensions(root, shape):
@@ -254,16 +255,16 @@ def _set_netcdf_cell_variables(root, fields, **kwds):
 def _add_cell_spatial_variables(root, grid, **kwds):
     """Add the spatial variables that describe the cell grid."""
     cell_grid_shape = [dim - 1 for dim in grid.shape]
+    spatial_variable_shape = _get_dimension_names(cell_grid_shape)
 
-    y_bnds, x_bnds = _get_cell_bounds(cell_grid_shape,
-                                      spacing=(grid.dy, grid.dx),
-                                      origin=(grid.dy * .5, grid.dx * .5))
+    bounds = _get_cell_bounds(cell_grid_shape,
+                              spacing=(grid.dy, grid.dx),
+                              origin=(grid.dy * .5, grid.dx * .5))
 
-    var = root.createVariable('y_bnds', 'f8', ['nj', 'ni', 'nv'])
-    var[:] = y_bnds
-
-    var = root.createVariable('x_bnds', 'f8', ['nj', 'ni', 'nv'])
-    var[:] = x_bnds
+    shape = spatial_variable_shape + ['nv']
+    for name, values in bounds.items():
+        var = root.createVariable(name, 'f8', shape)
+        var[:] = values
 
 
 def _add_spatial_variables(root, grid, **kwds):
