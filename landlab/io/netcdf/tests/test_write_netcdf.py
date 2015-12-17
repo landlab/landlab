@@ -269,3 +269,35 @@ def test_1d_uneven_spacing():
     """Test _get_raster_spacing with a 1D grid with uneven spacing in y."""
     assert_raises(NotRasterGridError, _get_raster_spacing,
                   (np.logspace(0., 2., num=5), ))
+
+
+def test_netcdf_write_at_cells():
+    """Test write_netcdf using with cell fields"""
+    if not WITH_NETCDF4:
+        raise SkipTest('netCDF4 package not installed')
+
+    field = RasterModelGrid((4, 3))
+    field.add_field('cell', 'topographic__elevation',
+                    np.arange(field.number_of_cells))
+    field.add_field('cell', 'uplift_rate', np.arange(field.number_of_cells))
+
+    with cdtemp() as _:
+        write_netcdf('test-cells.nc', field, format='NETCDF4')
+        root = nc.Dataset('test-cells.nc', 'r', format='NETCDF4')
+
+        for name in ['topographic__elevation', 'uplift_rate']:
+            assert_true(name in root.variables)
+            assert_array_equal(root.variables[name][:].flat,
+                               field.at_cell[name])
+
+        assert_equal(set(root.dimensions), set(['nv', 'ni', 'nj', 'nt']))
+        assert_equal(len(root.dimensions['nv']), 4)
+        assert_equal(len(root.dimensions['ni']), 1)
+        assert_equal(len(root.dimensions['nj']), 2)
+        assert_true(len(root.dimensions['nt']), 1)
+        assert_true(root.dimensions['nt'].isunlimited())
+
+        assert_equal(set(root.variables),
+                     set(['x_bnds', 'y_bnds', 'topographic__elevation',
+                          'uplift_rate']))
+        root.close()
