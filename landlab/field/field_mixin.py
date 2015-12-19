@@ -63,6 +63,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
     >>> grid.number_of_elements('active_link')
     11
     >>> grid.ones(at='active_link', dtype=int)
+    ...     # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     GroupSizeError: number of active_link elements has changed. (was = 14, now=11)
     """
