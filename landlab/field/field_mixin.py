@@ -7,6 +7,41 @@ _GROUPS = ('node', 'cell', 'link', 'face', 'core_node', 'core_cell',
 
 
 class ModelDataFieldsMixIn(ModelDataFields):
+
+    """Mix-in that provides un-sized fields.
+
+    Inherit from this class to provide fields that do not have to be given
+    a size on instantiation. The size of a particular group will only be set
+    after the first time a group is accessed (a field is added to a group or
+    an array is created for a group). The size of that group will be the
+    size as returned by the `number_of_elements` method.
+
+    This mix-in assumes it is being added to a class that implements a method
+    that, given an element name as a string, returns the number of elements
+    for that group. A `RasterModelGrid` is an excellent example of this::
+
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.number_of_elements('node')
+        20
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> grid = RasterModelGrid((4, 5))
+    >>> grid.number_of_elements('active_link')
+    17
+    >>> grid.at_active_link.size is None
+    True
+    >>> grid.status_at_node[:5] = CLOSED_BOUNDARY
+    >>> grid.number_of_elements('active_link')
+    14
+    >>> grid.ones(at='active_link', dtype=int)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    >>> grid.at_active_link.size
+    14
+    """
+
     def __init__(self, **kwds):
         super(ModelDataFieldsMixIn, self).__init__(**kwds)
         for group in _GROUPS:
@@ -51,6 +86,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
 
         if self[group].size is None:
             self[group].size = self.number_of_elements(group)
+
         return ModelDataFields.empty(self, group, **kwds)
 
     def ones(self, *args, **kwds):
@@ -93,6 +129,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
 
         if self[group].size is None:
             self[group].size = self.number_of_elements(group)
+
         return ModelDataFields.ones(self, group, **kwds)
 
     def zeros(self, *args, **kwds):
@@ -130,4 +167,5 @@ class ModelDataFieldsMixIn(ModelDataFields):
 
         if self[group].size is None:
             self[group].size = self.number_of_elements(group)
+
         return ModelDataFields.zeros(self, group, **kwds)
