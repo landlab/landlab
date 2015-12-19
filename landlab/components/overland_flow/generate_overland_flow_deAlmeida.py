@@ -473,6 +473,7 @@ class OverlandFlow(Component):
     def var_mapping(self):
         return self._var_mapping
 
+
 def find_active_neighbors_for_fixed_links(grid):
     """Find link neighbors of all fixed links.
 
@@ -499,7 +500,10 @@ def find_active_neighbors_for_fixed_links(grid):
 
     Examples
     --------
-    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
+    >>> from landlab.components.overland_flow import (
+    ...     generate_overland_flow_deAlmeida)
+    >>> from generate_overland_flow_deAlmeida import (
+    ...     find_active_neighbors_for_fixed_links)
     >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
 
     >>> grid = RasterModelGrid((4, 5))
@@ -510,64 +514,14 @@ def find_active_neighbors_for_fixed_links(grid):
            2, 0, 0, 0, 1,
            2, 0, 0, 0, 1,
            2, 1, 1, 1, 1], dtype=int8)
+
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])
     >>> grid.active_links
-    array([10, 11, 12, 14, 15, 16, 19, 20, 21])
+    array([10, 11, 12, 14, 15, 16, 19, 20, 21, 23, 24, 25])
+
     >>> find_active_neighbors_for_fixed_links(grid)
-    array([ 9, 14, 15, 16, 18])
+    array([14, 15, 16, 10, 19])
     """
-    shape = grid.shape
-    status_at_node = grid.status_at_node
-
-    # First, we identify fixed links using node status
-    fixed_links = links.fixed_link_ids(shape, status_at_node)
-
-    # Identifying *just* fixed links IDs.
-    fixed_ids_only = fixed_links[np.where(fixed_links > -1)]
-
-    # Identifying active link IDs.
-    active_links = links.active_link_ids(shape, status_at_node)
-
-    # Identifying vertical active link IDs.
-    vertical_active_links = (links.vertical_active_link_ids(shape,
-                                                            active_links))
-
-    # Identifying horizontal active link IDs.
-    horizontal_active_links = (links.horizontal_active_link_ids(shape,
-                                                            active_links))
-
-    # Identifying north vertical active link IDs.
-    north_vert = (links.vertical_north_link_neighbor(shape,
-                                                    vertical_active_links))
-
-    # Identifying south verical active link IDs.
-    south_vert = (links.vertical_south_link_neighbor(shape,
-                                                    vertical_active_links))
-
-    # Identifying horizontal east active link IDs.
-    east_hori = (links.horizontal_east_link_neighbor(shape,
-                                                horizontal_active_links))
-
-    # Identifying horizontal west active link IDs.
-    west_hori = (links.horizontal_west_link_neighbor(shape,
-                                                horizontal_active_links))
-
-    # Because each fixed link can have at most 1 active neighbor, there
-    # is at least one "BAD_INDEX_VALUE" link neighbor (-1). The maximum
-    # ID value will be the active neighbor. This finds the N/S vertical
-    # active neighbor and the E/W horizontal neighbor.
-    max_vertical_neighbor = np.maximum(north_vert, south_vert)
-    max_horizontal_neighbor = np.maximum(east_hori, west_hori)
-
-    # Concatenating the vertical and horizontal arrays to get one
-    # neighbor array of len(all links)
-    all_active_neighbors = (np.concatenate((max_vertical_neighbor,
-                                        max_horizontal_neighbor), axis=0))
-
-    # Getting JUST the active neighbor IDs for fixed links. This
-    # sets the array to a new length - that of len(fixed_links)
-    all_active_neighbors = all_active_neighbors[fixed_ids_only]
-
-    return all_active_neighbors
-
+    neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
+    return neighbors[np.in1d(neighbors, grid.active_links)]

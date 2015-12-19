@@ -10,7 +10,9 @@ def neighbors_at_link(shape, links):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab.grid.structured_quad.links import neighbors_at_link
+
     >>> neighbors_at_link((3, 2), np.arange(7)) # doctest: +NORMALIZE_WHITESPACE
     array([[-1,  3, -1, -1],
            [ 2,  4, -1, -1], [-1,  5,  1, -1],
