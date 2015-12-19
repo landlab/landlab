@@ -474,7 +474,8 @@ class OverlandFlow(Component):
         return self._var_mapping
 
 def find_active_neighbors_for_fixed_links(grid):
-    '''
+    """Find link neighbors of all fixed links.
+
     Specialized link ID function used to ID the active links that neighbor
     fixed links in the vertical and horizontal directions.
 
@@ -485,8 +486,37 @@ def find_active_neighbors_for_fixed_links(grid):
     Each fixed link can either have 0 or 1 active neighbor. This function
     finds if and where that active neighbor is and stores those IDs in
     an array.
-    '''
 
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+
+    Returns
+    -------
+    ndarray of int
+        Array of neighbor links that are active.
+
+    Examples
+    --------
+    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
+    >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> grid.status_at_node[:5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node[::5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
+    array([2, 2, 2, 2, 2,
+           2, 0, 0, 0, 1,
+           2, 0, 0, 0, 1,
+           2, 1, 1, 1, 1], dtype=int8)
+    >>> grid.fixed_links
+    array([ 5,  6,  7,  9, 18])
+    >>> grid.active_links
+    array([10, 11, 12, 14, 15, 16, 19, 20, 21])
+    >>> find_active_neighbors_for_fixed_links(grid)
+    array([ 9, 14, 15, 16, 18])
+    """
     shape = grid.shape
     status_at_node = grid.status_at_node
 
