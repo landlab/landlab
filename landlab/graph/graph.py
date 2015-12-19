@@ -359,12 +359,18 @@ def _find_links_at_node(node, nodes_at_link):
     >>> dirs
     array([ 1,  1, -1, -1])
     """
-    nodes_at_link = np.asarray(nodes_at_link)
-    (links_at_node, is_inward) = np.where(nodes_at_link == node)
+    from .cfuncs import _find_links_at_node
 
-    link_dirs_at_node = np.choose(is_inward, (-1, 1))
+    nodes_at_link = np.asarray(nodes_at_link, dtype=int)
+    nodes_at_link.shape = (-1, 2)
 
-    return as_id_array(links_at_node), as_id_array(link_dirs_at_node)
+    links_at_node = np.full(4, -1, dtype=int)
+    link_dirs_at_node = np.full(4, 0, dtype=int)
+
+    n_links = _find_links_at_node(node, nodes_at_link, links_at_node,
+                                  link_dirs_at_node)
+
+    return links_at_node[:n_links], link_dirs_at_node[:n_links]
 
 
 def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
@@ -383,6 +389,8 @@ def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
     tuple of ndarray
         Tuple of *links_at_node* and *link_dirs_at_node*.
     """
+    from .cfuncs import _setup_links_at_node
+
     node_count = np.bincount(nodes_at_link.flat)
     number_of_nodes = number_of_nodes or len(node_count)
 
@@ -392,10 +400,7 @@ def _setup_links_at_node(nodes_at_link, number_of_nodes=None):
                                 dtype=int)
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
-    for node in range(number_of_nodes):
-        links, dirs = _find_links_at_node(node, nodes_at_link)
-        link_dirs_at_node[node, :len(dirs)] = dirs
-        links_at_node[node, :len(links)] = links
+    _setup_links_at_node(nodes_at_link, links_at_node, link_dirs_at_node)
 
     return links_at_node, link_dirs_at_node
 
