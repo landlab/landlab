@@ -500,10 +500,7 @@ def find_active_neighbors_for_fixed_links(grid):
 
     Examples
     --------
-    >>> from landlab.components.overland_flow import (
-    ...     generate_overland_flow_deAlmeida)
-    >>> from generate_overland_flow_deAlmeida import (
-    ...     find_active_neighbors_for_fixed_links)
+    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
     >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
 
     >>> grid = RasterModelGrid((4, 5))
