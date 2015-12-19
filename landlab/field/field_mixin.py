@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from .grouped import ModelDataFields
+from .grouped import ModelDataFields, GroupSizeError
 
 
 _GROUPS = ('node', 'cell', 'link', 'face', 'core_node', 'core_cell',
@@ -18,21 +18,35 @@ class ModelDataFieldsMixIn(ModelDataFields):
 
     This mix-in assumes it is being added to a class that implements a method
     that, given an element name as a string, returns the number of elements
-    for that group. A `RasterModelGrid` is an excellent example of this::
+    for that group. A `RasterModelGrid` is an excellent example of this.
 
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.number_of_elements('node')
-        20
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((4, 5))
+    >>> grid.number_of_elements('node')
+    20
 
     Examples
     --------
+
+    A `RasterModelGrid` is an example of a class that inherits from
+    `ModelDataFieldsMixIn`.
+
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> grid = RasterModelGrid((4, 5))
+
+    After we initially create the grid, it has a number of active links.
+    However, since we haven't assigned or created a field based on the number,
+    the field is un-sized.
+
     >>> grid.number_of_elements('active_link')
     17
     >>> grid.at_active_link.size is None
     True
+
+    If we change the status of some of the nodes, the number of active links
+    changes. If we now create an array based on the current number of active
+    links, that number *is now fixed*.
+
     >>> grid.status_at_node[:5] = CLOSED_BOUNDARY
     >>> grid.number_of_elements('active_link')
     14
@@ -40,6 +54,17 @@ class ModelDataFieldsMixIn(ModelDataFields):
     array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     >>> grid.at_active_link.size
     14
+
+    Because the number of active links is fixed in our collection of fields,
+    if we change the number of active links in our grid, an exception is
+    raised if we try to create a new active link array.
+
+    >>> grid.status_at_node[-5:] = CLOSED_BOUNDARY
+    >>> grid.number_of_elements('active_link')
+    11
+    >>> grid.ones(at='active_link', dtype=int)
+    Traceback (most recent call last):
+    GroupSizeError: number of active_link elements has changed. (was = 14, now=11)
     """
 
     def __init__(self, **kwds):
@@ -84,8 +109,12 @@ class ModelDataFieldsMixIn(ModelDataFields):
         else:
             group = args[0]
 
+        n_elements = self.number_of_elements(group)
+
         if self[group].size is None:
-            self[group].size = self.number_of_elements(group)
+            self[group].size = n_elements
+        elif self[group].size != n_elements:
+            raise GroupSizeError(group, self[group].size, n_elements)
 
         return ModelDataFields.empty(self, group, **kwds)
 
@@ -127,8 +156,12 @@ class ModelDataFieldsMixIn(ModelDataFields):
         else:
             group = args[0]
 
+        n_elements = self.number_of_elements(group)
+
         if self[group].size is None:
-            self[group].size = self.number_of_elements(group)
+            self[group].size = n_elements
+        elif self[group].size != n_elements:
+            raise GroupSizeError(group, self[group].size, n_elements)
 
         return ModelDataFields.ones(self, group, **kwds)
 
@@ -165,7 +198,11 @@ class ModelDataFieldsMixIn(ModelDataFields):
         else:
             group = args[0]
 
+        n_elements = self.number_of_elements(group)
+
         if self[group].size is None:
-            self[group].size = self.number_of_elements(group)
+            self[group].size = n_elements
+        elif self[group].size != n_elements:
+            raise GroupSizeError(group, self[group].size, n_elements)
 
         return ModelDataFields.zeros(self, group, **kwds)
