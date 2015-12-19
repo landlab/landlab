@@ -5,6 +5,27 @@ from ..unstructured.links import LinkGrid
 from ...core.utils import as_id_array
 
 
+def neighbors_at_link(shape, links):
+    """Get neighbor links.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import neighbors_at_link
+    >>> neighbors_at_link((3, 2), np.arange(7)) # doctest: +NORMALIZE_WHITESPACE
+    array([[-1,  3, -1, -1],
+           [ 2,  4, -1, -1], [-1,  5,  1, -1],
+           [-1,  6, -1,  0],
+           [ 5,  7, -1,  1], [-1, -1,  4,  2],
+           [-1, -1, -1,  3]])
+    """
+    from .cfuncs import _neighbors_at_link
+
+    links = np.asarray(links, dtype=int)
+    out = np.full((links.size, 4), -1, dtype=int)
+    _neighbors_at_link(links, shape, out)
+    return out
+
+
 def shape_of_vertical_links(shape):
     """Shape of vertical link grid.
 
