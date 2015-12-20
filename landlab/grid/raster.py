@@ -3933,7 +3933,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             del neighbors
         return slopes, aspects
 
-    def save(self, path, names=None, format=None):
+    def save(self, path, names=None, format=None, at=None):
         """Save a grid and fields.
 
         If more than one field name is specified for names when saving to ARC
@@ -3963,7 +3963,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         path = _add_format_extension(path, format)
 
         if format == 'netcdf':
-            write_netcdf(path, self, format='NETCDF3_64BIT', names=names)
+            write_netcdf(path, self, format='NETCDF3_64BIT', names=names,
+                         at=at)
         elif format == 'esri-ascii':
             write_esri_ascii(path, self, names=names)
         else:

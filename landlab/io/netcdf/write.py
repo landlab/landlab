@@ -5,6 +5,8 @@ import os
 import warnings
 import six
 
+import numpy as np
+
 try:
     import netCDF4 as nc4
 except ImportError:
@@ -123,6 +125,77 @@ def _get_axes_names(shape):
     return names[::-1]
 
 
+def _get_cell_bounds(shape, spacing=(1., 1.), origin=(0., 0.)):
+    """Get bounds arrays for square cells.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of the grid in cell corners.
+    spacing : tuple of float
+        Height and width of cells.
+    origin : tuple of float
+        Coordinates of lower-left corner of lower-left cell.
+
+    Returns
+    -------
+    (y, x) : tuple of ndarray
+        Tuple of the *y* and *x* coordinates of each cell corner (ordered
+        counter-clockwise starting from lower-right. The shape of the returned
+        arrays will be *(rows, cols, 4)*.
+
+    Examples
+    --------
+    >>> from landlab.io.netcdf.write import _get_cell_bounds
+    >>> bounds = _get_cell_bounds((3, 4))
+    >>> bounds['y_bnds'] # doctest: +NORMALIZE_WHITESPACE
+    array([[[ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.]],
+           [[ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.]]])
+    >>> bounds['x_bnds'] # doctest: +NORMALIZE_WHITESPACE
+    array([[[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]],
+           [[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]]])
+    """
+    rows = np.arange(shape[0]) * spacing[0] + origin[0]
+    cols = np.arange(shape[1]) * spacing[1] + origin[1]
+
+    corner_y, corner_x = np.meshgrid(rows, cols, indexing='ij')
+
+    y_bnds = np.vstack((corner_y[:-1, 1:].flat, corner_y[1:, 1:].flat,
+                        corner_y[1:, :-1].flat, corner_y[:-1, :-1].flat)).T
+    x_bnds = np.vstack((corner_x[:-1, 1:].flat, corner_x[1:, 1:].flat,
+                        corner_x[1:, :-1].flat, corner_x[:-1, :-1].flat)).T
+
+    return {'y_bnds': y_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)),
+            'x_bnds': x_bnds.reshape((shape[0] - 1, shape[1] - 1, 4)),
+           }
+
+
+def _set_netcdf_cell_structured_dimensions(root, shape):
+    """Set dimensions for a structured grid of cells.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    shape : tuple of int
+        Shape of the cell grid (rows of cells, columns of cells).
+    """
+    if len(shape) < 1 or len(shape) > 3:
+        raise ValueError('grid dimension must be 1, 2, or 3')
+
+    dimensions = _get_dimension_sizes(shape)
+
+    dims = root.dimensions
+    for (name, dim_size) in dimensions.items():
+        if name not in dims:
+            root.createDimension(name, dim_size - 2)
+
+    root.createDimension('nv', 4)
+
+    if 'nt' not in dims:
+        root.createDimension('nt', None)
+
+
 def _set_netcdf_structured_dimensions(root, shape):
     """Set dimensions for a structured grid.
 
@@ -164,8 +237,51 @@ def _set_netcdf_variables(root, fields, **kwds):
     names = kwds.pop('names', None)
 
     _add_spatial_variables(root, fields, **kwds)
-    # _add_variables_at_points(root, fields['nodes'])
     _add_variables_at_points(root, fields, names=names)
+
+
+def _set_netcdf_cell_variables(root, fields, **kwds):
+    """Set the cell field variables.
+
+    First set the variables that define the grid and then the variables at
+    the grid nodes and cells.
+    """
+    names = kwds.pop('names', None)
+
+    _add_cell_spatial_variables(root, fields, **kwds)
+    _add_variables_at_cells(root, fields, names=names)
+
+
+def _add_cell_spatial_variables(root, grid, **kwds):
+    """Add the spatial variables that describe the cell grid."""
+    long_name = kwds.get('long_name', {})
+
+    cell_grid_shape = [dim - 1 for dim in grid.shape]
+    spatial_variable_shape = _get_dimension_names(cell_grid_shape)
+
+    bounds = _get_cell_bounds(cell_grid_shape,
+                              spacing=(grid.dy, grid.dx),
+                              origin=(grid.dy * .5, grid.dx * .5))
+
+    shape = spatial_variable_shape + ['nv']
+    for name, values in bounds.items():
+        # var = root.createVariable(name, 'f8', shape)
+        # var[:] = values
+
+        try:
+            var = root.variables[name]
+        except KeyError:
+            var = root.createVariable(name, 'f8', shape)
+
+        var[:] = values
+
+        axis = grid.axis_name.index(name[0])
+
+        var.units = grid.axis_units[axis]
+        try:
+            var.long_name = long_name[name]
+        except KeyError:
+            var.long_name = grid.axis_name[axis]
 
 
 def _add_spatial_variables(root, grid, **kwds):
@@ -244,6 +360,45 @@ def _add_variables_at_points(root, fields, names=None):
         var.long_name = var_name
 
 
+def _add_variables_at_cells(root, fields, names=None):
+    if isinstance(names, six.string_types):
+        names = [names]
+    names = names or fields['cell'].keys()
+
+    netcdf_vars = root.variables
+
+    cell_grid_shape = [dim - 1 for dim in fields.shape]
+
+    spatial_variable_shape = _get_dimension_names(cell_grid_shape)
+
+    try:
+        n_times = len(netcdf_vars['t']) - 1
+    except KeyError:
+        n_times = 0
+
+    cell_fields = fields['cell']
+    for var_name in names:
+        try:
+            var = netcdf_vars[var_name]
+        except KeyError:
+            var = root.createVariable(
+                var_name, _NP_TO_NC_TYPE[str(cell_fields[var_name].dtype)],
+                ['nt'] + spatial_variable_shape)
+
+        if cell_fields[var_name].size > 1:
+            data = cell_fields[var_name].view()
+            data.shape = var.shape[1:]
+            try:
+                var[n_times, :] = data
+            except ValueError:
+                raise
+        else:
+            var[n_times] = cell_fields[var_name].flat[0]
+
+        var.units = cell_fields.units[var_name] or '?'
+        var.long_name = var_name
+
+
 def _add_time_variable(root, time, **kwds):
     """Add a time value to a NetCDF file.
 
@@ -288,8 +443,28 @@ _VALID_NETCDF_FORMATS = set([
 ])
 
 
+def _guess_at_location(fields, names):
+    """Guess where the values should be located."""
+    node_fields = set(fields['node'].keys())
+    cell_fields = set(fields['cell'].keys())
+
+    if names is None or len(names) == 0:
+        if len(fields['node']) > 0:
+            at = 'node'
+        else:
+            at = 'cell'
+    else:
+        if node_fields.issuperset(names):
+            at = 'node'
+        elif cell_fields.issuperset(names):
+            at = 'cell'
+        else:
+            at = None
+    return at
+
+
 def write_netcdf(path, fields, attrs=None, append=False,
-                 format='NETCDF3_64BIT', names=None):
+                 format='NETCDF3_64BIT', names=None, at=None):
     """Write landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
@@ -311,6 +486,8 @@ def write_netcdf(path, fields, attrs=None, append=False,
     names : iterable of str, optional
         Names of the fields to include in the netcdf file. If not provided,
         write all fields.
+    at : {'node', 'cell'}, optional
+        The location where values are defined.
 
     Examples
     --------
@@ -348,9 +525,24 @@ def write_netcdf(path, fields, attrs=None, append=False,
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
+
+    >>> _ = rmg.add_field('cell', 'air__temperature', np.arange(2.))
+    >>> write_netcdf('test-cell.nc', rmg, format='NETCDF3_64BIT',
+    ...     names='air__temperature', at='cell')
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
+    if at not in (None, 'cell', 'node'):
+        raise ValueError('value location not understood')
+
+    if isinstance(names, six.string_types):
+        names = (names, )
+
+    at = at or _guess_at_location(fields, names) or 'node'
+    names = names or fields[at].keys()
+
+    if not set(fields[at].keys()).issuperset(names):
+        raise ValueError('values must be on either cells or nodes, not both')
 
     attrs = attrs or {}
 
@@ -367,7 +559,11 @@ def write_netcdf(path, fields, attrs=None, append=False,
         root = nc4.Dataset(path, mode, format=format)
 
     _set_netcdf_attributes(root, attrs)
-    _set_netcdf_structured_dimensions(root, fields.shape)
-    _set_netcdf_variables(root, fields, names=names)
+    if at == 'node':
+        _set_netcdf_structured_dimensions(root, fields.shape)
+        _set_netcdf_variables(root, fields, names=names)
+    else:
+        _set_netcdf_cell_structured_dimensions(root, fields.shape)
+        _set_netcdf_cell_variables(root, fields, names=names)
 
     root.close()
