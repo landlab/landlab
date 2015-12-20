@@ -7,6 +7,7 @@ or irregular grid.
 GT Nov 2013
 Modified Feb 2014
 """
+from six.moves import range
 
 import numpy as np
 import inspect
@@ -206,7 +207,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                               steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            for i in xrange(len(fromnode)):
+            for i in range(len(fromnode)):
                 f = fromnode[i]
                 t = tonode[i]
                 if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:

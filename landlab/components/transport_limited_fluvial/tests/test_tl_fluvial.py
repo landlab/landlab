@@ -5,6 +5,8 @@ answers it always has.
 """
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -46,7 +48,7 @@ def test_tl_fluvial():
     fr = FlowRouter(mg)
     tl = TransportLimitedEroder(mg, input_file)
 
-    for i in xrange(nt):
+    for i in range(nt):
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg, _ = tl.erode(mg, dt, stability_condition='loose')

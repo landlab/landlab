@@ -13,6 +13,8 @@ Last updated May 2015 DEJH
 
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import ModelParameterDictionary, Component, FieldError
 from landlab import create_and_initialize_grid
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -268,7 +270,7 @@ class LinearDiffuser(Component):
 
         core_nodes = self._grid.node_at_core_cell
 
-        for i in xrange(repeats+1):
+        for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self._grid.active_links] = self._grid.calculate_gradients_at_active_links(z)
             self.qs[self._grid.active_links] = -self.kd*self.g[self._grid.active_links]

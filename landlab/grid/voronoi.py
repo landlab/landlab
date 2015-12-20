@@ -4,7 +4,8 @@ import numpy
 from six.moves import range
 
 from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
-from landlab.core.utils import as_id_array
+from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
+                                argsort_points_by_x_then_y)
 
 from scipy.spatial import Voronoi
 
@@ -101,6 +102,25 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
     25
+
+    >>> import numpy as np
+    >>> x = [0, 0, 0, 0,
+    ...      1, 1, 1, 1,
+    ...      2, 2, 2, 2,]
+    >>> y = [0, 1, 2, 3,
+    ...      0, 1, 2, 3,
+    ...      0, 1, 2, 3]
+    >>> vmg = VoronoiDelaunayGrid(x, y)
+    >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  1.,  2.,
+            0.,  1.,  2., 
+            0.,  1.,  2.,
+            0.,  1.,  2.])
+    >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  0.,  0.,
+            1.,  1.,  1.,
+            2.,  2.,  2.,
+            3.,  3.,  3.])
     """
 
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
@@ -134,22 +154,25 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._initialize(x, y, reorient_links)
         super(VoronoiDelaunayGrid, self).__init__(**kwds)
 
-    def _initialize(self, x, y, reorient_links=False):
+    def _initialize(self, x, y, reorient_links=True):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
+        x = numpy.asarray(x, dtype=float).reshape((-1, ))
+        y = numpy.asarray(y, dtype=float).reshape((-1, ))
 
-        assert type(x) == numpy.ndarray, 'x must be a numpy array'
-        assert type(y) == numpy.ndarray, 'y must be a numpy array'
-        assert len(x) == len(y), 'x and y arrays must have the same size'
+        if x.size != y.size:
+            raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
         pts = numpy.zeros((len(x), 2))
         pts[:, 0] = x
         pts[:, 1] = y
-        self.pts = pts
-
+        self.pts = sort_points_by_x_then_y(pts)
+        x = pts[:,0]
+        y = pts[:,1]
+        
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
         #   - node x, y coordinates
@@ -488,18 +511,18 @@ class VoronoiDelaunayGrid(ModelGrid):
         --------
         >>> import numpy as np
         >>> from landlab.grid import VoronoiDelaunayGrid
-        >>> pts = np.array([[ 0., 0.],[  1., 0.],[  1.5, 0.87],[-0.5, 0.87],[ 0.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> pts = np.array([[ 0., 0.],[  1., 0.],[-0.5, 0.87],[ 0.5, 0.87],[  1.5, 0.87],[  0., 1.73],[  1., 1.73]])
         >>> from scipy.spatial import Voronoi
         >>> vor = Voronoi(pts)
-        >>> [fr,to,al,fw] = VoronoiDelaunayGrid.create_links_and_faces_from_voronoi_diagram(vor)
-        >>> fr
-        array([0, 0, 0, 1, 1, 3, 3, 6, 6, 6, 4, 4])
-        >>> to
-        array([3, 1, 4, 2, 4, 4, 5, 4, 2, 5, 2, 5])
+        >>> [tn,hn,al,fw] = VoronoiDelaunayGrid.create_links_and_faces_from_voronoi_diagram(vor)
+        >>> tn
+        array([0, 0, 0, 1, 1, 2, 3, 2, 3, 6, 6, 6])
+        >>> hn
+        array([1, 2, 3, 3, 4, 3, 4, 5, 5, 3, 4, 5])
         >>> al
-        array([ 2,  4,  5,  7, 10, 11])
+        array([2, 3, 5, 6, 8, 9])
         >>> fw
-        array([ 0.57669199,  0.57669199,  0.575973  ,  0.57836419,  0.575973  ,
+        array([ 0.57669199,  0.57669199,  0.575973  ,  0.575973  ,  0.57836419,
                 0.57836419])
         """
         # Each Voronoi "ridge" corresponds to a link. The Voronoi object has an
@@ -527,6 +550,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         # ridges).
         active_links = -numpy.ones(num_active_links, dtype=int)
         face_width = -numpy.ones(num_active_links)
+        
+        # Find the order to sort by link midpoints
+        link_midpoints = numpy.zeros((num_links, 2))
+        for i in range(num_links):
+            link_midpoints[i][:] = (vor.points[vor.ridge_points[i,0]]+vor.points[vor.ridge_points[i,1]])/2
+        ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
         # its "from" and "to" nodes are the associated "points". In addition, 
@@ -534,12 +563,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         # link, so we add them to our arrays as well.
         j = 0
         for i in range(num_links):
-            link_fromnode[i] = vor.ridge_points[i, 0]
-            link_tonode[i] = vor.ridge_points[i, 1]
-            face_corner1 = vor.ridge_vertices[i][0]
-            face_corner2 = vor.ridge_vertices[i][1]
+            link_fromnode[i] = vor.ridge_points[ind[i], 0]
+            link_tonode[i] = vor.ridge_points[ind[i], 1]
+            face_corner1 = vor.ridge_vertices[ind[i]][0]
+            face_corner2 = vor.ridge_vertices[ind[i]][1]
             # means it's a valid face
-            if VoronoiDelaunayGrid.is_valid_voronoi_ridge(vor, i):
+            if VoronoiDelaunayGrid.is_valid_voronoi_ridge(vor, ind[i]):
                 dx = vor.vertices[face_corner2, 0] - \
                     vor.vertices[face_corner1, 0]
                 dy = vor.vertices[face_corner2, 1] - \
@@ -547,7 +576,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                 face_width[j] = numpy.sqrt(dx * dx + dy * dy)
                 active_links[j] = i
                 j += 1
-
+                
         return link_fromnode, link_tonode, active_links, face_width
 
     def reorient_links_upper_right(self):
@@ -568,9 +597,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> from landlab.grid import HexModelGrid
         >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
         >>> hg.node_at_link_tail
-        array([3, 3, 2, 0, 3, 1, 4, 5, 2, 0, 0, 1])
+        array([0, 0, 0, 1, 1, 2, 3, 2, 3, 3, 4, 5])
         >>> hg.node_at_link_head
-        array([6, 5, 3, 3, 4, 3, 6, 6, 5, 2, 1, 4])
+        array([1, 2, 3, 3, 4, 3, 4, 5, 5, 6, 6, 6])
         """
 
         # Calculate the horizontal (dx) and vertical (dy) link offsets
@@ -700,3 +729,8 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         with open(path, 'wb') as fp:
             cPickle.dump(self, fp)
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

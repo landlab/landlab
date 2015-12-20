@@ -9,6 +9,8 @@ Created on Wed Mar 4 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
@@ -44,7 +46,7 @@ pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 interior_nodes = mg.core_nodes
 
 # do the loop
-for i in xrange(2000):
+for i in range(2000):
     if i%50==0:
         print('loop '+str(i))
     mg.at_node['topographic__elevation'][inlet_node] = 1.

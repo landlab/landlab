@@ -1,3 +1,5 @@
+from six.moves import range
+
 import numpy as np
 import os
 from landlab import RasterModelGrid
@@ -20,7 +22,7 @@ for i in list_of_dirs:
 os.chdir(home_dir)
 os.chdir('data_for_'+case)
 
-for i in xrange(len(elev_list)):
+for i in range(len(elev_list)):
     this_raster = mg.node_vector_to_raster(elev_list[i])
     elev_list_raster.append(this_raster)
     xsecs.append(elev_list_raster[i][:,550])

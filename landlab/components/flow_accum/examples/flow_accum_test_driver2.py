@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 import numpy as np
 from pylab import show, imshow, colorbar, plot
 from landlab import RasterModelGrid
@@ -28,11 +30,11 @@ def main():
 
     #set-up with prescribed elevations to test drainage area calcualtion
     helper = [7,8,9,10,13,14,15,16]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         #print 'helper[i]', helper[i]
         z[helper[i]]=2+uniform(-0.5,0.5)
     helper = [19,20,21,22]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         z[helper[i]]=3+uniform(-0.5,0.5)
 
     z[7]=1

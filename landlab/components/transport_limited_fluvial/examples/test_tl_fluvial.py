@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.transport_limited_fluvial import TransportLimitedEroder
 from landlab import ModelParameterDictionary
@@ -59,7 +61,7 @@ vid = VideoPlotter(mg, data_centering='node')
 
 time_on = time()
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     # print 'loop ', i
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()

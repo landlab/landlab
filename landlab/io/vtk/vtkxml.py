@@ -1,6 +1,7 @@
 #! /bin/env python
 
 import sys
+from six.moves import range
 
 import numpy as np
 import xml.dom.minidom
@@ -19,7 +20,7 @@ class VtkExtent(object):
         for dim_length in shape:
             self._extent.append((0, dim_length - 1))
 
-        for _ in xrange(3 - len(shape)):
+        for _ in range(3 - len(shape)):
             self._extent.append((0, 0))
 
         self._extent_str = ' '.join(['%d %d' % x for x in self._extent])
@@ -42,7 +43,7 @@ class VtkOrigin(object):
         for (dx, x0) in zip(spacing, origin):
             self._cell_origin.append(x0 - dx * .5)
 
-        for _ in xrange(3 - len(origin)):
+        for _ in range(3 - len(origin)):
             self._cell_origin.append(0.)
 
         self._origin_str = ' '.join(['%f' % x for x in self._cell_origin])
@@ -65,7 +66,7 @@ class VtkSpacing(object):
         for dx in spacing:
             self._padded_spacing.append(dx)
 
-        for _ in xrange(3 - len(spacing)):
+        for _ in range(3 - len(spacing)):
             self._padded_spacing.append(0.)
 
         self._spacing_str = ' '.join(['%f' % x for x in self._padded_spacing])
@@ -92,11 +93,11 @@ class VtkElement(xml.dom.minidom.Element):
         attrs = {}
 
         if names is None:
-            for index in xrange(self.attributes.length):
+            for index in range(self.attributes.length):
                 attr = self.attributes.item(index)
                 attrs[attr.localName] = attr.value
         else:
-            for index in xrange(self.attributes.length):
+            for index in range(self.attributes.length):
                 attr = self.attributes.item(index)
                 if attr.localName in names:
                     attrs[attr.localName] = attr.value
@@ -179,7 +180,7 @@ class VtkPointsElement(VtkDataElement):
     def __init__(self, coords, **kwargs):
         n_components = 3
         xyz = []
-        for i in xrange(n_components):
+        for i in range(n_components):
             try:
                 xyz.append(coords[i])
             except IndexError:

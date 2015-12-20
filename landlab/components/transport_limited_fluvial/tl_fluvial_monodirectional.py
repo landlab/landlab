@@ -168,7 +168,7 @@ class TransportLimitedEroder(object):
             # flag for sed_flux_dep_incision to see if the threshold was
             # manually set.
             self.set_threshold = True
-            print("Found a threshold to use: ", self.shields_crit)
+            # print("Found a threshold to use: ", self.shields_crit)
             assert self.lamb_flag == False
         except MissingKeyError:
             if not self.lamb_flag:
