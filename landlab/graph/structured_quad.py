@@ -109,7 +109,7 @@ class StructuredQuadGraph(Graph):
         return self._shape
 
 
-class RectilinearGraph(Graph):
+class RectilinearGraph(StructuredQuadGraph):
 
     """Graph of a rectlinear grid of nodes.
 
@@ -120,30 +120,24 @@ class RectilinearGraph(Graph):
     >>> graph.number_of_nodes
     12
     >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([0, 0, 0,
-           1, 1, 1,
-           2, 2, 2,
-           3, 3, 3])
+    array([ 0., 0., 0.,
+            1., 1., 1.,
+            2., 2., 2.,
+            3., 3., 3.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([1, 4, 8,
-           1, 4, 8,
-           1, 4, 8,
-           1, 4, 8])
+    array([ 1., 4., 8.,
+            1., 4., 8.,
+            1., 4., 8.,
+            1., 4., 8.])
     """
 
     def __init__(self, nodes):
         node_y, node_x = np.meshgrid(nodes[0], nodes[1], indexing='ij')
-        shape = node_y.shape
 
-        nodes_at_link = setup_nodes_at_link(shape)
-        links_at_patch = setup_links_at_patch(shape)
-
-        super(RectilinearGraph, self).__init__((node_y.flat, node_x.flat),
-                                               links=nodes_at_link,
-                                               patches=links_at_patch)
+        super(RectilinearGraph, self).__init__((node_y, node_x))
 
 
-class UniformRectilinearGraph(Graph):
+class UniformRectilinearGraph(RectilinearGraph):
 
     """Graph of a structured grid of quadrilaterals.
 
@@ -187,11 +181,5 @@ class UniformRectilinearGraph(Graph):
 
         rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
         cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
-        node_y, node_x = np.meshgrid(rows, cols, indexing='ij')
 
-        nodes_at_link = setup_nodes_at_link(shape)
-        links_at_patch = setup_links_at_patch(shape)
-
-        super(UniformRectilinearGraph, self).__init__(
-            (node_y.flat, node_x.flat), links=nodes_at_link,
-            patches=links_at_patch)
+        super(UniformRectilinearGraph, self).__init__((rows, cols))
