@@ -22,7 +22,7 @@ class Vegetation( Component ):
     model.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.single_vegetation.single_vegetation_field import Vegetation
+    >>> from landlab.components.single_vegetation import Vegetation
     >>> grid = RasterModelGrid(5, 4, 1.e4)
     >>> veg = Vegetation(grid)
     >>> veg.name

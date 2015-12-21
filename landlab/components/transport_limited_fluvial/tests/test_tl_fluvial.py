@@ -5,11 +5,13 @@ answers it always has.
 """
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional \
     import TransportLimitedEroder
 from landlab import ModelParameterDictionary
@@ -46,7 +48,7 @@ def test_tl_fluvial():
     fr = FlowRouter(mg)
     tl = TransportLimitedEroder(mg, input_file)
 
-    for i in xrange(nt):
+    for i in range(nt):
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg, _ = tl.erode(mg, dt, stability_condition='loose')

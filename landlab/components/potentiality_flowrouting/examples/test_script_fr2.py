@@ -10,6 +10,8 @@ Created on Fri Feb 20 13:45:52 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
 import numpy as np
@@ -100,7 +102,7 @@ SWs = (slice(0,-2),slice(0,-2))
 Ss = (slice(0,-2),slice(1,-1))
 SEs = (slice(0,-2),slice(2,n+2))
 
-for i in xrange(nt):
+for i in range(nt):
     if i%100==0:
         print(i)
     qE = np.zeros_like(hR)
@@ -197,7 +199,7 @@ for i in xrange(nt):
     Nchanged[core] = np.less(hR[Ns]+hR[core],fixdis)
     Schanged[core] = np.less(hR[Ss]+hR[core],fixdis)
 
-    for j in xrange(10):
+    for j in range(10):
 
         uW[Wchanged] = kW*(pR[Ws]-pR[core])[Wchanged[core]]
         uE[Echanged] = kE*(pR[Es]-pR[core])[Echanged[core]]

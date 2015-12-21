@@ -8,12 +8,12 @@ Created on Fri Feb 20 11:17:52 2015
 """
 from __future__ import print_function
 
-from landlab.components.gFlex.flexure import gFlex
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
-from landlab.components.stream_power.stream_power import StreamPowerEroder
 import numpy as np
 import pylab
+
+from landlab.components.gFlex.flexure import gFlex
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
@@ -40,7 +40,7 @@ mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
 
 #instantiate:
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
-fsp = Fsc(mg, './coupled_SP_gflex_params.txt')
+fsp = FastscapeEroder(mg, './coupled_SP_gflex_params.txt')
 sp = StreamPowerEroder(mg, './coupled_SP_gflex_params.txt')
 fr = FlowRouter(mg)
 

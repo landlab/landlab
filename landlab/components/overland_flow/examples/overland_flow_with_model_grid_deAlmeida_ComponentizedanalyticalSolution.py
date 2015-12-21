@@ -15,7 +15,7 @@ overland_flow_with_model_grid_deAlmeida_analyticalSolution.py
 
 from __future__ import print_function
 
-from landlab.components.overland_flow.generate_overland_flow_deAlmeida import OverlandFlow
+from landlab.components.overland_flow import OverlandFlow
 from landlab.grid.structured_quad import links
 from landlab.plot.imshow import imshow_grid
 from landlab import RasterModelGrid

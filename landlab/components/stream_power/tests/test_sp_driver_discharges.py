@@ -1,14 +1,16 @@
 """Test simple stream power functionality when a discharge array is specified."""
 import os
 
+from six.moves import range
+
 import numpy
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -35,7 +37,7 @@ def test_sp_discharges():
     sp = StreamPowerEroder(mg, input_str)
 
     # perform the loop (once!)
-    for i in xrange(1):
+    for i in range(1):
         fr.route_flow(method='D8')
         my_Q = mg.at_node['water__volume_flux'] * 1.
         sp.erode(mg, dt, node_drainage_areas='drainage_area',

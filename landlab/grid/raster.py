@@ -15,8 +15,8 @@ from landlab.utils import count_repeated_values
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, BAD_INDEX_VALUE, FIXED_LINK,
-                   ACTIVE_LINK, INACTIVE_LINK)
+                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK, 
+                   INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable
 from . import raster_funcs as rfuncs
@@ -423,20 +423,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
         ...  rmg.number_of_active_links)
         (20, 6, 31, 17)
-        >>> rmg.status_at_node # doctest : +NORMALIZE_WHITESPACE
+        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1,
                1, 0, 0, 0, 1,
                1, 0, 0, 0, 1,
                1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.node_numinlink
+        >>> rmg.node_numinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 1, 1, 1, 1,
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2])
         >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
-                11, 12, 13, 14],
-               [-1, 15, 16, 17, 18, -1, 19, 20, 21, 22, -1, 23, 24, 25, 26, -1,
+        array([[-1, -1, -1, -1, -1,  4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22,
+                23, 24, 25, 26],
+               [-1,  0,  1,  2,  3, -1,  9, 10, 11, 12, -1, 18, 19, 20, 21, -1,
                 27, 28, 29, 30]])
         >>> rmg.node_numoutlink # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 1,
@@ -444,7 +444,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                2, 2, 2, 2, 1,
                1, 1, 1, 1, 0])
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        array([ 4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26,
                -1, -1, -1, -1, -1])
         >>> rmg.node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 0, 0, 0, 0,
@@ -470,16 +470,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 6,  7,  8,
                11, 12, 13])
         >>> rmg.node_at_link_tail # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,  0,
-                1, 2,  3,  5,  6,  7,  8, 10, 11, 12, 13, 15, 16, 17, 18])
+        array([ 0,  1,  2,  3,  0,  1,  2,  3,  4,  5,  6,  7,  8,  5,  6,  7,
+                8,  9, 10, 11, 12, 13, 10, 11, 12, 13, 14, 15, 16, 17, 18])
         >>> rmg.node_at_link_head # doctest: +NORMALIZE_WHITESPACE
-        array([ 5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  1,
-                2,  3,  4,  6,  7,  8,  9, 11, 12, 13, 14, 16, 17, 18, 19])
+        array([ 1,  2,  3,  4,  5,  6,  7,  8,  9,  6,  7,  8,  9, 10, 11, 12,
+               13, 14, 11, 12, 13, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19])
         >>> rmg.face_at_link[20]
-        10
+        12
         >>> rmg.active_links # doctest: +NORMALIZE_WHITESPACE
-        array([ 1,  2,  3,  6,  7,  8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25,
-               26])
+        array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
+               25])
         """
         if isinstance(spacing, float) or isinstance(spacing, int):
             spacing = (spacing, spacing)
@@ -562,7 +562,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                             contiguous=True)
 
         # Link lists:
-        # For all links, we encode the "from" and "to" nodes, and the face
+        # For all links, we encode the "tail" and "head" nodes, and the face
         # (if any) associated with the link. If the link does not intersect a
         # face, then face is assigned None.
         # For active links, we store the corresponding link ID.
@@ -574,30 +574,33 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #
         #  *--27-->*--28-->*--29-->*--30-->*
         #  ^       ^       ^       ^       ^
-        # 10      11      12      13      14
+        # 22      23      24      25      26
         #  |       |       |       |       |
-        #  *--23-->*--24-->*--25-->*--26-->*
+        #  *--18-->*--19-->*--20-->*--21-->*
         #  ^       ^       ^       ^       ^
-        #  5       6       7       8       9
+        # 13      14      15      16      17
         #  |       |       |       |       |
-        #  *--19-->*--20-->*--21-->*--22-->*
+        #  *---9-->*--10-->*--11-->*--12-->*
         #  ^       ^       ^       ^       ^
-        #  0       1       2       3       4
+        #  4       5       6       7       8
         #  |       |       |       |       |
-        #  *--15-->*--16-->*--17-->*--18-->*
+        #  *---0-->*---1-->*---2-->*---3-->*
         #
-        #   create the fromnode and tonode lists
+        #   create the tail-node and head-node lists
         (self._node_at_link_tail,
          self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+
+        self._status_at_link = np.full(squad_links.number_of_links(self.shape),
+                                       INACTIVE_LINK, dtype=int)
+
+        # Sort them by midpoint coordinates
+        self.sort_links_by_midpoint()
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
 
         # Flag indicating whether we have created diagonal links.
         self._diagonal_links_created = False
-
-        self._status_at_link = np.full(squad_links.number_of_links(self.shape),
-                                       INACTIVE_LINK, dtype=int)
 
         #   set up the list of active links
         self._reset_link_status_list()
@@ -786,20 +789,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid(3, 4)
         >>> grid.node_links(5)
-        array([[ 1],
+        array([[ 4],
+               [ 7],
                [11],
-               [ 5],
-               [12]])
+               [ 8]])
         >>> grid.node_links((5, 6))
-        array([[ 1,  2],
+        array([[ 4,  5],
+               [ 7,  8],
                [11, 12],
-               [ 5,  6],
-               [12, 13]])
+               [ 8,  9]])
         >>> grid.node_links()
-        array([[-1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7],
-               [-1,  8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16],
-               [ 0,  1,  2,  3,  4,  5,  6,  7, -1, -1, -1, -1],
-               [ 8,  9, 10, -1, 11, 12, 13, -1, 14, 15, 16, -1]])
+        array([[-1, -1, -1, -1,  3,  4,  5,  6, 10, 11, 12, 13],
+               [-1,  0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16],
+               [ 3,  4,  5,  6, 10, 11, 12, 13, -1, -1, -1, -1],
+               [ 0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16, -1]])
         """
         if len(args) == 0:
             return np.vstack((self.node_inlink_matrix,
@@ -833,31 +836,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(3, 4)
+        >>> rmg = RasterModelGrid((3, 4))
         >>> rmg.node_links(5)
-        array([[ 1],
+        array([[ 4],
+               [ 7],
                [11],
-               [ 5],
-               [12]])
+               [ 8]])
         >>> rmg.active_links_at_node((5, 6))
-        array([[0, 1],
-               [4, 5],
-               [2, 3],
-               [5, 6]])
+        array([[ 4,  5],
+               [ 7,  8],
+               [11, 12],
+               [ 8,  9]])
         >>> rmg.active_links_at_node()
+        array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
+               [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
+               [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
+               [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
+
         array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
-            return np.vstack((self.node_active_inlink_matrix,
-                              self.node_active_outlink_matrix))
+            return np.vstack((self.node_active_inlink_matrix2,
+                              self.node_active_outlink_matrix2))
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
             return (
-                np.vstack((self.node_active_inlink_matrix[:, node_ids],
-                           self.node_active_outlink_matrix[:, node_ids])
+                np.vstack((self.node_active_inlink_matrix2[:, node_ids],
+                           self.node_active_outlink_matrix2[:, node_ids])
                           ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
@@ -1247,13 +1255,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         rows (only one vertical link).
 
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(3, 4, 2.0)
-        >>> mg.link_unit_vec_x
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  0.])
-        >>> mg.link_unit_vec_y
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.])
+        >>> mg = RasterModelGrid((3, 4), spacing=(2.0, 2.0))
+
+        >>> mg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
+                1.,  1.,  1.,  0.,  0.,  0.,  0.,
+                1.,  1.,  1.,  0.])
+        >>> mg.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
+                0.,  0.,  0.,  1.,  1.,  1.,  1.,
+                0.,  0.,  0.,  0.])
+
         >>> mg.node_unit_vector_sum_x
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
         >>> mg.node_unit_vector_sum_y
@@ -1264,12 +1276,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # Assume that the order of links is:
         # - The first (R-1)*C are vertical and oriented upward
         # - The remaining R*(C-1) are horizontal and oriented rightward
-        self._link_unit_vec_x = np.zeros(self.number_of_links + 1)
-        self._link_unit_vec_y = np.zeros(self.number_of_links + 1)
-        n_vert_links = (self.number_of_node_rows - 1) * \
-            self.number_of_node_columns
-        self._link_unit_vec_y[:n_vert_links] = 1.0
-        self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+        self._link_unit_vec_x = np.zeros(self.number_of_links + 1, dtype=float)
+        self._link_unit_vec_y = np.zeros(self.number_of_links + 1, dtype=float)
+
+        # n_vert_links = (self.number_of_node_rows - 1) * \
+        #     self.number_of_node_columns
+        # self._link_unit_vec_y[:n_vert_links] = 1.0
+        # self._link_unit_vec_x[n_vert_links:self.number_of_links] = 1.0
+
+        self._link_unit_vec_x[squad_links.horizontal_link_ids(self.shape)] = 1.
+        self._link_unit_vec_y[squad_links.vertical_link_ids(self.shape)] = 1.
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.
@@ -1325,19 +1341,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
         >>> rmg.faces_at_cell(0)
-        array([ 0,  9,  3, 10])
+        array([0, 3, 7, 4])
 
         >>> rmg.faces_at_cell([0, 5])
-        array([[ 0,  9,  3, 10],
-               [ 5, 15,  8, 16]])
+        array([[ 0,  3,  7,  4],
+               [ 9, 12, 16, 13]])
 
         >>> rmg.faces_at_cell()
-        array([[ 0,  9,  3, 10],
-               [ 1, 10,  4, 11],
-               [ 2, 11,  5, 12],
-               [ 3, 13,  6, 14],
-               [ 4, 14,  7, 15],
-               [ 5, 15,  8, 16]])
+        array([[ 0,  3,  7,  4],
+               [ 1,  4,  8,  5],
+               [ 2,  5,  9,  6],
+               [ 7, 10, 14, 11],
+               [ 8, 11, 15, 12],
+               [ 9, 12, 16, 13]])
         """
         if len(args) == 0:
             cell_ids = np.arange(self.number_of_cells)
@@ -1369,27 +1385,55 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid(4, 5)
         >>> mg.link_at_face[0]
-        1
-
+        5
         >>> mg.link_at_face[(0, 4, 13), ]
-        array([ 1,  7, 23])
+        array([ 5, 10, 21])
+
+        Notes
+        -----
+        The algorithm is based on the following considerations:
+        1. To get the link ID associated with a face ID, we start with the face
+           ID and add something to it.
+        2. Face 0 crosses the second vertical link. The first NC-1 links are
+           horizontal, and run along the bottom of the grid. Then there's a
+           vertical link on the lower-left side of the grid. Thus the link that
+           crosses face 0 will be ID number NC, where NC is the number of cols.
+        3. The offset between face ID and link ID increases by 1 every time we
+           finish a row of horizontal faces (NC-2 of them) with vertical links,
+           and again when we finish a row of vertical faces (NC-1 of them) with
+           horizontal links. Together, a "row" of horizontal and vertical faces
+           makes up 2NC-3 faces; this is the variable "fpr" (for "faces per 
+           row") below.
+        4. The quantity 2 * (face_ids // fpr) increases by 2 for every "full"
+           (horizontal plus vertical) row of faces.
+        5. The quantity ((face_ids % fpr) >= (NC-2)) increases by 1 every time
+           we shift from a horizontal to a vertical row of faces (because
+           each "full row" has NC-2 horizontal faces, then NC-1 vertical ones.)
+        6. So, to find the offset, we add the "basic" offset, NC, to the "full
+           row" offset, 2*(face_ids//fpr), and the "mid-row" offset, 
+           ((face_ids % fpr)>=(NC-2)).
         """
         number_of_faces = squad_faces.number_of_faces(self.shape)
         face_ids = np.arange(number_of_faces)
 
-        row = face_ids // (self.shape[1] - 2)
-        in_rows = np.less(row, self.shape[0] - 1)
-        in_cols = np.logical_not(in_rows)
-        excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
-                                          (self.shape[1] - 2))
-        col = excess_col // (self.shape[1] - 1)
-        links = np.empty_like(face_ids)
-        links[in_rows] = (row[in_rows] * self.shape[1] +
-                          face_ids[in_rows] % (self.shape[1] - 2) + 1)
-        links[in_cols] = (
-            self.shape[1] * (self.shape[0] - 1) +
-            (col + 1) * (self.shape[1] - 1) +
-            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
+        fpr = (2 * self.number_of_node_columns) - 3  # Number of faces per row
+        links = self.number_of_node_columns + (2 * (face_ids // fpr)) + \
+                ((face_ids % fpr) >= (self.number_of_node_columns - 2)) + \
+                face_ids
+
+#        row = face_ids // (self.shape[1] - 2)
+#        in_rows = np.less(row, self.shape[0] - 1)
+#        in_cols = np.logical_not(in_rows)
+#        excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
+#                                          (self.shape[1] - 2))
+#        col = excess_col // (self.shape[1] - 1)
+#        links = np.empty_like(face_ids)
+#        links[in_rows] = (row[in_rows] * self.shape[1] +
+#                          face_ids[in_rows] % (self.shape[1] - 2) + 1)
+#        links[in_cols] = (
+#            self.shape[1] * (self.shape[0] - 1) +
+#            (col + 1) * (self.shape[1] - 1) +
+#            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
                                               # term
         self._link_at_face = links
         return self._link_at_face
@@ -1411,13 +1455,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.face_at_link[2]
-        1
-        >>> rmg.face_at_link[(0, 1, 15, 19, 12, 26), ]
-        array([2147483647,          0, 2147483647,          9,          7,
-                       16])
+        >>> rmg.face_at_link[5]
+        0
+        >>> faces = rmg.face_at_link[(0, 1, 15, 19, 12, 26), ]
+        >>> faces[faces == BAD_INDEX_VALUE] = -1
+        >>> faces
+        array([-1, -1,  8, 11,  6, -1])
         """
         self._face_at_link = sgrid.face_at_link(self.shape)
         return self._face_at_link
@@ -1687,7 +1732,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
         array([ True,  True, False], dtype=bool)
         >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
-        array([False, True,  True, False], dtype=bool)
+        array([False,  True,  True, False], dtype=bool)
         """
         xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
 
@@ -1861,18 +1906,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3))
+        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
         >>> grid.link_length
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        >>> grid = RasterModelGrid((3, 3))
+        # array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
         >>> _ = grid.diagonal_links_at_node()
         >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
-        array([
-            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
-            1.        ,  1.        ,  1.        ,  1.        ,  1.        ,
-            1.        ,  1.        ,  1.41421356,  1.41421356,  1.41421356,
-            1.41421356,  1.41421356,  1.41421356,  1.41421356,  1.41421356])
+        array([ 3.,  3.,  4.,  4.,  4.,
+                3.,  3.,  4.,  4.,  4.,
+                3.,  3.,  5.,  5.,  5.,
+                5.,  5.,  5.,  5.,  5.])
         """
         if self._link_length is None:
             return self._calculate_link_length()
@@ -1884,18 +1930,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> import landlab
-        >>> grid = landlab.RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
         >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
-        array([ 2., 2., 2., 2.,
+        array([ 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.,
-                3., 3., 3.,
+                2., 2., 2., 2.,
                 3., 3., 3.])
+
+        >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        array([ 2., 2.,
+                1., 1., 1.,
+                2., 2.,
+                1., 1., 1.,
+                2., 2.])
+
+        Notes
+        -----
+        We initially set all lengths to dy. Then we loop over each row, setting
+        the horizontal links in that row to dx.
         """
         if self._link_length is None:
-            n_vertical_links = (self.shape[0] - 1) * self.shape[1]
-            n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
             if self._diagonal_links_created:
                 self._link_length = np.empty(
                     self.number_of_links + self.number_of_diagonal_links)
@@ -1903,8 +1960,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self._dy ** 2. + self._dx ** 2.)
             else:
                 self._link_length = self.empty(centering='link', dtype=float)
-            self._link_length[:n_vertical_links] = self._dy
-            self._link_length[n_vertical_links:self.number_of_links] = self._dx
+
+            vertical_links = squad_links.vertical_link_ids(self.shape)
+
+            self._link_length[:self.number_of_links] = self.dx
+            self._link_length[vertical_links] = self._dy
 
         return self._link_length
 
@@ -1958,14 +2018,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 3)
+        >>> grid = RasterModelGrid((3, 3))
         >>> (links, from_nodes, to_nodes) = grid.d8_active_links()
         >>> links
-        array([ 1,  4,  8,  9, 12, 15, 17, 18])
+        array([ 3,  5,  6,  8, 12, 15, 17, 18])
         >>> from_nodes
-        array([1, 4, 3, 4, 0, 2, 4, 4])
+        array([1, 3, 4, 4, 0, 2, 4, 4])
         >>> to_nodes
-        array([4, 7, 4, 5, 4, 4, 6, 8])
+        array([4, 4, 5, 7, 4, 4, 6, 8])
         """
         if not self._diagonal_links_created:
             self._setup_diagonal_links()
@@ -2784,35 +2844,30 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...               3., 0., 0., 0.])
         >>> grid.calculate_gradients_at_d8_active_links(z)
         ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0. , -1.  ,  -1. ,  0.  , 0. , -0.75, 0. ,
-                0. , -0.6 ,   0. , -0.6 , 0. , -0.6 , 0. , 0. ])
+        array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
+                0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
         """
-        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
-
-        n_vertical_links = (self.shape[0] - 1) * self.shape[1]
-        n_horizontal_links = self.shape[0] * (self.shape[1] - 1)
-
         (active_links, _, _) = self.d8_active_links()
-        vertical_links = np.where(active_links < n_vertical_links)
-        horizontal_links = np.where(
-            (active_links >= n_vertical_links) &
-            (active_links < n_vertical_links + n_horizontal_links))
+        diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
+        active_links = active_links[~ diagonal_links]
 
-        vertical_link_slopes = (
-            node_values[self.activelink_tonode[vertical_links]] -
-            node_values[self.activelink_fromnode[vertical_links]]
-        ) / self.dy
-        horizontal_link_slopes = (
-            node_values[self.activelink_tonode[horizontal_links]] -
-            node_values[self.activelink_fromnode[horizontal_links]]
-        ) / self.dx
+        vertical_links = squad_links.is_vertical_link(
+            self.shape, active_links)
+        horizontal_links = squad_links.is_horizontal_link(
+            self.shape, active_links)
 
+        diffs = (node_values[self.activelink_tonode] -
+                 node_values[self.activelink_fromnode])
+
+        diffs[vertical_links] /= self.dy
+        diffs[horizontal_links] /= self.dx
+
+        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
         diagonal_link_slopes = (
             (node_values[self._diag_activelink_tonode] -
              node_values[self._diag_activelink_fromnode]) / diag_dist)
 
-        return np.concatenate((vertical_link_slopes, horizontal_link_slopes,
-                               diagonal_link_slopes))
+        return np.concatenate((diffs, diagonal_link_slopes))
 
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
@@ -2950,8 +3005,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> u = np.array(u)
         >>> grad = rmg.calculate_gradients_at_active_links(u)
         >>> grad
-        array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-                1.,  1., -1.,  1.])
+        array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
+                1., -1.,  0.,  1.])
         >>> flux = -grad    # downhill flux proportional to gradient
         >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
         >>> df
@@ -3457,7 +3512,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Nodes 6 and 7 are connected by link 20.
 
         >>> rmg.get_link_connecting_node_pair(6, 7)
-        20
+        10
 
         Nodes 6 and 8 are not connected by a link, so raise an exception.
 
@@ -3859,7 +3914,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             del neighbors
         return slopes, aspects
 
-    def save(self, path, names=None, format=None):
+    def save(self, path, names=None, format=None, at=None):
         """Save a grid and fields.
 
         If more than one field name is specified for names when saving to ARC
@@ -3889,7 +3944,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         path = _add_format_extension(path, format)
 
         if format == 'netcdf':
-            write_netcdf(path, self, format='NETCDF3_64BIT', names=names)
+            write_netcdf(path, self, format='NETCDF3_64BIT', names=names,
+                         at=at)
         elif format == 'esri-ascii':
             write_esri_ascii(path, self, names=names)
         else:
@@ -4173,9 +4229,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
                0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
         >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 4, 4, 2, 2,
-               2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0,
-               2, 2, 0, 0, 0, 0, 0, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4])
+        array([4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 0, 0,
+               0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 2,
+               4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4])
         >>> rmg.fixed_link_properties['fixed_gradient_of']
         'topographic__slope'
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']

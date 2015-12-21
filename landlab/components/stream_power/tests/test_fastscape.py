@@ -11,9 +11,8 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import \
-    SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder as Fsc
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

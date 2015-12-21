@@ -9,13 +9,15 @@ Created on Wed Mar 4 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
-from landlab.components.potentiality_flowrouting.route_flow_by_boundary import PotentialityFlowRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder
 from landlab.grid.mappers import map_link_end_node_max_value_to_link
 
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
@@ -52,7 +54,7 @@ interior_nodes = mg.core_nodes
 section_downfan = []
 
 # do the loop
-for i in xrange(3000):
+for i in range(3000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
@@ -76,7 +78,7 @@ for i in xrange(3000):
 #drop the BL HARD
 mg.at_node['topographic__elevation'][mg.top_edge_node_ids()[mg.number_of_node_columns//2]] =- 50.
 
-for i in xrange(3000):
+for i in range(3000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
@@ -104,5 +106,5 @@ imshow_node_grid(mg, mg.hillshade(), cmap='bone')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)
-for i in xrange(len(section_downfan)):
+for i in range(len(section_downfan)):
     plot(section_downfan[i], '-')

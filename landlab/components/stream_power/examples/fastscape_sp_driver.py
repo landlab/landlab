@@ -7,9 +7,8 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab.plot.imshow import imshow_node_grid
 
 import numpy
@@ -44,7 +43,7 @@ print( 'Running ...' )
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 #load the Fastscape module too, to allow direct comparison
-fsp = Fsc(mg, './drive_sp_params.txt')
+fsp = FastscapeEroder(mg, './drive_sp_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation

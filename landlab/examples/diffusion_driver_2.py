@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 # ...the two different diffusion formulations
 from landlab.components.diffusion.diffusion import LinearDiffuser
@@ -52,7 +54,7 @@ lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 # Perform the loops.
 
-for i in xrange(nt):
+for i in range(nt):
     # This line performs the actual functionality of the component:
     #***NB: both diffusers contain an "automatic" element of uplift.
     # You can suppress this for the linear diffuser with the *internal_uplift* keyword, =False

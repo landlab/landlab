@@ -36,7 +36,7 @@ Functional modules
 	:members: diffuse
 
 
-.. autoclass:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow
+.. autoclass:: landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow
 	:members: run_one_step
 	*This might not work...*
 
@@ -50,7 +50,7 @@ Functional modules
 	:members: update
 	*This component implements a model to compute spatial radiation distribution.
 
-.. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
+.. autoclass:: landlab.components.stream_power.fastscape_stream_power.FastscapeEroder
 	:members: erode
 
 

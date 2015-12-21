@@ -7,6 +7,7 @@ or irregular grid.
 GT Nov 2013
 Modified Feb 2014
 """
+from six.moves import range
 
 import numpy as np
 import inspect
@@ -66,7 +67,7 @@ def grid_flow_directions(grid, elevations):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
+    >>> from landlab.components.flow_routing import grid_flow_directions
     >>> mg = RasterModelGrid(4,5)
     >>> z = np.array([5., 0., 5., 5., 5.,
     ...               5., 1., 2., 2., 5.,
@@ -154,7 +155,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     re-created.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_routing.flow_direction_DN import flow_directions
+    >>> from landlab.components.flow_routing import flow_directions
     >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
     >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
     >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
@@ -206,7 +207,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                               steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            for i in xrange(len(fromnode)):
+            for i in range(len(fromnode)):
                 f = fromnode[i]
                 t = tonode[i]
                 if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:

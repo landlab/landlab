@@ -1,1 +1,4 @@
-import landlab.components.fire_generator.generate_fire # import data
+from .generate_fire import FireGenerator
+
+
+__all__ = ['FireGenerator', ]

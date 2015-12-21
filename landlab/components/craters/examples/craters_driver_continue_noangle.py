@@ -1,6 +1,8 @@
 from __future__ import print_function
 
-from landlab.components.craters.dig_craters import impactor
+from six.moves import range
+
+from landlab.components.craters import impactor
 from landlab import ModelParameterDictionary
 
 from landlab import RasterModelGrid
@@ -42,8 +44,8 @@ angle = np.empty(nt)
 az = np.empty(nt)
 mass_balance = np.empty(nt)
 redug_crater = np.empty(nt)
-for i in xrange(loops):
-    for j in xrange(nt):
+for i in range(loops):
+    for j in range(nt):
         mg = craters_component.excavate_a_crater_noangle(mg)
         x[j] = craters_component.impact_property_dict['x']
         y[j] = craters_component.impact_property_dict['y']

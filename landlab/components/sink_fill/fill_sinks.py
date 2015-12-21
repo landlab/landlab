@@ -7,12 +7,11 @@ Created on Mon Oct 19.
 from __future__ import print_function
 
 import landlab
-from landlab import ModelParameterDictionary, Component, FieldError, \
-                    FIXED_VALUE_BOUNDARY
+from landlab import (ModelParameterDictionary, Component, FieldError,
+                     FIXED_VALUE_BOUNDARY)
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.components.flow_routing.lake_mapper import \
-    DepressionFinderAndRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import (DepressionFinderAndRouter,
+                                             FlowRouter)
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
 

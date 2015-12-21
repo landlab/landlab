@@ -15,7 +15,7 @@ overland_flow_with_model_grid_Bates_analyticalSolution.py
 
 from __future__ import print_function
 
-from landlab.components.overland_flow.generate_overland_flow_Bates import OverlandFlow
+from landlab.components.overland_flow import OverlandFlowBates
 from landlab.plot.imshow import imshow_grid
 from landlab import RasterModelGrid
 
@@ -61,7 +61,7 @@ leftside = rmg.left_edge_node_ids()
 leftside = leftside+1                     # One column in to prevent issues with BC
 
 # Initializing our class...
-of = OverlandFlow(rmg)
+of = OverlandFlowBates(rmg)
 dt = 1.0
 # Let's see how long this run takes...
 starttime = time()

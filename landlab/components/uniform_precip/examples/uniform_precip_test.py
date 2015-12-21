@@ -15,8 +15,9 @@ Written by Jordan Marie Adams, 2013.
 """
 from __future__ import print_function
 
-from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+from landlab.components.uniform_precip import PrecipitationDistribution
 from matplotlib import pyplot as plt
+
 
 def create_precip_plot(storm_arr):
     # Plotting precipitation distribution time series

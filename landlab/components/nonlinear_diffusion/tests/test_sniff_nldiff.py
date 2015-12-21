@@ -21,8 +21,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid, ModelParameterDictionary
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import \
-    PerronNLDiffuse
+from landlab.components.nonlinear_diffusion import PerronNLDiffuse
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
