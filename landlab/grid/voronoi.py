@@ -228,7 +228,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             self.reorient_links_upper_right()
 
         self._num_links = len(self.node_at_link_tail)
-        self._num_faces = self._num_links  # temporary: to be done right!
+        self._num_faces = len(self.face_width)
 
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
@@ -253,23 +253,22 @@ class VoronoiDelaunayGrid(ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> from landlab import BAD_INDEX_VALUE as BV
         >>> hg = HexModelGrid(3, 3)
+        >>> hg.link_at_face
+        array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
         >>> hg.face_at_link
+        array([2147483647, 2147483647, 2147483647,          0,          1,
+                        2,          3, 2147483647,          4,          5,
+                        6, 2147483647,          7,          8,          9,
+                       10, 2147483647, 2147483647, 2147483647])
         """
-#        >>> hg.link_at_face
-#        array([  3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
-#        >>> hg.face_at_link
-#        array([ BV, BV, BV, 0,  1,  2,  3, BV,  4,  5,  6, BV,  7,  8, 9, 10, BV, BV, BV])
-        # LINKS: ID of corresponding face, if any...
-        # FACES: vice versa
         self._face_at_link = numpy.zeros(self.number_of_links, dtype=int)
         self._face_at_link[:] = BAD_INDEX_VALUE
-        self.link_at_face = numpy.zeros(self._num_faces, dtype=int) 
+        self.link_at_face = numpy.zeros(self._num_faces, dtype=int)
         face_id = 0
         for link in range(self.number_of_links):
             tc = self.cell_at_node[self.node_at_link_tail[link]]
-            hc = self.cell_at_node[self.node_at_link_tail[link]]
+            hc = self.cell_at_node[self.node_at_link_head[link]]
             if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
                 self.face_at_link[link] = face_id
                 self.link_at_face[face_id] = link
