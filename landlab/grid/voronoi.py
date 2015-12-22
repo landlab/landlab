@@ -254,9 +254,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
-        >>> hg.link_at_face
+        >>> hg._link_at_face
         array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
-        >>> hg.face_at_link
+        >>> hg._face_at_link
         array([2147483647, 2147483647, 2147483647,          0,          1,
                         2,          3, 2147483647,          4,          5,
                         6, 2147483647,          7,          8,          9,
@@ -264,14 +264,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         self._face_at_link = numpy.zeros(self.number_of_links, dtype=int)
         self._face_at_link[:] = BAD_INDEX_VALUE
-        self.link_at_face = numpy.zeros(self._num_faces, dtype=int)
+        self._link_at_face = numpy.zeros(self._num_faces, dtype=int)
         face_id = 0
         for link in range(self.number_of_links):
             tc = self.cell_at_node[self.node_at_link_tail[link]]
             hc = self.cell_at_node[self.node_at_link_head[link]]
             if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
-                self.face_at_link[link] = face_id
-                self.link_at_face[face_id] = link
+                self._face_at_link[link] = face_id
+                self._link_at_face[face_id] = link
                 face_id += 1
 
     @property
