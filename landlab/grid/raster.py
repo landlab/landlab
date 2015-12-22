@@ -632,7 +632,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self.link_face = sgrid.face_at_link(self.shape,
+        self._face_at_link= sgrid.face_at_link(self.shape,
                                             actives=self.active_link_ids)
 
         # List of neighbors for each cell: we will start off with no
@@ -1367,7 +1367,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
-            (self.link_face[inlinks], self.link_face[outlinks]), axis=1))
+            (self._face_at_link[inlinks], self._face_at_link[outlinks]), axis=1))
 
     def link_at_face(self, *args):
         """link_at_face([face_id])
@@ -1478,13 +1478,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         if len(args) == 0:
             #face_ids = np.arange(self.number_of_faces)
-            return self.link_face[:]
+            return self._face_at_link[:]
         elif len(args) == 1:
             link_ids = np.broadcast_arrays(args[0])[0]
         else:
             raise ValueError()
         #link_ids = _make_arg_into_array(link_id)
-        return self.link_face[link_ids]
+        return self._face_at_link[link_ids]
 
     def get_grid_xdimension(self):
         """Length of the grid in the x-dimension.

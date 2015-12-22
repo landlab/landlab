@@ -416,8 +416,8 @@ def test_node_links_with_no_args():
 
 
 @with_setup(setup_grid)
-def test_link_face():
-    assert_array_equal(rmg.link_face, np.array([X, X, X, X,
+def test_face_at_link():
+    assert_array_equal(rmg._face_at_link, np.array([X, X, X, X,
                                                 X, 0, 1, 2, X,
                                                 3, 4, 5, 6,
                                                 X, 7, 8, 9, X,

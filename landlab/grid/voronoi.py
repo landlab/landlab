@@ -135,6 +135,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             x-coordinate of points
         y : array_like
             y-coordinate of points
+        reorient_links (optional) : bool
+            whether to point all links to the upper-right quadrant
 
         Returns
         -------
@@ -241,14 +243,37 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
+        
+        # LINKS and FACES: create link_at_face and face_at_link arrays
+        self._setup_link_and_face()
 
-        # LINKS: ID of corresponding face, if any
-        self.link_face = (numpy.zeros(self.number_of_links, dtype=int) +
-                          BAD_INDEX_VALUE)  # make the list
+    def _setup_link_and_face(self):
+        """Set up link_at_face and face_at_link arrays.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab import BAD_INDEX_VALUE as BV
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.face_at_link
+        """
+#        >>> hg.link_at_face
+#        array([  3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
+#        >>> hg.face_at_link
+#        array([ BV, BV, BV, 0,  1,  2,  3, BV,  4,  5,  6, BV,  7,  8, 9, 10, BV, BV, BV])
+        # LINKS: ID of corresponding face, if any...
+        # FACES: vice versa
+        self._face_at_link = numpy.zeros(self.number_of_links, dtype=int)
+        self._face_at_link[:] = BAD_INDEX_VALUE
+        self.link_at_face = numpy.zeros(self._num_faces, dtype=int) 
         face_id = 0
-        for link in self.active_links:
-            self.link_face[link] = face_id
-            face_id += 1
+        for link in range(self.number_of_links):
+            tc = self.cell_at_node[self.node_at_link_tail[link]]
+            hc = self.cell_at_node[self.node_at_link_tail[link]]
+            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
+                self.face_at_link[link] = face_id
+                self.link_at_face[face_id] = link
+                face_id += 1
 
     @property
     def number_of_patches(self):
