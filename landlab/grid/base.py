@@ -726,6 +726,11 @@ class ModelGrid(ModelDataFields):
         return self._face_at_link
 
     @property
+    def link_at_face(self):
+        """Get array of links associated with faces."""
+        return self._link_at_face
+
+    @property
     def number_of_nodes(self):
         """Total number of nodes."""
         return self._num_nodes
