@@ -678,7 +678,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import CLOSED_BOUNDARY
         >>> grid.status_at_node[6] = CLOSED_BOUNDARY
         >>> grid.active_faces
-        array([0, 2, 4])
+        array([0, 2, 5])
         """
         try:
             return self._active_faces
@@ -696,7 +696,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
         >>> grid.active_links
-        array([ 1,  2,  5,  6, 11, 12, 13])
+        array([ 4,  5,  7,  8,  9, 11, 12])
         """
         try:
             return self._active_links
@@ -726,7 +726,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                1, 0, 0, 1,
                1, 1, 1, 1], dtype=int8)
         >>> grid.fixed_links
-        array([1, 2])
+        array([4, 5])
         """
         try:
             return self._fixed_links
@@ -1052,7 +1052,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4))
         >>> mg.link_at_face
-        array([ 1,  2,  5,  6, 11, 12, 13])
+        array([ 4,  5,  7,  8,  9, 11, 12])
         """
         try:
             return self._link_at_face
