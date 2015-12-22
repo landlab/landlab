@@ -18,8 +18,8 @@ ext_modules = [
               ['landlab/components/flow_routing/cfuncs.pyx']),
     Extension('landlab.components.stream_power.cfuncs',
               ['landlab/components/stream_power/cfuncs.pyx']),
-    Extension('landlab.grid.structured_quad.cfuncs',
-              ['landlab/grid/structured_quad/cfuncs.pyx']),
+    Extension('landlab.grid.structured_quad.c_faces',
+              ['landlab/grid/structured_quad/c_faces.pyx']),
 ]
 
 import numpy as np

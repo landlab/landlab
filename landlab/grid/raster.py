@@ -1464,7 +1464,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> faces
         array([-1, -1,  8, 11,  6, -1])
         """
-        self._face_at_link = sgrid.face_at_link(self.shape)
+        self._face_at_link = squad_faces.face_at_link(self.shape)
         return self._face_at_link
 
     def get_grid_xdimension(self):
