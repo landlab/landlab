@@ -25,8 +25,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/10000.
 

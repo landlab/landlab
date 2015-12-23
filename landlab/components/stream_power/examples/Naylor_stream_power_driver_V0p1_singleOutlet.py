@@ -40,8 +40,8 @@ mg.status_at_node[20] = FIXED_VALUE_BOUNDARY
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros()
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 #put these values plus roughness into that field
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 

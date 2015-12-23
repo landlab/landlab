@@ -35,9 +35,9 @@ uplift_per_step = uplift_rate * dt
 mg = RasterModelGrid(nrows, ncols, dx)
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 # in our case, slope is zero, so the leftmost_elev is the mean elev
-z = mg.create_node_array_zeros() + leftmost_elev
+z = mg.zeros(at='node') + leftmost_elev
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 

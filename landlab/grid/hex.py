@@ -93,7 +93,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Creates/modifies
         ----------------
-        Creates and initializes self._num_nodes and self._dx
+        Creates and initializes and self._dx
 
         Notes
         -----
@@ -143,23 +143,23 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation == 'horizontal' and shape == 'hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_hex(
+            pts = HexModelGrid.make_hex_points_horizontal_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
         elif orientation == 'horizontal' and shape == 'rect':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_horizontal_rect(
+            pts = HexModelGrid.make_hex_points_horizontal_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
         elif orientation == 'vertical' and shape == 'hex':
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_hex(
+            pts = HexModelGrid.make_hex_points_vertical_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._ncols = base_num_cols
         else:
-            [pts, self._num_nodes] = HexModelGrid.make_hex_points_vertical_rect(
+            pts = HexModelGrid.make_hex_points_vertical_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
             self._nrows = base_num_rows
@@ -209,12 +209,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
-        >>> npt
+        >>> points = HexModelGrid.make_hex_points_horizontal_hex(3, 2, 1.0)
+        >>> len(points)
         7
-        >>> p[1,:]
+        >>> points[1, :]
         array([ 1.,  0.])
-        >>> p[:3,0]
+        >>> points[:3, 0]
         array([ 0. ,  1. , -0.5])
         """
 
@@ -242,7 +242,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 extra_cols -= 1
             xshift = - half_dxh * extra_cols
 
-        return pts, npts
+        return pts
 
     @staticmethod
     def make_hex_points_horizontal_rect(num_rows, num_cols, dxh):
@@ -262,12 +262,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> [p, npt] = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
-        >>> npt
+        >>> points = HexModelGrid.make_hex_points_horizontal_rect(3, 3, 1.0)
+        >>> len(points)
         9
-        >>> p[1,:]
+        >>> points[1, :]
         array([ 1.,  0.])
-        >>> p[:3,0]
+        >>> points[:3, 0]
         array([ 0.,  1.,  2.])
         """
 
@@ -285,7 +285,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 pts[i, 1] = r * dxv
                 i += 1
 
-        return pts, npts
+        return pts
 
     @staticmethod
     def make_hex_points_vertical_hex(base_num_rows, num_cols, dxv):
@@ -306,12 +306,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
-        >>> npt
+        >>> points = HexModelGrid.make_hex_points_vertical_hex(2, 3, 1.0)
+        >>> len(points)
         7
-        >>> p[1,:]
+        >>> points[1, :]
         array([ 0.,  1.])
-        >>> p[:3,1]
+        >>> points[:3, 1]
         array([ 0. ,  1. , -0.5])
         """
 
@@ -339,7 +339,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 extra_rows -= 1
             yshift = - half_dxv * extra_rows
 
-        return pts, npts
+        return pts
 
     @staticmethod
     def make_hex_points_vertical_rect(num_rows, num_cols, dxv):
@@ -359,12 +359,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> [p, npt] = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
-        >>> npt
+        >>> points = HexModelGrid.make_hex_points_vertical_rect(3, 3, 1.0)
+        >>> len(points)
         9
-        >>> p[1,:]
+        >>> points[1, :]
         array([ 0.,  1.])
-        >>> p[:3,1]
+        >>> points[:3, 1]
         array([ 0.,  1.,  2.])
         """
 
@@ -382,7 +382,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 pts[i, 0] = c * dxh
                 i += 1
 
-        return pts, npts
+        return pts
 
     @property
     def number_of_node_columns(self):
