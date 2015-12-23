@@ -23,7 +23,7 @@ left_middle_node = ncols*(nrows/2)
 z0 = drop_ht+dx*(ncols-1)*initial_slope
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(True, False, True, False)
+mg.set_inactive_boundaries(False, True, False, True)
 
 #create the fields in the grid
 mg.add_zeros('topographic__elevation', at='node')

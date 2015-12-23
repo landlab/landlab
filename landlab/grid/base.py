@@ -579,6 +579,33 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._neighbors_at_node
 
     @property
+    @make_return_array_immutable
+    def links_at_node(self):
+        """Get links of nodes.
+
+        Returns
+        -------
+        (NODES, LINKS) ndarray of int
+            Link for the nodes of a grid. The shape of the matrix will be
+            number of nodes rows by max number of links per node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid.links_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
+               [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
+               [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
+               [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
+        >>> grid.links_at_node[4]
+        array([6, 8, 5, 3])
+        >>> grid.links_at_node[(4, 7), :]
+        array([[ 6,  8,  5,  3], [11, 13, 10, 8]])
+        """
+        return self._links_at_node
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
 
@@ -2701,85 +2728,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         diff_y = self.node_y[self.boundary_nodes] - numpy.mean(self.node_y)
 
         return _sort_points_into_quadrants(diff_x, diff_y, self.boundary_nodes)
-
-    @deprecated
-    def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
-                                top_is_inactive, left_is_inactive):
-        """Set boundaries to inactive.
-
-        .. note:: Deprecated since version 0.6.
-            Due to imprecise terminology. Use :func:`set_closed_boundaries`
-            instead.
-
-        Handles boundary conditions by setting each of the four sides of the
-        rectangular grid to either 'inactive' or 'active (fixed value)' status.
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left are inactive (True) or not (False).
-
-        For an inactive boundary:
-            - the nodes are flagged CLOSED_BOUNDARY
-            - the links between them and the adjacent core nodes are
-              inactive (so they appear on link-based lists, but not
-              active_link-based lists)
-
-        This means that if you call the calculate_gradients_at_active_links
-        method, the inactive boundaries will be ignored: there can be no
-        gradients or fluxes calculated, because the links that connect to that
-        edge of the grid are not included in the calculation. So, setting a
-        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
-        boundary condition. Note, however, that this applies to the grid as a
-        whole, rather than a particular variable that you might use in your
-        application. In other words, if you want a no-flux boundary in one
-        variable but a different boundary condition for another, then use
-        another method.
-
-        The following example sets the top and left boundaries as inactive in a
-        four-row by five-column grid that initially has all boundaries active
-        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
-
-        Examples
-        --------
-        >>> import landlab as ll
-        >>> rmg = ll.HexModelGrid(5, 3, 1.0) # rows, columns, spacing
-        >>> rmg.number_of_active_links
-        30
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
-              dtype=int8)
-        >>> rmg.set_inactive_boundaries(False, False, True, True)
-        >>> rmg.number_of_active_links
-        21
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 4, 0, 0, 1, 4, 0, 0, 0, 1, 4, 0, 0, 1, 4, 4, 4],
-               dtype=int8)
-        """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid.set_inactive_boundaries')
-
-        [left_edge, right_edge, top_edge, bottom_edge] = \
-            self._assign_boundary_nodes_to_grid_sides()
-
-        if bottom_is_inactive:
-            self._node_status[bottom_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
-
-        if right_is_inactive:
-            self._node_status[right_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
-
-        if top_is_inactive:
-            self._node_status[top_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
-
-        if left_is_inactive:
-            self._node_status[left_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
-
-        self.update_links_nodes_cells_to_new_BCs()
 
     def set_closed_nodes(self, nodes):
         """Make nodes closed boundaries.

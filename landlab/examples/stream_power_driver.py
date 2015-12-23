@@ -41,7 +41,7 @@ z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 
 # set up its boundary conditions (bottom, left, top, right is inactive)
-mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 # Display a message
 print('Running ...')

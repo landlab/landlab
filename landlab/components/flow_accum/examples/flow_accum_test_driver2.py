@@ -19,7 +19,7 @@ def main():
     dx=3
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    #rg.set_inactive_boundaries(False, False, True, True)
+    #rg.set_inactive_boundaries(False, True, True, False)
 
     nodata_val=-1
     z  = nodata_val*np.ones( nnodes )

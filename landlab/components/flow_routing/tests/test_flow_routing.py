@@ -166,7 +166,7 @@ def setup_internal_closed():
 
     mg = RasterModelGrid((6, 5), spacing=(10., 10.))
 
-    mg.set_closed_boundaries_at_grid_edges(True, False, True, True)
+    mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.status_at_node[7] = CLOSED_BOUNDARY
     mg.status_at_node[16] = CLOSED_BOUNDARY
 

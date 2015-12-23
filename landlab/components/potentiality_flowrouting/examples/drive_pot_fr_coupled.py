@@ -36,7 +36,7 @@ mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 mg.add_zeros('water__volume_flux_in', at='node')
 
 #Set boundary conditions
-mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, False, False, True)
 inlet_node = np.array((mg.number_of_node_columns + 1))
 mg.at_node['water__volume_flux_in'].fill(0.)

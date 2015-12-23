@@ -442,10 +442,10 @@ class PotentialityFlowRouter(Component):
                 self._grid.at_node['water__volume_flux_xcomponent'][:] = (mean_x*flux_error).flat
 
         #save the output
-        self._grid.at_link['water__volume_flux'][self._grid.node_links()[0]] = uS[core].flat #[S,W,N,E], (4,nnodes)
-        self._grid.at_link['water__volume_flux'][self._grid.node_links()[1]] = uW[core].flat
-        self._grid.at_link['water__volume_flux'][self._grid.node_links()[2]] = uN[core].flat
-        self._grid.at_link['water__volume_flux'][self._grid.node_links()[3]] = uE[core].flat
+        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[:, 3]] = uS[core].flat
+        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[:, 2]] = uW[core].flat
+        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[:, 1]] = uN[core].flat
+        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[:, 0]] = uE[core].flat
         self._grid.at_node['potentiality_field'][:] = K[core].flat
         self._grid.at_node['water__volume_flux_magnitude'][:] = meanflux.flat
         #the x,y components are created above, in the if statement

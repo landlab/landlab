@@ -30,7 +30,7 @@ def test_fastscape():
     init_elev = inputs.read_float('init_elev')
 
     mg = RasterModelGrid(nrows, ncols, dx)
-    mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
+    mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     mg.add_zeros('topographic__elevation', at='node')
     z = mg.zeros(at='node') + init_elev

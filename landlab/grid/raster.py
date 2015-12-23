@@ -165,7 +165,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     --------
     >>> from landlab.grid.raster import grid_edge_is_closed_from_dict
     >>> grid_edge_is_closed_from_dict(dict(bottom='closed', top='open'))
-    [True, False, False, False]
+    [False, False, False,  True]
     >>> grid_edge_is_closed_from_dict({})
     [False, False, False, False]
     """
@@ -175,7 +175,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
                              condition)
 
     return [boundary_conditions.get(loc, 'open') == 'closed'
-            for loc in ['bottom', 'left', 'top', 'right']]
+            for loc in ['right', 'top', 'left', 'bottom']]
 
 
 def _old_style_args(args):
@@ -560,6 +560,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             sgrid.neighbor_node_ids(self.shape).transpose().copy())
         self._diagonals_at_node = sgrid.diagonal_node_array(self.shape,
                                                             contiguous=True)
+
+        self._links_at_node = squad_links.links_at_node(self.shape)
 
         # Link lists:
         # For all links, we encode the "tail" and "head" nodes, and the face
@@ -2242,8 +2244,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return steepest_node
 
-    def set_inactive_boundaries(self, bottom_is_inactive, right_is_inactive,
-                                top_is_inactive, left_is_inactive):
+    def set_inactive_boundaries(self, right_is_inactive, top_is_inactive,
+                                left_is_inactive, bottom_is_inactive):
         """Set boundary nodes to be inactive.
 
         .. deprecated:: 0.6
@@ -2285,7 +2287,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
-        >>> rmg.set_inactive_boundaries(False, False, True, True)
+        >>> rmg.set_inactive_boundaries(False, True, True, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2338,10 +2340,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.update_links_nodes_cells_to_new_BCs()
 
-    def set_closed_boundaries_at_grid_edges(self, bottom_is_closed,
-                                            left_is_closed,
+    def set_closed_boundaries_at_grid_edges(self, right_is_closed,
                                             top_is_closed,
-                                            right_is_closed):
+                                            left_is_closed,
+                                            bottom_is_closed):
         """Set boundary not to be closed.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2373,14 +2375,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        bottom_is_closed : boolean
-            If ``True`` bottom-edge nodes are closed boundaries.
-        left_is_closed : boolean
-            If ``True`` left-edge nodes are closed boundaries.
-        top_is_closed : boolean
-            If ``True`` top-edge nodes are closed boundaries.
         right_is_closed : boolean
             If ``True`` right-edge nodes are closed boundaries.
+        top_is_closed : boolean
+            If ``True`` top-edge nodes are closed boundaries.
+        left_is_closed : boolean
+            If ``True`` left-edge nodes are closed boundaries.
+        bottom_is_closed : boolean
+            If ``True`` bottom-edge nodes are closed boundaries.
 
         Notes
         -----
@@ -2405,7 +2407,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=int8)
-        >>> rmg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+        >>> rmg.set_closed_boundaries_at_grid_edges(True, True, False, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2440,8 +2442,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.update_links_nodes_cells_to_new_BCs()
 
     def set_fixed_value_boundaries_at_grid_edges(
-            self, bottom_is_fixed_val, left_is_fixed_val, top_is_fixed_val,
-            right_is_fixed_val, value=None, value_of='topographic__elevation'):
+        self, right_is_fixed_val, top_is_fixed_val, left_is_fixed_val,
+        bottom_is_fixed_val, value=None, value_of='topographic__elevation'):
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
@@ -2505,7 +2507,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                4, 0, 0, 0, 4,
                4, 4, 4, 4, 4], dtype=int8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(
-        ...     False, False, True, True)
+        ...     True, True, False, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2704,91 +2706,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             raise AttributeError(
                 'Switching a boundary between fixed gradient and looped will '
                 'result in bad BC handling! Bailing out...')
-
-    def set_noflux_boundaries(self, bottom, left, top, right, bc=None):
-        """Set no-flux boundaries.
-
-        .. deprecated:: 0.1
-                Use :func:`set_closed_boundaries_at_grid_edges` instead
-
-        Assigns "no flux" status to one or more sides of the rectangular
-        domain, for BoundaryCondition "bc", which defaults to ModelGrid's
-        self.default_bc (i.e., the default BoundaryCondition used when
-        the user doesn't specify another one).
-
-        Boundary cells are either "fixed value" (Dirichlet), which is
-        the default, "fixed gradient" (Neumann with a zero derivative), or
-        "tracks cell" (they track a cell in the interior on the opposite
-        side of the grid, e.g., for periodic). Here we implement no flux
-        by mirroring adjacent cells in the interior.
-
-        Boundary status is recorded in the bc's TRACKS_CELL vector,
-        defined in bc's initialize() and N_BOUNDARY_CELLS long. For
-        no-flux cells, this vector contains the CID of the neighboring
-        cell whose value it will mirror in order to maintain a zero
-        gradient. For periodic boundary cells, this vector contains the
-        CID of the cell on the opposite side whose value it will track.
-        Fixed value cells are indicated by a -1 for TRACKS_CELL.
-
-        For no-flux boundaries, the corner cells (which don't really
-        matter much anyway), the neighbor is arbitrarily chosen as either
-        the righthand or lefthand cell.
-
-        GT: I believe this is now obsolete, because we can do no-flux simply
-        by setting closed boundaries (Aug 2013). DEJH added depreciated tag,
-        May 14
-        """
-        if bc is None:
-            bc = self.default_bc
-
-        # For no-flux boundaries, we need to know which interior
-        # cells to mirror.
-        #self.boundary_nbrs = zeros( self.n_boundary_cells, dtype=np.int )
-        lower_left = 0
-        lower_right = self.number_of_node_columns - 1
-        upper_right = (self.number_of_node_columns +
-                       self.number_of_node_rows - 2)
-        upper_left = (2 * self.number_of_node_columns +
-                      self.number_of_node_rows - 3)
-
-        if bottom:
-            for id in range(1, self.number_of_node_columns - 1):   # Bottom
-                bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
-                bc.tracks_cell[id] = id + self.number_of_node_columns
-            bc.boundary_code[lower_left] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[lower_left] = 1
-            bc.boundary_code[lower_right] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[lower_right] = lower_right - 1
-        if right:
-            nbr = 2 * self.number_of_node_columns - 2
-            for id in range(lower_right + 1, upper_right):   # Right
-                bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
-                bc.tracks_cell[id] = nbr
-                nbr += self.number_of_node_columns
-        if top:
-            ncells = self.number_of_node_rows * self.number_of_node_columns
-            nbr = ncells - (self.number_of_node_columns + 2)
-            for id in range(upper_right + 1, upper_left):   # Top
-                bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
-                bc.tracks_cell[id] = nbr
-                nbr = nbr - 1
-            bc.boundary_code[upper_right] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[upper_right] = ncells - 2
-            bc.boundary_code[upper_left] = bc.TRACKS_CELL_BOUNDARY
-            bc.tracks_cell[upper_left] = ncells + \
-                1 - self.number_of_node_columns
-        if left:
-            n_boundary_cells = (2 * (self.num_rows - 2) +
-                                2 * (self.num_cols - 2) + 4)
-            nbr = (self.number_of_node_rows - 2) * \
-                self.number_of_node_columns + 1
-            for id in range(upper_left + 1, n_boundary_cells):   # Left
-                bc.boundary_code[id] = bc.TRACKS_CELL_BOUNDARY
-                bc.tracks_cell[id] = nbr
-                nbr = nbr - self.number_of_node_columns
-
-        if self._DEBUG_VERBOSE:
-            six.print_('tracks_cell: ' + bc.tracks_cell)
 
     def update_boundary_nodes(self):
         """Update the boundary nodes.
@@ -3531,8 +3448,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if node_a == node_b:
             raise ValueError('nodes are the same')
 
-        links_at_a = self.node_links(node_a)
-        links_at_b = self.node_links(node_b)
+        links_at_a = self.links_at_node[node_a]
+        links_at_b = self.links_at_node[node_b]
 
         try:
             return np.intersect1d(links_at_a, links_at_b)[0]
@@ -4514,10 +4431,10 @@ def from_dict(param_dict):
     right_boundary_type = param_dict.get('RIGHT_BOUNDARY', 'open')
     top_boundary_type = param_dict.get('TOP_BOUNDARY', 'open')
     bottom_boundary_type = param_dict.get('BOTTOM_BOUNDARY', 'open')
-    grid.set_inactive_boundaries(_is_closed_boundary(bottom_boundary_type),
-                                 _is_closed_boundary(right_boundary_type),
+    grid.set_inactive_boundaries(_is_closed_boundary(right_boundary_type),
                                  _is_closed_boundary(top_boundary_type),
-                                 _is_closed_boundary(left_boundary_type))
+                                 _is_closed_boundary(left_boundary_type),
+                                 _is_closed_boundary(bottom_boundary_type))
 
     # Return the created and initialized grid
     return grid

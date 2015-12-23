@@ -34,7 +34,7 @@ uplift_per_step = uplift_rate * dt
 # instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
 # set up its boundary conditions (bottom, right, top, left is inactive)
-mg.set_inactive_boundaries(False, True, False, True)
+mg.set_inactive_boundaries(True, False, True, False)
 
 # create the elevation field in the grid:
 # create the field
