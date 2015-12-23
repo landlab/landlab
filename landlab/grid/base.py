@@ -594,14 +594,14 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 3))
         >>> grid.links_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 9,  0, -1, -1], [10,  1,  9, -1], [-1,  2, 10, -1],
-               [11,  3, -1,  0], [12,  4, 11,  1], [-1,  5, 12,  2],
-               [13,  6, -1,  3], [14,  7, 13,  4], [-1,  8, 14,  5],
-               [15, -1, -1,  6], [16, -1, 15,  7], [-1, -1, 16,  8]])
+        array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
+               [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
+               [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
+               [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
         >>> grid.links_at_node[4]
-        array([12,  4, 11,  1])
+        array([6, 8, 5, 3])
         >>> grid.links_at_node[(4, 7), :]
-        array([[12,  4, 11,  1], [14,  7, 13,  4]])
+        array([[ 6,  8,  5,  3], [11, 13, 10, 8]])
         """
         return self._links_at_node
 
