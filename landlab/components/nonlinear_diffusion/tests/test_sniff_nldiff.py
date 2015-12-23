@@ -21,8 +21,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid, ModelParameterDictionary
-from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import \
-    PerronNLDiffuse
+from landlab.components.nonlinear_diffusion import PerronNLDiffuse
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -81,7 +80,7 @@ t_z = np.array([0.00113696,  0.00113696,  0.00121257,  0.00126092,  0.00129241,
 def test_sniff_Perron():
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
-    mg.create_node_array_zeros('topographic__elevation')
+    mg.add_zeros('topographic__elevation', at='node')
     diffusion_component = PerronNLDiffuse(mg, INPUTS)
 
     elapsed_time = 0.

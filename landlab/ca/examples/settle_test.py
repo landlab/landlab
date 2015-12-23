@@ -12,7 +12,6 @@ _DEBUG = False
 import time
 from numpy import where
 from landlab import RasterModelGrid
-from landlab.ca.raster_cts import RasterCTS
 from landlab.ca.celllab_cts import Transition, CAPlotter
 from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 

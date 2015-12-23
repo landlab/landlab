@@ -268,20 +268,11 @@ class DepressionFinderAndRouter(Component):
 
         h_diag = self._grid._diag_activelink_tonode
         t_diag = self._grid._diag_activelink_fromnode
-
-        for (h, t) in ((h_orth, t_orth),):  # , (h_diag, t_diag)):
-            self.is_pit[h] = np.where(self._elev[h] > self._elev[t],
-                                      False, self.is_pit[h])
-            self.is_pit[t] = np.where(self._elev[t] > self._elev[h],
-                                      False, self.is_pit[t])
-            cond1 = np.logical_and(self._elev[h] == self._elev[t],
-                                   self._grid.status_at_node[h] ==
-                                   FIXED_VALUE_BOUNDARY)
-            self.is_pit[t] = np.where(cond1, False, self.is_pit[t])
-            cond2 = np.logical_and(self._elev[h] == self._elev[t],
-                                   self._grid.status_at_node[t] ==
-                                   FIXED_VALUE_BOUNDARY)
-            self.is_pit[h] = np.where(cond2, False, self.is_pit[h])
+        
+        # These two lines assign the False flag to any node that is higher
+        # than its partner on the other end of its link
+        self.is_pit[h_orth[np.where(self._elev[h_orth]>self._elev[t_orth])[0]]] = False
+        self.is_pit[t_orth[np.where(self._elev[t_orth]>self._elev[h_orth])[0]]] = False
 
         # If we have a raster grid, handle the diagonal active links too
         # (At the moment, their data structure is a bit different)
@@ -532,7 +523,7 @@ class DepressionFinderAndRouter(Component):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing.lake_mapper import (
+        >>> from landlab.components.flow_routing import (
         ...     DepressionFinderAndRouter)
 
         >>> rg = RasterModelGrid(5, 5)
@@ -824,8 +815,7 @@ def main():
 
     # Now, route flow through.
     # First, find flow dirs without lakes. Then, adjust.
-    from landlab.components.flow_routing.flow_direction_DN import \
-        grid_flow_directions
+    from landlab.components.flow_routing import grid_flow_directions
     (rcvr, ss) = grid_flow_directions(grid, z)
     print(z)
     print(rcvr)

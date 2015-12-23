@@ -1,7 +1,7 @@
 from landlab import RasterModelGrid
 from landlab.plot.imshow import imshow_node_grid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+from landlab.components.flow_routing import (FlowRouter,
+                                             DepressionFinderAndRouter)
 from matplotlib.pyplot import figure, plot, show
 import numpy as np
 

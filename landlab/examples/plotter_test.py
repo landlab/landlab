@@ -1,7 +1,9 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.stream_power.fastscape_stream_power import FastscapeEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -36,8 +38,8 @@ mg.set_inactive_boundaries(True, False, True, False)
 
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + leftmost_elev
 z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
@@ -47,12 +49,12 @@ print('Running ...')
 
 # instantiate the components:
 fr = FlowRouter(mg)
-sp = SPEroder(mg, input_file)
+sp = FastscapeEroder(mg, input_file)
 vid = VideoPlotter(mg, data_centering='node')
 
 time_on = time()
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     print('loop ', i)
     mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()

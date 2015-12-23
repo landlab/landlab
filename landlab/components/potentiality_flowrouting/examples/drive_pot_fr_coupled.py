@@ -9,13 +9,15 @@ Created on Wed Mar 4 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
-from landlab.components.potentiality_flowrouting.route_flow_by_boundary import PotentialityFlowRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder
 from landlab.grid.mappers import map_link_end_node_max_value_to_link
 
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
@@ -29,9 +31,9 @@ mg = RasterModelGrid(nrows, ncols, dx)
 # attempt to implement diffusion with flow routing...
 
 #modify the fields in the grid
-z = mg.create_node_array_zeros() + init_elev
+z = mg.zeros(at='node') + init_elev
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
-mg.create_node_array_zeros('water__volume_flux_in')
+mg.add_zeros('water__volume_flux_in', at='node')
 
 #Set boundary conditions
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
@@ -44,7 +46,7 @@ pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 interior_nodes = mg.core_nodes
 
 # do the loop
-for i in xrange(2000):
+for i in range(2000):
     if i%50==0:
         print('loop '+str(i))
     mg.at_node['topographic__elevation'][inlet_node] = 1.

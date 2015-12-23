@@ -963,6 +963,12 @@ class CellLabCTSModel(object):
             # want to track), implement the swap.
             #   If the event requires a call to a user-defined callback
             # function, we handle that here too.
+#            print('trcts')
+#            print(tail_node)
+#            print(head_node)
+#            print(self.propid[tail_node])
+#            print(self.propid[head_node])
+#            print(self.prop_reset_value)
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]

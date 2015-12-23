@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+from six.moves import range
 
 from landlab.grid import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 
 
 def main():
@@ -46,7 +47,7 @@ def main():
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     craters_comp = CratersComponent(grid, seed=seed)
-    for _ in xrange(impact_count):
+    for _ in range(impact_count):
         craters_comp.update()
 
     grid.imshow('node', 'topographic__elevation', grid_units=('km', 'km'),

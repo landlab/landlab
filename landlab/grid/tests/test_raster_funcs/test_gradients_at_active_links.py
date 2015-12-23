@@ -27,8 +27,12 @@ def test_unit_spacing():
     rmg, values_at_nodes = _GRIDS['unit'], np.arange(20)
     grads = rmg.calculate_gradients_at_active_links(values_at_nodes)
 
-    assert_array_equal(grads, np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
-                                        1, 1, 1, 1, 1, 1, 1, 1]))
+    assert_array_equal(grads,
+                       np.array([5.0, 5.0, 5.0,
+                                 1.0, 1.0, 1.0, 1.0,
+                                 5.0, 5.0, 5.0,
+                                 1.0, 1.0, 1.0, 1.0,
+                                 5.0, 5.0, 5.0,]))
 
     diffs = rmg.calculate_diff_at_active_links(values_at_nodes)
     assert_array_equal(grads, diffs)
@@ -41,12 +45,18 @@ def test_non_unit_spacing():
 
     grads = rmg.calculate_gradients_at_active_links(values_at_nodes)
     assert_array_equal(grads,
-                       np.array([1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]))
+                       np.array([1.0, 1.0, 1.0,
+                                 0.5, 0.5, 0.5, 0.5,
+                                 1.0, 1.0, 1.0,
+                                 0.5, 0.5, 0.5, 0.5,
+                                 1.0, 1.0, 1.0]))
     diffs = rmg.calculate_diff_at_active_links(values_at_nodes)
     assert_array_equal(diffs,
-                       np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
-                                 1, 1, 1, 1, 1, 1, 1, 1]))
+                       np.array([5.0, 5.0, 5.0,
+                                 1.0, 1.0, 1.0, 1.0,
+                                 5.0, 5.0, 5.0,
+                                 1.0, 1.0, 1.0, 1.0,
+                                 5.0, 5.0, 5.0,]))
 
 
 @with_setup(setup_grids)
@@ -58,8 +68,11 @@ def test_out_array():
     rtn_array = rmg.calculate_gradients_at_active_links(values_at_nodes,
                                                         out=output_array)
     assert_array_equal(rtn_array,
-                       np.array([1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]))
+                       np.array([1.0, 1.0, 1.0,
+                                 0.5, 0.5, 0.5, 0.5,
+                                 1.0, 1.0, 1.0,
+                                 0.5, 0.5, 0.5, 0.5,
+                                 1.0, 1.0, 1.0]))
     assert_is(rtn_array, output_array)
 
 
@@ -72,6 +85,9 @@ def test_diff_out_array():
     rtn_diff = rmg.calculate_diff_at_active_links(values, out=diff)
     assert_array_equal(
         diff,
-        np.array([5, 5, 5, 5, 5, 5, 5, 5, 5,
-                  1, 1, 1, 1, 1, 1, 1, 1]))
+        np.array([5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5,
+                  1, 1, 1, 1,
+                  5, 5, 5]))
     assert_is(rtn_diff, diff)

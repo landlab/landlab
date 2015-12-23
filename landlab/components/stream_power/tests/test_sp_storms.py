@@ -14,10 +14,9 @@ except ImportError:
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.uniform_precip.generate_uniform_precip import \
-    PrecipitationDistribution
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
+from landlab.components.uniform_precip import PrecipitationDistribution
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -35,10 +34,10 @@ def test_storms():
 
     mg = RasterModelGrid(nrows, ncols, dx)
 
-    mg.create_node_array_zeros('topographic__elevation')
-    z = mg.create_node_array_zeros()
+    mg.add_zeros('topographic__elevation', at='node')
+    z = mg.zeros(at='node')
     mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
-    mg.add_zeros('node', 'water__volume_flux_in')
+    mg.add_zeros('water__volume_flux_in', at='node')
 
     precip = PrecipitationDistribution(input_file=input_file_string)
     fr = FlowRouter(mg)

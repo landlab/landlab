@@ -7,10 +7,11 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import \
-    SPEroder as Fsc
+from six.moves import range
+
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
+from landlab.components.stream_power import FastscapeEroder as Fsc
 
 import numpy
 import numpy as np
@@ -33,7 +34,7 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 # create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 z = np.array([5., 5., 0., 5., 5.,
               5., 2., 1., 2., 5.,
               5., 3., 2., 3., 5.,
@@ -50,7 +51,7 @@ sp = StreamPowerEroder(mg, './drive_sp_params_discharge.txt')
 fsp = Fsc(mg, './drive_sp_params_discharge.txt')
 
 # perform the loop (once!)
-for i in xrange(1):
+for i in range(1):
     fr.route_flow(method='D8')
     my_Q = mg.at_node['water__volume_flux']*1.
     sp.erode(mg, dt, node_drainage_areas='drainage_area',

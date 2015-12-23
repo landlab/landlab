@@ -8,7 +8,7 @@ Tests and illustrates use of route_flow_dn component.
 from __future__ import print_function
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab.components.flow_routing import FlowRouter
 from landlab.io import read_esri_ascii
 from landlab.plot.imshow import imshow_node_grid
 import os

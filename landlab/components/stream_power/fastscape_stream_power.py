@@ -15,7 +15,7 @@ from scipy.optimize import newton, fsolve
 
 UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
 
-class SPEroder(object):
+class FastscapeEroder(object):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the amount
     of erosion at each node in a grid, following a stream power framework.
@@ -94,8 +94,8 @@ class SPEroder(object):
             self.value_field = 'topographic__elevation'
 
         #make storage variables
-        self.A_to_the_m = grid.create_node_array_zeros()
-        self.alpha = grid.empty(centering='node')
+        self.A_to_the_m = grid.zeros(at='node')
+        self.alpha = grid.empty(at='node')
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
 
         self.grid.diagonal_links_at_node() #calculates the number of diagonal links

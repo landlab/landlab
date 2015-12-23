@@ -1,2 +1,4 @@
+from .glacier import Glacier
 
-from landlab.components.glacier_thin_ice_model.glacier import *
+
+__all__ = ['Glacier', ]

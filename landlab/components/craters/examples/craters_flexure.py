@@ -1,9 +1,10 @@
 #! /usr/bin/env python
+from six.moves import range
 
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 import landlab.components.flexure as flexure
 
 
@@ -62,7 +63,7 @@ def main():
 
     create_planet_surface_with_bulge(grid)
 
-    for _ in xrange(impact_count):
+    for _ in range(impact_count):
         craters_comp.update()
         flexure_comp.update()
 

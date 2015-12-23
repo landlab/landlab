@@ -13,6 +13,8 @@ import numpy as np
 import sys
 from pylab import plot, colorbar, figure, show
 from scipy.stats import mode
+from six.moves import range
+
 from landlab.plot import imshow as gridshow
 from landlab.utils import structured_grid as sgrid
 
@@ -412,7 +414,7 @@ class find_facets(object):
         rsqd_list = []
         big_slope_small_curv = []
         elev_at_bssc = []
-        for i in xrange(len(self.profile_x_facet_pts)):
+        for i in range(len(self.profile_x_facet_pts)):
             x = self.profile_x_facet_pts[i]
             z = self.profile_z_facet_pts[i]
             (grad, offset) = np.polyfit(x, z, 1)

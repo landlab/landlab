@@ -15,7 +15,7 @@ overland_flow_with_model_grid_Bates_analyticalSolution.py
 
 from __future__ import print_function
 
-from landlab.components.overland_flow.generate_overland_flow_Bates import OverlandFlow
+from landlab.components.overland_flow import OverlandFlowBates
 from landlab.plot.imshow import imshow_grid
 from landlab import RasterModelGrid
 
@@ -49,9 +49,9 @@ rmg = RasterModelGrid(numrows, numcols, dx)
 rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
 # Create fields in the grid for topographic elevation, water depth and discharge.
-rmg.create_node_array_zeros('topographic__elevation')        # topographic elevation (m)
-rmg.create_node_array_zeros('water_depth')                   # water depth (m)
-rmg.add_zeros('active_link', 'water_discharge')              # unit discharge (m2/s)
+rmg.add_zeros('topographic__elevation', at='node')        # topographic elevation (m)
+rmg.add_zeros('water_depth', at='node')                   # water depth (m)
+rmg.add_zeros('water_discharge', at='active_link')              # unit discharge (m2/s)
 
 # Add our initial thin layer of water to the field of water depth.
 rmg['node']['water_depth'] += h_init
@@ -61,7 +61,7 @@ leftside = rmg.left_edge_node_ids()
 leftside = leftside+1                     # One column in to prevent issues with BC
 
 # Initializing our class...
-of = OverlandFlow(rmg)
+of = OverlandFlowBates(rmg)
 
 # Let's see how long this run takes...
 starttime = time()
