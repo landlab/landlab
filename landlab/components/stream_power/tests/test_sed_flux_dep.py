@@ -38,11 +38,11 @@ def test_sed_dep():
 
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
 
-    mg.create_node_array_zeros('topographic__elevation')
+    mg.add_zeros('topographic__elevation', at='node')
     z = np.loadtxt(os.path.join(_THIS_DIR, 'seddepinit.gz'))
     mg['node']['topographic__elevation'] = z
 
-    mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
     fr = FlowRouter(mg)
     sde = SedDepEroder(mg, input_file)

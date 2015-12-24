@@ -34,14 +34,14 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + leftmost_elev
 z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 
 # set up its boundary conditions (bottom, left, top, right is inactive)
-mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 # Display a message
 print('Running ...')

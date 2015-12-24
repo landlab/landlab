@@ -26,7 +26,7 @@ dem_grid.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bound
 outlet_node = dem_grid.grid_coords_to_node_id(outlet_row, outlet_column)
 
 grid = RasterModelGrid(4, 5, 1.0)
-grid.set_inactive_boundaries(True, False, True, True)
+grid.set_inactive_boundaries(False, True, True, True)
 z = grid.add_zeros('node', 'Land_Surface__Elevation')
 z[6] = 4.5
 z[7] = 3.

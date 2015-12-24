@@ -3,7 +3,8 @@
 import numpy
 from six.moves import range
 
-from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
+from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
+                               INACTIVE_LINK)
 from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
                                 argsort_points_by_x_then_y)
 
@@ -191,15 +192,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
         #
-        self._num_nodes = len(x)
         self._node_x = x
         self._node_y = y
         [self._node_status, self._core_nodes, self._boundary_nodes] = \
             self.find_perimeter_nodes(pts)
-        self._num_active_nodes = self.number_of_nodes
-        self._num_core_nodes = len(self.core_nodes)
-        self._num_cells = len(self.core_nodes)
-        self._num_active_cells = self.number_of_cells
         [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
             self._node_status, self.number_of_cells)
         active_cell_at_node = self.cell_at_node[self.core_nodes]
@@ -208,7 +204,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # each active cell.
         vor = Voronoi(pts)
         self.vor = vor
-        self._area_of_cell = numpy.zeros(self.number_of_active_cells)
+        self._area_of_cell = numpy.zeros(self.number_of_cells)
         for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
@@ -221,14 +217,13 @@ class VoronoiDelaunayGrid(ModelGrid):
          self._node_at_link_head,
          self.active_links_ids,
          self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+        self._status_at_link = numpy.full(len(self._node_at_link_tail),
+                                          INACTIVE_LINK, dtype=int)
 
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
         if reorient_links:
             self.reorient_links_upper_right()
-
-        self._num_links = len(self.node_at_link_tail)
-        self._num_faces = len(self.face_width)
 
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
@@ -244,39 +239,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
         
-        # LINKS and FACES: create link_at_face and face_at_link arrays
-        self._setup_link_and_face()
-
-    def _setup_link_and_face(self):
-        """Set up link_at_face and face_at_link arrays.
-        
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
-        >>> hg._link_at_face
-        array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
-        >>> hg._face_at_link
-        array([2147483647, 2147483647, 2147483647,          0,          1,
-                        2,          3, 2147483647,          4,          5,
-                        6, 2147483647,          7,          8,          9,
-                       10, 2147483647, 2147483647, 2147483647])
-        """
-        self._face_at_link = numpy.zeros(self.number_of_links, dtype=int)
-        self._face_at_link[:] = BAD_INDEX_VALUE
-        self._link_at_face = numpy.zeros(self._num_faces, dtype=int)
-        face_id = 0
-        for link in range(self.number_of_links):
-            tc = self.cell_at_node[self.node_at_link_tail[link]]
-            hc = self.cell_at_node[self.node_at_link_head[link]]
-            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
-                self._face_at_link[link] = face_id
-                self._link_at_face[face_id] = link
-                face_id += 1
-
     @property
     def number_of_patches(self):
         """Number of patches.
+
         Returns the number of patches over the grid.
         """
         try:
@@ -373,11 +339,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # save the arrays and update the properties
         self._node_status = node_status
-        self._num_active_nodes = node_status.size
-        self._num_core_nodes = len(core_nodes)
-        self._num_core_cells = len(core_nodes)
         self._core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
-        self.active_cells = numpy.arange(node_status.size, dtype=numpy.int)
         self._node_at_cell = core_nodes
         self._boundary_nodes = boundary_nodes
 
@@ -497,7 +459,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # save the results
         #self.node_at_link_tail = link_fromnode
         #self.node_at_link_head = link_tonode
-        #self._num_links = num_links
 
         # Return the results
         return link_fromnode, link_tonode, num_links

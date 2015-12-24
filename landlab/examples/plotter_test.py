@@ -34,12 +34,12 @@ uplift_per_step = uplift_rate * dt
 # instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
 # set up its boundary conditions (bottom, right, top, left is inactive)
-mg.set_inactive_boundaries(False, True, False, True)
+mg.set_inactive_boundaries(True, False, True, False)
 
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + leftmost_elev
 z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.

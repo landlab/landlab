@@ -34,10 +34,10 @@ def test_storms():
 
     mg = RasterModelGrid(nrows, ncols, dx)
 
-    mg.create_node_array_zeros('topographic__elevation')
-    z = mg.create_node_array_zeros()
+    mg.add_zeros('topographic__elevation', at='node')
+    z = mg.zeros(at='node')
     mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
-    mg.add_zeros('node', 'water__volume_flux_in')
+    mg.add_zeros('water__volume_flux_in', at='node')
 
     precip = PrecipitationDistribution(input_file=input_file_string)
     fr = FlowRouter(mg)

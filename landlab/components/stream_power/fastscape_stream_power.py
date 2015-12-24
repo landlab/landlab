@@ -94,8 +94,8 @@ class FastscapeEroder(object):
             self.value_field = 'topographic__elevation'
 
         #make storage variables
-        self.A_to_the_m = grid.create_node_array_zeros()
-        self.alpha = grid.empty(centering='node')
+        self.A_to_the_m = grid.zeros(at='node')
+        self.alpha = grid.empty(at='node')
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
 
         self.grid.diagonal_links_at_node() #calculates the number of diagonal links
