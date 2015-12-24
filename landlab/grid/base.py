@@ -792,6 +792,14 @@ class ModelGrid(ModelDataFieldsMixIn):
             return self._setup_face_at_link()
 
     @property
+    def link_at_face(self):
+        """Get array of links associated with faces."""
+        try:
+            return self._link_at_face
+        except AttributeError:
+            return self._setup_link_at_face()
+
+    @property
     def number_of_nodes(self):
         """Total number of nodes.
 
@@ -1589,6 +1597,54 @@ class ModelGrid(ModelDataFieldsMixIn):
             return self._face_widths
         except AttributeError:
             return self._setup_face_widths()
+
+    def _setup_face_at_link(self):
+        """Set up face_at_link array.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid, BAD_INDEX_VALUE
+        >>> hg = HexModelGrid(3, 3)
+
+        >>> face_at_link = hg.face_at_link.copy()
+        >>> face_at_link[face_at_link == BAD_INDEX_VALUE] = -1
+        >>> face_at_link # doctest: +NORMALIZE_WHITESPACE
+        array([-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1,  7,  8,  9, 10,
+               -1, -1, -1])
+        """
+        self._face_at_link = numpy.full(self.number_of_links, BAD_INDEX_VALUE,
+                                        dtype=int)
+        face_id = 0
+        for link in range(self.number_of_links):
+            tc = self.cell_at_node[self.node_at_link_tail[link]]
+            hc = self.cell_at_node[self.node_at_link_head[link]]
+            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
+                self._face_at_link[link] = face_id
+                face_id += 1
+
+        return self._face_at_link
+
+    def _setup_link_at_face(self):
+        """Set up link_at_face array.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.link_at_face
+        array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
+        """
+        num_faces = len(self.face_width)
+        self._link_at_face = numpy.empty(num_faces, dtype=int)
+        face_id = 0
+        for link in range(self.number_of_links):
+            tc = self.cell_at_node[self.node_at_link_tail[link]]
+            hc = self.cell_at_node[self.node_at_link_head[link]]
+            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
+                self._link_at_face[face_id] = link
+                face_id += 1
+
+        return self._link_at_face
 
     def _setup_cell_areas_array_force_inactive(self):
         """Set up an array of cell areas that is n_nodes long.

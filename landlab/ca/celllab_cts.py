@@ -1021,6 +1021,7 @@ class CellLabCTSModel(object):
         self.assign_link_states_from_node_types()
         self.push_transitions_to_event_queue()
 
+    #@profile
     def run(self, run_duration, node_state_grid=None,
             plot_each_transition=False, plotter=None):
         """Run the model forward for a specified period of time.

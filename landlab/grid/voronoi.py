@@ -136,6 +136,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             x-coordinate of points
         y : array_like
             y-coordinate of points
+        reorient_links (optional) : bool
+            whether to point all links to the upper-right quadrant
 
         Returns
         -------
@@ -236,18 +238,11 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
-
-        # LINKS: ID of corresponding face, if any
-        self._face_at_link = (numpy.zeros(self.number_of_links, dtype=int) +
-                              BAD_INDEX_VALUE)  # make the list
-        face_id = 0
-        for link in self.active_links:
-            self._face_at_link[link] = face_id
-            face_id += 1
-
+        
     @property
     def number_of_patches(self):
         """Number of patches.
+
         Returns the number of patches over the grid.
         """
         try:

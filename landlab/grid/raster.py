@@ -620,6 +620,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
+        self._face_at_link= sgrid.face_at_link(self.shape,
+                                               actives=self.active_links)
         self._setup_cell_areas_array()
 
         # List of neighbors for each cell: we will start off with no
@@ -1368,7 +1370,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
         return np.squeeze(np.concatenate(
-            (self.face_at_link[inlinks], self.face_at_link[outlinks]), axis=1))
+            (self._face_at_link[inlinks], self._face_at_link[outlinks]), axis=1))
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
@@ -1385,59 +1387,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(4, 5)
+        >>> mg = RasterModelGrid((4, 5))
         >>> mg.link_at_face[0]
         5
         >>> mg.link_at_face[(0, 4, 13), ]
         array([ 5, 10, 21])
-
-        Notes
-        -----
-        The algorithm is based on the following considerations:
-        1. To get the link ID associated with a face ID, we start with the face
-           ID and add something to it.
-        2. Face 0 crosses the second vertical link. The first NC-1 links are
-           horizontal, and run along the bottom of the grid. Then there's a
-           vertical link on the lower-left side of the grid. Thus the link that
-           crosses face 0 will be ID number NC, where NC is the number of cols.
-        3. The offset between face ID and link ID increases by 1 every time we
-           finish a row of horizontal faces (NC-2 of them) with vertical links,
-           and again when we finish a row of vertical faces (NC-1 of them) with
-           horizontal links. Together, a "row" of horizontal and vertical faces
-           makes up 2NC-3 faces; this is the variable "fpr" (for "faces per 
-           row") below.
-        4. The quantity 2 * (face_ids // fpr) increases by 2 for every "full"
-           (horizontal plus vertical) row of faces.
-        5. The quantity ((face_ids % fpr) >= (NC-2)) increases by 1 every time
-           we shift from a horizontal to a vertical row of faces (because
-           each "full row" has NC-2 horizontal faces, then NC-1 vertical ones.)
-        6. So, to find the offset, we add the "basic" offset, NC, to the "full
-           row" offset, 2*(face_ids//fpr), and the "mid-row" offset, 
-           ((face_ids % fpr)>=(NC-2)).
         """
-        number_of_faces = squad_faces.number_of_faces(self.shape)
-        face_ids = np.arange(number_of_faces)
-
-        fpr = (2 * self.number_of_node_columns) - 3  # Number of faces per row
-        links = self.number_of_node_columns + (2 * (face_ids // fpr)) + \
-                ((face_ids % fpr) >= (self.number_of_node_columns - 2)) + \
-                face_ids
-
-#        row = face_ids // (self.shape[1] - 2)
-#        in_rows = np.less(row, self.shape[0] - 1)
-#        in_cols = np.logical_not(in_rows)
-#        excess_col = face_ids[in_cols] - ((self.shape[0] - 1) *
-#                                          (self.shape[1] - 2))
-#        col = excess_col // (self.shape[1] - 1)
-#        links = np.empty_like(face_ids)
-#        links[in_rows] = (row[in_rows] * self.shape[1] +
-#                          face_ids[in_rows] % (self.shape[1] - 2) + 1)
-#        links[in_cols] = (
-#            self.shape[1] * (self.shape[0] - 1) +
-#            (col + 1) * (self.shape[1] - 1) +
-#            excess_col % (self.shape[1] - 1)) # -1 cancels because of offset
-                                              # term
-        self._link_at_face = links
+        self._link_at_face = squad_faces.link_at_face(self.shape)
         return self._link_at_face
 
     def _setup_face_at_link(self):
