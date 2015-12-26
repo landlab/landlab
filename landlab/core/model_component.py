@@ -53,15 +53,18 @@ class Component(object):
     def units(self):
         return tuple(self._var_units.items())
 
-    @classproperty
     @classmethod
-    def var_units(self):
-        return tuple(self._var_units.items())
+    def var_units(cls, name):
+        return cls._var_units[name]
 
     @classproperty
     @classmethod
-    def var_definitions(self):
-        return tuple(self._var_doc.items())
+    def definitions(cls):
+        return tuple(cls._var_doc.items())
+
+    @classmethod
+    def var_definition(cls, name):
+        return cls._var_doc[name]
 
     @classmethod
     def var_help(cls, name):
