@@ -1,4 +1,22 @@
 #! /usr/bin/env python
+from __future__ import print_function
+
+import os
+import textwrap
+
+
+_VAR_HELP_MESSAGE = """
+name: {name}
+description:
+{desc}
+units: {units}
+at: {loc}
+"""
+
+
+class classproperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
 
 
 class Component(object):
@@ -15,36 +33,56 @@ class Component(object):
                 grid.add_field(location, dest,
                                grid.field_values(location, src))
 
-    @property
-    def input_var_names(self):
-        return self._input_var_names
+    @classproperty
+    @classmethod
+    def input_var_names(cls):
+        return tuple(cls._input_var_names)
 
-    @property
+    @classproperty
+    @classmethod
     def output_var_names(self):
-        return self._output_var_names
+        return tuple(self._output_var_names)
 
-    @property
+    @classproperty
+    @classmethod
     def name(self):
         return self._name
 
-    @property
+    @classproperty
+    @classmethod
     def units(self):
-        return self._var_units
+        return tuple(self._var_units.items())
 
-    @property
+    @classproperty
+    @classmethod
     def var_units(self):
-        return self._var_units
+        return tuple(self._var_units.items())
 
-    @property
+    @classproperty
+    @classmethod
     def var_definitions(self):
-        return self._var_doc
+        return tuple(self._var_doc.items())
 
-    @property
+    @classmethod
+    def var_help(cls, name):
+        desc = os.linesep.join(textwrap.wrap(cls._var_doc[name],
+                                             initial_indent='  ',
+                                             subsequent_indent='  '))
+        units = cls._var_units[name]
+        loc = cls._var_mapping[name]
+
+        help = _VAR_HELP_MESSAGE.format(name=name, desc=desc, units=units,
+                                        loc=loc)
+
+        print(help.strip())
+
+    @classproperty
+    @classmethod
     def var_mapping(self):
         """var_mapping
         This is 'node', 'cell', 'active_link', etc.
         """
-        return self._var_mapping
+        return tuple(self._var_mapping.items())
 
     @property
     def shape(self):
