@@ -9,4 +9,4 @@ pandas
 cython>=0.22
 six
 setuptools>=18.0
-yaml
+pyyaml
