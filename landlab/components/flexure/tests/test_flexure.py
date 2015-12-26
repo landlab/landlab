@@ -50,13 +50,13 @@ def test_output_var_names():
 def test_var_units():
     assert_equal(set(flex.input_var_names) |
                  set(flex.output_var_names),
-                 set(flex.units))
+                 set(dict(flex.units).keys()))
 
-    assert_equal(flex.units['lithosphere__elevation'], 'm')
-    assert_equal(flex.units['lithosphere__elevation_increment'], 'm')
-    assert_equal(flex.units['lithosphere__overlying_pressure'], 'Pa')
+    assert_equal(flex.var_units('lithosphere__elevation'), 'm')
+    assert_equal(flex.var_units('lithosphere__elevation_increment'), 'm')
+    assert_equal(flex.var_units('lithosphere__overlying_pressure'), 'Pa')
     assert_equal(
-        flex.units['planet_surface_sediment__deposition_increment'], 'm')
+        flex.var_units('planet_surface_sediment__deposition_increment'), 'm')
 
 
 @with_setup(setup_grid)
