@@ -22,6 +22,22 @@ class GroupError(Error, KeyError):
         return self._group
 
 
+class GroupSizeError(Error, KeyError):
+
+    """Raise this error if a group has changed sizes."""
+
+    def __init__(self, group, old_size, new_size):
+        self._group = group
+        self._old_size = old_size
+        self._new_size = new_size
+
+    def __str__(self):
+        return ("number of {group} elements has changed. "
+                "(was = {was}, now={now})".format(group=self._group,
+                                                  was=self._old_size,
+                                                  now=self._new_size))
+
+
 class ModelDataFields(object):
 
     """Collection of grouped data-fields.
@@ -211,7 +227,7 @@ class ModelDataFields(object):
         """
         return self[group].size
 
-    def new_field_location(self, group, size):
+    def new_field_location(self, group, size=None):
         """Add a new quantity to a field.
 
         Create an empty group into which new fields can be added. The new group
@@ -222,8 +238,9 @@ class ModelDataFields(object):
         ----------
         group: str
             Name of the new group to add to the field.
-        size: int
-            Number of elements in the new quantity.
+        size: int, optional
+            Number of elements in the new quantity. If not provided, the
+            size is set to be the size of the first field added to the goup.
 
         Raises
         ------
@@ -252,6 +269,13 @@ class ModelDataFields(object):
 
         >>> fields.at_cell, fields.at_node
         ({}, {})
+
+        >>> fields.new_field_location('core_node')
+        >>> fields.at_core_node.size is None
+        True
+        >>> fields.at_core_node['air__temperature'] = [0, 1]
+        >>> fields.at_core_node.size
+        2
         """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
@@ -338,7 +362,6 @@ class ModelDataFields(object):
         ------
         KeyError
             If either *field* or *group* does not exist.
-
         """
         return self[group].units[field]
 
@@ -448,7 +471,7 @@ class ModelDataFields(object):
         """
         return self[group].zeros(**kwds)
 
-    def add_empty(self, group, name, **kwds):
+    def add_empty(self, *args, **kwds):
         """Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
@@ -478,12 +501,18 @@ class ModelDataFields(object):
         landlab.field.ModelDataFields.zeros : Equivalent method that
             initializes the data to 0.
         """
+        if len(args) == 2:
+            group, name = args
+        elif len(args) == 1:
+            group, name = kwds.pop('at'), args[0]
+        else:
+            raise ValueError('number of arguments must be 1 or 2')
+
         units = kwds.pop('units', None)
-        return self.add_field(group, name,
-                              ModelDataFields.empty(self, group, **kwds),
+        return self.add_field(group, name, self.empty(group, **kwds),
                               units=units)
 
-    def add_ones(self, group, name, units=None, **kwds):
+    def add_ones(self, *args, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
@@ -529,12 +558,19 @@ class ModelDataFields(object):
         >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
+        if len(args) == 2:
+            group, name = args
+        elif len(args) == 1:
+            group, name = kwds.pop('at'), args[0]
+        else:
+            raise ValueError('number of arguments must be 1 or 2')
+
         units = kwds.pop('units', None)
         return self.add_field(group, name,
-                              ModelDataFields.ones(self, group, **kwds),
+                              self.ones(group, **kwds),
                               units=units)
 
-    def add_zeros(self, group, name, **kwds):
+    def add_zeros(self, *args, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -564,12 +600,19 @@ class ModelDataFields(object):
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
         """
+        if len(args) == 2:
+            group, name = args
+        elif len(args) == 1:
+            group, name = kwds.pop('at'), args[0]
+        else:
+            raise ValueError('number of arguments must be 1 or 2')
+
         units = kwds.pop('units', None)
         return self.add_field(group, name,
-                              ModelDataFields.zeros(self, group, **kwds),
+                              self.zeros(group, **kwds),
                               units=units)
 
-    def add_field(self, group, name, value_array, **kwds):
+    def add_field(self, *args, **kwds):
         """add_field(group, name, value_array, units='-', copy=False, noclobber=False)
         Add an array of values to the field.
 
@@ -636,6 +679,13 @@ class ModelDataFields(object):
         Traceback (most recent call last):
         FieldError: topographic__elevation
         """
+        if len(args) == 3:
+            group, name, value_array = args
+        elif len(args) == 2:
+            group, name, value_array = kwds.pop('at'), args[0], args[1]
+        else:
+            raise ValueError('number of arguments must be 2 or 3')
+
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):

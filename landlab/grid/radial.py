@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import numpy
-import six
+from six.moves import range
 
 from .voronoi import VoronoiDelaunayGrid
 
@@ -73,16 +73,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        # self._num_nodes = num_rows * num_cols
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
 
     def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('RadialModelGrid._initialize(' + str(num_shells) + ', '
-                       + str(dr) + ')')
-
         [pts, npts] = self.make_radial_points(num_shells, dr)
         self._n_shells = int(num_shells)
         self._dr = dr
@@ -187,7 +182,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             self._node_radii = numpy.empty(self.number_of_nodes, dtype=float)
             self._node_radii[0] = 0
             start_index = 1
-            for i in xrange(self.number_of_shells):
+            for i in range(self.number_of_shells):
                 end_index = start_index + self.number_of_nodes_in_shell[i]
                 self._node_radii[start_index:
                                  end_index] = self.radius_to_shell[i]

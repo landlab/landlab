@@ -84,7 +84,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
     >>> z = np.zeros(9)
     >>> z[4] = 1.
     >>> rmg.calculate_diff_at_links(z)
-    array([ 0.,  1.,  0.,  0., -1.,  0.,  0.,  0.,  1., -1.,  0.,  0.])
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
     """
     if out is None:
         out = grid.empty(centering='link')

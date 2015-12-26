@@ -31,8 +31,8 @@ rock_stress_param = inputs.read_float('rock_density')*9.81
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
 #make some surface load stresses in a field to test

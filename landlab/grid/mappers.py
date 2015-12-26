@@ -65,16 +65,18 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_link_head_node_to_link(rmg, 'z')
-    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             5.,   6.,   7.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             5.,   6.,   7.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
     """
@@ -118,16 +120,18 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_link_tail_node_to_link(rmg, 'z')
-    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   0.,   1.,   2.,
-             4.,   5.,   6.,   8.,   9.,  10.])
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_link_tail_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   0.,   1.,   2.,
-             4.,   5.,   6.,   8.,   9.,  10.])
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
     >>> rtn is values_at_links
     True
     """
@@ -171,15 +175,17 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3], [7, 6, 5, 4], [8, 9, 10, 11]])
+    ...                   [[ 0,  1,  2,  3],
+    ...                    [ 7,  6,  5,  4],
+    ...                    [ 8,  9, 10, 11]])
     >>> map_min_of_link_nodes_to_link(rmg, 'z')
-    array([  0.,   1.,   2.,   3.,   7.,   6.,   5.,   4.,   0.,   1.,   2.,
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_min_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  0.,   1.,   2.,   3.,   7.,   6.,   5.,   4.,   0.,   1.,   2.,
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
     >>> rtn is values_at_links
     True
@@ -226,16 +232,18 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3], [7, 6, 5, 4], [8, 9, 10, 11]])
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
     >>> map_max_of_link_nodes_to_link(rmg, 'z')
-    array([  7.,   6.,   5.,   4.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             7.,   6.,   5.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_max_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  7.,   6.,   5.,   4.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             7.,   6.,   5.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
     """
@@ -280,16 +288,18 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_mean_of_link_nodes_to_link(rmg, 'z')
-    array([  2. ,   3. ,   4. ,   5. ,   6. ,   7. ,   8. ,   9. ,   0.5,
-             1.5,   2.5,   4.5,   5.5,   6.5,   8.5,   9.5,  10.5])
+    array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
+             6.5,   6. ,   7. ,   8. ,   9. ,   8.5,   9.5,  10.5])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_mean_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  2. ,   3. ,   4. ,   5. ,   6. ,   7. ,   8. ,   9. ,   0.5,
-             1.5,   2.5,   4.5,   5.5,   6.5,   8.5,   9.5,  10.5])
+    array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
+             6.5,   6. ,   7. ,   8. ,   9. ,   8.5,   9.5,  10.5])
     >>> rtn is values_at_links
     True
     """
