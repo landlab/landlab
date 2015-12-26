@@ -11,6 +11,51 @@ from ..core.model_parameter_loader import load_params
 
 
 def use_file_name_or_kwds(func):
+
+    """Decorate a method so that it takes a file name or keywords.
+
+    Parameters
+    ----------
+    func : A function
+        A method function that accepts a ModelGrid as a first argument.
+
+    Returns
+    -------
+    function
+        A function that takes an optional second argument, a file, from which
+        to read keywords.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.utils.decorators import use_file_name_or_kwds
+
+    >>> class MyClass(object):
+    ...     @use_file_name_or_kwds
+    ...     def __init__(self, grid, kw=0.):
+    ...         self.kw = kw
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> foo = MyClass(grid)
+    >>> foo.kw
+    0.0
+
+    >>> foo = MyClass(grid, "kw: 1945")
+    >>> foo.kw
+    1945
+    >>> foo = MyClass(grid, "kw: 1945", kw=1973)
+    >>> foo.kw
+    1973
+
+    >>> mpd = \"\"\"
+    ... kw: kw value
+    ... 1e6
+    ... \"\"\"
+    >>> foo = MyClass(grid, mpd)
+    >>> foo.kw
+    1000000.0
+    """
+
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         from ..grid import ModelGrid
