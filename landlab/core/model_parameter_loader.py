@@ -34,13 +34,13 @@ def load_params(file_like):
 
     Examples
     --------
-    >>> from landlab.utils.decorators import _read_params_from_file
+    >>> from landlab.core import load_params
     >>> contents = \"\"\"
     ... start: 0.
     ... stop: 10.
     ... step: 2.
     ... \"\"\"
-    >>> params = _read_params_from_file(contents)
+    >>> params = load_params(contents)
     >>> isinstance(params, dict)
     True
     >>> params['start'], params['stop'], params['step']
@@ -54,7 +54,7 @@ def load_params(file_like):
     ... step: Step time
     ... 2.
     ... \"\"\"
-    >>> params = _read_params_from_file(contents)
+    >>> params = load_params(contents)
     >>> isinstance(params, dict)
     True
     >>> params['start'], params['stop'], params['step']
