@@ -1,10 +1,42 @@
 """General decorators for the landlab library."""
 
+import os
 import warnings
 from functools import wraps
 
 import numpy as np
 import six
+
+from ..core.model_parameter_loader import load_params
+
+
+def use_file_name_or_kwds(func):
+    @wraps(func)
+    def _wrapped(self, *args, **kwds):
+        from ..grid import ModelGrid
+
+        if not isinstance(args[0], ModelGrid):
+            raise ValueError('first argument must be a ModelGrid')
+
+        if len(args) == 2:
+            warnings.warn(
+                "Passing a file to a component's __init__ method is "
+                "deprecated. Instead, pass parameters as keywords.",
+                category=DeprecationWarning)
+
+            if os.path.isfile(args[1]):
+                with open(args[1], 'r') as fp:
+                    params = load_params(fp)
+            else:
+                params = load_params(args[1])
+        else:
+            params = {}
+
+        params.update(kwds)
+
+        func(self, args[0], **params)
+
+    return _wrapped
 
 
 class use_field_name_or_array(object):
