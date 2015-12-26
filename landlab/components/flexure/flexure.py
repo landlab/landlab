@@ -15,38 +15,49 @@ Create a grid on which we will run the flexure calculations.
 
 Check the fields that are used as input to the flexure component.
 
->>> Flexure.input_var_names
-('lithosphere__elevation', 'lithosphere__overlying_pressure',
+>>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
+('lithosphere__overlying_pressure', 'lithosphere__elevation',
  'planet_surface_sediment__deposition_increment')
 
 Check the units for the fields.
 
->>> Flexure.units['lithosphere__elevation']
+>>> Flexure.var_units('lithosphere__elevation')
 'm'
->>> Flexure.units['lithosphere__overlying_pressure']
+>>> Flexure.var_units('lithosphere__overlying_pressure')
 'Pa'
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
 >>> Flexure.var_help('planet_surface_sediment__deposition_increment')
+name: planet_surface_sediment__deposition_increment
+description:
+  The amount of sediment deposited at the land surface in one timestep
+units: m
+at: node
 
 Add these fields to the grid.
 
->>> grid.add_zeros('lithosphere__elevation', at='node')
->>> grid.add_zeros('lithosphere__overlying_pressure', at='node')
->>> grid.add_zeros('planet_surface_sediment__deposition_increment', at='node')
+>>> _ = grid.add_zeros('lithosphere__elevation', at='node')
+>>> _ = grid.add_zeros('lithosphere__overlying_pressure', at='node')
+>>> _ = grid.add_zeros('planet_surface_sediment__deposition_increment', at='node')
 
 >>> dh = grid.at_node['planet_surface_sediment__deposition_increment']
->>> dh.reshape(grid.shape)
->>> dh[2, 1:3] = 1e3
+>>> dh = dh.reshape(grid.shape)
+>>> dh[1:-1, 1:-1] = 3300 / 2650.
 
 >>> flex = Flexure(grid)
 >>> flex.update()
 
 >>> flex.output_var_names
-('lithosphere__elevation', 'lithosphere__elevation_increment')
+('lithosphere__elevation_increment', 'lithosphere__elevation')
 >>> flex.grid.at_node['lithosphere__elevation']
+...     # doctest: +NORMALIZE_WHITESPACE
+array([ 0.,  0.,  0.,  0.,
+        0., -1., -1.,  0.,
+        0., -1., -1.,  0.,
+        0., -1., -1.,  0.,
+        0.,  0.,  0.,  0.])
 """
 
 import numpy as np
@@ -77,11 +88,11 @@ class Flexure(Component):
      'planet_surface_sediment__deposition_increment']
     >>> sorted(flex.output_var_names)
     ['lithosphere__elevation', 'lithosphere__elevation_increment']
-    >>> for var in sorted(flex.units): flex.units[var]
-    'm'
-    'm'
-    'Pa'
-    'm'
+    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    [('lithosphere__elevation', 'm'),
+     ('lithosphere__elevation_increment', 'm'),
+     ('lithosphere__overlying_pressure', 'Pa'),
+     ('planet_surface_sediment__deposition_increment', 'm')]
 
     >>> flex.grid.number_of_node_rows
     5
