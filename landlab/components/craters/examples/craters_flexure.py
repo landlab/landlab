@@ -48,7 +48,7 @@ def main():
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     craters_comp = CratersComponent(grid, seed=seed)
-    flexure_comp = flexure.FlexureComponent(
+    flexure_comp = flexure.Flexure(
         grid,
         map_vars={
             'node': {

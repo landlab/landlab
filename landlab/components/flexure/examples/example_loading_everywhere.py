@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab.components.flexure import FlexureComponent
+from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
 
 
@@ -40,7 +40,7 @@ def main():
 
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
-    flex = FlexureComponent(grid, method='flexure')
+    flex = Flexure(grid, method='flexure')
 
     put_loads_on_grid(grid, load_sizes)
 

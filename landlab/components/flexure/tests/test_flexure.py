@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.flexure.flexure import FlexureComponent
+from landlab.components.flexure.flexure import Flexure
 
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
@@ -20,9 +20,9 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid(20, 20, 10e3)
-    flex = FlexureComponent(grid)
+    flex = Flexure(grid)
     globals().update({
-        'flex': FlexureComponent(grid)
+        'flex': Flexure(grid)
     })
 
 
