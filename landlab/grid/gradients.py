@@ -63,6 +63,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     
     TODO: THIS IS NOT YET UNIT TESTED. CHECK TO SEE WHETHER IT DUP'S 
     CALCULATE_GRADIENT_ACROSS_CELL_FACES IN RASTER_STEEPEST_DESCENT.PY.
+    ALSO FRACTURE_GRID STILL SEEMS TO NEED FIXING.
 
     Parameters
     ----------
