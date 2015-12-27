@@ -56,6 +56,36 @@ def calculate_gradients_at_links(grid, node_values, out=None):
                      grid.link_length, out=out)
 
 
+def calculate_gradients_at_faces(grid, node_values, out=None):
+    """Calculate gradients of node values over faces.
+
+    Calculates the gradient in *quantity* node_values at each link in the grid.
+    
+    TODO: THIS IS NOT YET UNIT TESTED. CHECK TO SEE WHETHER IT DUP'S 
+    CALCULATE_GRADIENT_ACROSS_CELL_FACES IN RASTER_STEEPEST_DESCENT.PY.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Gradients across faces.
+    """
+    if out is None:
+        out = grid.empty(centering='face')
+    laf = grid.link_at_face
+    return np.divide(node_values[grid.node_at_link_head[laf]] -
+                     node_values[grid.node_at_link_tail[laf]],
+                     grid.link_length[laf], out=out)
+
+
 def calculate_diff_at_links(grid, node_values, out=None):
     """Calculate differences of node values over links.
 
