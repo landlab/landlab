@@ -947,6 +947,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
+    @property
+    @make_return_array_immutable
+    def horizontal_links(self):
+        try:
+            return self._horizontal_links
+        except AttributeError:
+            self._horizontal_links = squad_links.horizontal_link_ids(
+                self.shape)
+            return self._horizontal_links
+
+    @property
+    @make_return_array_immutable
+    def vertical_links(self):
+        try:
+            return self._vertical_links
+        except AttributeError:
+            self._vertical_links = squad_links.vertical_link_ids(
+                self.shape)
+            return self._vertical_links
+
     def patches_at_node(self, nodata=-1, masked=True, *args):
         """Get array of patches attached to nodes.
 
