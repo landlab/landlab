@@ -1,3 +1,5 @@
+from six.moves import range
+
 import numpy as np
 from pylab import *
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
@@ -17,7 +19,7 @@ def main():
     dx=1
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    #rg.set_inactive_boundaries(False, False, True, True)
+    #rg.set_inactive_boundaries(False, True, True, False)
 
     nodata_val=-1
     z  = nodata_val*np.ones( nnodes )
@@ -28,11 +30,11 @@ def main():
 
     #set-up elevations
     helper = [7,8,9,10,13,14,15,16]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         #print 'helper[i]', helper[i]
         z[helper[i]]=2+uniform(-0.5,0.5)
     helper = [19,20,21,22]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         z[helper[i]]=3+uniform(-0.5,0.5)
 
     z[7]=1

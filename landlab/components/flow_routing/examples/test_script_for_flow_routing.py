@@ -18,7 +18,7 @@ def main():
     dx=1
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    rg.set_inactive_boundaries(False, False, True, True)
+    rg.set_inactive_boundaries(False, True, True, False)
 
 
     elevations  = zeros( ncells )
