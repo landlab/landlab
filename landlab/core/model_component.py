@@ -82,10 +82,18 @@ class Component(object):
     @classproperty
     @classmethod
     def var_mapping(self):
-        """var_mapping
-        This is 'node', 'cell', 'active_link', etc.
+        """Location where variables are defined.
+
+        Returns
+        -------
+        tuple of (name, location)
+            Tuple of variable name and location ('node', 'link', etc.) pairs.
         """
         return tuple(self._var_mapping.items())
+
+    @classmethod
+    def var_loc(cls, name):
+        return cls._var_mapping[name]
 
     @property
     def shape(self):
