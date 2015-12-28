@@ -4,7 +4,7 @@ This component simulates overland flow using the 2-D numerical model of
 shallow-water flow over topography using the de Almeida et al., 2012
 algorithm for storage-cell inundation modeling.
 
-Written by Jordan Adams, based on code written by Greg Tucker.
+.. codeauthor:: Jordan Adams
 
 Examples
 --------
@@ -12,10 +12,18 @@ Examples
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.overland_flow import OverlandFlow
 
+Create a grid on which to calculate overland flow.
+
 >>> grid = RasterModelGrid((4, 5))
+
+The grid will need some data to provide the overland flow component. To
+check the names of the fields that provide input to the overland flow
+component use the *input_var_names* class property.
 
 >>> OverlandFlow.input_var_names
 ('water_depth', 'topographic__elevation')
+
+Create fields of data for each of these input variables.
 
 >>> grid.at_node['topographic__elevation'] = np.array([
 ...     0., 0., 0., 0., 0.,
@@ -28,11 +36,19 @@ Examples
 ...     0. , 0. , 0. , 0. , 0. ,
 ...     0.1, 0.1, 0.1, 0.1, 0.1])
 
+Instantiate the `OverlandFlow` component to work on this grid, and run it.
+
 >>> of = OverlandFlow(grid)
 >>> of.overland_flow()
 
+After calculating the overland flow, new fields have been added to the
+grid. Use the *output_var_names* property to see the names of the fields that
+have been changed.
+
 >>> of.output_var_names
 ('water_depth', 'water_discharge', 'water_surface_slope')
+
+The `water_depth` field is defined at nodes.
 
 >>> of.var_loc('water_depth')
 'node'
@@ -42,6 +58,10 @@ array([ 0.001,  0.001,  0.001,  0.001,  0.001,
         0.001,  0.021,  0.021,  0.021,  0.001,
         0.101,  0.101,  0.101,  0.101,  0.101])
 
+The `water_discharge` field is defined at links. Because our initial
+topography was a dipping plane, there is no water discharge in the horizontal
+direction, only toward the bottom of the grid.
+
 >>> of.var_loc('water_discharge')
 'link'
 >>> q = grid.at_link['water_discharge'] # doctest: +NORMALIZE_WHITESPACE
@@ -49,6 +69,8 @@ array([ 0.001,  0.001,  0.001,  0.001,  0.001,
 True
 >>> np.all(q[grid.vertical_links] <= 0.)
 True
+
+The *water_surface_slope* is also defined at links.
 
 >>> of.var_loc('water_surface_slope')
 'link'
