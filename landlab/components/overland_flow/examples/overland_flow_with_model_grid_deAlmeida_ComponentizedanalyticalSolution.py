@@ -64,7 +64,7 @@ leftside = leftside+1                     # One column in to prevent issues with
 of = OverlandFlow(rmg)
 
 # Now, we need to set a fixed value on the left edge, so we find the link neighbor arrays...
-of.set_up_neighbor_arrays(rmg)
+of.set_up_neighbor_arrays()
 
 # ... and get a list of all horizonal ids, not just active ids (which is what the deAlmeida solution uses)
 all_horizontal_ids = links.horizontal_link_ids(rmg.shape)
@@ -81,13 +81,13 @@ starttime = time()
 
 while elapsed_time < run_time:
     # First, we calculate our time step.
-    dt = of.gear_time_step(rmg)
+    dt = of.gear_time_step()
 
     # Now we are going to set the left edge horizontal links to their neighboring discharge value
     rmg['link']['water_discharge'][left_inactive_ids] =   rmg['link']['water_discharge'][left_inactive_ids + 1]
 
     # Now, we can generate overland flow.
-    of.overland_flow(rmg, dt)
+    of.overland_flow()
 
     # Recalculate water depth at the boundary ...
     h_boundary = ((seven_over_three)*n*n*u*u*u*elapsed_time)**(three_over_seven)      # water depth at left side (m)
