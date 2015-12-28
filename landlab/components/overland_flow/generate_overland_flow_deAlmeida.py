@@ -5,6 +5,61 @@ shallow-water flow over topography using the de Almeida et al., 2012
 algorithm for storage-cell inundation modeling.
 
 Written by Jordan Adams, based on code written by Greg Tucker.
+
+Examples
+--------
+>>> import numpy as np
+>>> from landlab import RasterModelGrid
+>>> from landlab.components.overland_flow import OverlandFlow
+
+>>> grid = RasterModelGrid((4, 5))
+
+>>> OverlandFlow.input_var_names
+('water_depth', 'topographic__elevation')
+
+>>> grid.at_node['topographic__elevation'] = np.array([
+...     0., 0., 0., 0., 0.,
+...     1., 1., 1., 1., 1.,
+...     2., 2., 2., 2., 2.,
+...     3., 3., 3., 3., 3.])
+>>> grid.at_node['water_depth'] = np.array([
+...     0. , 0. , 0. , 0. , 0. ,
+...     0. , 0. , 0. , 0. , 0. ,
+...     0. , 0. , 0. , 0. , 0. ,
+...     0.1, 0.1, 0.1, 0.1, 0.1])
+
+>>> of = OverlandFlow(grid)
+>>> of.overland_flow()
+
+>>> of.output_var_names
+('water_depth', 'water_discharge', 'water_surface_slope')
+
+>>> of.var_loc('water_depth')
+'node'
+>>> grid.at_node['water_depth'] # doctest: +NORMALIZE_WHITESPACE
+array([ 0.001,  0.001,  0.001,  0.001,  0.001,
+        0.001,  0.001,  0.001,  0.001,  0.001,
+        0.001,  0.021,  0.021,  0.021,  0.001,
+        0.101,  0.101,  0.101,  0.101,  0.101])
+
+>>> of.var_loc('water_discharge')
+'link'
+>>> q = grid.at_link['water_discharge'] # doctest: +NORMALIZE_WHITESPACE
+>>> np.all(q[grid.horizontal_links] == 0.)
+True
+>>> np.all(q[grid.vertical_links] <= 0.)
+True
+
+>>> of.var_loc('water_surface_slope')
+'link'
+>>> grid.at_link['water_surface_slope'] # doctest: +NORMALIZE_WHITESPACE
+array([ 0. ,  0. ,  0. ,  0. ,
+        0. ,  1. ,  1. ,  1. ,  0. ,
+        0. ,  0. ,  0. ,  0. ,
+        0. ,  1. ,  1. ,  1. ,  0. ,
+        0. ,  0. ,  0. ,  0. ,
+        0. ,  1.1,  1.1,  1.1,  0. ,
+        0. ,  0. ,  0. ,  0. ])
 """
 from landlab import Component, ModelParameterDictionary
 import numpy as np
@@ -12,6 +67,9 @@ import os
 import warnings
 from landlab.grid.structured_quad import links
 from landlab.utils.decorators import use_file_name_or_kwds
+
+
+_SEVEN_OVER_THREE = 7.0 / 3.0
 
 
 class OverlandFlow(Component):
@@ -26,41 +84,6 @@ class OverlandFlow(Component):
     precipitation event across any raster grid. Default input file is named
     "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab grid.
-
-        input_file : Contains necessary and optional inputs. If not given,
-            default input file and values is used.
-            - Manning's n is needed, default value of 0.01.
-            - Storm duration is needed IF rainfall_duration is not passed in
-                the initialization
-            - Rainfall intensity is needed IF rainfall_intensity is not passed
-                in the initialization
-            - Model run time can be provided in initialization. If not it is
-                set to the storm duration
-
-        Constants
-        ---------
-        h_init : float
-            Some initial depth in the channels. Default = 0.001 m
-        g : float
-            Gravitational acceleration, \x0crac{m}{s^2}
-        alpha : float
-            Non-dimensional time step factor from Bates et al., (2010)
-        rho : integer
-            Density of water, \x0crac{kg}{m^3}
-        ten_thirds : float
-            Precalculated value of \x0crac{10}{3} which is used in the implicit
-            shallow water equation.
-
-    Examples
-    --------
-    >>> DEM_name = 'DEM_name.asc'
-    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-    >>> of = OverlandFlow(rg) # doctest: +SKIP
     """
 
     _name = 'OverlandFlow'
@@ -73,38 +96,28 @@ class OverlandFlow(Component):
     _output_var_names = (
         'water_depth',
         'water_discharge',
-        'shear_stress',
-        'water_discharge_at_nodes',
-        'water_surface_slope_at_nodes',
+        'water_surface_slope',
     )
 
     _var_units = {
         'water_depth': 'm',
         'water_discharge': 'm3/s',
-        'shear_stress': 'Pa',
-        'water_discharge_at_nodes': 'm3/s',
-        'water_surface_slope_at_nodes': 'm/m',
         'topographic__elevation': 'm',
+        'water_surface_slope': '-',
     }
 
     _var_mapping = {
         'water_depth': 'node',
         'topographic__elevtation': 'node',
-        'water_discharge': 'active_link',
-        'shear_stress': 'node',
-        'water_discharge_at_nodes': 'node',
-        'water_surface_slope_at_nodes': 'node',
+        'water_discharge': 'link',
+        'water_surface_slope': 'link',
     }
 
     _var_doc = {
         'water_depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
         'water_discharge': 'The discharge of water on active links.',
-        'shear_stress': 'The calculated shear stress at each node.',
-        'water_discharge_at_nodes':
-            'The water discharge from surrounding links mapped onto nodes.',
-        'water_surface_slope_at_nodes':
-            'The slope of the water surface at each node.',
+        'water_surface_slope': 'Downstream gradient of the water surface.',
     }
 
     @use_file_name_or_kwds
@@ -143,15 +156,6 @@ class OverlandFlow(Component):
         self.theta = theta
         self.rainfall_intensity = rainfall_intensity
 
-        # Setting up all fields found at nodes.
-        for name in self._input_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros('node', name, units=self._var_units[name])
-
-        for name in self._output_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros('node', name, units=self._var_units[name])
-
         # Now setting up fields at the links...
         # For water discharge
         self.water_discharge = grid.add_zeros(
@@ -165,11 +169,6 @@ class OverlandFlow(Component):
 
         # For water surface slopes at links
         self.slope = grid.add_zeros('link', 'water_surface_slope')
-
-        # Pre-calculated values included for speed.
-        self.ten_thirds = 10.0 / 3.0
-        self.seven_over_three = 7.0 / 3.0
-        self.mannings_n_squared = self.mannings_n * self.mannings_n
 
         # Start time of simulation is at 1.0 s
         self.elapsed_time = 1.0
@@ -202,20 +201,25 @@ class OverlandFlow(Component):
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-    def gear_time_step(self):
+        self.set_up_neighbor_arrays()
 
-        # Adaptive time stepper from Bates et al., 2010 and
-        # de Almeida et al., 2012
+    def gear_time_step(self):
+        """Calculate time step.
+
+        Adaptive time stepper from Bates et al., 2010 and de Almeida
+        et al., 2012
+        """
         self.dt = (self.alpha * self._grid.dx /
             np.sqrt(self.g * np.amax(self._grid.at_node['water_depth'])))
 
         return self.dt
 
     def set_up_neighbor_arrays(self):
+        """Create and initialize link neighbor arrays.
 
-        # This function gets arrays of neighboring horizontal and vertical
-        # links which are needed for the de Almeida solution
-
+        Set up arrays of neighboring horizontal and vertical links that are
+        needed for the de Almeida solution.
+        """
         # First we identify all active links
         self.active_ids = links.active_link_ids(self.grid.shape,
                                                 self.grid.status_at_node)
@@ -252,7 +256,6 @@ class OverlandFlow(Component):
             self.active_neighbors = find_active_neighbors_for_fixed_links(
                 self.grid)
 
-
         # Using the active vertical link ids we can find the north
         # and south vertical neighbors
         self.north_neighbors = links.vertical_north_link_neighbor(
@@ -287,6 +290,7 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
+        self.gear_time_step()
 
         # First, we check and see if the neighbor arrays have been initialized
         if self.neighbor_flag is False:
@@ -344,16 +348,16 @@ class OverlandFlow(Component):
             / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
             self.g * self.h_links[self.horizontal_ids] * self.dt *
             self.slope[self.horizontal_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q[horiz]) /
-            self.h_links[self.horizontal_ids] ** self.seven_over_three))
+            self.mannings_n ** 2. * abs(self.q[horiz]) /
+            self.h_links[self.horizontal_ids] ** _SEVEN_OVER_THREE))
 
         # ... and in the vertical direction
         self.q[vert] = ((self.theta * self.q[vert] + (1 - self.theta) /
             2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
             self.g * self.h_links[self.vertical_ids] * self.dt *
             self.slope[self.vertical_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q[vert]) /
-            self.h_links[self.vertical_ids] ** self.seven_over_three))
+            self.mannings_n ** 2. * abs(self.q[vert]) /
+            self.h_links[self.vertical_ids] ** _SEVEN_OVER_THREE))
 
         # Now to return the array to its original length (length of number of
         # all links), we delete the extra 0.0 value from the end of the array.
