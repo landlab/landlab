@@ -36,38 +36,104 @@ class Component(object):
     @classproperty
     @classmethod
     def input_var_names(cls):
+        """Names of fields that are used by the component.
+        
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
         return tuple(cls._input_var_names)
 
     @classproperty
     @classmethod
     def output_var_names(self):
+        """Names of fields that are provided by the component.
+        
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
         return tuple(self._output_var_names)
 
     @classproperty
     @classmethod
     def name(self):
+        """Name of the component.
+
+        Returns
+        -------
+        str
+            Component name.
+        """
         return self._name
 
     @classproperty
     @classmethod
     def units(self):
+        """Get the units for all field values.
+
+        Returns
+        -------
+        tuple or str
+            Units for each field.
+        """
         return tuple(self._var_units.items())
 
     @classmethod
     def var_units(cls, name):
+        """Get the units of a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        str
+            Units for the given field.
+        """
         return cls._var_units[name]
 
     @classproperty
     @classmethod
     def definitions(cls):
+        """Get a description of each field.
+
+        Returns
+        -------
+        tuple of (*name*, *description*)
+            A description of each field.
+        """
         return tuple(cls._var_doc.items())
 
     @classmethod
     def var_definition(cls, name):
+        """Get a description of a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        tuple of (*name*, *description*)
+            A description of each field.
+        """
         return cls._var_doc[name]
 
     @classmethod
     def var_help(cls, name):
+        """Print a help message for a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+        """
         desc = os.linesep.join(textwrap.wrap(cls._var_doc[name],
                                              initial_indent='  ',
                                              subsequent_indent='  '))
@@ -93,6 +159,13 @@ class Component(object):
 
     @classmethod
     def var_loc(cls, name):
+        """Location where a particular variable is defined.
+
+        Returns
+        -------
+        str
+            The location ('node', 'link', etc.) where a variable is defined.
+        """
         return cls._var_mapping[name]
 
     @property
