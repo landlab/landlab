@@ -183,7 +183,7 @@ class OverlandFlow(Component):
         self.elapsed_time = 1.0
 
         self.dt = None
-        self.dhdt = grid.create_node_array_zeros()
+        self.dhdt = grid.zeros(at='node')
 
         # When we instantiate the class we recognize that neighbors have not
         # been found. After the user either calls self.set_up_neighbor_array
@@ -351,29 +351,28 @@ class OverlandFlow(Component):
         # to the end of the discharge array.
         self.q = np.append(self.q, [0])
 
+        horiz = self.horizontal_ids
+        vert = self.vertical_ids
+
         # Now we calculate discharge in the horizontal direction
-        self.q_horizontal = ((self.theta * self.q_horizontal + (1 - self.theta)
+        self.q[horiz] = ((self.theta * self.q[horiz] + (1 - self.theta)
             / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
             self.g * self.h_links[self.horizontal_ids] * self.dt *
             self.slope[self.horizontal_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q_horizontal) /
+            self.mannings_n_squared * abs(self.q[horiz]) /
             self.h_links[self.horizontal_ids] ** self.seven_over_three))
 
         # ... and in the vertical direction
-        self.q_vertical = ((self.theta * self.q_vertical + (1 - self.theta) /
+        self.q[vert] = ((self.theta * self.q[vert] + (1 - self.theta) /
             2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
             self.g * self.h_links[self.vertical_ids] * self.dt *
             self.slope[self.vertical_ids]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q_vertical) /
+            self.mannings_n_squared * abs(self.q[vert]) /
             self.h_links[self.vertical_ids] ** self.seven_over_three))
 
         # Now to return the array to its original length (length of number of
         # all links), we delete the extra 0.0 value from the end of the array.
         self.q = np.delete(self.q, len(self.q) - 1)
-
-        # And put the horizontal and vertical arrays back together, to create
-        # the discharge array.
-        self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
 
         # Updating the discharge array to have the boundary links set to
         # their neighbor
@@ -474,8 +473,10 @@ class OverlandFlow(Component):
     def var_mapping(self):
         return self._var_mapping
 
+
 def find_active_neighbors_for_fixed_links(grid):
-    '''
+    """Find link neighbors of all fixed links.
+
     Specialized link ID function used to ID the active links that neighbor
     fixed links in the vertical and horizontal directions.
 
@@ -486,59 +487,38 @@ def find_active_neighbors_for_fixed_links(grid):
     Each fixed link can either have 0 or 1 active neighbor. This function
     finds if and where that active neighbor is and stores those IDs in
     an array.
-    '''
 
-    shape = grid.shape
-    status_at_node = grid.status_at_node
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
 
-    # First, we identify fixed links using node status
-    fixed_links = links.fixed_link_ids(shape, status_at_node)
+    Returns
+    -------
+    ndarray of int
+        Array of neighbor links that are active.
 
-    # Identifying *just* fixed links IDs.
-    fixed_ids_only = fixed_links[np.where(fixed_links > -1)]
+    Examples
+    --------
+    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
+    >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
 
-    # Identifying active link IDs.
-    active_links = links.active_link_ids(shape, status_at_node)
+    >>> grid = RasterModelGrid((4, 5))
+    >>> grid.status_at_node[:5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node[::5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
+    array([2, 2, 2, 2, 2,
+           2, 0, 0, 0, 1,
+           2, 0, 0, 0, 1,
+           2, 1, 1, 1, 1], dtype=int8)
 
-    # Identifying vertical active link IDs.
-    vertical_active_links = (links.vertical_active_link_ids(shape,
-                                                            active_links))
+    >>> grid.fixed_links
+    array([ 5,  6,  7,  9, 18])
+    >>> grid.active_links
+    array([10, 11, 12, 14, 15, 16, 19, 20, 21, 23, 24, 25])
 
-    # Identifying horizontal active link IDs.
-    horizontal_active_links = (links.horizontal_active_link_ids(shape,
-                                                            active_links))
-
-    # Identifying north vertical active link IDs.
-    north_vert = (links.vertical_north_link_neighbor(shape,
-                                                    vertical_active_links))
-
-    # Identifying south verical active link IDs.
-    south_vert = (links.vertical_south_link_neighbor(shape,
-                                                    vertical_active_links))
-
-    # Identifying horizontal east active link IDs.
-    east_hori = (links.horizontal_east_link_neighbor(shape,
-                                                horizontal_active_links))
-
-    # Identifying horizontal west active link IDs.
-    west_hori = (links.horizontal_west_link_neighbor(shape,
-                                                horizontal_active_links))
-
-    # Because each fixed link can have at most 1 active neighbor, there
-    # is at least one "BAD_INDEX_VALUE" link neighbor (-1). The maximum
-    # ID value will be the active neighbor. This finds the N/S vertical
-    # active neighbor and the E/W horizontal neighbor.
-    max_vertical_neighbor = np.maximum(north_vert, south_vert)
-    max_horizontal_neighbor = np.maximum(east_hori, west_hori)
-
-    # Concatenating the vertical and horizontal arrays to get one
-    # neighbor array of len(all links)
-    all_active_neighbors = (np.concatenate((max_vertical_neighbor,
-                                        max_horizontal_neighbor), axis=0))
-
-    # Getting JUST the active neighbor IDs for fixed links. This
-    # sets the array to a new length - that of len(fixed_links)
-    all_active_neighbors = all_active_neighbors[fixed_ids_only]
-
-    return all_active_neighbors
-
+    >>> find_active_neighbors_for_fixed_links(grid)
+    array([14, 15, 16, 10, 19])
+    """
+    neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
+    return neighbors[np.in1d(neighbors, grid.active_links)]

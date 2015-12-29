@@ -1,2 +1,4 @@
+from .single_vegetation_field import Vegetation
 
-import landlab.components.single_vegetation.single_vegetation_field
+
+__all__ = ['Vegetation', ]

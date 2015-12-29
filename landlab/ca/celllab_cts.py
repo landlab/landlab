@@ -963,6 +963,12 @@ class CellLabCTSModel(object):
             # want to track), implement the swap.
             #   If the event requires a call to a user-defined callback
             # function, we handle that here too.
+#            print('trcts')
+#            print(tail_node)
+#            print(head_node)
+#            print(self.propid[tail_node])
+#            print(self.propid[head_node])
+#            print(self.prop_reset_value)
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
@@ -1015,6 +1021,7 @@ class CellLabCTSModel(object):
         self.assign_link_states_from_node_types()
         self.push_transitions_to_event_queue()
 
+    #@profile
     def run(self, run_duration, node_state_grid=None,
             plot_each_transition=False, plotter=None):
         """Run the model forward for a specified period of time.

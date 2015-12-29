@@ -1,19 +1,16 @@
-'''
-simple_sp_driver.py
-
+"""
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
-DEJH, 09/15/14
-'''
+"""
+# DEJH, 09/15/14
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
-from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
+from landlab.components.uniform_precip import PrecipitationDistribution
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
 from landlab.plot.imshow import imshow_node_grid
@@ -40,8 +37,8 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 mg.add_zeros('node', 'water__volume_flux_in')
 
@@ -56,11 +53,11 @@ print( 'Running ...' )
 #instantiate the components:
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, input_file_string)
-#fsp = Fsc(mg, input_file_string)
+#fsp = FastscapeEroder(mg, input_file_string)
 precip = PrecipitationDistribution(input_file=input_file_string)
 
 #load the Fastscape module too, to allow direct comparison
-fsp = Fsc(mg, input_file_string)
+fsp = FastscapeEroder(mg, input_file_string)
 
 try:
     #raise NameError

@@ -3,7 +3,7 @@ from __future__ import print_function
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.utils import structured_grid as sgrid
-from landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow import SurfaceFlowTransport
+from landlab.components.sed_trp_shallow_flow import SurfaceFlowTransport
 
 import time
 import pylab
@@ -23,7 +23,7 @@ time_to_run = inputs.read_int('run_time')
 inlet_nodes = [0,1,2, ncols, 2*ncols]
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(False, True, False, True)
+mg.set_inactive_boundaries(True, False, True, False)
 #mg.status_at_node[inlet_nodes] = 1
 #mg.status_at_node[-5] = 1 #Fixed lip outlet
 #print sgrid.node_tolink_index(mg.shape)[1]
@@ -38,11 +38,11 @@ z0 = z0 + np.random.rand(nrows*ncols)/1000.
 z0[-ncols:] = 1.
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-mg.create_node_array_zeros('planet_surface__water_depth')
+mg.add_zeros('topographic__elevation', at='node')
+mg.add_zeros('planet_surface__water_depth', at='node')
 
 #set the initial water depths
-h = mg.create_node_array_zeros() + h_init
+h = mg.zeros(at='node') + h_init
 #h[sgrid.boundary_nodes(mg.shape)] = 0.
 #h[inlet_nodes] = drop_ht
 h[0:ncols] = drop_ht
@@ -51,7 +51,7 @@ mg['node'][ 'planet_surface__water_depth'] = h
 # Set initial topography
 x = mg.get_node_x_coords()
 y = mg.get_node_y_coords()
-zinit = mg.create_node_array_zeros()
+zinit = mg.zeros(at='node')
 zinit[:] = z0
 #zinit[-5] = z_boundary
 mg['node']['topographic__elevation'] = zinit

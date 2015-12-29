@@ -6,12 +6,14 @@ a few more times, to ensure repeatability.
 """
 import os
 
+from six.moves import range
+
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import SedDepEroder
 from landlab import ModelParameterDictionary
 
 
@@ -36,16 +38,16 @@ def test_sed_dep():
 
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
 
-    mg.create_node_array_zeros('topographic__elevation')
+    mg.add_zeros('topographic__elevation', at='node')
     z = np.loadtxt(os.path.join(_THIS_DIR, 'seddepinit.gz'))
     mg['node']['topographic__elevation'] = z
 
-    mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
     fr = FlowRouter(mg)
     sde = SedDepEroder(mg, input_file)
 
-    for i in xrange(nt):
+    for i in range(nt):
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg, _ = sde.erode(mg, dt)

@@ -13,7 +13,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid, ModelParameterDictionary
-from landlab.components.diffusion.diffusion import LinearDiffuser
+from landlab.components.diffusion import LinearDiffuser
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -33,8 +33,8 @@ def test_diffusion():
     uplift_rate = mg.node_y[mg.core_cells] / 100000.
 
     # create the fields in the grid
-    mg.create_node_array_zeros('topographic__elevation')
-    z = mg.create_node_array_zeros() + init_elev
+    mg.add_zeros('topographic__elevation', at='node')
+    z = mg.zeros(at='node') + init_elev
     np.random.seed(0)
     mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
 

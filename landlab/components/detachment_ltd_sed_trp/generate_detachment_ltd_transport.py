@@ -10,7 +10,6 @@ E = K*f(qs)*(A**m)*(S**n)
 """
 
 from landlab import Component, ModelParameterDictionary, CLOSED_BOUNDARY
-from landlab.components.flow_accum import flow_accumulation
 import pylab
 import numpy as np
 from matplotlib import pyplot as plt

@@ -11,9 +11,8 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import \
-    SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder as Fsc
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -31,10 +30,10 @@ def test_fastscape():
     init_elev = inputs.read_float('init_elev')
 
     mg = RasterModelGrid(nrows, ncols, dx)
-    mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
+    mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
-    mg.create_node_array_zeros('topographic__elevation')
-    z = mg.create_node_array_zeros() + init_elev
+    mg.add_zeros('topographic__elevation', at='node')
+    z = mg.zeros(at='node') + init_elev
     numpy.random.seed(0)
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.

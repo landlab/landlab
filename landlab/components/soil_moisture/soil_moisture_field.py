@@ -30,8 +30,8 @@ class SoilMoisture( Component ):
     are obtained in hours
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.radiation.radiation_field import Radiation
-    >>> from landlab.components.soil_moisture.soil_moisture_field import SoilMoisture
+    >>> from landlab.components.radiation import Radiation
+    >>> from landlab.components.soil_moisture import SoilMoisture
     >>> import numpy as np
     >>> grid = RasterModelGrid( 5, 4, 0.2 )
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000

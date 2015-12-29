@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.sed_flux_dep_incision import SedDepEroder
-#from landlab.components.transport_limited_fluvial.tl_fluvial_polydirectional import TransportLimitedEroder
+from six.moves import range
+
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import SedDepEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -55,7 +56,7 @@ except NameError:
 
 time_on = time()
 #perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     #print 'loop ', i
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()

@@ -10,9 +10,8 @@ import numpy as np
 from landlab import RasterModelGrid as rmg
 from landlab.components.uniform_precip.generate_uniform_precip \
                         import PrecipitationDistribution
-from landlab.components.radiation.radiation_field import Radiation
-from landlab.components.PET.potential_evapotranspiration_field \
-                        import PotentialEvapotranspiration
+from landlab.components.radiation import Radiation
+from landlab.components.pet import PotentialEvapotranspiration
 from landlab.components.soil_moisture.soil_moisture_multi_pft_new  \
                         import SoilMoisture
 from landlab.components.single_vegetation.vegetation_multi_pft_new \

@@ -1,3 +1,5 @@
+from six.moves import range
+
 import numpy
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
@@ -144,7 +146,7 @@ class PerronNLDiffuse(object):
         operating_matrix_ID_map = numpy.empty((ninteriornodes, 9))
         self.interior_IDs_as_real = self.interiorIDtoreal(
             numpy.arange(ninteriornodes))
-        for j in xrange(ninteriornodes):
+        for j in range(ninteriornodes):
             i = self.interior_IDs_as_real[j]
             operating_matrix_ID_map[j, :] = numpy.array([(i - ncols - 1),
                                                          (i - ncols),
@@ -1127,7 +1129,7 @@ class PerronNLDiffuse(object):
             grid_in = self.grid
         else:
             self.gear_timestep(self.timestep_in, grid_in)
-            for i in xrange(self.internal_repeats):
+            for i in range(self.internal_repeats):
                 grid_in['node'][self.values_to_diffuse] = self.grid['node'][
                     self.values_to_diffuse] + self.uplift_per_step
             # Initialize the variables for the step:

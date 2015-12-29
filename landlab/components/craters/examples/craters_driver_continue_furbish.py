@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.craters.dig_craters import impactor
 from landlab import ModelParameterDictionary
 
@@ -23,7 +25,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 mg['node'][ 'topographic__elevation'] = np.load('init.npy')
 
 # Display a message
@@ -42,8 +44,8 @@ angle = np.empty(nt)
 az = np.empty(nt)
 mass_balance = np.empty(nt)
 redug_crater = np.empty(nt)
-for i in xrange(loops):
-    for j in xrange(nt):
+for i in range(loops):
+    for j in range(nt):
         mg = craters_component.excavate_a_crater_furbish(mg)
         x[j] = craters_component.impact_property_dict['x']
         y[j] = craters_component.impact_property_dict['y']
