@@ -1851,7 +1851,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 (fromnode_status[already_fixed] == CORE_NODE),
                 FIXED_GRADIENT_BOUNDARY,
                 tonode_status[already_fixed])
-            print("""
+            warnings.warn("""
                   Remember, fixed_links are dominant over node statuses.
                   Your grid may have had an incompatibility between
                   fixed_links and closed nodes, which has been resolved by
