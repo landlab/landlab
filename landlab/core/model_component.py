@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import textwrap
 import warnings
+import inspect
 
 
 _VAR_HELP_MESSAGE = """
@@ -35,9 +36,10 @@ class Component(object):
                                grid.field_values(location, src))
 
         for key in kwds:
+            component_name = inspect.getmro(self.__class__)[0].__name__
             warnings.warn(
-                'Ingnoring unrecognized input parameter, "{param}"'.format(
-                    param=key))
+                "Ingnoring unrecognized input parameter, '{param}', for "
+                "{name} component".format(name=component_name, param=key))
 
     @classmethod
     def from_path(cls, grid, path):
