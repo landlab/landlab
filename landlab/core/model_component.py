@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import textwrap
+import warnings
 
 
 _VAR_HELP_MESSAGE = """
@@ -32,6 +33,30 @@ class Component(object):
             for (dest, src) in vars.items():
                 grid.add_field(location, dest,
                                grid.field_values(location, src))
+
+    @classmethod
+    def from_path(cls, grid, path):
+        """Create a component from an input file.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A landlab grid.
+        path : str or file_like
+            Path to a parameter file, contents of a parameter file, or
+            a file-like object.
+
+        Returns
+        -------
+        Component
+            A newly-created component.
+        """
+        if os.path.isfile(path):
+            with open(path, 'r') as fp:
+                params = load_params(fp)
+        else:
+            params = load_params(path)
+        return cls(grid, **params)
 
     @classproperty
     @classmethod
