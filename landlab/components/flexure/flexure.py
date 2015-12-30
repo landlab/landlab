@@ -165,7 +165,7 @@ class Flexure(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy'):
+    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy', **kwds):
         """Initialize the flexure component.
 
         Parameters
@@ -189,7 +189,7 @@ class Flexure(Component):
 
         self._grid = grid
 
-        super(Flexure, self).__init__(grid)
+        super(Flexure, self).__init__(grid, **kwds)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:

@@ -144,7 +144,8 @@ class OverlandFlow(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, use_fixed_links=False, h_init=0.001, alpha=0.7,
-                 mannings_n=0.01, g=9.81, theta=0.8, rainfall_intensity=0.0):
+                 mannings_n=0.01, g=9.81, theta=0.8, rainfall_intensity=0.0,
+                 **kwds):
         """Create a overland flow component.
 
         Parameters
@@ -166,7 +167,7 @@ class OverlandFlow(Component):
         rainfall_intensity : float, optional
             Rainfall intensity.
         """
-        super(OverlandFlow, self).__init__(grid)
+        super(OverlandFlow, self).__init__(grid, **kwds)
 
         # First we copy our grid
         self._grid = grid
