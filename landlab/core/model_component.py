@@ -25,7 +25,7 @@ class Component(object):
     _output_var_names = set()
     _var_units = dict()
 
-    def __init__(self, grid, map_vars=None):
+    def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
         self._grid = grid
 
@@ -33,6 +33,11 @@ class Component(object):
             for (dest, src) in vars.items():
                 grid.add_field(location, dest,
                                grid.field_values(location, src))
+
+        for key in kwds:
+            warnings.warn(
+                'Ingnoring unrecognized input parameter, "{param}"'.format(
+                    param=key))
 
     @classmethod
     def from_path(cls, grid, path):
