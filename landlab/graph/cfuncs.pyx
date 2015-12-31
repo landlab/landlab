@@ -49,3 +49,23 @@ def _setup_links_at_node(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
   for node in range(n_nodes):
     _find_links_at_node(node, nodes_at_link, links_at_node[node],
                         link_dirs_at_node[node])
+
+
+@cython.boundscheck(False)
+def _setup_node_at_cell(shape,
+                        np.ndarray[DTYPE_t, ndim=1] node_at_cell):
+  cdef int cell
+  cdef int cell_rows
+  cdef int cell_cols
+  cdef int row_offset
+
+  cell_rows = shape[0] - 2
+  cell_cols = shape[1] - 2
+
+  cell = 0
+  row_offset = shape[1] + 1
+  for row in range(cell_rows):
+    for col in range(cell_cols):
+      node_at_cell[cell] = row_offset + col
+      cell += 1
+    row_offset += shape[1]
