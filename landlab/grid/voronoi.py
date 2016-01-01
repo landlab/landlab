@@ -220,6 +220,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
                                           INACTIVE_LINK, dtype=int)
 
+        # Sort them by midpoint coordinates
+        self.sort_links_by_midpoint()
+
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
         if reorient_links:
