@@ -606,6 +606,36 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._links_at_node
 
     @property
+    @make_return_array_immutable
+    def link_dirs_at_node(self):
+        """Link directions at each node: 1=incoming, -1=outgoing, 0=none.
+
+        Returns
+        -------
+        (NODES, LINKS) ndarray of int
+            Link directions relative to the nodes of a grid. The shape of the 
+            matrix will be number of nodes rows by max number of links per 
+            node. A zero indicates no link at this position.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+               [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]],
+               dtype=int8)
+        >>> grid.link_dirs_at_node[4]
+        array([-1, -1,  1,  1], dtype=int8)
+        >>> grid.link_dirs_at_node[(4, 7), :]
+        array([[-1, -1,  1,  1],
+               [-1, -1,  1,  1]], dtype=int8)
+        """
+        return self._link_dirs_at_node
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
 
