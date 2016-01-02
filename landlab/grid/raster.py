@@ -165,7 +165,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     --------
     >>> from landlab.grid.raster import grid_edge_is_closed_from_dict
     >>> grid_edge_is_closed_from_dict(dict(bottom='closed', top='open'))
-    [False, False, False,  True]
+    [False, False, False, True]
     >>> grid_edge_is_closed_from_dict({})
     [False, False, False, False]
     """
