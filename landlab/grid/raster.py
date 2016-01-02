@@ -1076,7 +1076,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         num_links_per_row = (self.number_of_node_columns * 2) - 1
 
         # Sweep over all links
-        for lk in xrange(self.number_of_links):
+        for lk in range(self.number_of_links):
     
             # Find the orientation
             is_horiz = ((lk % num_links_per_row) 
