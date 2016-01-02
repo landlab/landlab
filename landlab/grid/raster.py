@@ -3587,7 +3587,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
 
-    def _setup_face_widths(self):
+    def _setup_face_width(self):
         """Set up array of face widths.
 
         Produces an array of length nfaces containing the face width.
@@ -3601,15 +3601,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> grid.face_widths
+        >>> grid.face_width
         array([ 1.,  1.,  1.,  1.])
         """
         n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
 
-        self._face_widths = np.empty(squad_faces.number_of_faces(self.shape))
-        self._face_widths[:n_horizontal_faces] = self.dx
-        self._face_widths[n_horizontal_faces:] = self.dy
-        return self._face_widths
+        self._face_width = np.empty(squad_faces.number_of_faces(self.shape))
+        self._face_width[:n_horizontal_faces] = self.dx
+        self._face_width[n_horizontal_faces:] = self.dy
+        return self._face_width
 
     def _unit_test(self):
         """Stub for adding unit tests to RasterModelGrid."""

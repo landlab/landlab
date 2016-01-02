@@ -1621,12 +1621,12 @@ class ModelGrid(ModelDataFieldsMixIn):
             return self._setup_cell_areas_array_force_inactive()
 
     @property
-    def face_widths(self):
+    def face_width(self):
         """Width of grid faces."""
         try:
-            return self._face_widths
+            return self._face_width
         except AttributeError:
-            return self._setup_face_widths()
+            return self._setup_face_width()
 
     def _setup_face_at_link(self):
         """Set up face_at_link array.
