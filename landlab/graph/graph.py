@@ -91,8 +91,7 @@ class Graph(object):
     def _setup_patches(self, patches):
         """Set up patch data structures."""
         self._links_at_patch = _setup_links_at_patch(patches)
-        self._nodes_at_patch = _setup_nodes_at_patch(self._links_at_patch,
-                                                     self._nodes_at_link)
+
     @property
     def x_of_node(self):
         """Get x-coordinate of node.
@@ -269,7 +268,12 @@ class Graph(object):
         array([[0, 1, 3, 4],
                [1, 2, 4, 5]])
         """
-        return self._nodes_at_patch
+        try:
+            return self._nodes_at_patch
+        except AttributeError:
+            self._nodes_at_patch = _setup_nodes_at_patch(self._links_at_patch,
+                                                         self._nodes_at_link)
+            return self._nodes_at_patch
 
     @property
     def number_of_patches(self):
