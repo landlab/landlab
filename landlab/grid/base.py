@@ -1124,6 +1124,52 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             return self._setup_link_at_face()
 
+    def find_number_of_links_per_node(self):
+        """Find and record how many links are attached to each node."""
+        self._number_of_links_per_node = np.zeros(self.number_of_nodes, dtype=np.int)
+        for ln in range(self.number_of_links):
+            self._number_of_links_per_node[self.node_at_link_tail[ln]] += 1
+            self._number_of_links_per_node[self.node_at_link_head[ln]] += 1
+
+    def number_of_links_at_node(self):
+        """Number of links connected to each node."""
+        try:
+            return self._number_of_links_at_node
+        except AttributeError:
+            self.find_number_of_links_at_node()
+            return self._number_of_links_at_node
+
+    def make_links_and_link_dirs_at_node(self):
+        """Make arrays with links and link directions at each node.
+        """
+        # Find maximum number of links per node
+        nlpn = self.number_of_links_per_node()   #this fn should become member and property
+        max_num_links = np.amax(nlpn)
+        nlpn[:] = 0  # we'll zero it out, then rebuild it
+    
+        # Create arrays for link-at-node information
+        self._links_at_node = -np.ones((max_num_links, self.number_of_nodes), 
+                                       dtype=np.int32)
+        self._link_dirs_at_node = np.zeros((max_num_links,
+                                            self.number_of_nodes),
+                                            dtype=np.int8)
+
+        # Sweep over all links
+        for lk in xrange(self.number_of_links):
+    
+            # Find the IDs of the tail and head nodes
+            t = self.node_at_link_tail[lk]
+            h = self.node_at_link_head[lk]
+    
+            # Add this link to the list for this node, set the direction (outgoing,
+            # indicated by -1), and increment the number found so far
+            self._links_at_node[nlpn[t]][t] = lk
+            self._links_at_node[nlpn[h]][h] = lk
+            self._link_dirs_at_node[nlpn[t]][t] = -1
+            self._link_dirs_at_node[nlpn[h]][h] = 1
+            nlpn[t] += 1
+            nlpn[h] += 1
+
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
         Active links of a node.
