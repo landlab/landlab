@@ -5,8 +5,10 @@ from .dual_structured_quad import (DualUniformRectilinearGraph,
                                    DualRectilinearGraph,
                                    DualStructuredQuadGraph, )
 from .voronoi import VoronoiGraph
+from .dual_voronoi import DualVoronoiGraph
 
 
 __all__ = ['Graph', 'StructuredQuadGraph', 'RectilinearGraph',
            'UniformRectilinearGraph', 'DualUniformRectilinearGraph',
-           'DualRectilinearGraph', 'DualStructuredQuadGraph', 'VoronoiGraph']
+           'DualRectilinearGraph', 'DualStructuredQuadGraph', 'VoronoiGraph',
+           'DualVoronoiGraph', ]
