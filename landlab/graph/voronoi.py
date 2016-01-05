@@ -48,7 +48,7 @@ class VoronoiGraph(Graph):
         >>> node_y = np.random.random(10000)
         >>> graph = VoronoiGraph((node_y, node_x))
         """
-        from .cfuncs import _setup_links_at_patch
+        from .delaunay_cfuncs import _setup_links_at_patch
 
         node_y, node_x = (np.asarray(nodes[0], dtype=float),
                           np.asarray(nodes[1], dtype=float))
