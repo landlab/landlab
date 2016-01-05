@@ -20,6 +20,10 @@ ext_modules = [
               ['landlab/components/stream_power/cfuncs.pyx']),
     Extension('landlab.graph.cfuncs',
               ['landlab/graph/cfuncs.pyx']),
+    Extension('landlab.graph.voronoi_cfuncs',
+              ['landlab/graph/voronoi_cfuncs.pyx']),
+    Extension('landlab.graph.delaunay_cfuncs',
+              ['landlab/graph/delaunay_cfuncs.pyx']),
 ]
 
 import numpy as np
