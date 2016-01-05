@@ -1382,6 +1382,57 @@ class ModelGrid(ModelDataFieldsMixIn):
         return gfuncs.resolve_values_on_active_links(self, link_values,
                                                      out=out)
 
+    def find_number_of_faces_at_cell(self):
+        """Find and return how many faces are attached to each cell.
+        
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.find_number_of_faces_at_cell()
+        array([6, 6])
+        """
+        num_faces_at_cell = np.zeros(self.number_of_cells, dtype=np.int)
+        for ln in range(self.number_of_links):
+            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            if cell != BAD_INDEX_VALUE:
+                num_faces_at_cell[cell] += 1
+            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            if cell != BAD_INDEX_VALUE:
+                num_faces_at_cell[cell] += 1
+        return num_faces_at_cell
+
+    def make_faces_at_cell(self):
+        """Construct faces_at_cell array.
+
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.make_faces_at_cell()
+        >>> hg._faces_at_cell
+        array([[ 0,  2],
+               [ 1,  3],
+               [ 4,  5],
+               [ 5,  6],
+               [ 7,  9],
+               [ 8, 10]])
+        """
+        num_faces = self.find_number_of_faces_at_cell()
+        self._faces_at_cell = np.zeros((np.amax(num_faces), self.number_of_cells), dtype=int)
+        num_faces[:] = 0  # Zero out and count again, to use as index
+        for ln in range(self.number_of_links):
+            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            if cell != BAD_INDEX_VALUE:
+                self._faces_at_cell[num_faces[cell],cell] = \
+                    self.face_at_link[ln]
+                num_faces[cell] += 1
+            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            if cell != BAD_INDEX_VALUE:
+                self._faces_at_cell[num_faces[cell],cell] = \
+                    self.face_at_link[ln]
+                num_faces[cell] += 1
+
     def node_slopes_using_patches(self, elevs='topographic__elevation',
                                   unit='degrees', return_components=False):
         """
