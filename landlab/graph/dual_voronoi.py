@@ -29,17 +29,17 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         ...           1, 1, 1, 1,
         ...           2, 2, 2, 2]
         >>> graph = DualVoronoiGraph((node_y, node_x))
-        >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.x_of_corner
+        array([ 0.9,  1.7,  1.9,  0.7,  2.7,  2.7,  1.7,  2.5,  1.5,  0.7])
+        >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
         array([ 1.58,  1.42,  1.58,  1.42,  0.58,  1.42,  0.58,  0.42,  0.42,
                 0.58])
-        >>> graph.y_of_corner
-        array([ 0.9,  1.7,  1.9,  0.7,  2.7,  2.7,  1.7,  2.5,  1.5,  0.7])
         >>> graph.corners_at_face # doctest: +NORMALIZE_WHITESPACE
         array([[0, 1], [0, 3], [1, 6], [8, 9], [6, 8], [3, 9], [1, 2], [4, 5],
-               [2, 5], [6, 7], [7, 4]])
+               [2, 5], [4, 7], [6, 7]])
         >>> graph.faces_at_corner # doctest: +NORMALIZE_WHITESPACE
         array([[ 0,  1, -1], [ 0,  2,  6], [ 6,  8, -1], [ 1,  5, -1],
-               [ 7, 10, -1], [ 7,  8, -1], [ 2,  4,  9], [ 9, 10, -1],
+               [ 7,  9, -1], [ 7,  8, -1], [ 2,  4, 10], [ 9, 10, -1],
                [ 3,  4, -1], [ 3,  5, -1]])
         >>> graph.node_at_cell
         array([5, 6])
@@ -51,7 +51,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         """
         super(DualVoronoiGraph, self).__init__(nodes)
 
-        voronoi = Voronoi(list(zip(self.y_of_node, self.x_of_node)))
+        voronoi = Voronoi(list(zip(self.x_of_node, self.y_of_node)))
 
         (faces_at_cell,
          corners_at_face,
