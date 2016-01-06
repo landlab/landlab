@@ -42,11 +42,6 @@ class VoronoiGraph(Graph):
                [ 0,  2,  8, -1], [ 4,  5,  7,  8], [ 3,  4, -1, -1]])
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[0, 1, 3], [2, 4, 5], [1, 2, 4], [1, 3, 4]])
-
-        >>> import numpy as np
-        >>> node_x = np.random.random(10000)
-        >>> node_y = np.random.random(10000)
-        >>> graph = VoronoiGraph((node_y, node_x))
         """
         from .delaunay_cfuncs import _setup_links_at_patch
 

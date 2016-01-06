@@ -43,11 +43,6 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
                [ 3,  4, -1], [ 3,  5, -1]])
         >>> graph.node_at_cell
         array([5, 6])
-
-        >>> import numpy as np
-        >>> node_x = np.random.random(10000)
-        >>> node_y = np.random.random(10000)
-        >>> graph = DualVoronoiGraph((node_y, node_x))
         """
         super(DualVoronoiGraph, self).__init__(nodes)
 
