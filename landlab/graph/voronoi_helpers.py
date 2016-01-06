@@ -7,13 +7,10 @@ def flatten_vertices_at_region(regions):
     --------
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import flatten_vertices_at_region
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> (vertices, count) = flatten_vertices_at_region(voronoi.regions)
     >>> vertices
     array([ 1,  0, -1,  4,  2, -1,  3,  3, -1,  4,  0, -1,  3,  7,  5, -1,  6,
@@ -35,13 +32,10 @@ def get_finite_regions(voronoi):
     --------
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import get_finite_regions
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> get_finite_regions(voronoi)
     array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
     """
@@ -65,13 +59,10 @@ def get_neighbor_regions(voronoi):
     --------
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import get_neighbor_regions
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> get_neighbor_regions(voronoi)
     array([[-1, -1],
            [-1,  8],
@@ -110,13 +101,10 @@ def get_ridges_at_cell(voronoi):
     --------
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import get_ridges_at_cell
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> ridges_at_cell, cell_at_region = get_ridges_at_cell(voronoi)
     >>> ridges_at_cell
     array([[ 1,  5,  8, 11, 13, 15]])
@@ -146,13 +134,10 @@ def get_faces_at_cell(voronoi):
     --------
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import get_faces_at_cell
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> faces_at_cell, face_at_ridge, cell_at_region = get_faces_at_cell(voronoi)
     >>> faces_at_cell
     array([[0, 1, 2, 3, 4, 5]])
@@ -185,13 +170,10 @@ def get_corners_at_face(voronoi, face_at_ridge):
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import (get_faces_at_cell,
     ...                                            get_corners_at_face)
-    >>> node_x = [0, 1, 2, 3,
-    ...           0.1, 1.1, 2.1, 3.1,
-    ...           0.2, 1.2, 2.2, 3.2]
-    >>> node_y = [0, 0, 0, 0,
-    ...           1, 1, 1, 1,
-    ...           2, 2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.], [3. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.], [3.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.], [3.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> _, face_at_ridge, _ = get_faces_at_cell(voronoi)
     >>> corners_at_face, corner_at_vertex = get_corners_at_face(voronoi, face_at_ridge)
     >>> corners_at_face
@@ -233,13 +215,10 @@ def get_xy_of_corner(voronoi, corner_at_vertex):
     >>> from landlab.graph.voronoi_helpers import (get_faces_at_cell,
     ...                                            get_corners_at_face,
     ...                                            get_xy_of_corner)
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> _, face_at_ridge, _ = get_faces_at_cell(voronoi)
     >>> _, corner_at_vertex = get_corners_at_face(voronoi, face_at_ridge)
     >>> get_xy_of_corner(voronoi, corner_at_vertex)
@@ -267,13 +246,10 @@ def get_node_at_cell(voronoi, cell_at_region):
     >>> from scipy.spatial import Voronoi
     >>> from landlab.graph.voronoi_helpers import (get_faces_at_cell,
     ...                                            get_node_at_cell)
-    >>> node_x = [0, 1, 2,
-    ...           0.1, 1.1, 2.1,
-    ...           0.2, 1.2, 2.2]
-    >>> node_y = [0, 0, 0,
-    ...           1, 1, 1,
-    ...           2, 2, 2]
-    >>> voronoi = Voronoi(zip(node_x, node_y))
+    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+    >>> voronoi = Voronoi(points)
     >>> _, _, cell_at_region = get_faces_at_cell(voronoi)
     >>> get_node_at_cell(voronoi, cell_at_region)
     array([4])

@@ -53,8 +53,7 @@ class VoronoiGraph(Graph):
         node_y, node_x = (np.asarray(nodes[0], dtype=float),
                           np.asarray(nodes[1], dtype=float))
 
-        points = np.array(zip(node_x, node_y), dtype=float)
-        delaunay = Delaunay(points)
+        delaunay = Delaunay(list(zip(node_x, node_y)))
         nodes_at_patch = delaunay.simplices
 
         n_patches = len(nodes_at_patch)

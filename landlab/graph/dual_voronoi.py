@@ -51,17 +51,12 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         """
         super(DualVoronoiGraph, self).__init__(nodes)
 
-        voronoi = Voronoi(zip(self.y_of_node, self.x_of_node))
+        voronoi = Voronoi(list(zip(self.y_of_node, self.x_of_node)))
 
         (faces_at_cell,
          corners_at_face,
          xy_at_corner,
          node_at_cell) = setup_voronoi_connectivity(voronoi)
-
-        # import matplotlib.pyplot as plt
-        # from scipy.spatial import voronoi_plot_2d
-        # voronoi_plot_2d(voronoi)
-        # plt.show()
 
         node_y = xy_at_corner[:, 1]
         node_x = xy_at_corner[:, 0]
