@@ -1147,19 +1147,27 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         >>> hg.links_at_node
-        array([[ 0,  1,  7,  8,  9, 10, 16, 17, 18, 18],
-               [ 3,  5,  6, 11, 13, 15, 10, 11, 17, 15],
-               [ 2,  4,  1,  2, 12, 14,  7, 12, 13, 16],
-               [-1,  0, -1, -1,  8,  9, -1, -1, 14, -1],
-               [-1, -1, -1, -1,  3,  5, -1, -1, -1, -1],
-               [-1, -1, -1, -1,  4,  6, -1, -1, -1, -1]], dtype=int32)
+        array([[ 0,  3,  2, -1, -1, -1],
+               [ 1,  5,  4,  0, -1, -1],
+               [ 7,  6,  1, -1, -1, -1],
+               [ 8, 11,  2, -1, -1, -1],
+               [ 9, 13, 12,  8,  3,  4],
+               [10, 15, 14,  9,  5,  6],
+               [16, 10,  7, -1, -1, -1],
+               [17, 11, 12, -1, -1, -1],
+               [18, 17, 13, 14, -1, -1],
+               [18, 15, 16, -1, -1, -1]], dtype=int32)
         >>> hg.link_dirs_at_node
-        array([[-1, -1, -1, -1, -1, -1, -1, -1, -1,  1],
-               [-1, -1, -1, -1, -1, -1,  1,  1,  1,  1],
-               [-1, -1,  1,  1, -1, -1,  1,  1,  1,  1],
-               [ 0,  1,  0,  0,  1,  1,  0,  0,  1,  0],
-               [ 0,  0,  0,  0,  1,  1,  0,  0,  0,  0],
-               [ 0,  0,  0,  0,  1,  1,  0,  0,  0,  0]], dtype=int8)
+        array([[-1, -1, -1,  0,  0,  0],
+               [-1, -1, -1,  1,  0,  0],
+               [-1, -1,  1,  0,  0,  0],
+               [-1, -1,  1,  0,  0,  0],
+               [-1, -1, -1,  1,  1,  1],
+               [-1, -1, -1,  1,  1,  1],
+               [-1,  1,  1,  0,  0,  0],
+               [-1,  1,  1,  0,  0,  0],
+               [-1,  1,  1,  1,  0,  0],
+               [ 1,  1,  1,  0,  0,  0]], dtype=int8)
         """
         # Find maximum number of links per node
         nlpn = self.number_of_links_at_node()   #this fn should become member and property
@@ -1167,10 +1175,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         nlpn[:] = 0  # we'll zero it out, then rebuild it
     
         # Create arrays for link-at-node information
-        self._links_at_node = -np.ones((max_num_links, self.number_of_nodes), 
+        self._links_at_node = -np.ones((self.number_of_nodes, max_num_links), 
                                        dtype=np.int32)
-        self._link_dirs_at_node = np.zeros((max_num_links,
-                                            self.number_of_nodes),
+        self._link_dirs_at_node = np.zeros((self.number_of_nodes,
+                                            max_num_links),
                                             dtype=np.int8)
 
         # Sweep over all links
@@ -1182,10 +1190,10 @@ class ModelGrid(ModelDataFieldsMixIn):
     
             # Add this link to the list for this node, set the direction (outgoing,
             # indicated by -1), and increment the number found so far
-            self._links_at_node[nlpn[t]][t] = lk
-            self._links_at_node[nlpn[h]][h] = lk
-            self._link_dirs_at_node[nlpn[t]][t] = -1
-            self._link_dirs_at_node[nlpn[h]][h] = 1
+            self._links_at_node[t][nlpn[t]] = lk
+            self._links_at_node[h][nlpn[h]] = lk
+            self._link_dirs_at_node[t][nlpn[t]] = -1
+            self._link_dirs_at_node[h][nlpn[h]] = 1
             nlpn[t] += 1
             nlpn[h] += 1
 
@@ -1358,11 +1366,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         """Sort the links_at_node and link_dirs_at_node arrays by angle.
         """
         for n in range(self.number_of_nodes):
-            ang = self.link_angle(self.links_at_node[:,n], \
-                                  self.link_dirs_at_node[:,n])
+            ang = self.link_angle(self.links_at_node[n,:], \
+                                  self.link_dirs_at_node[n,:])
             indices = np.argsort(ang)
-            self._links_at_node[:,n] = self._links_at_node[indices,n]
-            self._link_dirs_at_node[:,n] = self._link_dirs_at_node[indices,n]
+            self._links_at_node[n,:] = self._links_at_node[n,indices]
+            self._link_dirs_at_node[n,:] = self._link_dirs_at_node[n,indices]
 
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
@@ -1402,6 +1410,16 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces_at_cell[cell] += 1
         return num_faces_at_cell
 
+    def sort_faces_at_cell_by_angle(self):
+        """Sort the faces_at_cell array by angle.
+        
+        Assumes links_at_node and link_dirs_at_node created.
+        """
+        for cell in range(self.number_of_cells):
+            sorted_links = self.links_at_node[self.node_at_cell[cell],:]
+            sorted_faces = self._faces_at_cell[cell,:] = self.face_at_link[sorted_links]
+            self._faces_at_cell[cell,:] = sorted_faces
+
     def make_faces_at_cell(self):
         """Construct faces_at_cell array.
 
@@ -1411,27 +1429,24 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hg = HexModelGrid(3, 3)
         >>> hg.make_faces_at_cell()
         >>> hg._faces_at_cell
-        array([[ 0,  2],
-               [ 1,  3],
-               [ 4,  5],
-               [ 5,  6],
-               [ 7,  9],
-               [ 8, 10]])
+        array([[ 5,  8,  7,  4,  0,  1],
+               [ 6, 10,  9,  5,  2,  3]])
         """
         num_faces = self.find_number_of_faces_at_cell()
-        self._faces_at_cell = np.zeros((np.amax(num_faces), self.number_of_cells), dtype=int)
+        self._faces_at_cell = np.zeros((self.number_of_cells, np.amax(num_faces)), dtype=int)
         num_faces[:] = 0  # Zero out and count again, to use as index
         for ln in range(self.number_of_links):
             cell = self.cell_at_node[self.node_at_link_tail[ln]]
             if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[num_faces[cell],cell] = \
+                self._faces_at_cell[cell,num_faces[cell]] = \
                     self.face_at_link[ln]
                 num_faces[cell] += 1
             cell = self.cell_at_node[self.node_at_link_head[ln]]
             if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[num_faces[cell],cell] = \
+                self._faces_at_cell[cell,num_faces[cell]] = \
                     self.face_at_link[ln]
                 num_faces[cell] += 1
+        self.sort_faces_at_cell_by_angle()
 
     def node_slopes_using_patches(self, elevs='topographic__elevation',
                                   unit='degrees', return_components=False):

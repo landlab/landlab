@@ -482,7 +482,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
-        1. Arrays of link "from" and "to" nodes
+        1. Arrays of link tail and head nodes
         2. Array of link IDs for each active link
         3. Array containing with of each face
 
