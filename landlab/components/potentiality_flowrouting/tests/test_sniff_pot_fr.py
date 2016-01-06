@@ -56,7 +56,7 @@ def test_sheetflow():
     z = (3000. - mg.node_x) * 0.5
     mg.at_node['topographic__elevation'] = z
 
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
     mg.at_node['water__volume_flux_in'] = np.ones_like(z, dtype=float)
 
     pfr = PotentialityFlowRouter(mg, INPUTS)

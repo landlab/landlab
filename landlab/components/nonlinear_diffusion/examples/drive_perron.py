@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import numpy
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 import pylab
@@ -23,10 +23,10 @@ mg = RasterModelGrid(nrows, ncols, dx)
 # mg.set_inactive_boundaries(True,True,True,True)
 mg.set_looped_boundaries(True, True)
 
-# create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
-mg['node']['topographic__elevation'] = z + numpy.random.rand(len(z)) / 1000.
+#create the fields in the grid
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 # Now add a step to diffuse out:
 # mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]]

@@ -163,6 +163,21 @@ def setup_dans_grid5():
     inclined surface. This time, one of the holes is a stupid shape, which
     will require the component to arrange flow back "uphill". Exactly as
     V4, but this version tests D4 routing.
+
+    Notes
+    -----
+    Here is the elevation grid:
+
+    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
+    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
+    1.      2.      3.      4.001   5.      6.      7.      8.      9.     10.
+    1.      2.      3.      4.001   0.      0.      0.      8.      9.     10.
+    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
+    1.      2.      3.      4.001   0.      0.      0.      8.      9.     10.
+    1.      2.      3.      4.001   5.      0.      7.      8.      9.     10.
+    1.      2.      3.      4.001   0.      6.      7.      8.      0.     10.
+    1.      2.      3.      4.001   5.      6.      7.      0.      0.     10.
+    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
     """
     global hf, fr, mg
     global z, depr_outlet_target
@@ -188,7 +203,7 @@ def setup_dans_grid5():
     depr_outlet_target = XX  # not well defined in this simplest case...?
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
-
+    
     fr = FlowRouter(mg)
     hf = SinkFiller(mg, routing='D4')
 

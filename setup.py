@@ -24,6 +24,10 @@ ext_modules = [
               ['landlab/graph/voronoi_cfuncs.pyx']),
     Extension('landlab.graph.delaunay_cfuncs',
               ['landlab/graph/delaunay_cfuncs.pyx']),
+    Extension('landlab.grid.structured_quad.cfuncs',
+              ['landlab/grid/structured_quad/cfuncs.pyx']),
+    Extension('landlab.grid.structured_quad.c_faces',
+              ['landlab/grid/structured_quad/c_faces.pyx']),
 ]
 
 import numpy as np

@@ -80,7 +80,8 @@ def test_raster_cts():
     xn_list.append( Transition((1,0,0), (0,1,0), 0.1, '', True, callback_function))
     pd = mg.add_zeros('node', 'property_data', dtype=int)
     pd[5] = 50
-    ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid, prop_data=pd)
+    ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid, prop_data=pd,
+                   prop_reset_value=0)
 
     # Test the data structures
     assert (ca.xn_to.size==4), 'wrong size for xn_to'
@@ -90,7 +91,7 @@ def test_raster_cts():
     assert (ca.num_link_states==4), 'wrong number of link states'
     assert (ca.prop_data[5]==50), 'error in property data'
     assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
-    assert (ca.active_links_at_node[1][6]==16), 'error in active link array'
+    assert (ca.active_links_at_node[1][6]==8), 'error in active link array'
     assert (ca.num_node_states==2), 'error in num_node_states'
     assert (ca.link_orientation[-1]==0), 'error in link orientation array'
     assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'
@@ -105,11 +106,11 @@ def test_raster_cts():
 
     # engineer an event
     ev.time = 1.0
-    ev.link = 16
+    ev.link = 8
     ev.xn_to = 1
     ev.propswap = True
     ev.prop_update_fn = callback_function
-    ca.next_update[16] = 1.0
+    ca.next_update[8] = 1.0
 
     # push it onto the event queue
     heappush(ca.event_queue, ev)
@@ -139,7 +140,8 @@ def test_oriented_raster_cts():
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
 
     assert_equal(orcts.num_link_states, 8)
-    assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+    #assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+    assert_array_equal(orcts.link_orientation, [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0])
 
 
 def test_hex_cts():
@@ -163,9 +165,10 @@ def test_oriented_hex_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-
+    
     assert_equal(ohcts.num_link_states, 12)
-    assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
+    #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
+    assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
 
-
-
+if __name__ == '__main__':
+    test_raster_cts()
