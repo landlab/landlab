@@ -1182,7 +1182,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                                             dtype=np.int8)
 
         # Sweep over all links
-        for lk in xrange(self.number_of_links):
+        for lk in range(self.number_of_links):
     
             # Find the IDs of the tail and head nodes
             t = self.node_at_link_tail[lk]
@@ -1389,6 +1389,18 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         return gfuncs.resolve_values_on_active_links(self, link_values,
                                                      out=out)
+
+    @property
+    def faces_at_cell(self):
+        """Return array containing face IDs at each cell.
+        
+        Creates array if it doesn't already exist.
+        """
+        try:
+            return self._faces_at_cell
+        except AttributeError:
+            self.make_faces_at_cell()
+            return self._faces_at_cell
 
     def find_number_of_faces_at_cell(self):
         """Find and return how many faces are attached to each cell.
