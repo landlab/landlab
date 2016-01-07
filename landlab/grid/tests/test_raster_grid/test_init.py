@@ -379,18 +379,18 @@ def test_node_outlink_matrix():
 @with_setup(setup_grid)
 def test_links_at_node_with_scalar_interior():
     assert_array_equal(rmg.links_at_node[6],
-                       np.array([[10, 14, 9, 5]]))
+                       np.array([10, 14, 9, 5]))
 
 
 @with_setup(setup_grid)
 def test_links_at_node_with_scalar_boundary():
-    assert_array_equal(rmg.links_at_node[1], np.array([[1,  5,  0, -1]])
+    assert_array_equal(rmg.links_at_node[1], np.array([1,  5,  0, -1]))
 
 
 @with_setup(setup_grid)
 def test_links_at_node_with_array_arg():
     assert_array_equal(rmg.links_at_node[6:8],
-                       np.array([[10, 14,  9,  5], [11, 15, 10,  6]])
+                       np.array([[10, 14,  9,  5], [11, 15, 10,  6]]))
 
 
 @with_setup(setup_grid)
@@ -416,7 +416,7 @@ def test_links_at_node_with_no_args():
                [28, -1, 27, 23],
                [29, -1, 28, 24],
                [30, -1, 29, 25],
-               [-1, -1, 30, 26]])
+               [-1, -1, 30, 26]]))
 
 @with_setup(setup_grid)
 def test_face_at_link():
