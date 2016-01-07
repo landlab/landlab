@@ -789,11 +789,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.node_links(5)
-        array([[ 4],
-               [ 7],
-               [11],
-               [ 8]])
+        >>> rmg.links_at_node[5]
+        array([ 8, 11, 7, 4])
         >>> rmg.active_links_at_node((5, 6))
         array([[ 4,  5],
                [ 7,  8],
@@ -852,7 +849,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodes in the grid. Link ids are listed in clockwise order starting
         from south (i.e., [SW,NW,NE,SE]).
         This method only returns diagonal links.
-        Call node_links() for the cardinal links.
+        Call links_at_node for the cardinal links.
 
         Parameters
         ----------
