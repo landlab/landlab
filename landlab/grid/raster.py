@@ -3960,33 +3960,50 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         and/or left horizontal links ---to FIXED_LINK.
 
         By definition, fixed links exist between fixed gradient nodes
-        (node_status==2) and core nodes (node_status==0). Because the outer
-        ring of nodes are fixed gradient (node_status==2), the links between
-        them are inactive (link_status==4) and are not set using this
-        function (the inactive links are the top and bottom horizontal edge
-        links, and left and right edge vertical edge links.)
+        (status_at_node == 2) and core nodes (status_at_node == 0). Because the
+        outer ring of nodes are fixed gradient (status_at_node == 2), the links
+        between them are inactive (status_at_link == 4) and are not set using
+        this function (the inactive links are the top and bottom horizontal
+        edge links, and left and right edge vertical edge links.)
 
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
 
-        *value* controls what values are held constant at these nodes. It can
-        be either a float, an array of length number_of_fixed_nodes or
-        number_of_nodes (total), or left blank. If left blank, the values will
-        be set from the those already in the grid fields, according to
-        'value_of'.
+        *node_value* controls what values are held constant at the fixed
+        gradient nodes (status_at_node == 2). It can be either a float, an
+        array of length number_of_fixed_nodes or number_of_nodes (total), or
+        left blank. If left blank, the values will be set from the those
+        already in the grid fields, according to 'fixed_node_value_of'.
 
-        *value_of* controls the name of the model field that contains the
-        values. Remember, if you don't set value, the fixed values will be set
-        from the field values ***at the time you call this method***. If no
-        values are present in the field, the module will complain but accept
-        this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g.,
+        *link_value* controls what values are held constant at the fixed
+        links (status_at_link == 2). It can be either a float, an array of
+        length number_of_fixed_links or number_of_links (total), or
+        left blank. If left blank, the values will be set from the those
+        already in the grid fields, according to 'fixed_link_value_of'.
+
+        *fixed_node_value_of* controls the name of the model field that
+        contains the node values. Remember, if you don't set value, the fixed
+        gradient node values will be set from the field values ***at the time
+        you call this method***. If no values are present in the field, the
+        module will complain but accept this, warning that it will be unable to
+        automatically update boundary conditions (and such methods, e.g.,
+        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
+        if you try).
+
+        *fixed_link_value_of* controls the name of the model field that
+        contains the fixed link values. Remember, if you don't set value, the
+        fixed link values will be set from the field values ***at the time you
+        call this method***. If no values are present in the field, the module
+        will complain but accept this, warning that it will be unable to
+        automatically update boundary conditions (and such methods, e.g.,
         ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
         if you try).
 
         The following example sets the bottom and right link boundaries as
-        fixed-value in a four-row by five-column grid that initially has all
-        boundaries closed (i.e., flagged as link_status=2)
+        fixed-value in a four-row by nine-column grid that initially has all
+        boundaries set to fixed_gradient (nodes, i.e. flagged at
+        (status_at_node == 2) and fixed_link (links, i.e., flagged as
+        (status_at_link == 2).
 
         Parameters
         ----------
@@ -3998,10 +4015,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Set top edge vertical links as fixed boundary.
         right_is_fixed : boolean
             Set right edge  horizontal links as fixed boundary.
-        value : float, array or None (default).
+        link_value : float, array or None (default).
+            Override value to be kept constant at links.
+        node_value : float, array or None (default).
             Override value to be kept constant at nodes.
-        value_of : string.
-            The name of the grid field containing the values of interest.
+        fixed_node_value_of : string.
+            The name of the grid field containing the values of interest at
+            nodes.
+        fixed_link_value_of : string.
+            The name of the grid field containing the values of interest at
+            links.
 
         Examples
         --------
@@ -4033,7 +4056,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
 
-        ``x`` indicates the links that are set to :any:`FIXED_LINK`
+        ``X`` indicates the links that are set to :any:`FIXED_LINK`
 
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9, 1.0) # rows, columns, spacing
