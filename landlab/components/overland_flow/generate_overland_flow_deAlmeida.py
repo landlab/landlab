@@ -498,6 +498,22 @@ def find_active_neighbors_for_fixed_links(grid):
     -------
     ndarray of int, shape `(*, )`
         Flat array of links.
+
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import neighbors_at_link
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
+
+    >>> rmg = RasterModelGrid(4, 7)
+
+    >>> rmg['node']['topographic__elevation'] = rmg.zeros(at='node')
+    >>> rmg['link']['topographic__slope'] = rmg.zeros(at='link')
+
+    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> find_active_neighbors_for_fixed_links(rmg)
+    array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """
     neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
     return neighbors[np.in1d(neighbors, grid.active_links)]
