@@ -118,7 +118,7 @@ class OverlandFlow(Component):
         try:
             self.h_init = inputs.read_float('h_init')
         except:
-            self.h_init = 0.001
+            self.h_init = 0.00001
 
         # This is the time step coeffcient, described in Bates et al., 2010 and
         # de Almeida et al., 2012
@@ -183,7 +183,7 @@ class OverlandFlow(Component):
         self.elapsed_time = 1.0
 
         self.dt = None
-        self.dhdt = grid.add_zeros('dhdt', at='node')
+        self.dhdt = grid.zeros()
 
         # When we instantiate the class we recognize that neighbors have not
         # been found. After the user either calls self.set_up_neighbor_array
@@ -218,7 +218,6 @@ class OverlandFlow(Component):
             np.sqrt(self.g * np.amax(self._grid.at_node['water_depth'])))
 
         return self.dt
-
 
     def set_up_neighbor_arrays(self, grid):
 
@@ -257,7 +256,7 @@ class OverlandFlow(Component):
                 self.horizontal_active_link_ids, fixed_horizontal_links)
             self.vertical_active_link_ids= np.maximum(
                 self.vertical_active_link_ids, fixed_vertical_links)
-            #self.active_neighbors = find_active_neighbors_for_fixed_links(grid)
+            self.active_neighbors = find_active_neighbors_for_fixed_links(grid)
 
 
         # Using the active vertical link ids we can find the north
@@ -352,22 +351,20 @@ class OverlandFlow(Component):
         # to the end of the discharge array.
         self.q = np.append(self.q, [0])
 
-
         horiz = self.horizontal_ids
         vert = self.vertical_ids
         # Now we calculate discharge in the horizontal direction
         self.q[horiz] = ((self.theta * self.q[horiz] + (1 - self.theta) / 2 *
-            (self.q[self.west_neighbors] + self.q[self.east_neighbors]) - self.g
-            * self.h_links[horiz] * self.dt * self.slope[horiz]) / (1 + self.g
-            * self.dt * self.mannings_n_squared * abs(self.q[horiz]) /
-            self.h_links[horiz] ** self.seven_over_three))
+            (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
+            self.g * self.h_links[horiz] * self.dt * self.slope[horiz]) /
+            (1 + self.g * self.dt * self.mannings_n_squared * abs(
+            self.q[horiz]) / self.h_links[horiz] ** self.seven_over_three))
 
         # ... and in the vertical direction
-        self.q[vert] = ((self.theta * self.q[vert] + (1 - self.theta) /
-            2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
-            self.g * self.h_links[vert] * self.dt *
-            self.slope[vert]) / (1 + self.g * self.dt *
-            self.mannings_n_squared * abs(self.q[vert]) /
+        self.q[vert] = ((self.theta * self.q[vert] + (1 - self.theta) / 2 *
+            (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
+            self.g * self.h_links[vert] * self.dt * self.slope[vert]) / (1 +
+            self.g * self.dt * self.mannings_n_squared * abs(self.q[vert]) /
             self.h_links[vert] ** self.seven_over_three))
 
         # Now to return the array to its original length (length of number of
@@ -454,7 +451,7 @@ class OverlandFlow(Component):
         # is 0.001) and the new value is self.h_init * 10^-3. This was set as
         # it showed the smallest amount of mass creation in the grid during
         # testing.
-        self.h[np.where(self.h < self.h_init)] = (self.h_init) * (10.0**-3)
+        self.h[np.where(self.h < self.h_init)] = (self.h_init) * (10.0**-2)
 
         # And reset our field values with the newest water depth and discharge.
         self._grid.at_node['water_depth'] = self.h
@@ -477,19 +474,19 @@ class OverlandFlow(Component):
     def var_mapping(self):
         return self._var_mapping
 
-#def find_active_neighbors_for_fixed_links(grid):
-#    '''
-#    Specialized link ID function used to ID the active links that neighbor
-#    fixed links in the vertical and horizontal directions.
-#
-#    If the user wants to assign fixed gradients or values to the fixed
-#    links dynamically, this function identifies the nearest active_link
-#    neighbor.
-#
-#    Each fixed link can either have 0 or 1 active neighbor. This function
-#    finds if and where that active neighbor is and stores those IDs in
-#    an array.
-#    '''
+def find_active_neighbors_for_fixed_links(grid):
+    '''
+    Specialized link ID function used to ID the active links that neighbor
+    fixed links in the vertical and horizontal directions.
+
+    If the user wants to assign fixed gradients or values to the fixed
+    links dynamically, this function identifies the nearest active_link
+    neighbor.
+
+    Each fixed link can either have 0 or 1 active neighbor. This function
+    finds if and where that active neighbor is and stores those IDs in
+    an array.
+    '''
 #
 #    shape = grid.shape
 #    status_at_node = grid.status_at_node
@@ -502,6 +499,10 @@ class OverlandFlow(Component):
 #
 #    # Identifying active link IDs.
 #    active_links = links.active_link_ids(shape, status_at_node)
+#
+#    # hori
+#    horizontal_ids = links.horizontal_link_ids(shape)
+#    vertical_ids = links.vertical_link_ids(shape)
 #
 #    # Identifying vertical active link IDs.
 #    vertical_active_links = (links.vertical_active_link_ids(shape,
@@ -527,6 +528,7 @@ class OverlandFlow(Component):
 #    west_hori = (links.horizontal_west_link_neighbor(shape,
 #                                                horizontal_active_links))
 #
+#    print(west_hori)
 #    # Because each fixed link can have at most 1 active neighbor, there
 #    # is at least one "BAD_INDEX_VALUE" link neighbor (-1). The maximum
 #    # ID value will be the active neighbor. This finds the N/S vertical
@@ -534,14 +536,22 @@ class OverlandFlow(Component):
 #    max_vertical_neighbor = np.maximum(north_vert, south_vert)
 #    max_horizontal_neighbor = np.maximum(east_hori, west_hori)
 #
-#    # Concatenating the vertical and horizontal arrays to get one
+#    max_vertical_neighbor =max_vertical_neighbor.astype(int)# = map(int, max_vertical_neighbor)
+#    #max_horizontal_neighbor = map(int, max_horizontal_neighbor)
+#    max_horizontal_neighbor =max_horizontal_neighbor.astype(int)
+#   # Concatenating the vertical and horizontal arrays to get one
 #    # neighbor array of len(all links)
-#    all_active_neighbors = (np.concatenate((max_vertical_neighbor,
-#                                        max_horizontal_neighbor), axis=0))
-#
+#    all_active_neighbors = grid.zeros(at='link')#(np.concatenate((max_vertical_neighbor,
+#                                       # max_horizontal_neighbor), axis=0))
+#    all_active_neighbors = all_active_neighbors.astype(int)
+#    print(len(max_horizontal_neighbor))
+#    all_active_neighbors[horizontal_ids] = max_horizontal_neighbor
+#    print(all_active_neighbors)
+#    all_active_neighbors[vertical_ids] = max_vertical_neighbor
 #    # Getting JUST the active neighbor IDs for fixed links. This
 #    # sets the array to a new length - that of len(fixed_links)
 #    all_active_neighbors = all_active_neighbors[fixed_ids_only]
-#    print(all_active_neighbors)
-#    return all_active_neighbors
-#
+    #print(all_active_neighbors)
+    neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
+    return neighbors[np.in1d(neighbors, grid.active_links)]
+    #return all_active_neighbors

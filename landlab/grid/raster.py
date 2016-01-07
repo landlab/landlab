@@ -15,7 +15,7 @@ from landlab.utils import count_repeated_values
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK, 
+                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
                    INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable
@@ -767,58 +767,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
         """
         return self._diagonals_at_node
-
-    def node_links(self, *args):
-        """node_links([node_ids])
-        Get links attached to nodes.
-
-        Returns the ids of links attached to grid nodes with *node_ids*. If
-        *node_ids* is not given, return links for all of the nodes in the
-        grid. Link ids are listed in clockwise order starting with the south
-        link (i.e., [S,W,N,E]). This method will not return diagonal links,
-        even if they exist. They need to be handled independently.
-
-        Parameters
-        ----------
-        node_ids : array_like, optional
-            IDs of nodes on a grid.
-
-        Returns
-        -------
-        (4, N) ndarray
-            Neighbor node IDs for the source nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 4)
-        >>> grid.node_links(5)
-        array([[ 4],
-               [ 7],
-               [11],
-               [ 8]])
-        >>> grid.node_links((5, 6))
-        array([[ 4,  5],
-               [ 7,  8],
-               [11, 12],
-               [ 8,  9]])
-        >>> grid.node_links()
-        array([[-1, -1, -1, -1,  3,  4,  5,  6, 10, 11, 12, 13],
-               [-1,  0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16],
-               [ 3,  4,  5,  6, 10, 11, 12, 13, -1, -1, -1, -1],
-               [ 0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16, -1]])
-        """
-        if len(args) == 0:
-            return np.vstack((self.node_inlink_matrix,
-                              self.node_outlink_matrix))
-        elif len(args) == 1:
-            node_ids = np.broadcast_arrays(args[0])[0]
-            return (
-                np.vstack((self.node_inlink_matrix[:, node_ids],
-                           self.node_outlink_matrix[:, node_ids])
-                          ).reshape(4, -1))
-        else:
-            raise ValueError('only zero or one arguments accepted')
 
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
@@ -2709,7 +2657,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid 
+        >>> from landlab import RasterModelGrid
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
         >>> z = np.array([3., 3., 3., 3.,
