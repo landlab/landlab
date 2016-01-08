@@ -53,10 +53,13 @@ The `water_depth` field is defined at nodes.
 >>> of.var_loc('water_depth')
 'node'
 >>> grid.at_node['water_depth'] # doctest: +NORMALIZE_WHITESPACE
-array([ 0.001,  0.001,  0.001,  0.001,  0.001,
-        0.001,  0.001,  0.001,  0.001,  0.001,
-        0.001,  0.021,  0.021,  0.021,  0.001,
-        0.101,  0.101,  0.101,  0.101,  0.101])
+array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
+         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
+         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
+         1.00000000e-05,   1.00000000e-05,   2.00100000e-02,
+         2.00100000e-02,   2.00100000e-02,   1.00000000e-05,
+         1.00010000e-01,   1.00010000e-01,   1.00010000e-01,
+         1.00010000e-01,   1.00010000e-01])
 
 The `water_discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
@@ -83,10 +86,8 @@ array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1.1,  1.1,  1.1,  0. ,
         0. ,  0. ,  0. ,  0. ])
 """
-from landlab import Component, ModelParameterDictionary
+from landlab import Component
 import numpy as np
-import os
-import warnings
 from landlab.grid.structured_quad import links
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -143,8 +144,8 @@ class OverlandFlow(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, use_fixed_links=False, h_init=0.001, alpha=0.7,
-                 mannings_n=0.01, g=9.81, theta=0.8, rainfall_intensity=0.0,
+    def __init__(self, grid, use_fixed_links=False, h_init=0.00001, alpha=0.7,
+                 mannings_n=0.03, g=9.81, theta=0.8, rainfall_intensity=0.0,
                  **kwds):
         """Create a overland flow component.
 
@@ -218,13 +219,15 @@ class OverlandFlow(Component):
         self.h = self._grid['node']['water_depth'] = (
             self._grid['node']['water_depth'] + self.h_init)
 
+            #+= self.h_init
+        #self.h += self.h_init#self.grid['node']['water_depth'] = self.h
+
         # Assigning a class variable to the water discharge field.
         self.q = self._grid['link']['water_discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-        self.set_up_neighbor_arrays()
 
     def gear_time_step(self):
         """Calculate time step.
@@ -298,6 +301,7 @@ class OverlandFlow(Component):
             self.grid.shape))
         self.q_vertical = np.zeros(links.number_of_vertical_links(
             self.grid.shape))
+
         # Once the neighbor arrays are set up, we change the flag to True!
         self.neighbor_flag = True
 
@@ -313,11 +317,12 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
+
         self.gear_time_step()
 
         # First, we check and see if the neighbor arrays have been initialized
         if self.neighbor_flag is False:
-            self.set_up_neighbor_arrays(self.grid)
+            self.set_up_neighbor_arrays()
 
         # In case another component has added data to the fields, we just
         # reset our water depths, topographic elevations and water discharge
@@ -402,13 +407,13 @@ class OverlandFlow(Component):
         q_courant = self.q * self.dt / self.grid.dx
 
         # Water depth split equally between four links..
-        water_div_4 = self.h_links/4.
+        water_div_4 = self.h_links / 4.
 
         # IDs where water discharge is positive...
-        (positive_q, ) = np.where(self.q>0)
+        (positive_q, ) = np.where(self.q > 0)
 
         # ... and negative.
-        (negative_q, ) = np.where(self.q<0)
+        (negative_q, ) = np.where(self.q < 0)
 
         # Where does our calculated q exceed the Froude number? If q does
         # exceed the Froude number, we are getting supercritical flow and
@@ -420,8 +425,8 @@ class OverlandFlow(Component):
         # depth divided amongst 4 links? If the calculated q exceeds the
         # Courant number and is greater than the water depth divided by 4
         # links, we reduce discharge to maintain stability.
-        (water_logical, ) = np.where(q_courant>water_div_4)
-        (water_abs_logical, ) = np.where(abs(q_courant)>water_div_4)
+        (water_logical, ) = np.where(q_courant > water_div_4)
+        (water_abs_logical, ) = np.where(abs(q_courant) > water_div_4)
 
         # Where are these conditions met? For positive and negative q, there
         # are specific rules to reduce q. This step finds where the discharge
@@ -463,7 +468,7 @@ class OverlandFlow(Component):
         # is 0.001) and the new value is self.h_init * 10^-3. This was set as
         # it showed the smallest amount of mass creation in the grid during
         # testing.
-        self.h[np.where(self.h < self.h_init)] = (self.h_init * (10.0 ** -3))
+        self.h[np.where(self.h < self.h_init)] = (self.h_init * (10.0 ** -2))
 
         # And reset our field values with the newest water depth and discharge.
         self.grid.at_node['water_depth'] = self.h
@@ -496,7 +501,12 @@ def find_active_neighbors_for_fixed_links(grid):
 
     Examples
     --------
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import neighbors_at_link
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
+
     >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
 
     >>> grid = RasterModelGrid((4, 5))
@@ -515,6 +525,7 @@ def find_active_neighbors_for_fixed_links(grid):
 
     >>> find_active_neighbors_for_fixed_links(grid)
     array([14, 15, 16, 10, 19])
+
     """
     neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
     return neighbors[np.in1d(neighbors, grid.active_links)]
