@@ -137,7 +137,7 @@ class OverlandFlow(Component):
         try:
             self.g = inputs.read_float('g')
         except:
-            self.g = 9.8
+            self.g = 9.81
 
         # Weighting factor from de Almeida et al., 2012
         try:
