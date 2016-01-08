@@ -276,7 +276,7 @@ def test_active_outlink_matrix():
 
 @with_setup(setup_grid)
 def test_active_links_at_node_scalar_interior():
-    assert_array_equal(rmg.active_links_at_node([6]), 
+    assert_array_equal(rmg.active_links_at_node([6]),
                        np.array([[5, 9, 14, 10]]).T)
 
 
@@ -311,11 +311,11 @@ def test_active_links_at_node_with_no_args():
 def test_node_at_link_tail():
     assert_array_equal(
         rmg.node_at_link_tail,
-        np.array([0, 1, 2, 3, 
+        np.array([0, 1, 2, 3,
                   0, 1, 2, 3, 4,
                   5, 6, 7, 8,
                   5, 6, 7, 8, 9,
-                  10, 11, 12, 13, 
+                  10, 11, 12, 13,
                   10, 11, 12, 13, 14,
                   15, 16, 17, 18]))
 
@@ -377,43 +377,46 @@ def test_node_outlink_matrix():
 
 
 @with_setup(setup_grid)
-def test_node_links_with_scalar_interior():
-    assert_array_equal(rmg.node_links([6]),
-                       np.array([[5, 9, 14, 10]]).T)
+def test_links_at_node_with_scalar_interior():
+    assert_array_equal(rmg.links_at_node[6],
+                       np.array([10, 14, 9, 5]))
 
 
 @with_setup(setup_grid)
-def test_node_links_with_scalar_boundary():
-    assert_array_equal(rmg.node_links([1]), np.array([[-1, 0, 5, 1]]).T)
+def test_links_at_node_with_scalar_boundary():
+    assert_array_equal(rmg.links_at_node[1], np.array([1,  5,  0, -1]))
 
 
 @with_setup(setup_grid)
-def test_node_links_with_array_arg():
-    assert_array_equal(rmg.node_links([6, 7]),
-                       np.array([[5, 9, 14, 10], [6, 10, 15, 11]]).T)
+def test_links_at_node_with_array_arg():
+    assert_array_equal(rmg.links_at_node[6:8],
+                       np.array([[10, 14,  9,  5], [11, 15, 10,  6]]))
 
 
 @with_setup(setup_grid)
-def test_node_links_with_no_args():
+def test_links_at_node_with_no_args():
     assert_array_equal(
-        rmg.node_links(),
-        np.array([[-1, -1, -1, -1, -1, 
-                    4,  5,  6,  7,  8,
-                   13, 14, 15, 16, 17,
-                   22, 23, 24, 25, 26],
-                  [-1,  0,  1,  2,  3,
-                   -1,  9, 10, 11, 12,
-                   -1, 18, 19, 20, 21,
-                   -1, 27, 28, 29, 30],
-                  [ 4,  5,  6,  7,  8,
-                   13, 14, 15, 16, 17,
-                   22, 23, 24, 25, 26,
-                   -1, -1, -1, -1, -1],
-                  [ 0,  1,  2,  3, -1,
-                    9, 10, 11, 12, -1,
-                   18, 19, 20, 21, -1,
-                   27, 28, 29, 30, -1]]))
-
+        rmg.links_at_node,
+        np.array([[ 0,  4, -1, -1],
+               [ 1,  5,  0, -1],
+               [ 2,  6,  1, -1],
+               [ 3,  7,  2, -1],
+               [-1,  8,  3, -1],
+               [ 9, 13, -1,  4],
+               [10, 14,  9,  5],
+               [11, 15, 10,  6],
+               [12, 16, 11,  7],
+               [-1, 17, 12,  8],
+               [18, 22, -1, 13],
+               [19, 23, 18, 14],
+               [20, 24, 19, 15],
+               [21, 25, 20, 16],
+               [-1, 26, 21, 17],
+               [27, -1, -1, 22],
+               [28, -1, 27, 23],
+               [29, -1, 28, 24],
+               [30, -1, 29, 25],
+               [-1, -1, 30, 26]]))
 
 @with_setup(setup_grid)
 def test_face_at_link():

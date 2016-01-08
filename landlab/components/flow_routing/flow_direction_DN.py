@@ -231,7 +231,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                 neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[non_boundary_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
                 neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[non_boundary_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
                 links_list = np.empty_like(neighbor_nodes)
-                links_list[:, :4] = grid.node_links().T[non_boundary_nodes, ::-1] # Reorder as SWNE
+                links_list[:, :4] = grid.links_at_node[non_boundary_nodes] # Reorder as SWNE
                 links_list[:, 4:] = grid.diagonal_links_at_node().T[non_boundary_nodes,:] #SW,NW,NE,NE
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
             slope_array = (elev[non_boundary_nodes].reshape((non_boundary_nodes.size, 1)) - elevs_array)/grid.link_length[links_list]
