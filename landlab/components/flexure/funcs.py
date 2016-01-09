@@ -25,7 +25,7 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
     >>> eet = 65000.
     >>> youngs = 7e10
     >>> alpha = get_flexure_parameter(eet, youngs, 1)
-    >>> round(alpha,3)
+    >>> print('%.3f' % round(alpha, 3))
     119965.926
 
     >>> alpha = get_flexure_parameter(eet, youngs, 2)
@@ -122,7 +122,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     >>> x.shape = (x.size, )
     >>> y.shape = (y.size, )
     >>> dz = subside_point_load(load, (5000., 2500.), (x, y), params=params)
-    >>> round(dz.sum(), 9)
+    >>> print('%.5g' % round(dz.sum(), 9))
     2.6267e-05
     >>> six.print_(round(dz.min(), 9))
     5.24e-07
