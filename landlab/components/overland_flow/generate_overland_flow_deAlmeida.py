@@ -198,7 +198,7 @@ class OverlandFlow(Component):
         self.elapsed_time = 1.0
 
         self.dt = None
-        self.dhdt = grid.zeros(at='node')
+        self.dhdt = grid.zeros()
 
         # When we instantiate the class we recognize that neighbors have not
         # been found. After the user either calls self.set_up_neighbor_array
@@ -370,7 +370,6 @@ class OverlandFlow(Component):
 
         horiz = self.horizontal_ids
         vert = self.vertical_ids
-
         # Now we calculate discharge in the horizontal direction
         self.q[horiz] = ((self.theta * self.q[horiz] + (1 - self.theta)
             / 2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
@@ -390,6 +389,10 @@ class OverlandFlow(Component):
         # Now to return the array to its original length (length of number of
         # all links), we delete the extra 0.0 value from the end of the array.
         self.q = np.delete(self.q, len(self.q) - 1)
+
+        # And put the horizontal and vertical arrays back together, to create
+        # the discharge array.
+        #self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
 
         # Updating the discharge array to have the boundary links set to
         # their neighbor
@@ -468,7 +471,7 @@ class OverlandFlow(Component):
         # is 0.001) and the new value is self.h_init * 10^-3. This was set as
         # it showed the smallest amount of mass creation in the grid during
         # testing.
-        self.h[np.where(self.h < self.h_init)] = (self.h_init * (10.0 ** -2))
+        self.h[np.where(self.h < self.h_init)] = self.h_init * 10.0 ** -2
 
         # And reset our field values with the newest water depth and discharge.
         self.grid.at_node['water_depth'] = self.h
@@ -476,7 +479,7 @@ class OverlandFlow(Component):
 
 
 def find_active_neighbors_for_fixed_links(grid):
-    """Find link neighbors of all fixed links.
+    """Find active link neighbors for every fixed link.
 
     Specialized link ID function used to ID the active links that neighbor
     fixed links in the vertical and horizontal directions.
@@ -492,15 +495,14 @@ def find_active_neighbors_for_fixed_links(grid):
     Parameters
     ----------
     grid : RasterModelGrid
-        A grid.
+        A landlab grid.
 
     Returns
     -------
-    ndarray of int
-        Array of neighbor links that are active.
+    ndarray of int, shape `(*, )`
+        Flat array of links.
 
-    Examples
-    --------
+
     Examples
     --------
     >>> from landlab.grid.structured_quad.links import neighbors_at_link
@@ -526,6 +528,14 @@ def find_active_neighbors_for_fixed_links(grid):
     >>> find_active_neighbors_for_fixed_links(grid)
     array([14, 15, 16, 10, 19])
 
+    >>> rmg = RasterModelGrid((4, 7))
+
+    >>> rmg.at_node['topographic__elevation'] = rmg.zeros(at='node')
+    >>> rmg.at_link['topographic__slope'] = rmg.zeros(at='link')
+
+    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> find_active_neighbors_for_fixed_links(rmg)
+    array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """
     neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
     return neighbors[np.in1d(neighbors, grid.active_links)]

@@ -470,7 +470,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.node_y[0] == self.node_y[1]:   # horizontal
+        if self.orientation == 'horizontal':   # horizontal
             offsets[:, 0] = array(
                 [0., apothem, apothem, 0., -apothem, -apothem])
             offsets[:, 1] = array(
