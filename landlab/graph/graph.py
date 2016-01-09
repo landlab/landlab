@@ -4,12 +4,12 @@ Examples
 --------
 >>> from landlab.graph import Graph
 
->>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+>>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
 >>> graph = Graph((node_y, node_x))
 >>> graph.x_of_node
-array([0, 1, 2, 0, 1, 2])
+array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 >>> graph.y_of_node
-array([0, 0, 0, 1, 1, 1])
+array([0, 1, 2, 0, 1, 2, 0, 1, 2])
 
 >>> links = ((0, 1), (1, 2),
 ...          (0, 3), (1, 4), (2, 5),
@@ -30,33 +30,40 @@ array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
 >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
 array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
-       [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1]])
+       [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
+       [ 7, 10, -1, -1], [ 8, 10, 11, -1], [ 9, 11, -1, -1]])
 
 >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
 array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
-       [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0]])
+       [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0],
+       [ 1, -1,  0,  0], [ 1,  1, -1,  0], [ 1,  1,  0,  0]])
 
->>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+>>> patches = ((5, 3, 0, 2), (6, 4, 1, 3), (10, 8, 5, 7), (11, 9, 6, 8))
 >>> graph = Graph((node_y, node_x), links=links, patches=patches)
 >>> graph.links_at_patch
-array([[0, 3, 5, 2],
-       [1, 4, 6, 3]])
+array([[ 5,  3,  0,  2],
+       [ 6,  4,  1,  3],
+       [10,  8,  5,  7],
+       [11,  9,  6,  8]])
 >>> graph.nodes_at_patch
 array([[0, 1, 3, 4],
-       [1, 2, 4, 5]])
+       [1, 2, 4, 5],
+       [3, 4, 6, 7],
+       [4, 5, 7, 8]])
 """
 from six.moves import range
 
 import numpy as np
 
-from ..core.utils import as_id_array
+from ..core.utils import as_id_array, argsort_points_by_x_then_y
+from ..utils.jaggedarray import flatten_jagged_array
 
 
 class Graph(object):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
 
-    def __init__(self, nodes, links=None, patches=None):
+    def __init__(self, nodes, links=None, patches=None, sort=False):
         """Define a graph of connected nodes.
 
         Parameters
@@ -68,11 +75,21 @@ class Graph(object):
         patches : array_like of tuple
             Links that define each patch.
         """
+        nodes = [np.asarray(coord) for coord in nodes]
+        if links is not None:
+            links = np.asarray(links, dtype=int)
+
         if len(nodes[0]) != len(nodes[1]):
             raise ValueError('length mismatch in node coordinates')
 
-        self._y_of_node = np.asarray(nodes[0])
-        self._x_of_node = np.asarray(nodes[1])
+        if sort:
+            nodes, links, patches = sort_graph(nodes, links, patches)
+        else:
+            if patches is not None:
+                patches = flatten_jagged_array(patches, dtype=int)
+
+        self._y_of_node = nodes[0]
+        self._x_of_node = nodes[1]
 
         self._nodes = np.arange(len(self._x_of_node), dtype=int)
 
@@ -155,7 +172,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -178,7 +195,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -197,7 +214,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -216,7 +233,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -235,7 +252,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -256,7 +273,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -282,7 +299,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -302,7 +319,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -311,7 +328,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
-               [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1]])
+               [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
+               [ 7, 10, -1, -1], [ 8, 10, 11, -1], [ 9, 11, -1, -1]])
         """
         return self._links_at_node
 
@@ -322,7 +340,7 @@ class Graph(object):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
         >>> links = ((0, 1), (1, 2),
         ...          (0, 3), (1, 4), (2, 5),
         ...          (3, 4), (4, 5),
@@ -331,7 +349,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
-               [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0]])
+               [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0],
+               [ 1, -1,  0,  0], [ 1,  1, -1,  0], [ 1,  1,  0,  0]])
         """
         return self._link_dirs_at_node
 
@@ -422,12 +441,13 @@ def _setup_links_at_patch(patches):
     ndarray
         Links for each patch.
     """
-    max_links_per_patch = np.max([len(links) for links in patches])
-    links_at_patch = np.full((len(patches), max_links_per_patch), -1,
-                             dtype=int)
+    from .cfuncs import _setup_links_at_patch
 
-    for patch, links in enumerate(patches):
-        links_at_patch[patch, :len(links)] = links
+    max_links_per_patch = np.diff(patches[1]).max()
+    n_patches = len(patches[1]) - 1
+    links_at_patch = np.full((n_patches, max_links_per_patch), -1, dtype=int)
+
+    _setup_links_at_patch(patches[0], patches[1], links_at_patch)
 
     return links_at_patch
 
