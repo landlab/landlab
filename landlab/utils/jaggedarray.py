@@ -41,6 +41,39 @@ import numpy as np
 from six.moves import range
 
 
+def flatten_jagged_array(jagged, dtype=None):
+    """Flatten a list of lists.
+
+    Parameters
+    ----------
+    jagged : array_like of array_like
+        An array of arrays of unequal length.
+
+    Returns
+    -------
+    (data, offset) : (ndarray, ndarray of int)
+        A tuple the data, as a flat numpy array, and offsets into that array
+        for every item of the original list.
+
+    Examples
+    --------
+    >>> from landlab.utils.jaggedarray import flatten_jagged_array
+    >>> data, offset = flatten_jagged_array([[1, 2], [], [3, 4, 5]], dtype=int)
+    >>> data
+    array([1, 2, 3, 4, 5])
+    >>> offset
+    array([0, 2, 2, 5])
+    """
+    data = np.concatenate(jagged).astype(dtype=dtype)
+    items_per_block = np.array([len(block) for block in jagged], dtype=int)
+
+    offset = np.empty(len(items_per_block) + 1, dtype=int)
+    offset[0] = 0
+    offset[1:] = np.cumsum(items_per_block)
+
+    return data, offset
+
+
 class JaggedArray(object):
 
     """A container for an array of variable-length arrays."""
