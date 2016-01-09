@@ -13,6 +13,7 @@ description:
 {desc}
 units: {units}
 at: {loc}
+intent: {intent}
 """
 
 
@@ -172,8 +173,14 @@ class Component(object):
         units = cls._var_units[name]
         loc = cls._var_mapping[name]
 
+        intent = ''
+        if name in cls._input_var_names:
+            intent = 'in'
+        if name in cls._output_var_names:
+            intent += 'out'
+
         help = _VAR_HELP_MESSAGE.format(name=name, desc=desc, units=units,
-                                        loc=loc)
+                                        loc=loc, intent=intent)
 
         print(help.strip())
 
