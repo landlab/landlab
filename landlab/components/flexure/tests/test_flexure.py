@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.flexure.flexure import FlexureComponent
+from landlab.components.flexure.flexure import Flexure
 
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
@@ -20,9 +20,9 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid(20, 20, 10e3)
-    flex = FlexureComponent(grid)
+    flex = Flexure(grid)
     globals().update({
-        'flex': FlexureComponent(grid)
+        'flex': Flexure(grid)
     })
 
 
@@ -50,13 +50,13 @@ def test_output_var_names():
 def test_var_units():
     assert_equal(set(flex.input_var_names) |
                  set(flex.output_var_names),
-                 set(flex.units))
+                 set(dict(flex.units).keys()))
 
-    assert_equal(flex.units['lithosphere__elevation'], 'm')
-    assert_equal(flex.units['lithosphere__elevation_increment'], 'm')
-    assert_equal(flex.units['lithosphere__overlying_pressure'], 'Pa')
+    assert_equal(flex.var_units('lithosphere__elevation'), 'm')
+    assert_equal(flex.var_units('lithosphere__elevation_increment'), 'm')
+    assert_equal(flex.var_units('lithosphere__overlying_pressure'), 'Pa')
     assert_equal(
-        flex.units['planet_surface_sediment__deposition_increment'], 'm')
+        flex.var_units('planet_surface_sediment__deposition_increment'), 'm')
 
 
 @with_setup(setup_grid)

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from landlab.components.flexure import FlexureComponent
+from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
 
 
@@ -40,7 +40,7 @@ def main():
 
     create_lithosphere_elevation_with_bulge(grid)
 
-    flex = FlexureComponent(grid, method='flexure')
+    flex = Flexure(grid, method='flexure')
 
     put_two_point_loads_on_grid(grid)
 
