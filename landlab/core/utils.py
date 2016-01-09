@@ -253,33 +253,53 @@ def add_module_functions_to_class(cls, module, pattern=None):
     add_functions_to_class(cls, funcs)
 
 
-def argsort_points_by_x_then_y(pts):
+def argsort_points_by_x_then_y(points):
     """Sort points by coordinates, first x then y, returning sorted indices.
     
     Parameters
     ----------
-    pts : Nx2 NumPy array of float
-        (x,y) points to be sorted
+    points : tuple of ndarray or ndarray of float, shape `(*, 2)`
+        Coordinates of points to be sorted. Sort by first coordinate, then
+        second.
 
     Returns
     -------
-    indices : Nx1 NumPy array of int
-        indices of sorted (x,y) points
+    ndarray of int, shape `(n_points, )`
+        Indices of sorted points.
     
     Examples
     --------
     >>> import numpy as np
     >>> from landlab.core.utils import argsort_points_by_x_then_y
-    >>> pts = np.zeros((10, 2))
-    >>> pts[:,0] = np.array([0., 0., 0., 1., 1., 1., 1., 2., 2., 2.])
-    >>> pts[:,1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
-    >>> idx = argsort_points_by_x_then_y(pts)
-    >>> idx
+
+    >>> points = np.zeros((10, 2))
+    >>> points[:, 0] = np.array([0., 0., 0.,  1.,  1.,  1.,  1.,  2., 2., 2.])
+    >>> points[:, 1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
+    >>> argsort_points_by_x_then_y(points)
+    array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
+
+    >>> x = [0., 0., 0.,
+    ...      1., 1., 1., 1.,
+    ...      2., 2., 2.]
+    >>> y = [ 0. , 1. , 2. ,
+    ...      -0.5, 0.5, 1.5, 2.5,
+    ...       0. , 1. , 2.]
+    >>> indices = argsort_points_by_x_then_y((x, y))
+    >>> indices
+    array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
+
+    >>> argsort_points_by_x_then_y(np.array((x, y)))
     array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
     """
-    a = pts[:,0].argsort(kind='mergesort')
-    b = pts[a,1].argsort(kind='mergesort')
-    return as_id_array(a[b])
+    if isinstance(points, np.ndarray):
+        if points.shape[0] > points.shape[1]:
+            points = points.T
+        return argsort_points_by_x_then_y((points[0, :], points[1, :]))
+    else:
+        points = [np.asarray(coord) for coord in points]
+        a = points[0].argsort(kind='mergesort')
+        b = points[1][a].argsort(kind='mergesort')
+        return as_id_array(a[b])
 
 
 def sort_points_by_x_then_y(pts):
@@ -319,6 +339,7 @@ def sort_points_by_x_then_y(pts):
     pts[:,0] = pts[indices,0]
     pts[:,1] = pts[indices,1]
     return pts
+
 
 if __name__=='__main__':
     import doctest
