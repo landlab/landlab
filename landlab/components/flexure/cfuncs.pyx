@@ -20,9 +20,10 @@ ctypedef np.double_t DTYPE_t
 def subside_parallel_row(np.ndarray[DTYPE_t, ndim=1] w,
                          np.ndarray[DTYPE_t, ndim=1] load,
                          np.ndarray[DTYPE_t, ndim=1] r,
-                         alpha):
+                         DTYPE_t alpha,
+                         DTYPE_t gamma_mantle):
   cdef int ncols = w.size
-  cdef double inv_c = 1. / (2. * np.pi * _RHO_MANTLE * _GRAVITY * alpha ** 2.)
+  cdef double inv_c = 1. / (2. * np.pi * gamma_mantle * alpha ** 2.)
   cdef double c
   cdef int i
   cdef int j
@@ -37,18 +38,19 @@ def subside_parallel_row(np.ndarray[DTYPE_t, ndim=1] w,
 def subside_grid(np.ndarray[DTYPE_t, ndim=2] w,
                  np.ndarray[DTYPE_t, ndim=2] load,
                  np.ndarray[DTYPE_t, ndim=2] r,
-                 alpha):
+                 DTYPE_t alpha, DTYPE_t gamma_mantle):
   cdef int nrows = w.shape[0]
-  cdef i, j
+  cdef int i
+  cdef int j
 
   for i in range(nrows):
     for j in range(nrows):
-      subside_parallel_row(w[j], load[i], r[abs(j - i)], alpha)
+      subside_parallel_row(w[j], load[i], r[abs(j - i)], alpha, gamma_mantle)
 
 
 def subside_grid_strip(np.ndarray[DTYPE_t, ndim=2] load,
                        np.ndarray[DTYPE_t, ndim=2] r,
-                       alpha, strip_range):
+                       DTYPE_t alpha, DTYPE_t gamma_mantle, strip_range):
   (start, stop) = strip_range
 
   cdef np.ndarray w = np.zeros((stop - start, load.shape[1]), dtype=DTYPE)
@@ -56,7 +58,8 @@ def subside_grid_strip(np.ndarray[DTYPE_t, ndim=2] load,
 
   for i in range(load.shape[0]):
     for j in range(start, stop):
-      subside_parallel_row(w[j - start], load[i], r[abs(j - i)], alpha)
+      subside_parallel_row(w[j - start], load[i], r[abs(j - i)], alpha,
+                           gamma_mantle)
 
   return w, strip_range
 
@@ -78,13 +81,13 @@ def _subside_grid_strip_helper(args):
 def subside_grid_in_parallel(np.ndarray[DTYPE_t, ndim=2] w,
                              np.ndarray[DTYPE_t, ndim=2] load,
                              np.ndarray[DTYPE_t, ndim=2] r,
-                             alpha, n_procs):
+                             DTYPE_t alpha, DTYPE_t gamma_mantle, n_procs):
     if n_procs == 1:
-        return subside_grid(w, load, r, alpha)
+        return subside_grid(w, load, r, alpha, gamma_mantle)
 
     strips = tile_grid_into_strips(w, n_procs)
 
-    args = [(load, r, alpha, strip) for strip in strips]
+    args = [(load, r, alpha, gamma_mantle, strip) for strip in strips]
 
     pool = Pool(processes=n_procs)
 
