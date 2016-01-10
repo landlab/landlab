@@ -35,6 +35,7 @@ description:
   The amount of sediment deposited at the land surface in one timestep
 units: m
 at: node
+intent: in
 
 Add these fields to the grid.
 
@@ -165,7 +166,8 @@ class Flexure(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy', **kwds):
+    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
+                 rho_sed=2650., rho_mantle=3300., gravity=9.80665, **kwds):
         """Initialize the flexure component.
 
         Parameters
@@ -186,6 +188,9 @@ class Flexure(Component):
         self._eet = eet
         self._youngs = youngs
         self._method = method
+        self._rho_sed = rho_sed
+        self._rho_mantle = rho_mantle
+        self._gravity = gravity
 
         self._grid = grid
 
@@ -204,15 +209,51 @@ class Flexure(Component):
 
         self._r = self._set_kei_func_grid()
 
+    @property
+    def eet(self):
+        return self._eet
+
+    @property
+    def youngs(self):
+        return self._youngs
+
+    @property
+    def rho_sed(self):
+        return self._rho_sed
+
+    @property
+    def gamma_sed(self):
+        return self._rho_sed * self._gravity
+
+    @property
+    def rho_mantle(self):
+        return self._rho_mantle
+
+    @property
+    def gamma_mantle(self):
+        return self._rho_mantle * self._gravity
+
+    @property
+    def gravity(self):
+        return self._gravity
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def alpha(self):
+        return get_flexure_parameter(self._eet, self._youngs, 2,
+                                     gamma_mantle=self.gamma_mantle)
+
     def _set_kei_func_grid(self):
         from scipy.special import kei
 
-        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
         dx, dy = np.meshgrid(
             np.arange(self._grid.number_of_node_columns) * self._grid.dx,
             np.arange(self._grid.number_of_node_rows) * self._grid.dy)
 
-        return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
+        return kei(np.sqrt(dx ** 2 + dy ** 2) / self.alpha)
 
     def update(self, n_procs=1):
         elevation = self.grid.at_node['lithosphere__elevation']
@@ -221,14 +262,14 @@ class Flexure(Component):
         deposition = self.grid.at_node['planet_surface_sediment__deposition_increment']
 
         new_load = ((load - self._last_load) +
-                    (deposition * 2650. * 9.81).flat)
+                    (deposition * self.gamma_sed).flat)
 
         self._last_load = load.copy()
 
         deflection.fill(0.)
 
         if self._method == 'airy':
-            deflection[:] = new_load / (3300. * 9.81)
+            deflection[:] = new_load / self.gamma_mantle
         else:
             self.subside_loads(new_load, deflection=deflection,
                                n_procs=n_procs)
@@ -242,8 +283,8 @@ class Flexure(Component):
 
         w = deflection.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
-        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
 
-        subside_grid_in_parallel(w, load, self._r, alpha, n_procs)
+        subside_grid_in_parallel(w, load, self._r, self.alpha,
+                                 self.gamma_mantle, n_procs)
 
         return deflection
