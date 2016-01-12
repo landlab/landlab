@@ -4,7 +4,7 @@
 
 """
 
-from landlab.components.flexure import FlexureComponent
+from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
 
 
@@ -23,7 +23,7 @@ def main():
 
     grid = RasterModelGrid(n_rows, n_cols, dx)
 
-    flex = FlexureComponent(grid, method='flexure')
+    flex = Flexure(grid, method='flexure')
 
     add_load_to_middle_of_grid(grid, 1e9)
 

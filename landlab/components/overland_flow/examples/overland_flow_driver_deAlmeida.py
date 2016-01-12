@@ -59,8 +59,9 @@ inside_left_edge = rmg.nodes[1: -1, 1]
 # Initializing our class...
 of = OverlandFlow(rmg)
 
-# Now, to set fixed value on the left edge, find link neighbor arrays...
-of.set_up_neighbor_arrays(rmg)
+# Now, we need to set a fixed value on the left edge, so we find the link
+# neighbor arrays...
+of.set_up_neighbor_arrays()
 
 # ... and get a list of all horizonal ids, not just active ids (which is what
 # the deAlmeida solution uses)
@@ -79,7 +80,7 @@ starttime = time()
 
 while elapsed_time < run_time:
     # First, we calculate our time step.
-    of.dt = of.gear_time_step(rmg)
+    dt = of.gear_time_step()
 
     # Now we are going to set the left edge horizontal links to their
     # neighboring discharge value
@@ -87,7 +88,7 @@ while elapsed_time < run_time:
         rmg['link']['water_discharge'][left_inactive_ids + 1])
 
     # Now, we can generate overland flow.
-    of.overland_flow(rmg, of.dt)
+    of.overland_flow()
 
     # Recalculate water depth at the boundary ...
     # water depth at left side (m)

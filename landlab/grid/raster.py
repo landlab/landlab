@@ -15,7 +15,7 @@ from landlab.utils import count_repeated_values
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
-                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK, 
+                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
                    INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable
@@ -897,58 +897,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return self._diagonals_at_node
 
-    def node_links(self, *args):
-        """node_links([node_ids])
-        Get links attached to nodes.
-
-        Returns the ids of links attached to grid nodes with *node_ids*. If
-        *node_ids* is not given, return links for all of the nodes in the
-        grid. Link ids are listed in clockwise order starting with the south
-        link (i.e., [S,W,N,E]). This method will not return diagonal links,
-        even if they exist. They need to be handled independently.
-
-        Parameters
-        ----------
-        node_ids : array_like, optional
-            IDs of nodes on a grid.
-
-        Returns
-        -------
-        (4, N) ndarray
-            Neighbor node IDs for the source nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(3, 4)
-        >>> grid.node_links(5)
-        array([[ 4],
-               [ 7],
-               [11],
-               [ 8]])
-        >>> grid.node_links((5, 6))
-        array([[ 4,  5],
-               [ 7,  8],
-               [11, 12],
-               [ 8,  9]])
-        >>> grid.node_links()
-        array([[-1, -1, -1, -1,  3,  4,  5,  6, 10, 11, 12, 13],
-               [-1,  0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16],
-               [ 3,  4,  5,  6, 10, 11, 12, 13, -1, -1, -1, -1],
-               [ 0,  1,  2, -1,  7,  8,  9, -1, 14, 15, 16, -1]])
-        """
-        if len(args) == 0:
-            return np.vstack((self.node_inlink_matrix,
-                              self.node_outlink_matrix))
-        elif len(args) == 1:
-            node_ids = np.broadcast_arrays(args[0])[0]
-            return (
-                np.vstack((self.node_inlink_matrix[:, node_ids],
-                           self.node_outlink_matrix[:, node_ids])
-                          ).reshape(4, -1))
-        else:
-            raise ValueError('only zero or one arguments accepted')
-
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
         Active links of a node.
@@ -970,11 +918,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.node_links(5)
-        array([[ 4],
-               [ 7],
-               [11],
-               [ 8]])
+        >>> rmg.links_at_node[5]
+        array([ 8, 11, 7, 4])
         >>> rmg.active_links_at_node((5, 6))
         array([[ 4,  5],
                [ 7,  8],
@@ -1033,7 +978,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodes in the grid. Link ids are listed in clockwise order starting
         from south (i.e., [SW,NW,NE,SE]).
         This method only returns diagonal links.
-        Call node_links() for the cardinal links.
+        Call links_at_node for the cardinal links.
 
         Parameters
         ----------
@@ -1081,6 +1026,26 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self._diagonal_links_at_node[:, node_ids]
         else:
             raise ValueError('only zero or one arguments accepted')
+
+    @property
+    @make_return_array_immutable
+    def horizontal_links(self):
+        try:
+            return self._horizontal_links
+        except AttributeError:
+            self._horizontal_links = squad_links.horizontal_link_ids(
+                self.shape)
+            return self._horizontal_links
+
+    @property
+    @make_return_array_immutable
+    def vertical_links(self):
+        try:
+            return self._vertical_links
+        except AttributeError:
+            self._vertical_links = squad_links.vertical_link_ids(
+                self.shape)
+            return self._vertical_links
 
     def patches_at_node(self, nodata=-1, masked=True, *args):
         """Get array of patches attached to nodes.
@@ -2844,7 +2809,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid 
+        >>> from landlab import RasterModelGrid
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
         >>> z = np.array([3., 3., 3., 3.,
@@ -4084,33 +4049,50 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         and/or left horizontal links ---to FIXED_LINK.
 
         By definition, fixed links exist between fixed gradient nodes
-        (node_status==2) and core nodes (node_status==0). Because the outer
-        ring of nodes are fixed gradient (node_status==2), the links between
-        them are inactive (link_status==4) and are not set using this
-        function (the inactive links are the top and bottom horizontal edge
-        links, and left and right edge vertical edge links.)
+        (status_at_node == 2) and core nodes (status_at_node == 0). Because the
+        outer ring of nodes are fixed gradient (status_at_node == 2), the links
+        between them are inactive (status_at_link == 4) and are not set using
+        this function (the inactive links are the top and bottom horizontal
+        edge links, and left and right edge vertical edge links.)
 
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
 
-        *value* controls what values are held constant at these nodes. It can
-        be either a float, an array of length number_of_fixed_nodes or
-        number_of_nodes (total), or left blank. If left blank, the values will
-        be set from the those already in the grid fields, according to
-        'value_of'.
+        *node_value* controls what values are held constant at the fixed
+        gradient nodes (status_at_node == 2). It can be either a float, an
+        array of length number_of_fixed_nodes or number_of_nodes (total), or
+        left blank. If left blank, the values will be set from the those
+        already in the grid fields, according to 'fixed_node_value_of'.
 
-        *value_of* controls the name of the model field that contains the
-        values. Remember, if you don't set value, the fixed values will be set
-        from the field values ***at the time you call this method***. If no
-        values are present in the field, the module will complain but accept
-        this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g.,
+        *link_value* controls what values are held constant at the fixed
+        links (status_at_link == 2). It can be either a float, an array of
+        length number_of_fixed_links or number_of_links (total), or
+        left blank. If left blank, the values will be set from the those
+        already in the grid fields, according to 'fixed_link_value_of'.
+
+        *fixed_node_value_of* controls the name of the model field that
+        contains the node values. Remember, if you don't set value, the fixed
+        gradient node values will be set from the field values ***at the time
+        you call this method***. If no values are present in the field, the
+        module will complain but accept this, warning that it will be unable to
+        automatically update boundary conditions (and such methods, e.g.,
+        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
+        if you try).
+
+        *fixed_link_value_of* controls the name of the model field that
+        contains the fixed link values. Remember, if you don't set value, the
+        fixed link values will be set from the field values ***at the time you
+        call this method***. If no values are present in the field, the module
+        will complain but accept this, warning that it will be unable to
+        automatically update boundary conditions (and such methods, e.g.,
         ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
         if you try).
 
         The following example sets the bottom and right link boundaries as
-        fixed-value in a four-row by five-column grid that initially has all
-        boundaries closed (i.e., flagged as link_status=2)
+        fixed-value in a four-row by nine-column grid that initially has all
+        boundaries set to fixed_gradient (nodes, i.e. flagged at
+        (status_at_node == 2) and fixed_link (links, i.e., flagged as
+        (status_at_link == 2).
 
         Parameters
         ----------
@@ -4122,10 +4104,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Set top edge vertical links as fixed boundary.
         right_is_fixed : boolean
             Set right edge  horizontal links as fixed boundary.
-        value : float, array or None (default).
+        link_value : float, array or None (default).
+            Override value to be kept constant at links.
+        node_value : float, array or None (default).
             Override value to be kept constant at nodes.
-        value_of : string.
-            The name of the grid field containing the values of interest.
+        fixed_node_value_of : string.
+            The name of the grid field containing the values of interest at
+            nodes.
+        fixed_link_value_of : string.
+            The name of the grid field containing the values of interest at
+            links.
 
         Examples
         --------
@@ -4157,7 +4145,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
 
-        ``x`` indicates the links that are set to :any:`FIXED_LINK`
+        ``X`` indicates the links that are set to :any:`FIXED_LINK`
 
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 9, 1.0) # rows, columns, spacing

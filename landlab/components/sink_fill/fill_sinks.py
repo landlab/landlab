@@ -165,7 +165,8 @@ class SinkFiller(Component):
         # delete them!
         existing_fields = {}
         spurious_fields = set()
-        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        set_of_outputs = (set(self._lf.output_var_names) |
+                          set(self._fr.output_var_names))
         try:
             set_of_outputs.remove(self.topo_field_name)
         except KeyError:
