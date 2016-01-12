@@ -45,6 +45,7 @@ elapsed_time = 1.0
 # Now we create our grid using the parameters set above.
 rmg = RasterModelGrid(numrows, numcols, dx)
 
+
 # Set our boundaries to closed to prevent water from flowing out of the study
 # plane
 rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -58,6 +59,7 @@ rmg.add_zeros('water_discharge', at='active_link') # unit discharge (m2/s)
 
 # Add our initial thin layer of water to the field of water depth.
 rmg['node']['water_depth'] += h_init
+
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those
 # nodes. One column in to prevent issues with BC.
@@ -75,14 +77,15 @@ while elapsed_time < run_time:
 
     # Recalculate water depth at the boundary ...
 
-    # water depth at left side (m) 
+    # water depth at left side (m)
     h_boundary = (seven_over_three * n * n * u * u * u *
                   elapsed_time) ** three_over_seven
-    
+
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
     rmg.at_node['water_depth'][inside_left_edge] = h_boundary
-    
+
+
     # Print time
     #print(elapsed_time)
     dt = of.gear_time_step(rmg)

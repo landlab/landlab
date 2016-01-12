@@ -87,13 +87,13 @@ while elapsed_time < run_time:
     # Now we are going to set the left edge horizontal links to their
     # neighboring discharge value
 
-    rmg['link']['water_discharge'][left_inactive_ids] = rmg['link']['water_discharge'][left_inactive_ids + 1]
+    rmg['link']['water_discharge'][left_inactive_ids] =   (rmg['link'][
+        'water_discharge'][left_inactive_ids + 1])
 
     # Now, we can generate overland flow.
     of.overland_flow()
 
     # Recalculate water depth at the boundary ...
-
     # water depth at left side (m)
     h_boundary = (seven_over_three * n * n * u * u * u *
                   elapsed_time) ** three_over_seven
@@ -101,6 +101,7 @@ while elapsed_time < run_time:
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
     rmg.at_node['water_depth'][inside_left_edge] = h_boundary
+
 
 
     # Print time

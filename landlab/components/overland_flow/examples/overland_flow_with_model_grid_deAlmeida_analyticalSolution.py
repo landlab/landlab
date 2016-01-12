@@ -119,9 +119,11 @@ h_boundary = (((seven_over_three) * n * n * u * u * u * elapsed_time) **
 # And now we add it to the second column, in all rows that are not boundary rows.
 h[inside_left_edge] = h_boundary
 
+
 # Main loop
 while elapsed_time <= run_time:
     # Calculate time-step size for this iteration (Bates et al., eq 14)
+
     dtmax = alpha*mg.dx/np.sqrt(g*np.amax(h))
 
     # First we calculate our updated boundary water depth
