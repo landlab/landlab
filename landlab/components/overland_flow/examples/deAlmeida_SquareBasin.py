@@ -97,7 +97,6 @@ while elapsed_time < model_run_time:
         of.rainfall_intensity = 0.0
 
     ## Generating overland flow based on the deAlmeida solution.
-
     of.overland_flow(rmg)
 
     ## Append time and discharge to their lists to save data and for plotting.

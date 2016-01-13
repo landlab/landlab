@@ -56,10 +56,8 @@ h_links = mg.add_zeros('link', 'water_depth') + h_init # water depth at links
 
 # rate of water-depth change
 dhdt = mg.add_zeros('node', 'water_depth_time_derivative')
-
 # Left side has deep water. One column in to prevent issues with BC
-inside_left_edge = rmg.nodes[1: -1, 1]
-
+inside_left_edge = mg.nodes[1: -1, 1]
 
 # Get a list of the core nodes
 core_nodes = mg.core_nodes
@@ -75,13 +73,11 @@ while elapsed_time <= run_time:
     # First we calculate our updated boundary water depth
     # water depth at left side (m)
 
-
     h_boundary = (seven_over_three * n * n * u * u * u *
                   elapsed_time) ** three_over_seven
 
     # And now we add it to the second column, in all rows that are not boundary rows.
     h[inside_left_edge] = h_boundary
-
 
     # Calculate the effective flow depth at active links. Bates et al. 2010
     # and de Almeida et al. 2012 both recommend using the the difference
@@ -112,7 +108,6 @@ while elapsed_time <= run_time:
     # First we calculate our updated boundary water depth
     h_boundary = (((seven_over_three) * n * n * u * u * u * elapsed_time) **
         (three_over_seven))      # water depth at left side (m)
-
 
     # And now we add it to the second column, in all rows that are not boundary rows.
     h[inside_left_edge] = h_boundary

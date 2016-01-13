@@ -59,7 +59,6 @@ rmg['node']['water_depth'] += h_init
 # nodes. One column in to prevent issues with BC.
 inside_left_edge = rmg.nodes[1: -1, 1]
 
-
 # Initializing our class...
 of = OverlandFlow(rmg, mannings_n=n)
 
@@ -94,6 +93,7 @@ while elapsed_time < run_time:
     of.overland_flow()
 
     # Recalculate water depth at the boundary ...
+
     # water depth at left side (m)
     h_boundary = (seven_over_three * n * n * u * u * u *
                   elapsed_time) ** three_over_seven
@@ -101,7 +101,6 @@ while elapsed_time < run_time:
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
     rmg.at_node['water_depth'][inside_left_edge] = h_boundary
-
 
 
     # Print time

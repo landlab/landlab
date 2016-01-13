@@ -54,6 +54,7 @@ h = mg.add_zeros('node', 'water_depth') + h_init     # water depth (m)
 q = mg.add_zeros('link', 'water_discharge')          # unit discharge (m2/s)
 slope = mg.add_zeros('link', 'topographic_slope')    # dimensionless slope
 
+
 # water depth (m) on links
 h_links = mg.add_zeros('link', 'water_depth') + h_init
 
@@ -115,10 +116,8 @@ south_neighbors = (links.vertical_south_link_neighbor(mg.shape,
 h_boundary = (((seven_over_three) * n * n * u * u * u * elapsed_time) **
     (three_over_seven))      # water depth at left side (m)
 
-
 # And now we add it to the second column, in all rows that are not boundary rows.
 h[inside_left_edge] = h_boundary
-
 
 # Main loop
 while elapsed_time <= run_time:
@@ -200,6 +199,7 @@ while elapsed_time <= run_time:
 
     # And now we add it to the second column, in all rows that are not boundary rows.
     h[inside_left_edge] = h_boundary
+
 
 
     # Print and update current time
