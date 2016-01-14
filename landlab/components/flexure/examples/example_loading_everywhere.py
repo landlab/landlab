@@ -7,11 +7,11 @@ from landlab import RasterModelGrid
 
 
 def get_random_load_magnitudes(n_loads):
-    return np.random.normal(1e9, 1e12, n_loads)
+    return np.random.normal(1e3, 10e6, n_loads)
 
 
 def put_loads_on_grid(grid, load_sizes):
-    load = grid.at_node['lithosphere__overlying_pressure']
+    load = grid.at_node['lithosphere__overlying_pressure_increment']
     load[:] = load_sizes
 
     #for (loc, size) in zip(load_locations, load_sizes):
@@ -47,7 +47,7 @@ def main():
     flex.update(n_procs=args.n_procs)
 
     if args.plot:
-        grid.imshow('node', 'lithosphere__elevation',
+        grid.imshow('node', 'lithosphere__elevation_increment',
                     symmetric_cbar=False, cmap='spectral', show=True)
 
 if __name__ == '__main__':

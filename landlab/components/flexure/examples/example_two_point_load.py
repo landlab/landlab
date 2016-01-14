@@ -15,11 +15,12 @@ LOAD_LOCS = [
 
 
 def put_two_point_loads_on_grid(grid):
-    load = grid.field_values('node', 'lithosphere__overlying_pressure')
+    load = grid.field_values('node',
+                             'lithosphere__overlying_pressure_increment')
     load = load.view()
     load.shape = grid.shape
     for loc in LOAD_LOCS:
-        load[loc] = 1e15
+        load[loc] = 10e6
 
 
 def create_lithosphere_elevation_with_bulge(grid):
@@ -46,8 +47,9 @@ def main():
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False,
-                show=True)
+    grid.at_node['lithosphere__elevation'] += grid.at_node['lithosphere__elevation_increment']
+    grid.imshow('node', 'lithosphere__elevation',
+                symmetric_cbar=False, show=True)
 
 
 if __name__ == '__main__':

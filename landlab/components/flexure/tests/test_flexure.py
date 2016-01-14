@@ -19,7 +19,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 def setup_grid():
     from landlab import RasterModelGrid
-    grid = RasterModelGrid(20, 20, 10e3)
+    grid = RasterModelGrid((20, 20), spacing=10e3)
     flex = Flexure(grid)
     globals().update({
         'flex': Flexure(grid)
@@ -33,17 +33,14 @@ def test_name():
 
 @with_setup(setup_grid)
 def test_input_var_names():
-    assert_equal(sorted(flex.input_var_names),
-                 ['lithosphere__elevation',
-                  'lithosphere__overlying_pressure',
-                  'planet_surface_sediment__deposition_increment'])
+    assert_equal(flex.input_var_names,
+                 ('lithosphere__overlying_pressure_increment', ))
 
 
 @with_setup(setup_grid)
 def test_output_var_names():
-    assert_equal(sorted(flex.output_var_names),
-                 ['lithosphere__elevation',
-                  'lithosphere__elevation_increment'])
+    assert_equal(flex.output_var_names,
+                 ('lithosphere__elevation_increment',))
 
 
 @with_setup(setup_grid)
@@ -52,11 +49,9 @@ def test_var_units():
                  set(flex.output_var_names),
                  set(dict(flex.units).keys()))
 
-    assert_equal(flex.var_units('lithosphere__elevation'), 'm')
     assert_equal(flex.var_units('lithosphere__elevation_increment'), 'm')
-    assert_equal(flex.var_units('lithosphere__overlying_pressure'), 'Pa')
-    assert_equal(
-        flex.var_units('planet_surface_sediment__deposition_increment'), 'm')
+    assert_equal(flex.var_units('lithosphere__overlying_pressure_increment'),
+                 'Pa')
 
 
 @with_setup(setup_grid)

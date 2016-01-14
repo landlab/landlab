@@ -16,49 +16,44 @@ Create a grid on which we will run the flexure calculations.
 Check the fields that are used as input to the flexure component.
 
 >>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
-('lithosphere__overlying_pressure', 'lithosphere__elevation',
- 'planet_surface_sediment__deposition_increment')
+('lithosphere__overlying_pressure_increment',)
 
 Check the units for the fields.
 
->>> Flexure.var_units('lithosphere__elevation')
-'m'
->>> Flexure.var_units('lithosphere__overlying_pressure')
+>>> Flexure.var_units('lithosphere__overlying_pressure_increment')
 'Pa'
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> Flexure.var_help('planet_surface_sediment__deposition_increment')
-name: planet_surface_sediment__deposition_increment
+>>> Flexure.var_help('lithosphere__overlying_pressure_increment')
+name: lithosphere__overlying_pressure_increment
 description:
-  The amount of sediment deposited at the land surface in one timestep
-units: m
+  Applied pressure to the lithosphere over a time step
+units: Pa
 at: node
 intent: in
 
-Add these fields to the grid.
-
->>> _ = grid.add_zeros('lithosphere__elevation', at='node')
->>> _ = grid.add_zeros('lithosphere__overlying_pressure', at='node')
->>> _ = grid.add_zeros('planet_surface_sediment__deposition_increment', at='node')
-
->>> dh = grid.at_node['planet_surface_sediment__deposition_increment']
->>> dh = dh.reshape(grid.shape)
->>> dh[1:-1, 1:-1] = 3300 / 2650.
-
 >>> flex = Flexure(grid)
+
+In creating the component, a field (initialized with zeros) was added to the
+grid. Reset the interior nodes for the loading.
+
+>>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
+>>> dh = dh.reshape(grid.shape)
+>>> dh[1:-1, 1:-1] = flex.gamma_mantle
+
 >>> flex.update()
 
 >>> flex.output_var_names
-('lithosphere__elevation_increment', 'lithosphere__elevation')
->>> flex.grid.at_node['lithosphere__elevation']
+('lithosphere__elevation_increment',)
+>>> flex.grid.at_node['lithosphere__elevation_increment']
 ...     # doctest: +NORMALIZE_WHITESPACE
-array([ 0.,  0.,  0.,  0.,
-        0., -1., -1.,  0.,
-        0., -1., -1.,  0.,
-        0., -1., -1.,  0.,
-        0.,  0.,  0.,  0.])
+array([ 0., 0., 0., 0.,
+        0., 1., 1., 0.,
+        0., 1., 1., 0.,
+        0., 1., 1., 0.,
+        0., 0., 0., 0.])
 """
 
 import numpy as np
@@ -75,6 +70,26 @@ class Flexure(Component):
     Landlab component that implements a 1 and 2D lithospheric flexure
     model.
 
+    Construction::
+
+        Flexure(grid, eet=65e3, youngs=7e10, method='airy', rho_mantle=3300.,
+                gravity=9.80665)
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    eet : float, optional
+        Effective elastic thickness (m).
+    youngs : float, optional
+        Young's modulus.
+    method : {'airy', 'flexure'}, optional
+        Method to use to calculate deflections.
+    rho_mantle : float, optional
+        Density of the mantle (kg / m^3).
+    gravity : float, optional
+        Acceleration due to gravity (m / s^2).
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -84,16 +99,13 @@ class Flexure(Component):
     >>> flex = Flexure(grid)
     >>> flex.name
     'Flexure'
-    >>> sorted(flex.input_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['lithosphere__elevation', 'lithosphere__overlying_pressure',
-     'planet_surface_sediment__deposition_increment']
-    >>> sorted(flex.output_var_names)
-    ['lithosphere__elevation', 'lithosphere__elevation_increment']
+    >>> flex.input_var_names
+    ('lithosphere__overlying_pressure_increment',)
+    >>> flex.output_var_names
+    ('lithosphere__elevation_increment',)
     >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
-    [('lithosphere__elevation', 'm'),
-     ('lithosphere__elevation_increment', 'm'),
-     ('lithosphere__overlying_pressure', 'Pa'),
-     ('planet_surface_sediment__deposition_increment', 'm')]
+    [('lithosphere__elevation_increment', 'm'),
+     ('lithosphere__overlying_pressure_increment', 'Pa')]
 
     >>> flex.grid.number_of_node_rows
     5
@@ -102,18 +114,16 @@ class Flexure(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
     True
 
-    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
-    True
-    >>> np.all(grid.at_node['lithosphere__overlying_pressure'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
     True
     >>> flex.update()
     >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
     True
 
-    >>> load = grid.at_node['lithosphere__overlying_pressure']
+    >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
     >>> load[4] = 1e9
     >>> dz = grid.at_node['lithosphere__elevation_increment']
     >>> np.all(dz == 0.)
@@ -127,47 +137,34 @@ class Flexure(Component):
     _name = 'Flexure'
 
     _input_var_names = (
-        'lithosphere__overlying_pressure',
-        'lithosphere__elevation',
-        'planet_surface_sediment__deposition_increment',
+        'lithosphere__overlying_pressure_increment',
     )
 
     _output_var_names = (
         'lithosphere__elevation_increment',
-        'lithosphere__elevation',
     )
 
     _var_units = {
-        'lithosphere__overlying_pressure': 'Pa',
-        'lithosphere__elevation': 'm',
+        'lithosphere__overlying_pressure_increment': 'Pa',
         'lithosphere__elevation_increment': 'm',
-        'planet_surface_sediment__deposition_increment': 'm',
     }
 
     _var_mapping = {
-        'lithosphere__overlying_pressure': 'node',
-        'lithosphere__elevation': 'node',
+        'lithosphere__overlying_pressure_increment': 'node',
         'lithosphere__elevation_increment': 'node',
-        'planet_surface_sediment__deposition_increment': 'node',
     }
 
     _var_doc = {
-        'lithosphere__overlying_pressure':
-            'The pressure at the base of the lithosphere',
-        'lithosphere__elevation':
-            'The elevation of the top of the lithosphere, i.e., the land '
-            'surface',
+        'lithosphere__overlying_pressure_increment':
+            'Applied pressure to the lithosphere over a time step',
         'lithosphere__elevation_increment':
             'The change in elevation of the top of the lithosphere (the land '
             'surface) in one timestep',
-        'planet_surface_sediment__deposition_increment':
-            'The amount of sediment deposited at the land surface in one '
-            'timestep',
     }
 
     @use_file_name_or_kwds
     def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
-                 rho_sed=2650., rho_mantle=3300., gravity=9.80665, **kwds):
+                 rho_mantle=3300., gravity=9.80665, **kwds):
         """Initialize the flexure component.
 
         Parameters
@@ -180,6 +177,10 @@ class Flexure(Component):
             Young's modulus.
         method : {'airy', 'flexure'}, optional
             Method to use to calculate deflections.
+        rho_mantle : float, optional
+            Density of the mantle (kg / m^3).
+        gravity : float, optional
+            Acceleration due to gravity (m / s^2).
         """
         if method not in ('airy', 'flexure'):
             raise ValueError(
@@ -188,7 +189,6 @@ class Flexure(Component):
         self._eet = eet
         self._youngs = youngs
         self._method = method
-        self._rho_sed = rho_sed
         self._rho_mantle = rho_mantle
         self._gravity = gravity
 
@@ -204,45 +204,48 @@ class Flexure(Component):
             if name not in self.grid.at_node:
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
-        self._last_load = (
-            self.grid.at_node['lithosphere__overlying_pressure'].copy())
-
         self._r = self._set_kei_func_grid()
 
     @property
     def eet(self):
+        """Effective elastic thickness (m)."""
         return self._eet
+
+    @eet.setter
+    def eet(self, new_val):
+        if new_val <= 0:
+            raise ValueError('Effective elastic thickness must be positive.')
+        self._r = self._set_kei_func_grid()
+        self._eet = new_val
 
     @property
     def youngs(self):
+        """Young's modulus of lithosphere (Pa)."""
         return self._youngs
 
     @property
-    def rho_sed(self):
-        return self._rho_sed
-
-    @property
-    def gamma_sed(self):
-        return self._rho_sed * self._gravity
-
-    @property
     def rho_mantle(self):
+        """Density of mantle (kg/m^3)."""
         return self._rho_mantle
 
     @property
     def gamma_mantle(self):
+        """Specific density of mantle (N/m^3)."""
         return self._rho_mantle * self._gravity
 
     @property
     def gravity(self):
+        """Acceleration due to gravity (m/s^2)."""
         return self._gravity
 
     @property
     def method(self):
+        """Name of method used to calculate deflections."""
         return self._method
 
     @property
     def alpha(self):
+        """Flexure parameter (m)."""
         return get_flexure_parameter(self._eet, self._youngs, 2,
                                      gamma_mantle=self.gamma_mantle)
 
@@ -256,15 +259,17 @@ class Flexure(Component):
         return kei(np.sqrt(dx ** 2 + dy ** 2) / self.alpha)
 
     def update(self, n_procs=1):
-        elevation = self.grid.at_node['lithosphere__elevation']
-        load = self.grid.at_node['lithosphere__overlying_pressure']
+        """Update fields with current loading conditions.
+
+        Parameters
+        ----------
+        n_procs : int, optional
+            Number of processors to use for calculations.
+        """
+        load = self.grid.at_node['lithosphere__overlying_pressure_increment']
         deflection = self.grid.at_node['lithosphere__elevation_increment']
-        deposition = self.grid.at_node['planet_surface_sediment__deposition_increment']
 
-        new_load = ((load - self._last_load) +
-                    (deposition * self.gamma_sed).flat)
-
-        self._last_load = load.copy()
+        new_load = load.copy()
 
         deflection.fill(0.)
 
@@ -273,9 +278,24 @@ class Flexure(Component):
         else:
             self.subside_loads(new_load, deflection=deflection,
                                n_procs=n_procs)
-        np.subtract(elevation, deflection, out=elevation)
 
     def subside_loads(self, loads, deflection=None, n_procs=1):
+        """Subside surface due to multiple loads.
+
+        Parameters
+        ----------
+        loads : ndarray of float
+            Loads applied to each grid node.
+        deflection : ndarray of float, optional
+            Buffer to place resulting deflection values.
+        n_procs : int, optional
+            Number of processors to use for calculations.
+
+        Returns
+        -------
+        ndarray of float
+            Deflections caused by the loading.
+        """
         if deflection is None:
             deflection = np.empty(self.shape, dtype=np.float)
 
@@ -284,7 +304,8 @@ class Flexure(Component):
         w = deflection.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
 
-        subside_grid_in_parallel(w, load, self._r, self.alpha,
-                                 self.gamma_mantle, n_procs)
+        subside_grid_in_parallel(w, load * self._grid.dx * self._grid.dy,
+                                 self._r, self.alpha, self.gamma_mantle,
+                                 n_procs)
 
         return deflection
