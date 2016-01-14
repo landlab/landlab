@@ -58,6 +58,8 @@ hydrograph_time_hrs = []
 ## Setting initial fields...
 rmg['node']['topographic__elevation'] = z
 rmg['link']['water_discharge'] = np.zeros(rmg.number_of_links)
+rmg['node']['water_depth'] = np.zeros(rmg.number_of_nodes)
+
 
 ## and fixed link boundary conditions...
 rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True, fixed_link_value_of='water_discharge')

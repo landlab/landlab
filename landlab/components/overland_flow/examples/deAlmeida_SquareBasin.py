@@ -58,6 +58,8 @@ hydrograph_time_hrs = []
 ## Setting initial fields...
 rmg['node']['topographic__elevation'] = z
 rmg['link']['water_discharge'] = np.zeros(rmg.number_of_links)
+rmg['node']['water_depth'] = np.zeros(rmg.number_of_nodes)
+
 
 ## and fixed link boundary conditions...
 rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True, fixed_link_value_of='water_discharge')
@@ -82,8 +84,6 @@ storm_duration = 7200.0
 ## Running the overland flow component.
 while elapsed_time < model_run_time:
 
-    ## At the start of each loop, we calculate a new time step.
-    of.dt = of.gear_time_step(rmg)
 
     ## The storm starts when the model starts. While the elapsed time is less
     ## than the storm duration, we add water to the system as rainfall.
