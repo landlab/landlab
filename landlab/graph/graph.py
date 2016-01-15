@@ -354,6 +354,19 @@ class Graph(object):
         """
         return self._link_dirs_at_node
 
+    def _setup_angle_of_link(self):
+        y = self.y_of_node[self.nodes_at_link]
+        x = self.x_of_node[self.nodes_at_link]
+        return np.arctan2(np.diff(y), np.diff(x)).reshape((-1, ))
+
+    @property
+    def angle_of_link(self):
+        try:
+            return self._angle_of_link
+        except AttributeError:
+            self._angle_of_link = self._setup_angle_of_link()
+            return self._angle_of_link
+
 
 def _find_links_at_node(node, nodes_at_link):
     """Find links and link directions at a node.
