@@ -1,5 +1,9 @@
 class DualGraphMixIn(object):
     @property
+    def dual(self):
+        return self._dual
+
+    @property
     def node_at_cell(self):
         return self._node_at_cell
 
