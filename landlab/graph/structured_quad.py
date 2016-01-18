@@ -1,6 +1,7 @@
 import numpy as np
 
 from .graph import Graph
+from ..grid.structured_quad.links import links_at_node, link_dirs_at_node
 
 
 def setup_links_at_patch(shape):
@@ -104,6 +105,11 @@ class StructuredQuadGraph(Graph):
                                                   links=nodes_at_link,
                                                   patches=links_at_patch)
 
+    def _setup_links_at_node(self):
+        """Set up node-link data structures."""
+        self._links_at_node = links_at_node(self.shape)
+        self._link_dirs_at_node = link_dirs_at_node(self.shape)
+
     @property
     def shape(self):
         return self._shape
@@ -158,10 +164,15 @@ class UniformRectilinearGraph(RectilinearGraph):
             0.,  2.,  4.,
             0.,  2.,  4.])
     >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
-           [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
-           [ 7, 10, 12, -1], [ 8, 10, 11, 13], [ 9, 11, 14, -1],
-           [12, 15, -1, -1], [13, 15, 16, -1], [14, 16, -1, -1]])
+    array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
+           [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
+           [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
+           [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
+    >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+           [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+           [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
     >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
     array([[ 0,  1], [ 1,  2], [ 0,  3], [ 1,  4], [ 2,  5],
            [ 3,  4], [ 4,  5], [ 3,  6], [ 4,  7], [ 5,  8],
