@@ -1,22 +1,32 @@
-landlab.grid package
+Landlab Grids
 ====================
 
-Subpackages
------------
+landlab.grid package
+
+.. Subpackages
+.. -----------
 
 .. toctree::
 
-    landlab.grid.structured_quad
-    landlab.grid.tests
-    landlab.grid.unstructured
+..    landlab.grid.structured_quad
+..    landlab.grid.tests
+..    landlab.grid.unstructured
 
-Submodules
-----------
+.. Submodules
+.. ----------
 
-landlab.grid.base module
+Grid base class and related functions
 ------------------------
+landlab.grid.base module
 
 .. automodule:: landlab.grid.base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.grid.grid_funcs module
+```````````````````````````````
+.. automodule:: landlab.grid.grid_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -29,13 +39,6 @@ landlab.grid.create module
     :undoc-members:
     :show-inheritance:
 
-landlab.grid.grid_funcs module
-------------------------------
-
-.. automodule:: landlab.grid.grid_funcs
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 landlab.grid.hex module
 -----------------------
