@@ -102,12 +102,28 @@ class Graph(object):
     def _setup_links(self, links):
         """Set up node-link data structures."""
         self._nodes_at_link = np.asarray(links, dtype=np.int)
+        self._setup_links_at_node()
+
+    def _setup_links_at_node(self):
         self._links_at_node, self._link_dirs_at_node = _setup_links_at_node(
             self._nodes_at_link, number_of_nodes=self.number_of_nodes)
+        self._reorder_links_at_node()
 
     def _setup_patches(self, patches):
         """Set up patch data structures."""
         self._links_at_patch = _setup_links_at_patch(patches)
+
+    def _reorder_links_at_node(self):
+        from .cfuncs import _reorder_links_at_node
+
+        outward_angle = self.angle_of_link[self.links_at_node]
+        outward_angle[np.where(self.link_dirs_at_node == -1)] -= np.pi
+        outward_angle[np.where(self.link_dirs_at_node == 0)] = 2 * np.pi
+
+        sorted_links = np.argsort(outward_angle)
+
+        _reorder_links_at_node(self._links_at_node, sorted_links)
+        _reorder_links_at_node(self._link_dirs_at_node, sorted_links)
 
     @property
     def x_of_node(self):
@@ -357,7 +373,7 @@ class Graph(object):
     def _setup_angle_of_link(self):
         y = self.y_of_node[self.nodes_at_link]
         x = self.x_of_node[self.nodes_at_link]
-        return np.arctan2(np.diff(y), np.diff(x)).reshape((-1, ))
+        return np.arctan2(np.diff(y), np.diff(x)).reshape((-1, )) + np.pi
 
     @property
     def angle_of_link(self):

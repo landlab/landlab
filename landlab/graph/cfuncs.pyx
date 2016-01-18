@@ -13,6 +13,24 @@ def _find_links_at_node(DTYPE_t node,
                         np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
                         np.ndarray[DTYPE_t, ndim=1] links_at_node,
                         np.ndarray[DTYPE_t, ndim=1] link_dirs_at_node):
+  """Find directions of links touching a node.
+
+  Parameters
+  ----------
+  node : int
+      A node ID.
+  nodes_at_link : ndarray of int, shape `(n_links, 2)`
+      Nodes at link tail and head.
+  links_at_node : ndarray of int, shape `(max_links_per_node, )`
+      Buffer to hold link IDs for links around node.
+  link_dirs_at_node : ndarray of int, shape `(max_links_per_node, )`
+      Buffer to hold link directions for links around node.
+
+  Returns
+  -------
+  int
+    The number of links found.
+  """
   cdef int link = 0
   cdef int n_links_found = 0
   cdef int max_links_at_node = links_at_node.shape[0]
@@ -166,3 +184,22 @@ def _setup_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
         for i in range(offset, offset + n_links):
           out[patch, link] = links_at_patch[i]
           link += 1
+
+
+@cython.boundscheck(False)
+def _reorder_links_at_node(np.ndarray[DTYPE_t, ndim=2] links_at_node,
+                           np.ndarray[DTYPE_t, ndim=2] sorted_links):
+    cdef int n_nodes = links_at_node.shape[0]
+    cdef int n_links_per_node = links_at_node.shape[1]
+    cdef int i
+    cdef int node
+    cdef int *buffer = <int *>malloc(n_links_per_node * sizeof(int))
+
+    try:
+      for node in range(n_nodes):
+          for i in range(n_links_per_node):
+              buffer[i] = links_at_node[node, sorted_links[node, i]]
+          for i in range(n_links_per_node):
+            links_at_node[node, i] = buffer[i]
+    finally:
+        free(buffer)
