@@ -23,9 +23,24 @@
 ..   dan_installs_on_linux
 ..   getting_example_files
 
+Landlab Developer API
+==============================
 
 Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
-==============================
+
+Contributing to Landlab
+=======================
+
+If you're intending to make changes to the Landlab code base,
+or want to develop your own components, we recommend you follow
+these specialized developer install instructions.
+
+.. toctree::
+  :maxdepth: 2
+
+  dev_guide_install
+  dev_guide_components
+
 
 .. toctree::
     :maxdepth: 1
@@ -116,38 +131,71 @@ Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`
 ..   faq
 
 
-Developer Documentation
+Grids
 =======================
 
-If you're intending to make changes to the Landlab code base,
-or want to develop your own components, we recommend you follow
-these specialized developer install instructions.
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid
+
+
+Components
+=======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   dev_guide_install
-   dev_guide_components
+   landlab.components
 
-Simple guides to functionality
-------------------------------
 
-These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
+Input/Output (IO)
+=======================
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 4
 
-  users_guide
+   landlab.io
+
+
+Plotting and Visualization
+=======================
 
 .. toctree::
-  :maxdepth: 2
+   :maxdepth: 4
 
-  manual_index_alt_format
+   landlab.plot
+
+
+Cellular Automata (CA)
+=======================
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 4
 
-  standard_names
+   landlab.ca
+
+
+
+.. Simple guides to functionality
+.. ------------------------------
+
+.. These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
+
+.. toctree::
+..  :maxdepth: 1
+
+..  users_guide
+
+.. toctree::
+..  :maxdepth: 2
+
+..  manual_index_alt_format
+
+.. toctree::
+..  :maxdepth: 1
+
+..  standard_names
 
 References
 ==========
