@@ -2,6 +2,7 @@
 
 Examples
 --------
+
 >>> from landlab.graph import Graph
 
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
@@ -29,14 +30,14 @@ array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
 array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
 >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
-array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
-       [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
-       [ 7, 10, -1, -1], [ 8, 10, 11, -1], [ 9, 11, -1, -1]])
+array([[ 2,  0, -1, -1], [ 3,  1,  0, -1], [ 4,  1, -1, -1],
+       [ 7,  5,  2, -1], [ 8,  6,  3,  5], [ 9,  4,  6, -1],
+       [10,  7, -1, -1], [11,  8, 10, -1], [ 9, 11, -1, -1]])
 
 >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
-       [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0],
-       [ 1, -1,  0,  0], [ 1,  1, -1,  0], [ 1,  1,  0,  0]])
+array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
+       [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
+       [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
 
 >>> patches = ((5, 3, 0, 2), (6, 4, 1, 3), (10, 8, 5, 7), (11, 9, 6, 8))
 >>> graph = Graph((node_y, node_x), links=links, patches=patches)
@@ -117,8 +118,12 @@ class Graph(object):
         from .cfuncs import _reorder_links_at_node
 
         outward_angle = self.angle_of_link[self.links_at_node]
-        outward_angle[np.where(self.link_dirs_at_node == -1)] -= np.pi
-        outward_angle[np.where(self.link_dirs_at_node == 0)] = 2 * np.pi
+
+        links_entering = np.where(self.link_dirs_at_node == 1)
+        outward_angle[links_entering] += np.pi
+        outward_angle[outward_angle >= 2 * np.pi] -= 2 * np.pi
+
+        outward_angle[np.where(self.link_dirs_at_node == 0)] = 4 * np.pi
 
         sorted_links = np.argsort(outward_angle)
 
@@ -343,9 +348,9 @@ class Graph(object):
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  2, -1, -1], [ 0,  1,  3, -1], [ 1,  4, -1, -1],
-               [ 2,  5,  7, -1], [ 3,  5,  6,  8], [ 4,  6,  9, -1],
-               [ 7, 10, -1, -1], [ 8, 10, 11, -1], [ 9, 11, -1, -1]])
+        array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
+               [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
+               [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
         """
         return self._links_at_node
 
@@ -364,16 +369,18 @@ class Graph(object):
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1,  0,  0], [ 1, -1, -1,  0], [ 1, -1,  0,  0],
-               [ 1, -1, -1,  0], [ 1,  1, -1, -1], [ 1,  1, -1,  0],
-               [ 1, -1,  0,  0], [ 1,  1, -1,  0], [ 1,  1,  0,  0]])
+        array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
+               [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
+               [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
         """
         return self._link_dirs_at_node
 
     def _setup_angle_of_link(self):
-        y = self.y_of_node[self.nodes_at_link]
-        x = self.x_of_node[self.nodes_at_link]
-        return np.arctan2(np.diff(y), np.diff(x)).reshape((-1, )) + np.pi
+        y = self.y_of_node[self.nodes_at_link[:, ::-1]]
+        x = self.x_of_node[self.nodes_at_link[:, ::-1]]
+        angles = np.arctan2(np.diff(y), np.diff(x)).reshape((-1, )) + np.pi
+        angles[angles == 2. * np.pi] = 0.
+        return angles
 
     @property
     def angle_of_link(self):

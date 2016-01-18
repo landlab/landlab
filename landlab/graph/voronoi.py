@@ -38,8 +38,8 @@ class VoronoiGraph(Graph):
         array([[3, 0], [0, 1], [1, 3], [2, 5], [5, 4], [4, 2], [1, 2], [4, 1],
                [4, 3]])
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  1, -1, -1], [ 1,  2,  6,  7], [ 3,  5,  6, -1],
-               [ 0,  2,  8, -1], [ 4,  5,  7,  8], [ 3,  4, -1, -1]])
+        array([[ 1,  0, -1, -1], [ 6,  7,  2,  1], [ 3,  5,  6, -1],
+               [ 8,  0,  2, -1], [ 4,  8,  7,  5], [ 4,  3, -1, -1]])
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[0, 1, 3], [2, 4, 5], [1, 2, 4], [1, 3, 4]])
         """
