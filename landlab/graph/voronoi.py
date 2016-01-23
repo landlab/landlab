@@ -14,7 +14,7 @@ class VoronoiGraph(Graph):
     >>> from landlab.graph import VoronoiGraph
     """
 
-    def __init__(self, nodes, sort=False):
+    def __init__(self, nodes, sort=False, ccw=False):
         """Create a voronoi grid.
 
         Parameters
@@ -29,7 +29,7 @@ class VoronoiGraph(Graph):
         ...           1, 2, 3]
         >>> node_y = [0, 0, 0,
         ...           2, 2, 2]
-        >>> graph = VoronoiGraph((node_y, node_x))
+        >>> graph = VoronoiGraph((node_y, node_x), ccw=True)
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  1.,  2.,  3.])
         >>> graph.y_of_node
@@ -64,4 +64,5 @@ class VoronoiGraph(Graph):
 
         super(VoronoiGraph, self).__init__((node_y.flat, node_x.flat),
                                            links=nodes_at_link,
-                                           patches=links_at_patch, sort=sort)
+                                           patches=links_at_patch, sort=sort,
+                                           ccw=ccw)

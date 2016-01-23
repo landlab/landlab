@@ -11,7 +11,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
 
     """Dual graph of a voronoi grid."""
 
-    def __init__(self, nodes, sort=False):
+    def __init__(self, nodes, sort=False, ccw=False):
         """Create a voronoi grid.
 
         Parameters
@@ -28,7 +28,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         >>> node_y = [0, 0, 0, 0,
         ...           1, 1, 1, 1,
         ...           2, 2, 2, 2]
-        >>> graph = DualVoronoiGraph((node_y, node_x))
+        >>> graph = DualVoronoiGraph((node_y, node_x), ccw=True)
         >>> graph.x_of_corner
         array([ 0.9,  1.7,  1.9,  0.7,  2.7,  2.7,  1.7,  2.5,  1.5,  0.7])
         >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
@@ -44,7 +44,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         >>> graph.node_at_cell
         array([5, 6])
         """
-        super(DualVoronoiGraph, self).__init__(nodes, sort=sort)
+        super(DualVoronoiGraph, self).__init__(nodes, sort=sort, ccw=ccw)
 
         voronoi = Voronoi(list(zip(self.x_of_node, self.y_of_node)))
 
@@ -57,5 +57,5 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         node_x = xy_at_corner[:, 0]
 
         self._dual = Graph((node_y, node_x), links=corners_at_face,
-                           patches=faces_at_cell)
+                           patches=faces_at_cell, ccw=ccw)
         self._node_at_cell = node_at_cell

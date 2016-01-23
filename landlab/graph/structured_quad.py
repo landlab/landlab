@@ -103,12 +103,14 @@ class StructuredQuadGraph(Graph):
 
         super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
                                                   links=nodes_at_link,
-                                                  patches=links_at_patch)
+                                                  patches=links_at_patch,
+                                                  sort=False, ccw=False)
 
-    def _setup_links_at_node(self):
+    def get_links_at_node(self):
         """Set up node-link data structures."""
         self._links_at_node = links_at_node(self.shape)
         self._link_dirs_at_node = link_dirs_at_node(self.shape)
+        return (self._links_at_node, self._link_dirs_at_node)
 
     @property
     def shape(self):
