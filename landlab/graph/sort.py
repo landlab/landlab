@@ -184,6 +184,7 @@ def sort_links(nodes_at_link, nodes, midpoint_of_link=None):
 
     sorted_links = argsort_points_by_x_then_y(midpoint_of_link)
     nodes_at_link[:] = nodes_at_link[sorted_links]
+    midpoint_of_link[:] = midpoint_of_link[sorted_links]
 
     return sorted_links
 
