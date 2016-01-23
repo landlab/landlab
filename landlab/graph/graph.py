@@ -58,6 +58,7 @@ import numpy as np
 
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
+from .sort import sort_graph
 
 
 class Graph(object):
@@ -84,7 +85,8 @@ class Graph(object):
             raise ValueError('length mismatch in node coordinates')
 
         if sort:
-            nodes, links, patches = sort_graph(nodes, links, patches)
+            nodes, links, patches = sort_graph(nodes, links=links,
+                                               patches=patches)
         else:
             if patches is not None:
                 patches = flatten_jagged_array(patches, dtype=int)
@@ -112,6 +114,15 @@ class Graph(object):
 
     def _setup_patches(self, patches):
         """Set up patch data structures."""
+        from .cfuncs import reorder_links_at_patch
+
+        x = (self.x_of_node[self.node_at_link_head] +
+             self.x_of_node[self.node_at_link_tail]) * .5
+        y = (self.y_of_node[self.node_at_link_head] +
+             self.y_of_node[self.node_at_link_tail]) * .5
+        xy_of_link = np.vstack((x, y)).T
+
+        reorder_links_at_patch(patches[0], patches[1], xy_of_link)
         self._links_at_patch = _setup_links_at_patch(patches)
 
     def _reorder_links_at_node(self):

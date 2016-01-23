@@ -2,10 +2,69 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc, free, qsort
+from libc.math cimport atan2
+
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
+
+from libc.stdlib cimport malloc, free, qsort
+
+
+ctypedef np.int_t INT_t
+ctypedef np.float_t FLOAT_t
+
+cdef struct Sorter:
+    INT_t index
+    FLOAT_t value
+
+
+cdef extern from "stdlib.h":
+    ctypedef void const_void "const void"
+    void qsort(void *base, int nmemb, int size,
+            int(*compar)(const_void *, const_void *)) nogil
+
+
+cdef int _compare(const_void *a, const_void *b):
+    cdef double v = ((<Sorter*>a)).value - ((<Sorter*>b)).value
+    if v < 0:
+        return -1
+    else:
+        return 1
+
+
+cdef void _argsort(double * data, int n_elements, Sorter * order):
+    cdef int i
+
+    for i in range(n_elements):
+        order[i].index = i
+        order[i].value = data[i]
+
+    qsort(<void*> order, n_elements, sizeof(Sorter), _compare)
+
+
+cdef argsort(double * data, int n_elements, int * out):
+    cdef Sorter *sorted_struct = <Sorter*>malloc(n_elements * sizeof(Sorter))
+
+    try:
+        _argsort(data, n_elements, sorted_struct)
+        for i in range(n_elements):
+            out[i] = sorted_struct[i].index
+    finally:
+        free(sorted_struct)
+
+
+cdef argsort_inplace(double * data, int n_elements, int * out):
+    cdef Sorter *sorted_struct = <Sorter*>malloc(n_elements * sizeof(Sorter))
+
+    try:
+        _argsort(data, n_elements, sorted_struct)
+        for i in range(n_elements):
+            out[i] = sorted_struct[i].index
+            data[i] = sorted_struct[i].value
+    finally:
+        free(sorted_struct)
 
 
 @cython.boundscheck(False)
@@ -203,3 +262,115 @@ def _reorder_links_at_node(np.ndarray[DTYPE_t, ndim=2] links_at_node,
             links_at_node[node, i] = buffer[i]
     finally:
         free(buffer)
+
+
+cdef calc_centroid(double * points, np.int_t n_points, double * out):
+    cdef int i
+    cdef double xc = 0.
+    cdef double yc = 0.
+
+    for i in range(0, 2 * n_points, 2):
+        xc += points[i]
+        yc += points[i + 1]
+    print xc, yc
+    xc /= n_points
+    yc /= n_points
+
+    out[0] = xc
+    out[1] = yc
+
+
+cdef calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
+                       double * angles):
+    cdef int i
+    cdef double x0 = hub[0]
+    cdef double y0 = hub[1]
+    cdef double * spoke = spokes
+    cdef double two_pi = 2. * np.pi
+
+    for i in range(n_spokes):
+        x = spoke[0]
+        y = spoke[1]
+
+        angles[i] = atan2(y - y0, x - x0)
+        if angles[i] < 0.:
+            angles[i] += two_pi
+        print angles[i] * 180. / 3.14
+        spoke += 2
+
+
+cdef argsort_by_angle_around_centroid(double * points,
+                                      np.int_t n_points,
+                                      int * out):
+    cdef double *hub = <double *>malloc(2 * sizeof(double))
+    cdef double *angles = <double *>malloc(n_points * sizeof(double))
+
+    try:
+        calc_centroid(points, n_points, hub)
+        print hub[0], hub[1]
+        calc_spoke_angles(hub, points, n_points, angles)
+        argsort(angles, n_points, out)
+    finally:
+        free(angles)
+        free(hub)
+
+
+@cython.boundscheck(False)
+def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+                           np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+                           np.ndarray[np.float_t, ndim=2] xy_of_link):
+    cdef int n_links = xy_of_link.shape[0]
+    cdef int n_patches = len(offset_to_patch) - 1
+    cdef int link
+    cdef int patch
+    cdef int offset
+    cdef int i
+    cdef double *angles = <double *>malloc(n_links * sizeof(double))
+    cdef double *points = <double *>malloc(2 * n_links * sizeof(double))
+    cdef int *ordered = <int *>malloc(n_links * sizeof(int))
+    cdef int *link_buffer = <int *>malloc(n_links * sizeof(int))
+
+    try:
+      for patch in range(n_patches):
+          offset = offset_to_patch[patch]
+          n_links = offset_to_patch[patch + 1] - offset
+
+          for i in range(n_links):
+              link = links_at_patch[offset + i]
+              points[2 * i] = xy_of_link[link][0]
+              points[2 * i + 1] = xy_of_link[link][1]
+
+          argsort_by_angle_around_centroid(points, n_links, ordered)
+
+          for i in range(n_links):
+              link_buffer[i] = links_at_patch[offset + ordered[i]]
+
+          for i in range(n_links):
+              links_at_patch[offset + i] = link_buffer[i]
+
+    finally:
+        free(link_buffer)
+        free(ordered)
+        free(points)
+        free(angles)
+
+
+@cython.boundscheck(False)
+def argsort_spoke_angles(np.ndarray[double, ndim=2, mode="c"] points,
+                         np.ndarray[int, ndim=1] out):
+    """Sort spokes by angle around a hub.
+
+    Parameters
+    ----------
+    points : ndarray of float, shape `(n_points, 2)`
+        Coordinates of points as (*x*, *y*).
+    out : ndarray of int, shape `(n_points, )`
+        Indices of sorted points.
+
+    Returns
+    -------
+    ndarray of int, shape `(n_points, )`
+        Indices of sorted points.
+    """
+    argsort_by_angle_around_centroid(&points[0, 0], points.shape[0], &out[0])
+    return out
