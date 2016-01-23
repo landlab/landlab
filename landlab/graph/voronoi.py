@@ -14,7 +14,7 @@ class VoronoiGraph(Graph):
     >>> from landlab.graph import VoronoiGraph
     """
 
-    def __init__(self, nodes):
+    def __init__(self, nodes, sort=False):
         """Create a voronoi grid.
 
         Parameters
@@ -64,4 +64,4 @@ class VoronoiGraph(Graph):
 
         super(VoronoiGraph, self).__init__((node_y.flat, node_x.flat),
                                            links=nodes_at_link,
-                                           patches=links_at_patch)
+                                           patches=links_at_patch, sort=sort)

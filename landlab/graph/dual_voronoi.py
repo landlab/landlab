@@ -11,7 +11,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
 
     """Dual graph of a voronoi grid."""
 
-    def __init__(self, nodes):
+    def __init__(self, nodes, sort=False):
         """Create a voronoi grid.
 
         Parameters
@@ -44,7 +44,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         >>> graph.node_at_cell
         array([5, 6])
         """
-        super(DualVoronoiGraph, self).__init__(nodes)
+        super(DualVoronoiGraph, self).__init__(nodes, sort=sort)
 
         voronoi = Voronoi(list(zip(self.x_of_node, self.y_of_node)))
 
