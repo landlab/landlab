@@ -126,7 +126,7 @@ class Graph(object):
 
         if self._ccw:
             reorder_links_at_patch(patches[0], patches[1], xy_of_link)
-        self._links_at_patch = _setup_links_at_patch(patches)
+        self._links_at_patch = get_links_at_patch(patches)
 
     @property
     def x_of_node(self):
@@ -495,7 +495,7 @@ def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
     return links_at_node, link_dirs_at_node
 
 
-def _setup_links_at_patch(patches):
+def get_links_at_patch(patches):
     """Set up data structure that describes link-patch connectivity.
 
     Parameters
