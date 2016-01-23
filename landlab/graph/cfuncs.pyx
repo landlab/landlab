@@ -272,7 +272,6 @@ cdef calc_centroid(double * points, np.int_t n_points, double * out):
     for i in range(0, 2 * n_points, 2):
         xc += points[i]
         yc += points[i + 1]
-    print xc, yc
     xc /= n_points
     yc /= n_points
 
@@ -295,7 +294,6 @@ cdef calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
         angles[i] = atan2(y - y0, x - x0)
         if angles[i] < 0.:
             angles[i] += two_pi
-        print angles[i] * 180. / 3.14
         spoke += 2
 
 
@@ -307,7 +305,6 @@ cdef argsort_by_angle_around_centroid(double * points,
 
     try:
         calc_centroid(points, n_points, hub)
-        print hub[0], hub[1]
         calc_spoke_angles(hub, points, n_points, angles)
         argsort(angles, n_points, out)
     finally:
