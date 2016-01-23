@@ -395,47 +395,6 @@ class Graph(object):
             return self._angle_of_link
 
 
-def _find_links_at_node(node, nodes_at_link):
-    """Find links and link directions at a node.
-
-    Examples
-    --------
-    >>> nodes_at_link = ((0, 1), (1, 2),
-    ...                  (0, 3), (1, 4), (2, 5),
-    ...                  (3, 4), (4, 5),
-    ...                  (3, 6), (4, 7), (5, 8),
-    ...                  (6, 7), (7, 8))
-
-    The first node has only two links, both of which are directed outward.
-
-    >>> (links, dirs) = _find_links_at_node(0, nodes_at_link)
-    >>> links
-    array([0, 2])
-    >>> dirs
-    array([-1, -1])
-
-    The fourth node has two links entering and two link leaving.
-
-    >>> (links, dirs) = _find_links_at_node(4, nodes_at_link)
-    >>> links
-    array([3, 5, 6, 8])
-    >>> dirs
-    array([ 1,  1, -1, -1])
-    """
-    from .cfuncs import _find_links_at_node
-
-    nodes_at_link = np.asarray(nodes_at_link, dtype=int)
-    nodes_at_link.shape = (-1, 2)
-
-    links_at_node = np.full(4, -1, dtype=int)
-    link_dirs_at_node = np.full(4, 0, dtype=int)
-
-    n_links = _find_links_at_node(node, nodes_at_link, links_at_node,
-                                  link_dirs_at_node)
-
-    return links_at_node[:n_links], link_dirs_at_node[:n_links]
-
-
 def get_angle_of_link(graph):
     """Get angles of links in a graph.
 
