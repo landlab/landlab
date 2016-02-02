@@ -13,21 +13,21 @@ indicate the direction and *head* of each link. Link heads in the
 
     *--27-->*--28-->*--29-->*--30-->*
     ^       ^       ^       ^       ^
-   10      11      12      13      14
+   22      23      24      25      26
     |       |       |       |       |
-    *--23-->*--24-->*--25-->*--26-->*
+    *--18-->*--19-->*--20-->*--21-->*
     ^       ^       ^       ^       ^
-    5       6       7       8       9
+    13      14      15      16     17
     |       |       |       |       |
-    *--19-->*--20-->X--21-->*--22-->*
+    *---9-->*--10-->X--11-->*--12-->*
     ^       ^       ^       ^       ^
-    0       1       2       3       4
+    4       5       6       7       8
     |       |       |       |       |
-    *--15-->*--16-->*--17-->*--18-->*
+    *--0--->*---1-->*--2--->*---3-->*
 
 For example, node 'X' has four link-neighbors. From south and going clockwise,
-these neighbors are [2, 20, 7, 21]. Both link 2 and link 20 have node 'X' as
-their 'head' node, while links 7 and 21 have node 'X' as their tail node.
+these neighbors are [6, 10, 15, 11]. Both link 6 and link 10 have node 'X' as
+their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 """
 from __future__ import division
 
