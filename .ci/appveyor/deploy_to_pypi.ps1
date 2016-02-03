@@ -1,4 +1,4 @@
-if (($env:appveyor_repo_tag -eq "true") -and ($env:appveyor_repo_tag_name.StartsWith("v"))) {
+if (($env:appveyor_repo_tag -eq "true") -and ($env:appveyor_repo_tag_name.StartsWith("v")) -and ($env:appveyor_repo_branch -eq "release")) {
     write-output "Deploying to PyPI..."
     Invoke-Expression "twine upload -u mcflugen -p $env:PYPI_PASS dist/*"
     write-output "OK"
