@@ -1,4 +1,4 @@
-if [[ "$TRAVIS_TAG" == v* ]]; then
+if [[ "$TRAVIS_TAG" == v* && "$TRAVIS_BRANCH" == "release" ]]; then
   pip install twine wheel
   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     python setup.py sdist

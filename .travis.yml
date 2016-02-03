@@ -40,6 +40,7 @@ deploy:
     secure: V15DceMv4DUmjgxToaxrP3KaQxsLbfrTkB1s6D8YNQZvYJiVvNlBpC1nF8yWbOt3IWJQSGjaQEnObd2ZhHe2Kq/H+QsEFyBKlYF7SNp35FyS5zLuf2qhnNhmzhqkspwBpiGe88c1PQPFzfqdIUQXp7ZAv6L8YRvNy2sbzvgxh6I=
   on:
     tags: true
+    branch: release
     repo: landlab/landlab
   distributions: sdist bdist_wheel
 notifications:
