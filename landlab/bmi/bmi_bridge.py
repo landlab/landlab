@@ -90,6 +90,8 @@ def wrap_as_bmi(cls):
             self._base = self._cls(grid, **params)
 
         def update(self):
+            if hasattr(self._base, 'update'):
+                self._base.update()
             self._clock.advance()
 
         def update_frac(self, frac):
