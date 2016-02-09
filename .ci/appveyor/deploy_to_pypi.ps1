@@ -4,8 +4,9 @@ if (($env:appveyor_repo_tag -eq "true") -and ($env:appveyor_repo_tag_name.Starts
     write-output "OK"
 } else {
     write-output "Not deploying."
-    write-output "Repo tag is $env:appveyor_repo_tag"
+    write-output "Is a tagged commit... $env:appveyor_repo_tag"
     if (($env:appveyor_repo_tag -eq "true")) {
-      write-output "Branch name $env:appveyor_repo_tag_name"
+      write-output "Tag name... $env:appveyor_repo_tag_name"
     }
+    write-output "Branch name... $env:appveyor_repo_branch"
 }
