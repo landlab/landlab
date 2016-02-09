@@ -1,7 +1,4 @@
-landlab.components package
-==========================
-
-Subpackages
+landlab.components 
 -----------
 
 .. toctree::

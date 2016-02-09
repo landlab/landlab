@@ -36,14 +36,14 @@ or want to develop your own components, we recommend you follow
 these specialized developer install instructions.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 3
 
   dev_guide_install
   dev_guide_components
 
 
 .. toctree::
-    :maxdepth: 1
+..    :maxdepth: 1
 
 .. The Nuts and Bolts of Coding in Landlab
 .. ---------------------------------------
@@ -134,6 +134,16 @@ these specialized developer install instructions.
 Grids
 =======================
 
+As of Landlab version 0.2, there are four types of Landlab grid:
+ - `Raster <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.raster>`_
+ - `Voronoi-DeLaunay <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.voronoi>`_
+ - `Hex <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.hex>`_
+ - `Radial <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.radial>`_
+
+The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDelaunayGrid`.
+
+`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
+
 .. toctree::
    :maxdepth: 4
 
@@ -144,7 +154,7 @@ Components
 =======================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    landlab.components
 
