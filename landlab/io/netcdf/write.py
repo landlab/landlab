@@ -186,14 +186,15 @@ def _set_netcdf_cell_structured_dimensions(root, shape):
     dimensions = _get_dimension_sizes(shape)
 
     dims = root.dimensions
+
+    if 'nt' not in dims:
+        root.createDimension('nt', None)
+
     for (name, dim_size) in dimensions.items():
         if name not in dims:
             root.createDimension(name, dim_size - 2)
 
     root.createDimension('nv', 4)
-
-    if 'nt' not in dims:
-        root.createDimension('nt', None)
 
 
 def _set_netcdf_structured_dimensions(root, shape):
@@ -220,12 +221,13 @@ def _set_netcdf_structured_dimensions(root, shape):
     dimensions = _get_dimension_sizes(shape)
 
     dims = root.dimensions
-    for (name, dim_size) in dimensions.items():
-        if name not in dims:
-            root.createDimension(name, dim_size)
 
     if 'nt' not in dims:
         root.createDimension('nt', None)
+
+    for (name, dim_size) in dimensions.items():
+        if name not in dims:
+            root.createDimension(name, dim_size)
 
 
 def _set_netcdf_variables(root, fields, **kwds):
