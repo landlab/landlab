@@ -4038,7 +4038,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return second_ring
 
     def set_fixed_link_boundaries_at_grid_edges(
-            self, bottom_is_fixed, left_is_fixed, top_is_fixed, right_is_fixed,
+            self, right_is_fixed, top_is_fixed, left_is_fixed, bottom_is_fixed,
             link_value=None, node_value=None,
             fixed_node_value_of='topographic__elevation',
             fixed_link_value_of='topographic__slope'):
@@ -4096,14 +4096,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        bottom_is_fixed : boolean
-            Set bottom edge vertical links as fixed boundary.
-        left_is_fixed : boolean
-            Set left edge horizontal links as fixed boundary.
-        top_is_fixed : boolean
-            Set top edge vertical links as fixed boundary.
         right_is_fixed : boolean
             Set right edge  horizontal links as fixed boundary.
+        top_is_fixed : boolean
+            Set top edge vertical links as fixed boundary.
+        left_is_fixed : boolean
+            Set left edge horizontal links as fixed boundary.
+        bottom_is_fixed : boolean
+            Set bottom edge vertical links as fixed boundary.
+
         link_value : float, array or None (default).
             Override value to be kept constant at links.
         node_value : float, array or None (default).
@@ -4179,27 +4180,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         fixed_links = np.array([])
 
         # Based on the inputs, we then assign boundary status. Starting
-        # from the bottom edge (South edge) we look to see if the boolean input
+        # from the right edge (east edge) we look to see if the boolean input
         # is True or False. If true, we find the appropriate links and nodes
         # and set them to the boundary condition of FIXED_GRADIENT_BOUNDARY
         # for nodes and FIXED_LINK for links.
-        if bottom_is_fixed:
-
-            # Finding the link and node IDs along the bottom edge of the raster
-            # grid.
-            bottom_edge = squad_links.bottom_edge_vertical_ids(self.shape)
-            bottom_nodes = self.nodes_at_bottom_edge
-
-            # Set the node and link boundary statuses to
-            # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
-            self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
-            self._status_at_link[bottom_edge] = FIXED_LINK
-
-            # Append the node and link ids to the array created earlier to
-            # track boundary statuses
-            fixed_nodes = np.append(fixed_nodes, bottom_nodes)
-            fixed_links = np.append(fixed_links, bottom_edge)
-
         if right_is_fixed:
 
             # Find the IDs...
@@ -4241,6 +4225,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # Add the IDs to the array...
             fixed_nodes = np.append(fixed_nodes, left_nodes)
             fixed_links = np.append(fixed_links, left_edge)
+
+        if bottom_is_fixed:
+
+            # Finding the link and node IDs along the bottom edge of the raster
+            # grid.
+            bottom_edge = squad_links.bottom_edge_vertical_ids(self.shape)
+            bottom_nodes = self.nodes_at_bottom_edge
+
+            # Set the node and link boundary statuses to
+            # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
+            self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
+            self._status_at_link[bottom_edge] = FIXED_LINK
+
+            # Append the node and link ids to the array created earlier to
+            # track boundary statuses
+            fixed_nodes = np.append(fixed_nodes, bottom_nodes)
+            fixed_links = np.append(fixed_links, bottom_edge)
 
         # Get the fromnode and tonode statuses for each link.
         # This allows us to make sure that all link boundaries follow
