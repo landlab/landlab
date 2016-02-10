@@ -80,10 +80,15 @@ def wrap_as_bmi(cls):
                 params = yaml.load(fp)
 
             grid_params = params.pop('grid')
-            grid = RasterModelGrid(grid_params['shape'],
-                                   spacing=grid_params.get('spacing',
-                                                           (1., 1.)),
-                                   origin=grid_params.get('origin', (0., 0.)))
+            gtype = grid.params.pop('type')
+            if gtype == 'raster':
+                cls = RasterModelGrid
+            else:
+                raise ValueError(
+                    'unrecognized grid type {gtype}'.format(gtype=gtype))
+
+            grid = cls.from_dict(grid_params)
+
             clock_params = params.pop('clock')
             self._clock = TimeStepper(**clock_params)
 
