@@ -77,6 +77,15 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
 
+    @classmethod
+    def from_dict(cls, params):
+        num_shells = params['num_shells']
+        dr = params.get('dr', 1.)
+        origin = params.get('origin', (0., 0.))
+
+        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0],
+                   origin_y=origin[1])
+
     def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         [pts, npts] = self.make_radial_points(num_shells, dr)
         self._n_shells = int(num_shells)

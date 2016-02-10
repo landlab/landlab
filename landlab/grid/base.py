@@ -539,6 +539,15 @@ class ModelGrid(ModelDataFieldsMixIn):
         # created, and 2) so have node_x and node_y.
         #self.sort_links_by_midpoint()
 
+    @classmethod
+    def from_file(cls, file_like):
+        params = load_params(file_like)
+        return cls.from_dict(params)
+
+    @classmethod
+    def from_dict(cls, params):
+        raise NotImplementedError('from_dict')
+
     def _initialize(self):
         raise NotImplementedError('_initialize')
 

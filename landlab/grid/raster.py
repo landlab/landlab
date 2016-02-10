@@ -387,6 +387,34 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.looped_node_properties = {}
 
+    @classmethod
+    def from_dict(cls, params):
+        """Create a RasterModelGrid from a dictionary.
+
+        Parameters
+        ----------
+        params : dict_like
+            Initialization parameters for a RasterModelGrid.
+
+        Returns
+        -------
+        RasterModelGrid
+            A newly-created grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid.from_dict(
+        ...     {'shape': (3, 4), 'bc': {'top': 'closed'}})
+        >>> grid.number_of_nodes
+        12
+        """
+        shape = params['shape']
+        spacing = params.get('spacing', (1., ) * len(shape))
+        bc = params.get('bc', {})
+
+        return cls(shape, spacing=spacing, bc=bc)
+
     def _initialize(self, num_rows, num_cols, spacing):
         """Set up a raster grid.
 
