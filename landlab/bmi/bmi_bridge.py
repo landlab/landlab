@@ -1,11 +1,61 @@
+"""
+========================================================================================
+Wrap landlab component with the Basic Modeling Interface (:mod:`landlab.bmi.bmi_bridge`)
+========================================================================================
+
+.. sectionauthor:: Eric Hutton
+
+Function reference
+------------------
+
+The `wrap_as_bmi` function wraps a landlab component class so that it
+exposes a Basic Modelling Interface.
+
+"""
+import os
+
 import numpy as np
 import yaml
 
 from ..core.model_component import Component
 from ..grid import RasterModelGrid
 
+__all__ = ['TimeStepper', 'wrap_as_bmi']
+
 
 class TimeStepper(object):
+
+    """Step through time.
+
+    Parameters
+    ----------
+    start : float, optional
+        Clock start time.
+    stop : float, optional
+        Stop time.
+    step : float, optional
+        Time step.
+
+    Examples
+    --------
+    >>> from landlab.bmi import TimeStepper
+    >>> time_stepper = TimeStepper()
+    >>> time_stepper.start
+    0.0
+    >>> time_stepper.stop is None
+    True
+    >>> time_stepper.step
+    1.0
+    >>> time_stepper.time
+    0.0
+    >>> for _ in range(10): time_stepper.advance()
+    >>> time_stepper.time
+    10.0
+    >>> time_stepper = TimeStepper(1., 13., 2.)
+    >>> [time for time in time_stepper]
+    [1.0, 3.0, 5.0, 7.0, 9.0, 11.0]
+    """
+
     def __init__(self, start=0., stop=None, step=1.):
         self._start = start
         self._stop = stop
@@ -13,33 +63,109 @@ class TimeStepper(object):
 
         self._time = start
 
+    def __iter__(self):
+        if self.stop is None:
+            while 1:
+                yield self._time
+                self._time += self._step
+        else:
+            while self._time < self._stop:
+                yield self._time
+                self._time += self._step
+        raise StopIteration()
+
     @property
     def time(self):
+        """Current time."""
         return self._time
 
     @property
     def start(self):
+        """Start time."""
         return self._start
 
     @property
     def stop(self):
+        """Stop time."""
         return self._stop
 
     @property
     def step(self):
+        """Time Step."""
         return self._step
 
     @step.setter
     def step(self, new_val):
+        """Change the time step."""
         self._step = new_val
 
     def advance(self):
+        """Advance the time stepper by one time step."""
         self._time += self.step
-        if self._time > self._stop:
+        if self._stop is not None and self._time > self._stop:
             raise StopIteration()
 
 
 def wrap_as_bmi(cls):
+    """Wrap a landlab class so it exposes a BMI.
+
+    Parameters
+    ----------
+    cls : class
+        A landlab class that inherits from `Component`.
+
+    Returns
+    -------
+    class
+        A wrapped class that exposes a BMI.
+
+    Examples
+    --------
+    >>> from landlab.bmi import wrap_as_bmi
+    >>> from landlab.components.flexure import Flexure
+
+    >>> BmiFlexure = wrap_as_bmi(Flexure)
+    >>> flexure = BmiFlexure()
+
+    >>> config = \"\"\"
+    ... eet: 10e3
+    ... method: flexure
+    ... clock:
+    ...     start: 0.
+    ...     stop: 10.
+    ...     step: 2.
+    ... grid:
+    ...     type: raster
+    ...     shape: [20, 40]
+    ...     spacing: [1000., 2000.]
+    ... \"\"\"
+    >>> flexure.initialize(config)
+    >>> flexure.get_output_var_names()
+    ('lithosphere__elevation_increment',)
+    >>> flexure.get_var_grid('lithosphere__elevation_increment')
+    0
+    >>> flexure.get_grid_shape(0)
+    (20, 40)
+    >>> dz = flexure.get_value('lithosphere__elevation_increment')
+    >>> dz.shape
+    (800,)
+    >>> np.all(dz == 0.)
+    True
+    >>> flexure.get_current_time()
+    0.0
+
+    >>> flexure.get_input_var_names()
+    ('lithosphere__overlying_pressure_increment',)
+    >>> load = np.zeros((20, 40), dtype=float)
+    >>> load[0, 0] = 1.
+    >>> flexure.set_value('lithosphere__overlying_pressure_increment', load)
+    >>> flexure.update()
+    >>> flexure.get_current_time()
+    2.0
+    >>> dz = flexure.get_value('lithosphere__elevation_increment')
+    >>> np.all(dz == 0.)
+    False
+    """
     if not issubclass(cls, Component):
         raise TypeError('class must inherit from Component')
 
@@ -76,11 +202,14 @@ def wrap_as_bmi(cls):
             raise NotImplementedError('get_time_units not implemented')
 
         def initialize(self, fname):
-            with open(fname, 'r') as fp:
-                params = yaml.load(fp)
+            if os.path.isfile(fname):
+                with open(fname, 'r') as fp:
+                    params = yaml.load(fp)
+            else:
+                params = yaml.load(fname)
 
             grid_params = params.pop('grid')
-            gtype = grid.params.pop('type')
+            gtype = grid_params.pop('type')
             if gtype == 'raster':
                 cls = RasterModelGrid
             else:
