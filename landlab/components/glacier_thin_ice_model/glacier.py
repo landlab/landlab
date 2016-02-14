@@ -9,6 +9,9 @@ import six
 
 
 class Glacier(Component):
+	'''
+	Define physical parameters (here assuming EISMINT-1 values)
+	'''
 
 	def __init__(self,grid,dictionary,**kwds):
 		'''
