@@ -79,7 +79,10 @@ def used_by(classes):
     """Get variables used by components."""
     used = []
     for cls in classes:
-        used += cls.input_var_names
+        try:
+            used += cls.input_var_names
+        except TypeError:
+            pass
 
     return used
 
@@ -88,7 +91,10 @@ def provided_by(classes):
     """Get variables provided by components."""
     provided = []
     for cls in classes:
-        provided += cls.output_var_names
+        try:
+            provided += cls.output_var_names
+        except TypeError:
+            pass
 
     return provided
 
