@@ -3,12 +3,7 @@ import importlib
 import warnings
 
 from .bmi_bridge import wrap_as_bmi
-
-
-LANDLAB_COMPONENTS = [
-    ('landlab.components.flexure', 'Flexure'),
-    ('landlab.components.overland_flow', 'OverlandFlow'),
-]
+from ..components import COMPONENTS
 
 
 def import_landlab_component(mod_name, cls_name):
@@ -26,11 +21,11 @@ def import_landlab_component(mod_name, cls_name):
 
 
 __all__ = []
-for mod, cls in LANDLAB_COMPONENTS:
+for cls in COMPONENTS:
     try:
-        name, obj = import_landlab_component(mod, cls)
-    except ImportError:
-        pass
+        as_bmi = wrap_as_bmi(cls)
+    except TypeError:
+        warnings.warn('unable to wrap class {name}'.format(name=cls.__name__))
     else:
-        setattr(sys.modules[__name__], name, obj)
-        __all__.append(name)
+        setattr(sys.modules[__name__], as_bmi.__name__, as_bmi)
+        __all__.append(as_bmi.__name__)
