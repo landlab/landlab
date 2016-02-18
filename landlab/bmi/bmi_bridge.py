@@ -170,7 +170,10 @@ def wrap_as_bmi(cls):
         raise TypeError('class must inherit from Component')
 
     class BmiWrapper(object):
-        __doc__ = cls.__doc__
+        __doc__ = """
+        Basic Modeling Interface for the {name} component.
+        """.format(name=cls.__name__).strip()
+
         _cls = cls
         def __init__(self):
             self._base = None
@@ -178,30 +181,65 @@ def wrap_as_bmi(cls):
             super(BmiWrapper, self).__init__()
 
         def get_component_name(self):
+            """Name of the component."""
             return self._cls.name
 
         def get_input_var_names(self):
+            """Names of the input exchange items."""
             return self._cls.input_var_names
 
         def get_output_var_names(self):
+            """Names of the output exchange items."""
             return self._cls.output_var_names
 
         def get_current_time(self):
+            """Current component time."""
             return self._clock.time
 
         def get_end_time(self):
+            """Stop time for the component."""
             return self._clock.stop
 
         def get_start_time(self):
+            """Start time of the component."""
             return self._clock.start
 
         def get_time_step(self):
+            """Component time step."""
             return self._clock.step
 
         def get_time_units(self):
+            """Time units used by the component."""
             raise NotImplementedError('get_time_units not implemented')
 
         def initialize(self, fname):
+            """Initialize the component from a file.
+
+            BMI-wrapped Landlab components use input files in YAML format.
+            Component-specific parameters are listed at the top level,
+            followed by grid and then time information. An example input
+            file looks like::
+
+                eet: 15e3
+                clock:
+                    start: 0
+                    stop: 100.
+                    step: 2.
+                grid:
+                    type: raster
+                    shape: [20, 40]
+                    spacing: [1000., 2000.]
+
+            In this case, a `RasterModelGrid` is created (with the given shape
+            and spacing) and passed to the underlying landlab component. The
+            `eet=15000.` is also given to the component but as a keyword
+            parameter. The BMI clock is initialized with the given parameters.
+
+            Parameters
+            ----------
+            fname : str or file_like
+                YAML-formatted input file for the component.
+            """
             if os.path.isfile(fname):
                 with open(fname, 'r') as fp:
                     params = yaml.load(fp)
@@ -224,47 +262,59 @@ def wrap_as_bmi(cls):
             self._base = self._cls(grid, **params)
 
         def update(self):
+            """Update the component one time step."""
             if hasattr(self._base, 'update'):
                 self._base.update()
             self._clock.advance()
 
         def update_frac(self, frac):
+            """Update the component a fraction of a time step."""
             time_step = self.get_time_step()
             self._clock.step = time_step * frac
             self.update()
             self._clock.step = time_step
 
         def update_until(self, then):
+            """Update the component until a given time."""
             n_steps = (then - self.get_current_time()) / self.get_time_step()
             for _ in xrange(int(n_steps)):
                 self.update()
             self.update_frac(n_steps - int(n_steps))
 
         def finalize(self):
+            """Clean-up the component."""
             pass
 
         def get_var_grid(self, name):
+            """Get the grid id for a variable."""
             return 0
 
         def get_var_itemsize(self, name):
+            """Get the size of elements of a variable."""
             return np.dtype('float').itemsize
 
         def get_var_nbytes(self, name):
+            """Get the total number of bytes used by a variable."""
             return self.get_itemsize(name) * self._base.grid.number_of_nodes
 
         def get_var_type(self, name):
+            """Get the data type for a variable."""
             return str(np.dtype('float'))
 
         def get_var_units(self, name):
+            """Get the unit used by a variable."""
             return self._cls.var_units(name)
 
         def get_value_ref(self, name):
+            """Get a reference to a variable's data."""
             return self._base.grid.at_node[name]
 
         def get_value(self, name):
+            """Get a copy of a variable's data."""
             return self._base.grid.at_node[name].copy()
 
         def set_value(self, name, vals):
+            """Set the values of a variable."""
             if name in self.get_input_var_names():
                 if name in self._base.grid.at_node:
                     self._base.grid.at_node[name][:] = vals.flat
@@ -274,19 +324,24 @@ def wrap_as_bmi(cls):
                 raise KeyError('{name} is not an input item'.format(name=name))
 
         def get_grid_origin(self, gid):
+            """Get the origin for a structured grid."""
             return (self._base.grid.node_y[0], self._base.grid.node_x[0])
 
         def get_grid_rank(self, gid):
+            """Get the number of dimensions of a grid."""
             return 2
 
         def get_grid_shape(self, gid):
+            """Get the shape of a structured grid."""
             return (self._base.grid.number_of_node_rows,
                     self._base.grid.number_of_node_columns)
 
         def get_grid_spacing(self, gid):
+            """Get the row and column spacing of a structured grid."""
             return (self._base.grid.dy, self._base.grid.dx)
 
         def get_grid_type(self, gid):
+            """Get the type of grid."""
             return 'uniform_rectilinear'
 
 
