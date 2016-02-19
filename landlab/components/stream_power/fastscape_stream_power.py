@@ -126,7 +126,7 @@ class FastscapeEroder(object):
         return self.dt, self.r_i
 
 
-    def erode(self, grid_in, dt=None, K_if_used=None):
+    def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -138,6 +138,17 @@ class FastscapeEroder(object):
 
         It returns the grid, in which it will have modified the value of
         *value_field*, as specified in component initialization.
+        
+        Parameters
+        ----------
+        grid_in : Landlab ModelGrid object
+            Reference to the model grid
+        dt : float (optional)
+            Time-step size
+        K_if_used : string (field name) or ndarray of float x N (optional)
+            Array containing value of erosion coefficient at each node
+        flooded_nodes : ndarray of int (optional)
+            IDs of nodes that are flooded and should have no erosion
         """
         if dt:
             self.dt = dt
@@ -174,7 +185,26 @@ class FastscapeEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 
-        method = 'cython'
+        # Handle flooded nodes, if any (no erosion there)
+        if flooded_nodes is not None:
+            alpha[flooded_nodes] = 0.0
+            
+        # DEBUG
+        for i in upstream_order_IDs:
+            j = flow_receivers[i]
+            if i != j:
+                frog = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
+                if frog > z[i]:
+                    print('*')
+                    print(i)
+                    print(z[i])
+                    print(temp[i])
+                    print(j)
+                    print(z[j])
+                    print(alpha[i])
+                    print(frog)
+
+        method = 'not_cython'
 
         if self.nonlinear_flag == False: #n==1
             if method == 'cython':
