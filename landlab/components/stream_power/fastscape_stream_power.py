@@ -189,22 +189,7 @@ class FastscapeEroder(object):
         if flooded_nodes is not None:
             alpha[flooded_nodes] = 0.0
             
-        # DEBUG
-        for i in upstream_order_IDs:
-            j = flow_receivers[i]
-            if i != j:
-                frog = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
-                if frog > z[i]:
-                    print('*')
-                    print(i)
-                    print(z[i])
-                    print(temp[i])
-                    print(j)
-                    print(z[j])
-                    print(alpha[i])
-                    print(frog)
-
-        method = 'not_cython'
+        method = 'cython'
 
         if self.nonlinear_flag == False: #n==1
             if method == 'cython':
