@@ -747,6 +747,13 @@ class DepressionFinderAndRouter(Component):
         Nodes not in a lake are labelled with BAD_INDEX_VALUE.
         """
         return self._lake_map
+    
+    @property
+    def lake_at_node(self):
+        """
+        Return a boolean array, True if the node is flooded, False otherwise.
+        """
+        return self._lake_map!=BAD_INDEX_VALUE
 
     @property
     def lake_areas(self):
