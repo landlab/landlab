@@ -148,7 +148,10 @@ class FastscapeEroder(object):
         K_if_used : string (field name) or ndarray of float x N (optional)
             Array containing value of erosion coefficient at each node
         flooded_nodes : ndarray of int (optional)
-            IDs of nodes that are flooded and should have no erosion
+            IDs of nodes that are flooded and should have no erosion. If not
+            provided but flow has still been routed across depressions, erosion
+            may still occur beneath the apparent water level (though will
+            always still be positive).
         """
         if dt:
             self.dt = dt
@@ -187,7 +190,11 @@ class FastscapeEroder(object):
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
-            alpha[flooded_nodes] = 0.0
+            alpha[flooded_nodes] = 0.
+        else:
+            reversed_flow = z < z[flow_receivers]
+            # this check necessary if flow has been routed across depressions
+            alpha[reversed_flow] = 0.
             
         method = 'cython'
 
