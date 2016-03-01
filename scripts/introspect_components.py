@@ -111,7 +111,7 @@ for LLcomp in poss_comp_files:
                     accumulated_props.add(prop)
                     start_write = True
                     if prop != ' _name':
-                        assert ('{' in line) or ('[' in line)
+                        assert ('{' in line) or ('[' in line) or ('(' in line)
                     else:
                         found_a_name = True
                 if start_write:
@@ -121,7 +121,8 @@ for LLcomp in poss_comp_files:
                     nowhite = nowhite.lstrip()
                     no_nl = nowhite.replace('\\', '')
                     lines_captured.append(str(no_nl))
-                    if ('}' in line) or (']' in line) or (prop == ' _name'):
+                    if ('}' in line) or (']' in line) or (')' in line) \
+                            or (prop == ' _name'):
                         break
         cat_lines = ''
         for expr in lines_captured:
