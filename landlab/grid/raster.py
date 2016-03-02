@@ -328,6 +328,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.])
+
+    Notes
+    -----
+    The option for NOT giving rows, cols, and dx no longer works,
+    because the *field* init requires num_active_cells, etc., to be
+    defined. Either we force users to give arguments on instantiation,
+    or set it up such that one can create a zero-node grid.
     """
 
     def __init__(self, *args, **kwds):

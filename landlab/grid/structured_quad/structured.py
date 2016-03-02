@@ -33,6 +33,14 @@ from . import nodes
 
 
 class StructuredQuadGrid(BaseGrid):
+    """
+    Parameters
+    ----------
+    node_coord : tuple
+        Coordinates of all grid nodes.
+    shape : tuple, optional
+        Shape of the grid of nodes.
+    """
 
     def __init__(self, node_coord, shape=None, axis_name=None, axis_units=None,
                  links=True, cells=True, node_status=None):
