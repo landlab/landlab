@@ -125,7 +125,6 @@ class FastscapeEroder(Component):
             volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
         """
         self._grid = grid
-        inputs = ModelParameterDictionary(input_stream)
 
         self.K = K_sp
         self.m = m_sp
@@ -153,7 +152,8 @@ class FastscapeEroder(Component):
             self.nonlinear_flag = False
 
         if self.K is None:
-            raise ValueError('K_sp must be set as a float, node array, or')
+            raise ValueError('K_sp must be set as a float, node array, or ' +
+                             'field name. It was None.')
 
         def func_for_newton(x, last_step_elev, receiver_elev,
                             alpha_by_flow_link_lengthtothenless1, n):
