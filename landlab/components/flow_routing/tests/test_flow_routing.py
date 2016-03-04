@@ -142,8 +142,8 @@ def setup_dans_grid2():
 
     steepest_target_D8 = np.array([0., 0., 0., 0., 0.,
                                    0., 0.3, 0.08485281, 0.28, 0.,
-                                   0., 0.1, 0.14142136, 0.21213203, 0.,
-                                   0., 0.1, 0.14142136, 0.2,  0.,
+                                   0., 0.1, 0.14142136, 0.21920310, 0.,
+                                   0., 0.1, 0.13435029, 0.21,  0.,
                                    0., 0., 0., 0.,  0.])
 
     steepest_target_D4 = np.array([0., 0., 0., 0., 0.,
@@ -351,7 +351,7 @@ def test_variable_Qin():
 def test_irreg_topo():
     """Test D8 routing on a toy irregular topo."""
     fr = FlowRouter(mg)
-    fr.route_flow(method='D8')
+    fr.route_flow()
     assert_array_equal(A_target_D8, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target_D8, mg.at_node['flow_receiver'])
     assert_array_equal(upids_target_D8, mg.at_node['upstream_node_order'])

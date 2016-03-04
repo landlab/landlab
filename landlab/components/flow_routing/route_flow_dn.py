@@ -267,6 +267,7 @@ class FlowRouter(Component):
         if 'method' in kwds:
             warnings.warn("'method' should be set at initialization now. " +
                           "Please update your code.", DeprecationWarning)
+            # raise NameError
             if kwds['method'] not in ('D8', 'D4'):
                 raise ValueError('method not understood ({method})'.format(
                     method=method))
