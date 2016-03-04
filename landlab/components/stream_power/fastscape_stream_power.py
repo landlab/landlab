@@ -171,8 +171,8 @@ class FastscapeEroder(Component):
         self.func_for_newton_diff = func_for_newton_diff
 
         # now handle the inputs that could be float, array or field name:
-        input_to_property = {k_sp: self.K, rainfall_intensity: self.r_i}
-        input_to_flag = {k_sp: self.use_K, rainfall_intensity: self.use_ri}
+        input_to_property = {K_sp: self.K, rainfall_intensity: self.r_i}
+        input_to_flag = {K_sp: self.use_K, rainfall_intensity: self.use_ri}
         for input_param in input_to_property.keys():
             if type(input_param) is str:
                 if input_param is 'array':
@@ -248,11 +248,11 @@ class FastscapeEroder(Component):
             'links_to_flow_receiver'][defined_flow_receivers]]
 
         # make arrays from input the right size
-        if self.use_K:
+        if type(self.K) is numpy.ndarray:
             K_here = self.K[defined_flow_receivers]
         else:
             K_here = self.K
-        if self.use_ri:
+        if type(self.r_i) is numpy.ndarray:
             r_i_here = self.r_i[defined_flow_receivers]
         else:
             r_i_here = self.r_i
@@ -261,7 +261,6 @@ class FastscapeEroder(Component):
             dt = self.dt
         else:
             assert dt is not None
-            dt = dt_in
 
         if self.K is None:  # "old style" setting of array
             assert K_if_used is not None
