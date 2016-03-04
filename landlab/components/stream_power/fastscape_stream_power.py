@@ -22,33 +22,8 @@ class FastscapeEroder(Component):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the
     amount of erosion at each node in a grid, following a stream power
-    framework.
-
-    On initialization, it takes *grid*, a reference to a ModelGrid, and
-    *input_stream*, a string giving the filename (and optionally, path) of the
-    required input file.
-
-    It needs to be supplied with the key variables:
-
-        *K_sp*
-
-        *m_sp*
-
-    ...which it will draw from the supplied input file. *n_sp*  can be any
-    value ~ 0.5<n_sp<4., but note that performance will be EXTREMELY degraded
-    if n<1.
-
-    If you want to supply a spatial variation in K, set K_sp to the string
-    'array', and pass a field name or array to the erode method's K_if_used
-    argument.
-
-    *dt*, *rainfall_intensity*, and *value_field* are optional variables.
-
-    *dt* is a fixed timestep, and *rainfall_intensity* is a parameter which
-    modulates K_sp (by a product, r_i**m_sp) to reflect the direct influence of
-    rainfall intensity on erosivity. *value_field* is a string giving the name
-    of the field containing the elevation data in the grid. It defaults to
-    'topographic__elevation' if not supplied.
+    framework. This should allow it to be stable against larger timesteps
+    than an explicit stream power scheme.
 
     This module assumes you have already run
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
@@ -58,7 +33,28 @@ class FastscapeEroder(Component):
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
 
-    The primary method of this class is :func:`erode`.
+    The primary method of this class is :func:`run_one_timestep`.
+
+    Construction::
+
+        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1.,
+                        rainfall_intensity=1.,)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    K_sp : float, array, or field name
+        K in the stream power equation (units vary with other parameters).
+    m_sp : float, optional
+        m in the stream power equation (power on drainage area).
+    n_sp : float, optional, ~ 0.5<n_sp<4.
+        n in the stream power equation (power on slope).
+        Performance will be VERY degraded if n < 1.
+    rainfall intensity : float, array, or field name; optional
+        Modifying factor on drainage area to convert it to a true water
+        volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
+
     '''
 
     _name = 'FastscapeEroder'
@@ -342,12 +338,11 @@ class FastscapeEroder(Component):
 
         return self._grid
 
-    def run_one_timestep(self, dt, flooded_nodes=None):
+    def run_one_timestep(self, dt, flooded_nodes=None, **kwds):
         """
-        This method implements the stream power erosion, following the Braun-
-        Willett (2013) implicit Fastscape algorithm. This should allow it to
-        be stable against larger timesteps than an explicit stream power
-        scheme.
+        This method implements the stream power erosion across one time 
+        interval, dt, following the Braun-Willett (2013) implicit Fastscape
+        algorithm.
 
         This follows Landlab standardized component design, and supercedes the
         old driving method :func:`erode`.
