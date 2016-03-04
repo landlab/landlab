@@ -39,12 +39,12 @@ def test_fastscape():
         numpy.random.rand(len(z)) / 1000.
 
     fr = FlowRouter(mg)
-    fsp = Fsc(mg, input_str)
+    fsp = Fsc(mg, input_str, method='D8')
     elapsed_time = 0.
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow(method='D8')
+        mg = fr.route_flow()
         mg = fsp.erode(mg, dt=dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
@@ -96,7 +96,7 @@ def test_fastscape_new():
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow(method='D8')
+        mg = fr.route_flow()
         fsp.run_one_timestep(dt)  # new style
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt

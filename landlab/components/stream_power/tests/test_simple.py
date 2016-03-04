@@ -45,7 +45,7 @@ def test_fastscape():
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        fr.route_flow(method='D8')
+        fr.route_flow()
         sp.erode(mg, dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt

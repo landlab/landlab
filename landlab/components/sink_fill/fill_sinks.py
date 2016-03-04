@@ -134,7 +134,7 @@ class SinkFiller(Component):
                                                    'sediment_fill__depth')
 
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
-        self._fr = FlowRouter(self._grid)
+        self._fr = FlowRouter(self._grid, method=self._routing)
 
     def fill_pits(self, apply_slope=None):
         """
@@ -177,7 +177,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow(method=self._routing)
+        self._fr.route_flow()
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=True)
         # add the depression depths to get up to flat:
@@ -264,7 +264,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow(method=self._routing)
+        self._fr.route_flow()
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:

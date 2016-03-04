@@ -38,7 +38,7 @@ def test_sp_discharges():
 
     # perform the loop (once!)
     for i in range(1):
-        fr.route_flow(method='D8')
+        fr.route_flow()
         my_Q = mg.at_node['water__volume_flux'] * 1.
         sp.erode(mg, dt, node_drainage_areas='drainage_area',
                  slopes_at_nodes='topographic__steepest_slope',

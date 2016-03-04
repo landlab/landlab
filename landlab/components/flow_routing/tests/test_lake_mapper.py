@@ -135,8 +135,8 @@ def setup_D4_grid():
     mg1.add_field('node', 'topographic__elevation', z, units='-')
     mg2.add_field('node', 'topographic__elevation', z, units='-')
 
-    frD8 = FlowRouter(mg1)
-    frD4 = FlowRouter(mg2)
+    frD8 = FlowRouter(mg1, method='D8')
+    frD4 = FlowRouter(mg2, method='D4')
     lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
     lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
 
@@ -619,8 +619,8 @@ def test_D8_D4_route():
     """
     Tests the functionality of D4 routing.
     """
-    frD8.route_flow(method='D8')
-    frD4.route_flow(method='D4')
+    frD8.route_flow()
+    frD4.route_flow()
     lfD8.map_depressions()
     lfD4.map_depressions()
     assert_equal(lfD8.number_of_lakes, 1)
