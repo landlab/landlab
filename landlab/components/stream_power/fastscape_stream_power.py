@@ -7,6 +7,7 @@ Created DEJH, March 2014.
 from __future__ import print_function
 
 import numpy
+import warnings
 from landlab import ModelParameterDictionary, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError, \
     ParameterValueError
@@ -108,7 +109,10 @@ class FastscapeEroder(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1.,
                  rainfall_intensity=1., **kwds):
-        """Initialize the Fastscape stream power component.
+        """
+        Initialize the Fastscape stream power component. Note: a timestep,
+        dt, can no longer be supplied to this component through the input file.
+        It must instead be passed directly to the run method.
 
         Parameters
         ----------
@@ -132,8 +136,7 @@ class FastscapeEroder(Component):
         self.r_i = rainfall_intensity
         self.use_K = True
         self.use_ri = True  # these ones overwritten below
-        self.dt = None  # this is a dummy to allow the old-style component
-        # style to still work
+        self.dt = None  # dummy in case user is ever still using gear_timestep
 
         # make storage variables
         self.A_to_the_m = grid.zeros(at='node')
@@ -196,6 +199,10 @@ class FastscapeEroder(Component):
 
     # this should now be redundant, but retained for back compatibility
     def gear_timestep(self, dt_in, rainfall_intensity_in=None):
+        warnings.warn("This method is deprecated. Pass the timestep value " +
+                      "directly to the run method, and tell the component " +
+                      "where to look for rainfall intensity (if needed) " +
+                      "during component initialization.")
         self.dt = dt_in
         if rainfall_intensity_in is not None:
             self.r_i = rainfall_intensity_in
@@ -224,9 +231,10 @@ class FastscapeEroder(Component):
             This is a dummy argument maintained for component back-
             compatibility. It is superceded by the copy of the grid passed
             during initialization.
-        dt : float (optional)
-            Time-step size. If you call :func:`gear_timestep`, that method will
-            supercede any value supplied here.
+        dt : float
+            Time-step size. If you are calling the deprecated function
+            :func:`gear_timestep`, that method will supercede any value
+            supplied here.
         K_if_used : array (optional)
             Set this to an array if you set K_sp to 'array' in your input file.
         flooded_nodes : ndarray of int (optional)
@@ -257,10 +265,10 @@ class FastscapeEroder(Component):
         else:
             r_i_here = self.r_i
 
-        if self.dt is not None:
+        if dt is None:
             dt = self.dt
-        else:
-            assert dt is not None
+        assert dt is not None, ('Fastscape component could not find a dt to ' +
+                                'use. Pass dt to the erode() method.')
 
         if self.K is None:  # "old style" setting of array
             assert K_if_used is not None
@@ -354,5 +362,7 @@ class FastscapeEroder(Component):
             may still occur beneath the apparent water level (though will
             always still be positive).
         """
-
+        assert self.dt is None, ("Do not call :func:`gear_timestep` if using" +
+                                 "this run method. Pass timestep directly " +
+                                 "to this method, and only this method.")
         self.erode(grid_in=self._grid, dt=dt, flooded_nodes=flooded_nodes)
