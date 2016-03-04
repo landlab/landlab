@@ -300,21 +300,21 @@ def test_check_fields():
     fr = FlowRouter(mg)
     assert_array_equal(z, mg.at_node['topographic__elevation'])
     assert_array_equal(np.zeros(25), mg.at_node['drainage_area'])
-    assert_array_equal(np.ones(25), mg.at_node['water__volume_flux_in'])
+    assert_array_equal(np.ones(25), mg.at_node['water__unit_flux_in'])
 
     fr = FlowRouter(mg, infile)
-    assert_array_equal(np.full(25, 2.), mg.at_node['water__volume_flux_in'])
+    assert_array_equal(np.full(25, 2.), mg.at_node['water__unit_flux_in'])
 
 
 @with_setup(setup_dans_grid1)
 def test_check_field_input():
     """Check we can successfully pass water__volume_flux_in."""
-    mg.add_field('node', 'water__volume_flux_in',
+    mg.add_field('node', 'water__unit_flux_in',
                  np.full(25, 3.), units='m**3/s')
     fr = FlowRouter(mg)
-    assert_array_equal(np.full(25, 3.), mg.at_node['water__volume_flux_in'])
+    assert_array_equal(np.full(25, 3.), mg.at_node['water__unit_flux_in'])
     fr = FlowRouter(mg, infile)
-    assert_array_equal(np.full(25, 2.), mg.at_node['water__volume_flux_in'])
+    assert_array_equal(np.full(25, 2.), mg.at_node['water__unit_flux_in'])
 
 
 @with_setup(setup_dans_grid1)
@@ -336,7 +336,7 @@ def test_variable_Qin():
     """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.
-    mg.add_field('node', 'water__volume_flux_in',
+    mg.add_field('node', 'water__unit_flux_in',
                  Qin_local, units='m**3/s')
     fr = FlowRouter(mg)
     fr.route_flow()
@@ -362,10 +362,27 @@ def test_irreg_topo():
 
 
 @with_setup(setup_dans_grid2)
-def test_irreg_topo():
-    """Test D4 routing on a toy irregular topo."""
+def test_irreg_topo_old():
+    """
+    Test D4 routing on a toy irregular topo, old style, where 'method' is
+    passed to the run method, not the init.
+    """
     fr = FlowRouter(mg)
     fr.route_flow(method='D4')
+    assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
+    assert_array_equal(frcvr_target_D4, mg.at_node['flow_receiver'])
+    assert_array_equal(upids_target_D4, mg.at_node['upstream_node_order'])
+    assert_array_equal(links2rcvr_target_D4,
+                       mg.at_node['links_to_flow_receiver'])
+    assert_array_almost_equal(steepest_target_D4,
+                              mg.at_node['topographic__steepest_slope'])
+
+
+@with_setup(setup_dans_grid2)
+def test_irreg_topo_new():
+    """Test D4 routing on a toy irregular topo. 'method' passed to init."""
+    fr = FlowRouter(mg, method='D4')
+    fr.route_flow()
     assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target_D4, mg.at_node['flow_receiver'])
     assert_array_equal(upids_target_D4, mg.at_node['upstream_node_order'])

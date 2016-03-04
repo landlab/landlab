@@ -636,7 +636,7 @@ class DepressionFinderAndRouter(Component):
         discharge, and upstream order.
         """
         # Calculate drainage area, discharge, and downstr->upstr order
-        Q_in = self._grid.at_node['water__volume_flux_in']
+        Q_in = self._grid.at_node['water__unit_flux_in']
         areas = self._grid.cell_area_at_node.copy()
         areas[self._grid.closed_boundary_nodes] = 0.
         self.a, q, s = flow_accum_bw.flow_accumulation(self.receivers,
