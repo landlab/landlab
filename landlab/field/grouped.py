@@ -487,6 +487,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -528,6 +530,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -586,6 +590,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
