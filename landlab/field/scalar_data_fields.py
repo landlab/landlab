@@ -302,7 +302,7 @@ class ScalarDataFields(dict):
         return self.add_field(name, self.zeros(**kwds), units=units)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False,
-                  noclobber=False):
+                  noclobber=True):
         """Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
