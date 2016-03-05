@@ -198,7 +198,7 @@ class ScalarDataFields(dict):
         """
         return np.zeros(self.size, **kwds)
 
-    def add_empty(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_empty(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
@@ -212,6 +212,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -226,9 +228,10 @@ class ScalarDataFields(dict):
         landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
         """
-        return self.add_field(name, self.empty(**kwds), units=units)
+        return self.add_field(name, self.empty(**kwds), units=units,
+                              noclobber=noclobber)
 
-    def add_ones(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_ones(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
@@ -242,6 +245,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -269,9 +274,10 @@ class ScalarDataFields(dict):
         >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
-        return self.add_field(name, self.ones(**kwds), units=units)
+        return self.add_field(name, self.ones(**kwds), units=units,
+                              noclobber=noclobber)
 
-    def add_zeros(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_zeros(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -285,6 +291,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -299,7 +307,8 @@ class ScalarDataFields(dict):
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
         """
-        return self.add_field(name, self.zeros(**kwds), units=units)
+        return self.add_field(name, self.zeros(**kwds), units=units,
+                              noclobber=noclobber)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False,
                   noclobber=True):
