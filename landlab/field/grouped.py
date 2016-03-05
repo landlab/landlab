@@ -472,7 +472,8 @@ class ModelDataFields(object):
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
-        """Create and add an uninitialized array of values to the field.
+        """add_empty(group, name, units='-', noclobber=True)
+        Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
         entries, and add it to the field as *name*. The *units* keyword gives
@@ -515,7 +516,8 @@ class ModelDataFields(object):
                               units=units)
 
     def add_ones(self, *args, **kwds):
-        """Create and add an array of values, initialized to 1, to the field.
+        """add_ones(group, name, units='-', noclobber=True)
+        Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
         add it to the field as *name*. The *units* keyword gives the units of
@@ -575,7 +577,8 @@ class ModelDataFields(object):
                               units=units)
 
     def add_zeros(self, *args, **kwds):
-        """Create and add an array of values, initialized to 0, to the field.
+        """add_zeros(group, name, units='-', noclobber=True)
+        Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
         add it to the field as *name*. The *units* keyword gives the units of
