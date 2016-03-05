@@ -364,7 +364,7 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('topographic__elevation', values, copy=True)
+        >>> field.add_field('topographic__elevation', values, copy=True, noclobber=False)
         array([1, 1, 1, 1])
         >>> field['topographic__elevation'] is values
         False

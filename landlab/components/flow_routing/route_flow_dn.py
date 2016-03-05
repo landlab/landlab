@@ -164,12 +164,21 @@ class FlowRouter(Component):
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = model_grid.add_zeros('drainage_area', at='node')
-        self.receiver = model_grid.add_zeros('flow_receiver', at='node')
-        self.steepest_slope = model_grid.add_zeros('topographic__steepest_slope', at='node')
-        self.discharges = model_grid.add_zeros('water__volume_flux', at='node')
-        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_ID_order', at='node')
-        self.links_to_receiver = model_grid.add_zeros('links_to_flow_receiver', at='node')
+        self.drainage_area = model_grid.add_zeros('drainage_area', at='node',
+                                                  noclobber=False)
+        self.receiver = model_grid.add_zeros('flow_receiver', at='node',
+                                             noclobber=False)
+        self.steepest_slope = model_grid.add_zeros('topographic__steepest_' +
+                                                   'slope', at='node',
+                                                   noclobber=False)
+        self.discharges = model_grid.add_zeros('water__volume_flux', at='node',
+                                               noclobber=False)
+        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_ID_order',
+                                                           at='node',
+                                                           noclobber=False)
+        self.links_to_receiver = model_grid.add_zeros('links_to_flow_receiver',
+                                                      at='node',
+                                                      noclobber=False)
 
 
     def route_flow(self, method='D8'):
@@ -242,7 +251,7 @@ class FlowRouter(Component):
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
-        >>> _ = mg.add_field('node', 'water__volume_flux_in', runoff_rate)
+        >>> _ = mg.at_node['water__volume_flux_in'] = runoff_rate
         >>> mg = fr.route_flow()
         >>> mg.at_node['water__volume_flux'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,

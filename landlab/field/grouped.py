@@ -512,8 +512,9 @@ class ModelDataFields(object):
             raise ValueError('number of arguments must be 1 or 2')
 
         units = kwds.pop('units', None)
+        noclobber = kwds.pop('noclobber', None)
         return self.add_field(group, name, self.empty(group, **kwds),
-                              units=units)
+                              units=units, noclobber=noclobber)
 
     def add_ones(self, *args, **kwds):
         """add_ones(group, name, units='-', noclobber=True)
@@ -572,9 +573,10 @@ class ModelDataFields(object):
             raise ValueError('number of arguments must be 1 or 2')
 
         units = kwds.pop('units', None)
+        noclobber = kwds.pop('noclobber', None)
         return self.add_field(group, name,
                               self.ones(group, **kwds),
-                              units=units)
+                              units=units, noclobber=noclobber)
 
     def add_zeros(self, *args, **kwds):
         """add_zeros(group, name, units='-', noclobber=True)
@@ -617,9 +619,10 @@ class ModelDataFields(object):
             raise ValueError('number of arguments must be 1 or 2')
 
         units = kwds.pop('units', None)
+        noclobber = kwds.pop('noclobber', None)
         return self.add_field(group, name,
                               self.zeros(group, **kwds),
-                              units=units)
+                              units=units, noclobber=noclobber)
 
     def add_field(self, *args, **kwds):
         """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
@@ -679,7 +682,7 @@ class ModelDataFields(object):
         behavior to raise an exception in such a case.
 
         >>> field.add_field('node', 'topographic__elevation', values,
-        ...     copy=True)
+        ...     copy=True, noclobber=False)
         array([1, 1, 1, 1])
         >>> field.at_node['topographic__elevation'] is values
         False
