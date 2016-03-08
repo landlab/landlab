@@ -33,6 +33,9 @@ class FastscapeEroder(Component):
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
 
+    If you want to implement an erosion threshold, use the explicit solver
+    :class:`StreamPowerEroder`.
+
     The primary method of this class is :func:`run_one_timestep`.
 
     Construction::

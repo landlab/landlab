@@ -180,14 +180,16 @@ class FlowRouter(Component):
         #   - drainage area at each node
         #   - receiver of each node
         self.drainage_area = grid.add_zeros('drainage_area', at='node')
-        self.receiver = grid.add_zeros('flow_receiver', at='node')
+        self.receiver = grid.add_zeros('flow_receiver', at='node',
+                                       dtype=int)
         self.steepest_slope = grid.add_zeros('topographic__steepest_' +
                                              'slope', at='node')
         self.discharges = grid.add_zeros('water__volume_flux', at='node')
-        self.upstream_ordered_nodes = grid.add_zeros('upstream_ID_order',
-                                                     at='node')
+        self.upstream_ordered_nodes = grid.add_zeros('upstream_node_order',
+                                                     at='node', dtype=int)
         self.links_to_receiver = grid.add_zeros('links_to_flow_receiver',
-                                                at='node')
+                                                at='node', dtype=int)
+        grid.add_zeros('flow_sinks', at='node', dtype=int)
 
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
@@ -325,14 +327,14 @@ class FlowRouter(Component):
 
         # added DEJH March 2014:
         # store the generated data in the grid
-        self._grid['node']['drainage_area'] = a
-        self._grid['node']['flow_receiver'] = receiver
-        self._grid['node']['topographic__steepest_slope'] = steepest_slope
-        self._grid['node']['water__volume_flux'] = q
-        self._grid['node']['upstream_node_order'] = s
-        self._grid['node']['links_to_flow_receiver'] = recvr_link
-        self._grid['node']['flow_sinks'] = numpy.zeros_like(receiver,
-                                                            dtype=bool)
+        self._grid['node']['drainage_area'][:] = a
+        self._grid['node']['flow_receiver'][:] = receiver
+        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
+        self._grid['node']['water__volume_flux'][:] = q
+        self._grid['node']['upstream_node_order'][:] = s
+        self._grid['node']['links_to_flow_receiver'][:] = recvr_link
+        self._grid['node']['flow_sinks'][:] = numpy.zeros_like(receiver,
+                                                               dtype=bool)
         self._grid['node']['flow_sinks'][sink] = True
 
         return self._grid
