@@ -41,13 +41,13 @@ def test_storms():
 
     precip = PrecipitationDistribution(input_file=input_file_string)
     fr = FlowRouter(mg)
-    sp = StreamPowerEroder(mg, input_file_string)
+    sp = StreamPowerEroder(mg, **inputs)
 
     for (interval_duration, rainfall_rate) in \
             precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
-            sp.erode(mg, dt=interval_duration, Q_if_used='water__volume_flux')
+            sp.run_one_timestep(dt)
         mg.at_node['topographic__elevation'][
             mg.core_nodes] += uplift * interval_duration

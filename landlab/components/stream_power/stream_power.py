@@ -577,13 +577,12 @@ class StreamPowerEroder(Component):
                 stream_power_active_nodes = (self._K_unit_time * dt *
                                              Q_direct[active_nodes]**self._m *
                                              self.slopes[active_nodes] **
-                                             self._n / W)
-######probably W[active_nodes]
+                                             self._n / W[active_nodes])
             else:  # just W to be used
                 stream_power_active_nodes = (self._K_unit_time * dt *
                                              node_A[active_nodes]**self._m *
                                              self.slopes[active_nodes] **
-                                             self._n / W)
+                                             self._n / W[active_nodes])
         else:  # just use_Q
             if self._Q is None:
                 try:
