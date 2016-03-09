@@ -398,9 +398,9 @@ class TransportLimitedEroder(Component):
             """
 
         # set up the necessary fields:
-        self.set_new_fields()
+        self.initialize_output_fields()
         if self.return_ch_props:
-            self.set_new_optional_fields()
+            self.initialize_optional_output_fields()
 
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
               node_drainage_areas='drainage_area',
