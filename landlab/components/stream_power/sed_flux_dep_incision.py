@@ -6,14 +6,14 @@ from six.moves import range
 
 import numpy as np
 from time import sleep
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
 
-class SedDepEroder(object):
+class SedDepEroder(Component):
     """
     This class implements sediment flux dependent fluvial incision. It is built
     on the back of the simpler stream power class, stream_power.py, also in this
@@ -21,8 +21,116 @@ class SedDepEroder(object):
     provided to the class. See the docstrings of stream_power.py for more detail
     on required initialization and operating parameters.
 
+    Note this component takes dt in YEARS (only!).
+
     Assumes grid does not deform or change during run.
     """
+
+    _name = 'SedDepEroder'
+
+    _input_var_names = {'topographic__elevation',
+                        'drainage_area',
+                        'flow_receiver',
+                        'upstream_node_order',
+                        'topographic__steepest_slope',
+                        'links_to_flow_receiver'}
+
+    _output_var_names = {'topographic__elevation',
+                         'channel_bed_shear_stress',
+                         'fluvial_sediment_transport_capacity',
+                         'fluvial_sediment_flux_into_node',
+                         'relative_sediment_flux',
+                         'channel_discharge',
+                         'channel_width',  # optional
+                         'channel_depth',  # optional
+                         }
+
+    _optional_var_names = {'channel_width',
+                           'channel_depth'}
+
+    _var_units = {'topographic__elevation': 'm',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'upstream_node_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'channel_bed_shear_stress': 'Pa',
+                  'fluvial_sediment_transport_capacity': 'm**3/s',
+                  'fluvial_sediment_flux_into_node': 'm**3/s',
+                  'relative_sediment_flux': '-',
+                  'channel_discharge': 'm**3/s',
+                  'channel_width': 'm',
+                  'channel_depth': 'm'
+                  }
+
+    _var_mapping = {'topographic__elevation': 'node',
+                    'drainage_area': 'node',
+                    'flow_receiver': 'node',
+                    'topographic__steepest_slope': 'node',
+                    'upstream_node_order': 'node',
+                    'links_to_flow_receiver': 'node',
+                    'channel_bed_shear_stress': 'node',
+                    'fluvial_sediment_transport_capacity': 'node',
+                    'fluvial_sediment_flux_into_node': 'node',
+                    'relative_sediment_flux': 'node',
+                    'channel_discharge': 'node',
+                    'channel_width': 'node',
+                    'channel_depth': 'node'
+                    }
+
+    _var_type = {'topographic__elevation': float,
+                 'drainage_area': float,
+                 'flow_receiver': int,
+                 'topographic__steepest_slope': float,
+                 'upstream_node_order': int,
+                 'links_to_flow_receiver': int,
+                 'channel_bed_shear_stress': float,
+                 'fluvial_sediment_transport_capacity': float,
+                 'fluvial_sediment_flux_into_node': float,
+                 'relative_sediment_flux': float,
+                 'channel_discharge': float,
+                 'channel_width': float,
+                 'channel_depth': float
+                 }
+
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'drainage_area':
+            ("Upstream accumulated surface area contributing to the node's " +
+             "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)'),
+        'topographic__steepest_slope':
+            'Node array of steepest *downhill* slopes',
+        'upstream_node_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+             'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        'channel_bed_shear_stress':
+            ('Shear exerted on the bed of the channel, assuming all ' +
+             'discharge travels along a single, self-formed channel'),
+        'fluvial_sediment_transport_capacity':
+            ('Volumetric transport capacity of a channel carrying all runoff' +
+             ' through the node, assuming the Meyer-Peter Muller transport ' +
+             'equation'),
+        'fluvial_sediment_flux_into_node':
+            ('Total volumetric fluvial sediment flux brought into the node ' +
+             'from upstream'),
+        'relative_sediment_flux':
+            ('The fluvial_sediment_flux_into_node divided by the fluvial_' +
+             'sediment_transport_capacity'),
+        'channel_discharge':
+            ('Volumetric water flux of the a single channel carrying all ' +
+             'runoff through the node'),
+        'channel_width':
+            ('Width of the a single channel carrying all runoff through the ' +
+             'node'),
+        'channel_depth':
+            ('Depth of the a single channel carrying all runoff through the ' +
+             'node')
+    }
 
     def __init__(self, grid, params):
         self.initialize(grid, params)
@@ -141,7 +249,7 @@ class SedDepEroder(object):
         #this is the fraction we allow any given slope in the grid to evolve by in one go (suppresses numerical instabilities)
         self.fraction_gradient_change = 0.25
         self.pseudoimplicit_repeats = 5
-        self.grid = grid
+        self._grid = grid
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
         self.count_active_links = np.zeros_like(self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
@@ -289,6 +397,11 @@ class SedDepEroder(object):
         #both these are divided by sed density to give a vol flux
         self.Qs_power_onA = self._c*(0.6+self._b/15.)
         self.Qs_power_onAthresh = twothirds*self._b*self._c
+        
+        # set up the necessary fields:
+        self.set_new_fields_for_component()
+        if self.return_ch_props:
+            self.set_new_optional_fields_for_component()
 
 
 
@@ -589,7 +702,7 @@ class SedDepEroder(object):
             node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[core_draining_nodes]/link_length[core_draining_nodes]
             internal_t += dt_this_step #still in seconds, remember
 
-        self.grid=grid
+        self._grid=grid
 
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
@@ -609,14 +722,14 @@ class SedDepEroder(object):
             #'channel_width', 'channel_depth', and 'channel_discharge'
             W = self.k_w*node_Q**self._b
             H = shear_stress/self.rho_g/node_S #...sneaky!
-            grid.at_node['channel_width'] = W
-            grid.at_node['channel_depth'] = H
+            grid.at_node['channel_width'][:] = W
+            grid.at_node['channel_depth'][:] = H
 
-        grid.at_node['channel_discharge'] = node_Q
-        grid.at_node['channel_bed_shear_stress'] = shear_stress
-        grid.at_node['fluvial_sediment_transport_capacity'] = transport_capacities
-        grid.at_node['fluvial_sediment_flux_into_node'] = sed_into_node
-        grid.at_node['relative_sediment_flux'] = rel_sed_flux
+        grid.at_node['channel_discharge'][:] = node_Q
+        grid.at_node['channel_bed_shear_stress'][:] = shear_stress
+        grid.at_node['fluvial_sediment_transport_capacity'][:] = transport_capacities
+        grid.at_node['fluvial_sediment_flux_into_node'][:] = sed_into_node
+        grid.at_node['relative_sediment_flux'][:] = rel_sed_flux
         #elevs set automatically to the name used in the function call.
         self.iterations_in_dt = counter
 
