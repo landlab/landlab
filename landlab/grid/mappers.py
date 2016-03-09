@@ -313,6 +313,128 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     return out
 
 
+def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
+    """
+    Map the the value found in one field of nodes to a link, based on the
+    minimum value found in a second node field.
+
+    map_value_at_min_node_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of 'control_name' at both the "to" and
+    "from" node. The value of 'value_name' at the node with the minimum value
+    of the two values of 'control_name' is then mapped to the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_min_node_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> _ = rmg.add_field('node', 'z',
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field('node', 'vals_to_map',
+    ...                   [[0, 10, 20, 30],
+    ...                    [70, 60, 50, 40],
+    ...                    [80, 90, 100, 110]])
+    >>> map_value_at_min_node_to_link(rmg, 'z', 'vals_to_map')
+    array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
+             40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
+    """
+    if out is None:
+        out = grid.empty(centering='link')
+
+    controlling_values_at_nodes = grid.at_node[control_name]
+    head_control = controlling_values_at_nodes[grid.node_at_link_head]
+    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
+    head_vals = grid.at_node[value_name][grid.node_at_link_head]
+    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+
+    out[:] = np.where(tail_control < head_control, tail_vals, head_vals)
+    return out
+
+
+def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
+    """
+    Map the the value found in one field of nodes to a link, based on the
+    maximum value found in a second node field.
+
+    map_value_at_max_node_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of 'control_name' at both the "to" and
+    "from" node. The value of 'value_name' at the node with the maximum value
+    of the two values of 'control_name' is then mapped to the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_max_node_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> _ = rmg.add_field('node', 'z',
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field('node', 'vals_to_map',
+    ...                   [[0, 10, 20, 30],
+    ...                    [70, 60, 50, 40],
+    ...                    [80, 90, 100, 110]])
+    >>> map_value_at_max_node_to_link(rmg, 'z', 'vals_to_map')
+    array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
+             50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
+    """
+    if out is None:
+        out = grid.empty(centering='link')
+
+    controlling_values_at_nodes = grid.at_node[control_name]
+    head_control = controlling_values_at_nodes[grid.node_at_link_head]
+    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
+    head_vals = grid.at_node[value_name][grid.node_at_link_head]
+    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+
+    out[:] = np.where(tail_control > head_control, tail_vals, head_vals)
+    return out
+
+
 def map_node_to_cell(grid, var_name, out=None):
     """Map values for nodes to cells.
 
