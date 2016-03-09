@@ -399,9 +399,9 @@ class SedDepEroder(Component):
         self.Qs_power_onAthresh = twothirds*self._b*self._c
         
         # set up the necessary fields:
-        self.set_new_fields_for_component()
+        self.set_new_fields()
         if self.return_ch_props:
-            self.set_new_optional_fields_for_component()
+            self.set_new_optional_fields()
 
 
 

@@ -251,7 +251,7 @@ class Component(object):
         """
         return cls._var_mapping[name]
 
-    def set_new_fields_for_component(self):
+    def set_new_fields(self):
         """
         Create fields for a component based on its input and output var names.
 
@@ -271,7 +271,7 @@ class Component(object):
                                 units=self.var_units(field_to_set),
                                 noclobber=True)
 
-    def set_new_optional_fields_for_component(self):
+    def set_new_optional_fields(self):
         """
         Create fields for a component based on its optional field outputs,
         if declared in _optional_var_names.
