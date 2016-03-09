@@ -1130,7 +1130,7 @@ class PerronNLDiffuse(object):
         else:
             self.gear_timestep(self.timestep_in, grid_in)
             for i in range(self.internal_repeats):
-                grid_in['node'][self.values_to_diffuse] = self.grid['node'][
+                grid_in['node'][self.values_to_diffuse][:] = self.grid['node'][
                     self.values_to_diffuse] + self.uplift_per_step
             # Initialize the variables for the step:
                 self.set_variables(grid_in)

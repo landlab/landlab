@@ -211,7 +211,7 @@ class SinkFiller(Component):
         for delete_me in spurious_fields:
             self._grid.delete_field('node', delete_me)
         for update_me in existing_fields.keys():
-            self.grid.at_node[update_me] = existing_fields[update_me]
+            self.grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
