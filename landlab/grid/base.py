@@ -533,11 +533,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_unit_vector_sum_y = None
         self._link_unit_vec_x = None
         self._link_unit_vec_y = None
-        
+
         # Sort links according to the x and y coordinates of their midpoints.
         # Assumes 1) node_at_link_tail and node_at_link_head have been
         # created, and 2) so have node_x and node_y.
-        #self.sort_links_by_midpoint()
+        # self.sort_links_by_midpoint()
 
     @classmethod
     def from_file(cls, file_like):
@@ -610,7 +610,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         -------
         (NODES, LINKS) ndarray of int
             Link for the nodes of a grid. The shape of the matrix will be
-            number of nodes rows by max number of links per node.
+            number of nodes rows by max number of links per node. Order is
+            anticlockwise from east.
 
         Examples
         --------
@@ -636,8 +637,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         Returns
         -------
         (NODES, LINKS) ndarray of int
-            Link directions relative to the nodes of a grid. The shape of the 
-            matrix will be number of nodes rows by max number of links per 
+            Link directions relative to the nodes of a grid. The shape of the
+            matrix will be number of nodes rows by max number of links per
             node. A zero indicates no link at this position.
 
         Examples
@@ -788,7 +789,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @return_readonly_id_array
     def fixed_links(self):
         """Get array of fixed links.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
@@ -1149,7 +1150,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def find_number_of_links_at_node(self):
         """Find and record how many links are attached to each node."""
-        self._number_of_links_at_node = np.zeros(self.number_of_nodes, dtype=np.int)
+        self._number_of_links_at_node = np.zeros(self.number_of_nodes,
+                                                 dtype=np.int)
         for ln in range(self.number_of_links):
             self._number_of_links_at_node[self.node_at_link_tail[ln]] += 1
             self._number_of_links_at_node[self.node_at_link_head[ln]] += 1
@@ -1164,7 +1166,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def make_links_and_link_dirs_at_node(self):
         """Make arrays with links and link directions at each node.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -1193,26 +1195,27 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 1,  1,  1,  0,  0,  0]], dtype=int8)
         """
         # Find maximum number of links per node
-        nlpn = self.number_of_links_at_node()   #this fn should become member and property
+        nlpn = self.number_of_links_at_node()
+        # ^this fn should become member and property
         max_num_links = np.amax(nlpn)
         nlpn[:] = 0  # we'll zero it out, then rebuild it
-    
+
         # Create arrays for link-at-node information
-        self._links_at_node = -np.ones((self.number_of_nodes, max_num_links), 
+        self._links_at_node = -np.ones((self.number_of_nodes, max_num_links),
                                        dtype=np.int32)
         self._link_dirs_at_node = np.zeros((self.number_of_nodes,
                                             max_num_links),
-                                            dtype=np.int8)
+                                           dtype=np.int8)
 
         # Sweep over all links
         for lk in range(self.number_of_links):
-    
             # Find the IDs of the tail and head nodes
             t = self.node_at_link_tail[lk]
             h = self.node_at_link_head[lk]
-    
-            # Add this link to the list for this node, set the direction (outgoing,
-            # indicated by -1), and increment the number found so far
+
+            # Add this link to the list for this node, set the direction
+            # (outgoing, indicated by -1), and increment the number found so
+            # far
             self._links_at_node[t][nlpn[t]] = lk
             self._links_at_node[h][nlpn[h]] = lk
             self._link_dirs_at_node[t][nlpn[t]] = -1
@@ -1240,7 +1243,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             the nodes in the grid. M is the number of rows in the grid's
             node_active_inlink_matrix, which can vary depending on the type
             and structure of the grid; in a hex grid, for example, it is 6.
-            
+
         Notes
         -----
         On it's way to being obsolete.
@@ -1353,7 +1356,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def link_angle(self, links, dirs):
         """Find and return the angle of link(s) in given direction.
-        
+
         Parameters
         ----------
         grid : ModelGrid object
@@ -1363,10 +1366,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         dirs : 1d numpy array (must be same length as links)
             direction of links relative to node: +1 means head is origin;
             -1 means tail is origin.
-        
+
         Notes
         -----
-        dx and dy are the x and y differences between the link endpoints. 
+        dx and dy are the x and y differences between the link endpoints.
         Multiplying this by dirs orients these offsets correctly (i.e.,
         the correct node is the origin). The call to arctan2 calculates
         the angle in radians. Angles in the lower two quadrants will be
@@ -1374,12 +1377,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         counter-clockwise, which is what the last couple of lines before
         the return statement do.
         """
-        dx = -dirs * (self.node_x[self.node_at_link_head[links]] 
-                    - self.node_x[self.node_at_link_tail[links]])
-        dy = -dirs * (self.node_y[self.node_at_link_head[links]]
-                    - self.node_y[self.node_at_link_tail[links]])
+        dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
+                      self.node_x[self.node_at_link_tail[links]])
+        dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
+                      self.node_y[self.node_at_link_tail[links]])
         ang = np.arctan2(dy, dx)
-        (lower_two_quads, ) = np.where(ang<0.0)
+        (lower_two_quads, ) = np.where(ang < 0.0)
         ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
         (no_link, ) = np.where(dirs == 0)
         ang[no_link] = 2*np.pi
@@ -1389,11 +1392,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         """Sort the links_at_node and link_dirs_at_node arrays by angle.
         """
         for n in range(self.number_of_nodes):
-            ang = self.link_angle(self.links_at_node[n,:], \
-                                  self.link_dirs_at_node[n,:])
+            ang = self.link_angle(self.links_at_node[n, :],
+                                  self.link_dirs_at_node[n, :])
             indices = np.argsort(ang)
-            self._links_at_node[n,:] = self._links_at_node[n,indices]
-            self._link_dirs_at_node[n,:] = self._link_dirs_at_node[n,indices]
+            self._links_at_node[n, :] = self._links_at_node[n, indices]
+            self._link_dirs_at_node[n, :] = self._link_dirs_at_node[n, indices]
 
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
@@ -1413,10 +1416,266 @@ class ModelGrid(ModelDataFieldsMixIn):
         return gfuncs.resolve_values_on_active_links(self, link_values,
                                                      out=out)
 
+    def link_at_node_is_upwind(self, var_name, out=None):
+        """
+        Return a boolean the same shape as :func:`links_at_node` which flags
+        links which are upwind of the node as True.
+
+        link_at_node_is_upwind iterates across the grid and identifies the link
+        values at each link connected to a node. It then uses the
+        link_dirs_at_node data structure to identify links bringing flux into
+        the node. It then return a boolean array the same shape as
+        links_at_node flagging these links. e.g., for a raster, the returned
+        array will be shape (nnodes, 4).
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        out : ndarray, optional
+            Buffer to place mapped values into or `None` to create a new array.
+            Must be correct shape and boolean dtype.
+
+        Returns
+        -------
+        ndarray
+            Boolean of which links are upwind at nodes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.link_at_node_is_upwind('grad')
+        array([[False, False, False, False],
+               [False, False,  True, False],
+               [False, False,  True, False],
+               [False, False,  True, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True]], dtype=bool)
+        """
+        if out is None:
+            out = np.empty_like(self.links_at_node, dtype=bool)
+        else:
+            assert out.shape is self.links_at_node.shape
+            assert out.dtype is bool
+
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        np.less(values_at_links, 0., out=out)
+
+        return out
+
+    def link_at_node_is_downwind(self, var_name, out=None):
+        """
+        Return a boolean the same shape as :func:`links_at_node` which flags
+        links which are downwind of the node as True.
+
+        link_at_node_is_downwind iterates across the grid and identifies the
+        link values at each link connected to a node. It then uses the
+        link_dirs_at_node data structure to identify links carrying flux out of
+        the node. It then return a boolean array the same shape as
+        links_at_node flagging these links. e.g., for a raster, the returned
+        array will be shape (nnodes, 4).
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        out : ndarray, optional
+            Buffer to place mapped values into or `None` to create a new array.
+            Must be correct shape and boolean dtype.
+
+        Returns
+        -------
+        ndarray
+            Boolean of which links are downwind at nodes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.link_at_node_is_downwind('grad')
+        array([[ True,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [ True, False, False, False],
+               [ True, False, False, False],
+               [ True, False, False, False],
+               [False, False, False, False]], dtype=bool)
+        """
+        if out is None:
+            out = np.empty_like(self.links_at_node, dtype=bool)
+        else:
+            assert out.shape is self.links_at_node.shape
+            assert out.dtype is bool
+
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        np.greater(values_at_links, 0., out=out)
+
+        return out
+
+    def upwind_links_at_node(self, var_name, bad_index=-1):
+        """
+        Return an (nnodes, X) shape array of link IDs of which links are upwind
+        of each node, according to the field 'var_name'.
+
+        X is the maximum upwind links at any node. Nodes with fewer upwind
+        links than this have additional slots filled with *bad_index*. Links
+        are ordered anticlockwise from east.
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        bad_index : int
+            Index to place in array indicating no link.
+
+        Returns
+        -------
+        ndarray
+            Array of upwind link IDs
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.upwind_links_at_node('grad', bad_index=-1)
+        array([[-1, -1],
+               [ 0, -1],
+               [ 1, -1],
+               [ 2, -1],
+               [ 3, -1],
+               [ 7,  4],
+               [ 8,  5],
+               [ 9,  6],
+               [10, -1],
+               [14, 11],
+               [15, 12],
+               [16, 13]])
+        """
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        unordered_IDs = np.where(values_at_links < 0., self.links_at_node,
+                                 bad_index)
+        bad_IDs = unordered_IDs == bad_index
+        nnodes = self.number_of_nodes
+        flat_sorter = (np.argsort(bad_IDs, axis=1) +
+                       self.links_at_node.shape[1] *
+                       np.arange(nnodes).reshape((nnodes, 1)))
+        big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
+                                self.links_at_node.shape)
+        cols_to_cut = int(bad_IDs.sum(axis=1).min())
+
+        if cols_to_cut > 0:
+            return big_ordered_array[:, :-cols_to_cut]
+        else:
+            return big_ordered_array
+
+    def downwind_links_at_node(self, var_name, bad_index=-1):
+        """
+        Return an (nnodes, X) shape array of link IDs of which links are
+        downwind of each node, according to the field 'var_name'.
+
+        X is the maximum downwind links at any node. Nodes with fewer downwind
+        links than this have additional slots filled with *bad_index*. Links
+        are ordered anticlockwise from east.
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        bad_index : int
+            Index to place in array indicating no link.
+
+        Returns
+        -------
+        ndarray
+            Array of upwind link IDs
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.downwind_links_at_node('grad', bad_index=BAD_INDEX_VALUE)
+        array([[         0,          3],
+               [         1,          4],
+               [         2,          5],
+               [         6, 2147483647],
+               [         7,         10],
+               [         8,         11],
+               [         9,         12],
+               [        13, 2147483647],
+               [        14, 2147483647],
+               [        15, 2147483647],
+               [        16, 2147483647],
+               [2147483647, 2147483647]])
+        """
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        unordered_IDs = np.where(values_at_links > 0., self.links_at_node,
+                                 bad_index)
+        bad_IDs = unordered_IDs == bad_index
+        nnodes = self.number_of_nodes
+        flat_sorter = (np.argsort(bad_IDs, axis=1) +
+                       self.links_at_node.shape[1] *
+                       np.arange(nnodes).reshape((nnodes, 1)))
+        big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
+                                self.links_at_node.shape)
+        cols_to_cut = int(bad_IDs.sum(axis=1).min())
+
+        if cols_to_cut > 0:
+            return big_ordered_array[:, :-cols_to_cut]
+        else:
+            return big_ordered_array
+
     @property
     def faces_at_cell(self):
         """Return array containing face IDs at each cell.
-        
+
         Creates array if it doesn't already exist.
         """
         try:
@@ -1427,7 +1686,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def find_number_of_faces_at_cell(self):
         """Find and return how many faces are attached to each cell.
-        
+
         Example
         -------
         >>> from landlab import HexModelGrid
@@ -1447,13 +1706,14 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def sort_faces_at_cell_by_angle(self):
         """Sort the faces_at_cell array by angle.
-        
+
         Assumes links_at_node and link_dirs_at_node created.
         """
         for cell in range(self.number_of_cells):
-            sorted_links = self.links_at_node[self.node_at_cell[cell],:]
-            sorted_faces = self._faces_at_cell[cell,:] = self.face_at_link[sorted_links]
-            self._faces_at_cell[cell,:] = sorted_faces
+            sorted_links = self.links_at_node[self.node_at_cell[cell], :]
+            sorted_faces = self._faces_at_cell[cell, :] = self.face_at_link[
+                sorted_links]
+            self._faces_at_cell[cell, :] = sorted_faces
 
     def make_faces_at_cell(self):
         """Construct faces_at_cell array.
@@ -1468,17 +1728,18 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 6, 10,  9,  5,  2,  3]])
         """
         num_faces = self.find_number_of_faces_at_cell()
-        self._faces_at_cell = np.zeros((self.number_of_cells, np.amax(num_faces)), dtype=int)
+        self._faces_at_cell = np.zeros((self.number_of_cells,
+                                        np.amax(num_faces)), dtype=int)
         num_faces[:] = 0  # Zero out and count again, to use as index
         for ln in range(self.number_of_links):
             cell = self.cell_at_node[self.node_at_link_tail[ln]]
             if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[cell,num_faces[cell]] = \
+                self._faces_at_cell[cell, num_faces[cell]] = \
                     self.face_at_link[ln]
                 num_faces[cell] += 1
             cell = self.cell_at_node[self.node_at_link_head[ln]]
             if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[cell,num_faces[cell]] = \
+                self._faces_at_cell[cell, num_faces[cell]] = \
                     self.face_at_link[ln]
                 num_faces[cell] += 1
         self.sort_faces_at_cell_by_angle()
@@ -2103,10 +2364,10 @@ class ModelGrid(ModelDataFieldsMixIn):
                         ((tonode_status == FIXED_GRADIENT_BOUNDARY) &
                          (fromnode_status == CORE_NODE))) |
                        already_fixed)
-        
+
         fixed_link_fixed_val = (((fromnode_status == FIXED_VALUE_BOUNDARY) |
                                  (tonode_status == FIXED_VALUE_BOUNDARY)) &
-                                already_fixed)                        
+                                already_fixed)                    
         # these are the "special cases", where the user is probably trying to
         # adjust an individual fixed_link back to fixed value. We'll allow it:
         fixed_links[fixed_link_fixed_val] = False
@@ -2858,7 +3119,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
 
         **Example 1**
-        
+
         q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
         :math:`(1,1)`.
 
@@ -2877,7 +3138,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         **Example 2**
-        
+
         Vector magnitude is 5, angle is 30 degrees from horizontal,
         forming a 3-4-5 triangle.
 
@@ -3330,17 +3591,17 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     def sort_links_by_midpoint(self):
         """Sort links in order first by midpoint x coordinate, then y.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         """
         pts = np.zeros((self.number_of_links, 2))
-        pts[:,0] = (self.node_x[self.node_at_link_tail] +
-                    self.node_x[self.node_at_link_head]) / 2
-        pts[:,1] = (self.node_y[self.node_at_link_tail] +
-                    self.node_y[self.node_at_link_head]) / 2
+        pts[:, 0] = (self.node_x[self.node_at_link_tail] +
+                     self.node_x[self.node_at_link_head]) / 2
+        pts[:, 1] = (self.node_y[self.node_at_link_tail] +
+                     self.node_y[self.node_at_link_head]) / 2
         indices = argsort_points_by_x_then_y(pts)
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
