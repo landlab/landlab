@@ -1602,7 +1602,10 @@ class ModelGrid(ModelDataFieldsMixIn):
                                 self.links_at_node.shape)
         cols_to_cut = int(bad_IDs.sum(axis=1).min())
 
-        return big_ordered_array[:, :-cols_to_cut]
+        if cols_to_cut > 0:
+            return big_ordered_array[:, :-cols_to_cut]
+        else:
+            return big_ordered_array
 
     def downwind_links_at_node(self, var_name, bad_index=-1):
         """
@@ -1664,7 +1667,10 @@ class ModelGrid(ModelDataFieldsMixIn):
                                 self.links_at_node.shape)
         cols_to_cut = int(bad_IDs.sum(axis=1).min())
 
-        return big_ordered_array[:, :-cols_to_cut]
+        if cols_to_cut > 0:
+            return big_ordered_array[:, :-cols_to_cut]
+        else:
+            return big_ordered_array
 
     @property
     def faces_at_cell(self):
