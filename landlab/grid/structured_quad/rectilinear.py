@@ -71,6 +71,15 @@ class RectilinearGrid(StructuredQuadGrid):
 
 class UniformRectilinearGrid(RectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : tuple, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import UniformRectilinearGrid
@@ -140,6 +149,15 @@ class UniformRectilinearGrid(RectilinearGrid):
 
 class RasterGrid(UniformRectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : float, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+        
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import RasterGrid

@@ -95,6 +95,23 @@ class VoronoiDelaunayGrid(ModelGrid):
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
 
+    Create an unstructured grid from points whose coordinates are given
+    by the arrays *x*, *y*.
+
+    Parameters
+    ----------
+    x : array_like
+        x-coordinate of points
+    y : array_like
+        y-coordinate of points
+    reorient_links (optional) : bool
+        whether to point all links to the upper-right quadrant
+
+    Returns
+    -------
+    VoronoiDelaunayGrid
+        A newly-created grid.
+
     Examples
     --------
     >>> from numpy.random import rand
@@ -114,7 +131,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     >>> vmg = VoronoiDelaunayGrid(x, y)
     >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  1.,  2.,
-            0.,  1.,  2., 
+            0.,  1.,  2.,
             0.,  1.,  2.,
             0.,  1.,  2.])
     >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
@@ -125,7 +142,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     """
 
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
-        """Create a Voronoi Delaunay grid from a set of points.
+        """
+        Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
         by the arrays *x*, *y*.
@@ -175,7 +193,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         self.pts = sort_points_by_x_then_y(pts)
         x = pts[:,0]
         y = pts[:,1]
-        
+
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
         #   - node x, y coordinates
@@ -245,7 +263,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
-        
+
     @property
     def number_of_patches(self):
         """Number of patches.
@@ -278,7 +296,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         patches recorded after the ids of existing faces.
         The nodata argument allows control of the array value used to indicate
         nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
-        Note that this method returns a *masked* array, with the normal 
+        Note that this method returns a *masked* array, with the normal
         provisos that integer indexing with a masked array removes the mask.
         """
         if nodata == -1:  # fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
@@ -314,9 +332,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         # The ConvexHull object lists the edges that form the hull. We need to
         # get from this list of edges the unique set of nodes. To do this, we
         # first flatten the list of vertices that make up all the hull edges
-        # ("simplices"), so it becomes a 1D array. With that, we can use the 
-        # set() function to turn the array into a set, which removes duplicate 
-        # vertices. Then we turn it back into an array, which now contains the 
+        # ("simplices"), so it becomes a 1D array. With that, we can use the
+        # set() function to turn the array into a set, which removes duplicate
+        # vertices. Then we turn it back into an array, which now contains the
         # set of IDs for the nodes that make up the convex hull.
         #   The next thing to worry about is the fact that the mesh perimeter
         # might contain nodes that are co-planar (that is, co-linear in our 2D
@@ -336,7 +354,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
         # boundary (=1). This means that all perimeter (convex hull) nodes are
-        # initially flagged as boundary code 1. An application might wish to 
+        # initially flagged as boundary code 1. An application might wish to
         # change this so that, for example, some boundaries are inactive.
         node_status = numpy.zeros(len(pts[:, 0]), dtype=numpy.int8)
         node_status[boundary_nodes] = 1
@@ -428,28 +446,28 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Calculate how many links there will be and create the arrays.
         #
         # The number of links equals 3 times the number of triangles minus
-        # half the number of shared links. Finding out the number of shared 
-        # links is easy: for every shared link, there is an entry in the 
-        # tri.neighbors array that is > -1 (indicating that the triangle has a 
-        # neighbor opposite a given vertex; in other words, two triangles are 
+        # half the number of shared links. Finding out the number of shared
+        # links is easy: for every shared link, there is an entry in the
+        # tri.neighbors array that is > -1 (indicating that the triangle has a
+        # neighbor opposite a given vertex; in other words, two triangles are
         # sharing an edge).
         num_shared_links = numpy.count_nonzero(tri.neighbors > -1)
         num_links = 3 * tri.nsimplex - num_shared_links // 2
         link_fromnode = numpy.zeros(num_links, dtype=int)
         link_tonode = numpy.zeros(num_links, dtype=int)
 
-        # Sweep through the list of triangles, assigning "from" and "to" nodes 
+        # Sweep through the list of triangles, assigning "from" and "to" nodes
         # to the list of links.
         #
-        # The basic algorithm works as follows. For each triangle, we will add 
-        # its 3 edges as links. However, we have to make sure that each shared 
-        # edge is added only once. To do this, we keep track of whether or not 
-        # each triangle has been processed yet using a boolean array called 
-        # "tridone". When we look at a given triangle, we check each vertex in 
-        # turn. If there is no neighboring triangle opposite that vertex, then 
-        # we need to add the corresponding edge. If there is a neighboring 
-        # triangle but we haven't processed it yet, we also need to add the 
-        # edge. If neither condition is true, then this edge has already been 
+        # The basic algorithm works as follows. For each triangle, we will add
+        # its 3 edges as links. However, we have to make sure that each shared
+        # edge is added only once. To do this, we keep track of whether or not
+        # each triangle has been processed yet using a boolean array called
+        # "tridone". When we look at a given triangle, we check each vertex in
+        # turn. If there is no neighboring triangle opposite that vertex, then
+        # we need to add the corresponding edge. If there is a neighboring
+        # triangle but we haven't processed it yet, we also need to add the
+        # edge. If neither condition is true, then this edge has already been
         # added, so we skip it.
         link_id = 0
         tridone = numpy.zeros(tri.nsimplex, dtype=bool)
@@ -542,7 +560,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # ridges).
         active_links = -numpy.ones(num_active_links, dtype=int)
         face_width = -numpy.ones(num_active_links)
-        
+
         # Find the order to sort by link midpoints
         link_midpoints = numpy.zeros((num_links, 2))
         for i in range(num_links):
@@ -550,7 +568,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
-        # its "from" and "to" nodes are the associated "points". In addition, 
+        # its "from" and "to" nodes are the associated "points". In addition,
         # if the ridge endpoints are defined, we have a face and an active
         # link, so we add them to our arrays as well.
         j = 0
@@ -568,7 +586,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                 face_width[j] = numpy.sqrt(dx * dx + dy * dy)
                 active_links[j] = i
                 j += 1
-                
+
         return link_fromnode, link_tonode, active_links, face_width
 
     def reorient_links_upper_right(self):
@@ -579,8 +597,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         "Upper right semi-circle" means that the angle of the link with respect
         to the vertical (measured clockwise) falls between -45 and +135. More
         precisely, if :math:`\theta' is the angle, :math:`-45 \ge \theta < 135`.
-        For example, the link could point up and left as much as -45, but not 
-        -46. It could point down and right as much as 134.9999, but not 135. It 
+        For example, the link could point up and left as much as -45, but not
+        -46. It could point down and right as much as 134.9999, but not 135. It
         will never point down and left, or up-but-mostly-left, or
         right-but-mostly-down.
 
@@ -606,8 +624,8 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # The range of values should be -180 to +180 degrees (but in radians).
         # It won't be after the above operation, because angles that were
-        # > 135 degrees will now have values > 180. To correct this, we 
-        # subtract 360 (i.e., 2 pi radians) from those that are > 180 (i.e., 
+        # > 135 degrees will now have values > 180. To correct this, we
+        # subtract 360 (i.e., 2 pi radians) from those that are > 180 (i.e.,
         # > pi radians).
         link_angle -= 2 * numpy.pi * (link_angle >= numpy.pi)
 
@@ -615,7 +633,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # want to flip
         (flip_locs, ) = numpy.where(link_angle < 0.)
 
-        # If there are any flip locations, proceed to switch their fromnodes 
+        # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
         if len(flip_locs) > 0:
 

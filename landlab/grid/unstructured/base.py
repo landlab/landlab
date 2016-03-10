@@ -18,6 +18,64 @@ def _default_axis_units(n_dims):
 
 
 class BaseGrid(object):
+    """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
+
+    Parameters
+    ----------
+    coord0, coord1, ... : sequence of array-like
+        Coordinates of grid nodes
+    axis_name : sequence of strings, optional
+        Names of coordinate axes
+    axis_units : sequence of strings, optional
+        Units of coordinate axes
+
+    Returns
+    -------
+    BaseGrid :
+        A newly-created BaseGrid
+
+    Examples
+    --------
+    >>> from landlab.grid.unstructured.base import BaseGrid
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+    >>> ngrid.number_of_nodes
+    4
+    >>> ngrid.x_at_node
+    array([ 0.,  1.,  0.,  1.])
+    >>> ngrid.x_at_node[2]
+    0.0
+    >>> ngrid.point_at_node[2]
+    array([ 1.,  0.])
+    >>> ngrid.coord_at_node[:, [2, 3]]
+    array([[ 1.,  1.],
+           [ 0.,  1.]])
+
+    >>> cells = ([0, 1, 2, 1, 3, 2], [3, 3], [0, 1])
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]), cells=cells)
+    >>> ngrid.number_of_cells
+    2
+    >>> ngrid.node_at_cell
+    array([0, 1])
+
+    >>> links = [(0, 2), (1, 3), (0, 1), (1, 2), (0, 3)]
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]), links=zip(*links))
+    >>> ngrid.number_of_links
+    5
+    >>> ngrid.links_leaving_at_node(0)
+    array([0, 2, 4])
+    >>> len(ngrid.links_entering_at_node(0)) == 0
+    True
+
+    >>> tails, heads = zip(*links)
+    >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
+    ...     node_status=[0, 0, 0, 4], links=[tails, heads])
+    >>> grid.status_at_node
+    array([0, 0, 0, 4])
+    >>> len(grid.active_links_entering_at_node(0)) == 0
+    True
+    >>> grid.active_links_leaving_at_node(0)
+    array([0, 2])
+    """
 
     def __init__(self, nodes, axis_name=None, axis_units=None, node_status=None,
                  links=None, cells=None):
