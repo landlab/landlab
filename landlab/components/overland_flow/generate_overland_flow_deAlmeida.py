@@ -107,6 +107,25 @@ class OverlandFlow(Component):
     precipitation event across any raster grid. Default input file is named
     "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A landlab grid.
+    h_init : float, optional
+        Thicknes of initial thin layer of water to prevent divide by zero
+        errors (m).
+    alpha : float, optional
+        Time step coeffcient, described in Bates et al., 2010 and
+        de Almeida et al., 2012.
+    mannings_n : float, optional
+        Manning's roughness coefficient.
+    g : float, optional
+        Acceleration due to gravity (m/s^2).
+    theta : float, optional
+        Weighting factor from de Almeida et al., 2012.
+    rainfall_intensity : float, optional
+        Rainfall intensity.
     """
 
     _name = 'OverlandFlow'

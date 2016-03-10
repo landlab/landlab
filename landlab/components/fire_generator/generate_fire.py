@@ -23,6 +23,35 @@ from landlab import ModelParameterDictionary
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 
 class FireGenerator:
+    """All initial values are set to zero until initalized
+    using the initialize() method which reads in data using
+    the ModelParameterDictionary and sets the random variables
+    according to their respective distribution.
+
+    REQUIRED PARAMETERS
+    ------------------
+
+    Shape Parameter: Describes the skew of the Weibull distribution.
+    If shape < 3.5, data skews left.
+    If shape == 3.5, data is normal.
+    If shape > 3.5, data skews right.
+
+    Scale Parameter: Describes the peak of the Weibull distribution,
+    located at 63.5% value of the cumulative distribution function. If unknown,
+    it can be found using mean fire recurrence value and the get_scale_parameter()
+    method described later.
+
+    Mean Fire Recurrence : Average recurrence for a given area, elevation, veg type, etc.
+
+    Total Run Time : Total model run time
+
+    Delta T : Model time step.
+
+
+    -------
+    Time to Next Fire: Value generated from the random.weibullvariate() function based
+    on the scale and shape parameters
+    """
 
     def __init__(self, input_file=None):
         """All initial values are set to zero until initalized

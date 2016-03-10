@@ -20,6 +20,13 @@ from landlab.utils import structured_grid as sgrid
 
 
 class find_facets(object):
+    """
+    Note that this class assumes the grid does not change during the model
+    run. Changes to data stored in the grid should (?) update automatically.
+
+    If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
+    we don't consider fault dip, even if it's known).
+    """
 
     def __init__(self, grid, elev_field='topographic__elevation',
                  fault_azimuth=None):
