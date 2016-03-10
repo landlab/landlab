@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 import numpy as np
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 
-from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
+from landlab.core.model_parameter_dictionary import MissingKeyError, \
+    ParameterValueError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
@@ -23,14 +25,9 @@ class StreamPowerEroder(object):
 
     def __init__(self, grid, params):
         self.initialize(grid, params)
-
-#This draws attention to a potential problem. It will be easy to have modules update z, but because noone "owns" the data, to forget to also update dz/dx...
-#How about a built in grid utility that updates "derived" data (i.e., using only grid fns, e.g., slope, curvature) at the end of any given tstep loop?
-#Or an explicit flagging system for all variables in the modelfield indicating if they have been updated this timestep. (Currently implemented)
-#Or wipe the existance of any derived grid data at the end of a timestep entirely, so modules find they don't have it next timestep.
-
+        
     def initialize(self, grid, params_file):
-        '''
+        r"""
         params_file is the name of the text file containing the parameters
         needed for this stream power component.
 
@@ -83,8 +80,9 @@ class StreamPowerEroder(object):
             use_Q -> Bool. If true, the equation becomes E=K*Q**m*S**n.
                 Effectively sets c=1 in Wh&T's 1999 derivation, if you are
                 setting m and n through a, b, and c.
-
-        '''
+        """
+        
+        
         self.grid = grid
         self.fraction_gradient_change = 1.
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1) #needs to be filled with values in execution
@@ -92,7 +90,8 @@ class StreamPowerEroder(object):
         self.count_active_links[:-1] = 1
         inputs = ModelParameterDictionary(params_file)
         try:
-            self._K_unit_time = inputs.read_float('K_sp')
+            self._K_unit_time = np.full((grid.status_at_node!=4).sum(),
+                                        inputs.read_float('K_sp'))
         except ParameterValueError: #it was a string
             self.use_K = True
         else:
@@ -168,7 +167,8 @@ class StreamPowerEroder(object):
             slopes_at_nodes='topographic__steepest_slope',
             link_node_mapping='links_to_flow_receiver',
             link_slopes=None, slopes_from_elevs=None,
-            W_if_used=None, Q_if_used=None, K_if_used=None):
+            W_if_used=None, Q_if_used=None, K_if_used=None,
+            flooded_nodes=None):
         """
         A simple, explicit implementation of a stream power algorithm.
 
@@ -220,6 +220,12 @@ class StreamPowerEroder(object):
         *W_if_used* and *Q_if_used* must be provided if you set use_W and use_Q
         respectively in the component initialization. They can be either field
         names or nnodes arrays as in the other cases.
+        
+        If you are routing across flooded depressions in your flow routing
+        scheme, be sure to set *flooded_nodes* with a boolean array or array
+        of IDs to ensure erosion cannot occur in the lake. Erosion
+        is always zero if the gradient is adverse, but can still procede as
+        usual on the entry into the depression unless *flooded_nodes* is set.
 
         NB: If you want spatially or temporally variable runoff, pass the
         runoff values at each pixel to the flow router, then pass discharges
@@ -283,7 +289,7 @@ class StreamPowerEroder(object):
                     #This isn't ideal. It should probably just be the outs...
                     #i.e., np.max(self.link_S_with_trailing_blank[grid.node_outlinks] AND -self.link_S_with_trailing_blank[grid.node_inlinks])
                     self.link_S_with_trailing_blank[:-1] = S_links
-                    self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.node_links]),axis=0)
+                    self.slopes = np.amax(np.fabs(self.link_S_with_trailing_blank[grid.links_at_node.T]),axis=0)
 
         if type(node_drainage_areas)==str:
             node_A = grid.at_node[node_drainage_areas]
@@ -295,6 +301,10 @@ class StreamPowerEroder(object):
 
         if type(node_order_upstream)==str:
             node_order_upstream = grid.at_node[node_order_upstream]
+            
+        # Disable incision in flooded nodes, as appropriate
+        if flooded_nodes is not None:
+            self._K_unit_time[flooded_nodes[active_nodes]] = 0.
 
         #Operate the main function:
         if self.use_W==False and self.use_Q==False: #normal case
@@ -344,9 +354,9 @@ class StreamPowerEroder(object):
                 elev_dstr_node_after = elev_dstr[i] - erosion_increment[flow_receiver[i]]
                 if elev_this_node_after<elev_dstr_node_after:
                     erosion_increment[i] = (elev_this_node_before - elev_dstr_node_after)*0.999999 #we add a tiny elevation excess to prevent the module from ever totally severing its own flow paths
-
-        node_z -= erosion_increment
-
+        # clip the erosion increments one more time to remove regatives
+        # introduced by any pit filling algorithms or the above procedure:
+        node_z -= erosion_increment.clip(0.)
 
         self.grid = grid
 

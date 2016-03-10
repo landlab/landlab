@@ -85,6 +85,7 @@ setup(name='landlab',
                         'sympy',
                         'pandas',
                         'six',
+                        'pyyaml',
                        ],
       #                  'Cython>=0.22'],
       setup_requires=['cython'],
@@ -105,7 +106,11 @@ setup(name='landlab',
           'install': install_and_register,
           'develop': develop_and_register,
       },
-
+      entry_points={
+          'console_scripts': [
+              'landlab=landlab.cmd.landlab:main',
+          ]
+      },
       include_dirs = [np.get_include()],
       ext_modules = ext_modules,
      )

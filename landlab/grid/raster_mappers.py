@@ -11,7 +11,7 @@ from landlab.grid.structured_quad import links
 def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     """Map the sum of links entering a node to the node.
 
-    map_inlink_sums_to_node takes a field *at the links* and finds the
+    map_sum_of_inlinks_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it sums the inlinks and returns
     a field at the nodes with the same var_name as the link field.
 
@@ -61,7 +61,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
 def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     """Map the mean of links entering a node to the node.
 
-    map_inlink_average_to_node takes a field *at the links* and finds the
+    map_mean_of_inlinks_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the average of
     the inlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -109,7 +109,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
 def map_max_of_inlinks_to_node(grid, var_name, out=None):
     """Map the maximum of links entering a node to the node.
 
-    map_max_inlink_value_to_node takes a field *at the links* and finds the
+    map_max_of_inlinks_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the maximum value at the
     the inlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -160,7 +160,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
 def map_min_of_inlinks_to_node(grid, var_name, out=None):
     """Map the minimum of links entering a node to the node.
 
-    map_min_inlink_value_to_node takes a field *at the links* and finds the
+    map_min_of_inlinks_to_node takes a field *at the links* and finds the
     inlink values for each node in the grid. it finds the minimum value at the
     the inlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -209,7 +209,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
 def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     """Map the sum of links leaving a node to the node.
 
-    map_outlink_sums_to_node takes a field *at the links* and finds the
+    map_sum_of_outlinks_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it sums the outlinks and returns
     a field at the nodes with the same var_name as the link field.
 
@@ -258,7 +258,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
 def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     """Map the mean of links leaving a node to the node.
 
-    map_outlink_average_to_node takes a field *at the links* and finds the
+    map_mean_of_outlinks_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it finds the average of
     the outlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -308,7 +308,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
 def map_max_of_outlinks_to_node(grid, var_name, out=None):
     """Map the max of links leaving a node to the node.
 
-    map_max_outlink_value_to_node takes a field *at the links* and finds the
+    map_max_of_outlinks_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. it finds the maximum value at the
     the outlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -358,7 +358,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
 def map_min_of_outlinks_to_node(grid, var_name, out=None):
     """Map the min of links leaving a node to the node.
 
-    map_min_outlink_value_to_node takes a field *at the links* and finds the
+    map_min_of_outlinks_to_node takes a field *at the links* and finds the
     outlink values for each node in the grid. It finds the minimum value at the
     the outlinks and returns a field at the nodes with the same var_name
     as the link field.
@@ -407,7 +407,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
 def map_mean_of_links_to_node(grid, var_name, out=None):
     """Map the mean of links touching a node to the node.
 
-    map_average_all_links_to_node takes a field *at the links* and finds the
+    map_mean_all_links_to_node takes a field *at the links* and finds the
     average of all ~existing~ link neighbor values for each node in the grid.
     it returns a field at the nodes with the same var_name
     as the link field.

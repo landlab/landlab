@@ -669,12 +669,12 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
                 outlet_neighbors = np.hstack((self._grid.get_active_neighbors_at_node(
-                    outlet_node),
+                    outlet_node, bad_index=-1),
                     self._grid.get_diagonal_list(
-                    outlet_node)))
+                    outlet_node, bad_index=-1)))
             else:
                 outlet_neighbors = self._grid.get_active_neighbors_at_node(
-                    outlet_node).copy()
+                    outlet_node, bad_index=-1).copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0
             outlet_neighbors[inlake] = -1
@@ -747,6 +747,13 @@ class DepressionFinderAndRouter(Component):
         Nodes not in a lake are labelled with BAD_INDEX_VALUE.
         """
         return self._lake_map
+    
+    @property
+    def lake_at_node(self):
+        """
+        Return a boolean array, True if the node is flooded, False otherwise.
+        """
+        return self._lake_map!=BAD_INDEX_VALUE
 
     @property
     def lake_areas(self):

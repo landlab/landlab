@@ -78,7 +78,7 @@ for i in range(3000):
 for i in range(3000):
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
     #now pull down hard on the BL:
-    mg.at_node['topographic__elevation'][mg.top_edge_node_ids()[mg.number_of_node_columns//2]] =- 10.
+    mg.at_node['topographic__elevation'][mg.nodes_at_top_edge[mg.number_of_node_columns // 2]] =- 10.
     pfr.route_flow(route_on_diagonals=True)
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition

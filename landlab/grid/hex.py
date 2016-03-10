@@ -63,6 +63,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
                              shape, reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
 
+    @classmethod
+    def from_dict(cls, params):
+        shape = params['shape']
+        spacing = params.get('spacing', 1.)
+
+        return cls(shape[0], shape[1], spacing)
+
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
                     shape, reorient_links=True):
         r"""Set up a hexagonal grid.

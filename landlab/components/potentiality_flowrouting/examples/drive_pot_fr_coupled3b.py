@@ -76,7 +76,7 @@ for i in range(3000):
         section_downfan.append(mg.node_vector_to_raster(mg.at_node['topographic__elevation'])[1:,section_col].copy())
 
 #drop the BL HARD
-mg.at_node['topographic__elevation'][mg.top_edge_node_ids()[mg.number_of_node_columns//2]] =- 50.
+mg.at_node['topographic__elevation'][mg.nodes_at_top_edge[mg.number_of_node_columns // 2]] =- 50.
 
 for i in range(3000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.

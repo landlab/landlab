@@ -13,7 +13,7 @@ def test_fixed_link_boundaries_at_grid_edges():
     grid = RasterModelGrid(3, 4)
     grid['node']['topographic__elevation'] = np.zeros(grid.number_of_nodes)
     grid['link']['topographic__slope'] = np.zeros(grid.number_of_links)
-    grid.set_fixed_link_boundaries_at_grid_edges(True, False, False, False)
+    grid.set_fixed_link_boundaries_at_grid_edges(False, False, False, True)
     assert_array_equal(grid.status_at_node,
                        [FG, FG, FG, FG,
                         FV, 0, 0, FV,
@@ -22,8 +22,8 @@ def test_fixed_link_boundaries_at_grid_edges():
     assert_array_equal(grid.status_at_link,
                        [4, 4, 4,
                         4, 2, 2, 4,
-                        0, 0, 0, 
-                        4, 0, 0, 4, 
+                        0, 0, 0,
+                        4, 0, 0, 4,
                         4, 4, 4])
 
 
@@ -42,9 +42,9 @@ def test_nodata_fixed_links():
 
     assert_array_equal(grid.status_at_link,
                        [4, 4, 4,
-                        4, 0, 0, 4, 
+                        4, 0, 0, 4,
                         2, 0, 0,
-                        4, 0, 0, 4, 
+                        4, 0, 0, 4,
                         4, 4, 4])
 
 
@@ -66,7 +66,7 @@ def test_fixed_gradient_and_value_boundary():
 
     assert_array_equal(grid.status_at_link,
                        [4, 4, 4,
-                        4, 0, 4, 4, 
+                        4, 0, 4, 4,
                         2, 0, 2,
-                        4, 4, 4, 4, 
+                        4, 4, 4, 4,
                         4, 4, 4])
