@@ -56,6 +56,53 @@ def calculate_gradients_at_links(grid, node_values, out=None):
                      grid.link_length, out=out)
 
 
+def calculate_gradients_at_faces(grid, node_values, out=None):
+    """Calculate gradients of node values over faces.
+
+    Calculate and return gradient in *node_values* at each face in the grid.
+    Gradients are calculated from the nodes at either end of the link that
+    crosses each face.
+    
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray (x number of faces)
+        Gradients across faces.
+    
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[5] = 50.0
+    >>> z[6] = 36.0
+    >>> calculate_gradients_at_faces(rg, z)  # there are 7 faces
+    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
+
+    >>> from landlab import HexModelGrid
+    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[4] = 50.0
+    >>> z[5] = 36.0
+    >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
+    array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
+    """
+    if out is None:
+        out = grid.empty(centering='face')
+    laf = grid.link_at_face
+    return np.divide(node_values[grid.node_at_link_head[laf]] -
+                     node_values[grid.node_at_link_tail[laf]],
+                     grid.link_length[laf], out=out)
+
+
 def calculate_diff_at_links(grid, node_values, out=None):
     """Calculate differences of node values over links.
 

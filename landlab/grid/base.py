@@ -629,6 +629,36 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._links_at_node
 
     @property
+    @make_return_array_immutable
+    def link_dirs_at_node(self):
+        """Link directions at each node: 1=incoming, -1=outgoing, 0=none.
+
+        Returns
+        -------
+        (NODES, LINKS) ndarray of int
+            Link directions relative to the nodes of a grid. The shape of the 
+            matrix will be number of nodes rows by max number of links per 
+            node. A zero indicates no link at this position.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+               [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]],
+               dtype=int8)
+        >>> grid.link_dirs_at_node[4]
+        array([-1, -1,  1,  1], dtype=int8)
+        >>> grid.link_dirs_at_node[(4, 7), :]
+        array([[-1, -1,  1,  1],
+               [-1, -1,  1,  1]], dtype=int8)
+        """
+        return self._link_dirs_at_node
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
 
@@ -1117,6 +1147,82 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             return self._setup_link_at_face()
 
+    def find_number_of_links_at_node(self):
+        """Find and record how many links are attached to each node."""
+        self._number_of_links_at_node = np.zeros(self.number_of_nodes, dtype=np.int)
+        for ln in range(self.number_of_links):
+            self._number_of_links_at_node[self.node_at_link_tail[ln]] += 1
+            self._number_of_links_at_node[self.node_at_link_head[ln]] += 1
+
+    def number_of_links_at_node(self):
+        """Number of links connected to each node."""
+        try:
+            return self._number_of_links_at_node
+        except AttributeError:
+            self.find_number_of_links_at_node()
+            return self._number_of_links_at_node
+
+    def make_links_and_link_dirs_at_node(self):
+        """Make arrays with links and link directions at each node.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.links_at_node
+        array([[ 0,  3,  2, -1, -1, -1],
+               [ 1,  5,  4,  0, -1, -1],
+               [ 7,  6,  1, -1, -1, -1],
+               [ 8, 11,  2, -1, -1, -1],
+               [ 9, 13, 12,  8,  3,  4],
+               [10, 15, 14,  9,  5,  6],
+               [16, 10,  7, -1, -1, -1],
+               [17, 11, 12, -1, -1, -1],
+               [18, 17, 13, 14, -1, -1],
+               [18, 15, 16, -1, -1, -1]], dtype=int32)
+        >>> hg.link_dirs_at_node
+        array([[-1, -1, -1,  0,  0,  0],
+               [-1, -1, -1,  1,  0,  0],
+               [-1, -1,  1,  0,  0,  0],
+               [-1, -1,  1,  0,  0,  0],
+               [-1, -1, -1,  1,  1,  1],
+               [-1, -1, -1,  1,  1,  1],
+               [-1,  1,  1,  0,  0,  0],
+               [-1,  1,  1,  0,  0,  0],
+               [-1,  1,  1,  1,  0,  0],
+               [ 1,  1,  1,  0,  0,  0]], dtype=int8)
+        """
+        # Find maximum number of links per node
+        nlpn = self.number_of_links_at_node()   #this fn should become member and property
+        max_num_links = np.amax(nlpn)
+        nlpn[:] = 0  # we'll zero it out, then rebuild it
+    
+        # Create arrays for link-at-node information
+        self._links_at_node = -np.ones((self.number_of_nodes, max_num_links), 
+                                       dtype=np.int32)
+        self._link_dirs_at_node = np.zeros((self.number_of_nodes,
+                                            max_num_links),
+                                            dtype=np.int8)
+
+        # Sweep over all links
+        for lk in range(self.number_of_links):
+    
+            # Find the IDs of the tail and head nodes
+            t = self.node_at_link_tail[lk]
+            h = self.node_at_link_head[lk]
+    
+            # Add this link to the list for this node, set the direction (outgoing,
+            # indicated by -1), and increment the number found so far
+            self._links_at_node[t][nlpn[t]] = lk
+            self._links_at_node[h][nlpn[h]] = lk
+            self._link_dirs_at_node[t][nlpn[t]] = -1
+            self._link_dirs_at_node[h][nlpn[h]] = 1
+            nlpn[t] += 1
+            nlpn[h] += 1
+
+        # Sort the links at each node by angle, counter-clockwise from +x
+        self.sort_links_at_node_by_angle()
+
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
         Active links of a node.
@@ -1245,6 +1351,50 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise ValueError('only zero or one arguments accepted')
 
+    def link_angle(self, links, dirs):
+        """Find and return the angle of link(s) in given direction.
+        
+        Parameters
+        ----------
+        grid : ModelGrid object
+            reference to the grid
+        links : 1d numpy array
+            one or more link IDs
+        dirs : 1d numpy array (must be same length as links)
+            direction of links relative to node: +1 means head is origin;
+            -1 means tail is origin.
+        
+        Notes
+        -----
+        dx and dy are the x and y differences between the link endpoints. 
+        Multiplying this by dirs orients these offsets correctly (i.e.,
+        the correct node is the origin). The call to arctan2 calculates
+        the angle in radians. Angles in the lower two quadrants will be
+        negative and clockwise from the positive x axis. We want them
+        counter-clockwise, which is what the last couple of lines before
+        the return statement do.
+        """
+        dx = -dirs * (self.node_x[self.node_at_link_head[links]] 
+                    - self.node_x[self.node_at_link_tail[links]])
+        dy = -dirs * (self.node_y[self.node_at_link_head[links]]
+                    - self.node_y[self.node_at_link_tail[links]])
+        ang = np.arctan2(dy, dx)
+        (lower_two_quads, ) = np.where(ang<0.0)
+        ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
+        (no_link, ) = np.where(dirs == 0)
+        ang[no_link] = 2*np.pi
+        return ang
+
+    def sort_links_at_node_by_angle(self):
+        """Sort the links_at_node and link_dirs_at_node arrays by angle.
+        """
+        for n in range(self.number_of_nodes):
+            ang = self.link_angle(self.links_at_node[n,:], \
+                                  self.link_dirs_at_node[n,:])
+            indices = np.argsort(ang)
+            self._links_at_node[n,:] = self._links_at_node[n,indices]
+            self._link_dirs_at_node[n,:] = self._link_dirs_at_node[n,indices]
+
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
@@ -1262,6 +1412,76 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         return gfuncs.resolve_values_on_active_links(self, link_values,
                                                      out=out)
+
+    @property
+    def faces_at_cell(self):
+        """Return array containing face IDs at each cell.
+        
+        Creates array if it doesn't already exist.
+        """
+        try:
+            return self._faces_at_cell
+        except AttributeError:
+            self.make_faces_at_cell()
+            return self._faces_at_cell
+
+    def find_number_of_faces_at_cell(self):
+        """Find and return how many faces are attached to each cell.
+        
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.find_number_of_faces_at_cell()
+        array([6, 6])
+        """
+        num_faces_at_cell = np.zeros(self.number_of_cells, dtype=np.int)
+        for ln in range(self.number_of_links):
+            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            if cell != BAD_INDEX_VALUE:
+                num_faces_at_cell[cell] += 1
+            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            if cell != BAD_INDEX_VALUE:
+                num_faces_at_cell[cell] += 1
+        return num_faces_at_cell
+
+    def sort_faces_at_cell_by_angle(self):
+        """Sort the faces_at_cell array by angle.
+        
+        Assumes links_at_node and link_dirs_at_node created.
+        """
+        for cell in range(self.number_of_cells):
+            sorted_links = self.links_at_node[self.node_at_cell[cell],:]
+            sorted_faces = self._faces_at_cell[cell,:] = self.face_at_link[sorted_links]
+            self._faces_at_cell[cell,:] = sorted_faces
+
+    def make_faces_at_cell(self):
+        """Construct faces_at_cell array.
+
+        Example
+        -------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3)
+        >>> hg.make_faces_at_cell()
+        >>> hg._faces_at_cell
+        array([[ 5,  8,  7,  4,  0,  1],
+               [ 6, 10,  9,  5,  2,  3]])
+        """
+        num_faces = self.find_number_of_faces_at_cell()
+        self._faces_at_cell = np.zeros((self.number_of_cells, np.amax(num_faces)), dtype=int)
+        num_faces[:] = 0  # Zero out and count again, to use as index
+        for ln in range(self.number_of_links):
+            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            if cell != BAD_INDEX_VALUE:
+                self._faces_at_cell[cell,num_faces[cell]] = \
+                    self.face_at_link[ln]
+                num_faces[cell] += 1
+            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            if cell != BAD_INDEX_VALUE:
+                self._faces_at_cell[cell,num_faces[cell]] = \
+                    self.face_at_link[ln]
+                num_faces[cell] += 1
+        self.sort_faces_at_cell_by_angle()
 
     def node_slopes_using_patches(self, elevs='topographic__elevation',
                                   unit='degrees', return_components=False):
@@ -1614,12 +1834,12 @@ class ModelGrid(ModelDataFieldsMixIn):
             return self._setup_cell_areas_array_force_inactive()
 
     @property
-    def face_widths(self):
+    def face_width(self):
         """Width of grid faces."""
         try:
-            return self._face_widths
+            return self._face_width
         except AttributeError:
-            return self._setup_face_widths()
+            return self._setup_face_width()
 
     def _setup_face_at_link(self):
         """Set up face_at_link array.

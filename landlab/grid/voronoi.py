@@ -216,9 +216,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         (self._node_at_link_tail,
          self._node_at_link_head,
          self.active_links_ids,
-         self.face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+         self._face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
                                           INACTIVE_LINK, dtype=int)
+
+        # Sort them by midpoint coordinates
+        self.sort_links_by_midpoint()
 
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
@@ -229,7 +232,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
                                                    self.node_at_link_head)
 
+        # NODES & LINKS: IDs and directions of links at each node
+        self.make_links_and_link_dirs_at_node()
+
         # LINKS: inlink and outlink matrices
+        # SOON TO BE DEPRECATED
         self._setup_inlink_and_outlink_matrices()
 
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
@@ -475,7 +482,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
-        1. Arrays of link "from" and "to" nodes
+        1. Arrays of link tail and head nodes
         2. Array of link IDs for each active link
         3. Array containing with of each face
 
