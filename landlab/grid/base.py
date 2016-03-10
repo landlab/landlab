@@ -1414,6 +1414,256 @@ class ModelGrid(ModelDataFieldsMixIn):
         return gfuncs.resolve_values_on_active_links(self, link_values,
                                                      out=out)
 
+    def link_at_node_is_upwind(self, var_name, out=None):
+        """
+        Return a boolean the same shape as :func:`links_at_node` which flags
+        links which are upwind of the node as True.
+
+        link_at_node_is_upwind iterates across the grid and identifies the link
+        values at each link connected to a node. It then uses the
+        link_dirs_at_node data structure to identify links bringing flux into
+        the node. It then return a boolean array the same shape as
+        links_at_node flagging these links. e.g., for a raster, the returned
+        array will be shape (nnodes, 4).
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        out : ndarray, optional
+            Buffer to place mapped values into or `None` to create a new array.
+            Must be correct shape and boolean dtype.
+
+        Returns
+        -------
+        ndarray
+            Boolean of which links are upwind at nodes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.link_at_node_is_upwind('grad')
+        array([[False, False, False, False],
+               [False, False,  True, False],
+               [False, False,  True, False],
+               [False, False,  True, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True],
+               [False, False,  True,  True]], dtype=bool)
+        """
+        if out is None:
+            out = np.empty_like(self.links_at_node, dtype=bool)
+        else:
+            assert out.shape is self.links_at_node.shape
+            assert out.dtype is bool
+
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        np.less(values_at_links, 0., out=out)
+
+        return out
+
+    def link_at_node_is_downwind(self, var_name, out=None):
+        """
+        Return a boolean the same shape as :func:`links_at_node` which flags
+        links which are downwind of the node as True.
+
+        link_at_node_is_downwind iterates across the grid and identifies the
+        link values at each link connected to a node. It then uses the
+        link_dirs_at_node data structure to identify links carrying flux out of
+        the node. It then return a boolean array the same shape as
+        links_at_node flagging these links. e.g., for a raster, the returned
+        array will be shape (nnodes, 4).
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        out : ndarray, optional
+            Buffer to place mapped values into or `None` to create a new array.
+            Must be correct shape and boolean dtype.
+
+        Returns
+        -------
+        ndarray
+            Boolean of which links are downwind at nodes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.link_at_node_is_downwind('grad')
+        array([[ True,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [ True, False, False, False],
+               [ True, False, False, False],
+               [ True, False, False, False],
+               [False, False, False, False]], dtype=bool)
+        """
+        if out is None:
+            out = np.empty_like(self.links_at_node, dtype=bool)
+        else:
+            assert out.shape is self.links_at_node.shape
+            assert out.dtype is bool
+
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        np.greater(values_at_links, 0., out=out)
+
+        return out
+
+    def upwind_links_at_node(self, var_name, bad_index=-1):
+        """
+        Return an (nnodes, X) shape array of link IDs of which links are upwind
+        of each node, according to the field 'var_name'.
+
+        X is the maximum upwind links at any node. Nodes with fewer upwind
+        links than this have additional slots filled with *bad_index*. Links
+        are ordered anticlockwise from east.
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        bad_index : int
+            Index to place in array indicating no link.
+
+        Returns
+        -------
+        ndarray
+            Array of upwind link IDs
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.upwind_links_at_node('grad', bad_index=-1)
+        array([[-1, -1],
+               [ 0, -1],
+               [ 1, -1],
+               [ 2, -1],
+               [ 3, -1],
+               [ 7,  4],
+               [ 8,  5],
+               [ 9,  6],
+               [10, -1],
+               [14, 11],
+               [15, 12],
+               [16, 13]])
+        """
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        unordered_IDs = np.where(values_at_links < 0., self.links_at_node,
+                                 bad_index)
+        bad_IDs = unordered_IDs == bad_index
+        nnodes = self.number_of_nodes
+        flat_sorter = (np.argsort(bad_IDs, axis=1) +
+                       self.links_at_node.shape[1] *
+                       np.arange(nnodes).reshape((nnodes, 1)))
+        big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
+                                self.links_at_node.shape)
+        cols_to_cut = int(bad_IDs.sum(axis=1).min())
+
+        return big_ordered_array[:, :-cols_to_cut]
+
+    def downwind_links_at_node(self, var_name, bad_index=-1):
+        """
+        Return an (nnodes, X) shape array of link IDs of which links are
+        downwind of each node, according to the field 'var_name'.
+
+        X is the maximum downwind links at any node. Nodes with fewer downwind
+        links than this have additional slots filled with *bad_index*. Links
+        are ordered anticlockwise from east.
+
+        Parameters
+        ----------
+        var_name : str
+            Name of variable field defined at links.
+        bad_index : int
+            Index to place in array indicating no link.
+
+        Returns
+        -------
+        ndarray
+            Array of upwind link IDs
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+
+        >>> rmg = RasterModelGrid((3, 4))
+        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+        ...                                 -2., -3., -4., -5.,
+        ...                                 -1., -2., -1.,
+        ...                                 -1., -2., -3., -4.,
+        ...                                 -1., -2., -1.])
+        >>> rmg.downwind_links_at_node('grad', bad_index=BAD_INDEX_VALUE)
+        array([[         0,          3],
+               [         1,          4],
+               [         2,          5],
+               [         6, 2147483647],
+               [         7,         10],
+               [         8,         11],
+               [         9,         12],
+               [        13, 2147483647],
+               [        14, 2147483647],
+               [        15, 2147483647],
+               [        16, 2147483647],
+               [2147483647, 2147483647]])
+        """
+        values_at_links = (self.at_link[var_name][self.links_at_node] *
+                           self.link_dirs_at_node)
+        # this procedure makes incoming links NEGATIVE
+        unordered_IDs = np.where(values_at_links > 0., self.links_at_node,
+                                 bad_index)
+        bad_IDs = unordered_IDs == bad_index
+        nnodes = self.number_of_nodes
+        flat_sorter = (np.argsort(bad_IDs, axis=1) +
+                       self.links_at_node.shape[1] *
+                       np.arange(nnodes).reshape((nnodes, 1)))
+        big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
+                                self.links_at_node.shape)
+        cols_to_cut = int(bad_IDs.sum(axis=1).min())
+
+        return big_ordered_array[:, :-cols_to_cut]
+
     @property
     def faces_at_cell(self):
         """Return array containing face IDs at each cell.
