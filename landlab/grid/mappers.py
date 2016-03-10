@@ -483,3 +483,113 @@ def map_node_to_cell(grid, var_name, out=None):
     out[:] = values_at_nodes[grid.node_at_cell]
 
     return out
+
+
+def map_min_of_node_links_to_node(grid, var_name, out=None):
+    """Map the minimum value of a nodes' links to the node.
+
+    map_min_of_node_links_to_node iterates across the grid and
+    identifies the link values at each link connected to  a node.
+    This function finds the minimum value of 'var_name' of each set
+    of links, and then maps this value to the node.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_min_of_node_links_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.arange(rmg.number_of_links)
+    >>> map_min_of_node_links_to_node(rmg, 'grad')
+    array([  0.,   0.,   1.,   2.,
+             3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_min_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
+    >>> values_at_nodes
+    array([  0.,   0.,   1.,   2.,
+             3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX[-1] = np.finfo(dtype=float).max
+    values_at_linksX[:-1] = grid.at_link[var_name]
+    np.amin(values_at_linksX[grid.links_at_node], axis=1, out=out)
+
+    return out
+
+
+def map_max_of_node_links_to_node(grid, var_name, out=None):
+    """Map the maximum value of a nodes' links to the node.
+
+    map_max_of_node_links_to_node iterates across the grid and
+    identifies the link values at each link connected to  a node.
+    This function finds the maximum value of 'var_name' of each set
+    of links, and then maps this value to the node.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_max_of_node_links_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.arange(rmg.number_of_links)
+    >>> map_max_of_node_links_to_node(rmg, 'grad')
+    array([  3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.,
+            14.,  15.,  16.,  16.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_max_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
+    >>> values_at_nodes
+    array([  3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.,
+            14.,  15.,  16.,  16.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX[-1] = np.finfo(dtype=float).min
+    values_at_linksX[:-1] = grid.at_link[var_name]
+    np.amax(values_at_linksX[grid.links_at_node], axis=1, out=out)
+
+    return out
