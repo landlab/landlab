@@ -16,7 +16,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ----------
     grid : RasterModelGrid
         A grid.
-    node_values : array_like
+    node_values : array_like or field name
         Values at nodes.
     out : ndarray, optional
         Buffer to hold result. If `None`, create a new array.
@@ -144,7 +144,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -222,7 +222,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -289,7 +289,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     node_ids : array_like, optional
         If provided, node ids to measure gradients. Otherwise, find gradients

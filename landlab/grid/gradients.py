@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 """Calculate gradients of quantities over links."""
 import numpy as np
+from landlab.utils.decorators import use_field_name_or_array
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients of node values over active links.
 
@@ -13,7 +15,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray
+    node_values : ndarray or field name
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
@@ -30,6 +32,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
                      grid.link_length[grid.active_links], out=out)
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients of node values over links.
 
@@ -39,7 +42,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray
+    node_values : ndarray or field name
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
@@ -56,6 +59,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
                      grid.link_length, out=out)
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_faces(grid, node_values, out=None):
     """Calculate gradients of node values over faces.
 
@@ -67,7 +71,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray
+    node_values : ndarray or field name
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
@@ -103,6 +107,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
                      grid.link_length[laf], out=out)
 
 
+@use_field_name_or_array('node')
 def calculate_diff_at_links(grid, node_values, out=None):
     """Calculate differences of node values over links.
 
@@ -113,7 +118,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray
+    node_values : ndarray or field name
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
@@ -140,6 +145,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
                        node_values[grid.node_at_link_tail], out=out)
 
 
+@use_field_name_or_array('node')
 def calculate_diff_at_active_links(grid, node_values, out=None):
     """Calculate differences of node values over active links.
 
@@ -150,7 +156,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray
+    node_values : ndarray or field name
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
