@@ -610,7 +610,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         -------
         (NODES, LINKS) ndarray of int
             Link for the nodes of a grid. The shape of the matrix will be
-            number of nodes rows by max number of links per node.
+            number of nodes rows by max number of links per node. Order is
+            anticlockwise from east.
 
         Examples
         --------
