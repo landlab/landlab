@@ -8,7 +8,7 @@ from ...utils.decorators import use_file_name_or_kwds
 
 class SoilInfiltration(Component):
 
-    """DESCRIPTION
+    """
     This code is based on an overland flow model by Francis Rengers and
     colleagues, after Julien et al., 1995. The infiltration scheme follows the
     Green and Ampt equation.
@@ -18,7 +18,15 @@ class SoilInfiltration(Component):
 
     Construction::
 
-        SoilInfiltration(grid, )
+        SoilInfiltration(grid, hydraulic_conductivity=0.005,
+                         soil_bulk_density=1590, rock_density=2650,
+                         initial_soil_moisture_content=0.15,
+                         soil_type='sandy loam',
+                         volume_fraction_coarse_fragments=0.2,
+                         surface_water_minimum_depth=1.e-8,
+                         soil_pore_size_distribution_index=None,
+                         soil_bubbling_pressure=None,
+                         wetting_front_capillary_pressure_head=None)
 
     Parameters
     ----------
@@ -87,8 +95,9 @@ class SoilInfiltration(Component):
         soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
                      'sandy clay loam', 'clay loam', 'silty clay loam',
                      'sandy clay', 'silty clay', 'clay'}, or None
-            A soil type to automatically set soil_pore_size_distribution_index and
-            soil_bubbling_pressure, using mean values from Rawls et al., 1992.
+            A soil type to automatically set soil_pore_size_distribution_index
+            and soil_bubbling_pressure, using mean values from Rawls et al.,
+            1992.
         volume_fraction_coarse_fragments : float, 0. to 1.
             The fraction of the soil made up of rocky fragments with very
             little porosity, with diameter > 2 mm.

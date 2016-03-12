@@ -10,7 +10,7 @@ class KinematicWave(Component):
 
     """DESCRIPTION
     This code is based on an overland flow model by Francis Rengers and
-    colleagues, , after Julien et al., 1995.
+    colleagues, after Julien et al., 1995.
     It was implemented in Landlab by DEJH, March '16. Please cite
     Rengers et al., in review, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
