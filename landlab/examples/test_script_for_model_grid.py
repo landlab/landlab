@@ -3,6 +3,9 @@
 just a little script for testing various bits and pieces of model_grid
 """
 from __future__ import print_function
+
+from six.moves import range
+
 from landlab import RasterModelGrid
 
 
@@ -12,7 +15,7 @@ def main():
     ncells = nr * nc
     mg = RasterModelGrid(nr, nc, 1.0)
 
-    for i in xrange(0, ncells):
+    for i in range(0, ncells):
         if i > 0:
             fid = mg.get_face_connecting_cell_pair(i, i - 1)
             print('Cells', i, 'and', i - 1, 'are connected by face', fid)

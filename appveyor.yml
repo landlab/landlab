@@ -33,7 +33,7 @@ install:
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   - "python --version"
-  - "conda install -q --yes numpy=%NUMPY_VERSION% pip jinja2 scipy nose>=1.3 matplotlib netCDF4 sympy pandas Cython"
+  - "conda install -q --yes numpy=%NUMPY_VERSION% pip jinja2 scipy nose>=1.3 matplotlib netCDF4 sympy pandas Cython pyyaml"
   - "pip install wheel"
   - "pip install twine"
   - "%WITH_COMPILER% python setup.py install"

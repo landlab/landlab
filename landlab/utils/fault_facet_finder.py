@@ -13,11 +13,20 @@ import numpy as np
 import sys
 from pylab import plot, colorbar, figure, show
 from scipy.stats import mode
+from six.moves import range
+
 from landlab.plot import imshow as gridshow
 from landlab.utils import structured_grid as sgrid
 
 
 class find_facets(object):
+    """
+    Note that this class assumes the grid does not change during the model
+    run. Changes to data stored in the grid should (?) update automatically.
+
+    If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
+    we don't consider fault dip, even if it's known).
+    """
 
     def __init__(self, grid, elev_field='topographic__elevation',
                  fault_azimuth=None):
@@ -412,7 +421,7 @@ class find_facets(object):
         rsqd_list = []
         big_slope_small_curv = []
         elev_at_bssc = []
-        for i in xrange(len(self.profile_x_facet_pts)):
+        for i in range(len(self.profile_x_facet_pts)):
             x = self.profile_x_facet_pts[i]
             z = self.profile_z_facet_pts[i]
             (grad, offset) = np.polyfit(x, z, 1)

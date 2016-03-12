@@ -13,21 +13,21 @@ indicate the direction and *head* of each link. Link heads in the
 
     *--27-->*--28-->*--29-->*--30-->*
     ^       ^       ^       ^       ^
-   10      11      12      13      14
+   22      23      24      25      26
     |       |       |       |       |
-    *--23-->*--24-->*--25-->*--26-->*
+    *--18-->*--19-->*--20-->*--21-->*
     ^       ^       ^       ^       ^
-    5       6       7       8       9
+    13      14      15      16     17
     |       |       |       |       |
-    *--19-->*--20-->X--21-->*--22-->*
+    *---9-->*--10-->X--11-->*--12-->*
     ^       ^       ^       ^       ^
-    0       1       2       3       4
+    4       5       6       7       8
     |       |       |       |       |
-    *--15-->*--16-->*--17-->*--18-->*
+    *--0--->*---1-->*--2--->*---3-->*
 
 For example, node 'X' has four link-neighbors. From south and going clockwise,
-these neighbors are [2, 20, 7, 21]. Both link 2 and link 20 have node 'X' as
-their 'head' node, while links 7 and 21 have node 'X' as their tail node.
+these neighbors are [6, 10, 15, 11]. Both link 6 and link 10 have node 'X' as
+their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 """
 from __future__ import division
 
@@ -65,16 +65,18 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_link_head_node_to_link(rmg, 'z')
-    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             5.,   6.,   7.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             5.,   6.,   7.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
     """
@@ -118,16 +120,18 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_link_tail_node_to_link(rmg, 'z')
-    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   0.,   1.,   2.,
-             4.,   5.,   6.,   8.,   9.,  10.])
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_link_tail_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   0.,   1.,   2.,
-             4.,   5.,   6.,   8.,   9.,  10.])
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
     >>> rtn is values_at_links
     True
     """
@@ -171,15 +175,17 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3], [7, 6, 5, 4], [8, 9, 10, 11]])
+    ...                   [[ 0,  1,  2,  3],
+    ...                    [ 7,  6,  5,  4],
+    ...                    [ 8,  9, 10, 11]])
     >>> map_min_of_link_nodes_to_link(rmg, 'z')
-    array([  0.,   1.,   2.,   3.,   7.,   6.,   5.,   4.,   0.,   1.,   2.,
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_min_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  0.,   1.,   2.,   3.,   7.,   6.,   5.,   4.,   0.,   1.,   2.,
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
     >>> rtn is values_at_links
     True
@@ -226,16 +232,18 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3], [7, 6, 5, 4], [8, 9, 10, 11]])
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
     >>> map_max_of_link_nodes_to_link(rmg, 'z')
-    array([  7.,   6.,   5.,   4.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             7.,   6.,   5.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_max_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  7.,   6.,   5.,   4.,   8.,   9.,  10.,  11.,   1.,   2.,   3.,
-             7.,   6.,   5.,   9.,  10.,  11.])
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
     """
@@ -280,16 +288,18 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
     >>> map_mean_of_link_nodes_to_link(rmg, 'z')
-    array([  2. ,   3. ,   4. ,   5. ,   6. ,   7. ,   8. ,   9. ,   0.5,
-             1.5,   2.5,   4.5,   5.5,   6.5,   8.5,   9.5,  10.5])
+    array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
+             6.5,   6. ,   7. ,   8. ,   9. ,   8.5,   9.5,  10.5])
 
     >>> values_at_links = rmg.empty(centering='link')
     >>> rtn = map_mean_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
-    array([  2. ,   3. ,   4. ,   5. ,   6. ,   7. ,   8. ,   9. ,   0.5,
-             1.5,   2.5,   4.5,   5.5,   6.5,   8.5,   9.5,  10.5])
+    array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
+             6.5,   6. ,   7. ,   8. ,   9. ,   8.5,   9.5,  10.5])
     >>> rtn is values_at_links
     True
     """
@@ -300,6 +310,128 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     out[:] = 0.5 * (values_at_nodes[grid.node_at_link_head] +
                     values_at_nodes[grid.node_at_link_tail])
 
+    return out
+
+
+def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
+    """
+    Map the the value found in one field of nodes to a link, based on the
+    minimum value found in a second node field.
+
+    map_value_at_min_node_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of 'control_name' at both the "to" and
+    "from" node. The value of 'value_name' at the node with the minimum value
+    of the two values of 'control_name' is then mapped to the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_min_node_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> _ = rmg.add_field('node', 'z',
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field('node', 'vals_to_map',
+    ...                   [[0, 10, 20, 30],
+    ...                    [70, 60, 50, 40],
+    ...                    [80, 90, 100, 110]])
+    >>> map_value_at_min_node_to_link(rmg, 'z', 'vals_to_map')
+    array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
+             40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
+    """
+    if out is None:
+        out = grid.empty(centering='link')
+
+    controlling_values_at_nodes = grid.at_node[control_name]
+    head_control = controlling_values_at_nodes[grid.node_at_link_head]
+    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
+    head_vals = grid.at_node[value_name][grid.node_at_link_head]
+    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+
+    out[:] = np.where(tail_control < head_control, tail_vals, head_vals)
+    return out
+
+
+def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
+    """
+    Map the the value found in one field of nodes to a link, based on the
+    maximum value found in a second node field.
+
+    map_value_at_max_node_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of 'control_name' at both the "to" and
+    "from" node. The value of 'value_name' at the node with the maximum value
+    of the two values of 'control_name' is then mapped to the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_max_node_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> _ = rmg.add_field('node', 'z',
+    ...                   [[0, 1, 2, 3],
+    ...                    [7, 6, 5, 4],
+    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field('node', 'vals_to_map',
+    ...                   [[0, 10, 20, 30],
+    ...                    [70, 60, 50, 40],
+    ...                    [80, 90, 100, 110]])
+    >>> map_value_at_max_node_to_link(rmg, 'z', 'vals_to_map')
+    array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
+             50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
+    """
+    if out is None:
+        out = grid.empty(centering='link')
+
+    controlling_values_at_nodes = grid.at_node[control_name]
+    head_control = controlling_values_at_nodes[grid.node_at_link_head]
+    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
+    head_vals = grid.at_node[value_name][grid.node_at_link_head]
+    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+
+    out[:] = np.where(tail_control > head_control, tail_vals, head_vals)
     return out
 
 
@@ -349,5 +481,536 @@ def map_node_to_cell(grid, var_name, out=None):
 
     values_at_nodes = grid.at_node[var_name]
     out[:] = values_at_nodes[grid.node_at_cell]
+
+    return out
+
+
+def map_min_of_node_links_to_node(grid, var_name, out=None):
+    """Map the minimum value of a nodes' links to the node.
+
+    map_min_of_node_links_to_node iterates across the grid and
+    identifies the link values at each link connected to  a node.
+    This function finds the minimum value of 'var_name' of each set
+    of links, and then maps this value to the node. Note no attempt is made
+    to honor the directionality of the links.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_min_of_node_links_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.arange(rmg.number_of_links)
+    >>> map_min_of_node_links_to_node(rmg, 'grad')
+    array([  0.,   0.,   1.,   2.,
+             3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_min_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
+    >>> values_at_nodes
+    array([  0.,   0.,   1.,   2.,
+             3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX[-1] = np.finfo(dtype=float).max
+    values_at_linksX[:-1] = grid.at_link[var_name]
+    np.amin(values_at_linksX[grid.links_at_node], axis=1, out=out)
+
+    return out
+
+
+def map_max_of_node_links_to_node(grid, var_name, out=None):
+    """Map the maximum value of a nodes' links to the node.
+
+    map_max_of_node_links_to_node iterates across the grid and
+    identifies the link values at each link connected to  a node.
+    This function finds the maximum value of 'var_name' of each set
+    of links, and then maps this value to the node. Note no attempt is made
+    to honor the directionality of the links.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_max_of_node_links_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.arange(rmg.number_of_links)
+    >>> map_max_of_node_links_to_node(rmg, 'grad')
+    array([  3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.,
+            14.,  15.,  16.,  16.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_max_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
+    >>> values_at_nodes
+    array([  3.,   4.,   5.,   6.,
+            10.,  11.,  12.,  13.,
+            14.,  15.,  16.,  16.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX[-1] = np.finfo(dtype=float).min
+    values_at_linksX[:-1] = grid.at_link[var_name]
+    np.amax(values_at_linksX[grid.links_at_node], axis=1, out=out)
+
+    return out
+
+
+def map_upwind_node_link_max_to_node(grid, var_name, out=None):
+    """
+    Map the largest magnitude of the links bringing flux into the node to the
+    node.
+
+    map_upwind_node_link_max_to_node iterates across the grid and identifies
+    the link values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links bringing flux into the
+    node, then maps the maximum magnitude of 'var_name' found on these links
+    onto the node. If no upwind link is found, the value will be recorded as
+    zero.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_upwind_node_link_max_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.])
+    >>> map_upwind_node_link_max_to_node(rmg, 'grad')
+    array([ 0.,  1.,  2.,  1.,
+            0.,  1.,  2.,  1.,
+            0.,  1.,  2.,  1.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad',
+    ...                                        out=values_at_nodes)
+    >>> values_at_nodes
+    array([ 0.,  1.,  2.,  1.,
+            0.,  1.,  2.,  1.,
+            0.,  1.,  2.,  1.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    np.amax(-values_at_links, axis=1, out=out)
+
+    return out
+
+
+def map_downwind_node_link_max_to_node(grid, var_name, out=None):
+    """
+    Map the largest magnitude of the links carrying flux from the node to the
+    node.
+
+    map_downwind_node_link_max_to_node iterates across the grid and identifies
+    the link values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links carrying flux out of the
+    node, then maps the maximum magnitude of 'var_name' found on these links
+    onto the node. If no downwind link is found, the value will be recorded as
+    zero.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_downwind_node_link_max_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.])
+    >>> map_downwind_node_link_max_to_node(rmg, 'grad')
+    array([ 1.,  2.,  1.,  0.,
+            1.,  2.,  1.,  0.,
+            1.,  2.,  1.,  0.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_downwind_node_link_max_to_node(rmg, 'grad',
+    ...                                        out=values_at_nodes)
+    >>> values_at_nodes
+    array([ 1.,  2.,  1.,  0.,
+            1.,  2.,  1.,  0.,
+            1.,  2.,  1.,  0.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    steepest_links_at_node = np.amax(values_at_links, axis=1)
+    np.fabs(steepest_links_at_node, out=out)
+
+    return out
+
+
+def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
+    """
+    Map the mean magnitude of the links bringing flux into the node to the
+    node.
+
+    map_upwind_node_link_mean_to_node iterates across the grid and identifies
+    the link values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links bringing flux into the
+    node, then maps the mean magnitude of 'var_name' found on these links
+    onto the node. Links with zero values are not included in the means,
+    and zeros are returned if no upwind links are found.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_upwind_node_link_mean_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                 -2., -3., -4., -5.,
+    ...                                 -1., -2., -1.,
+    ...                                 -1., -2., -3., -4.,
+    ...                                 -1., -2., -1.])
+    >>> map_upwind_node_link_mean_to_node(rmg, 'grad')
+    array([ 0. ,  1. ,  2. ,  1. ,
+            2. ,  2. ,  3. ,  3. ,
+            1. ,  1.5,  2.5,  2.5])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_upwind_node_link_mean_to_node(rmg, 'grad',
+    ...                                         out=values_at_nodes)
+    >>> values_at_nodes
+    array([ 0. ,  1. ,  2. ,  1. ,
+            2. ,  2. ,  3. ,  3. ,
+            1. ,  1.5,  2.5,  2.5])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    vals_in_positive = -values_at_links
+    vals_above_zero = vals_in_positive > 0.
+    total_vals = np.sum(vals_in_positive*vals_above_zero, axis=1)
+    link_count = np.sum(vals_above_zero, axis=1)
+    np.divide(total_vals, link_count, out=out)
+    out[np.isnan(out)] = 0.
+
+    return out
+
+
+def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
+    """
+    Map the mean magnitude of the links carrying flux out of the node to the
+    node.
+
+    map_downwind_node_link_mean_to_node iterates across the grid and identifies
+    the link values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links carrying flux out of the
+    node, then maps the mean magnitude of 'var_name' found on these links
+    onto the node. Links with zero values are not included in the means,
+    and zeros are returned if no upwind links are found.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : str
+        Name of variable field defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_downwind_node_link_mean_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                 -2., -3., -4., -5.,
+    ...                                 -1., -2., -1.,
+    ...                                 -1., -2., -3., -4.,
+    ...                                 -1., -2., -1.])
+    >>> map_downwind_node_link_mean_to_node(rmg, 'grad')
+    array([ 1.5,  2.5,  2.5,  5. ,
+            1. ,  2. ,  2. ,  4. ,
+            1. ,  2. ,  1. ,  0. ])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_downwind_node_link_mean_to_node(rmg, 'grad',
+    ...                                         out=values_at_nodes)
+    >>> values_at_nodes
+    array([ 1.5,  2.5,  2.5,  5. ,
+            1. ,  2. ,  2. ,  4. ,
+            1. ,  2. ,  1. ,  0. ])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    vals_in_positive = values_at_links
+    vals_above_zero = vals_in_positive > 0.
+    total_vals = np.sum(vals_in_positive*vals_above_zero, axis=1)
+    link_count = np.sum(vals_above_zero, axis=1)
+    np.divide(total_vals, link_count, out=out)
+    out[np.isnan(out)] = 0.
+
+    return out
+
+
+def map_value_at_upwind_node_link_max_to_node(grid, control_name,
+                                              value_name, out=None):
+    """
+    Map the the value found in one field of links to a node, based on the
+    largest magnitude value of links bringing fluxes into the node,
+    found in a second node field.
+
+    map_upwind_node_link_max_to_node iterates across the grid and identifies
+    the link control_values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links bringing flux into the
+    node, then identifies the link with the maximum magnitude. The value of the
+    second field 'value_name' at these links is then mapped onto the node.
+    If no upwind link is found, the value will be recorded as zero.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_upwind_node_link_max_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.])
+    >>> rmg.at_link['vals'] = np.arange(rmg.number_of_links, dtype=float)
+    >>> map_value_at_upwind_node_link_max_to_node(rmg, 'grad', 'vals')
+    array([  0.,   0.,   1.,   2.,
+             0.,   7.,   8.,   9.,
+             0.,  14.,  15.,  16.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_value_at_upwind_node_link_max_to_node(rmg, 'grad', 'vals',
+    ...                                                 out=values_at_nodes)
+    >>> values_at_nodes
+    array([  0.,   0.,   1.,   2.,
+             0.,   7.,   8.,   9.,
+             0.,  14.,  15.,  16.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_nodes = (grid.at_link[control_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    which_link = np.argmax(-values_at_nodes, axis=1)
+    invalid_links = values_at_nodes >= 0.
+    link_vals_without_invalids = grid.at_link[value_name][grid.links_at_node]
+    link_vals_without_invalids[invalid_links] = 0.
+    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
+                                        which_link]
+
+    return out
+
+
+def map_value_at_downwind_node_link_max_to_node(grid, control_name,
+                                                value_name, out=None):
+    """
+    Map the the value found in one field of links to a node, based on the
+    largest magnitude value of links carrying fluxes out of the node,
+    found in a second node field.
+
+    map_downwind_node_link_max_to_node iterates across the grid and identifies
+    the link control_values at each link connected to a node. It then uses the
+    link_dirs_at_node data structure to identify links carrying flux out of the
+    node, then identifies the link with the maximum magnitude. The value of the
+    second field 'value_name' at these links is then mapped onto the node.
+    If no downwind link is found, the value will be recorded as zero.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    control_name : str
+        Name of field defined at nodes that dictates which end of the link to
+        draw values from.
+    value_name : str
+        Name of field defined at nodes from which values are drawn, based on
+        control_name.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_value_at_downwind_node_link_max_to_node
+    >>> from landlab import RasterModelGrid
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.,
+    ...                                  0.,  0.,  0.,  0.,
+    ...                                 -1., -2., -1.])
+    >>> rmg.at_link['vals'] = np.arange(rmg.number_of_links, dtype=float)
+    >>> map_value_at_downwind_node_link_max_to_node(rmg, 'grad', 'vals')
+    array([  0.,   1.,   2.,   0.,
+             7.,   8.,   9.,   0.,
+            14.,  15.,  16.,   0.])
+
+    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> rtn = map_value_at_downwind_node_link_max_to_node(rmg, 'grad', 'vals',
+    ...                                                   out=values_at_nodes)
+    >>> values_at_nodes
+    array([  0.,   1.,   2.,   0.,
+             7.,   8.,   9.,   0.,
+            14.,  15.,  16.,   0.])
+    >>> rtn is values_at_nodes
+    True
+    """
+    if out is None:
+        out = grid.empty(centering='node')
+
+    values_at_nodes = (grid.at_link[control_name][grid.links_at_node] *
+                       grid.link_dirs_at_node)
+    # this procedure makes incoming links NEGATIVE
+    which_link = np.argmax(values_at_nodes, axis=1)
+    invalid_links = values_at_nodes <= 0.
+    link_vals_without_invalids = grid.at_link[value_name][grid.links_at_node]
+    link_vals_without_invalids[invalid_links] = 0.
+    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
+                                        which_link]
 
     return out

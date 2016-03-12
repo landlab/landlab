@@ -26,6 +26,22 @@ class SinkFiller(Component):
     gradient downwards towards the depression outlet. The gradient can be
     spatially variable, and is chosen to not reverse any drainage directions
     at the perimeter of each lake.
+
+    Constructor assigns a copy of the grid, and calls the initialize
+    method.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A landlab RasterModelGrid.
+    input_stream : str, file_like, or ModelParameterDictionary, optional
+        ModelParameterDictionary that holds the input parameters.
+    current_time : float, optional
+        The current time for the mapper.
+    routing : 'D8' or 'D4' (optional)
+        If grid is a raster type, controls whether fill connectivity can
+        occur on diagonals ('D8', default), or only orthogonally ('D4').
+        Has no effect if grid is not a raster.
     """
     _name = 'HoleFiller'
 
@@ -165,7 +181,8 @@ class SinkFiller(Component):
         # delete them!
         existing_fields = {}
         spurious_fields = set()
-        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        set_of_outputs = (set(self._lf.output_var_names) |
+                          set(self._fr.output_var_names))
         try:
             set_of_outputs.remove(self.topo_field_name)
         except KeyError:

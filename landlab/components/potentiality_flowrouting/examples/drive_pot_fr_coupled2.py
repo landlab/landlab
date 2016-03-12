@@ -9,6 +9,8 @@ Created on Wed Mar 4 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
@@ -29,15 +31,15 @@ mg = RasterModelGrid(nrows, ncols, dx)
 # attempt to implement diffusion with flow routing...
 
 #modify the fields in the grid
-z = mg.create_node_array_zeros() + init_elev
+z = mg.zeros(at='node') + init_elev
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
-mg.create_node_array_zeros('water__volume_flux_in')
+mg.add_zeros('water__volume_flux_in', at='node')
 
 #Set boundary conditions
 inlet_node = np.array((int((1.5*mg.number_of_node_columns)//1)))
 section_col = int((0.5*mg.number_of_node_columns)//1)
 mg.at_node['topographic__elevation'][section_col] = 1.
-mg.set_closed_boundaries_at_grid_edges(True, False, False, False)
+mg.set_closed_boundaries_at_grid_edges(False, False, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
 mg.status_at_node[section_col] = 2
 mg.update_links_nodes_cells_to_new_BCs()
@@ -51,7 +53,7 @@ interior_nodes = mg.core_nodes
 section_downfan = []
 
 # do the loop
-for i in xrange(2000):
+for i in range(2000):
     #mg.at_node['topographic__elevation'][inlet_node] = 1.
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
@@ -79,5 +81,5 @@ imshow_node_grid(mg, 'water__depth')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)
-for i in xrange(len(section_downfan)):
+for i in range(len(section_downfan)):
     plot(section_downfan[i], '-')

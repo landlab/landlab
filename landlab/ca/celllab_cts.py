@@ -152,6 +152,22 @@ class Transition():
     describing the node state at each end, and the orientation.
     Orientation is 0: horizontal, L-R; 1: vertical, bottom-top.
     For such a tuple, order is (left/bottom, right/top, orientation).
+
+    Transition() constructor sets 3 required properties and 2 optional
+    properties for a transition from one cell pair to another.
+
+    Parameters
+    ----------
+    from_state : int
+        Code for the starting state of the cell pair (link)
+    to_state : int
+        Code for the new state of the cell pair (link)
+    rate : float
+        Average rate at which this transition occurs (dimension of 1/time)
+    name : string (optional)
+        Name for this transition
+    swap_properties : bool (optional)
+        Flag: should properties be exchanged between the two cells?
     """
 
     def __init__(self, from_state, to_state, rate, name=None,
@@ -191,6 +207,21 @@ class Event():
     The class overrides the __lt__ (less than operator) method so that when
     Event() objects are placed in a PriorityQueue, the earliest event is
     given the highest priority (i.e., placed at the top of the queue).
+
+    Event() constructor sets 3 required properties and one optional
+    property.
+
+    Parameters
+    ----------
+    time : float
+        Time at which the event is scheduled to occur
+    link : int
+        ID of the link at which event occurs
+    xn_to : int
+        New state to which this cell pair (link) will transition
+    propswap : bool (optional)
+        Flag: does this event involve an exchange of properties between
+        the two cells?
 
     Examples
     --------
@@ -236,7 +267,20 @@ class Event():
 
 class CAPlotter():
 
-    """Handle display of a CellLab-CTS grid."""
+    """
+    Handle display of a CellLab-CTS grid.
+
+    CAPlotter() constructor keeps a reference to the CA model, and
+    optionally a colormap to be used with plots.
+
+    Parameters
+    ----------
+    ca : LandlabCellularAutomaton object
+        Reference to a CA model
+    cmap : Matplotlib colormap, optional
+        Colormap to be used in plotting
+
+    """
 
     def __init__(self, ca, cmap=None):
         """
@@ -299,6 +343,23 @@ class CellLabCTSModel(object):
     automaton model. A link connects a pair of cells. Each cell has a state
     (represented by an integer code), and each link also has a state that is
     determined by the states of the cell pair.
+
+    Parameters
+    ----------
+    model_grid : Landlab ModelGrid object
+        Reference to the model's grid
+    node_state_dict : dict
+        Keys are node-state codes, values are the names associated with
+        these codes
+    transition_list : list of Transition objects
+        List of all possible transitions in the model
+    initial_node_states : array of ints (x number of nodes in grid)
+        Starting values for node-state grid
+    prop_data : array (x number of nodes in grid), optional
+        Array of properties associated with each node/cell
+    prop_reset_value : number or object, optional
+        Default or initial value for a node/cell property (e.g., 0.0).
+        Must be same type as *prop_data*.
     """
 
     def __init__(self, model_grid, node_state_dict, transition_list,
@@ -963,6 +1024,12 @@ class CellLabCTSModel(object):
             # want to track), implement the swap.
             #   If the event requires a call to a user-defined callback
             # function, we handle that here too.
+#            print('trcts')
+#            print(tail_node)
+#            print(head_node)
+#            print(self.propid[tail_node])
+#            print(self.propid[head_node])
+#            print(self.prop_reset_value)
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
@@ -1015,6 +1082,7 @@ class CellLabCTSModel(object):
         self.assign_link_states_from_node_types()
         self.push_transitions_to_event_queue()
 
+    #@profile
     def run(self, run_duration, node_state_grid=None,
             plot_each_transition=False, plotter=None):
         """Run the model forward for a specified period of time.

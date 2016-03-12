@@ -94,8 +94,8 @@ class FastscapeEroder(object):
             self.value_field = 'topographic__elevation'
 
         #make storage variables
-        self.A_to_the_m = grid.create_node_array_zeros()
-        self.alpha = grid.empty(centering='node')
+        self.A_to_the_m = grid.zeros(at='node')
+        self.alpha = grid.empty(at='node')
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(self.alpha)
 
         self.grid.diagonal_links_at_node() #calculates the number of diagonal links
@@ -126,7 +126,7 @@ class FastscapeEroder(object):
         return self.dt, self.r_i
 
 
-    def erode(self, grid_in, dt=None, K_if_used=None):
+    def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -138,6 +138,20 @@ class FastscapeEroder(object):
 
         It returns the grid, in which it will have modified the value of
         *value_field*, as specified in component initialization.
+        
+        Parameters
+        ----------
+        grid_in : Landlab ModelGrid object
+            Reference to the model grid
+        dt : float (optional)
+            Time-step size
+        K_if_used : string (field name) or ndarray of float x N (optional)
+            Array containing value of erosion coefficient at each node
+        flooded_nodes : ndarray of int (optional)
+            IDs of nodes that are flooded and should have no erosion. If not
+            provided but flow has still been routed across depressions, erosion
+            may still occur beneath the apparent water level (though will
+            always still be positive).
         """
         if dt:
             self.dt = dt
@@ -174,6 +188,14 @@ class FastscapeEroder(object):
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 
+        # Handle flooded nodes, if any (no erosion there)
+        if flooded_nodes is not None:
+            alpha[flooded_nodes] = 0.
+        else:
+            reversed_flow = z < z[flow_receivers]
+            # this check necessary if flow has been routed across depressions
+            alpha[reversed_flow] = 0.
+            
         method = 'cython'
 
         if self.nonlinear_flag == False: #n==1

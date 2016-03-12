@@ -2,7 +2,7 @@
 
 import inspect
 
-from landlab.framework.component import load_landlab_components
+from .component import load_landlab_components
 from landlab import Palette, Arena
 
 

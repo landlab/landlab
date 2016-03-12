@@ -26,6 +26,26 @@ class OrientedRasterCTS(CellLabCTSModel):
 
     """Oriented raster CellLab-CTS model.
 
+    RasterCTS constructor: sets number of orientations to 2 and calls
+    base-class constructor.
+
+    Parameters
+    ----------
+    model_grid : Landlab ModelGrid object
+        Reference to the model's grid
+    node_state_dict : dict
+        Keys are node-state codes, values are the names associated with
+        these codes
+    transition_list : list of Transition objects
+        List of all possible transitions in the model
+    initial_node_states : array of ints (x number of nodes in grid)
+        Starting values for node-state grid
+    prop_data : array (x number of nodes in grid) (optional)
+        Array of properties associated with each node/cell
+    prop_reset_value : number or object, optional
+        Default or initial value for a node/cell property (e.g., 0.0).
+        Must be same type as *prop_data*.
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -113,7 +133,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         self.link_orientation = dy.astype(int)
 
         if _DEBUG:
-            print(self.active_link_orientation)
+            print(self.link_orientation)
 
 
 if __name__ == '__main__':

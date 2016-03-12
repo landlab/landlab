@@ -1,3 +1,5 @@
+from six.moves import range
+
 import numpy
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
@@ -144,7 +146,7 @@ class PerronNLDiffuse(object):
         operating_matrix_ID_map = numpy.empty((ninteriornodes, 9))
         self.interior_IDs_as_real = self.interiorIDtoreal(
             numpy.arange(ninteriornodes))
-        for j in xrange(ninteriornodes):
+        for j in range(ninteriornodes):
             i = self.interior_IDs_as_real[j]
             operating_matrix_ID_map[j, :] = numpy.array([(i - ncols - 1),
                                                          (i - ncols),
@@ -193,62 +195,62 @@ class PerronNLDiffuse(object):
                                            1, ncols - 1, ncols, ncols + 1])
 
         # ^Set up terms for BC handling (still feels very clumsy)
-        bottom_nodes = grid.bottom_edge_node_ids()
-        top_nodes = grid.top_edge_node_ids()
-        left_nodes = grid.left_edge_node_ids()
-        right_nodes = grid.right_edge_node_ids()
+        bottom_edge = grid.nodes_at_bottom_edge[1: -1]
+        top_edge = grid.nodes_at_top_edge[1: -1]
+        left_edge = grid.nodes_at_left_edge[1: -1]
+        right_edge = grid.nodes_at_right_edge[1: -1]
         self.bottom_flag = 1
         self.top_flag = 1
         self.left_flag = 1
         self.right_flag = 1
         # self.corner_flags = [1,1,1,1] #In ID order, so BL,BR,TL,TR
-        if numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[bottom_edge] == 4):
             # ^This should be all of them, or none of them
             self.bottom_flag = 4
-        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[bottom_edge] == 3):
             self.bottom_flag = 3
-        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[bottom_edge] == 2):
             self.bottom_flag = 2
-        elif numpy.all(grid.status_at_node[bottom_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[bottom_edge] == 1):
             pass
         else:
-            raise NameError('''Different cells on the same grid edge have
-                            different boundary statuses!!''')
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
             # Note this could get fraught if we need to open a cell to let
             # water flow out...
-        if numpy.all(grid.status_at_node[top_nodes[1:-1]] == 4):
+        if numpy.all(grid.status_at_node[top_edge] == 4):
             self.top_flag = 4
-        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[top_edge] == 3):
             self.top_flag = 3
-        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[top_edge] == 2):
             self.top_flag = 2
-        elif numpy.all(grid.status_at_node[top_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[top_edge] == 1):
             pass
         else:
-            raise NameError('''Different cells on the same grid edge have
-                            different boundary statuses!!''')
-        if numpy.all(grid.status_at_node[left_nodes[1:-1]] == 4):
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+        if numpy.all(grid.status_at_node[left_edge] == 4):
             self.left_flag = 4
-        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[left_edge] == 3):
             self.left_flag = 3
-        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[left_edge] == 2):
             self.left_flag = 2
-        elif numpy.all(grid.status_at_node[left_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[left_edge] == 1):
             pass
         else:
-            raise NameError('''Different cells on the same grid edge have
-                            different boundary statuses!!''')
-        if numpy.all(grid.status_at_node[right_nodes[1:-1]] == 4):
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+        if numpy.all(grid.status_at_node[right_edge] == 4):
             self.right_flag = 4
-        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 3):
+        elif numpy.all(grid.status_at_node[right_edge] == 3):
             self.right_flag = 3
-        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 2):
+        elif numpy.all(grid.status_at_node[right_edge] == 2):
             self.right_flag = 2
-        elif numpy.all(grid.status_at_node[right_nodes[1:-1]] == 1):
+        elif numpy.all(grid.status_at_node[right_edge] == 1):
             pass
         else:
-            raise NameError('''Different cells on the same grid edge have
-                            different boundary statuses!!''')
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
 
         self.fixed_grad_BCs_present = (self.bottom_flag == 2 or
                                        self.top_flag == 2 or
@@ -260,9 +262,9 @@ class PerronNLDiffuse(object):
                                    self.right_flag == 3)
         if self.fixed_grad_BCs_present:
             if self.values_to_diffuse != grid.fixed_gradient_of:
-                raise ValueError("""Boundary conditions set in the grid don't
-                                 apply to the data the diffuser is trying to
-                                 work with!""")
+                raise ValueError("Boundary conditions set in the grid don't "
+                                 "apply to the data the diffuser is trying to "
+                                 "work with")
 
         if numpy.any(grid.status_at_node == 2):
             self.fixed_grad_offset_map = numpy.empty(
@@ -400,25 +402,27 @@ class PerronNLDiffuse(object):
         # Need to modify the "effective" values of the edge nodes if any of
         # the edges are inactive:
         if self.bottom_flag == 4:
-            bottom_nodes = grid.bottom_edge_node_ids()
-            elev[bottom_nodes] = elev[bottom_nodes + grid.shape[1]]
+            bottom_edge, inside_bottom_edge = grid.nodes[(0, 1), :]
+            elev[bottom_edge] = elev[inside_bottom_edge]
             # corners are special cases, and assumed linked to the bottom and
             # top edge BCs...
-            elev[bottom_nodes[0]] = elev[bottom_nodes[0] + grid.shape[1] + 1]
-            elev[bottom_nodes[-1]] = elev[bottom_nodes[-1] + grid.shape[1] - 1]
+            elev[bottom_edge[0]] = elev[inside_bottom_edge[1]]
+            elev[bottom_edge[-1]] = elev[inside_bottom_edge[-2]]
         if self.top_flag == 4:
-            top_nodes = grid.top_edge_node_ids()
-            elev[top_nodes] = elev[top_nodes - grid.shape[1]]
+            top_edge, inside_top_edge = grid.nodes[(-1, -2), :]
+            elev[top_edge] = elev[inside_top_edge]
             # corners are special cases, and assumed linked to the bottom and
             # top edge BCs...
-            elev[top_nodes[0]] = elev[top_nodes[0] - grid.shape[1] + 1]
-            elev[top_nodes[-1]] = elev[top_nodes[-1] - grid.shape[1] - 1]
+            elev[top_edge[0]] = elev[inside_top_edge[1]]
+            elev[top_edge[-1]] = elev[inside_top_edge[-2]]
         if self.left_flag == 4:
-            left_nodes = grid.left_edge_node_ids()
-            elev[left_nodes[1:-1]] = elev[left_nodes[1:-1] + 1]
+            left_edge = grid.nodes[1: -1, 0]
+            inside_left_edge = grid.nodes[1: -1, 1]
+            elev[left_edge] = elev[inside_left_edge]
         if self.right_flag == 4:
-            right_nodes = grid.right_edge_node_ids()
-            elev[right_nodes[1:-1]] = elev[right_nodes[1:-1] - 1]
+            right_edge = grid.nodes[1: -1, -1]
+            inside_right_edge = grid.nodes[1: -1, -2]
+            elev[right_edge] = elev[inside_right_edge]
 
         # replacing loop:
         cell_neighbors = grid.get_active_neighbors_at_node(bad_index=-1)
@@ -1125,7 +1129,7 @@ class PerronNLDiffuse(object):
             grid_in = self.grid
         else:
             self.gear_timestep(self.timestep_in, grid_in)
-            for i in xrange(self.internal_repeats):
+            for i in range(self.internal_repeats):
                 grid_in['node'][self.values_to_diffuse] = self.grid['node'][
                     self.values_to_diffuse] + self.uplift_per_step
             # Initialize the variables for the step:

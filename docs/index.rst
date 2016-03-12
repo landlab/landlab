@@ -23,12 +23,27 @@
 ..   dan_installs_on_linux
 ..   getting_example_files
 
-
-Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
+Landlab Developer API
 ==============================
 
+Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
+
+Contributing to Landlab
+=======================
+
+If you're intending to make changes to the Landlab code base,
+or want to develop your own components, we recommend you follow
+these specialized developer install instructions.
+
 .. toctree::
-    :maxdepth: 1
+  :maxdepth: 3
+
+  dev_guide_install
+  dev_guide_components
+
+
+.. toctree::
+..    :maxdepth: 1
 
 .. The Nuts and Bolts of Coding in Landlab
 .. ---------------------------------------
@@ -116,38 +131,81 @@ Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`
 ..   faq
 
 
-Developer Documentation
+Grids
 =======================
 
-If you're intending to make changes to the Landlab code base,
-or want to develop your own components, we recommend you follow
-these specialized developer install instructions.
+As of Landlab version 0.2, there are four types of Landlab grid:
+ - `Raster <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.raster>`_
+ - `Voronoi-DeLaunay <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.voronoi>`_
+ - `Hex <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.hex>`_
+ - `Radial <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.radial>`_
+
+The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDelaunayGrid`.
+
+`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-   dev_guide_install
-   dev_guide_components
+   landlab.grid
 
-Simple guides to functionality
-------------------------------
 
-These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
+Components
+=======================
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 4
 
-  users_guide
+   landlab.components
+
+
+Input/Output (IO)
+=======================
 
 .. toctree::
-  :maxdepth: 2
+   :maxdepth: 4
 
-  manual_index_alt_format
+   landlab.io
+
+
+Plotting and Visualization
+=======================
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 4
 
-  standard_names
+   landlab.plot
+
+
+Cellular Automata (CA)
+=======================
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.ca
+
+
+
+.. Simple guides to functionality
+.. ------------------------------
+
+.. These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
+
+.. toctree::
+..  :maxdepth: 1
+
+..  users_guide
+
+.. toctree::
+..  :maxdepth: 2
+
+..  manual_index_alt_format
+
+.. toctree::
+..  :maxdepth: 1
+
+..  standard_names
 
 References
 ==========
