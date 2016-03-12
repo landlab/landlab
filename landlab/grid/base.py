@@ -1181,7 +1181,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [16, 10,  7, -1, -1, -1],
                [17, 11, 12, -1, -1, -1],
                [18, 17, 13, 14, -1, -1],
-               [18, 15, 16, -1, -1, -1]], dtype=int32)
+               [18, 15, 16, -1, -1, -1]])
         >>> hg.link_dirs_at_node
         array([[-1, -1, -1,  0,  0,  0],
                [-1, -1, -1,  1,  0,  0],
@@ -1201,11 +1201,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         nlpn[:] = 0  # we'll zero it out, then rebuild it
 
         # Create arrays for link-at-node information
-        self._links_at_node = -np.ones((self.number_of_nodes, max_num_links),
-                                       dtype=np.int32)
+        self._links_at_node = - np.ones((self.number_of_nodes, max_num_links),
+                                        dtype=int)
         self._link_dirs_at_node = np.zeros((self.number_of_nodes,
-                                            max_num_links),
-                                           dtype=np.int8)
+                                            max_num_links), dtype=np.int8)
 
         # Sweep over all links
         for lk in range(self.number_of_links):
