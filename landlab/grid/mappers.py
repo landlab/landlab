@@ -1014,3 +1014,20 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
                                         which_link]
 
     return out
+
+
+def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
+    """A dummy function to demonstrate automated docstring changes.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab modelgrid.
+    some_arg : whatever
+        A dummy argument.
+
+    Examples
+    --------
+    ...
+    """
+    pass
