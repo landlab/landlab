@@ -147,8 +147,9 @@ def wrap_as_bmi(cls):
     >>> flexure.get_grid_shape(0)
     (20, 40)
     >>> dz = flexure.get_value('lithosphere__elevation_increment')
-    >>> dz.shape
-    (800,)
+    >>> dz.shape == (800, )
+    True
+
     >>> np.all(dz == 0.)
     True
     >>> flexure.get_current_time()

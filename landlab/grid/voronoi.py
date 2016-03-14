@@ -250,9 +250,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
                                                    self.node_at_link_head)
 
-        # NODES & LINKS: IDs and directions of links at each node
-        self.make_links_and_link_dirs_at_node()
-
         # LINKS: inlink and outlink matrices
         # SOON TO BE DEPRECATED
         self._setup_inlink_and_outlink_matrices()
@@ -260,6 +257,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
         self._reset_link_status_list()
+
+        # NODES & LINKS: IDs and directions of links at each node
+        self.make_links_and_link_dirs_at_node()
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
