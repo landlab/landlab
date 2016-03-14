@@ -27,7 +27,7 @@ from time import time
 numrows = 32         # number of rows in the raster grid
 numcols = 240        # number of columns in the raster grid
 dx = 25.             # grid spacing, (m)
-run_time = 9005      # duration of run, (s)
+run_time = 9000      # duration of run, (s)
 h_init = 0.001       # initial thin layer of water (m)
 n = 0.01             # roughness coefficient, (s/m^(1/3))
 g = 9.8              # gravity (m/s^2)
@@ -51,11 +51,8 @@ rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 # Create fields in the grid for topographic elevation, water depth, discharge.
 
 rmg.add_zeros('topographic__elevation', at='node') # topographic elevation (m)
-rmg.add_zeros('water_depth', at='node') # water depth (m)
-rmg.add_zeros('water_discharge', at='active_link') # unit discharge (m2/s)
-
-# Add our initial thin layer of water to the field of water depth.
-rmg['node']['water_depth'] += h_init
+rmg.add_zeros('water__depth', at='node') # water depth (m)
+rmg.add_zeros('water__discharge', at='active_link') # unit discharge (m2/s)
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those
 # nodes. One column in to prevent issues with BC.
@@ -64,7 +61,7 @@ inside_left_edge = rmg.nodes[1: -1, 1]
 
 
 # Initializing our class...
-of = OverlandFlowBates(rmg)
+of = OverlandFlowBates(rmg, mannings_n=n, h_init=h_init)
 dt = 1.0
 # Let's see how long this run takes...
 starttime = time()
@@ -74,19 +71,18 @@ while elapsed_time < run_time:
     of.overland_flow(rmg, dt)
 
     # Recalculate water depth at the boundary ...
-
     # water depth at left side (m)
     h_boundary = (seven_over_three * n * n * u * u * u *
                   elapsed_time) ** three_over_seven
 
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
-    rmg.at_node['water_depth'][inside_left_edge] = h_boundary
+    rmg.at_node['water__depth'][inside_left_edge] = h_boundary
 
     # Print time
     #print(elapsed_time)
     dt = of.gear_time_step(rmg)
-    #print(elapsed_time)
+
     # Increased elapsed time
     elapsed_time += dt
 
@@ -101,7 +97,7 @@ print("Total time: ", totaltime, " seconds")
 
 # Our first figure will be the wave front on the horizontal plane
 pylab.plt.figure(1)
-imshow_grid(rmg, 'water_depth', cmap="Purples", grid_units=("m", "m"))
+imshow_grid(rmg, 'water__depth', cmap="Purples", grid_units=("m", "m"))
 
 # The second figure will compare the depth profiles of the analytical solution
 # and our modeled solution
@@ -112,16 +108,17 @@ x = np.arange(0, ((numcols) * dx), dx)
 # Now we will solve the analytical solution
 h_analytical = (-seven_over_three * n * n * u * u * (x - (u * run_time)))
 
-# We can only solve the analytical solution where water depth is positive... so we weed out negative
-# values to avoid NaN errors.
+# We can only solve the analytical solution where water depth is positive...
+# so we weed out negative values to avoid NaN errors.
 h_analytical[np.where(h_analytical > 0)] = (h_analytical[np.where(
     h_analytical > 0)] ** three_over_seven)
 h_analytical[np.where(h_analytical < 0)] = 0.0
 
-# And we will reshape our depth array we solved for in the above loop to access one row for plotting.
-# We will also remove the first (boundary) cell from this array, while also appending a [0] value at the
-# end to keep it the same size as the 'x' array.
-h_Bates = rmg['node']['water_depth'].reshape(rmg.shape)
+# And we will reshape our depth array we solved for in the above loop to access
+# one row for plotting. We will also remove the first (boundary) cell from this
+# array, while also appending a [0] value at the end to keep it the same size
+# as the 'x' array.
+h_Bates = rmg['node']['water__depth'].reshape(rmg.shape)
 h_Bates = h_Bates[1][1:]
 h_Bates = np.append(h_Bates,[0])
 
