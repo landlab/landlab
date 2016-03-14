@@ -632,10 +632,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Sort them by midpoint coordinates
         self.sort_links_by_midpoint()
-        
-        # Create 2D array containing, for each node, direction of connected
-        # link (1=incoming, -1=outgoing, 0=no link present at this position)
-        self.make_link_dirs_at_node()
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
@@ -645,6 +641,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #   set up the list of active links
         self._reset_link_status_list()
+
+        # Create 2D array containing, for each node, direction of connected
+        # link (1=incoming, -1=outgoing, 0=no link present at this position)
+        # needs to come after BC setting
+        self.make_link_dirs_at_node()
 
         #   set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
@@ -1231,11 +1232,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             else:
                 tail_index = 1
                 head_index = 3
-    
-            # Add this link to the list for this node, set the direction (outgoing,
-            # indicated by -1), and increment the number found so far
+
+            # Add this link to the list for this node, set the direction
+            # (outgoing, indicated by -1), and increment the number found so
+            # far
             self._link_dirs_at_node[t][tail_index] = -1
             self._link_dirs_at_node[h][head_index] = 1
+
+        # setup the active link equivalent
+        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
+        inactive_links = (self.status_at_link[self.links_at_node] ==
+                          INACTIVE_LINK)
+        inactive_links[self.link_dirs_at_node == 0] = False
+        self._active_link_dirs_at_node[inactive_links] = 0
 
     def _setup_inlink_and_outlink_matrices(self):
         """Set up matrices that hold the inlinks and outlinks for each node.

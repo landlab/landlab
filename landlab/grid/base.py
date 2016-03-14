@@ -660,6 +660,34 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_dirs_at_node
 
     @property
+    @make_return_array_immutable
+    def active_link_dirs_at_node(self):
+        """
+        Link flux directions at each node: 1=incoming flux, -1=outgoing flux,
+        0=no flux. Note that inactive links receive zero.
+
+        Returns
+        -------
+        (NODES, LINKS) ndarray of int
+            Link directions relative to the nodes of a grid. The shape of the
+            matrix will be number of nodes rows by max number of links per
+            node. A zero indicates no link at this position.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
+        >>> grid.active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
+               dtype=int8)
+        """
+        return self._active_link_dirs_at_node
+
+    @property
     def node_at_cell(self):
         """Node ID associated with grid cells.
 
@@ -1224,6 +1252,13 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Sort the links at each node by angle, counter-clockwise from +x
         self.sort_links_at_node_by_angle()
+
+        # setup the active link equivalent
+        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
+        inactive_links = (self.status_at_link[self.links_at_node] ==
+                          INACTIVE_LINK)
+        inactive_links[self.link_dirs_at_node == 0] = False
+        self._active_link_dirs_at_node[inactive_links] = 0
 
     def active_links_at_node(self, *args):
         """active_links_at_node([node_ids])
@@ -2431,6 +2466,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         self._setup_active_faces()
+        try:
+            inactive_links = (self.status_at_link[self.links_at_node] ==
+                              INACTIVE_LINK)
+            inactive_links[self.link_dirs_at_node == 0] = False
+            self._active_link_dirs_at_node[inactive_links] = 0
+        except AttributeError:  #doesn't exist yet
+            pass
         try:
             if self.diagonal_list_created:
                 self.diagonal_list_created = False
