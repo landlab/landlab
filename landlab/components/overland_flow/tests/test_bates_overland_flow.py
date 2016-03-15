@@ -26,7 +26,7 @@ def setup_grid():
         grid.add_zeros('node', 'topographic__elevation')
         bates = OverlandFlowBates(grid, mannings_n = 0.01, h_init=0.001)
         globals().update({
-            'bates': OverlandFlowBates(grid)})
+            'bates': bates})
 
 
 @with_setup(setup_grid)
@@ -36,14 +36,17 @@ def test_Bates_name():
 
 @with_setup(setup_grid)
 def test_Bates_input_var_names():
-    assert_equal(bates.input_var_names,  ('water__depth',
-                                          'topographic__elevation',))
+    # DEJH added sets to remove reliance on ordering
+    assert_equal(set(bates.input_var_names),  set(('water__depth',
+                                                   'topographic__elevation')))
 
 
 @with_setup(setup_grid)
 def test_Bates_output_var_names():
-    assert_equal(bates.output_var_names, ('water__depth', 'water__discharge',
-                                         'water_surface__gradient', ))
+    # DEJH added sets to remove reliance on ordering
+    assert_equal(set(bates.output_var_names), set(('water__depth',
+                                                   'water__discharge',
+                                                   'water_surface__gradient')))
 
 @with_setup(setup_grid)
 def test_Bates_var_units():
@@ -59,9 +62,13 @@ def test_Bates_var_units():
 
 @with_setup(setup_grid)
 def test_field_initialized_to_zero():
-    for name in bates.grid['node']:
+    for name in bates.grid['node'].keys():
         field = bates.grid['node'][name]
-        assert_true(np.all(field == 0.))
+        if name != 'water__depth':
+            assert_true(np.all(np.isclose(field, 0.)))
+        else:
+            assert_true(np.all(np.isclose(field, 0.001)))
+            # this remains broken, and needs JA's attention
 
 
 @with_setup(setup_grid)
