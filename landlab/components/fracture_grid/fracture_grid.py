@@ -31,7 +31,6 @@ Last significant modification: cleanup and unit tests Oct 2015 GT
 
 from numpy import tan, pi, size, zeros
 import numpy as np
-import random
 
 
 def calculate_fracture_starting_position(shape, seed):
@@ -50,13 +49,13 @@ def calculate_fracture_starting_position(shape, seed):
     (y, x) : tuple of int
         Fracture starting coordinates
     """
-    random.seed(seed)
+    np.random.seed(seed)
 
-    if random.randint(0, 1) == 0:
+    if np.random.randint(0, 1) == 0:
         x = 0
-        y = random.randint(0, shape[0] - 1)
+        y = np.random.randint(0, shape[0] - 1)
     else:
-        x = random.randint(0, shape[1] - 1)
+        x = np.random.randint(0, shape[1] - 1)
         y = 0
     return (y, x)
 
