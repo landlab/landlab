@@ -193,7 +193,7 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     m = zeros((numrows,numcols), dtype=int)
 
     # Add fractures to grid
-    nfracs = (numrows+numcols)/frac_spacing
+    nfracs = (numrows + numcols) // frac_spacing
     for i in range(nfracs):
 
         (y, x) = calculate_fracture_starting_position((numrows, numcols), seed+i)
