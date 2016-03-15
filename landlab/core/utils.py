@@ -317,17 +317,19 @@ def strip_grid_from_method_docstring(funcs):
     for name, func in funcs.items():
         # strip the entry under "Parameters":
         func.__doc__ = re.sub('grid *:.*?\n.*?\n *', '', func.__doc__)
-        # cosmetic magic to get a two-line signature to line up right:
-        match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
-                                  func.__doc__)
-        try:
-            lines_were = match_2_lines.group()
-        except AttributeError:  # no successful match
-            pass
-        else:
-            end_chars = re.search('    .*?\)', lines_were).group()[4:]
-            func.__doc__ = re.sub('    .*?\)', '         '+end_chars,
-                                  func.__doc__)
+        # # cosmetic magic to get a two-line signature to line up right:
+        # # ...for some reason this breaks doctests, so as it's not key,
+        # # leave it out for now
+        # match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
+        #                           func.__doc__)
+        # try:
+        #     lines_were = match_2_lines.group()
+        # except AttributeError:  # no successful match
+        #     pass
+        # else:
+        #     end_chars = re.search('    .*?\)', lines_were).group()[4:]
+        #     func.__doc__ = re.sub('    .*?\)', '         '+end_chars,
+        #                           func.__doc__)
         # Move "grid" in signature from an arg to the class position
         func.__doc__ = re.sub(func.__name__+'\(grid, ',
                               'grid.'+func.__name__+'(',
