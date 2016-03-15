@@ -52,8 +52,8 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -84,10 +84,11 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
     """
-    values_at_nodes = grid.at_node[var_name]
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
     if out is None:
         out = grid.empty(centering='link')
-    out[:] = values_at_nodes[grid.node_at_link_head]
+    out[:] = var_name[grid.node_at_link_head]
 
     return out
 
@@ -111,8 +112,8 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -146,8 +147,9 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    values_at_nodes = grid.at_node[var_name]
-    out[:] = values_at_nodes[grid.node_at_link_tail]
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    out[:] = var_name[grid.node_at_link_tail]
 
     return out
 
@@ -169,8 +171,8 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -205,10 +207,10 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    values_at_nodes = grid.at_node[var_name]
-    np.minimum(values_at_nodes[grid.node_at_link_head],
-               values_at_nodes[grid.node_at_link_tail],
-               out=out)
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    np.minimum(var_name[grid.node_at_link_head],
+               var_name[grid.node_at_link_tail], out=out)
 
     return out
 
@@ -230,8 +232,8 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -266,10 +268,10 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    values_at_nodes = grid.at_node[var_name]
-    np.maximum(values_at_nodes[grid.node_at_link_head],
-               values_at_nodes[grid.node_at_link_tail],
-               out=out)
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    np.maximum(var_name[grid.node_at_link_head],
+               var_name[grid.node_at_link_tail], out=out)
 
     return out
 
@@ -291,8 +293,8 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -326,17 +328,18 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    values_at_nodes = grid.at_node[var_name]
-    out[:] = 0.5 * (values_at_nodes[grid.node_at_link_head] +
-                    values_at_nodes[grid.node_at_link_tail])
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    out[:] = 0.5 * (var_name[grid.node_at_link_head] +
+                    var_name[grid.node_at_link_tail])
 
     return out
 
 
 def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     """
-    Map the the value found in one field of nodes to a link, based on the
-    minimum value found in a second node field.
+    Map the the value found in one node array to a link, based on the
+    minimum value found in a second node field or array.
 
     map_value_at_min_node_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.
@@ -353,12 +356,12 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : str
-        Name of field defined at nodes that dictates which end of the link to
-        draw values from.
-    value_name : str
-        Name of field defined at nodes from which values are drawn, based on
-        control_name.
+    control_name : array or field name
+        Name of field defined at nodes or a node array that dictates which end
+        of the link to draw values from.
+    value_name : array or field name
+        Name of field defined at nodes or  node array from which values are
+        drawn, based on control_name.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -389,11 +392,14 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    controlling_values_at_nodes = grid.at_node[control_name]
-    head_control = controlling_values_at_nodes[grid.node_at_link_head]
-    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
-    head_vals = grid.at_node[value_name][grid.node_at_link_head]
-    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+    if type(control_name) is str:
+        control_name = grid.at_node[control_name]
+    if type(value_name) is str:
+        value_name = grid.at_node[value_name]
+    head_control = control_name[grid.node_at_link_head]
+    tail_control = control_name[grid.node_at_link_tail]
+    head_vals = value_name[grid.node_at_link_head]
+    tail_vals = value_name[grid.node_at_link_tail]
 
     out[:] = np.where(tail_control < head_control, tail_vals, head_vals)
     return out
@@ -401,8 +407,8 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
 
 def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     """
-    Map the the value found in one field of nodes to a link, based on the
-    maximum value found in a second node field.
+    Map the the value found in one node array to a link, based on the
+    maximum value found in a second node field or array.
 
     map_value_at_max_node_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.
@@ -419,12 +425,12 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : str
-        Name of field defined at nodes that dictates which end of the link to
-        draw values from.
-    value_name : str
-        Name of field defined at nodes from which values are drawn, based on
-        control_name.
+    control_name : array or field name
+        Name of field defined at nodes or a node array that dictates which end
+        of the link to draw values from.
+    value_name : array or field name
+        Name of field defined at nodes or  node array from which values are
+        drawn, based on control_name.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -455,11 +461,14 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     if out is None:
         out = grid.empty(centering='link')
 
-    controlling_values_at_nodes = grid.at_node[control_name]
-    head_control = controlling_values_at_nodes[grid.node_at_link_head]
-    tail_control = controlling_values_at_nodes[grid.node_at_link_tail]
-    head_vals = grid.at_node[value_name][grid.node_at_link_head]
-    tail_vals = grid.at_node[value_name][grid.node_at_link_tail]
+    if type(control_name) is str:
+        control_name = grid.at_node[control_name]
+    if type(value_name) is str:
+        value_name = grid.at_node[value_name]
+    head_control = control_name[grid.node_at_link_head]
+    tail_control = control_name[grid.node_at_link_tail]
+    head_vals = value_name[grid.node_at_link_head]
+    tail_vals = value_name[grid.node_at_link_tail]
 
     out[:] = np.where(tail_control > head_control, tail_vals, head_vals)
     return out
@@ -482,8 +491,8 @@ def map_node_to_cell(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at nodes.
+    var_name : array or field name
+        Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -513,8 +522,9 @@ def map_node_to_cell(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='cell')
 
-    values_at_nodes = grid.at_node[var_name]
-    out[:] = values_at_nodes[grid.node_at_cell]
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    out[:] = var_name[grid.node_at_cell]
 
     return out
 
@@ -536,8 +546,8 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -573,7 +583,10 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
 
     values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).max
-    values_at_linksX[:-1] = grid.at_link[var_name]
+    if type(var_name) is str:
+        values_at_linksX[:-1] = grid.at_link[var_name]
+    else:
+        values_at_linksX[:-1] = var_name
     np.amin(values_at_linksX[grid.links_at_node], axis=1, out=out)
 
     return out
@@ -596,8 +609,8 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -633,7 +646,10 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
 
     values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).min
-    values_at_linksX[:-1] = grid.at_link[var_name]
+    if type(var_name) is str:
+        values_at_linksX[:-1] = grid.at_link[var_name]
+    else:
+        values_at_linksX[:-1] = var_name
     np.amax(values_at_linksX[grid.links_at_node], axis=1, out=out)
 
     return out
@@ -659,8 +675,8 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -699,8 +715,9 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(var_name) is str:
+        var_name = grid.at_link[var_name]
+    values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     np.amax(-values_at_links, axis=1, out=out)
 
@@ -727,8 +744,8 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -767,8 +784,9 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(var_name) is str:
+        var_name = grid.at_link[var_name]
+    values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     steepest_links_at_node = np.amax(values_at_links, axis=1)
     np.fabs(steepest_links_at_node, out=out)
@@ -796,8 +814,8 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -836,8 +854,9 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(var_name) is str:
+        var_name = grid.at_link[var_name]
+    values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = -values_at_links
     vals_above_zero = vals_in_positive > 0.
@@ -869,8 +888,8 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : str
-        Name of variable field defined at links.
+    var_name : array or field name
+        Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
 
@@ -909,8 +928,9 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_links = (grid.at_link[var_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(var_name) is str:
+        var_name = grid.at_link[var_name]
+    values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = values_at_links
     vals_above_zero = vals_in_positive > 0.
@@ -925,9 +945,9 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
 def map_value_at_upwind_node_link_max_to_node(grid, control_name,
                                               value_name, out=None):
     """
-    Map the the value found in one field of links to a node, based on the
+    Map the the value found in one link array to a node, based on the
     largest magnitude value of links bringing fluxes into the node,
-    found in a second node field.
+    found in a second node array or field.
 
     map_upwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the
@@ -945,11 +965,11 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : str
-        Name of field defined at nodes that dictates which end of the link to
+    control_name : array or field name
+        Values defined at nodes that dictate which end of the link to
         draw values from.
-    value_name : str
-        Name of field defined at nodes from which values are drawn, based on
+    value_name : array or field name
+        Values defined at nodes from which values are drawn, based on
         control_name.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -990,12 +1010,15 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_nodes = (grid.at_link[control_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(control_name) is str:
+        control_name = grid.at_link[control_name]
+    if type(value_name) is str:
+        value_name = grid.at_link[value_name]
+    values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     which_link = np.argmax(-values_at_nodes, axis=1)
     invalid_links = values_at_nodes >= 0.
-    link_vals_without_invalids = grid.at_link[value_name][grid.links_at_node]
+    link_vals_without_invalids = value_name[grid.links_at_node]
     link_vals_without_invalids[invalid_links] = 0.
     out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
                                         which_link]
@@ -1006,9 +1029,9 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
 def map_value_at_downwind_node_link_max_to_node(grid, control_name,
                                                 value_name, out=None):
     """
-    Map the the value found in one field of links to a node, based on the
+    Map the the value found in one link array to a node, based on the
     largest magnitude value of links carrying fluxes out of the node,
-    found in a second node field.
+    found in a second node array or field.
 
     map_downwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the
@@ -1026,11 +1049,11 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : str
-        Name of field defined at nodes that dictates which end of the link to
+    control_name : array or field name
+        Values defined at nodes that dictate which end of the link to
         draw values from.
-    value_name : str
-        Name of field defined at nodes from which values are drawn, based on
+    value_name : array or field name
+        Values defined at nodes from which values are drawn, based on
         control_name.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -1071,12 +1094,15 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     if out is None:
         out = grid.empty(centering='node')
 
-    values_at_nodes = (grid.at_link[control_name][grid.links_at_node] *
-                       grid.link_dirs_at_node)
+    if type(control_name) is str:
+        control_name = grid.at_link[control_name]
+    if type(value_name) is str:
+        value_name = grid.at_link[value_name]
+    values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     which_link = np.argmax(values_at_nodes, axis=1)
     invalid_links = values_at_nodes <= 0.
-    link_vals_without_invalids = grid.at_link[value_name][grid.links_at_node]
+    link_vals_without_invalids = value_name[grid.links_at_node]
     link_vals_without_invalids[invalid_links] = 0.
     out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
                                         which_link]
