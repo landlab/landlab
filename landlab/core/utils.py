@@ -277,6 +277,10 @@ def strip_grid_from_method_docstring(funcs):
     dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
         A dummy function to demonstrate automated docstring changes.
     <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+    <BLANKLINE>
         Parameters
         ----------
         grid : ModelGrid
@@ -295,6 +299,10 @@ def strip_grid_from_method_docstring(funcs):
     dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
         A dummy function to demonstrate automated docstring changes.
     <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            grid.dummy_func_to_demonstrate_docstring_modification(some_arg)
+    <BLANKLINE>
         Parameters
         ----------
         some_arg : whatever
@@ -307,7 +315,23 @@ def strip_grid_from_method_docstring(funcs):
     """
     import re
     for name, func in funcs.items():
+        # strip the entry under "Parameters":
         func.__doc__ = re.sub('grid *:.*?\n.*?\n *', '', func.__doc__)
+        # cosmetic magic to get a two-line signature to line up right:
+        match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
+                                  func.__doc__)
+        try:
+            lines_were = match_2_lines.group()
+        except AttributeError:  # no successful match
+            pass
+        else:
+            end_chars = re.search('    .*?\)', lines_were).group()[4:]
+            func.__doc__ = re.sub('    .*?\)', '         '+end_chars,
+                                  func.__doc__)
+        # Move "grid" in signature from an arg to the class position
+        func.__doc__ = re.sub(func.__name__+'\(grid, ',
+                              'grid.'+func.__name__+'(',
+                              func.__doc__)
 
 
 def argsort_points_by_x_then_y(pts):
