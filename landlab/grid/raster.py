@@ -165,7 +165,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     --------
     >>> from landlab.grid.raster import grid_edge_is_closed_from_dict
     >>> grid_edge_is_closed_from_dict(dict(bottom='closed', top='open'))
-    [False, False, False,  True]
+    [False, False, False, True]
     >>> grid_edge_is_closed_from_dict({})
     [False, False, False, False]
     """
@@ -328,6 +328,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.])
+
+    Notes
+    -----
+    The option for NOT giving rows, cols, and dx no longer works,
+    because the *field* init requires num_active_cells, etc., to be
+    defined. Either we force users to give arguments on instantiation,
+    or set it up such that one can create a zero-node grid.
     """
 
     def __init__(self, *args, **kwds):
@@ -634,6 +641,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #   set up the list of active links
         self._reset_link_status_list()
+
+        # Create 2D array containing, for each node, direction of connected
+        # link (1=incoming, -1=outgoing, 0=no link present at this position)
+        # needs to come after BC setting
+        self.make_link_dirs_at_node()
 
         #   set up link unit vectors and node unit-vector sums
         self._make_link_unit_vectors()
@@ -1158,6 +1170,81 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 bottom_left_corner + self._ncols,
                                 bottom_left_corner,
                                 bottom_left_corner + 1))
+
+    def make_link_dirs_at_node(self):
+        """Make array with link directions at each node
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid(3, 4)
+        >>> rmg._links_at_node
+        array([[ 0,  3, -1, -1],
+               [ 1,  4,  0, -1],
+               [ 2,  5,  1, -1],
+               [-1,  6,  2, -1],
+               [ 7, 10, -1,  3],
+               [ 8, 11,  7,  4],
+               [ 9, 12,  8,  5],
+               [-1, 13,  9,  6],
+               [14, -1, -1, 10],
+               [15, -1, 14, 11],
+               [16, -1, 15, 12],
+               [-1, -1, 16, 13]])
+        >>> rmg._link_dirs_at_node
+        array([[-1, -1,  0,  0],
+               [-1, -1,  1,  0],
+               [-1, -1,  1,  0],
+               [ 0, -1,  1,  0],
+               [-1, -1,  0,  1],
+               [-1, -1,  1,  1],
+               [-1, -1,  1,  1],
+               [ 0, -1,  1,  1],
+               [-1,  0,  0,  1],
+               [-1,  0,  1,  1],
+               [-1,  0,  1,  1],
+               [ 0,  0,  1,  1]], dtype=int8)
+        """
+        
+        # Create arrays for link-at-node information
+        self._link_dirs_at_node = np.zeros((self.number_of_nodes, 4), dtype=np.int8)
+    
+        num_links_per_row = (self.number_of_node_columns * 2) - 1
+
+        # Sweep over all links
+        for lk in range(self.number_of_links):
+    
+            # Find the orientation
+            is_horiz = ((lk % num_links_per_row) 
+                        < (self.number_of_node_columns - 1))
+    
+            # Find the IDs of the tail and head nodes
+            t = self.node_at_link_tail[lk]
+            h = self.node_at_link_head[lk]
+    
+            # If the link is horizontal, the index (row) in the links_at_node array
+            # should be 0 (east) for the tail node, and 2 (west) for the head node.
+            # If vertical, the index should be 1 (north) for the tail node and
+            # 3 (south) for the head node.
+            if is_horiz:
+                tail_index = 0
+                head_index = 2
+            else:
+                tail_index = 1
+                head_index = 3
+
+            # Add this link to the list for this node, set the direction
+            # (outgoing, indicated by -1), and increment the number found so
+            # far
+            self._link_dirs_at_node[t][tail_index] = -1
+            self._link_dirs_at_node[h][head_index] = 1
+
+        # setup the active link equivalent
+        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
+        inactive_links = (self.status_at_link[self.links_at_node] ==
+                          INACTIVE_LINK)
+        inactive_links[self.link_dirs_at_node == 0] = False
+        self._active_link_dirs_at_node[inactive_links] = 0
 
     def _setup_inlink_and_outlink_matrices(self):
         """Set up matrices that hold the inlinks and outlinks for each node.
@@ -3584,7 +3671,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
 
-    def _setup_face_widths(self):
+    def _setup_face_width(self):
         """Set up array of face widths.
 
         Produces an array of length nfaces containing the face width.
@@ -3598,15 +3685,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> grid.face_widths
+        >>> grid.face_width
         array([ 1.,  1.,  1.,  1.])
         """
         n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
 
-        self._face_widths = np.empty(squad_faces.number_of_faces(self.shape))
-        self._face_widths[:n_horizontal_faces] = self.dx
-        self._face_widths[n_horizontal_faces:] = self.dy
-        return self._face_widths
+        self._face_width = np.empty(squad_faces.number_of_faces(self.shape))
+        self._face_width[:n_horizontal_faces] = self.dx
+        self._face_width[n_horizontal_faces:] = self.dy
+        return self._face_width
 
     def _unit_test(self):
         """Stub for adding unit tests to RasterModelGrid."""

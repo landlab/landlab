@@ -21,6 +21,26 @@ class OrientedHexCTS(CellLabCTSModel):
 
     """Oriented hex-grid CellLab-CTS model.
 
+    OrientedHexCTS constructor: sets number of orientations to 3 and calls
+    base-class constructor.
+
+    Parameters
+    ----------
+    model_grid : Landlab ModelGrid object
+        Reference to the model's grid
+    node_state_dict : dict
+        Keys are node-state codes, values are the names associated with
+        these codes
+    transition_list : list of Transition objects
+        List of all possible transitions in the model
+    initial_node_states : array of ints (x number of nodes in grid)
+        Starting values for node-state grid
+    prop_data : array (x number of nodes in grid), optional
+        Array of properties associated with each node/cell
+    prop_reset_value : number or object, optional
+        Default or initial value for a node/cell property (e.g., 0.0).
+        Must be same type as *prop_data*.
+
     Examples
     --------
     >>> from landlab import HexModelGrid
@@ -88,13 +108,13 @@ class OrientedHexCTS(CellLabCTSModel):
         Notes
         -----
         **Creates**:
-        
+
         * ``self.active_link_orientation``: 1D numpy array
 
         This overrides the method of the same name in celllab_cts.py. If the
         hex grid is oriented such that one of the 3 axes is vertical (a
         'vertical' grid), then the three orientations are:
-        
+
         * 0 = vertical (0 degrees clockwise from vertical)
         * 1 = right and up (60 degrees clockwise from vertical)
         * 2 = right and down (120 degrees clockwise from vertical)
