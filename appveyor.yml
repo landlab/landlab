@@ -17,6 +17,8 @@ environment:
       PYTHON_VERSION: "3.3"
     - PYTHON: "C:\\Miniconda3"
       PYTHON_VERSION: "3.4"
+    - PYTHON: "C:\\Miniconda3"
+      PYTHON_VERSION: "3.5"
 
 platform:
   - x64
