@@ -20,18 +20,17 @@ IF "%DISTUTILS_USE_SDK%"=="1" (
     IF "%PLATFORM%"=="x64" (
         ECHO Configuring environment to build with MSVC on a 64bit architecture
         ECHO Using Windows SDK %WINDOWS_SDK_VERSION%
-        "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
-        CALL "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
         SET MSSdk=1
+        "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
+        "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
         REM Need the following to allow tox to see the SDK compiler
         SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
     ) ELSE (
         ECHO Using default MSVC build environment for 32 bit architecture
-        ECHO Executing: %*
-        call %* || EXIT 1
     )
 ) ELSE (
     ECHO Using default MSVC build environment
 )
 
-CALL %*
+ECHO Executing: %*
+CALL %* || EXIT 1
