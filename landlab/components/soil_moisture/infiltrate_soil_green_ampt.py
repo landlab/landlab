@@ -6,40 +6,86 @@ from landlab import Component, CLOSED_BOUNDARY
 from ...utils.decorators import use_file_name_or_kwds
 
 
-class SoilInfiltration(Component):
+class SoilInfiltrationGreenAmpt(Component):
 
-    """
+    """Infiltrate surface water into a soil following the Green-Ampt method.
+
     This code is based on an overland flow model by Francis Rengers and
     colleagues, after Julien et al., 1995. The infiltration scheme follows the
     Green and Ampt equation.
+
     It was implemented in Landlab by DEJH, March '16. Please cite
     Rengers et al., in review, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
 
     Construction::
 
-        SoilInfiltration(grid, hydraulic_conductivity=0.005,
-                         soil_bulk_density=1590, rock_density=2650,
-                         initial_soil_moisture_content=0.15,
-                         soil_type='sandy loam',
-                         volume_fraction_coarse_fragments=0.2,
-                         surface_water_minimum_depth=1.e-8,
-                         soil_pore_size_distribution_index=None,
-                         soil_bubbling_pressure=None,
-                         wetting_front_capillary_pressure_head=None)
+        SoilInfiltrationGreenAmpt(grid, hydraulic_conductivity=0.005,
+                                  soil_bulk_density=1590, rock_density=2650,
+                                  initial_soil_moisture_content=0.15,
+                                  soil_type='sandy loam',
+                                  volume_fraction_coarse_fragments=0.2,
+                                  surface_water_minimum_depth=1.e-8,
+                                  soil_pore_size_distribution_index=None,
+                                  soil_bubbling_pressure=None,
+                                  wetting_front_capillary_pressure_head=None)
 
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
+    hydraulic_conductivity : float, array, or field name (m/s)
+        The soil effective hydraulic conductivity.
+    soil_bulk_density : float (kg/m**3)
+        The dry bulk density of the soil.
+    rock_density : float (kg/m**3)
+        The density of the soil constituent material (i.e., lacking porosity).
+    initial_soil_moisture_content : float (m**3/m**3, 0. to 1.)
+        The fraction of the initial pore space filled with water.
+    soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
+                 'sandy clay loam', 'clay loam', 'silty clay loam',
+                 'sandy clay', 'silty clay', 'clay'}, or None
+        A soil type to automatically set soil_pore_size_distribution_index
+        and soil_bubbling_pressure, using mean values from Rawls et al.,
+        1992.
+    volume_fraction_coarse_fragments : float (m**3/m**3, 0. to 1.)
+        The fraction of the soil made up of rocky fragments with very
+        little porosity, with diameter > 2 mm.
+    surface_water_minimum_depth : float (m), optional
+        A minimum water depth to stabilize the solutions for surface flood
+        modelling. Leave as the default in most normal use cases.
+    soil_pore_size_distribution_index : float, optional
+        An index describing the distribution of pore sizes in the soil,
+        and controlling effective hydraulic conductivity at varying water
+        contents, following Brooks and Corey (1964). Can be set by
+        soil_type. Typically denoted "lambda".
+    soil_bubbling_pressure : float (m), optional
+        The bubbling capillary pressure of the soil, controlling effective
+        hydraulic conductivity at varying water contents, following Brooks
+        and Corey (1964). Can be set by soil_type. Typically denoted "h_b".
+    wetting_front_capillary_pressure_head : float (m), optional
+        The effective head at the wetting front in the soil driven by
+        capillary pressure in the soil pores. If not set, will be
+        calculated by the component from the pore size distribution and
+        bubbling pressure, following Brooks and Corey.
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
-
+    >>> mg = RasterModelGrid((4,5), spacing=10.)
+    >>> hydraulic_conductivity = mg.ones('node')*1.e-8
+    >>> hydraulic_conductivity.reshape((4,5))[0:2,:] *= 10000.
+    >>> h = mg.add_ones('node', 'surface_water__depth')
+    >>> h *= 0.01
+    >>> d = mg.add_zeros('node', 'soil_water_infiltration__depth', dtype=float)
+    >>> SI = SoilInfiltrationGreenAmpt(
+    ...     mg,hydraulic_conductivity=hydraulic_conductivity)
+    >>> SI.update_one_timestep(0.5)
+    >>> mg.at_node['surface_water__depth']
+    >>> mg.at_node['soil_water_infiltration__depth']
     """
 
-    _name = 'SoilInfiltration'
+    _name = 'SoilInfiltrationGreenAmpt'
 
     _input_var_names = (
         'surface_water__depth',
@@ -71,53 +117,15 @@ class SoilInfiltration(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, hydraulic_conductivity=0.005,
-                 soil_bulk_density=1590, rock_density=2650,
+                 soil_bulk_density=1590., rock_density=2650.,
                  initial_soil_moisture_content=0.15, soil_type='sandy loam',
                  volume_fraction_coarse_fragments=0.2,
                  surface_water_minimum_depth=1.e-8,
                  soil_pore_size_distribution_index=None,
                  soil_bubbling_pressure=None,
                  wetting_front_capillary_pressure_head=None, **kwds):
-        """Initialize the kinematic wave approximation overland flow component.
-
-        Parameters
-        ----------
-        grid : RasterModelGrid
-            A grid.
-        hydraulic_conductivity : float, array, or field_name (m/s)
-            Hydraulic conductivity of the soil.
-        soil_bulk_density : float (kg/m**3)
-            Density of the dry soil, including porosity.
-        rock_density : float (kg/m**3)
-            Density of the soil component particles.
-        initial_soil_moisture_content : XXXX
-            XXXX
-        soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
-                     'sandy clay loam', 'clay loam', 'silty clay loam',
-                     'sandy clay', 'silty clay', 'clay'}, or None
-            A soil type to automatically set soil_pore_size_distribution_index
-            and soil_bubbling_pressure, using mean values from Rawls et al.,
-            1992.
-        volume_fraction_coarse_fragments : float, 0. to 1.
-            The fraction of the soil made up of rocky fragments with very
-            little porosity, with diameter > 2 mm.
-        surface_water_minimum_depth : float (m), optional
-            A minimum water depth to stabilize the solutions for surface flood
-            modelling. Leave as the default in most normal use cases.
-        soil_pore_size_distribution_index : float, optional
-            An index describing the distribution of pore sizes in the soil,
-            and controlling effective hydraulic conductivity at varying water
-            contents, following Brooks and Corey (1964). Can be set by
-            soil_type. Typically denoted "lambda".
-        soil_bubbling_pressure : float (m), optional
-            The bubbling capillary pressure of the soil, controlling effective
-            hydraulic conductivity at varying water contents, following Brooks
-            and Corey (1964). Can be set by soil_type. Typically denoted "h_b".
-        wetting_front_capillary_pressure_head : float (m), optional
-            The effective head at the wetting front in the soil driven by
-            capillary pressure in the soil pores. If not set, will be
-            calculated by the component from the pore size distribution and
-            bubbling pressure, following Brooks and Corey.
+        """
+        Initialize the kinematic wave approximation overland flow component.
         """
 
         self._grid = grid
@@ -149,12 +157,12 @@ class SoilInfiltration(Component):
                  "and hb manually!")
 
         if type(hydraulic_conductivity) is str:
-            self._Ks = mg.at_node[hydraulic_conductivity]
+            self._Ks = self.grid.at_node[hydraulic_conductivity]
         else:
             self._Ks = hydraulic_conductivity
         self._lilwater = surface_water_minimum_depth
         # build the key model params from the inputs
-        phi = 1. - soil_bulk_density/rock_density
+        phi = 1. - float(soil_bulk_density)/float(rock_density)
         assert 0. < phi < 1.
         assert 0. <= volume_fraction_coarse_fragments < 1.
         coarse_frag_correction = 1. - volume_fraction_coarse_fragments
@@ -169,11 +177,12 @@ class SoilInfiltration(Component):
         else:
             self._psi_f = wetting_front_capillary_pressure_head
 
-        self._water_depth = mg.at_node['surface_water__depth']
+        self._water_depth = self.grid.at_node['surface_water__depth']
         assert np.sum(self._water_depth[
                           self.grid.core_nodes] < self._lilwater) == 0, \
             "Water depths must all be positive!"
-        self._infiltration_depth = mg.at_node['soil_water_infiltration__depth']
+        self._infiltration_depth = self.grid.at_node[
+            'soil_water_infiltration__depth']
         # ^This guy is in "surface water equivalent", i.e., the actual depth
         # of penetration is greater because it only fills the pores
 
@@ -182,7 +191,8 @@ class SoilInfiltration(Component):
 
         Parameters
         ----------
-
+        dt : float (s)
+            The imposed timestep for the model.
         """
         active = self.grid.status_at_node != CLOSED_BOUNDARY
         active_IDs = np.where(active)[0]
@@ -201,7 +211,7 @@ class SoilInfiltration(Component):
         not_all_water_drawn = np.logical_not(all_water_drawn)
         actual_infilt = potential_infilt
         actual_infilt[all_water_drawn] = self._water_depth[active][
-                                            all_water_drawn]
+                                            all_water_drawn] - self._lilwater
         self._water_depth[active_IDs[all_water_drawn]] = self._lilwater
         self._water_depth[active_IDs[not_all_water_drawn]] -= actual_infilt[
             not_all_water_drawn]
