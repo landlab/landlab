@@ -9,12 +9,15 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
 
   matrix:
-    # - PYTHON: "C:\\Miniconda"
-    #   PYTHON_VERSION: "2.6"
-    # - PYTHON: "C:\\Miniconda"
-    #   PYTHON_VERSION: "2.7"
-    # - PYTHON: "C:\\Miniconda3"
-    #   PYTHON_VERSION: "3.3"
+    - PYTHON: "C:\\Miniconda"
+      DISTUTILS_USE_SDK: "1"
+      PYTHON_VERSION: "2.6"
+    - PYTHON: "C:\\Miniconda"
+      DISTUTILS_USE_SDK: "1"
+      PYTHON_VERSION: "2.7"
+    - PYTHON: "C:\\Miniconda3"
+      DISTUTILS_USE_SDK: "1"
+      PYTHON_VERSION: "3.3"
     - PYTHON: "C:\\Miniconda3"
       DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "3.4"
