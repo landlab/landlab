@@ -663,8 +663,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     @make_return_array_immutable
     def active_link_dirs_at_node(self):
         """
-        Link flux directions at each node: 1=incoming flux, -1=outgoing flux,
-        0=no flux. Note that inactive links receive zero.
+        Link flux directions at each node: 1=incoming flux, -1=outgoing
+        flux, 0=no flux. Note that inactive links receive zero, but active
+        and fixed links are both reported normally.
 
         Returns
         -------
