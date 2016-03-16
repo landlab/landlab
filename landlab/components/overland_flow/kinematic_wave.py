@@ -3,7 +3,7 @@
 import numpy as np
 
 from landlab import Component, RasterModelGrid, CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE, FIXED_VALUE_BOUNDARY
+from landlab import BAD_INDEX_VALUE, FIXED_VALUE_BOUNDARY, FIXED_LINK
 from landlab import FIXED_GRADIENT_BOUNDARY
 from ...utils.decorators import use_file_name_or_kwds
 
@@ -11,7 +11,6 @@ from ...utils.decorators import use_file_name_or_kwds
 class KinematicWave(Component):
 
     """
-########### THINK MORE ABOUT BC SETTING - how does water leave?
     This code is based on an overland flow model by Francis Rengers and
     colleagues, after Julien et al., 1995. It uses an explicit face-centered
     solution to a depth-varying Manning's equation, broadly following, e.g.,
@@ -23,6 +22,16 @@ class KinematicWave(Component):
     Note this module assumes that the topography DOES NOT change during the
     run. If it does, call :func:`update_topographic_params` to update the
     component to the new topo.
+
+    Boundary condition control can be... interesting with this component.
+    Be sure to close boundaries you do not wish water to leave - or enter! -
+    through. To allow free water discharge from the grid edge it is
+    recommended to use fixed gradient boundary conditions at the open edges.
+    The component will then set the fixed gradient as equal to the underlying
+    topographic gradient throughout the run.
+
+    It is also possible to fix the water depth at the open edge, but this
+    is not really recommended.
 
     Construction::
 
@@ -56,8 +65,10 @@ class KinematicWave(Component):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
+    >>> from landlab import CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
     >>> mg = RasterModelGrid((5, 10), spacing=10.)
+    >>> mg.status_at_node[mg.nodes_at_left_edge] = FIXED_GRADIENT_BOUNDARY
     >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> mg.status_at_node[mg.nodes_at_right_edge] = CLOSED_BOUNDARY
@@ -73,21 +84,20 @@ class KinematicWave(Component):
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
-             1.00000000e-08,   1.00000000e-08,   2.95578314e-03,
+             1.00000000e-08,   2.95578314e-03,   2.95578314e-03,
              2.90945761e-03,   2.82912876e-03,   2.70127141e-03,
              2.51202011e-03,   2.24617193e-03,   1.88032853e-03,
-             1.35451064e-03,   1.00000000e-08,   1.00000000e-08,
+             1.35451064e-03,   1.00000000e-08,   2.95578314e-03,
              2.95578314e-03,   2.90945761e-03,   2.82912876e-03,
              2.70127141e-03,   2.51202011e-03,   2.24617193e-03,
              1.88032853e-03,   1.35451064e-03,   1.00000000e-08,
-             1.00000000e-08,   2.95578314e-03,   2.90945761e-03,
+             2.95578314e-03,   2.95578314e-03,   2.90945761e-03,
              2.82912876e-03,   2.70127141e-03,   2.51202011e-03,
              2.24617193e-03,   1.88032853e-03,   1.35451064e-03,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08])
-    
     """
 
     _name = 'KinematicWave'
@@ -98,22 +108,31 @@ class KinematicWave(Component):
     )
 
     _output_var_names = (
-        'surface_water__depth'
+        'surface_water__depth',
+        'surface_water__discharge',
+        'surface_water__velocity'
     )
 
     _var_units = {
         'topographic__elevation': 'm',
-        'surface_water__depth': 'm'
+        'surface_water__depth': 'm',
+        'surface_water__discharge': 'm**3/s',
+        'surface_water__velocity': 'm/s'
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
-        'surface_water__depth': 'node'
+        'surface_water__depth': 'node',
+        'surface_water__discharge': 'node',
+        'surface_water__velocity': 'node'
     }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
-        'surface_water__depth': 'Depth of water above the surface'
+        'surface_water__depth': 'Depth of water above the surface',
+        'surface_water__discharge': ('Magnitude of discharge of water above ' +
+                                     'the surface'),
+        'surface_water__velocity': 'Speed of water flow above the surface'
     }
 
     @use_file_name_or_kwds
@@ -125,9 +144,12 @@ class KinematicWave(Component):
 
         assert isinstance(grid, RasterModelGrid), 'grid must be regular'
         self._grid = grid
+        try:
+            self.set_new_fields_for_component()
+        except AttributeError:
+            self.grid.add_empty('node', 'surface_water__velocity')
+            self.grid.add_empty('node', 'surface_water__discharge')
         active = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
-        assert not np.all(self.grid.status_at_node ==
-                          FIXED_GRADIENT_BOUNDARY)
         self._h = self.grid.at_node['surface_water__depth']
         self._active = active
         self._hc = critical_flow_depth
@@ -164,6 +186,17 @@ class KinematicWave(Component):
         self.actives_BCs = (self.grid.status_at_node[active] ==
                             FIXED_VALUE_BOUNDARY)
         self.actives_BCs_water_depth = self._h[active][self.actives_BCs]
+        fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes
+        fixed_grad_anchors = \
+            self.grid.fixed_gradient_boundary_node_anchor_node
+        # ^add this value to the anchor nodes to update the BCs
+        # these also need to be mapped to active_IDs:
+        blank_nodes = self.grid.zeros('node', dtype=bool)
+        blank_nodes[fixed_grad_nodes] = True
+        self.fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
+        blank_nodes.fill(False)
+        blank_nodes[fixed_grad_anchors] = True
+        self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
 
     def update_one_timestep(self, dt, rainfall_intensity=0.00001,
                             update_topography=False, track_min_depth=False):
@@ -243,11 +276,17 @@ class KinematicWave(Component):
             hnew -= internal_dt/self.grid.dy*np.fabs(self.qx[active])
             hnew += internal_dt/self.grid.dx*(qy_top - qy_bottom)[active]
             hnew += internal_dt/self.grid.dy*(qx_left - qx_right)[active]
+            hnew[self.fixed_grad_nodes_active] = hnew[
+                self.fixed_grad_anchors_active]
             # update the internal clock
             elapsed_time_in_dt += internal_dt
 
-        # update the actual field
+        # update the actual fields
         self._h[active] = hnew
+        self.grid.at_node['surface_water__velocity'][:] = np.sqrt(
+            np.square(self.velx) + np.square(self.vely))
+        self.grid.at_node['surface_water__discharge'][:] = np.sqrt(
+            np.square(self.qx[:-1]) + np.square(self.qy[:-1]))
 
     def update_topographic_params(self):
         """
@@ -265,6 +304,17 @@ class KinematicWave(Component):
         self.vertslopept5 = np.fabs(vert_grads[active])**0.5
         self.poshozgrads = hoz_grads > 0.
         self.posvertgrads = vert_grads > 0.
+        fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes
+        fixed_grad_anchors = \
+            self.grid.fixed_gradient_boundary_node_anchor_node
+        # ^add this value to the anchor nodes to update the BCs
+        # these also need to be mapped to active_IDs:
+        blank_nodes = self.grid.zeros('node', dtype=bool)
+        blank_nodes[fixed_grad_nodes] = True
+        self.fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
+        blank_nodes.fill(False)
+        blank_nodes[fixed_grad_anchors] = True
+        self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
         # check is the grid topology has changed...
         if not np.all(np.equal(self._active, active)):
             self._active = active
