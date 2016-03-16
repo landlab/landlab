@@ -18,6 +18,11 @@ class KinematicWave(Component):
     It was implemented in Landlab by DEJH, March '16. Please cite
     Rengers et al., in review, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
+    
+    Note: You will not have a good day if you have pits present in your topo
+    before routing flow with this component. Fill pits before instantiating
+    the component (or call :func:`update_topographic_params` once you have
+    filled after instantiation).
 
     Note this module assumes that the topography DOES NOT change during the
     run. If it does, call :func:`update_topographic_params` to update the
