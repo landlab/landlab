@@ -26,8 +26,8 @@ IF "%DISTUTILS_USE_SDK%"=="1" (
         SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
     ) ELSE (
         ECHO Using default MSVC build environment for 32 bit architecture
-        ECHO Executing: %COMMAND_TO_RUN%
-        call %COMMAND_TO_RUN% || EXIT 1
+        ECHO Executing: %*
+        call %* || EXIT 1
     )
 ) ELSE (
     ECHO Using default MSVC build environment
