@@ -9,16 +9,13 @@
 SET COMMAND_TO_RUN=%*
 SET WIN_SDK_ROOT=C:\Program Files\Microsoft SDKs\Windows
 SET MAJOR_PYTHON_VERSION="%PYTHON_VERSION:~0,1%"
+SET WINDOWS_SDK_VERSION="v7.0"
+IF %MAJOR_PYTHON_VERSION% == "3" (
+  SET WINDOWS_SDK_VERSION="v7.1"
+)
+ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION%
 
 IF "%DISTUTILS_USE_SDK%"=="1" (
-    IF %MAJOR_PYTHON_VERSION% == "2" (
-        SET WINDOWS_SDK_VERSION="v7.0"
-    ) ELSE IF %MAJOR_PYTHON_VERSION% == "3" (
-        SET WINDOWS_SDK_VERSION="v7.1"
-    ) ELSE (
-        ECHO Unsupported Python version: "%MAJOR_PYTHON_VERSION%"
-        EXIT 1
-    )
 
     IF "%PLATFORM%"=="x64" (
         ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% for Python %MAJOR_PYTHON_VERSION% on a 64 bit architecture
