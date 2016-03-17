@@ -10,10 +10,36 @@ import numpy as np
 from landlab.components import SinkFiller
 from landlab.components import KinematicWave, SoilInfiltrationGreenAmpt
 from ...utils.decorators import use_file_name_or_kwds
+from landlab import Component
 
 
 class FillInfiltrateKinematicWave(Component):
     """
+    Takes a topography, fills in any pits across it, then routes water across
+    it using a kinematic wave and allowing soil infiltration following a Green-
+    Ampt scheme. Component is after Rengers et al., in review.
+
+    Examples
+    --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab import CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+        >>> import numpy as np
+        >>> mg = RasterModelGrid((5, 10), spacing=10.)
+        >>> mg.status_at_node[mg.nodes_at_left_edge] = FIXED_GRADIENT_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_right_edge] = CLOSED_BOUNDARY
+        >>> _ = mg.add_field('node', 'topographic__elevation', 0.05*mg.node_x)
+        >>> _ = mg.add_empty('node', 'surface_water__depth')
+        >>> mg.at_node['surface_water__depth'].fill(1.e-8)
+        >>> dt = 60.  # 1 min intervals
+        >>> rain_array = np.zeros_like(mg.node_x, dtype=float)
+        >>> rain_array.reshape((5, 10))[:,-3:] = 5.e-5
+        >>> rain_intensities = (rain_array, 0., 0., 0., 0.)
+        >>> fikw = FillInfiltrateKinematicWave(mg)
+        >>> for i in rain_intensities:
+        ...     fikw.update_one_timestep(dt, rainfall_intensity=i)
+        >>> mg.at_node['surface_water__depth']
 
     """
 
@@ -29,7 +55,7 @@ class FillInfiltrateKinematicWave(Component):
         'topographic__elevation',
         'sediment_fill__depth',
         'surface_water__depth',
-        'soil_water_infiltration__depth'
+        'soil_water_infiltration__depth',
         'surface_water__discharge',
         'surface_water__velocity'
     )
@@ -47,7 +73,7 @@ class FillInfiltrateKinematicWave(Component):
         'topographic__elevation': 'node',
         'sediment_fill__depth': 'node',
         'surface_water__depth': 'node',
-        'soil_water_infiltration__depth': 'node'
+        'soil_water_infiltration__depth': 'node',
         'surface_water__discharge': 'node',
         'surface_water__velocity': 'node'
     }
@@ -80,6 +106,7 @@ class FillInfiltrateKinematicWave(Component):
         """
         """
         self._grid = grid
+        self._dt_max = dt_max
         self._sinkfill = SinkFiller(grid, routing='D4', apply_slope=True,
                                     fill_slope=1.e-6)
         spsdi = soil_pore_size_distribution_index
@@ -100,3 +127,21 @@ class FillInfiltrateKinematicWave(Component):
             mannings_epsilon=mannings_epsilon,
             dt_max=dt_max, max_courant=max_courant,
             min_surface_water_depth=surface_water_minimum_depth, **kwds)
+
+        # do the fill:
+        self._sinkfill.fill_pits()
+
+    def update_one_timestep(self, dt, rainfall_intensity=0.00001,
+                            update_topography=False):
+        """
+        """
+        internal_elapsed_time = 0.
+        internal_dt = min((self._wave.internal_timestep, dt))
+        # note the KW internal timestep property deals with dt_max
+        while internal_elapsed_time < dt:
+            remaining_time = dt-internal_elapsed_time
+            internal_dt = min((remaining_time, internal_dt))
+            self._wave.update_one_timestep(
+                internal_dt, rainfall_intensity=rainfall_intensity,
+                update_topography=update_topography)
+            self._infilt.update_one_timestep(internal_dt)
