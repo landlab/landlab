@@ -202,6 +202,7 @@ class KinematicWave(Component):
         blank_nodes.fill(False)
         blank_nodes[fixed_grad_anchors] = True
         self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
+        self._internal_dt = None  # to be overridden in run
 
     def update_one_timestep(self, dt, rainfall_intensity=0.00001,
                             update_topography=False, track_min_depth=False):
@@ -253,6 +254,7 @@ class KinematicWave(Component):
             else:
                 internal_dt = courant_dt
             remaining_dt = dt - elapsed_time_in_dt
+            self._internal_dt = internal_dt
             # now reduce timestep is needed if limited by total tstep length
             internal_dt = min(internal_dt, remaining_dt).clip(0.)
             # this section uses our final-array-val-is-zero trick
@@ -343,3 +345,10 @@ class KinematicWave(Component):
             raise ValueError('No record of water balance was found!')
         else:
             return self._water_balance
+
+    @property
+    def internal_timestep(self):
+        """
+        Return the internal timestep last used by the kinematic wave component.
+        """
+        return self._internal_dt
