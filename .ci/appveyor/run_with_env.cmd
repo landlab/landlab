@@ -7,6 +7,7 @@
 :: https://github.com/cython/cython/wiki/64BitCythonExtensionsOnWindows
 ::
 IF "%DISTUTILS_USE_SDK%"=="1" (
+    SET WIN_SDK_ROOT=C:\Program Files\Microsoft SDKs\Windows
     SET MAJOR_PYTHON_VERSION="%PYTHON_VERSION:~0,1%"
     IF %MAJOR_PYTHON_VERSION% == "2" (
         SET WINDOWS_SDK_VERSION="v7.0"
@@ -18,13 +19,10 @@ IF "%DISTUTILS_USE_SDK%"=="1" (
     )
 
     IF "%PLATFORM%"=="x64" (
-        ECHO Configuring environment to build with MSVC on a 64bit architecture
-        ECHO Using Windows SDK %WINDOWS_SDK_VERSION%
+        ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% for Python %MAJOR_PYTHON_VERSION% on a 64 bit architecture
         SET MSSdk=1
-        "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
-        "C:\Program Files\Microsoft SDKs\Windows\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
-        REM Need the following to allow tox to see the SDK compiler
-        SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
+        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
+        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
     ) ELSE (
         ECHO Using default MSVC build environment for 32 bit architecture
     )
