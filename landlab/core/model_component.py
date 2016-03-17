@@ -264,11 +264,15 @@ class Component(object):
         for field_to_set in (set(self.output_var_names) -
                              set(self.input_var_names) -
                              set(self.optional_var_names)):
-            self.grid.add_field(self.var_loc(field_to_set),
+            grp = self.var_loc(field_to_set)
+            type_in = self.var_type(field_to_set)
+            init_vals = self.grid.zeros(grp, dtype=type_in)
+            units_in = self.var_units(field_to_set)
+            self.grid.add_field(grp,
                                 field_to_set,
-                                self.grid.zeros(
-                                    dtype=self.var_type(field_to_set)),
-                                units=self.var_units(field_to_set),
+                                init_vals,
+                                units=units_in,
+                                copy=False,
                                 noclobber=True)
 
     def initialize_optional_output_fields(self):

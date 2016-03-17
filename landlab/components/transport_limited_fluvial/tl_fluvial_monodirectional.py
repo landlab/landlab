@@ -148,6 +148,7 @@ class TransportLimitedEroder(Component):
     }
 
     def __init__(self, grid, params):
+        self._grid = grid
         self.initialize(grid, params)
 
     def initialize(self, grid, params_file):

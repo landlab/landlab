@@ -356,7 +356,7 @@ def test_D4_routing():
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 routing.
     """
-    hf = SinkFiller(mg, apply_slope=True)
+    hf = SinkFiller(mg, routing='D4', apply_slope=True)
     hf.fill_pits()
     hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
                       4.0005, 4.00083333, 4.00066667, 4.00058333, 4.00075,
