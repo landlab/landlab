@@ -11,6 +11,10 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     Calculates the gradient in *quantity* node values at each active link in
     the grid.
 
+    Construction::
+
+        calculate_gradients_at_active_links(grid, node_values, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -37,6 +41,10 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients of node values over links.
 
     Calculates the gradient in *quantity* node_values at each link in the grid.
+
+    Construction::
+
+        calculate_gradients_at_links(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -66,7 +74,11 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     Calculate and return gradient in *node_values* at each face in the grid.
     Gradients are calculated from the nodes at either end of the link that
     crosses each face.
-    
+
+    Construction::
+
+        calculate_gradients_at_faces(grid, node_values, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -80,7 +92,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     -------
     ndarray (x number of faces)
         Gradients across faces.
-    
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -113,6 +125,10 @@ def calculate_diff_at_links(grid, node_values, out=None):
 
     Calculates the difference in quantity *node_values* at each link in the
     grid.
+
+    Construction::
+
+        calculate_diff_at_links(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -151,6 +167,10 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
 
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
+
+    Construction::
+
+        calculate_diff_at_active_links(grid, node_values, out=None)
 
     Parameters
     ----------

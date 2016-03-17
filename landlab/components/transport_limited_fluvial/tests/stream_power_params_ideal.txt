@@ -1,4 +1,4 @@
-#These parameters produce ideal output, for “annual-ish” storm ballpark conditions.
+#These parameters produce ideal output, for annual-ish storm ballpark conditions.
 #Up k_Q by an order of magnitude (to 2.6e-6) to simulate constant ~50 yr flood 
 #conditions, and to induce much more prominent stream concavity.
 nrows:

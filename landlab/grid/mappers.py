@@ -44,6 +44,10 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     In a RasterModelGrid, each one node has two adjacent "link heads". This
     means each node value is mapped to two corresponding links.
 
+    Construction::
+
+        map_link_head_node_to_link(grid, var_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -100,6 +104,10 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     In a RasterModelGrid, each one node has two adjacent "link tails". This
     means each node value is mapped to two corresponding links.
 
+    Construction::
+
+        map_link_tail_node_to_link(grid, var_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -154,6 +162,10 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     This function evaluates the value of 'var_name' at both the "to" and
     "from" node. The minimum value of the two node values is then mapped to
     the link.
+
+    Construction::
+
+        map_min_of_link_nodes_to_link(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -212,6 +224,10 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     "from" node. The maximum value of the two node values is then mapped to
     the link.
 
+    Construction::
+
+        map_max_of_link_nodes_to_link(grid, var_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -268,6 +284,10 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     This function takes the sum of the two values of 'var_name' at both the
     "to" and "from" node. The average value of the two node values of
     'var_name' is then mapped to the link.
+
+    Construction::
+
+        map_mean_of_link_nodes_to_link(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -326,6 +346,11 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     This function evaluates the value of 'control_name' at both the "to" and
     "from" node. The value of 'value_name' at the node with the minimum value
     of the two values of 'control_name' is then mapped to the link.
+
+    Construction::
+
+        map_value_at_min_node_to_link(grid, control_name, value_name,
+                                      out=None)
 
     Parameters
     ----------
@@ -391,6 +416,11 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     "from" node. The value of 'value_name' at the node with the maximum value
     of the two values of 'control_name' is then mapped to the link.
 
+    Construction::
+
+        map_value_at_max_node_to_link(grid, control_name, value_name,
+                                      out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -453,6 +483,10 @@ def map_node_to_cell(grid, var_name, out=None):
     This function takes node values of 'var_name' and mapes that value to the
     corresponding cell area for each node.
 
+    Construction::
+
+        map_node_to_cell(grid, var_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -503,6 +537,10 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     This function finds the minimum value of 'var_name' of each set
     of links, and then maps this value to the node. Note no attempt is made
     to honor the directionality of the links.
+
+    Construction::
+
+        map_min_of_node_links_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -562,6 +600,10 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     This function finds the maximum value of 'var_name' of each set
     of links, and then maps this value to the node. Note no attempt is made
     to honor the directionality of the links.
+
+    Construction::
+
+        map_max_of_node_links_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -624,6 +666,10 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     node, then maps the maximum magnitude of 'var_name' found on these links
     onto the node. If no upwind link is found, the value will be recorded as
     zero.
+
+    Construction::
+
+        map_upwind_node_link_max_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -690,6 +736,10 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     onto the node. If no downwind link is found, the value will be recorded as
     zero.
 
+    Construction::
+
+        map_downwind_node_link_max_to_node(grid, var_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -755,6 +805,10 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     node, then maps the mean magnitude of 'var_name' found on these links
     onto the node. Links with zero values are not included in the means,
     and zeros are returned if no upwind links are found.
+
+    Construction::
+
+        map_upwind_node_link_mean_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -825,6 +879,10 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     node, then maps the mean magnitude of 'var_name' found on these links
     onto the node. Links with zero values are not included in the means,
     and zeros are returned if no upwind links are found.
+
+    Construction::
+
+        map_downwind_node_link_mean_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -897,6 +955,11 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     node, then identifies the link with the maximum magnitude. The value of the
     second field 'value_name' at these links is then mapped onto the node.
     If no upwind link is found, the value will be recorded as zero.
+
+    Construction::
+
+        map_value_at_upwind_node_link_max_to_node(grid, control_name,
+                                                  value_name, out=None)
 
     Parameters
     ----------
@@ -977,6 +1040,11 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     second field 'value_name' at these links is then mapped onto the node.
     If no downwind link is found, the value will be recorded as zero.
 
+    Construction::
+
+        map_value_at_downwind_node_link_max_to_node(grid, control_name,
+                                                    value_name, out=None)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -1040,3 +1108,24 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
                                         which_link]
 
     return out
+
+
+def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
+    """A dummy function to demonstrate automated docstring changes.
+
+    Construction::
+
+        dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab modelgrid.
+    some_arg : whatever
+        A dummy argument.
+
+    Examples
+    --------
+    ...
+    """
+    pass

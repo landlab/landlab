@@ -26,7 +26,7 @@ def setup_grid():
         grid.add_zeros('node', 'topographic__elevation')
         bates = OverlandFlowBates(grid, mannings_n = 0.01, h_init=0.001)
         globals().update({
-            'bates': OverlandFlowBates(grid)})
+            'bates': bates})
 
 
 @with_setup(setup_grid)
