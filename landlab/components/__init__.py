@@ -6,7 +6,7 @@ from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter, RouteFlowD8
 from .glacier_thin_ice_model import Glacier
 from .nonlinear_diffusion import PerronNLDiffuse
-from .overland_flow import OverlandFlowBates, OverlandFlow
+from .overland_flow import OverlandFlowBates, OverlandFlow, KinematicWave
 from .pet import PotentialEvapotranspiration
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .radiation import Radiation
@@ -19,6 +19,7 @@ from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
+from .soil_moisture import SoilInfiltrationGreenAmpt
 
 
 COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
@@ -28,6 +29,7 @@ COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
               PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
               PowerLawIncision, Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
-              TransportLimitedEroder, PrecipitationDistribution, VegCA]
+              TransportLimitedEroder, PrecipitationDistribution, VegCA,
+              KinematicWave, SoilInfiltrationGreenAmpt]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

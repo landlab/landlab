@@ -73,14 +73,16 @@ class SoilInfiltrationGreenAmpt(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4,5), spacing=10.)
-    >>> hydraulic_conductivity = mg.ones('node')*1.e-8
+    >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,5))[0:2,:] *= 10000.
     >>> h = mg.add_ones('node', 'surface_water__depth')
     >>> h *= 0.01
-    >>> d = mg.add_zeros('node', 'soil_water_infiltration__depth', dtype=float)
+    >>> d = mg.add_ones('node', 'soil_water_infiltration__depth', dtype=float)
+    >>> d *= 0.2
     >>> SI = SoilInfiltrationGreenAmpt(
     ...     mg,hydraulic_conductivity=hydraulic_conductivity)
-    >>> SI.update_one_timestep(0.5)
+    >>> for i in xrange(10):  # 100s total
+    ...     SI.update_one_timestep(10.)
     >>> mg.at_node['surface_water__depth']
     >>> mg.at_node['soil_water_infiltration__depth']
     """
@@ -197,16 +199,31 @@ class SoilInfiltrationGreenAmpt(Component):
         active = self.grid.status_at_node != CLOSED_BOUNDARY
         active_IDs = np.where(active)[0]
         wettingfront_depth = self._infiltration_depth[active]/self._Md
+        # try:
+        #     infilt_cap = self._Ks * ((wettingfront_depth + self._psi_f +
+        #                               self._water_depth[active]) /
+        #                              wettingfront_depth)
+        # except ValueError:  # broadcasting error...
+        #     infilt_cap = self._Ks[active]*((wettingfront_depth+self._psi_f +
+        #                                     self._water_depth[active]) /
+        #                                    wettingfront_depth)
+        # potential_infilt = infilt_cap*dt  # now defined direct
+
+        # implement half-timestep method per Julien
         try:
-            infilt_cap = self._Ks * ((wettingfront_depth + self._psi_f +
-                                      self._water_depth[active]) /
-                                     wettingfront_depth)
-        except ValueError:  # broadcasting error...
-            infilt_cap = self._Ks[active]*((wettingfront_depth+self._psi_f +
-                                            self._water_depth[active]) /
-                                           wettingfront_depth)
+            first_term = self._Ks*dt-2.*wettingfront_depth
+        except ValueError:
+            first_term = self._Ks[active]*dt-2.*wettingfront_depth
+            potential_infilt = 0.5*(first_term + np.sqrt(
+                np.square(first_term) + 8.*dt*(
+                    self._Ks*wettingfront_depth +
+                    self._Ks*self._psi_f*self._Md)))
+        else:
+            potential_infilt = 0.5*(first_term + np.sqrt(
+                np.square(first_term) + 8.*dt*(
+                    self._Ks[active]*wettingfront_depth +
+                    self._Ks[active]*self._psi_f*self._Md)))
         # where is depth > Ic?
-        potential_infilt = infilt_cap*dt
         all_water_drawn = self._water_depth[active] <= potential_infilt
         not_all_water_drawn = np.logical_not(all_water_drawn)
         actual_infilt = potential_infilt
