@@ -20,6 +20,7 @@ from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
 from .soil_moisture import SoilInfiltrationGreenAmpt
+from .metacomponents import FillInfiltrateKinematicWave
 
 
 COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
@@ -30,6 +31,7 @@ COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
               PowerLawIncision, Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, PrecipitationDistribution, VegCA,
-              KinematicWave, SoilInfiltrationGreenAmpt]
+              KinematicWave, SoilInfiltrationGreenAmpt,
+              FillInfiltrateKinematicWave]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
