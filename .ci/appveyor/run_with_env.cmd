@@ -10,7 +10,7 @@ SET COMMAND_TO_RUN=%*
 SET WIN_SDK_ROOT=C:\Program Files\Microsoft SDKs\Windows
 SET MAJOR_PYTHON_VERSION="%PYTHON_VERSION:~0,1%"
 SET WINDOWS_SDK_VERSION="v7.0"
-IF %MAJOR_PYTHON_VERSION% == "3" (
+IF %MAJOR_PYTHON_VERSION%=="3" (
   SET WINDOWS_SDK_VERSION="v7.1"
 )
 ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION%
@@ -22,15 +22,16 @@ IF "%DISTUTILS_USE_SDK%"=="1" (
         SET MSSdk=1
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
-        ECHO Executing: %COMMAND_TO_RUN%
-        call %COMMAND_TO_RUN% || EXIT 1
+        :: ECHO Executing: %COMMAND_TO_RUN%
+        :: call %COMMAND_TO_RUN% || EXIT 1
     ) ELSE (
         ECHO Using default MSVC build environment for 32 bit architecture
-        ECHO Executing: %COMMAND_TO_RUN%
-        call %COMMAND_TO_RUN% || EXIT 1
+        :: ECHO Executing: %COMMAND_TO_RUN%
+        :: call %COMMAND_TO_RUN% || EXIT 1
     )
 ) ELSE (
     ECHO Using default MSVC build environment
-    ECHO Executing: %COMMAND_TO_RUN%
-    call %COMMAND_TO_RUN% || EXIT 1
 )
+
+ECHO Executing: %COMMAND_TO_RUN%
+call %COMMAND_TO_RUN% || EXIT 1
