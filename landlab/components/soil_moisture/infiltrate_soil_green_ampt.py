@@ -72,9 +72,9 @@ class SoilInfiltrationGreenAmpt(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> mg = RasterModelGrid((4,5), spacing=10.)
+    >>> mg = RasterModelGrid((4,3), spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
-    >>> hydraulic_conductivity.reshape((4,5))[0:2,:] *= 10000.
+    >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
     >>> h = mg.add_ones('node', 'surface_water__depth')
     >>> h *= 0.01
     >>> d = mg.add_ones('node', 'soil_water_infiltration__depth', dtype=float)
@@ -84,7 +84,15 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> for i in xrange(10):  # 100s total
     ...     SI.update_one_timestep(10.)
     >>> mg.at_node['surface_water__depth']
+    array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
+             1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
+             9.89663678e-03,   9.89663678e-03,   9.89663678e-03,
+             9.89663678e-03,   9.89663678e-03,   9.89663678e-03])
     >>> mg.at_node['soil_water_infiltration__depth']
+    array([ 0.20999999,  0.20999999,  0.20999999,
+            0.20999999,  0.20999999,  0.20999999,
+            0.20010336,  0.20010336,  0.20010336,
+            0.20010336,  0.20010336,  0.20010336])
     """
 
     _name = 'SoilInfiltrationGreenAmpt'
