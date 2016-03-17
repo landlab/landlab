@@ -202,7 +202,6 @@ class KinematicWave(Component):
         blank_nodes.fill(False)
         blank_nodes[fixed_grad_anchors] = True
         self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
-        self._internal_dt = None  # to be overridden in run
 
     def update_one_timestep(self, dt, rainfall_intensity=0.00001,
                             update_topography=False, track_min_depth=False):
@@ -223,49 +222,21 @@ class KinematicWave(Component):
         """
         elapsed_time_in_dt = 0.  # this is only since the start of the timestep
         active = self._active
-        hnew = self._h[active]
+        self.hnew = self._h[active]
+        hnew = self.hnew
         if update_topography:
             self.update_topographic_params()
         while elapsed_time_in_dt < dt:
-            # assert the minimum water depth - this could introduce an
-            # element of mass gain, but should remain minor
-            hnew = hnew.clip(self.min_surface_water_depth)
-            if track_min_depth:
-                self._water_balance.append(
-                    (hnew-self._h[active]).sum()/self._h[active].sum())
-            n = self._n * (hnew/self._hc)**self._negepsilon
-            twothirdshnewbyn = hnew**0.66666666 / n
-            self.vely[active] = twothirdshnewbyn * self.vertslopept5
-            self.velx[active] = twothirdshnewbyn * self.hozslopept5
-            self.vely[self.posvertgrads] *= -1.
-            self.velx[self.poshozgrads] *= -1.
-            self.qy[active] = self.vely[active] * hnew  # m**2/s
-            self.qx[active] = self.velx[active] * hnew  # m**2/s
-            maxvely = np.fabs(self.vely).max()
-            maxvelx = np.fabs(self.velx).max()
-            if self.equaldims:
-                courant_dt = self.courant_prefactor/(maxvelx + maxvely)
-            else:
-                # note prefactor is NOT THE SAME as above in this case
-                courant_dt = self.courant_prefactor/(self.grid.dy*maxvelx +
-                                                     self.grid.dx*maxvely)
-            if self.dt_max is not None:
-                internal_dt = np.min((self.dt_max, courant_dt))
-            else:
-                internal_dt = courant_dt
+            internal_dt = self.calc_grads_and_timesteps(
+                update_topography, track_min_depth)
             remaining_dt = dt - elapsed_time_in_dt
-            self._internal_dt = internal_dt
             # now reduce timestep is needed if limited by total tstep length
             internal_dt = min(internal_dt, remaining_dt).clip(0.)
             # this section uses our final-array-val-is-zero trick
-            qx_left = self.qx[self._neighbors[:, 2]].clip(
-                min=0.)
-            qx_right = self.qx[self._neighbors[:, 0]].clip(
-                max=0.)
-            qy_top = self.qy[self._neighbors[:, 1]].clip(
-                min=0.)
-            qy_bottom = self.qy[self._neighbors[:, 3]].clip(
-                max=0.)
+            qx_left = self.qx[self._neighbors[:, 2]].clip(min=0.)
+            qx_right = self.qx[self._neighbors[:, 0]].clip(max=0.)
+            qy_top = self.qy[self._neighbors[:, 1]].clip(min=0.)
+            qy_bottom = self.qy[self._neighbors[:, 3]].clip(max=0.)
             # FR's rainfall handling was here. We're going to assume that the
             # component is being driven by a "LL style" rainfall record, where
             # the provided rainfall_intensity is constant across the provide
@@ -294,6 +265,60 @@ class KinematicWave(Component):
             np.square(self.velx) + np.square(self.vely))
         self.grid.at_node['surface_water__discharge'][:] = np.sqrt(
             np.square(self.qx[:-1]) + np.square(self.qy[:-1]))
+
+    def calc_grads_and_timesteps(self, update_topography, track_min_depth):
+        """
+        Perform the first part of the calculation for the main run, mainly
+        velocities and fluxes. The main objective of this part of the
+        calculation is to derive the stable timestep for the run.
+
+        Parameters
+        ----------
+        update_topography : bool
+            If False, the underlying surface topography is assumed unchanged
+            since the last run.
+        track_min_depth : bool
+            If True, the internal list _water_balance will be appended with
+            the volumetric fractional change in mass balance during the run.
+
+        Returns
+        -------
+        internal_dt : float
+            The internally stable timestep that will be used on this loop.
+        """
+        active = self._active
+        hnew = self.hnew
+        if update_topography:
+            self.update_topographic_params()
+        # assert the minimum water depth - this could introduce an element of
+        # mass gain, but should remain minor
+        hnew.clip(self.min_surface_water_depth, out=hnew)
+        if track_min_depth:
+            self._water_balance.append(
+                (hnew-self._h[active]).sum()/self._h[active].sum())
+        n = self._n * (hnew/self._hc)**self._negepsilon
+        twothirdshnewbyn = hnew**0.66666666 / n
+        self.vely[active] = twothirdshnewbyn * self.vertslopept5
+        self.velx[active] = twothirdshnewbyn * self.hozslopept5
+        self.vely[self.posvertgrads] *= -1.
+        self.velx[self.poshozgrads] *= -1.
+        self.qy[active] = self.vely[active] * hnew  # m**2/s
+        self.qx[active] = self.velx[active] * hnew  # m**2/s
+        maxvely = np.fabs(self.vely).max()
+        maxvelx = np.fabs(self.velx).max()
+        if self.equaldims:
+            courant_dt = self.courant_prefactor/(maxvelx + maxvely)
+        else:
+            # note prefactor is NOT THE SAME as above in this case
+            courant_dt = self.courant_prefactor/(self.grid.dy*maxvelx +
+                                                 self.grid.dx*maxvely)
+        if self.dt_max is not None:
+            internal_dt = np.min((self.dt_max, courant_dt))
+        else:
+            internal_dt = courant_dt
+        self._internal_dt = internal_dt
+
+        return internal_dt
 
     def update_topographic_params(self):
         """
@@ -351,4 +376,9 @@ class KinematicWave(Component):
         """
         Return the internal timestep last used by the kinematic wave component.
         """
-        return self._internal_dt
+        try:
+            return self._internal_dt
+        except AttributeError:
+            # the component hasn't started running yet
+            _ = self.calc_grads_and_timesteps(False, False)
+            return self._internal_dt
