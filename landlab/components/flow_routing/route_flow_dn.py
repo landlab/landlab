@@ -168,7 +168,7 @@ class FlowRouter(Component):
         self.receiver = model_grid.add_zeros('flow_receiver', at='node')
         self.steepest_slope = model_grid.add_zeros('topographic__steepest_slope', at='node')
         self.discharges = model_grid.add_zeros('water__volume_flux', at='node')
-        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_ID_order', at='node')
+        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_node_order', at='node')
         self.links_to_receiver = model_grid.add_zeros('links_to_flow_receiver', at='node')
 
 
