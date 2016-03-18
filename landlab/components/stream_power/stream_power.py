@@ -185,8 +185,6 @@ class StreamPowerEroder(Component):
             except (FieldError, TypeError):
                 assert use_W.size == self._grid.number_of_nodes
                 self._W = use_W
-            else:
-                raise TypeError('Type supplied to use_W not recognised')
         if type(use_Q) is bool:
             self.use_Q = use_Q
             self._Q = None
@@ -195,16 +193,15 @@ class StreamPowerEroder(Component):
             self._Q = None
         else:
             self.use_Q = True
-            if type(use_Q) is str:
+            try:
                 self._Q = self.grid.at_node[use_Q]
-            elif type(use_Q) is np.ndarray:
+            except (FieldError, TypeError):
                 assert use_Q.size == self._grid.number_of_nodes
                 self._Q = use_Q
-            else:
-                raise TypeError('Type supplied to use_Q not recognised')
         self._type = sp_type
         if sp_type is 'set_mn':
-            assert (m_sp >= 0.) and (n_sp >= 0.), "m and n must be positive"
+            assert (float(m_sp) >= 0.) and (float(n_sp) >= 0.), \
+                "m and n must be positive"
             self._m = float(m_sp)
             self._n = float(n_sp)
             assert ((a_sp is None) and (b_sp is None) and (c_sp is None)), (
@@ -213,19 +210,19 @@ class StreamPowerEroder(Component):
             assert sp_type in ('Total', 'Unit', 'Shear_stress'), (
                 "sp_type not recognised. It must be 'set_mn', 'Total', " +
                 "'Unit', or 'Shear_stress'.")
-            assert (m_sp == 0.5 and n_sp == 1.), ("Do not set m and n if " +
-                                                  "sp_type is not 'set_mn'!")
-            assert a_sp >= 0., "a must be positive"
-            self._a = a_sp
+            assert (m_sp == 0.5 and n_sp == 1.), \
+                "Do not set m and n if sp_type is not 'set_mn'!"
+            assert float(a_sp) >= 0., "a must be positive"
+            self._a = float(a_sp)
             if b_sp is not None:
-                assert b_sp >= 0., "b must be positive"
-                self._b = b_sp
+                assert float(b_sp) >= 0., "b must be positive"
+                self._b = float(b_sp)
             else:
                 assert self.use_W, "b was not set"
                 self._b = 0.
             if c_sp is not None:
-                assert c_sp >= 0., "c must be positive"
-                self._c = c_sp
+                assert float(c_sp) >= 0., "c must be positive"
+                self._c = float(c_sp)
             else:
                 assert self.use_Q, "c was not set"
                 self._c = 1.
