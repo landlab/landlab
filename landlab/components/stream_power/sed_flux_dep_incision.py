@@ -16,10 +16,10 @@ from landlab.grid.base import BAD_INDEX_VALUE
 class SedDepEroder(Component):
     """
     This class implements sediment flux dependent fluvial incision. It is built
-    on the back of the simpler stream power class, stream_power.py, also in this
-    component, and follows its limitations - we require single flow directions,
-    provided to the class. See the docstrings of stream_power.py for more detail
-    on required initialization and operating parameters.
+    on the back of the simpler stream power class, stream_power.py, also in
+    this component, and follows its limitations - we require single flow
+    directions, provided to the class. See the docstrings of stream_power.py
+    for more detail on required initialization and operating parameters.
 
     Note this component takes dt in YEARS (only!).
 
@@ -28,25 +28,30 @@ class SedDepEroder(Component):
 
     _name = 'SedDepEroder'
 
-    _input_var_names = {'topographic__elevation',
-                        'drainage_area',
-                        'flow_receiver',
-                        'upstream_node_order',
-                        'topographic__steepest_slope',
-                        'links_to_flow_receiver'}
+    _input_var_names = (
+        'topographic__elevation',
+        'drainage_area',
+        'flow_receiver',
+        'upstream_node_order',
+        'topographic__steepest_slope',
+        'links_to_flow_receiver'
+    )
 
-    _output_var_names = {'topographic__elevation',
-                         'channel_bed_shear_stress',
-                         'fluvial_sediment_transport_capacity',
-                         'fluvial_sediment_flux_into_node',
-                         'relative_sediment_flux',
-                         'channel_discharge',
-                         'channel_width',  # optional
-                         'channel_depth',  # optional
-                         }
+    _output_var_names = (
+        'topographic__elevation',
+        'channel_bed_shear_stress',
+        'fluvial_sediment_transport_capacity',
+        'fluvial_sediment_flux_into_node',
+        'relative_sediment_flux',
+        'channel_discharge',
+        'channel_width',  # optional
+        'channel_depth',  # optional
+    )
 
-    _optional_var_names = {'channel_width',
-                           'channel_depth'}
+    _optional_var_names = (
+        'channel_width',
+        'channel_depth'
+    )
 
     _var_units = {'topographic__elevation': 'm',
                   'drainage_area': 'm**2',
