@@ -90,21 +90,21 @@ class TransportLimitedEroder(Component):
                     'channel_depth': 'node'
                     }
 
-    _var_mapping = {'topographic__elevation': float,
-                    'drainage_area': float,
-                    'flow_receiver': int,
-                    'topographic__steepest_slope': float,
-                    'upstream_node_order': int,
-                    'links_to_flow_receiver': int,
-                    'channel_bed_shear_stress': float,
-                    'fluvial_sediment_transport_capacity': float,
-                    'fluvial_sediment_flux_into_node': float,
-                    'effective_fluvial_diffusivity': float,
-                    'relative_sediment_flux': float,
-                    'channel_discharge': float,
-                    'channel_width': float,
-                    'channel_depth': float
-                    }
+    _var_type = {'topographic__elevation': float,
+                 'drainage_area': float,
+                 'flow_receiver': int,
+                 'topographic__steepest_slope': float,
+                 'upstream_node_order': int,
+                 'links_to_flow_receiver': int,
+                 'channel_bed_shear_stress': float,
+                 'fluvial_sediment_transport_capacity': float,
+                 'fluvial_sediment_flux_into_node': float,
+                 'effective_fluvial_diffusivity': float,
+                 'relative_sediment_flux': float,
+                 'channel_discharge': float,
+                 'channel_width': float,
+                 'channel_depth': float
+                 }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
