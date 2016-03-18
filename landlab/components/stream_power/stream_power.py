@@ -159,7 +159,7 @@ class StreamPowerEroder(Component):
                 else:
                     self._K_unit_time = grid.at_node[K_sp]
 
-        assert threshold_sp >= 0.
+        assert float(threshold_sp) >= 0.
         self.sp_crit = float(threshold_sp)
         if threshold_sp != 0.:
             self.set_threshold = True
