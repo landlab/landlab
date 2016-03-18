@@ -75,7 +75,7 @@ def test_sp_new():
     Tests new style component instantiation and run.
     """
     input_str = os.path.join(_THIS_DIR, 'drive_sp_params.txt')
-    inputs = ModelParameterDictionary(input_str)
+    inputs = ModelParameterDictionary(input_str, auto_type=True)
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')

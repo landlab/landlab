@@ -180,9 +180,9 @@ class StreamPowerEroder(Component):
             self._W = None
         else:
             self.use_W = True
-            if type(use_W) is str:
+            try:
                 self._W = self.grid.at_node[use_W]
-            elif type(use_W) is np.ndarray:
+            except (FieldError, TypeError):
                 assert use_W.size == self._grid.number_of_nodes
                 self._W = use_W
             else:
