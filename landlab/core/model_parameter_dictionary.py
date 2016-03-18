@@ -235,6 +235,13 @@ class ModelParameterDictionary(dict):
     Use *from_file* to read in a parameter file from a file-like object or a
     file with the given file name.
 
+    Parameters
+    ----------
+    from_file : str or file_like, optional
+        File from which to read parameters.
+    auto_type : boolean, optional
+        Try to guess parameter data types.
+
     Examples
     --------
     Create a file-like object that contains a model parameter dictionary.
