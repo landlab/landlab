@@ -10,7 +10,8 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 import numpy as np
-import six
+import warnings
+from six.moves import range
 
 
 class SurfaceFlowTransport(object):
@@ -33,22 +34,22 @@ class SurfaceFlowTransport(object):
         try:
             self.z = grid.at_node['topographic__elevation']
         except:
-            six.print_('elevations not found in grid!')
+            warnings.warn('elevations not found in grid!')
         try:
             self.h = grid.at_node['planet_surface__water_depth']
         except:
-            six.print_('initial water depths not found in grid!')
+            warnings.warn('initial water depths not found in grid!')
 
         #build the internally necessary params:
         self.rhog = 9810.          # water unit weight, kg/m2s2 (N/m3)
-        self.q = grid.create_active_link_array_zeros()       # unit discharge (m2/s)
-        self.dhdt = grid.create_node_array_zeros()           # rate of water-depth change
-        self.tau = grid.create_active_link_array_zeros()     # shear stress (Pa)
-        self.qs = grid.create_active_link_array_zeros()      # sediment flux (m2/s)
-        self.dqsds = grid.create_node_array_zeros()
+        self.q = grid.zeros(at='active_link')       # unit discharge (m2/s)
+        self.dhdt = grid.zeros(at='node')           # rate of water-depth change
+        self.tau = grid.zeros(at='active_link')     # shear stress (Pa)
+        self.qs = grid.zeros(at='active_link')      # sediment flux (m2/s)
+        self.dqsds = grid.zeros(at='node')
         self.dzdt = self.dhdt
-        self.dzaccum = grid.create_node_array_zeros()
-        self.zm = grid.create_node_array_zeros()
+        self.dzaccum = grid.zeros(at='node')
+        self.zm = grid.zeros(at='node')
         self.zm[:] = self.z[:]
 
     def set_and_return_dynamic_timestep(self):
@@ -137,7 +138,7 @@ class SurfaceFlowTransport(object):
             dt = dtmax
 
         #perform a loop if we had to subdivide the tstep above:
-        for i in xrange(min_timestep_ratio+1):
+        for i in range(min_timestep_ratio+1):
             # Update the water-depth field
             h[interior_cells] += dhdt[interior_cells]*dt
             if elapsed_time >= erode_start_time:

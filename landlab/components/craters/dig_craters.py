@@ -29,7 +29,7 @@ from sympy.utilities.lambdify import lambdify
 from time import sleep
 import pandas as pd
 import six
-from six.moves import zip
+from six.moves import zip, range
 
 from landlab import ModelParameterDictionary
 
@@ -260,7 +260,7 @@ class impactor(object):
             #print hyp_line_vert, hyp_line_horiz
             num_divisions = int(min(hyp_line_vert,hyp_line_horiz)//dx) #Spacing set to dx, ALONG LINE (so spacing always <dx in x,y)
             if num_divisions > 0:
-                self.dummy_1[:(num_divisions)] = xrange(num_divisions)
+                self.dummy_1[:(num_divisions)] = range(num_divisions)
                 numpy.add(self.dummy_1[:(num_divisions)], 1., out=self.dummy_2[:(num_divisions)])
                 numpy.multiply(self.dummy_2[:(num_divisions)], dx, out=self.dummy_1[:(num_divisions)])
                 #line_points = (numpy.arange(num_divisions)+1.)*dx #[dx,2dx,3dx...]; arbitrary reduction in length at end to keep clear of dodgy grid edge
@@ -1545,9 +1545,9 @@ class impactor(object):
 
         if flag_from_footprint_edge_type == 'I':
             assert type(whole_grid_repeats_from_fet) == int
-            for i in xrange(2*whole_grid_repeats_from_fet+1):
+            for i in range(2*whole_grid_repeats_from_fet+1):
                 x_offset = center_tuple[0] + (i-whole_grid_repeats_from_fet) * grid_x
-                for j in xrange(2*whole_grid_repeats_from_fet+1):
+                for j in range(2*whole_grid_repeats_from_fet+1):
                     y_offset = center_tuple[1] + (j-whole_grid_repeats_from_fet) * grid_y
                     yield (x_offset, y_offset)
         else:
@@ -1740,15 +1740,15 @@ class impactor(object):
         reliefs = []
         #iterate in x, then y dimensions
         if accelerate and (D/min([self.grid.shape[0], self.grid.shape[1]])<0.1):
-            for i in xrange(0,self.grid.shape[1]-D, D):
-                for j in xrange(0,self.grid.shape[0]-D, D):
+            for i in range(0,self.grid.shape[1]-D, D):
+                for j in range(0,self.grid.shape[0]-D, D):
                     min_elev = numpy.amin(self.elev_r[j:(j+D),i:(i+D)])
                     max_elev = numpy.amax(self.elev_r[j:(j+D),i:(i+D)])
                     reliefs.append(max_elev-min_elev)
         else:
             #this will take significantly longer, but does not subsample the grid
-            for i in xrange(self.grid.shape[1]-D):
-                for j in xrange(self.grid.shape[0]-D):
+            for i in range(self.grid.shape[1]-D):
+                for j in range(self.grid.shape[0]-D):
                     min_elev = numpy.amin(self.elev_r[j:(j+D),i:(i+D)])
                     max_elev = numpy.amax(self.elev_r[j:(j+D),i:(i+D)])
                     reliefs.append(max_elev-min_elev)
@@ -1802,9 +1802,9 @@ class impactor(object):
         return fftfreq_nonan, numpy.exp(fftreal_smoothed)
 
 #differences = []
-#for i in xrange(len(scale)):
+#for i in range(len(scale)):
 #    difference = []
-#    for j in xrange(len(means)-1):
+#    for j in range(len(means)-1):
 #        difference.append(means[j+1][i]-means[j][i])
 #    differences.append(difference)
 

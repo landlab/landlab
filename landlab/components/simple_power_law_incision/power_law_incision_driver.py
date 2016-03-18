@@ -1,16 +1,16 @@
+from six.moves import range
+
 import numpy as np
 from pylab import *
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab.plot.imshow import imshow_grid
-from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
+from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
-from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.simple_power_law_incision import PowerLawIncision
+from landlab.components.flow_routing import RouteFlowD8
+from landlab.components.flow_accum import AccumFlow
 import matplotlib.pyplot as plt
-#reload(flow_routing_D8)
-#reload(flow_accumulation)
-#reload(raster)
+
 
 def main():
     nr = 5
@@ -19,7 +19,7 @@ def main():
     dx=1
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    #rg.set_inactive_boundaries(False, False, True, True)
+    #rg.set_inactive_boundaries(False, True, True, False)
 
     nodata_val=-1
     z  = nodata_val*np.ones( nnodes )
@@ -30,11 +30,11 @@ def main():
 
     #set-up elevations
     helper = [7,8,9,10,13,14,15,16]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         #print 'helper[i]', helper[i]
         z[helper[i]]=2+uniform(-0.5,0.5)
     helper = [19,20,21,22]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         z[helper[i]]=3+uniform(-0.5,0.5)
 
     z[7]=1
@@ -76,7 +76,7 @@ def main():
     #insantiate variable of type AccumFlow Class
     accumulator = AccumFlow(rg)
     #initial flow accumulation
-    drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
+    drain_area = accumulator.calc_flowacc(z, flowdirs)
 
     #m,b = polyfit(log10(drain_area[interior_nodes]), log10(max_slopes[interior_nodes]), 1)
     z[interior_nodes] = z[interior_nodes]+uplift_rate * storm_duration

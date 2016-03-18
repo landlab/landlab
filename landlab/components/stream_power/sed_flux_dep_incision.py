@@ -1,5 +1,9 @@
 from __future__ import print_function
 
+import warnings
+
+from six.moves import range
+
 import numpy as np
 from time import sleep
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
@@ -145,15 +149,15 @@ class SedDepEroder(object):
         try:
             self.thresh = inputs.read_float('threshold_shear_stress')
             self.set_threshold = True #flag for sed_flux_dep_incision to see if the threshold was manually set.
-            print("Found a shear stress threshold to use: ", self.thresh)
+            # print("Found a shear stress threshold to use: ", self.thresh)
         except MissingKeyError:
-            print("Found no incision threshold to use.")
+            warnings.warn("Found no incision threshold to use.")
             self.thresh = 0.
             self.set_threshold = False
         try:
             self._a = inputs.read_float('a_sp')
         except:
-            print("a not supplied. Setting power on shear stress to 1...")
+            warnings.warn("a not supplied. Setting power on shear stress to 1.")
             self._a = 1.
         try:
             self._b = inputs.read_float('b_sp')
@@ -197,8 +201,7 @@ class SedDepEroder(object):
         mannings_n = inputs.read_float('mannings_n')
         self.mannings_n = mannings_n
         if mannings_n<0. or mannings_n>0.2:
-            print("***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***")
-            sleep(2)
+            warnings.warn("Manning's n outside it's typical range")
 
         self.diffusivity_power_on_A = 0.9*self._c*(1.-self._b) #i.e., q/D**(1/6)
 
@@ -260,16 +263,16 @@ class SedDepEroder(object):
                 self.C_MPM = 1.
 
         if self.override_threshold:
-            print("Overriding any supplied threshold...")
+            # print("Overriding any supplied threshold...")
             try:
                 self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*self.Dchar_in
             except AttributeError:
                 self.thresh = self.shields_crit*self.g*(self.sed_density-self.fluid_density)*inputs.read_float('Dchar')
-            print("Threshold derived from grain size and Shields number is: ", self.thresh)
+            # print("Threshold derived from grain size and Shields number is: ", self.thresh)
 
         self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.cell_areas))
-        self.cell_areas[grid.node_at_cell] = grid.cell_areas
+        self.cell_areas.fill(np.mean(grid.area_of_cell))
+        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
         #new 11/12/14
         self.point6onelessb = 0.6*(1.-self._b)
         self.shear_stress_prefactor = self.fluid_density*self.g*(self.mannings_n/self.k_w)**0.6
@@ -331,7 +334,7 @@ class SedDepEroder(object):
         else:
             raise MissingKeyError('Provided sed flux sensitivity type in input file was not recognised!')
 
-        for i in xrange(self.pseudoimplicit_repeats):
+        for i in range(self.pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added = prefactor_for_volume*sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added/trans_cap_vol_out
@@ -354,7 +357,7 @@ class SedDepEroder(object):
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
                 node_drainage_areas='drainage_area',
                 node_receiving_flow='flow_receiver',
-                node_order_upstream='upstream_ID_order',
+                node_order_upstream='upstream_node_order',
                 node_slope='topographic__steepest_slope',
                 steepest_link='links_to_flow_receiver',
                 runoff_rate_if_used=None,

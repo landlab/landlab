@@ -26,6 +26,10 @@ class RouteFlowD8(object):
     diagonals are considered.
     The class assumes that the model is using a rectangular, uniform (raster)
     grid.
+
+    This sets the num_cells parameter.
+    This class assumes that the number of cells does not change after a
+    class item has been instantiated.
     """
 
     def __init__(self, num_nodes):
@@ -64,8 +68,29 @@ class RouteFlowD8(object):
         Method inputs: the model grid and elevation vector
         Method returns: the flow direction vector, and as of DEJH modifications
         Sept 2013, the maximum (most steeply downhill) slope leaving each node.
-        """
 
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing import RouteFlowD8
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(1, 1))
+        >>> z = np.array([3., 3., 0., 3., 3.,
+        ...               3., 2., 1., 2., 3.,
+        ...               3., 2., 2., 2., 3.,
+        ...               3., 3., 3., 3., 3.])
+
+        First calculate the flow directions.
+
+        >>> flow_router = RouteFlowD8(len(z))
+        >>> flowdirs, _ = flow_router.calc_flowdirs(grid ,z)
+        >>> flowdirs
+        array([ 6,  7, -1,  7,  8,
+                6,  2,  2,  2,  8,
+               11,  7,  7,  7, 13,
+               11, 11, 12, 13, 13])
+        """
         #for i in range(0, self.num_nodes):
         #    if mg.is_interior(i):
         #        self.flowdirs[i] = mg.find_node_in_direction_of_max_slope(z, i)

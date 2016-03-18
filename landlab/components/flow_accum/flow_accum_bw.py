@@ -207,7 +207,7 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import make_ordered_node_array
+    >>> from landlab.components.flow_accum import make_ordered_node_array
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> b = np.array([4])
     >>> s = make_ordered_node_array(r, b)
@@ -257,7 +257,8 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import find_drainage_area_and_discharge
+    >>> from landlab.components.flow_accum import (
+    ...     find_drainage_area_and_discharge)
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     >>> a, q = find_drainage_area_and_discharge(s, r)
@@ -305,7 +306,7 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import flow_accumulation
+    >>> from landlab.components.flow_accum import flow_accumulation
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> b = np.array([4])
     >>> a, q, s = flow_accumulation(r, b)

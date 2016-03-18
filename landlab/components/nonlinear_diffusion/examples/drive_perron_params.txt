@@ -6,9 +6,9 @@ ncols:
 dx:
 1.
 dt:
-1.
-uplift_rate: #per time, not per timestep
 0.1
+uplift_rate: #per time, not per timestep
+0.01
 run_time:
 30
 init_elev:
@@ -20,6 +20,6 @@ rock_density:
 sed_density:
 2.7
 kappa:
-10.
+100.
 S_crit:
 0.56

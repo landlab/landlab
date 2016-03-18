@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 # ...the two different diffusion formulations
 from landlab.components.diffusion.diffusion import LinearDiffuser
@@ -34,9 +36,9 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 # in our case, slope is zero, so the leftmost_elev is the mean elev
-z = mg.create_node_array_zeros() + leftmost_elev
+z = mg.zeros(at='node') + leftmost_elev
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 
@@ -63,8 +65,8 @@ uplifted_nodes = mg.get_core_nodes()
 
 # nt is the number of timesteps we calculated above, i.e., loop nt times.
 # We never actually use i within the loop, but we could do.
-for i in xrange(nt):
-    #("xrange" is a clever memory-saving way of producing consecutive integers to govern a loop)
+for i in range(nt):
+    #("range" is a clever memory-saving way of producing consecutive integers to govern a loop)
     # this colon-then-tab-in arrangement is what Python uses to delineate connected blocks of text, instead of brackets or parentheses
     # This line performs the actual functionality of the component:
     # mg = lin_diffuse.diffuse(dt) #linear diffusion
@@ -99,7 +101,7 @@ pylab.ylabel('Elevation')
 # figure 2 is the map of the final elevations
 pylab.figure(2)
 # display a colored image
-im_nl = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 pylab.figure(3)
 # turn the 1-D array of elevation values into a spatially accurate 2-D
@@ -117,7 +119,7 @@ mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 # Display a message
 print('Running ...')
 
-for i in xrange(nt):
+for i in range(nt):
     # This line performs the actual functionality of the component:
     #***NB: the nonlinear diffuser contains an "automatic" element of uplift. If you instead use the linear diffuser, you need to add the uplift manually...
     mg['node']['topographic__elevation'][uplifted_nodes] += uplift_per_step
@@ -140,7 +142,7 @@ pylab.ylabel('Elevation')
 
 # figure 5 is the map of the final elevations
 pylab.figure(5)
-im = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 # superpose this final form onto figure 3:
 pylab.figure(3)

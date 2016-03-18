@@ -23,7 +23,7 @@ from landlab import RasterModelGrid
 """
     import 'Radiation' class from 'components' library under radiation package.
 """
-from landlab.components.radiation.radiation_field import Radiation
+from landlab.components.radiation import Radiation
 """
     import landlab's plotting function that has the capability of plotting
     'fields' stored on the grid.

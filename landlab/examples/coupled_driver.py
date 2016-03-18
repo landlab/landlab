@@ -1,7 +1,9 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.stream_power.fastscape_stream_power import FastscapeEroder
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 from landlab.components.diffusion.diffusion import LinearDiffuser
 from landlab import ModelParameterDictionary
@@ -31,26 +33,26 @@ mg = RasterModelGrid(nrows, ncols, dx)
 
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + leftmost_elev
 z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 # put these values plus roughness into that field
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 
 # set up grid's boundary conditions (bottom, right, top, left is inactive)
-mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 # Display a message
 print('Running ...')
 
 # instantiate the components:
 fr = FlowRouter(mg)
-sp = SPEroder(mg, input_file)
+sp = FastscapeEroder(mg, input_file)
 diffuse = PerronNLDiffuse(mg, input_file)
 lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     # note the input arguments here are not totally standardized between modules
     #mg = diffuse.diffuse(mg, i*dt)
     mg = lin_diffuse.diffuse(dt)
@@ -77,20 +79,21 @@ print('Completed the simulation. Plotting...')
 pylab.figure(1)
 pylab.close()
 pylab.figure(1)
-im = imshow_node_grid(mg, 'water__volume_flux',
-                      cmap='PuBu')  # display a colored image
+
+# display a colored image
+imshow_node_grid(mg, 'water__volume_flux', cmap='PuBu')
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
+imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 pylab.figure(3)
-im = pylab.plot(mg.dx * np.arange(nrows), elev_r[:, int(ncols // 2)])
+pylab.plot(mg.dx * np.arange(nrows), elev_r[:, int(ncols // 2)])
 pylab.title('N-S cross_section')
 
 pylab.figure(4)
-im = pylab.plot(mg.dx * np.arange(ncols), elev_r[int(nrows // 4), :])
+pylab.plot(mg.dx * np.arange(ncols), elev_r[int(nrows // 4), :])
 pylab.title('E-W cross_section')
 
 drainage_areas = mg['node']['drainage_area'][mg.core_nodes]

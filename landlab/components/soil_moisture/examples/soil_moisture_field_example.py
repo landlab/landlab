@@ -6,10 +6,9 @@
 ##
 #########################################################
 from landlab import RasterModelGrid
-from landlab.components.soil_moisture.soil_moisture_field import SoilMoisture
-#from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
+from landlab.components.soil_moisture import SoilMoisture
 import numpy as np
-#import matplotlib.pyplot as plt
+
 
 grid = RasterModelGrid( 10, 10, 1. )
 grid.add_zeros('cell','VegetationCover',units = 'None')

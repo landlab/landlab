@@ -32,7 +32,24 @@ from landlab.plot import imshow
 
 class VideoPlotter(object):
 
-    """Create animations of landlab output."""
+    """
+    Create animations of landlab output.
+
+    Create Landlab movies.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A RasterModelGrid.
+    data_centering : {'node', 'cell'}, optional
+        Where data are centered.
+    start : float, optional
+        Model time at which filming starts.
+    stop : float, optional
+        Model time at which filming stops.
+    step : float, optional
+        Model time frequency at which frames are made.
+    """
 
     def __init__(self, grid, data_centering='node', start=None, stop=None,
                  step=None):

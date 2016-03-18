@@ -10,9 +10,9 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
+from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
@@ -37,8 +37,8 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 print( 'Running ...' )

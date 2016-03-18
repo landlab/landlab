@@ -1,16 +1,16 @@
 from __future__ import print_function
 
+from six.moves import range
+
 import numpy as np
 from pylab import show, imshow, colorbar, plot
 from landlab import RasterModelGrid
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.flow_routing import RouteFlowD8
+from landlab.components.flow_accum import AccumFlow
 from landlab.plot.imshow import imshow_grid
-from landlab.components.dem_support.dem_boundary_conditions import WatershedBoundaryConditions
+from landlab.components.dem_support import WatershedBoundaryConditions
 from random import uniform
-#reload(flow_routing_D8)
-#reload(flow_accumulation)
-#reload(raster)
+
 
 def main():
     nr = 5
@@ -19,7 +19,7 @@ def main():
     dx=3
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    #rg.set_inactive_boundaries(False, False, True, True)
+    #rg.set_inactive_boundaries(False, True, True, False)
 
     nodata_val=-1
     z  = nodata_val*np.ones( nnodes )
@@ -30,11 +30,11 @@ def main():
 
     #set-up with prescribed elevations to test drainage area calcualtion
     helper = [7,8,9,10,13,14,15,16]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         #print 'helper[i]', helper[i]
         z[helper[i]]=2+uniform(-0.5,0.5)
     helper = [19,20,21,22]
-    for i in xrange(0, len(helper)):
+    for i in range(0, len(helper)):
         z[helper[i]]=3+uniform(-0.5,0.5)
 
     z[7]=1
@@ -49,7 +49,7 @@ def main():
     #insantiate variable of type AccumFlow Class
     accumulator = AccumFlow(rg)
     #initial flow accumulation
-    drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
+    drain_area = accumulator.calc_flowacc(z, flowdirs)
 
     print("elevations ", rg.node_vector_to_raster(z))
     print("flowdirs ", rg.node_vector_to_raster(flowdirs))

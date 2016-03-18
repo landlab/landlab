@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from six.moves import range
+
 from landlab.components.nonlinear_diffusion.Perron_nl_diffuse import PerronNLDiffuse
 # ...the two different diffusion formulations
 from landlab.components.diffusion.diffusion import LinearDiffuser
@@ -33,9 +35,9 @@ uplift_per_step = uplift_rate * dt
 mg = RasterModelGrid(nrows, ncols, dx)
 # create the elevation field in the grid:
 # create the field
-mg.create_node_array_zeros('topographic__elevation')
+mg.add_zeros('topographic__elevation', at='node')
 # in our case, slope is zero, so the leftmost_elev is the mean elev
-z = mg.create_node_array_zeros() + leftmost_elev
+z = mg.zeros(at='node') + leftmost_elev
 # put these values plus roughness into that field
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 100000.
 
@@ -52,7 +54,7 @@ lin_diffuse = LinearDiffuser(grid=mg, input_stream=input_file)
 
 # Perform the loops.
 
-for i in xrange(nt):
+for i in range(nt):
     # This line performs the actual functionality of the component:
     #***NB: both diffusers contain an "automatic" element of uplift.
     # You can suppress this for the linear diffuser with the *internal_uplift* keyword, =False
@@ -80,6 +82,6 @@ pylab.ylabel('Elevation')
 
 # figure 2 is the map of the final elevations
 pylab.figure(2)
-im = imshow_node_grid(mg, 'topographic__elevation')
+imshow_node_grid(mg, 'topographic__elevation')
 
 pylab.show()  # this line displays all of the figures you've issued plot commands for, since you last called show()

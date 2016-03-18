@@ -18,11 +18,44 @@ from pylab import figure, show, clf
 from numpy import where, exp, amin
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
-from landlab.ca.celllab_cts import Transition, CAPlotter
-from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
+
+
 
 
 class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
+    """
+    Example
+    -------
+    >>> from six import StringIO
+    >>> p = StringIO('''
+    ... model_grid_row__count: number of rows in grid
+    ... 4
+    ... model_grid_column__count: number of columns in grid
+    ... 4
+    ... plot_interval: interval for plotting to display, s
+    ... 2.0
+    ... model__run_time: duration of model run, s
+    ... 1.0
+    ... model__report_interval: time interval for reporting progress, real-time seconds
+    ... 1.0e6
+    ... surface_bleaching_time_scale: time scale for OSL bleaching, s
+    ... 2.42
+    ... light_attenuation_length: length scale for light attenuation, cells (1 cell = 1 mm)
+    ... 2.0
+    ... ''')
+    >>> tsbm = TurbulentSuspensionAndBleachingModel(p)
+    >>> tsbm.node_state
+    array([1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+    >>> tsbm.grid.at_node['osl']
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.])
+    >>> tsbm.n_xn
+    array([0, 1, 1, 0, 0, 1, 1, 0])
+    >>> tsbm.fluid_surface_height
+    3.5
+    """
 
     def __init__(self, input_stream):
         """
@@ -137,6 +170,10 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         # Plot the initial grid
         self.ca_plotter.update_plot()
+
+        # Make a colormap for use in showing the bleaching of each grain
+        clist = [(0.0, (1.0, 1.0, 1.0)), (0.49, (0.8, 0.8, 0.8)), (1.0, (0.0, 0.0, 0.0))]
+        self.cmap_for_osl = matplotlib.colors.LinearSegmentedColormap.from_list('osl_cmap', clist)
 
 
     def setup_transition_list(self):
@@ -353,7 +390,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
                 clf()
                 self.osl_display[:] = self.osl[self.propid]+self.node_state
                 imshow_node_grid(self.grid, 'osl_display', limits=(0.0, 2.0),
-                                 cmap='coolwarm')
+                                 cmap=self.cmap_for_osl)
                 show()
                 figure(1)
 
@@ -385,4 +422,3 @@ if __name__ == "__main__":
 
     # Clean up
     ca_model.finalize()
-

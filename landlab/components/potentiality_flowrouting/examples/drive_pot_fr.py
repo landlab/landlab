@@ -13,9 +13,9 @@ from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
-from landlab.components.potentiality_flowrouting.route_flow_by_boundary import PotentialityFlowRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder
 
 nrows = 100
 ncols = 100
@@ -32,7 +32,7 @@ z = (3000.-mg.node_x)*0.5
 mg.at_node['topographic__elevation'] = z
 
 #mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
-mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 figure(3)
 imshow_node_grid(mg, mg.status_at_node)
 
@@ -63,7 +63,7 @@ print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),a
 ##make a topo to test on:
 #mg.at_node['topographic__elevation'] = np.zeros(mg.number_of_nodes)
 #fr = FlowRouter(mg)
-#fsp = SPEroder(mg, './pot_fr_params.txt')
+#fsp = FastscapeEroder(mg, './pot_fr_params.txt')
 #inputs = ModelParameterDictionary('./pot_fr_params.txt')
 #dt = inputs.read_float('dt')
 #time_to_run = inputs.read_float('run_time')
@@ -96,8 +96,8 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
 #make some K values in a field to test
@@ -105,15 +105,15 @@ mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
 #mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)
 mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
-#mg.set_closed_boundaries_at_grid_edges(True, True, False, False)
-#mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
+#mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
+#mg.set_closed_boundaries_at_grid_edges(True, False, True, True)
 
 print( 'Running ...' )
 
 #instantiate the components:
 fr = FlowRouter(mg)
 #load the Fastscape module too, to allow direct comparison
-fsp = SPEroder(mg, './pot_fr_params.txt')
+fsp = FastscapeEroder(mg, './pot_fr_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation

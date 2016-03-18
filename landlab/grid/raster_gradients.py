@@ -5,16 +5,22 @@ import numpy as np
 from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE
+from landlab.utils.decorators import use_field_name_or_array
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients over links.
+
+    Construction::
+
+        calculate_gradients_at_links(grid, node_values, out=None)
 
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
-    node_values : array_like
+    node_values : array_like or field name
         Values at nodes.
     out : ndarray, optional
         Buffer to hold result. If `None`, create a new array.
@@ -24,9 +30,6 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ndarray
         Gradients of the nodes values for each link.
 
-    .. deprecated:: 0.1
-        Use :func:`calculate_gradient_across_cell_faces`
-                or :func:`calculate_gradient_across_cell_corners` instead
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -35,28 +38,33 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ...                1., 3., 1.,
     ...                2., 2., 2.]
     >>> grid.calculate_gradients_at_links(node_values)
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> out = np.empty(grid.number_of_links, dtype=float)
     >>> rtn = grid.calculate_gradients_at_links(node_values, out=out)
     >>> rtn is out
     True
     >>> out
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  2., -2.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
     >>> grid.calculate_gradients_at_links(node_values)
-    array([ 1.,  3.,  1.,  1., -1.,  1.,  0.,  0.,  1., -1.,  0.,  0.])
+    array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
+    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> grid.calculate_gradients_at_links('elevation')
+    array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     """
-    diffs = gradients.calculate_diff_at_links(grid, node_values, out=out)
+    grads = gradients.calculate_diff_at_links(grid, node_values, out=out)
+    grads /= grid.link_length
 
-    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-    diffs[:n_vertical_links] /= grid.dy
-    diffs[n_vertical_links:] /= grid.dx
+#    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+#    diffs[:n_vertical_links] /= grid.dy
+#    diffs[n_vertical_links:] /= grid.dx
 
-    return diffs
+    return grads
 
 
+@use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients over active links.
 
@@ -87,18 +95,24 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     ...      0., 1., 2., 1., 2.,
     ...      0., 0., 2., 2., 0.]
     >>> grad = grid.calculate_gradients_at_active_links(u)
-    >>> grad
-    array([ 1.,  1., -1., -1., -1., -1., -1.,  0.,  1.,  1.,  1., -1.,  1.,
-            1.,  1., -1.,  1.])
+    >>> grad # doctest: +NORMALIZE_WHITESPACE
+    array([ 1.,  1., -1.,
+            1.,  1., -1.,  1.,
+           -1., -1., -1.,
+            1.,  1., -1.,  1.,
+           -1.,  0.,  1.])
 
     For greater speed, sending a pre-created numpy array as an argument
     avoids having to create a new one with each call:
 
     >>> grad = np.empty(grid.number_of_active_links)
     >>> rtn = grid.calculate_gradients_at_active_links(u, out=grad)
-    >>> grad
-    array([ 1.,  1., -1., -1., -1., -1., -1.,   0.,  1.,  1.,  1.,
-           -1.,  1.,  1.,  1., -1.,  1.])
+    >>> grad # doctest: +NORMALIZE_WHITESPACE
+    array([ 1.,  1., -1.,
+            1.,  1., -1.,  1.,
+           -1., -1., -1.,
+            1.,  1., -1.,  1.,
+           -1.,  0.,  1.])
     >>> rtn is grad
     True
 
@@ -107,25 +121,17 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
     ...                1., 3., 1.,
     ...                2., 2., 2.]
     >>> grid.calculate_gradients_at_active_links(node_values)
-    array([ 3., -1.,  1., -1.])
+    array([ 3.,  1., -1., -1.])
     """
-    diffs = gradients.calculate_diff_at_active_links(grid, node_values,
+    grads = gradients.calculate_diff_at_active_links(grid, node_values,
                                                      out=out)
-
-    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-
-    vertical_active_links = np.where(grid.active_links < n_vertical_links)
-    horizontal_active_links = np.where(grid.active_links >= n_vertical_links)
-
-    diffs[vertical_active_links] /= grid.dy
-    diffs[horizontal_active_links] /= grid.dx
-
-    return diffs
+    grads /= grid.link_length[grid.active_links]
+    return grads
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
-    """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
-    Get gradients across the faces of a cell.
+    """Get gradients across the faces of a cell.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
@@ -134,11 +140,16 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
+    Construction::
+
+        calculate_gradient_across_cell_faces(grid, node_values, [cell_ids],
+                                             out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -149,7 +160,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
     Returns
     -------
-    (N, 4) ndarray
+    (N, 4) Masked ndarray
         Gradients for each face of the cell.
 
     Examples
@@ -164,7 +175,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calculate_gradient_across_cell_faces(x)
+    >>> grid.calculate_gradient_across_cell_faces(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[ 1.  3.  0.  0.]
      [ 0.  2. -1. -1.]],
@@ -173,7 +184,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
-    >>> grid.calculate_gradient_across_cell_faces(x)
+    >>> grid.calculate_gradient_across_cell_faces(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[ 1.   1.5  0.   0. ]
      [ 0.   1.  -1.  -0.5]],
@@ -203,19 +214,24 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
-    """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
-    Get gradients to diagonally opposite nodes.
+    """Get gradients to diagonally opposite nodes.
 
     Calculate gradient of the value field provided by *node_values* to
     the values at diagonally opposite nodes. The returned gradients are
     ordered as upper-right, upper-left, lower-left and lower-right.
 
+    Construction::
+
+        calculate_gradient_across_cell_corners(grid, node_values, [cell_ids],
+                                               out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -263,9 +279,9 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
     return out
 
 
+@use_field_name_or_array('node')
 def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
-    """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
-    Get gradients along links touching a node.
+    """Get gradients along links touching a node.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the nodes of a grid. The returned gradients are
@@ -277,11 +293,16 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
+    Construction::
+
+        calculate_gradient_along_node_links(grid, node_values, [cell_ids],
+                                            out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     node_ids : array_like, optional
         If provided, node ids to measure gradients. Otherwise, find gradients
@@ -292,7 +313,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
 
     Returns
     -------
-    (N, 4) ndarray
+    (N, 4) Masked ndarray
         Gradients for each link of the node. Ordering is E,N,W,S.
 
     Examples
@@ -307,7 +328,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calculate_gradient_along_node_links(x)
+    >>> grid.calculate_gradient_along_node_links(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[-- -- -- --]
      [-- 1.0 -- --]
@@ -331,7 +352,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 3), spacing=(2, 4))
-    >>> grid.calculate_gradient_along_node_links(x)
+    >>> grid.calculate_gradient_along_node_links(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[-- -- -- --]
      [-- 0.5 -- --]

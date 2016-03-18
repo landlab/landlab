@@ -14,7 +14,7 @@ from landlab import Component, ModelParameterDictionary
 import numpy as np
 import os
 
-class OverlandFlow(Component):
+class OverlandFlowBates(Component):
     """  Landlab component that simulates overland flow using the Bates et al., (2010) approximations
     of the 1D shallow water equations to be used for 2D flood inundation modeling.
 
@@ -48,101 +48,51 @@ class OverlandFlow(Component):
 
         >>> DEM_name = 'DEM_name.asc'
         >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-        >>> of = OverlandFlow(rg) # doctest: +SKIP
+        >>> of = OverlandFlowBates(rg) # doctest: +SKIP
 
     """
-    _name = 'OverlandFlow'
+    _name = 'OverlandFlowBates'
 
-    _input_var_names = set(['water_depth', 'topographic__elevation'])
+    _input_var_names = set(['water__depth', 'topographic__elevation'])
 
-    _output_var_names = set(['water_depth',
-     'water_discharge',
-     'shear_stress',
-     'water_discharge_at_nodes',
-     'water_surface_slope_at_nodes'])
+    _output_var_names = set(['water__depth',
+     'water__discharge',
+     'water_surface__gradient'])
 
-    _var_units = {'water_depth': 'm',
-     'water_discharge': 'm3/s',
-     'shear_stress': 'Pa',
-     'water_discharge_at_nodes': 'm3/s',
-     'water_surface_slope_at_nodes': 'm/m',
+    _var_units = {'water__depth': 'm',
+     'water__discharge': 'm3/s',
+     'water_surface__gradient': 'm/m',
      'topographic__elevation': 'm'}
 
-    _var_mapping = {'water_depth': 'node',
+    _var_mapping = {'water__depth': 'node',
      'topographic__elevtation': 'node',
-     'water_discharge': 'active_link',
-     'shear_stress': 'node',
-     'water_discharge_at_nodes': 'node',
-     'water_surface_slope_at_nodes': 'node'}
+     'water__discharge': 'active_link',
+     'water_surface__gradient': 'node'}
 
-    _var_mapping = {'water_depth': 'The depth of water at each node.',
+    _var_mapping = {'water__depth': 'The depth of water at each node.',
      'topographic__elevtation': 'The land surface elevation.',
-     'water_discharge': 'The discharge of water on active links.',
-     'shear_stress': 'The calculated shear stress at each node.',
-     'water_discharge_at_nodes': 'The water discharge from surrounding links mapped onto nodes.',
-     'water_surface_slope_at_nodes': 'The slope of the water surface at each node.'}
+     'water__discharge': 'The discharge of water on active links.',
+     'water_surface__gradient': 'The slope of the water surface at each node.'}
 
-    def __init__(self, grid, input_file = None, **kwds):
+    def __init__(self, grid, h_init=0.00001, alpha=0.7,
+                 mannings_n=0.03, g=9.81, rainfall_intensity=0.0,
+                 **kwds):
 
-        super(OverlandFlow, self).__init__(grid, **kwds)
+        super(OverlandFlowBates, self).__init__(grid, **kwds)
 
         # First we copy our grid
         self._grid = grid
 
-        # Then, we look for a input file...
-        if input_file is not None:
-            inputs = ModelParameterDictionary(input_file)
-        else:
-            print("No input file provided! Default file and default values will be used")
-            _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'overland_flow_input.txt')
-            input_file = _DEFAULT_INPUT_FILE
-            inputs = ModelParameterDictionary(input_file)
-
-        # And here we look to see what parameters are set in the input file.
-        # If a parameter is not found, default values are set below.
-
-        #This is an initial thin layer of water to prevent divide by zero errors
-        try:
-            self.h_init = inputs.read_float('h_init')
-        except:
-            self.h_init = 0.001
-
-        # This is the time step coeffcient, described in Bates et al., 2010 and
-        # de Almeida et al., 2012
-        try:
-            self.alpha = inputs.read_float('alpha')
-        except:
-            self.alpha = 0.7
-
-        # Manning's roughness coefficient or Manning's n
-        try:
-            self.mannings_n = inputs.read_float('Mannings_n')
-        except:
-            self.mannings_n = 0.01
-
-        # Rainfall intensity
-        try:
-            self.rainfall_intensity = inputs.read_float('rainfall_intensity')
-        except:
-            self.rainfall_intensity = 0.0
-
-        try:
-            self.g = inputs.read_float('g')
-        except:
-            self.g = 9.8
-
-        # Setting up all fields found at nodes.
-        for name in self._input_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros('node', name, units=self._var_units[name])
-
-        for name in self._output_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros('node', name, units=self._var_units[name])
+        self.h_init = h_init
+        self.alpha = alpha
+        self.mannings_n = mannings_n
+        self.g = g
+        self.rainfall_intensity = rainfall_intensity
 
         # Now setting up fields at the links...
         # For water discharge
-        self.water_discharge = grid.add_zeros('link', 'water_discharge', units=self._var_units['water_discharge'])
+        self.water__discharge = grid.add_zeros('link',
+                'water__discharge', units=self._var_units['water__discharge'])
 
         # Pre-calculated values included for speed.
         self.ten_thirds = 10.0 / 3.0
@@ -152,10 +102,11 @@ class OverlandFlow(Component):
         self.elapsed_time = 1.0
 
         # Assigning a class variable to the water depth field and adding the initial thin water depth
-        self.h = self._grid['node']['water_depth'] = self._grid['node']['water_depth'] + self.h_init
+        self.h = self._grid['node']['water__depth'] = (
+            self._grid['node']['water__depth'] + self.h_init)
 
         # Assigning a class variable to the water discharge field.
-        self.q = self._grid['link']['water_discharge']
+        self.q = self._grid['link']['water__discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
@@ -163,7 +114,8 @@ class OverlandFlow(Component):
     def gear_time_step(self, grid):
 
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al., 2012
-        dt = self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(self._grid.at_node['water_depth']))
+        dt = self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
+            self._grid.at_node['water__depth']))
 
         return dt
 
@@ -191,9 +143,9 @@ class OverlandFlow(Component):
             dt = self.gear_time_step(grid)
 
         # In case another component has added data to the fields, we just reset our
-        # water depths, topographic elevations and water discharge variables to the fields.         self.h = self._grid['node']['water_depth']
+        # water depths, topographic elevations and water discharge variables to the fields.         self.h = self._grid['node']['water__depth']
         self.z = self._grid['node']['topographic__elevation']
-        self.q = self._grid['link']['water_discharge']
+        self.q = self._grid['link']['water__discharge']
 
         # Here we identify the core nodes and active link ids for later use.
         self.core_nodes = self._grid.core_nodes
@@ -217,8 +169,8 @@ class OverlandFlow(Component):
         self.h[self.core_nodes] = self.h[self.core_nodes] + dhdt[self.core_nodes] * dt
 
         # And reset our field values with the newest water depth and discharge.
-        self._grid.at_node['water_depth'] = self.h
-        self._grid.at_link['water_discharge'] = self.q
+        self._grid.at_node['water__depth'] = self.h
+        self._grid.at_link['water__discharge'] = self.q
 
     @property
     def input_var_names(self):

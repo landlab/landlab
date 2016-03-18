@@ -4,9 +4,9 @@ import numpy as np
 import pylab
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from random import uniform
-from landlab.components.simple_power_law_incision.power_law_fluvial_eroder import PowerLawIncision
-from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
-from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
+from landlab.components.simple_power_law_incision import PowerLawIncision
+from landlab.components.flow_routing import RouteFlowD8
+from landlab.components.flow_accum import AccumFlow
 import matplotlib.pyplot as plt
 
 
@@ -17,7 +17,7 @@ def main():
     dx=10
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    rg.set_inactive_boundaries(False, True, True, True)
+    rg.set_inactive_boundaries(True, True, True, False)
 
     z  = np.zeros( nnodes )
     #set-up interior elevations with random numbers
@@ -68,7 +68,7 @@ def main():
     #insantiate variable of type AccumFlow Class
     accumulator = AccumFlow(rg)
     #initial flow accumulation
-    drain_area = accumulator.calc_flowacc(rg, z, flowdirs)
+    drain_area = accumulator.calc_flowacc(z, flowdirs)
 
     plt.loglog(np.array(drain_area),np.array(max_slopes),'ro',)
     plt.xlabel('drainage area, m')

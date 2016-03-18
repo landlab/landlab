@@ -41,7 +41,7 @@ def test_set_status_with_slice():
                         FV, FV, FV, FV, FV])
 
 
-def test_set_status_with_array():
+def test_set_status_with_array_bool():
     """Test setting node status with boolean array."""
     grid = RasterModelGrid((4, 5))
     inds = np.full((20, ), False, dtype=bool)
@@ -73,8 +73,8 @@ def test_set_status_with_array():
     grid = RasterModelGrid((4, 5))
 
     assert_array_equal(grid.active_links,
-                      [1, 2, 3, 6, 7, 8, 11, 12, 13,
-                       19, 20, 21, 22, 23, 24, 25, 26])
+                      [ 5,  6,  7,  9, 10, 11, 12, 14, 15,
+                       16, 18, 19, 20, 21, 23, 24, 25])
 
     grid.status_at_node[: 5] = CB
     assert_array_equal(grid.status_at_node,
@@ -84,4 +84,4 @@ def test_set_status_with_array():
                         FV, FV, FV, FV, FV])
 
     assert_array_equal(grid.active_links,
-                      [6, 7, 8, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26])
+                      [ 9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25])

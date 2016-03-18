@@ -13,7 +13,7 @@ should not be applied at other sites without careful consideration.
 
 """
 
-from landlab.components.fire_generator.generate_fire import FireGenerator
+from landlab.components.fire_generator import FireGenerator
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 

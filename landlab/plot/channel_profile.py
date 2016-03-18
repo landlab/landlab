@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-'''
+"""Extract and plot channel long profiles.
+
 Plotting functions to extract and plot channel long profiles.
 Call all three functions in sequence from the main code.
 
@@ -13,9 +14,9 @@ the grid boundaries. You can specify how many different channels it handles
 using the number_of_channels parameter in the channel_nodes function (default
 is 1). This may lead to strange outputs if the drainage structure of the output
 changes mid-run (e.g., channel piracy). This may be modified in the future.
-
-DEJH, March 2014.
-'''
+"""
+# DEJH, March 2014.
+from six.moves import range
 
 import numpy
 try:
@@ -27,7 +28,7 @@ except ImportError:
 
 def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
     if threshold == None:
-        threshold = 2. * numpy.amin(grid.cell_areas)
+        threshold = 2. * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
     #top_two_pc = len(boundary_nodes)//50
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
@@ -58,11 +59,11 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_rec
     #flow_link_lengths[defined_flow_receivers] = grid.link_length[links_to_flow_receiver[defined_flow_receivers]]
     # print numpy.sum(defined_flow_receivers)
     distances_upstream = []
-    for i in xrange(len(profile_IDs)):
+    for i in range(len(profile_IDs)):
         data_store = []
         total_distance = 0.
         data_store.append(total_distance)
-        for j in xrange(len(profile_IDs[i]) - 1):
+        for j in range(len(profile_IDs[i]) - 1):
             total_distance += grid.link_length[
                 links_to_flow_receiver[profile_IDs[i][j + 1]]]
             data_store.append(total_distance)
@@ -71,7 +72,7 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_rec
 
 
 def plot_profiles(distances_upstream, profile_IDs, elevations):
-    for i in xrange(len(profile_IDs)):
+    for i in range(len(profile_IDs)):
         the_nodes = profile_IDs[i]
         plt.plot(distances_upstream[i], elevations[the_nodes])
 
@@ -110,7 +111,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
     internal_list = [
         0, 0, 0, 0]  # we're going to put the input arrays in here; must be a better way but this will do
     inputs = (elevations, drainage_area, flow_receiver, links_to_flow_receiver)
-    for i in xrange(5):
+    for i in range(5):
         j = inputs[i]
         if type(j) == str:
             internal_list[i] = grid.at_node[j]
@@ -125,7 +126,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
         assert len(
             starting_nodes) == number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
         if threshold == None:
-            threshold = 2. * numpy.amin(grid.cell_areas)
+            threshold = 2. * numpy.amin(grid.area_of_cell)
         profile_IDs = []
         for i in starting_nodes:
             j = i
