@@ -81,13 +81,14 @@ def test_add_ones_return_value():
 
 
 def test_add_existing_field_default():
-    """Test default is to replace existing field."""
+    """Test default is to not replace existing field."""
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
+    fields.add_empty('node', 'z')
 
-    assert_is_not(fields.add_empty('node', 'z'), fields.add_empty('node', 'z'))
-    assert_is_not(fields.add_ones('node', 'z'), fields.add_ones('node', 'z'))
-    assert_is_not(fields.add_zeros('node', 'z'), fields.add_zeros('node', 'z'))
+    assert_raises(FieldError, fields.add_empty, 'node', 'z')
+    assert_raises(FieldError, fields.add_ones, 'node', 'z')
+    assert_raises(FieldError, fields.add_zeros, 'node', 'z')
 
 
 def test_add_existing_field_with_noclobber():
@@ -114,6 +115,19 @@ def test_add_field_with_noclobber():
 
     fields.add_zeros('node', 'c', noclobber=True)
     assert_true('c' in fields['node'])
+
+
+def test_add_field_with_clobber():
+    """Test adding a field with clobber on."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+
+    assert_is_not(fields.add_empty('node', 'a'),
+                  fields.add_empty('node', 'a', noclobber=False))
+    assert_is_not(fields.add_ones('node', 'b'),
+                  fields.add_ones('node', 'b', noclobber=False))
+    assert_is_not(fields.add_zeros('node', 'c'),
+                  fields.add_zeros('node', 'c', noclobber=False))
 
 
 def test_getitem():
