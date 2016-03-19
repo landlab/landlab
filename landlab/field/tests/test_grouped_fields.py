@@ -2,14 +2,14 @@
 
 from nose.tools import assert_true, assert_false, assert_raises
 try:
-    from nose.tools import assert_is, assert_set_equal, assert_dict_equal
+    from nose.tools import assert_is_not, assert_is, assert_set_equal, assert_dict_equal
 except ImportError:
-    from landlab.testing.tools import (assert_is, assert_set_equal,
+    from landlab.testing.tools import (assert_is_not, assert_is, assert_set_equal,
                                        assert_dict_equal)
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.field.grouped import ModelDataFields, GroupError
+from landlab.field import ModelDataFields, GroupError, FieldError
 
 
 def test_init():
@@ -25,8 +25,8 @@ def test_new_field_location():
 
 def test_add_existing_group():
     fields = ModelDataFields()
-    fields.new_field_location('node', 12)
-    assert_raises(ValueError, fields.new_field_location, 'node', 24)
+    fields.new_field_location('node', size=12)
+    assert_raises(ValueError, fields.new_field_location, 'node', size=24)
 
 
 def test_add_multiple_groups():
@@ -78,6 +78,42 @@ def test_add_ones_return_value():
     assert_array_equal(rtn_value, np.ones(2))
     assert_is(rtn_value, fields['cell']['z'])
     assert_is(rtn_value, fields.field_values('cell', 'z'))
+
+
+def test_add_existing_field_default():
+    """Test default is to replace existing field."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+
+    assert_is_not(fields.add_empty('node', 'z'), fields.add_empty('node', 'z'))
+    assert_is_not(fields.add_ones('node', 'z'), fields.add_ones('node', 'z'))
+    assert_is_not(fields.add_zeros('node', 'z'), fields.add_zeros('node', 'z'))
+
+
+def test_add_existing_field_with_noclobber():
+    """Test noclobber raises an error with an existing field."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+    fields.add_empty('node', 'z')
+
+    assert_raises(FieldError, fields.add_empty, 'node', 'z', noclobber=True)
+    assert_raises(FieldError, fields.add_ones, 'node', 'z', noclobber=True)
+    assert_raises(FieldError, fields.add_zeros, 'node', 'z', noclobber=True)
+
+
+def test_add_field_with_noclobber():
+    """Test noclobber does not raise an error with an new field."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+
+    fields.add_empty('node', 'a', noclobber=True)
+    assert_true('a' in fields['node'])
+
+    fields.add_ones('node', 'b', noclobber=True)
+    assert_true('b' in fields['node'])
+
+    fields.add_zeros('node', 'c', noclobber=True)
+    assert_true('c' in fields['node'])
 
 
 def test_getitem():
