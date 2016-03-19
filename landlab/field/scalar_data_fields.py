@@ -375,7 +375,7 @@ class ScalarDataFields(dict):
         FieldError: topographic__elevation already exists
         """
         if noclobber and name in self:
-            raise FieldError(name + ' already exists')
+            raise FieldError('{name}: already exists'. format(name=name))
 
         value_array = np.asarray(value_array)
         value_array.shape = (-1, )
