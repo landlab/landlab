@@ -33,7 +33,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 #modify the fields in the grid
 z = mg.zeros(at='node') + init_elev
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
-mg.add_zeros('water__volume_flux_in', at='node')
+mg.add_zeros('water__unit_flux_in', at='node')
 
 #Set boundary conditions
 inlet_node = np.array((int((1.5*mg.number_of_node_columns)//1)))
@@ -43,8 +43,8 @@ mg.set_closed_boundaries_at_grid_edges(False, False, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
 mg.status_at_node[section_col] = 2
 mg.update_links_nodes_cells_to_new_BCs()
-mg.at_node['water__volume_flux_in'].fill(0.)
-mg.at_node['water__volume_flux_in'][inlet_node] = 1.
+mg.at_node['water__unit_flux_in'].fill(0.)
+mg.at_node['water__unit_flux_in'][inlet_node] = 1.
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 interior_nodes = mg.core_nodes

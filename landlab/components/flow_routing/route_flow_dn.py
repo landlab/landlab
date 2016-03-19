@@ -14,15 +14,15 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 from __future__ import print_function
 
 import landlab
+import warnings
 from landlab.components.flow_routing import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
 from landlab import ModelParameterDictionary
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab.utils.decorators import use_file_name_or_kwds
 import numpy
 
-
-#output_suppression_flag = True
 
 class FlowRouter(Component):
 
@@ -31,13 +31,6 @@ class FlowRouter(Component):
     This class implements single-path (steepest direction) flow routing, and
     calculates flow directions, drainage area, and (optionally) discharge.
 
-    It initializes with a reference to a ModelGrid of any kind. Optionally, it
-    can also take *input_params*, the string which is the name of a text input
-    file. The input file can optionally contain 'runoff_rate', a float giving
-    a (spatially constant) runoff rate. This is equivalent to the optional
-    input field 'water__volume_flux_in', and will override it if both are set.
-    If neither are set, value will default to 1.
-
     Note that because this router is generalizd across both regular and
     irregular grids, perimeter nodes can NEVER contribute to the accumulating
     flux, even if the gradients from them point inwards to the main body of
@@ -45,12 +38,30 @@ class FlowRouter(Component):
     cells, so cannot accumulate any discharge.
 
     The primary method of this class is :func:`route_flow`.
+
+    Construction::
+
+        FlowRouter(grid, method='D8', runoff_rate=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    method : {'D8', 'D4'}, optional
+        Routing method ('D8' is the default). This keyword has no effect for a
+        Voronoi-based grid.
+    runoff_rate : float, optional (m/time)
+        If provided, sets the (spatially constant) runoff rate. If a spatially
+        variable runoff rate is desired, use the input field
+        'water__unit_flux_in'. If both the field and argument are present at
+        the time of initialization, runoff_rate will *overwrite* the field.
+        If neither are set, defaults to spatially constant unit input.
     """
 
     _name = 'DNFlowRouter'
 
     _input_var_names = set(['topographic__elevation',
-                            'water__volume_flux_in',
+                            'water__unit_flux_in',
                             ])
 
     _output_var_names = set(['drainage_area',
@@ -62,32 +73,33 @@ class FlowRouter(Component):
                              'flow_sinks',
                              ])
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'water__volume_flux_in' : 'm**3/s',
-                  'drainage_area' : 'm**2',
-                  'flow_receiver' : '-',
-                  'topographic__steepest_slope' : '-',
-                  'water__volume_flux' : 'm**3/s',
-                  'upstream_node_order' : '-',
-                  'links_to_flow_receiver' : '-',
-                  'flow_sinks' : '-',
+    _var_units = {'topographic__elevation': 'm',
+                  'water__unit_flux_in': 'm/s',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'water__volume_flux': 'm**3/s',
+                  'upstream_node_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'flow_sinks': '-',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                    'water__volume_flux_in' : 'node',
-                    'drainage_area' : 'node',
-                    'flow_receiver' : 'node',
-                    'topographic__steepest_slope' : 'node',
-                    'water__volume_flux' : 'node',
-                    'upstream_node_order' : 'node',
-                    'links_to_flow_receiver' : 'node',
-                    'flow_sinks' : 'node',
+    _var_mapping = {'topographic__elevation': 'node',
+                    'water__unit_flux_in': 'node',
+                    'drainage_area': 'node',
+                    'flow_receiver': 'node',
+                    'topographic__steepest_slope': 'node',
+                    'water__volume_flux': 'node',
+                    'upstream_node_order': 'node',
+                    'links_to_flow_receiver': 'node',
+                    'flow_sinks': 'node',
                     }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
-        'water__volume_flux_in':
-            'External volume water input to each node (e.g., rainfall)',
+        'water__unit_flux_in':
+            ('External volume water per area per time input to each node ' +
+             '(e.g., rainfall rate)'),
         'drainage_area':
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
@@ -105,74 +117,81 @@ class FlowRouter(Component):
         'flow_sinks': 'Boolean array, True at local lows',
     }
 
-    def __init__(self, model_grid, input_params=None):
+    @use_file_name_or_kwds
+    def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         # We keep a local reference to the grid
-        self._grid = model_grid
-        self.value_field = 'topographic__elevation'
+        self._grid = grid
+        if method in ('D8', 'D4', None):
+            self.method = method
+        else:
+            raise AttributeError("method argument must be 'D8' or 'D4'")
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
-
-        if input_params:
-            if type(input_params) == str:
-                input_dict = ModelParameterDictionary(input_params)
-            else:
-                assert type(input_params) == dict
-                input_dict = input_params
+        if not self._is_raster:
+            self.method = None
 
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
         if self._is_raster:
-            dal, d8f, d8t = model_grid.d8_active_links()
+            dal, d8f, d8t = grid.d8_active_links()
             self._active_links = dal
             self._activelink_from = d8f
             self._activelink_to = d8t
             # needs modifying in the loop if D4 (now done)
         else:
-            self._active_links = model_grid.active_links
-            self._activelink_from = model_grid.activelink_fromnode
-            self._activelink_to = model_grid.activelink_tonode
+            self._active_links = grid.active_links
+            self._activelink_from = grid.activelink_fromnode
+            self._activelink_to = grid.activelink_tonode
 
         # test input variables are present:
-        model_grid.at_node['topographic__elevation']
+        grid.at_node['topographic__elevation']
         try:
-            model_grid.at_node['water__volume_flux_in']
-            self.field_for_runoff = True
+            grid.at_node['water__unit_flux_in']
         except FieldError:
-            self.field_for_runoff = False
-            # build the input array into the grid. This is important in case
-            # variable values appear during model run
-            model_grid.add_ones('node', 'water__volume_flux_in')
-
-        if not self.field_for_runoff:
-            try:
-                model_grid.at_node['water__volume_flux_in'].fill(
-                    input_dict['runoff_rate'])
-            except (KeyError, UnboundLocalError):
-                model_grid.at_node['water__volume_flux_in'].fill(1.)
-        else:
-            try:
-                model_grid.at_node['water__volume_flux_in'].fill(
-                    input_dict['runoff_rate'])
-            except (KeyError, UnboundLocalError):
-                pass
+            grid.add_empty('node', 'water__unit_flux_in')
+            if runoff_rate is None:
+                grid.at_node['water__unit_flux_in'].fill(1.)
             else:
-                print("WARNING: Both a field and input parameter are "
-                      "available for runoff value. Was this intentional?? "
-                      "Taking the input parameter value...")
+                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+        else:
+            if runoff_rate is not None:
+                print ("FlowRouter found both the field " +
+                       "'water__unit_flux_in' and a provided float or " +
+                       "array for the runoff_rate argument. THE FIELD IS " +
+                       "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
+                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+
+        # perform a test (for politeness!) that the old name for the water_in
+        # field is not present:
+        try:
+            grid.at_node['water__volume_flux_in']
+        except FieldError:
+            pass
+        else:
+            warnings.warn("This component formerly took 'water__volume_flux" +
+                          "_in' as an input field. However, this field is " +
+                          "now named 'water__unit_flux_in'. You are still " +
+                          "using a field with the old name. Please update " +
+                          "your code if you intended the FlowRouter to use " +
+                          "that field.", DeprecationWarning)
 
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = model_grid.add_zeros('drainage_area', at='node')
-        self.receiver = model_grid.add_zeros('flow_receiver', at='node')
-        self.steepest_slope = model_grid.add_zeros('topographic__steepest_slope', at='node')
-        self.discharges = model_grid.add_zeros('water__volume_flux', at='node')
-        self.upstream_ordered_nodes = model_grid.add_zeros('upstream_ID_order', at='node')
-        self.links_to_receiver = model_grid.add_zeros('links_to_flow_receiver', at='node')
+        self.drainage_area = grid.add_zeros('drainage_area', at='node')
+        self.receiver = grid.add_zeros('flow_receiver', at='node',
+                                       dtype=int)
+        self.steepest_slope = grid.add_zeros('topographic__steepest_' +
+                                             'slope', at='node')
+        self.discharges = grid.add_zeros('water__volume_flux', at='node')
+        self.upstream_ordered_nodes = grid.add_zeros('upstream_node_order',
+                                                     at='node', dtype=int)
+        self.links_to_receiver = grid.add_zeros('links_to_flow_receiver',
+                                                at='node', dtype=int)
+        grid.add_zeros('flow_sinks', at='node', dtype=int)
 
-
-    def route_flow(self, method='D8'):
+    def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
 
         Routes surface-water flow by (1) assigning to each node a single
@@ -192,12 +211,6 @@ class FlowRouter(Component):
           receiver (or ITS OWN ID if there is no receiver):
           *'links_to_flow_receiver'*
         - Boolean node array of all local lows: *'flow_sinks'*
-
-        Parameters
-        ----------
-        method : {'D8', 'D4'}, optional
-            Routing method ('D8' is the default). This keyword has no effect
-            for a Voronoi-based grid.
 
         Returns
         -------
@@ -242,7 +255,7 @@ class FlowRouter(Component):
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
-        >>> _ = mg.add_field('node', 'water__volume_flux_in', runoff_rate)
+        >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate)
         >>> mg = fr.route_flow()
         >>> mg.at_node['water__volume_flux'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,
@@ -252,23 +265,29 @@ class FlowRouter(Component):
                    0.,     0.,     0.,     0.])
 
         """
-        if method not in ('D8', 'D4'):
-            raise ValueError('method not understood ({method})'.format(
-                method=method))
-        if not self._is_raster:
-            method = None
+        # this retained for back compatibility - method now set in __init__.
+        if 'method' in kwds:
+            warnings.warn("'method' should be set at initialization now. " +
+                          "Please update your code.", DeprecationWarning)
+            # raise NameError
+            if kwds['method'] not in ('D8', 'D4'):
+                raise ValueError('method not understood ({method})'.format(
+                    method=method))
+            else:
+                self.method = kwds['method']
+            if not self._is_raster:
+                self.method = None
 
         # if elevs is not provided, default to stored grid values, which must
         # be provided as grid
-        elevs = self._grid['node'][self.value_field]
+        elevs = self._grid['node']['topographic__elevation']
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
         # closed cells can't contribute
 
-
         # Calculate the downhill-positive slopes at the d8 active links
-        if method == 'D8':
+        if self.method == 'D8':
             link_slope = - self._grid.calculate_gradients_at_d8_active_links(
                 elevs)
         else:
@@ -281,9 +300,9 @@ class FlowRouter(Component):
                              self._grid.status_at_node == 2))
 
         # Calculate flow directions
-        if method == 'D4':
+        if self.method == 'D4':
             num_d4_active = self._grid.number_of_active_links  # only d4
-            receiver, steepest_slope, sink, recvr_link  = \
+            receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
                                          self._activelink_from[:num_d4_active],
                                          self._activelink_to[:num_d4_active],
@@ -291,34 +310,31 @@ class FlowRouter(Component):
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
         else:  # Voronoi or D8
-            receiver, steepest_slope, sink, recvr_link  = \
+            receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
                                      self._activelink_from,
                                      self._activelink_to, link_slope,
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
-        #############grid=None???
 
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
 
-        #print 'sinks:', sink
-
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(
             receiver, sink, node_cell_area=node_cell_area,
-            runoff_rate=self._grid.at_node['water__volume_flux_in'])
+            runoff_rate=self._grid.at_node['water__unit_flux_in'])
 
-        #added DEJH March 2014:
-        #store the generated data in the grid
-        self._grid['node']['drainage_area'] = a
-        self._grid['node']['flow_receiver'] = receiver
-        self._grid['node']['topographic__steepest_slope'] = steepest_slope
-        self._grid['node']['water__volume_flux'] = q
-        self._grid['node']['upstream_node_order'] = s
-        self._grid['node']['links_to_flow_receiver'] = recvr_link
-        self._grid['node']['flow_sinks'] = numpy.zeros_like(receiver,
-                                                            dtype=bool)
+        # added DEJH March 2014:
+        # store the generated data in the grid
+        self._grid['node']['drainage_area'][:] = a
+        self._grid['node']['flow_receiver'][:] = receiver
+        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
+        self._grid['node']['water__volume_flux'][:] = q
+        self._grid['node']['upstream_node_order'][:] = s
+        self._grid['node']['links_to_flow_receiver'][:] = recvr_link
+        self._grid['node']['flow_sinks'][:] = numpy.zeros_like(receiver,
+                                                               dtype=bool)
         self._grid['node']['flow_sinks'][sink] = True
 
         return self._grid
