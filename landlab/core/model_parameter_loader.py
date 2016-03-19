@@ -61,6 +61,10 @@ def load_params(file_like):
     (0.0, 10.0, 2.0)
     """
     try:
+        file_like = file_like.read()
+    except AttributeError:  # was a str
+        pass
+    try:
         params = yaml.load(file_like, Loader=_loader)
     except yaml.YAMLError:
         if isinstance(file_like, six.string_types):
