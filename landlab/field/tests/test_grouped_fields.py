@@ -55,11 +55,11 @@ def test_add_ones():
     fields.new_field_location('node', 12)
     fields.new_field_location('cell', 2)
 
-    fields.add_ones('node', 'z')
+    fields.add_ones('z', at='node')
     assert_array_equal(np.ones(12), fields['node']['z'])
     assert_array_equal(np.ones(12), fields.field_values('node', 'z'))
 
-    fields.add_ones('cell', 'z')
+    fields.add_ones('z', at='cell')
     assert_array_equal(np.ones(2), fields['cell']['z'])
     assert_array_equal(np.ones(2), fields.field_values('cell', 'z'))
 
@@ -69,12 +69,12 @@ def test_add_ones_return_value():
     fields.new_field_location('node', 12)
     fields.new_field_location('cell', 2)
 
-    rtn_value = fields.add_ones('node', 'z')
+    rtn_value = fields.add_ones('z', at='node')
     assert_array_equal(rtn_value, np.ones(12))
     assert_is(rtn_value, fields['node']['z'])
     assert_is(rtn_value, fields.field_values('node', 'z'))
 
-    rtn_value = fields.add_ones('cell', 'z')
+    rtn_value = fields.add_ones('z', at='cell')
     assert_array_equal(rtn_value, np.ones(2))
     assert_is(rtn_value, fields['cell']['z'])
     assert_is(rtn_value, fields.field_values('cell', 'z'))
@@ -84,22 +84,22 @@ def test_add_existing_field_default():
     """Test default is to not replace existing field."""
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
-    fields.add_empty('node', 'z')
+    fields.add_empty('z', at='node')
 
-    assert_raises(FieldError, fields.add_empty, 'node', 'z')
-    assert_raises(FieldError, fields.add_ones, 'node', 'z')
-    assert_raises(FieldError, fields.add_zeros, 'node', 'z')
+    assert_raises(FieldError, fields.add_empty, 'z', at='node')
+    assert_raises(FieldError, fields.add_ones, 'z', at='node')
+    assert_raises(FieldError, fields.add_zeros, 'z', at='node')
 
 
 def test_add_existing_field_with_noclobber():
     """Test noclobber raises an error with an existing field."""
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
-    fields.add_empty('node', 'z')
+    fields.add_empty('z', at='node')
 
-    assert_raises(FieldError, fields.add_empty, 'node', 'z', noclobber=True)
-    assert_raises(FieldError, fields.add_ones, 'node', 'z', noclobber=True)
-    assert_raises(FieldError, fields.add_zeros, 'node', 'z', noclobber=True)
+    assert_raises(FieldError, fields.add_empty, 'z', at='node', noclobber=True)
+    assert_raises(FieldError, fields.add_ones, 'z', at='node', noclobber=True)
+    assert_raises(FieldError, fields.add_zeros, 'z', at='node', noclobber=True)
 
 
 def test_add_field_with_noclobber():
@@ -107,13 +107,13 @@ def test_add_field_with_noclobber():
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
 
-    fields.add_empty('node', 'a', noclobber=True)
+    fields.add_empty('a', at='node', noclobber=True)
     assert_true('a' in fields['node'])
 
-    fields.add_ones('node', 'b', noclobber=True)
+    fields.add_ones('b', at='node', noclobber=True)
     assert_true('b' in fields['node'])
 
-    fields.add_zeros('node', 'c', noclobber=True)
+    fields.add_zeros('c', at='node', noclobber=True)
     assert_true('c' in fields['node'])
 
 
@@ -122,12 +122,12 @@ def test_add_field_with_clobber():
     fields = ModelDataFields()
     fields.new_field_location('node', 12)
 
-    assert_is_not(fields.add_empty('node', 'a'),
-                  fields.add_empty('node', 'a', noclobber=False))
-    assert_is_not(fields.add_ones('node', 'b'),
-                  fields.add_ones('node', 'b', noclobber=False))
-    assert_is_not(fields.add_zeros('node', 'c'),
-                  fields.add_zeros('node', 'c', noclobber=False))
+    assert_is_not(fields.add_empty('a', at='node'),
+                  fields.add_empty('a', at='node', noclobber=False))
+    assert_is_not(fields.add_ones('b', at='node'),
+                  fields.add_ones('b', at='node', noclobber=False))
+    assert_is_not(fields.add_zeros('c', at='node'),
+                  fields.add_zeros('c', at='node', noclobber=False))
 
 
 def test_getitem():
@@ -146,7 +146,7 @@ def test_at_attribute():
     assert_dict_equal(dict(), fields.at_node)
     assert_raises(AttributeError, lambda: fields.at_cell)
 
-    fields.add_ones('node', 'z')
+    fields.add_ones('z', at='node')
     assert_array_equal(np.ones(12), fields.at_node['z'])
 
 
