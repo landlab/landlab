@@ -105,7 +105,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
