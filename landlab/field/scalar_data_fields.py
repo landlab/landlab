@@ -311,7 +311,7 @@ class ScalarDataFields(dict):
                               noclobber=noclobber)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False,
-                  noclobber=True):
+                  noclobber=True, **kwds):
         """Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
@@ -364,17 +364,18 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('topographic__elevation', values, copy=True, noclobber=False)
+        >>> field.add_field('topographic__elevation', values, copy=True,
+        ...                 noclobber=False)
         array([1, 1, 1, 1])
         >>> field['topographic__elevation'] is values
         False
         >>> field.add_field('topographic__elevation', values, noclobber=True)
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        FieldError: topographic__elevation
+        FieldError: topographic__elevation already exists
         """
         if noclobber and name in self:
-            raise FieldError(name)
+            raise FieldError(name + ' already exists')
 
         value_array = np.asarray(value_array)
         value_array.shape = (-1, )
