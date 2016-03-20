@@ -32,6 +32,8 @@ class FillInfiltrateKinematicWave(Component):
         >>> _ = mg.add_field('node', 'topographic__elevation', 0.05*mg.node_x)
         >>> _ = mg.add_empty('node', 'surface_water__depth')
         >>> mg.at_node['surface_water__depth'].fill(1.e-8)
+        >>> _ = mg.add_ones('node', 'soil_water_infiltration__depth')
+        >>> mg.at_node['soil_water_infiltration__depth'] *= 0.2
         >>> dt = 60.  # 1 min intervals
         >>> rain_array = np.zeros_like(mg.node_x, dtype=float)
         >>> rain_array.reshape((5, 10))[:,-3:] = 5.e-5
