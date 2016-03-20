@@ -119,7 +119,6 @@ def setup_dans_grid3():
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
     fr = FlowRouter(mg)
-    hf = SinkFiller(mg)
 
 
 def setup_dans_grid4():
@@ -154,7 +153,6 @@ def setup_dans_grid4():
     mg.add_field('node', 'topographic__elevation', z, units='-')
 
     fr = FlowRouter(mg)
-    hf = SinkFiller(mg)
 
 
 def setup_dans_grid5():
@@ -203,9 +201,8 @@ def setup_dans_grid5():
     depr_outlet_target = XX  # not well defined in this simplest case...?
 
     mg.add_field('node', 'topographic__elevation', z, units='-')
-    
+
     fr = FlowRouter(mg)
-    hf = SinkFiller(mg, routing='D4')
 
 
 @with_setup(setup_dans_grid1)
@@ -302,6 +299,7 @@ def test_filler_inclined():
     """
     Tests a flat fill into an inclined surface, with two holes.
     """
+    hf = SinkFiller(mg)
     hf.fill_pits()
     assert_array_equal(mg.at_node['topographic__elevation'][lake1],
                        np.ones(9, dtype=float)*4.)
@@ -379,6 +377,7 @@ def test_D4_filling():
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 without inclining the surface.
     """
+    hf = SinkFiller(mg, routing='D4')
     hf.fill_pits()
     hole1 = 4.*np.ones_like(lake1, dtype=float)
     hole1[-1] += 0.001
