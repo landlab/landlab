@@ -36,7 +36,7 @@ mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 figure(3)
 imshow_node_grid(mg, mg.status_at_node)
 
-mg.at_node['water__volume_flux_in'] = np.ones_like(z)
+mg.at_node['water__unit_flux_in'] = np.ones_like(z)
 
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
@@ -49,8 +49,8 @@ imshow_node_grid(mg, 'topographic__elevation')
 
 out_sum = np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))[-3,:])
 print(out_sum)
-print(np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
-print(out_sum - np.sum(mg.at_node['water__volume_flux_in']))
+print(np.sum(mg.at_node['water__unit_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(out_sum - np.sum(mg.at_node['water__unit_flux_in']))
 
 show()
 
@@ -103,8 +103,8 @@ mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 #make some K values in a field to test
 mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
-#mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)
-mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
+#mg.at_node['water__unit_flux_in'] = dx*dx*np.ones_like(z)
+mg.at_node['water__unit_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
 #mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 #mg.set_closed_boundaries_at_grid_edges(True, False, True, True)
 
@@ -151,7 +151,7 @@ imshow_node_grid(mg, 'water__volume_flux_xcomponent')
 figure('ycomp')
 imshow_node_grid(mg, 'water__volume_flux_ycomponent')
 
-print('flux in per node: ', mg.at_node['water__volume_flux_in'][0])
-print('water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
-print(-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))
-print((-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0])
+print('flux in per node: ', mg.at_node['water__unit_flux_in'][0])
+print('water in, water out: ', np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
+print(-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]))
+print((-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]))/mg.at_node['water__unit_flux_in'][0])
