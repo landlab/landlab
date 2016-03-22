@@ -27,7 +27,7 @@ class SteepnessFinder(Component):
     Construction::
 
         SteepnessFinder(grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                        elev_step=0., smooth_elev=False, smooth_slope=False)
+                        elev_step=0., discretization_length=0.)
 
     Parameters
     ----------
@@ -50,12 +50,6 @@ class SteepnessFinder(Component):
         discretization_length. If only one (or no) points are present in a
         segment, it will be lumped together with the next segment.
         If zero, one value is assigned to each channel node.
-    smooth_elev : bool (default False)
-        Controls whether to smooth elevations. geomorphtools do this.
-    smooth_slope : bool (default False)
-        Controls whether to use a mean local slope (all surrounding nodes),
-        or whether to use only the steepest downstream slope (default).
-        geomorphtools do the former.
 
     Examples
     --------
@@ -66,7 +60,7 @@ class SteepnessFinder(Component):
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
     ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-    >>> mg.add_field('node', 'topographic__elevation', mg.node_x/1000.)
+    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x/1000.)
     >>> fr = FlowRouter(mg)
     >>> sp = FastscapeEroder(mg, K_sp=0.01)
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
@@ -75,17 +69,10 @@ class SteepnessFinder(Component):
     ...     _ = fr.route_flow()
     ...     sp.run_one_timestep(1000.)
     >>> sf.calculate_steepnesses()
-    >>> mg.at_node['channel__steepness_index']
-    array([  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   4.05171823e-05,
-             4.05171823e-05,   4.05171823e-05,   4.05171823e-05,
-             4.05171823e-05,   4.05171823e-05,   4.05171823e-05,
-             4.05171823e-05,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
-             0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
+    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
+    array([  0.        ,  29.28427125,   1.        ,   1.        ,
+             1.        ,   1.        ,   1.        ,   1.        ,
+             0.99999997,   0.        ])
     >>> sf.hillslope_mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True, False, False, False, False, False, False, False, False,
@@ -142,8 +129,7 @@ class SteepnessFinder(Component):
                 }
 
     def __init__(self, grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                 elev_step=0., discretization_length=0.,
-                 smooth_elev=False, smooth_slope=False, **kwds):
+                 elev_step=0., discretization_length=0., **kwds):
         """
         Constructor for the component.
         """
@@ -153,8 +139,6 @@ class SteepnessFinder(Component):
         assert elev_step >= 0., "elev_step must be >= 0!"
         self._elev_step = elev_step
         self._discretization = discretization_length
-        self._smooth_elev = smooth_elev
-        self._smooth_slope = smooth_slope
         self.ksn = self._grid.add_zeros('node', 'channel__steepness_index')
         self._mask = self.grid.ones('node', dtype=bool)
         # this one needs modifying if smooth_elev
@@ -181,8 +165,6 @@ class SteepnessFinder(Component):
         elev_step = kwds.get('elev_step', self._elev_step)
         discretization_length = kwds.get('discretization_length',
                                          self._discretization)
-        smooth_elev = kwds.get('smooth_elev', self._smooth_elev)
-        smooth_slope = kwds.get('smooth_slope', self._smooth_slope)
 
         upstr_order = self.grid.at_node['upstream_node_order']
         # get an array of only nodes with A above threshold:
@@ -236,23 +218,22 @@ class SteepnessFinder(Component):
                 else:
                     # all the nodes; much easier as links work
                     ch_nodes = np.array(nodes_in_channel)
+                    ch_dists = self.channel_distances_downstream(ch_nodes)
                     ch_A = self.grid.at_node['drainage_area'][ch_nodes]
                     ch_S = self.grid.at_node['topographic__steepest_slope'][
                         ch_nodes]
                     assert np.all(ch_S >= 0.)
                 # if we're doing spatial discretization, do it here:
                 if discretization_length:
-                    ch_ksn = calc_ksn_discretized(ch_dists, ch_A, ch_S,
-                                                  reftheta,
-                                                  discretization_length)
+                    ch_ksn = self.calc_ksn_discretized(ch_dists, ch_A, ch_S,
+                                                       reftheta,
+                                                       discretization_length)
                 else:  # not discretized
                     # also chopping off the final node, as above
                     log_A = np.log10(ch_A[:-1])
                     log_S = np.log10(ch_S[:-1])
-                    meanlog_A = np.mean(log_A)
-                    meanlog_S = np.mean(log_S)
                     # we're potentially propagating nans here if S<=0
-                    log_ksn = meanlog_S + self._reftheta*meanlog_A
+                    log_ksn = log_S + reftheta*log_A
                     ch_ksn = 10.**log_ksn
                 # save the answers into the main arrays:
                 assert np.all(self._mask[ch_nodes[:-1]])
@@ -287,13 +268,13 @@ class SteepnessFinder(Component):
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
         >>> mg.status_at_node[[6, 12, 13, 14]] = CLOSED_BOUNDARY
-        >>> mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowRouter(mg)
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.route_flow()
         >>> ch_nodes = np.array([8, 7, 11, 10])
         >>> sf.channel_distances_downstream(ch_nodes)
-        np.array([  0.        ,  10.        ,  21.18033989,  31.18033989])
+        array([  0.        ,  10.        ,  21.18033989,  31.18033989])
         """
         ch_links = self.grid.at_node['links_to_flow_receiver'][
             ch_nodes]
@@ -336,7 +317,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-        >>> mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
+        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
         >>> fr = FlowRouter(mg)
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.route_flow()
@@ -414,7 +395,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-        >>> mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowRouter(mg)
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.route_flow()
@@ -422,16 +403,19 @@ class SteepnessFinder(Component):
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
         >>> ch_A = mg.at_node['drainage_area'][ch_nodes]
         >>> ch_S = mg.at_node['topographic__steepest_slope'][ch_nodes]
+
         >>> ksn_25 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 25.)
         >>> ksn_25.size == ch_dists.size - 1
         True
         >>> ksn_25
-        array([-1.        ,  0.0903602 ,  0.0903602 ,  0.06367732,  0.06367732,
-        0.06367732,  0.05169732,  0.05169732])
+        array([ -1.        ,  11.0668192 ,  11.0668192 ,  15.70417802,
+                15.70417802,  15.70417802,  19.3433642 ,  19.3433642 ])
+
         >>> ksn_10 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 10.)
         >>> ksn_10
-        array([ 0.11892071,  0.11892071,  0.07598357,  0.07598357,  0.06042751,
-        0.06042751,  0.05169732,  0.05169732])
+        array([  8.40896415,   8.40896415,  13.16074013,  13.16074013,
+                16.5487546 ,  16.5487546 ,  19.3433642 ,  19.3433642 ])
+
         >>> ch_ksn_overdiscretized = sf.calc_ksn_discretized(
         ...     ch_dists, ch_A, ch_S, 0.5, 10.)
         >>> np.allclose(ch_ksn_overdiscretized, ksn_10)
