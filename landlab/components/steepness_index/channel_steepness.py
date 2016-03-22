@@ -202,26 +202,11 @@ class SteepnessFinder(Component):
                     # now we can fairly closely follow the Topotools algorithm:
                     ch_nodes = np.array(nodes_in_channel)
                     # ^ this is top-to-bottom
-                    ch_z = self.grid.at_node['topographic__elevation'][
-                        ch_nodes]
                     ch_A = self.grid.at_node['drainage_area'][ch_nodes]
-                    ch_links = self.grid.at_node['links_to_flow_receiver'][
-                        ch_nodes]
-                    ch_dists = np.empty_like(ch_A)
-                    # dists from ch head, NOT drainage divide
-                    ch_dists[0] = 0.
-                    ch_dists = np.cumsum(self.grid.link_length[ch_links[:-1]],
-                                         out=ch_dists[1:])
-                    interp_pt_x = np.interp(interp_pt_elevs, ch_z, ch_dists)
-                    interp_pt_S = np.empty_like(interp_pt_A)
-                    # now a downwind map of the slopes onto the nodes
-                    # slopes are defined positive
-                    z_diff = interp_pt_elevs[:-1] - interp_pt_elevs[1:]
-                    x_diff = interp_pt_x[1:] - interp_pt_x[:-1]
-                    np.divide(z_diff, x_diff, out=interp_pt_S[:-1])
-                    interp_pt_S[-1] = interp_pt_S[-2]
-                    # Map S back onto nodes
-                    ch_S = np.interp(ch_z, interp_pt_elevs, interp_pt_S)
+                    ch_dists = self.channel_distances_downstream(ch_nodes)
+                    ch_S = self.interpolate_slopes_with_step(ch_nodes,
+                                                             ch_dists,
+                                                             interp_pt_elevs)
                 else:
                     # all the nodes; much easier as links work
                     ch_nodes = np.array(nodes_in_channel)
@@ -231,7 +216,6 @@ class SteepnessFinder(Component):
                     assert np.all(ch_S >= 0.)
                 # if we're doing spatial discritization, do it here:
                 if self._discritization:
-                    # num_segs = ch_dists[-1]//self._discritization
                     ch_ksn = np.empty_like(ch_A)
                     seg_ends = np.arange(ch_dists[-1], 0.,
                                          -self._discritization)[::-1]
@@ -277,6 +261,83 @@ class SteepnessFinder(Component):
                 # ...perhaps we need to trim off the final node?
                 self.ksn[ch_nodes] = ch_ksn
                 self._mask[ch_nodes] = False
+
+    def channel_distances_downstream(self, ch_nodes):
+        """
+        Calculates distances downstream from top node of a defined flowpath.
+
+        Parameters
+        ----------
+        ch_nodes : array of ints
+            The nodes along a single defined flow path, starting upstream.
+
+        Returns
+        -------
+        ch_dists : array of floats
+            Distances downstream from top node of ch_nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter
+        >>> mg = RasterModelGrid((4,5), (5., 10.))
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[[6, 12, 13, 14]] = CLOSED_BOUNDARY
+        >>> mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> fr = FlowRouter(mg)
+        >>> sf = SteepnessFinder(mg)
+        >>> _ = fr.route_flow()
+        >>> ch_nodes = np.array([8, 7, 11, 10])
+        >>> sf.channel_distances_downstream(ch_nodes)
+        np.array([0., 10., 21.18033989, 31.18033989])
+        """
+        ch_links = self.grid.at_node['links_to_flow_receiver'][
+            ch_nodes]
+        ch_dists = np.empty_like(ch_nodes, dtype=float)
+        # dists from ch head, NOT drainage divide
+        ch_dists[0] = 0.
+        ch_dists = np.cumsum(self.grid.link_length[ch_links[:-1]],
+                             out=ch_dists[1:])
+        return ch_dists
+
+    def interpolate_slopes_with_step(self, ch_nodes, ch_dists,
+                                     interp_pt_elevs):
+        """
+        Maps slopes to nodes, interpolating withing defined vertical intervals.
+
+        This follows topotools' discritization methods. It is essentially a
+        downwind map of the slopes.
+
+        Parameters
+        ----------
+        ch_nodes : array of ints
+            The nodes along a single defined flow path, starting upstream.
+        ch_dists : array of floats
+            Distances downstream from top node of ch_nodes.
+        interp_pt_elevs : array of floats
+            Elevations at the discritizing points along the profile.
+
+        Returns
+        -------
+        ch_S : array of floats
+            Interpolated slopes at each node in the flowpath.
+        """
+        ch_z = self.grid.at_node['topographic__elevation'][
+            ch_nodes]
+        interp_pt_x = np.interp(interp_pt_elevs, ch_z, ch_dists)
+        interp_pt_S = np.empty_like(interp_pt_elevs)
+        # now a downwind map of the slopes onto the nodes
+        # slopes are defined positive
+        z_diff = interp_pt_elevs[:-1] - interp_pt_elevs[1:]
+        x_diff = interp_pt_x[1:] - interp_pt_x[:-1]
+        np.divide(z_diff, x_diff, out=interp_pt_S[:-1])
+        interp_pt_S[-1] = interp_pt_S[-2]
+        # Map S back onto nodes
+        ch_S = np.interp(ch_z, interp_pt_elevs, interp_pt_S)
+
+        return ch_S, ch_dists
 
     @property
     def steepness_indices(self):
