@@ -219,7 +219,8 @@ class SteepnessFinder(Component):
                     if interp_pt_elevs.size <= 1:
                         # <1 step; bail on this whole segment
                         break
-                    # now we can fairly closely follow the Topotools algorithm:
+                    # now we can fairly closely follow the Geomorphtools
+                    # algorithm:
                     ch_nodes = np.array(nodes_in_channel)
                     # ^ this is top-to-bottom
                     ch_A = self.grid.at_node['drainage_area'][ch_nodes]
@@ -302,7 +303,7 @@ class SteepnessFinder(Component):
         """
         Maps slopes to nodes, interpolating withing defined vertical intervals.
 
-        This follows topotools' discretization methods. It is essentially a
+        This follows Geomorphtools' discretization methods. It is essentially a
         downwind map of the slopes.
 
         Parameters
