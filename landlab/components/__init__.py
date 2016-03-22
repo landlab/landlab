@@ -15,6 +15,7 @@ from .simple_power_law_incision import PowerLawIncision
 from .single_vegetation import Vegetation
 from .sink_fill import SinkFiller
 from .soil_moisture import SoilMoisture
+from .steepness_index import SteepnessFinder
 from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
@@ -28,6 +29,7 @@ COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
               PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
               PowerLawIncision, Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
-              TransportLimitedEroder, PrecipitationDistribution, VegCA]
+              TransportLimitedEroder, SteepnessFinder,
+              PrecipitationDistribution, VegCA]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
