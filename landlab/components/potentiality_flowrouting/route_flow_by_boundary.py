@@ -35,7 +35,7 @@ class PotentialityFlowRouter(Component):
     _name = 'PotentialityFlowRouter'
 
     _input_var_names = set(['topographic__elevation',
-                            'water__volume_flux_in',
+                            'water__unit_flux_in',
                             ])
 
     _output_var_names = set(['water__volume_flux_magnitude',
@@ -47,7 +47,7 @@ class PotentialityFlowRouter(Component):
                              ])
 
     _var_units = {'topographic__elevation' : 'm',
-                  'water__volume_flux_in' : 'm**3/s',
+                  'water__unit_flux_in' : 'm/s',
                   'water__volume_flux_magnitude' : 'm**3/s',
                   'water__volume_flux_xcomponent' : 'm**3/s',
                   'water__volume_flux_ycomponent' : 'm**3/s',
@@ -57,7 +57,7 @@ class PotentialityFlowRouter(Component):
                   }
 
     _var_mapping = {'topographic__elevation' : 'node',
-                  'water__volume_flux_in' : 'node',
+                  'water__unit_flux_in' : 'node',
                   'water__volume_flux_magnitude' : 'node',
                   'water__volume_flux_xcomponent' : 'node',
                   'water__volume_flux_ycomponent' : 'node',
@@ -67,7 +67,7 @@ class PotentialityFlowRouter(Component):
                   }
 
     _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
-                  'water__volume_flux_in' : 'External volume water input to each node (e.g., rainfall)',
+                  'water__unit_flux_in' : 'External volume water per area per time input to each node (e.g., rainfall rate)',
                   'water__volume_flux_magnitude' : 'Magnitude of volumetric water flux through each node',
                   'water__volume_flux_xcomponent' : 'x component of resolved water flux through node',
                   'water__volume_flux_ycomponent' : 'y component of resolved water flux through node',
@@ -229,7 +229,7 @@ class PotentialityFlowRouter(Component):
         one_over_dx = 1./self._grid.dx
         one_over_dy = 1./self._grid.dy
         one_over_diagonal = 1./np.sqrt(self._grid.dx**2+self._grid.dy**2)
-        qwater_in = self._grid.at_node['water__volume_flux_in'].reshape((self._grid.number_of_node_rows, self._grid.number_of_node_columns))
+        qwater_in = self._grid.at_node['water__unit_flux_in'].reshape((self._grid.number_of_node_rows, self._grid.number_of_node_columns))
         prev_K = K.copy()
         bbN = self.boundaryboundaryN
         bbS = self.boundaryboundaryS

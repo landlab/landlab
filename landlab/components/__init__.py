@@ -3,7 +3,7 @@ from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
 from .flexure import Flexure
 from .flow_accum import AccumFlow
-from .flow_routing import FlowRouter, DepressionFinderAndRouter, RouteFlowD8
+from .flow_routing import FlowRouter, DepressionFinderAndRouter
 from .glacier_thin_ice_model import Glacier
 from .nonlinear_diffusion import PerronNLDiffuse
 from .overland_flow import OverlandFlowBates, OverlandFlow
@@ -23,7 +23,7 @@ from .vegetation_ca import VegCA
 
 COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
-              RouteFlowD8, Glacier, PerronNLDiffuse, OverlandFlowBates,
+              Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
               PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
               PowerLawIncision, Vegetation, SinkFiller, SoilMoisture,
