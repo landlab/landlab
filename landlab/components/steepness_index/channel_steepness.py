@@ -56,6 +56,42 @@ class SteepnessFinder(Component):
         Controls whether to use a mean local slope (all surrounding nodes),
         or whether to use only the steepest downstream slope (default).
         geomorphtools do the former.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.components import FlowRouter, FastscapeEroder
+    >>> mg = RasterModelGrid((3, 10), (100., 100.))
+    >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+    ...               mg.nodes_at_top_edge):
+    ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+    >>> mg.add_field('node', 'topographic__elevation', mg.node_x/1000.)
+    >>> fr = FlowRouter(mg)
+    >>> sp = FastscapeEroder(mg, K_sp=0.01)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
+    >>> for i in xrange(10):
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
+    ...     _ = fr.route_flow()
+    ...     sp.run_one_timestep(1000.)
+    >>> sf.calculate_steepnesses()
+    >>> mg.at_node['channel__steepness_index']
+    array([  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   4.05171823e-05,
+             4.05171823e-05,   4.05171823e-05,   4.05171823e-05,
+             4.05171823e-05,   4.05171823e-05,   4.05171823e-05,
+             4.05171823e-05,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+             0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
+    >>> sf.hillslope_mask
+    array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
+            True, False, False, False, False, False, False, False, False,
+           False,  True,  True,  True,  True,  True,  True,  True,  True,
+            True,  True,  True], dtype=bool)
+
     """
     _name = 'SteepnessFinder'
 
@@ -116,7 +152,7 @@ class SteepnessFinder(Component):
         self.min_drainage = min_drainage_area
         assert elev_step >= 0., "elev_step must be >= 0!"
         self._elev_step = elev_step
-        self._discritization = discretization_length
+        self._discretization = discretization_length
         self._smooth_elev = smooth_elev
         self._smooth_slope = smooth_slope
         self.ksn = self._grid.add_zeros('node', 'channel__steepness_index')
@@ -132,42 +168,32 @@ class SteepnessFinder(Component):
         This "run" method can optionally take the same parameter set as
         provided at instantiation. If they are provided, they will override
         the existing values from instantiation.
+
+        Normalized steepness of any node without a defined value is reported
+        as 0. These nodes are also identified in the mask retrieved with
+        :func:`hillslope_mask`.
         """
         self._mask.fill(True)
         self.ksn.fill(0.)
         # test for new kwds:
-        try:
-            reftheta = kwds['reference_concavity']
-        except KeyError:
-            reftheta = self._reftheta
-        try:
-            min_drainage = kwds['min_drainage_area']
-        except KeyError:
-            min_drainage = self.min_drainage
-        try:
-            elev_step = kwds['elev_step']
-        except KeyError:
-            elev_step = self._elev_step
-        try:
-            smooth_elev = kwds['smooth_elev']
-        except KeyError:
-            smooth_elev = self._smooth_elev
-        try:
-            smooth_slope = kwds['smooth_slope']
-        except KeyError:
-            smooth_slope = self._smooth_slope
+        reftheta = kwds.get('reference_concavity', self._reftheta)
+        min_drainage = kwds.get('min_drainage_area', self.min_drainage)
+        elev_step = kwds.get('elev_step', self._elev_step)
+        discretization_length = kwds.get('discretization_length',
+                                         self._discretization)
+        smooth_elev = kwds.get('smooth_elev', self._smooth_elev)
+        smooth_slope = kwds.get('smooth_slope', self._smooth_slope)
+
         upstr_order = self.grid.at_node['upstream_node_order']
         # get an array of only nodes with A above threshold:
         valid_dstr_order = (upstr_order[self.grid.at_node['drainage_area'][
-            upstr_order] > min_drainage_area])[::-1]
+            upstr_order] >= min_drainage])[::-1]
         valid_dstr_elevs = self.grid.at_node['topographic__elevation'][
             valid_dstr_order]
         valid_dstr_areas = self.grid.at_node['drainage_area'][valid_dstr_order]
         # note elevs are guaranteed to be in order, UNLESS a fill
         # algorithm has been used.
         nodes_incorporated = self.grid.zeros('node', dtype=bool)
-        # setup the array for the steepnesses
-        self._steepnesses = self.grid.ones
         # now do each poss channel in turn
         # get the head of the first (longest!) channel:
         for dstr_order_index in xrange(valid_dstr_order.size):
@@ -186,16 +212,16 @@ class SteepnessFinder(Component):
                     current_node_incorporated = nodes_incorporated[next_node]
                     # ^ this is a COPY op, so we're free to update the array
                     nodes_incorporated[next_node] = True
-                    penultimate_node = current_node
+                    penultimate_node = next_node
                 # by here, we have a full, unique reach in nodes_in_channel
                 # it incorporates a single, duplicate node at the lower end
                 # Now, if this segment long enough?
-                if self._elev_step:
+                if elev_step:
                     top_elev = self._elev[nodes_in_channel[0]]
                     base_elev = self._elev[nodes_in_channel[-1]]
                     # work up the channel from the base to make new interp pts
                     interp_pt_elevs = np.arange(base_elev, top_elev,
-                                                self._elev_step)
+                                                elev_step)
                     if interp_pt_elevs.size <= 1:
                         # <1 step; bail on this whole segment
                         break
@@ -214,53 +240,28 @@ class SteepnessFinder(Component):
                     ch_S = self.grid.at_node['topographic__steepest_slope'][
                         ch_nodes]
                     assert np.all(ch_S >= 0.)
-                # if we're doing spatial discritization, do it here:
-                if self._discritization:
-                    ch_ksn = np.empty_like(ch_A)
-                    seg_ends = np.arange(ch_dists[-1], 0.,
-                                         -self._discritization)[::-1]
-                    # ^ counts up from 0, but terminates at the far end cleanly
-                    pts_in_each_seg = np.searchsorted(seg_ends, ch_dists)
-                    num_segs = np.searchsorted[-1] + 1
-                    i = num_segs - 1
-                    while i >= 0:
-                        pts_in_seg = pts_in_each_seg == i
-                        num_pts_in_seg = int(pts_in_seg.sum())
-                        # make sure there's always 2 pts in the seg...
-                        while num_pts_in_seg < 2:
-                            old_i = i
-                            i -= 1
-                            pts_in_seg = np.intersect1d(
-                                pts_in_each_seg <= old_i,
-                                pts_in_each_seg >= i)
-                            num_pts_in_seg = int(pts_in_seg.sum())
-                            if i < 0:
-                                break
-                        if num_pts_in_seg < 2:
-                            # must be at the end of the seg...
-                            break
-                        seg_A = ch_A[pts_in_seg]
-                        seg_S = ch_S[pts_in_seg]
-                        logseg_A = np.log10(seg_A)
-                        logseg_S = np.log10(seg_S)
-                        meanlogseg_A = np.mean(logseg_A)
-                        meanlogseg_S = np.mean(logseg_S)
-                        logseg_ksn = meanlogseg_S - self._reftheta*meanlogseg_A
-                        ch_ksn[pts_in_seg] = 10.**logseg_ksn
-                        i -= 1
-                else:  # not discritized
-                    log_A = np.log10(ch_A)
-                    log_S = np.log10(ch_S)
+                # if we're doing spatial discretization, do it here:
+                if discretization_length:
+                    ch_ksn = calc_ksn_discretized(ch_dists, ch_A, ch_S,
+                                                  reftheta,
+                                                  discretization_length)
+                else:  # not discretized
+                    # also chopping off the final node, as above
+                    log_A = np.log10(ch_A[:-1])
+                    log_S = np.log10(ch_S[:-1])
                     meanlog_A = np.mean(log_A)
                     meanlog_S = np.mean(log_S)
                     # we're potentially propagating nans here if S<=0
-                    log_ksn = meanlog_S - self._reftheta*meanlog_A
+                    log_ksn = meanlog_S + self._reftheta*meanlog_A
                     ch_ksn = 10.**log_ksn
                 # save the answers into the main arrays:
-                assert np.all(self._mask[ch_nodes])
-                # ...perhaps we need to trim off the final node?
-                self.ksn[ch_nodes] = ch_ksn
+                assert np.all(self._mask[ch_nodes[:-1]])
+                # Final node gets trimmed off...
+                self.ksn[ch_nodes[:-1]] = ch_ksn
                 self._mask[ch_nodes] = False
+        # now a final sweep to remove any undefined ksn values:
+        self._mask[self.ksn == -1.] = True
+        self.ksn[self.ksn == -1.] = 0.
 
     def channel_distances_downstream(self, ch_nodes):
         """
@@ -278,6 +279,7 @@ class SteepnessFinder(Component):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter
         >>> mg = RasterModelGrid((4,5), (5., 10.))
@@ -291,15 +293,15 @@ class SteepnessFinder(Component):
         >>> _ = fr.route_flow()
         >>> ch_nodes = np.array([8, 7, 11, 10])
         >>> sf.channel_distances_downstream(ch_nodes)
-        np.array([0., 10., 21.18033989, 31.18033989])
+        np.array([  0.        ,  10.        ,  21.18033989,  31.18033989])
         """
         ch_links = self.grid.at_node['links_to_flow_receiver'][
             ch_nodes]
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.
-        ch_dists = np.cumsum(self.grid.link_length[ch_links[:-1]],
-                             out=ch_dists[1:])
+        np.cumsum(self.grid.link_length[ch_links[:-1]],
+                  out=ch_dists[1:])
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists,
@@ -307,7 +309,7 @@ class SteepnessFinder(Component):
         """
         Maps slopes to nodes, interpolating withing defined vertical intervals.
 
-        This follows topotools' discritization methods. It is essentially a
+        This follows topotools' discretization methods. It is essentially a
         downwind map of the slopes.
 
         Parameters
@@ -317,16 +319,47 @@ class SteepnessFinder(Component):
         ch_dists : array of floats
             Distances downstream from top node of ch_nodes.
         interp_pt_elevs : array of floats
-            Elevations at the discritizing points along the profile.
+            Elevations at the discretizing points along the profile, in order
+            of increasing elevation.
 
         Returns
         -------
         ch_S : array of floats
-            Interpolated slopes at each node in the flowpath.
+            Interpolated slopes at each node in the flowpath (always positive).
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter
+        >>> mg = RasterModelGrid((3,10), (5., 10.))
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
+        >>> fr = FlowRouter(mg)
+        >>> sf = SteepnessFinder(mg)
+        >>> _ = fr.route_flow()
+        >>> ch_nodes = np.arange(18, 9, -1)
+        >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
+        >>> interp_pt_elevs = np.array([0., 30., 60., 90., 120.])
+        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists,
+        ...                                 interp_pt_elevs)
+        array([ 1.67970205,  1.67970205,  1.67970205,  1.65129294,  1.62115336,
+        1.5811951 ,  1.53157521,  1.44240187,  1.36442227])
+        >>> mg.at_node['topographic__steepest_slope'][ch_nodes]
+        array([ 1.69383001,  1.66972677,  1.64200694,  1.60928598,  1.56915472,
+        1.51678178,  1.43964028,  1.25892541,  0.        ])
+        >>> mg.at_node['topographic__elevation'][:] = mg.node_x
+        >>> interp_pt_elevs = np.array([0., 25., 50., 75., 80.])
+        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists,
+        ...                                 interp_pt_elevs)
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
         """
-        ch_z = self.grid.at_node['topographic__elevation'][
-            ch_nodes]
-        interp_pt_x = np.interp(interp_pt_elevs, ch_z, ch_dists)
+        ch_z = self.grid.at_node['topographic__elevation'][ch_nodes]
+        assert ch_z[0] >= interp_pt_elevs[-1], \
+            'Highest interp_pt_elev must be below top channel node'
+        interp_pt_x = np.interp(interp_pt_elevs, ch_z[::-1], ch_dists[::-1])
         interp_pt_S = np.empty_like(interp_pt_elevs)
         # now a downwind map of the slopes onto the nodes
         # slopes are defined positive
@@ -337,7 +370,116 @@ class SteepnessFinder(Component):
         # Map S back onto nodes
         ch_S = np.interp(ch_z, interp_pt_elevs, interp_pt_S)
 
-        return ch_S, ch_dists
+        return ch_S
+
+    def calc_ksn_discretized(self, ch_dists, ch_A, ch_S,
+                             ref_theta, discretization_length):
+        """
+        Calculate normalized steepness index on defined channel segments.
+
+        Every segment must have at least 2 nodes along it. If not, segments
+        will be automatically merged to achieve this. The channel will be
+        segmented starting at the *downstream* end.
+
+        NB: The final node in the channel does not receive an index, as it
+        either belongs to a longer, existing flow path, or it is a boundary
+        node with S = 0. Neither works.
+
+        Parameters
+        ----------
+        ch_dists : array of floats
+            Distances downstream from top node of a single stream path.
+        ch_S : array of floats
+            Slope at each node in the flowpath (defined as positive).
+        ch_A : array of floats
+            Drainage areas at each node in the flowpath.
+        ref_theta : float
+            The reference concavity; must be positive.
+        discretization_length : float (m)
+            The streamwise length of each segment.
+
+        Returns
+        -------
+        ch_ksn : array of floats
+            The normalized steepness index at each node in the flowpath,
+            EXCEPT THE LAST. (i.e., length is (ch_dists.size - 1)). Values
+            will be the same within each defined segment.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter
+        >>> mg = RasterModelGrid((3,10), (5., 10.))
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> fr = FlowRouter(mg)
+        >>> sf = SteepnessFinder(mg)
+        >>> _ = fr.route_flow()
+        >>> ch_nodes = np.arange(18, 9, -1)
+        >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
+        >>> ch_A = mg.at_node['drainage_area'][ch_nodes]
+        >>> ch_S = mg.at_node['topographic__steepest_slope'][ch_nodes]
+        >>> ksn_25 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 25.)
+        >>> ksn_25.size == ch_dists.size - 1
+        True
+        >>> ksn_25
+        array([-1.        ,  0.0903602 ,  0.0903602 ,  0.06367732,  0.06367732,
+        0.06367732,  0.05169732,  0.05169732])
+        >>> ksn_10 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 10.)
+        >>> ksn_10
+        array([ 0.11892071,  0.11892071,  0.07598357,  0.07598357,  0.06042751,
+        0.06042751,  0.05169732,  0.05169732])
+        >>> ch_ksn_overdiscretized = sf.calc_ksn_discretized(
+        ...     ch_dists, ch_A, ch_S, 0.5, 10.)
+        >>> np.allclose(ch_ksn_overdiscretized, ksn_10)
+        True
+        """
+        ch_ksn = np.empty_like(ch_A)
+        # need to remove the influence of the final node in the seg,
+        # as it reflects either the edge of the grid (S=0) or a point
+        # after a confluence - hence the 0.000001
+        seg_ends = np.arange(ch_dists[-1]-0.000001, 0.,
+                             -discretization_length)[::-1]
+        # ^ counts up from 0, but terminates at the far end cleanly
+        pts_in_each_seg = np.searchsorted(seg_ends, ch_dists)
+        num_segs = pts_in_each_seg[-1]
+        i = num_segs - 1  # the final pt is no longer included
+        while i >= 0:
+            old_i = i
+            pts_in_seg = pts_in_each_seg == i
+            num_pts_in_seg = int(pts_in_seg.sum())
+            # if i == num_segs:
+            #     true_pts_in_seg = pts_in_each_seg.copy()
+            #     pts_in_each_seg[-1] = False
+            # else:
+            #     true_pts_in_seg = pts_in_each_seg
+            # make sure there's always 2 pts in the seg...
+            while num_pts_in_seg < 2:
+                i -= 1
+                pts_in_seg = np.logical_and(pts_in_each_seg <= old_i,
+                                            pts_in_each_seg >= i)
+                num_pts_in_seg = int(pts_in_seg.sum())
+                if i < 0:
+                    break
+            if num_pts_in_seg < 2:
+                # must be at the end of the seg...
+                # nodes in invalid segs at the end get ksn = -1.
+                ch_ksn[pts_in_seg] = -1.
+                break
+            seg_A = ch_A[pts_in_seg]
+            seg_S = ch_S[pts_in_seg]
+            logseg_A = np.log10(seg_A)
+            logseg_S = np.log10(seg_S)
+            meanlogseg_A = np.mean(logseg_A)
+            meanlogseg_S = np.mean(logseg_S)
+            logseg_ksn = meanlogseg_S + ref_theta*meanlogseg_A
+            ch_ksn[pts_in_seg] = 10.**logseg_ksn
+            i -= 1
+
+        return ch_ksn[:-1]
 
     @property
     def steepness_indices(self):
