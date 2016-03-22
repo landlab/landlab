@@ -60,7 +60,9 @@ class SteepnessFinder(Component):
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
     ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x/1000.)
+    >>> _ = mg.add_zeros('node', 'topographic__elevation')
+    >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
+    ...     mg.core_nodes]/1000.
     >>> fr = FlowRouter(mg)
     >>> sp = FastscapeEroder(mg, K_sp=0.01)
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
@@ -78,6 +80,16 @@ class SteepnessFinder(Component):
             True, False, False, False, False, False, False, False, False,
            False,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True], dtype=bool)
+
+    >>> sf.calculate_steepnesses(discretization_length=350.)
+    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
+    array([ 0.        ,  3.08232295,  3.08232295,  3.08232295,  1.        ,
+            1.        ,  1.        ,  1.        ,  0.        ,  0.        ])
+
+    >>> sf.calculate_steepnesses(elev_step=1.5)
+    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
+    array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
+            1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
 
     """
     _name = 'SteepnessFinder'
