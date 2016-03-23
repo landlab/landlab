@@ -66,7 +66,7 @@ class SteepnessFinder(Component):
     >>> fr = FlowRouter(mg)
     >>> sp = FastscapeEroder(mg, K_sp=0.01)
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
-    >>> for i in xrange(10):
+    >>> for i in range(10):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
     ...     _ = fr.route_flow()
     ...     sp.run_one_timestep(1000.)
@@ -190,7 +190,7 @@ class SteepnessFinder(Component):
         nodes_incorporated = self.grid.zeros('node', dtype=bool)
         # now do each poss channel in turn
         # get the head of the first (longest!) channel:
-        for dstr_order_index in xrange(valid_dstr_order.size):
+        for dstr_order_index in range(valid_dstr_order.size):
             this_ch_top_node = valid_dstr_order[dstr_order_index]  # top node
             if not nodes_incorporated[this_ch_top_node]:
                 nodes_incorporated[this_ch_top_node] = True
