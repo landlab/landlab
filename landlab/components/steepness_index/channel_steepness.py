@@ -5,7 +5,7 @@ Created on Mon Oct 19.
 @author: dejh
 """
 from __future__ import print_function
-from builtins import range  # this is Python 3's range generator, not P2's list
+from six.moves import range  # this is Python 3's generator, not P2's list
 
 import landlab
 from landlab import ModelParameterDictionary, Component, FieldError, \
