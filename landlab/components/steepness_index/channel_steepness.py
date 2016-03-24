@@ -34,8 +34,6 @@ class SteepnessFinder(Component):
     ----------
     grid : RasterModelGrid
         A landlab RasterModelGrid.
-    input_stream : str, file_like, or ModelParameterDictionary, optional
-        ModelParameterDictionary that holds the input parameters.
     reference_concavity : float
         The reference concavity to use in the calculation.
     min_drainage_area : float (m**2; default 1.e6)
