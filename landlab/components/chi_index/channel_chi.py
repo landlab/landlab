@@ -10,7 +10,10 @@ from six.moves import range  # this is Python 3's generator, not P2's list
 from landlab import ModelParameterDictionary, Component, FieldError, \
                     FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 import numpy as np
-from itertools import izip
+try:
+    from itertools import izip
+except ImportError:
+    izip = zip
 
 
 class ChiFinder(Component):
