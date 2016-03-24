@@ -204,8 +204,8 @@ class FlowRouter(Component):
         contribute flow to each node on the grid (including the node itself).
 
         Stores as ModelGrid fields:
-        - Node array of receivers (nodes that receive flow):
-              *'flow_receiver'*
+        - Node array of receivers (nodes that receive flow), or ITS OWN ID if
+          there is no receiver: *'flow_receiver'*
         - Node array of drainage areas: *'drainage_area'*
         - Node array of discharges: *'water__volume_flux'*
         - Node array of steepest downhill slopes:
@@ -213,7 +213,7 @@ class FlowRouter(Component):
         - Node array containing downstream-to-upstream ordered list of node
           IDs: *'upstream_node_order'*
         - Node array containing ID of link that leads from each node to its
-          receiver (or ITS OWN ID if there is no receiver):
+          receiver, or BAD_INDEX_VALUE if no link:
           *'links_to_flow_receiver'*
         - Boolean node array of all local lows: *'flow_sinks'*
 
