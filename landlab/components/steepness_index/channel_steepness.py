@@ -39,7 +39,8 @@ class SteepnessFinder(Component):
     reference_concavity : float
         The reference concavity to use in the calculation.
     min_drainage_area : float (m**2; default 1.e6)
-        The drrainage area down to which to calculate steepness indices.
+        The minimum drainage area above which steepness indices are 
+        calculated.
         Defaults to 1.e6 m**2, per Wobus et al. 2006.
     elev_step : float (m; default 0.)
         If >0., becomes a vertical elevation change step to use to
@@ -247,7 +248,7 @@ class SteepnessFinder(Component):
                     log_A = np.log10(ch_A[:-1])
                     log_S = np.log10(ch_S[:-1])
                     # we're potentially propagating nans here if S<=0
-                    log_ksn = log_S + reftheta*log_A
+                    log_ksn = log_S + reftheta * log_A
                     ch_ksn = 10.**log_ksn
                 # save the answers into the main arrays:
                 assert np.all(self._mask[ch_nodes[:-1]])
