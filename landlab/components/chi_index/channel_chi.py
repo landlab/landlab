@@ -423,8 +423,55 @@ class ChiFinder(Component):
         """
         return self._mask
 
+    def best_fit_chi_elevation_gradient_and_intercept(self, ch_nodes=None):
+        """
+        Returns least squares best fit for a straight line through a chi plot.
+
+        Parameters
+        ----------
+        ch_nodes : array of ints or None
+            Nodes at which to consider chi and elevation values. If None,
+            will use all nodes in grid with area greater than the component
+            min_drainage_area.
+
+        Returns
+        -------
+        coeffs : array(gradient, intercept)
+            A len-2 array containing the m then z0, where z = z0 + m * chi.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter
+        >>> mg = RasterModelGrid((3, 4), 1.)
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> z = mg.add_field('node', 'topographic__elevation',
+        ...                  mg.node_x.copy())
+        >>> z[4:8] = np.array([0.5, 1., 2., 0.])
+        >>> fr = FlowRouter(mg)
+        >>> cf = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
+        >>> _ = fr.route_flow()
+        >>> cf.calculate_chi()
+        >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
+        array([ 0.5,  1. ,  2. ,  0. ])
+        >>> coeffs = cf.best_fit_chi_elevation_gradient_and_intercept()
+        >>> np.allclose(np.array([1., 0.]), coeffs)
+        True
+        """
+        if ch_nodes is None:
+            good_vals = np.logical_not(self.hillslope_mask)
+        else:
+            good_vals = np.array(ch_nodes)
+        chi_vals = self.chi_indices[good_vals]
+        elev_vals = self.grid.at_node['topographic__elevation'][good_vals]
+        coeffs = np.polyfit(chi_vals, elev_vals, 1)
+        return coeffs
+
     def create_chi_plot(self, channel_heads=None, label_axes=True,
-                        symbol='kx'):
+                        symbol='kx', plot_line=False, line_symbol='r-'):
         """
         Plots a "chi plot" (chi vs elevation for points in channel network).
 
@@ -440,11 +487,18 @@ class ChiFinder(Component):
             If True, labels the axes as "Chi" and "Elevation (m)".
         symbol : str
             A matplotlib-style string for the style to use for the points.
+        plot_line : bool
+            If True, will plot a linear best fit line through the data cloud.
+        line_symbol : str
+            A matplotlib-style string for the style to use for the line, if
+            plot_line.
         """
         from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf, show
         figure('Chi plot')
         clf()
         if channel_heads is not None:
+            if plot_line:
+                good_nodes = set()
             if type(channel_heads) is int:
                 channel_heads = [channel_heads, ]
             for head in channel_heads:
@@ -463,11 +517,21 @@ class ChiFinder(Component):
                 plot(self.chi_indices[ch_nodes],
                      self.grid.at_node['topographic__elevation'][ch_nodes],
                      symbol)
+                if plot_line:
+                    good_nodes.update(ch_nodes)
         else:
             ch_nodes = np.logical_not(self.hillslope_mask)
             plot(self.chi_indices[ch_nodes],
                  self.grid.at_node['topographic__elevation'][ch_nodes],
                  symbol)
+            good_nodes = ch_nodes
+        if plot_line:
+            coeffs = self.best_fit_chi_elevation_gradient_and_intercept(
+                good_nodes)
+            p = np.poly1d(coeffs)
+            chirange = np.linspace(self.chi_indices[good_nodes].min(),
+                                   self.chi_indices[good_nodes].max(), 100)
+            plot(chirange, p(chirange), line_symbol)
         if label_axes:
             ylabel('Elevation (m)')
             xlabel('Chi')
