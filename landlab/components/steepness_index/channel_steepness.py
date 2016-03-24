@@ -383,10 +383,10 @@ class SteepnessFinder(Component):
         ----------
         ch_dists : array of floats
             Distances downstream from top node of a single stream path.
-        ch_S : array of floats
-            Slope at each node in the flowpath (defined as positive).
         ch_A : array of floats
             Drainage areas at each node in the flowpath.
+        ch_S : array of floats
+            Slope at each node in the flowpath (defined as positive).
         ref_theta : float
             The reference concavity; must be positive.
         discretization_length : float (m)
