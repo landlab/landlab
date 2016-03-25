@@ -2484,7 +2484,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             pass
 
-    @deprecated
+    @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
 
