@@ -12,14 +12,6 @@ landlab.components.diffusion.diffusion module
     :undoc-members:
     :show-inheritance:
 
-landlab.components.diffusion.diffusion_model module
----------------------------------------------------
-
-.. automodule:: landlab.components.diffusion.diffusion_model
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

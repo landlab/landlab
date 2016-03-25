@@ -8,16 +8,19 @@ the Bates et al. (2010) algorithm for storage-cell inundation modeling.
 
 """
 
-from landlab import ModelParameterDictionary
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
 import numpy as np
+import warnings
+from six.moves import range
+
 
 class SurfaceFlowTransport(object):
-    
+
     def __init__(self, grid, input_stream):
-        #grid here is a true model field. i.e., we should be able to do grid.at_node['topographic_elevation']
+        #grid here is a true model field. i.e., we should be able to do grid.at_node['topographic__elevation']
         #input_stream is a text file, entered in format './my_file.txt'
         self.grid = grid
-        
+
         inputs = ModelParameterDictionary(input_stream)
         self.n = inputs.read_float('n')              # roughness coefficient (Manning's n)
         self.g = inputs.read_float('g')               # gravitational acceleration (m/s2)
@@ -25,35 +28,35 @@ class SurfaceFlowTransport(object):
         self.tau_crit = inputs.read_float('tau_crit') # critical shear stress, pascals
         self.mpm = inputs.read_float('mpm')          # sed trans coefficient
         self.erode_start_time = inputs.read_float('erode_start_time') # allows an offset between when flow starts and when we start to allow erosion
-        
-        
+
+
         #test the necessary fields are all already present:
         try:
-            self.z = grid.at_node['topographic_elevation']
+            self.z = grid.at_node['topographic__elevation']
         except:
-            print 'elevations not found in grid!'
+            warnings.warn('elevations not found in grid!')
         try:
             self.h = grid.at_node['planet_surface__water_depth']
         except:
-            print 'initial water depths not found in grid!'
-        
+            warnings.warn('initial water depths not found in grid!')
+
         #build the internally necessary params:
         self.rhog = 9810.          # water unit weight, kg/m2s2 (N/m3)
-        self.q = grid.create_active_link_array_zeros()       # unit discharge (m2/s)
-        self.dhdt = grid.create_node_array_zeros()           # rate of water-depth change
-        self.tau = grid.create_active_link_array_zeros()     # shear stress (Pa)
-        self.qs = grid.create_active_link_array_zeros()      # sediment flux (m2/s)
-        self.dqsds = grid.create_node_array_zeros()
+        self.q = grid.zeros(at='active_link')       # unit discharge (m2/s)
+        self.dhdt = grid.zeros(at='node')           # rate of water-depth change
+        self.tau = grid.zeros(at='active_link')     # shear stress (Pa)
+        self.qs = grid.zeros(at='active_link')      # sediment flux (m2/s)
+        self.dqsds = grid.zeros(at='node')
         self.dzdt = self.dhdt
-        self.dzaccum = grid.create_node_array_zeros()
-        self.zm = grid.create_node_array_zeros()
+        self.dzaccum = grid.zeros(at='node')
+        self.zm = grid.zeros(at='node')
         self.zm[:] = self.z[:]
-        
+
     def set_and_return_dynamic_timestep(self):
         # Calculate time-step size for this iteration (Bates et al., eq 14)
-        self.dtmax = self.alpha*self.grid.dx/np.sqrt(self.g*np.amax(self.h))
+        self.dtmax = self.alpha*min(self.grid.dx, self.grid.dy)/np.sqrt(self.g*np.amax(self.h))
         return self.dtmax
-        
+
     def set_timestep(self, timestep_in):
         """
         This fn allows overriding of the inbuilt dynamic timestepping, if, e.g.,
@@ -65,7 +68,7 @@ class SurfaceFlowTransport(object):
             self.dtmax = timestep_in
         else:
             raise RuntimeError('Attempting to manually set an unstable timestep! Abort! Abort!')
-        
+
     def transport_sed(self, elapsed_time):
         #load data for speed and clarity:
         grid = self.grid
@@ -84,9 +87,9 @@ class SurfaceFlowTransport(object):
         dtmax = self.dtmax
         erode_start_time = self.erode_start_time
         ten_thirds = 10./3.
-        
-        interior_cells = grid.get_active_cell_node_ids()
-        
+
+        interior_cells = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
+
 
         # Calculate the effective flow depth at active links. Bates et al. 2010
         # recommend using the difference between the highest water-surface
@@ -95,10 +98,10 @@ class SurfaceFlowTransport(object):
         w = h+z   # water-surface height
         wmax = grid.max_of_link_end_node_values(w)
         hflow = wmax - zmax
-            
+
         # Calculate water-surface slopes
         water_surface_slope = grid.calculate_gradients_at_active_links(w)
-        
+
         # Calculate the unit discharges (Bates et al., eq 11)
         q = (q-g*hflow*dtmax*water_surface_slope)/ \
             (1.+g*hflow*dtmax*n*n*abs(q)/(hflow**ten_thirds))
@@ -112,11 +115,11 @@ class SurfaceFlowTransport(object):
         # Calculate water-flux divergence at nodes
         dqds = grid.calculate_flux_divergence_at_nodes(q)
         dqsds = grid.calculate_flux_divergence_at_nodes(qs)
-        
+
         # Calculate rate of change of water depth
         dhdt = -dqds
         dzdt = -dqsds
-            
+
         # Second time-step limiter (experimental): make sure you don't allow
         # water-depth to go negative
         excess_time = 0.
@@ -135,7 +138,7 @@ class SurfaceFlowTransport(object):
             dt = dtmax
 
         #perform a loop if we had to subdivide the tstep above:
-        for i in xrange(min_timestep_ratio+1):
+        for i in range(min_timestep_ratio+1):
             # Update the water-depth field
             h[interior_cells] += dhdt[interior_cells]*dt
             if elapsed_time >= erode_start_time:
@@ -146,7 +149,7 @@ class SurfaceFlowTransport(object):
             h[interior_cells] += dhdt[interior_cells]*dt*excess_time
             if elapsed_time >= erode_start_time:
                 zm[interior_cells] += dzdt[interior_cells]*dt*excess_time
-            
+
         #Now we need to embed the results back into the object, and the grid
         self.z = z
         self.h = h
@@ -154,8 +157,8 @@ class SurfaceFlowTransport(object):
         self.qs = qs
         self.tau = tau
         self.zm = zm
-        self.grid['node']['topographic_elevation'] = zm
+        self.grid['node']['topographic__elevation'] = zm
         self.grid['node']['planet_surface__water_depth'] = h
-        
+
         return self.grid
-        
+

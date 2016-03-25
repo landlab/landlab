@@ -3,7 +3,6 @@
 The Landlab
 
 :Package name: TheLandlab
-:Version: 0.1.0
 :Release date: 2013-03-24
 :Authors:
   Greg Tucker,
@@ -21,7 +20,7 @@ The Landlab
 
 from __future__ import absolute_import
 
-__version__ = '0.1.5'
+__version__ = '0.5.0'
 
 
 import os
@@ -48,3 +47,8 @@ from .plot import *
 from .testing.nosetester import LandlabTester
 test = LandlabTester().test
 bench = LandlabTester().bench
+
+__all__ = ['ModelParameterDictionary', 'MissingKeyError',
+           'ParameterValueError', 'Component', 'Palette', 'Arena',
+           'NoProvidersError', 'Implements', 'ImplementsOrRaise',
+           'Framework', 'FieldError', 'LandlabTester']

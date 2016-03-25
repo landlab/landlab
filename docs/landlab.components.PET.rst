@@ -1,13 +1,13 @@
-landlab.components.PET package
+landlab.components.pet package
 ==============================
 
 Submodules
 ----------
 
-landlab.components.PET.potential_evapotranspiration_field module
+landlab.components.pet.potential_evapotranspiration_field module
 ----------------------------------------------------------------
 
-.. automodule:: landlab.components.PET.potential_evapotranspiration_field
+.. automodule:: landlab.components.pet.potential_evapotranspiration_field
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ landlab.components.PET.potential_evapotranspiration_field module
 Module contents
 ---------------
 
-.. automodule:: landlab.components.PET
+.. automodule:: landlab.components.pet
     :members:
     :undoc-members:
     :show-inheritance:

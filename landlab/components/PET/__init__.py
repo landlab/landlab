@@ -1,2 +1,4 @@
+from .potential_evapotranspiration_field import PotentialEvapotranspiration
 
-import landlab.components.PET.potential_evapotranspiration_field
+
+__all__ = ['PotentialEvapotranspiration', ]

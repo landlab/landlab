@@ -16,7 +16,7 @@ def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
 
-class Radiation( Component ):
+class Radiation(Component):
     """
     Landlab component that computes 1D and 2D total incident shortwave
     radiation. This code also computes relative incidence shortwave radiation
@@ -39,7 +39,7 @@ class Radiation( Component ):
         OPTAIRMASS: set optical air mass. default value is 0.0
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.radiation.radiation_field import Radiation
+    >>> from landlab.components.radiation import Radiation
     >>> import numpy as np
     >>> grid = RasterModelGrid( 5, 4, 0.2 )
     >>> grid['node']['Elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
@@ -52,14 +52,14 @@ class Radiation( Component ):
     >>> x = grid['cell']['TotalShortWaveRadiation']
     >>> isinstance(x, np.ndarray)
     True
-    >>> x.shape
-    (6,)
+    >>> x.shape == (6, )
+    True
 
     >>> x = grid['cell']['RadiationFactor']
     >>> isinstance(x, np.ndarray)
     True
-    >>> x.shape
-    (6,)
+    >>> x.shape == (6, )
+    True
     """
 
     _name = 'Radiation'
@@ -111,7 +111,7 @@ class Radiation( Component ):
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
         self._slope,self._aspect = \
-            grid.calculate_slope_aspect_at_nodes_Burrough(vals = 'Elevation')
+            grid.calculate_slope_aspect_at_nodes_burrough(vals = 'Elevation')
         self._cell_values['Slope'] = self._slope
         self._cell_values['Aspect'] = self._aspect
 

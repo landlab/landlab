@@ -15,6 +15,7 @@ class RectilinearGrid(StructuredQuadGrid):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.rectilinear import RectilinearGrid
     >>> (y, x) = np.arange(4.), np.arange(5.)
     >>> grid = RectilinearGrid((y, x))
     >>> grid.number_of_nodes
@@ -32,6 +33,7 @@ class RectilinearGrid(StructuredQuadGrid):
     >>> grid.node_col_coord
     array([ 0.,  1.,  2.,  3.,  4.])
     """
+
     def __init__(self, coord):
         """
         Parameters
@@ -69,8 +71,18 @@ class RectilinearGrid(StructuredQuadGrid):
 
 class UniformRectilinearGrid(RectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : tuple, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+
     Examples
     --------
+    >>> from landlab.grid.structured_quad.rectilinear import UniformRectilinearGrid
     >>> grid = UniformRectilinearGrid((4, 5), spacing=(2, 3), origin=(-1, 1))
     >>> grid.number_of_nodes
     20
@@ -90,6 +102,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     >>> grid.node_col_coord
     array([  1.,   4.,   7.,  10.,  13.])
     """
+
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
         """
         Parameters
@@ -136,8 +149,18 @@ class UniformRectilinearGrid(RectilinearGrid):
 
 class RasterGrid(UniformRectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : float, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+        
     Examples
     --------
+    >>> from landlab.grid.structured_quad.rectilinear import RasterGrid
     >>> grid = RasterGrid((4, 5), spacing=2, origin=(-1, 1))
     >>> grid.number_of_nodes
     20
@@ -157,6 +180,7 @@ class RasterGrid(UniformRectilinearGrid):
     >>> grid.node_col_coord
     array([ 1.,  3.,  5.,  7.,  9.])
     """
+
     def __init__(self, shape, spacing=1., origin=0.):
         """
         Parameters

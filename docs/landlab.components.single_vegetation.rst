@@ -12,6 +12,22 @@ landlab.components.single_vegetation.single_vegetation_field module
     :undoc-members:
     :show-inheritance:
 
+landlab.components.single_vegetation.vegetation_multi_pft module
+----------------------------------------------------------------
+
+.. automodule:: landlab.components.single_vegetation.vegetation_multi_pft
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.single_vegetation.vegetation_multi_pft_new module
+--------------------------------------------------------------------
+
+.. automodule:: landlab.components.single_vegetation.vegetation_multi_pft_new
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

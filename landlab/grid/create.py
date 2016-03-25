@@ -1,6 +1,6 @@
 #! /usr/bin/env python
+"""Create landlab model grids."""
 
-import types
 
 from landlab.core import model_parameter_dictionary as mpd
 from .raster import from_dict as raster_from_dict
@@ -8,10 +8,16 @@ from .hex import from_dict as hex_from_dict
 
 
 class Error(Exception):
+
+    """Base class for exceptions from this module."""
+
     pass
 
 
 class BadGridTypeError(Error):
+
+    """Raise this error for a bad grid type."""
+
     def __init__(self, grid_type):
         self._type = str(grid_type)
 
@@ -26,15 +32,26 @@ _GRID_READERS = {
 
 
 def create_and_initialize_grid(input_source):
-    """
-    Creates, initializes, and returns a new grid object using parameters 
+    """Create and initialize a grid from a file.
+
+    Creates, initializes, and returns a new grid object using parameters
     specified in *input_source*. *input_source* is either a
     ModelParameterDictionary instance (or, really, just dict-like) or a
     named input file.
-    
-    Example:
-        
-    >>> from StringIO import StringIO
+
+    Parameters
+    ----------
+    input_source : str or dict
+        Input file or ``dict`` of parameter values.
+
+    Raises
+    ------
+    KeyError
+        If missing a key from the input file.
+
+    Examples
+    --------
+    >>> from six import StringIO
     >>> test_file = StringIO('''
     ... GRID_TYPE:
     ... raster
@@ -42,46 +59,28 @@ def create_and_initialize_grid(input_source):
     ... 4
     ... NUM_COLS:
     ... 5
-    ... GRID_SPACING: 
+    ... GRID_SPACING:
     ... 2.5
     ... ''')
     >>> from landlab import create_and_initialize_grid
-    >>> mg = create_and_initialize_grid(test_file)
-    >>> mg.number_of_nodes
+    >>> grid = create_and_initialize_grid(test_file)
+    >>> grid.number_of_nodes
     20
-        
-    """    
-    # Handle input source. 
-    #In this code block, we do the following:
-    #   - handle the case in which caller provides neither a parameter
-    #     dictionary nor an input file name.
-    #   - if we're given an input file name, create a parameter dictionary
-    #     object that reads the specified file name
+    """
     if isinstance(input_source, dict):
         param_dict = input_source
     else:
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
-        
-    # Find out what type of grid the user wants
-    #
-    # Dev note: could handle defaults like:
-    #    param_dict.get('GRID_TYPE','raster')
-    # so if no GRID_TYPE is specified you get the second arg as default. If no
-    # second arg, then exception
-    try:
-        grid_type = param_dict['GRID_TYPE']
-    except KeyError:
-        raise
 
-    grid_type.strip().lower()   # make LC w/o leading/trailing spaces
-    
+    grid_type = param_dict['GRID_TYPE']
+
+    grid_type.strip().lower()
+
     # Read parameters appropriate to that type, create it, and initialize it
     try:
         grid_reader = _GRID_READERS[grid_type]
     except KeyError:
         raise BadGridTypeError(grid_type)
-    else:
-        mg = grid_reader(param_dict)
-    
+
     # Return the created and initialized grid
-    return mg
+    return grid_reader(param_dict)

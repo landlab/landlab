@@ -1,6 +1,13 @@
 landlab.grid.structured_quad package
 ====================================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.grid.structured_quad.tests
+
 Submodules
 ----------
 

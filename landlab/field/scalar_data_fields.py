@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+"""Container that holds a collection of named data-fields."""
 
 import numpy as np
 
@@ -7,12 +8,16 @@ _UNKNOWN_UNITS = '?'
 
 
 class Error(Exception):
+
     """Base class for errors in this module."""
+
     pass
 
 
 class FieldError(Error, KeyError):
+
     """Raise this error for a missing field name."""
+
     def __init__(self, field):
         self._field = field
 
@@ -21,6 +26,7 @@ class FieldError(Error, KeyError):
 
 
 class ScalarDataFields(dict):
+
     """Collection of named data fields that are of the same size.
 
     Holds a collection of data fields that all contain the same number of
@@ -42,8 +48,34 @@ class ScalarDataFields(dict):
     --------
     landlab.field.ModelDataFields.ones : Hold collections of
         `ScalarDataFields`.
+
+    Examples
+    --------
+    >>> from landlab.field import ScalarDataFields
+    >>> fields = ScalarDataFields(5)
+    >>> fields.add_field('land_surface__elevation', [1, 2, 3, 4, 5])
+    array([1, 2, 3, 4, 5])
+    >>> fields['air__temperature'] = [2, 3, 4, 5, 6]
+    >>> fields['land_surface__temperature'] = [0, 1]
+    ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ValueError: total size of the new array must be the same as the field
+
+    You can also create unsized fields. These fields will not be sized until
+    the first field is added to the collection. Once the size is set, all
+    fields must be the same size.
+
+    >>> fields = ScalarDataFields()
+    >>> fields['land_surface__temperature'] = [0, 1]
+    >>> fields['land_surface__temperature']
+    array([0, 1])
+    >>> fields['air__temperature'] = [2, 3, 4, 5, 6]
+    ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ValueError: total size of the new array must be the same as the field
     """
-    def __init__(self, size):
+
+    def __init__(self, size=None):
         self._size = size
 
         super(ScalarDataFields, self).__init__()
@@ -51,7 +83,7 @@ class ScalarDataFields(dict):
 
     @property
     def units(self):
-        """Units for values of the field.
+        """Get units for values of the field.
 
         Returns
         -------
@@ -71,6 +103,13 @@ class ScalarDataFields(dict):
         """
         return self._size
 
+    @size.setter
+    def size(self, size):
+        if self._size is None:
+            self._size = size
+        else:
+            raise ValueError('size has already been set')
+
     def empty(self, **kwds):
         """Uninitialized array whose size is that of the field.
 
@@ -88,6 +127,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.empty() # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
@@ -95,7 +135,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.empty(self.size, **kwds)
@@ -116,6 +156,7 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.ones()
         array([ 1.,  1.,  1.,  1.])
@@ -124,7 +165,7 @@ class ScalarDataFields(dict):
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.ones(self.size, **kwds)
@@ -145,18 +186,19 @@ class ScalarDataFields(dict):
 
         Examples
         --------
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> field.zeros()
         array([ 0.,  0.,  0.,  0.])
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> field.keys()
+        >>> list(field.keys())
         []
         """
         return np.zeros(self.size, **kwds)
 
-    def add_empty(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_empty(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
@@ -170,6 +212,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -184,9 +228,10 @@ class ScalarDataFields(dict):
         landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
         """
-        return self.add_field(name, self.empty(**kwds), units=units)
+        return self.add_field(name, self.empty(**kwds), units=units,
+                              noclobber=noclobber)
 
-    def add_ones(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_ones(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
@@ -200,6 +245,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -218,17 +265,19 @@ class ScalarDataFields(dict):
         --------
         Add a new, named field to a collection of fields.
 
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
-        >>> field.add_ones('topographic_elevation')
+        >>> field.add_ones('topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
-        >>> field.keys()
-        ['topographic_elevation']
-        >>> field['topographic_elevation']
+        >>> list(field.keys())
+        ['topographic__elevation']
+        >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
         """
-        return self.add_field(name, self.ones(**kwds), units=units)
+        return self.add_field(name, self.ones(**kwds), units=units,
+                              noclobber=noclobber)
 
-    def add_zeros(self, name, units=_UNKNOWN_UNITS, **kwds):
+    def add_zeros(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -242,6 +291,8 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -256,10 +307,11 @@ class ScalarDataFields(dict):
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
         """
-        return self.add_field(name, self.zeros(**kwds), units=units)
+        return self.add_field(name, self.zeros(**kwds), units=units,
+                              noclobber=noclobber)
 
     def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False,
-                  noclobber=False):
+                  noclobber=True, **kwds):
         """Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
@@ -295,15 +347,16 @@ class ScalarDataFields(dict):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.field import ScalarDataFields
         >>> field = ScalarDataFields(4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('topographic_elevation', values)
+        >>> field.add_field('topographic__elevation', values)
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field['topographic_elevation'] is values
+        >>> field['topographic__elevation'] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -311,19 +364,25 @@ class ScalarDataFields(dict):
         to the previously saved array. The *noclobber* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('topographic_elevation', values, copy=True)
+        >>> field.add_field('topographic__elevation', values, copy=True,
+        ...                 noclobber=False)
         array([1, 1, 1, 1])
-        >>> field['topographic_elevation'] is values
+        >>> field['topographic__elevation'] is values
         False
-        >>> field.add_field('topographic_elevation', values, noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field('topographic__elevation', values, noclobber=True)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        FieldError: topographic_elevation
+        FieldError: topographic__elevation already exists
         """
         if noclobber and name in self:
-            raise FieldError(name)
+            raise FieldError('{name}: already exists'. format(name=name))
+
+        value_array = np.asarray(value_array)
+        value_array.shape = (-1, )
 
         if copy:
             value_array = value_array.copy()
+            value_array.shape = (value_array.size, )
 
         self[name] = value_array
 
@@ -348,8 +407,15 @@ class ScalarDataFields(dict):
         self._units[name] = units
 
     def __setitem__(self, name, value_array):
+        """Store a data field by name."""
+        value_array = np.asarray(value_array)
+
+        if self.size is None:
+            self.size = value_array.size
+
         if value_array.size != self.size:
-            raise ValueError('total size of the new array must be the same as the field')
+            raise ValueError(
+                'total size of the new array must be the same as the field')
 
         if name not in self:
             self.set_units(name, None)
@@ -357,6 +423,7 @@ class ScalarDataFields(dict):
         super(ScalarDataFields, self).__setitem__(name, value_array)
 
     def __getitem__(self, name):
+        """Get a data field by name."""
         try:
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:

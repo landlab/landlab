@@ -1,6 +1,13 @@
 landlab.grid.unstructured package
 =================================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.grid.unstructured.tests
+
 Submodules
 ----------
 

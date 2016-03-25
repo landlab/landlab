@@ -1,6 +1,13 @@
 landlab.utils package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.utils.tests
+
 Submodules
 ----------
 

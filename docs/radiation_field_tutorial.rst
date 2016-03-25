@@ -137,7 +137,7 @@ The results might look similar to the following figures:
 
 .. _totalradiation:
 
-.. figure:: Radiation.png
+.. figure:: images/Radiation.png
     :figwidth: 80%
     :align: center
 	
@@ -145,7 +145,7 @@ The results might look similar to the following figures:
 
 .. _radiationfactor:
 
-.. figure:: RadiationFactor.png
+.. figure:: images/RadiationFactor.png
     :figwidth: 80%
     :align: center
 	

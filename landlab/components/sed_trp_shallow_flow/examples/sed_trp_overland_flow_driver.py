@@ -1,6 +1,8 @@
+from __future__ import print_function
+
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.sed_trp_shallow_flow.transport_sed_in_shallow_flow import SurfaceFlowTransport
+from landlab.components.sed_trp_shallow_flow import SurfaceFlowTransport
 
 import time
 import pylab
@@ -21,14 +23,14 @@ left_middle_node = ncols*(nrows/2)
 z0 = drop_ht+dx*(ncols-1)*initial_slope
 
 mg = RasterModelGrid(nrows, ncols, dx)
-mg.set_inactive_boundaries(True, False, True, False)
+mg.set_inactive_boundaries(False, True, False, True)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
-mg.create_node_array_zeros('planet_surface__water_depth')
+mg.add_zeros('topographic__elevation', at='node')
+mg.add_zeros('planet_surface__water_depth', at='node')
 
 #set the initial water depths
-h = mg.create_node_array_zeros() + h_init
+h = mg.zeros(at='node') + h_init
 h[left_middle_node] = h_boundary
 h[left_middle_node-ncols] = h_boundary
 h[left_middle_node+ncols] = h_boundary
@@ -37,11 +39,10 @@ mg['node'][ 'planet_surface__water_depth'] = h
 # Set initial topography
 x = mg.get_node_x_coords()
 y = mg.get_node_y_coords()
-zinit = mg.create_node_array_zeros()
+zinit = mg.zeros(at='node')
 zinit = z0-initial_slope*x
-rightside = mg.right_edge_node_ids()
-zinit[rightside] = 0.
-mg['node']['topographic_elevation'] = zinit
+zinit[mg.nodes_at_right_edge] = 0.
+mg['node']['topographic__elevation'] = zinit
 
 # Display a message
 print( 'Running ...' )
@@ -58,12 +59,12 @@ while elapsed_time < time_to_run:
     elapsed_time += timestep
 
 #Finalize and plot
-zm = mg.at_node['topographic_elevation']
+zm = mg.at_node['topographic__elevation']
 h = mg.at_node['planet_surface__water_depth']
 ddz=zm-zinit
-print ddz[np.where(ddz!=0.)]
-print np.amax(ddz)
-    
+print(ddz[np.where(ddz!=0.)])
+print(np.amax(ddz))
+
 # Get a 2D array version of the water depths and elevations
 hr = mg.node_vector_to_raster(h)
 zr = mg.node_vector_to_raster(zm)
@@ -81,22 +82,22 @@ pylab.subplot(131)
 im = pylab.imshow(zr, cmap=pylab.cm.RdBu)  # display a colored image
 pylab.colorbar(im)
 pylab.title('Topography')
-    
+
 # Plot change in topo
 pylab.figure(1)
 pylab.subplot(132)
 im = pylab.imshow(dzr, cmap=pylab.cm.RdBu)  # display a colored image
 pylab.colorbar(im)
 pylab.title('Topo change')
-    
+
 # Plot water depth
 pylab.subplot(133)
 im2 = pylab.imshow(hr, cmap=pylab.cm.RdBu)  # display a colored image
 #pylab.clim(0, 0.25)
 pylab.colorbar(im2)
 pylab.title('Water depth')
-    
+
 # Display the plots
 pylab.show()
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))

@@ -22,15 +22,20 @@ def assert_method_is_valid(method):
 
 
 class PotentialEvapotranspiration( Component ):
-    """
-    Landlab component that calculates Potential Evapotranspiration.
 
+    """Landlab component that calculates Potential Evapotranspiration.
+
+    Examples
+    --------
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
+    >>> from landlab.components.pet import PotentialEvapotranspiration
+
+    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'Potential Evapotranspiration'
     """
+
     _name = 'Potential Evapotranspiration'
 
     _input_var_names = set([
@@ -88,12 +93,12 @@ class PotentialEvapotranspiration( Component ):
     def update(self, current_time, **kwds):
 
         if self._method == 'Constant':
-            PET_value = kwds.pop('ConstantPotentialEvapotranspiration', 12.)
+            self._PET_value = kwds.pop('ConstantPotentialEvapotranspiration', 12.)
         elif self._method == 'PriestlyTaylor':
             Tmin = kwds.pop('Tmin',0.0)
             Tmax = kwds.pop('Tmax',1.0)
             Tavg = kwds.pop('Tavg',0.5)
-            PET_value = self.PriestlyTaylor( current_time,Tmax, Tmin, Tavg )
+            self._PET_value = self.PriestlyTaylor( current_time,Tmax, Tmin, Tavg )
             self._cell_values['TotalShortWaveRadiation'] = self._Rs * \
                                         self._cell_values['RadiationFactor']
             self._cell_values['NetShortWaveRadiation'] = self._Rns * \
@@ -105,13 +110,13 @@ class PotentialEvapotranspiration( Component ):
         elif self._method == 'MeasuredRadiationPT':
             Tavg = kwds.pop('Tavg',0.5)
             Robs = kwds.pop('Radiation', 350.)
-            PET_value = self.MeasuredRadPT( Tavg, (1-self._a)*Robs )
+            self._PET_value = self.MeasuredRadPT( Tavg, (1-self._a)*Robs )
         elif self._method == 'Cosine':
             self._J = np.floor( (current_time - np.floor( current_time)) * 365.)
-            PET_value = max((self._TmaxF_mean + self._DeltaD/2. * np.cos((2*np.pi) *
+            self._PET_value = max((self._TmaxF_mean + self._DeltaD/2. * np.cos((2*np.pi) *
                             (self._J - self._LT - self._ND/2)/self._ND)), 0.0)
 
-        self._PET = PET_value * self._cell_values['RadiationFactor']
+        self._PET = self._PET_value * self._cell_values['RadiationFactor']
         self._cell_values['PotentialEvapotranspiration'] = self._PET
 
 

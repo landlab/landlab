@@ -1,8 +1,9 @@
 import itertools
 
 import numpy as np
+from six.moves import range
 
-from ..base import CORE_NODE, FIXED_VALUE_BOUNDARY
+from ..base import CORE_NODE, CLOSED_BOUNDARY
 
 
 def number_of_nodes(shape):
@@ -20,10 +21,11 @@ def number_of_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import number_of_nodes
     >>> number_of_nodes((3, 4))
     12
     """
-    return np.prod(shape)
+    return np.prod(shape, dtype=np.int)
 
 
 def number_of_core_nodes(shape):
@@ -41,10 +43,11 @@ def number_of_core_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import number_of_core_nodes
     >>> number_of_core_nodes((3, 4))
     2
     """
-    return np.prod(np.array(shape) - 2)
+    return np.prod(np.array(shape) - 2, dtype=np.int)
 
 
 def corners(shape):
@@ -62,11 +65,13 @@ def corners(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import corners
     >>> corners((3, 4))
     array([ 0,  3,  8, 11])
     """
     node_count = number_of_nodes(shape)
-    return np.array([0, shape[1] - 1, node_count - shape[1], node_count - 1])
+    return np.array([0, shape[1] - 1, node_count - shape[1], node_count - 1],
+                    dtype=np.int)
 
 
 def node_ids(shape):
@@ -84,12 +89,13 @@ def node_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import node_ids
     >>> node_ids((3, 4))
     array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
            [ 8,  9, 10, 11]])
     """
-    return np.arange(number_of_nodes(shape)).reshape(shape)
+    return np.arange(number_of_nodes(shape), dtype=np.int).reshape(shape)
 
 
 def interior_nodes(shape):
@@ -107,46 +113,82 @@ def interior_nodes(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import interior_nodes
     >>> interior_nodes((3, 4))
     array([[5, 6]])
     >>> interior_nodes((4, 5))
     array([[ 6,  7,  8],
            [11, 12, 13]])
     """
-    node_ids = np.arange(number_of_nodes(shape)).reshape(shape)
+    node_ids = np.arange(number_of_nodes(shape), dtype=np.int).reshape(shape)
     return node_ids[1:-1, 1:-1]
 
 
 def top_iter(shape):
     """Iterator for the top perimeter nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
     """
-    return xrange(shape[1] * (shape[0] - 1), shape[0] * shape[1])
+    return range(shape[1] * (shape[0] - 1), shape[0] * shape[1])
 
 
 def bottom_iter(shape):
     """Iterator for the bottom perimeter nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
     """
-    return xrange(0, shape[1])
+    return range(0, shape[1])
 
 
 def left_iter(shape):
     """Iterator for the left perimeter nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
     """
-    return xrange(0, shape[0] * shape[1], shape[1])
+    return range(0, shape[0] * shape[1], shape[1])
 
 
 def right_iter(shape):
     """Iterator for the right perimeter nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
     """
-    return xrange(shape[1] - 1, shape[0] * shape[1], shape[1])
+    return range(shape[1] - 1, shape[0] * shape[1], shape[1])
 
 
 def left_right_iter(shape, *args):
-    """Iterator for left and right perimeter nodes.
+    """left_right_iter(shape, stop)
+    left_right_iter(shape, start, stop[, step])
+
+    Iterator for left and right perimeter nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+    start : int, optional
+        Start row.
+    stop : int, optional
+        Stop row.
+    step : int, optional
+        Interval between rows.
 
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import left_right_iter
     >>> np.fromiter(left_right_iter((4, 3)), dtype=np.int)
     array([ 0,  2,  3,  5,  6,  8,  9, 11])
     >>> np.fromiter(left_right_iter((4, 3), 2), dtype=np.int)
@@ -157,13 +199,13 @@ def left_right_iter(shape, *args):
     array([ 3,  5,  9, 11])
     """
     if len(args) == 0:
-        iter_rows = xrange(0, shape[0], 1)
+        iter_rows = range(0, shape[0], 1)
     elif len(args) == 1:
-        iter_rows = xrange(0, args[0], 1)
+        iter_rows = range(0, args[0], 1)
     elif len(args) == 2:
-        iter_rows = xrange(args[0], args[1], 1)
+        iter_rows = range(args[0], args[1], 1)
     elif len(args) == 3:
-        iter_rows = xrange(args[0], args[1], args[2])
+        iter_rows = range(args[0], args[1], args[2])
 
     for row in iter_rows:
         yield row * shape[1]
@@ -173,9 +215,15 @@ def left_right_iter(shape, *args):
 def bottom_top_iter(shape):
     """Iterator for the bottom and top perimeter nodes.
 
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import bottom_top_iter
     >>> np.fromiter(bottom_top_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  9, 10, 11])
     """
@@ -185,9 +233,15 @@ def bottom_top_iter(shape):
 def perimeter_iter(shape):
     """Iterator for all perimeter nodes.
 
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab.grid.structured_quad.nodes import perimeter_iter
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
@@ -211,6 +265,7 @@ def perimeter(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import perimeter
     >>> perimeter((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
 
@@ -218,13 +273,16 @@ def perimeter(shape):
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
 
-def status_with_perimeter_as_boundary(shape, status_on_perimeter=FIXED_VALUE_BOUNDARY):
+def status_with_perimeter_as_boundary(shape,
+                                      node_status=CLOSED_BOUNDARY):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
     ----------
     shape : tuple of int
         Shape of grid of nodes.
+    node_status : int or array_lik of int, optional
+        Status of nodes on grid perimeter.
 
     Returns
     -------
@@ -233,17 +291,18 @@ def status_with_perimeter_as_boundary(shape, status_on_perimeter=FIXED_VALUE_BOU
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
     >>> status_with_perimeter_as_boundary((3, 4))
-    array([[1, 1, 1, 1],
-           [1, 0, 0, 1],
-           [1, 1, 1, 1]])
-    >>> status_with_perimeter_as_boundary((3, 4), status_on_perimeter=-1)
+    array([[4, 4, 4, 4],
+           [4, 0, 0, 4],
+           [4, 4, 4, 4]])
+    >>> status_with_perimeter_as_boundary((3, 4), node_status=-1)
     array([[-1, -1, -1, -1],
            [-1,  0,  0, -1],
            [-1, -1, -1, -1]])
     """
     status = np.empty(shape, dtype=int)
     status.fill(CORE_NODE)
-    status.flat[perimeter(shape)] = status_on_perimeter
+    status.flat[perimeter(shape)] = node_status
 
     return status

@@ -1,4 +1,8 @@
-from landlab.components.craters.dig_craters import impactor
+from __future__ import print_function
+
+from six.moves import range
+
+from landlab.components.craters import impactor
 from landlab import ModelParameterDictionary
 
 from landlab import RasterModelGrid
@@ -21,8 +25,8 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.set_inactive_boundaries(False, False, False, False)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
-mg['node'][ 'topographic_elevation'] = np.load('init.npy')
+mg.add_zeros('topographic__elevation', at='node')
+mg['node'][ 'topographic__elevation'] = np.load('init.npy')
 
 # Display a message
 print( 'Running ...' )
@@ -40,8 +44,8 @@ angle = np.empty(nt)
 az = np.empty(nt)
 mass_balance = np.empty(nt)
 redug_crater = np.empty(nt)
-for i in xrange(loops):
-    for j in xrange(nt):
+for i in range(loops):
+    for j in range(nt):
         mg = craters_component.excavate_a_crater_noangle(mg)
         x[j] = craters_component.impact_property_dict['x']
         y[j] = craters_component.impact_property_dict['y']
@@ -51,9 +55,9 @@ for i in xrange(loops):
         az[j] = craters_component.impact_property_dict['impact_az']
         mass_balance[j] = craters_component.impact_property_dict['mass_balance']
         redug_crater[j] = craters_component.impact_property_dict['redug_crater']
-        print 'Completed loop ', j
+        print('Completed loop ', j)
     mystring = 'craterssave'+str((i+1)*nt)
-    np.save(mystring,mg['node']['topographic_elevation'])
+    np.save(mystring,mg['node']['topographic__elevation'])
     #Save the properties
     np.save(('x_'+str((i+1)*nt)),x)
     np.save(('y_'+str((i+1)*nt)),y)
@@ -65,7 +69,7 @@ for i in xrange(loops):
     np.save(('redug_crater_'+str((i+1)*nt)),redug_crater)
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 # Clear previous plots
 #pylab.figure(1)
@@ -76,6 +80,6 @@ elev_r = mg.node_vector_to_raster(elev)
 #pylab.title('Topography')
 
 print('Done.')
-print('Total run time = '+str(time.time()-start_time)+' seconds.')
+print(('Total run time = '+str(time.time()-start_time)+' seconds.'))
 
 #pylab.show()

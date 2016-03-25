@@ -3,15 +3,16 @@ simple_sp_driver.py
 
 A driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
-This version runs the model to something approximating steady 
+This version runs the model to something approximating steady
 state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
 '''
+from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
+from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
@@ -36,9 +37,9 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic_elevation')
-z = mg.create_node_array_zeros() + init_elev
-mg['node'][ 'topographic_elevation'] = z + numpy.random.rand(len(z))/1000.
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
+mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 #make some K values in a field to test 
 mg.at_node['K_values'] = 1.e-6+numpy.random.rand(nrows*ncols)*1.e-8
@@ -63,16 +64,16 @@ except NameError:
     #We're going to cheat by running Fastscape SP for the first part of the solution
     elapsed_time = 0. #total time in simulation
     while elapsed_time < time_to_run:
-        print elapsed_time
+        print(elapsed_time)
         if elapsed_time+dt>time_to_run:
-            print "Short step!"
+            print("Short step!")
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow(grid=mg)
+        mg = fr.route_flow()
         #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-        #mg = fsp.erode(mg)
-        mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
+        mg = fsp.erode(mg)
+        #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
         #add uplift
-        mg.at_node['topographic_elevation'][mg.core_nodes] += uplift*dt
+        mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
         elapsed_time += dt
 
     mg_mature = copy.deepcopy(mg)
@@ -98,37 +99,50 @@ dt=10000.
 out_tstep = 50000.
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
+<<<<<<< HEAD
     print elapsed_time
     #vid.add_frame(mg, 'topographic_elevation', elapsed_time)
+=======
+    print(elapsed_time)
+    vid.add_frame(mg, 'topographic__elevation', elapsed_time)
+>>>>>>> master
     if elapsed_time+dt>time_to_run:
-        print "Short step!"
+        print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow(grid=mg)
+    mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
+<<<<<<< HEAD
     #mg = fsp.erode(mg)
     mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
+=======
+    mg = fsp.erode(mg)
+    #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
+>>>>>>> master
 
     #plot long profiles along channels
     if numpy.allclose(elapsed_time%out_tstep,0.) or numpy.allclose(elapsed_time%out_tstep,1.):
         pylab.figure("long_profiles")
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
-                        mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
-                        mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
+                        mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
+<<<<<<< HEAD
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
         x_profiles.append(dists_upstr[:])
         z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
         S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
         A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
+=======
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
+>>>>>>> master
 
     #add uplift
-    mg.at_node['topographic_elevation'][mg.core_nodes] += 5.*uplift*dt
+    mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*dt
 
     elapsed_time += dt
 
 #Finalize and plot
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
 #vid.produce_video()
@@ -150,11 +164,11 @@ im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a co
 pylab.title('Vertical cross section')
 
 pylab.figure("Slope-Area")
-im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['steepest_slope'],'.')
+im = pylab.loglog(mg.at_node['drainage_area'], mg.at_node['topographic__steepest_slope'],'.')
 pylab.title('Slope-Area')
 
 pylab.show()
 
 print('Done.')
 
-    
+

@@ -1,14 +1,15 @@
 #! /usr/bin/env python
+from six.moves import range
 
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 import landlab.components.flexure as flexure
 
 
 def create_planet_surface_with_bulge(grid):
-    z = grid.field_values('node', 'topographic_elevation').view()
+    z = grid.field_values('node', 'topographic__elevation').view()
     z.shape = grid.shape
 
     (y, x) = np.meshgrid(np.linspace(0, np.pi * .5, grid.shape[0]),
@@ -48,25 +49,25 @@ def main():
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     craters_comp = CratersComponent(grid, seed=seed)
-    flexure_comp = flexure.FlexureComponent(
+    flexure_comp = flexure.Flexure(
         grid,
         map_vars={
             'node': {
                 'lithosphere__elevation':
-                    'topographic_elevation',
+                    'topographic__elevation',
                 'planet_surface_sediment__deposition_increment':
-                    'topographic_elevation_increment'
+                    'topographic__elevation_increment'
             }
         }
     )
 
     create_planet_surface_with_bulge(grid)
 
-    for _ in xrange(impact_count):
+    for _ in range(impact_count):
         craters_comp.update()
         flexure_comp.update()
 
-    grid.imshow('node', 'topographic_elevation', grid_units=('km', 'km'),
+    grid.imshow('node', 'topographic__elevation', grid_units=('km', 'km'),
                 symmetric_cbar=True, cmap='Paired')
 
 

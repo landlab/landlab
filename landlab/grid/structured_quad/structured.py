@@ -3,17 +3,16 @@
 Examples
 --------
 >>> import numpy as np
+>>> from landlab.grid.structured_quad.structured import StructuredQuadGrid
 >>> (y, x) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
 >>> grid = StructuredQuadGrid((y, x))
 >>> grid.number_of_nodes
 20
 
-#>>> grid.number_of_core_nodes
-6
->>> grid.number_of_node_rows
-4
->>> grid.number_of_node_columns
-5
+>>> grid.number_of_node_rows == 4
+True
+>>> grid.number_of_node_columns == 5
+True
 >>> grid.corner_nodes
 array([ 0,  4, 15, 19])
 >>> grid.number_of_cells
@@ -34,6 +33,15 @@ from . import nodes
 
 
 class StructuredQuadGrid(BaseGrid):
+    """
+    Parameters
+    ----------
+    node_coord : tuple
+        Coordinates of all grid nodes.
+    shape : tuple, optional
+        Shape of the grid of nodes.
+    """
+
     def __init__(self, node_coord, shape=None, axis_name=None, axis_units=None,
                  links=True, cells=True, node_status=None):
         """
@@ -49,16 +57,18 @@ class StructuredQuadGrid(BaseGrid):
 
         self._shape = shape or node_coord[0].shape
 
-        assert(node_status is None or node_status.size == self._num_nodes)
+        if node_status is not None:
+            if node_status.size != nodes.number_of_nodes(self.shape):
+                raise ValueError('incorrect size for node_status array')
 
         if node_status is None:
             self._status = nodes.status_with_perimeter_as_boundary(
-                self.shape, status_on_perimeter=FIXED_VALUE_BOUNDARY)
+                self.shape, node_status=FIXED_VALUE_BOUNDARY)
         else:
             self._status = node_status
 
         if links:
-            #links = (node_id_at_link_start(self.shape),
+            # links = (node_id_at_link_start(self.shape),
             #         node_id_at_link_end(self.shape))
             link_grid = StructuredQuadLinkGrid(self.shape)
         if cells:
@@ -91,10 +101,12 @@ class StructuredQuadGrid(BaseGrid):
         self._in_link_id_at_nodes = quad_links.node_in_link_ids(self.shape)
         self._out_link_id_at_nodes = quad_links.node_out_link_ids(self.shape)
 
-        self._node_id_at_link_start = quad_links.node_id_at_link_start(self.shape)
+        self._node_id_at_link_start = quad_links.node_id_at_link_start(
+            self.shape)
         self._node_id_at_link_end = quad_links.node_id_at_link_end(self.shape)
 
-        self._active_link_ids = quad_links.active_link_ids(self.shape, self._status)
+        self._active_link_ids = quad_links.active_link_ids(
+            self.shape, self._status)
 
     @property
     def shape(self):
@@ -103,7 +115,7 @@ class StructuredQuadGrid(BaseGrid):
         return self._shape
 
     #@property
-    #def number_of_core_nodes(self):
+    # def number_of_core_nodes(self):
     #    """Number of core nodes.
     #    """
     #    return self._num_core_nodes
@@ -138,6 +150,7 @@ class StructuredQuadGrid(BaseGrid):
         Examples
         --------
         >>> import numpy as np
+        >>> from landlab.grid.structured_quad.structured import StructuredQuadGrid
         >>> (x, y) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
         >>> grid = StructuredQuadGrid((x, y))
         >>> grid.corner_nodes

@@ -1,23 +1,24 @@
 #! /usr/bin/env python
+from six.moves import range
 
 from landlab.grid import RasterModelGrid
-from landlab.components.craters.component import CratersComponent
+from landlab.components.craters import CratersComponent
 
 
 def main():
     import argparse
     #nmg comments
-    #The argparse library provide an easy way to enter parameter values on 
-    #the command line when running code.  
+    #The argparse library provide an easy way to enter parameter values on
+    #the command line when running code.
     #Default values are provided, but they can also be
-    #provided at run time. 
+    #provided at run time.
     #
     #For Example, to specify the number of impacts when running:
     #python craters_component.py --impact-count 200
     #
     #to specify the number of impacts and grid size:
     #python craters_component.py --impact-count 200 --grid-size 500
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--impact-count', type=int, default=128,
                         help='Number of impacts')
@@ -46,10 +47,10 @@ def main():
     grid = RasterModelGrid(shape[0], shape[1], spacing[0])
 
     craters_comp = CratersComponent(grid, seed=seed)
-    for _ in xrange(impact_count):
+    for _ in range(impact_count):
         craters_comp.update()
 
-    grid.imshow('node', 'topographic_elevation', grid_units=('km', 'km'),
+    grid.imshow('node', 'topographic__elevation', grid_units=('km', 'km'),
                 symmetric_cbar=True)
 
 

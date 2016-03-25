@@ -1,6 +1,13 @@
 landlab.plot package
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    landlab.plot.tests
+
 Submodules
 ----------
 

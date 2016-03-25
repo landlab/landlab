@@ -4,6 +4,14 @@ landlab.components.flow_routing package
 Submodules
 ----------
 
+landlab.components.flow_routing.cfuncs module
+---------------------------------------------
+
+.. automodule:: landlab.components.flow_routing.cfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.components.flow_routing.flow_direction_DN module
 --------------------------------------------------------
 
@@ -16,6 +24,14 @@ landlab.components.flow_routing.flow_routing_D8 module
 ------------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.flow_routing_D8
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.components.flow_routing.lake_mapper module
+--------------------------------------------------
+
+.. automodule:: landlab.components.flow_routing.lake_mapper
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,7 @@
 import numpy as np
 
 from . import nodes
+from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def number_of_cells(shape):
@@ -18,6 +19,7 @@ def number_of_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import number_of_cells
     >>> number_of_cells((3, 4))
     2
     """
@@ -39,6 +41,7 @@ def shape_of_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import shape_of_cells
     >>> shape_of_cells((3, 4))
     (1, 2)
     """
@@ -60,11 +63,41 @@ def node_id_at_cells(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import node_id_at_cells
     >>> node_id_at_cells((3, 4))
     array([[5, 6]])
     """
     node_ids = nodes.node_ids(shape)
     return node_ids[1:-1, 1:-1].copy().reshape(shape_of_cells(shape))
+
+
+def cell_id_at_nodes(shape, bad=BAD_INDEX_VALUE):
+    """Cell ID at each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        ID of cell associated with each node.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.cells import cell_id_at_nodes
+    >>> cell_id_at_nodes((4, 5), bad=-1) # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1, -1],
+           [-1,  0,  1,  2, -1],
+           [-1,  3,  4,  5, -1],
+           [-1, -1, -1, -1, -1]])
+    """
+    cells = np.empty(shape, dtype=int)
+    cells[1:-1, 1:-1] = cell_ids(shape)
+    cells[(0, -1), :] = bad
+    cells[:, (0, -1)] = bad
+    return cells
 
 
 def cell_ids(shape):
@@ -82,6 +115,7 @@ def cell_ids(shape):
 
     Examples
     --------
+    >>> from landlab.grid.structured_quad.cells import cell_ids
     >>> cell_ids((3, 4))
     array([[0, 1]])
     """
@@ -89,6 +123,7 @@ def cell_ids(shape):
 
 
 class StructuredQuadCellGrid(object):
+
     def __init__(self, shape):
         self._shape = shape_of_cells(shape)
         self._number_of_cells = np.prod(self._shape)

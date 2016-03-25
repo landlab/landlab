@@ -3,7 +3,6 @@ from numpy.testing import assert_array_equal
 from nose.tools import with_setup
 
 
-
 def setup_grid():
     from landlab import RasterModelGrid
     globals().update({
@@ -39,6 +38,7 @@ def test_lower_right_cell():
 def test_on_left_edge():
     assert_array_equal(rmg.get_nodes_around_point(0., .5),
                        np.array([0, 3, 4, 1]))
+
 
 @with_setup(setup_grid)
 def test_on_bottom_edge():
