@@ -46,10 +46,10 @@ assert mg.node_spacing == dx
 # Display a message
 print('Running ...')
 
-#instantiate the components:
+# instantiate the components:
 fr = FlowRouter(mg)
 sde = SedDepEroder(mg, input_file)
-#don't allow overwriting of these, just in case
+# don't allow overwriting of these, just in case
 try:
     x_profiles
 except NameError:
@@ -58,11 +58,11 @@ except NameError:
     S_profiles = []
     A_profiles = []
 
-#plot init conds
+# plot init conds
 if make_output_plots:
     mg = fr.route_flow(grid=mg)
     pylab.figure('long_profile_anim')
-    ylim([0,y_max])
+    ylim([0, y_max])
     prf.analyze_channel_network_and_plot(mg)
     savefig('0profile_anim_init.png')
     close('long_profile_anim')
