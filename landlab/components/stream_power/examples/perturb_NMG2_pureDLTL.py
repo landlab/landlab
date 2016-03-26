@@ -3,7 +3,8 @@
 
 from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional_v3 import TransportLimitedEroder
+from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional import TransportLimitedEroder
+from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -57,16 +58,14 @@ uplift_per_step = uplift_rate * dt
 print 'uplift per step: ', uplift_per_step
 
 #create the field
-mg.create_node_array_zeros('topographic_elevation')
-z = mg.create_node_array_zeros() + leftmost_elev
+z = mg.add_zeros('topographic__elevation', at='node')
+z += leftmost_elev
 z += initial_slope*np.amax(mg.node_y) - initial_slope*mg.node_y
 #put these values plus roughness into that field
-mg['node'][ 'topographic_elevation'] = z + np.random.rand(len(z))/100000.
+z += np.random.rand(len(z))/100000.
 
-#set up grid's boundary conditions (bottom, left, top, right is inactive)
-mg.set_inactive_boundaries(False, True, True, True)
-mg.set_fixed_value_boundaries_at_grid_edges(True, False, False, False, value_of='topographic_elevation')
-print 'fixed vals in grid: ', mg.fixed_value_node_properties['values']
+mg.status_at_node[mg.nodes_at_left_edge] = CLOSED_BOUNDARY
+mg.status_at_node[mg.nodes_at_right_edge] = CLOSED_BOUNDARY
 
 fr = FlowRouter(mg)
 if DL_or_TL == 'TL':
@@ -75,23 +74,25 @@ else:
     spe = StreamPowerEroder(mg, input_file)
 
 for i in xrange(nt):
-    #print 'loop ', i
-    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
+    # print 'loop ', i
+    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     if DL_or_TL == 'TL':
-        mg,_ = tle.erode(mg,dt)
+        mg, _ = tle.erode(mg, dt)
     else:
-        mg,_,_ = spe.erode(mg,dt=dt)
-    if i%init_interval == 0:
+        mg, _, _ = spe.erode(mg, dt=dt)
+    if i % init_interval == 0:
         print 'loop ', i
-        print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
+        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][
+            mg.core_nodes])
         pylab.figure("long_profiles_init")
-        profile_IDs = prf.channel_nodes(mg, mg.at_node['steepest_slope'],
-                                        mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
-                                        mg.at_node['flow_receiver'])
-        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
+        profile_IDs = prf.channel_nodes(
+            mg, mg.at_node['topographic__steepest_slope'],
+            mg.at_node['drainage_area'],
+            mg.at_node['flow_receiver'])
+        dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
                                                 profile_IDs, mg.at_node['links_to_flow_receiver'])
-        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
 
 print 'completed run to steady state...'
 if show_figs_in_run:
@@ -130,7 +131,7 @@ time_on = time()
 #perform the loops:
 for i in xrange(nt):
     #print 'loop ', i
-    mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
+    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
     if DL_or_TL == 'TL':
         mg,_ = tle.erode(mg,dt)
@@ -138,18 +139,18 @@ for i in xrange(nt):
         mg,_,_ = spe.erode(mg,dt=dt)
     if i%out_interval == 0:
         print 'loop ', i
-        print 'max_slope', np.amax(mg.at_node['steepest_slope'][mg.core_nodes])
+        print 'max_slope', np.amax(mg.at_node['topographic__steepest_slope'][mg.core_nodes])
         pylab.figure("slope_area")
-        loglog(mg.at_node['drainage_area'][profile_IDs], mg.at_node['steepest_slope'][profile_IDs], '-x')
+        loglog(mg.at_node['drainage_area'][profile_IDs[-1]], mg.at_node['topographic__steepest_slope'][profile_IDs[-1]], '-x')
     if i%out_interval == 0:
-        x_profiles.append(dists_upstr[:])
-        z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
-        S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
-        A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
+        x_profiles.append(dists_upstr[-1][:])
+        z_profiles.append(mg.at_node['topographic__elevation'][profile_IDs[-1]])
+        S_profiles.append(mg.at_node['topographic__steepest_slope'][profile_IDs[-1]])
+        A_profiles.append(mg.at_node['drainage_area'][profile_IDs[-1]])
         if make_output_plots:
             pylab.figure('long_profile_anim')
             #prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
-            plot(dists_upstr,mg.at_node['topographic_elevation'][profile_IDs])
+            plot(dists_upstr[-1],mg.at_node['topographic__elevation'][profile_IDs[-1]])
             ylim([0,y_max])
             if i==0:
                 savefig('profile_anim_000'+str(i)+'.png')
@@ -169,7 +170,7 @@ time_off = time()
 
 #Finalize and plot
 
-elev = mg['node']['topographic_elevation']
+elev = mg['node']['topographic__elevation']
 #imshow.imshow_node_grid(mg, elev)
 
 print('Done.')
@@ -181,7 +182,7 @@ print 'Time: ', time_off-time_on
 
 if True:
     pylab.figure('long_profile_anim_init')
-    loglog(mg_init.at_node['drainage_area'][profile_IDs], mg_init.at_node['steepest_slope'][profile_IDs])
+    loglog(mg_init.at_node['drainage_area'][profile_IDs[-1]], mg_init.at_node['topographic__steepest_slope'][profile_IDs[-1]])
     ylim([1.e-3,1.e0])
     xlim(gca().get_xlim()[::-1]) #reverse the x axis for comparison with long profiles
     savefig('0profile_anim_init.png')
