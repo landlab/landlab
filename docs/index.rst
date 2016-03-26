@@ -10,8 +10,8 @@ Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`
 Landlab Developer API
 ==============================
 
-.. Contents::
-
+The *Landlab Developer API* is a general reference manual for Landlab.
+It is organized around the following core topics:
 
 Grids
 =======================
