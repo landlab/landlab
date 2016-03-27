@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import Voronoi
 from scipy.spatial import Delaunay
 
-from .graph import Graph
+from ..graph import Graph
 
 
 class VoronoiGraph(Graph):
@@ -14,7 +14,7 @@ class VoronoiGraph(Graph):
     >>> from landlab.graph import VoronoiGraph
     """
 
-    def __init__(self, nodes, sort=False, ccw=False):
+    def __init__(self, nodes, xy_sort=False, rot_sort=False):
         """Create a voronoi grid.
 
         Parameters
@@ -29,7 +29,7 @@ class VoronoiGraph(Graph):
         ...           1, 2, 3]
         >>> node_y = [0, 0, 0,
         ...           2, 2, 2]
-        >>> graph = VoronoiGraph((node_y, node_x), ccw=True)
+        >>> graph = VoronoiGraph((node_y, node_x), rot_sort=True)
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  1.,  2.,  3.])
         >>> graph.y_of_node
@@ -43,7 +43,7 @@ class VoronoiGraph(Graph):
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[0, 1, 3], [2, 4, 5], [1, 2, 4], [1, 3, 4]])
         """
-        from .delaunay_cfuncs import _setup_links_at_patch
+        from .ext.delaunay import _setup_links_at_patch
 
         node_y, node_x = (np.asarray(nodes[0], dtype=float),
                           np.asarray(nodes[1], dtype=float))
@@ -64,5 +64,6 @@ class VoronoiGraph(Graph):
 
         super(VoronoiGraph, self).__init__((node_y.flat, node_x.flat),
                                            links=nodes_at_link,
-                                           patches=links_at_patch, sort=sort,
-                                           ccw=ccw)
+                                           patches=links_at_patch,
+                                           xy_sort=xy_sort,
+                                           rot_sort=rot_sort)
