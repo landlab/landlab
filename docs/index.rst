@@ -11,25 +11,76 @@ Landlab Developer API
 ==============================
 
 The *Landlab Developer API* is a general reference manual for Landlab.
-It is organized around the following core topics:
 
 Grids
 =======================
 
 As of Landlab version 0.2, there are four types of Landlab grid:
- - `Raster <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.raster>`_
- - `Voronoi-DeLaunay <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.voronoi>`_
- - `Hex <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.hex>`_
- - `Radial <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.radial>`_
+ - Raster
+ - Voronoi-DeLaunay
+ - Hex
+ - Radial
 
 The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDelaunayGrid`.
 
 `VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
 
+Methods and properties common to all grids
+--------------------------
 .. toctree::
    :maxdepth: 4
 
-   landlab.grid
+   landlab.grid.mappers
+   landlab.grid.gradients
+   landlab.grid.grid_funcs
+   landlab.grid.create
+   landlab.grid.base
+   landlab.grid.decorators
+
+Specialized methods and properties for Rectilinear Grids 'raster grids'
+--------------------------
+Inherits from 'ModelGrid' and adds:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.raster
+   landlab.grid.raster_mappers
+   landlab.grid.raster_gradients
+   landlab.grid.raster_aspect
+   landlab.grid.raster_steepest_descent
+   landlab.grid.raster_set_status
+   landlab.grid.raster_funcs
+
+Specialized methods and properties for Voronoi-Delaunay grids
+--------------------------
+
+Inherits from 'ModelGrid' and adds:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.voronoi
+
+Specialized methods and properties for hex grids
+--------------------------
+
+Inherits from 'VoronoiDelauneyGrid' and adds:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.hex
+
+Specialized methods and properties for radial grids
+--------------------------
+
+Inherits from 'VoronoiDelauneyGrid' and adds:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.radial
 
 
 Components
