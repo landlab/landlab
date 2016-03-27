@@ -1,7 +1,12 @@
+"""Sort the elements of a graph.
+
+This module provides functions that sort the elements of a graph structure.
+"""
+
 import numpy as np
 
-from ..core.utils import as_id_array, argsort_points_by_x_then_y
-from ..utils.jaggedarray import flatten_jagged_array
+from ...core.utils import as_id_array, argsort_points_by_x_then_y
+from ...utils.jaggedarray import flatten_jagged_array
 
 
 def sort_graph(nodes, links=None, patches=None):
@@ -64,13 +69,15 @@ def sort_graph(nodes, links=None, patches=None):
     >>> patches[1]
     array([ 0,  3,  7, 10])
     """
-    from .cfuncs import _remap_nodes_at_link, _remap_links_at_patch
+    # from .cfuncs import _remap_nodes_at_link
+    from .ext.remap_element import remap_graph_element
 
     if patches is not None and links is None:
         raise ValueError('graph that has patches must also have links')
 
     if links is not None:
-        links = np.asarray(links)
+        links = np.asarray(links, dtype=int)
+
     if patches is not None:
         if len(patches) == 2 and isinstance(patches[0], np.ndarray):
             links_at_patch, offset_to_patch = patches
@@ -83,15 +90,20 @@ def sort_graph(nodes, links=None, patches=None):
     sorted_nodes = sort_nodes(nodes)
 
     if links is not None:
-        _remap_nodes_at_link(links, np.argsort(sorted_nodes, kind='mergesort'))
+        remap_graph_element(links.reshape((-1, )),
+                            np.argsort(sorted_nodes, kind='mergesort'))
+
+        # _remap_nodes_at_link(links, np.argsort(sorted_nodes, kind='mergesort'))
 
         midpoint_of_link = np.empty((len(links), 2), dtype=float)
         sorted_links = sort_links(links, nodes,
                                   midpoint_of_link=midpoint_of_link) 
 
     if patches is not None:
-        _remap_links_at_patch(links_at_patch,
-                              np.argsort(sorted_links, kind='mergesort'))
+        remap_graph_element(links_at_patch,
+                            np.argsort(sorted_links, kind='mergesort'))
+        # _remap_links_at_patch(links_at_patch,
+        #                       np.argsort(sorted_links, kind='mergesort'))
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)
 
     return nodes, links, (links_at_patch, offset_to_patch)
@@ -123,7 +135,7 @@ def sort_nodes(nodes):
     >>> y
     array([ 0. ,  0.5,  1. ])
     """
-    from .cfuncs import _remap_nodes_at_link
+    # from .cfuncs import _remap_nodes_at_link
 
     sorted_nodes = argsort_points_by_x_then_y((nodes[1], nodes[0]))
     nodes[0][:] = nodes[0][sorted_nodes]
@@ -168,19 +180,15 @@ def sort_links(nodes_at_link, nodes, midpoint_of_link=None):
            [3, 4],
            [4, 5]])
     """
-    y_of_node, x_of_node = nodes
+    from ..quantity.ext.of_link import calc_midpoint_of_link
 
-    y_at_tail = y_of_node[nodes_at_link[:, 0]]
-    x_at_tail = x_of_node[nodes_at_link[:, 0]]
-
-    y_at_head = y_of_node[nodes_at_link[:, 1]]
-    x_at_head = x_of_node[nodes_at_link[:, 1]]
+    y_of_node, x_of_node = np.asfarray(nodes[0]), np.asfarray(nodes[1])
 
     if midpoint_of_link is None:
         midpoint_of_link = np.empty((len(nodes_at_link), 2), dtype=float)
 
-    midpoint_of_link[:, 0] = (x_at_tail + x_at_head) * .5
-    midpoint_of_link[:, 1] = (y_at_tail + y_at_head) * .5
+    calc_midpoint_of_link(nodes_at_link, x_of_node, y_of_node,
+                          midpoint_of_link)
 
     sorted_links = argsort_points_by_x_then_y(midpoint_of_link)
     nodes_at_link[:] = nodes_at_link[sorted_links]
@@ -216,15 +224,60 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     >>> offset_to_patch
     array([0, 3, 6])
     """
-    from .cfuncs import _calc_center_of_patch, _resort_patches
+    # from .cfuncs import _calc_center_of_patch, _resort_patches
+    from .ext.remap_element import calc_center_of_patch, reorder_patches
 
     n_patches = len(offset_to_patch) - 1
     xy_at_patch = np.empty((n_patches, 2), dtype=float)
 
-    _calc_center_of_patch(links_at_patch, offset_to_patch,
-                          xy_of_link, xy_at_patch)
+    calc_center_of_patch(links_at_patch, offset_to_patch,
+                         xy_of_link, xy_at_patch)
 
     sorted_patches = argsort_points_by_x_then_y(xy_at_patch)
-    _resort_patches(links_at_patch, offset_to_patch, sorted_patches)
+    # _resort_patches(links_at_patch, offset_to_patch, sorted_patches)
+    reorder_patches(links_at_patch, offset_to_patch, sorted_patches)
+
+    # reorder_links_at_patch(links_at_patch, offset_to_patch, xy_of_link)
 
     return sorted_patches
+
+
+def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
+                                angle_of_link, inplace=True):
+    """Sort links as spokes about a hub.
+
+    Parameters
+    ----------
+    links_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
+        Links entering or leaving each node.
+    link_dirs_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
+        Direction of links entering or leaving each node.
+    angle_of_link : ndarray of float, shape `(n_links, )`
+        Angle (in radians) of each link as measured from its head to tail.
+
+    Returns
+    -------
+    tuple of (links_at_node, link_dirs_at_node)
+        The sorted arrays. If `inplace` is `True`, these are the input
+        arrays.
+    """
+    from .cfuncs import _reorder_links_at_node
+
+    outward_angle = angle_of_link[links_at_node]
+
+    links_entering = np.where(link_dirs_at_node == 1)
+    outward_angle[links_entering] += np.pi
+    outward_angle[outward_angle >= 2 * np.pi] -= 2 * np.pi
+
+    outward_angle[np.where(link_dirs_at_node == 0)] = 4 * np.pi
+
+    sorted_links = np.argsort(outward_angle)
+
+    if not inplace:
+        links_at_node = links_at_node.copy()
+        link_dirs_at_node = link_dirs_at_node.copy()
+
+    _reorder_links_at_node(links_at_node, sorted_links)
+    _reorder_links_at_node(link_dirs_at_node, sorted_links)
+
+    return links_at_node, link_dirs_at_node

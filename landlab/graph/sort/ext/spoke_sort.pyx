@@ -26,14 +26,15 @@ cdef _calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
         spoke += 2
 
 
-cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
-                             double * xy_of_hub):
+cdef _argsort_spokes_around_hub(long * spokes, int n_spokes,
+                                double * xy_of_spoke, double * xy_of_hub,
+                                int * ordered):
     cdef int point
     cdef int spoke
     cdef double * points = <double *>malloc(2 * n_spokes * sizeof(double))
     cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
-    cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
-    cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
+    # cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
+    # cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
     
     try:
         point = 0
@@ -45,16 +46,50 @@ cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
         _calc_spoke_angles(xy_of_hub, points, n_spokes, angles)
         argsort(angles, n_spokes, ordered)
 
+        # for spoke in range(n_spokes):
+        #     temp[spoke] = spokes[ordered[spoke]]
+
+        # for spoke in range(n_spokes):
+        #     spokes[spoke] = temp[spoke]
+    finally:
+        free(angles)
+        # free(temp)
+        # free(ordered)
+        free(points)
+
+
+cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
+                             double * xy_of_hub):
+    cdef int point
+    cdef int spoke
+    # cdef double * points = <double *>malloc(2 * n_spokes * sizeof(double))
+    # cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
+    cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
+    cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
+    
+    try:
+        _argsort_spokes_around_hub(spokes, n_spokes, xy_of_spoke, xy_of_hub,
+                                   ordered)
+
+        # point = 0
+        # for spoke in range(n_spokes):
+        #     points[point] = xy_of_spoke[2 * spokes[spoke]]
+        #     points[point + 1] = xy_of_spoke[2 * spokes[spoke] + 1]
+        #     point += 2
+
+        # _calc_spoke_angles(xy_of_hub, points, n_spokes, angles)
+        # argsort(angles, n_spokes, ordered)
+
         for spoke in range(n_spokes):
             temp[spoke] = spokes[ordered[spoke]]
 
         for spoke in range(n_spokes):
             spokes[spoke] = temp[spoke]
     finally:
-        free(angles)
+        # free(angles)
         free(temp)
         free(ordered)
-        free(points)
+        # free(points)
 
 
 @cython.boundscheck(False)
@@ -103,6 +138,30 @@ def argsort_points_around_hub(np.ndarray[double, ndim=2, mode="c"] points,
       free(angles)
 
     return out
+
+
+@cython.boundscheck(False)
+def argsort_spokes_at_wheel(np.ndarray[long, ndim=1, mode="c"] spokes_at_wheel,
+                            np.ndarray[long, ndim=1, mode="c"] offset_to_wheel,
+                            np.ndarray[double, ndim=2, mode="c"] xy_of_hub,
+                            np.ndarray[double, ndim=2, mode="c"] xy_of_spoke,
+                            np.ndarray[int, ndim=1, mode="c"] ordered):
+    cdef int n_wheels = len(offset_to_wheel) - 1
+    cdef int i
+    cdef int n_spokes
+    cdef long * wheel
+    cdef int * order
+
+    wheel = &spokes_at_wheel[0]
+    order = &ordered[0]
+    for i in range(n_wheels):
+        n_spokes = offset_to_wheel[i + 1] - offset_to_wheel[i]
+
+        _argsort_spokes_around_hub(wheel, n_spokes, &xy_of_spoke[0, 0],
+                                   &xy_of_hub[i, 0], order)
+
+        order += n_spokes
+        wheel += n_spokes
 
 
 @cython.boundscheck(False)
