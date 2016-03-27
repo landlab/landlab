@@ -1,6 +1,6 @@
 import numpy as np
 
-from .dual import DualGraphMixIn
+from ..dual import DualGraphMixIn
 from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
                               UniformRectilinearGraph, )
 
@@ -38,7 +38,7 @@ class DualStructuredQuadGraph(StructuredQuadGraph, DualGraphMixIn):
         dual_shape = [dim - 1 for dim in self.shape]
 
         self._dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
-        self._node_at_cell = setup_node_at_cell(self.shape)
+        self._node_at_cell = get_node_at_cell(self.shape)
 
 
 class DualRectilinearGraph(RectilinearGraph, DualGraphMixIn):
@@ -70,7 +70,7 @@ class DualRectilinearGraph(RectilinearGraph, DualGraphMixIn):
         dual_nodes = [x[:-1] + np.diff(x) * .5 for x in dual_nodes]
 
         self._dual = RectilinearGraph(dual_nodes)
-        self._node_at_cell = setup_node_at_cell(self.shape)
+        self._node_at_cell = get_node_at_cell(self.shape)
 
 
 class DualUniformRectilinearGraph(UniformRectilinearGraph, DualGraphMixIn):
@@ -107,27 +107,28 @@ class DualUniformRectilinearGraph(UniformRectilinearGraph, DualGraphMixIn):
         self._dual = UniformRectilinearGraph(dual_shape,
                                              spacing=spacing,
                                              origin=dual_origin)
-        self._node_at_cell = setup_node_at_cell(self.shape)
+        self._node_at_cell = get_node_at_cell(self.shape)
 
     @property
     def dual(self):
         return self._dual
 
 
-def setup_node_at_cell(shape):
+def get_node_at_cell(shape):
     """Set up an array that gives the node at each cell.
 
     Examples
     --------
-    >>> from landlab.graph.dual_structured_quad import setup_node_at_cell
-    >>> setup_node_at_cell((5, 6)) # doctest: +NORMALIZE_WHITESPACE
+    >>> from landlab.graph.structured_quad.dual_structured_quad import get_node_at_cell
+    >>> get_node_at_cell((5, 6)) # doctest: +NORMALIZE_WHITESPACE
     array([ 7,  8,  9, 10,
            13, 14, 15, 16,
            19, 20, 21, 22])
     """
-    from .cfuncs import _setup_node_at_cell
+    from .ext.structured_quad import get_node_at_cell
 
     node_at_cell = np.empty((shape[0] - 2) * (shape[1] - 2), dtype=int)
 
-    _setup_node_at_cell(shape, node_at_cell)
+    get_node_at_cell(shape, node_at_cell)
+
     return node_at_cell

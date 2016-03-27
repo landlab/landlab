@@ -1,7 +1,7 @@
 import numpy as np
 
-from .graph import Graph
-from ..grid.structured_quad.links import links_at_node, link_dirs_at_node
+from ..graph import Graph
+from ...grid.structured_quad.links import links_at_node, link_dirs_at_node
 
 
 def setup_links_at_patch(shape):
@@ -9,7 +9,7 @@ def setup_links_at_patch(shape):
 
     Examples
     --------
-    >>> from landlab.graph.structured_quad import setup_links_at_patch
+    >>> from landlab.graph.structured_quad.structured_quad import setup_links_at_patch
     >>> setup_links_at_patch((3, 4)) # doctest: +NORMALIZE_WHITESPACE
     array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
            [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]])
@@ -31,7 +31,7 @@ def setup_nodes_at_link(shape):
     """
     Examples
     --------
-    >>> from landlab.graph.structured_quad import setup_nodes_at_link
+    >>> from landlab.graph.structured_quad.structured_quad import setup_nodes_at_link
     >>> setup_nodes_at_link((3, 4)) # doctest: +NORMALIZE_WHITESPACE
     array([[ 0,  1], [ 1,  2], [ 2,  3],
            [ 0,  4], [ 1,  5], [ 2,  6], [ 3,  7],
@@ -104,7 +104,8 @@ class StructuredQuadGraph(Graph):
         super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
                                                   links=nodes_at_link,
                                                   patches=links_at_patch,
-                                                  sort=False, ccw=False)
+                                                  xy_sort=False,
+                                                  rot_sort=False)
 
     def get_links_at_node(self):
         """Set up node-link data structures."""
