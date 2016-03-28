@@ -312,6 +312,37 @@ cdef argsort_by_angle_around_centroid(double * points,
         free(hub)
 
 
+cdef sort_spokes_around_hub(int * spokes, int n_spokes, double * xy_of_spoke,
+                            double * xy_of_hub):
+    cdef int point
+    cdef int spoke
+    cdef double * points = <double *>malloc(2 * n_spokes * sizeof(double))
+    cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
+    cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
+    cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
+    
+    try:
+        point = 0
+        for spoke in range(n_spokes):
+            points[point] = xy_of_spoke[2 * spokes[spoke]]
+            points[point + 1] = xy_of_spoke[2 * spokes[spoke] + 1]
+            point += 2
+
+        calc_spoke_angles(xy_of_hub, points, n_spokes, angles)
+        argsort(angles, n_spokes, ordered)
+
+        for spoke in range(n_spokes):
+            temp[spoke] = spokes[ordered[spoke]]
+
+        for spoke in range(n_spokes):
+            spokes[spoke] = temp[spoke]
+    finally:
+        free(angles)
+        free(temp)
+        free(ordered)
+        free(points)
+
+
 @cython.boundscheck(False)
 def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
                            np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
@@ -353,7 +384,41 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
+def sort_spokes_at_wheel(np.ndarray[int, ndim=1] spokes_at_wheel,
+                         np.ndarray[int, ndim=1] offset_to_wheel,
+                         np.ndarray[double, ndim=2] xy_of_hub,
+                         np.ndarray[double, ndim=2] xy_of_spoke):
+    """Sort spokes about multiple hubs.
+
+    Parameters
+    ----------
+    spokes_at_wheel : ndarray of int
+        Spokes for each wheel.
+    offset_to_wheel : ndarray of int
+        Offset into *spokes_at_wheel* for each wheel.
+    xy_of_hub : ndarray of float, shape `(n_hubs, 2)`
+        Coordinates of each hub as `(x, y)`.
+    xy_of_spoke : ndarray of float, shape `(n_spokes, 2)`
+        Coordinates of the end of each spoke as `(x, y)`.
+    """
+    cdef int n_wheels = len(offset_to_wheel) - 1
+    cdef int i
+    cdef int n_spokes
+    cdef int * wheel
+
+    wheel = &spokes_at_wheel[0]
+    for i in range(n_wheels):
+        n_spokes = offset_to_wheel[i + 1] - offset_to_wheel[i]
+
+        sort_spokes_around_hub(wheel, n_spokes, &xy_of_spoke[0, 0],
+                               &xy_of_hub[i, 0])
+
+        wheel += n_spokes
+
+
+@cython.boundscheck(False)
 def argsort_spoke_angles(np.ndarray[double, ndim=2, mode="c"] points,
+                         np.ndarray[double, ndim=1, mode="c"] hub,
                          np.ndarray[int, ndim=1] out):
     """Sort spokes by angle around a hub.
 
@@ -369,5 +434,13 @@ def argsort_spoke_angles(np.ndarray[double, ndim=2, mode="c"] points,
     ndarray of int, shape `(n_points, )`
         Indices of sorted points.
     """
-    argsort_by_angle_around_centroid(&points[0, 0], points.shape[0], &out[0])
+    cdef int n_points = points.shape[0]
+    cdef double *angles = <double *>malloc(n_points * sizeof(double))
+
+    try:
+        calc_spoke_angles(&hub[0], &points[0, 0], n_points, angles)
+        argsort(angles, n_points, &out[0])
+    finally:
+      free(angles)
+
     return out
