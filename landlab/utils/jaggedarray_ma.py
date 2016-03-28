@@ -45,10 +45,31 @@ from six.moves import range
 
 class JaggedArray(object):
 
-    """A container for an array of variable-length arrays."""
+    """
+    A container for an array of variable-length arrays.
+
+    JaggedArray([row0, row1, ...])
+    JaggedArray(values, values_per_row)
+
+    Examples
+    --------
+    Create a JaggedArray with an array of arrays.
+
+    >>> from landlab.utils.jaggedarray_ma import JaggedArray
+    >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+    >>> x.array
+    array([0, 1, 2, 3, 4])
+
+    Create a JaggedArray as a 1D array and a list or row lengths.
+
+    >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
+    >>> x.array
+    array([0, 1, 2, 3, 4])
+    """
 
     def __init__(self, *args):
-        """JaggedArray([row0, row1, ...])
+        """
+        JaggedArray([row0, row1, ...])
         JaggedArray(values, values_per_row)
 
         Examples

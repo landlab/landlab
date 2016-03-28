@@ -13,8 +13,28 @@ class HexModelGrid(VoronoiDelaunayGrid):
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
 
+    Parameters
+    ----------
+    base_num_rows : int
+        Number of rows of nodes in the left column.
+    base_num_cols : int
+        Number of nodes on the first row.
+    dx : float, optional
+        Node spacing.
+    orientation : string, optional
+        One of the 3 cardinal directions in the grid, either 'horizontal'
+        (default) or 'vertical'
+
+    Returns
+    -------
+    HexModelGrid
+        A newly-created grid.
+
     Examples
     --------
+    Create a hex grid with 2 rows of nodes. The first and third rows will
+    have 2 nodes, and the second nodes.
+
     >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(3, 2, 1.0)
     >>> hmg.number_of_nodes
@@ -62,6 +82,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._initialize(base_num_rows, base_num_cols, dx, orientation,
                              shape, reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
+
+    @classmethod
+    def from_dict(cls, params):
+        shape = params['shape']
+        spacing = params.get('spacing', 1.)
+
+        return cls(shape[0], shape[1], spacing)
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
                     shape, reorient_links=True):

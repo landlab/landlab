@@ -34,7 +34,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 z = mg.zeros(at='node') + init_elev
 z_slope = (49000. - mg.node_y)/mg.node_y.max()/20.
 mg.at_node['topographic__elevation'] = z + z_slope #+ np.random.rand(len(z))/1000.
-mg.add_zeros('water__volume_flux_in', at='node')
+mg.add_zeros('water__unit_flux_in', at='node')
 
 #Set boundary conditions
 inlet_node = np.array((int((1.5*mg.number_of_node_columns)//1)))
@@ -44,8 +44,8 @@ mg.set_closed_boundaries_at_grid_edges(False, False, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
 mg.status_at_node[section_col] = 2
 mg.update_links_nodes_cells_to_new_BCs()
-mg.at_node['water__volume_flux_in'].fill(0.)
-mg.at_node['water__volume_flux_in'][inlet_node] = 1.
+mg.at_node['water__unit_flux_in'].fill(0.)
+mg.at_node['water__unit_flux_in'][inlet_node] = 1.
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 interior_nodes = mg.core_nodes
@@ -78,7 +78,7 @@ for i in range(3000):
 for i in range(3000):
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
     #now pull down hard on the BL:
-    mg.at_node['topographic__elevation'][mg.top_edge_node_ids()[mg.number_of_node_columns//2]] =- 10.
+    mg.at_node['topographic__elevation'][mg.nodes_at_top_edge[mg.number_of_node_columns // 2]] =- 10.
     pfr.route_flow(route_on_diagonals=True)
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition

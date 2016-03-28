@@ -40,7 +40,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.add_zeros('topographic__elevation', at='node')
 z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
-mg.add_zeros('node', 'water__volume_flux_in')
+mg.add_zeros('node', 'water__unit_flux_in')
 
 #make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
@@ -70,7 +70,7 @@ except NameError:
     #We're going to cheat by running Fastscape SP for the first part of the solution
     for (interval_duration, rainfall_rate) in precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
@@ -96,7 +96,7 @@ if True:
     last_trunc = time_to_run #we use this to trigger taking an output plot
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')

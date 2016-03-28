@@ -52,15 +52,16 @@ rmg.add_zeros('topographic__elevation', at='node')      # topographic elevation 
 rmg.add_zeros('water_depth', at='node')                 # water depth (m)
 rmg.add_zeros('water_discharge', at='active_link')      # unit discharge (m2/s)
 
-# Identify the leftmost, but interior, column and the IDs of those nodes.
-leftside = rmg.left_edge_node_ids()
-leftside = leftside+1                # One column in to prevent issues with BC
+# Now we'll identify our leftmost, but interior, column and the IDs of those
+# nodes. One column in to prevent issues with BC.
+inside_left_edge = rmg.nodes[1: -1, 1]
 
 # Initializing our class...
 of = OverlandFlow(rmg)
 
-# Now, to set fixed value on the left edge, find link neighbor arrays...
-of.set_up_neighbor_arrays(rmg)
+# Now, we need to set a fixed value on the left edge, so we find the link
+# neighbor arrays...
+of.set_up_neighbor_arrays()
 
 # ... and get a list of all horizonal ids, not just active ids (which is what
 # the deAlmeida solution uses)
@@ -79,7 +80,7 @@ starttime = time()
 
 while elapsed_time < run_time:
     # First, we calculate our time step.
-    of.dt = of.gear_time_step(rmg)
+    dt = of.gear_time_step()
 
     # Now we are going to set the left edge horizontal links to their
     # neighboring discharge value
@@ -87,19 +88,19 @@ while elapsed_time < run_time:
         rmg['link']['water_discharge'][left_inactive_ids + 1])
 
     # Now, we can generate overland flow.
-    of.overland_flow(rmg, of.dt)
+    of.overland_flow()
 
     # Recalculate water depth at the boundary ...
-    h_boundary = (((seven_over_three) * n * n * u * u * u * elapsed_time) **
-        (three_over_seven))
-        # water depth at left side (m)
+    # water depth at left side (m)
+    h_boundary = (seven_over_three * n * n * u * u * u *
+                   elapsed_time) ** three_over_seven
 
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
-    rmg['node']['water_depth'][(leftside)[1:len(leftside)-1]] = h_boundary
+    rmg.at_node['water_depth'][inside_left_edge] = h_boundary
 
     # Print time
-    #print(elapsed_time)
+    # print(elapsed_time)
 
     # Increased elapsed time
     elapsed_time += of.dt

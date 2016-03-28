@@ -250,12 +250,96 @@ def add_module_functions_to_class(cls, module, pattern=None):
     mod = imp.load_module(module, *imp.find_module(module, [path]))
 
     funcs = get_functions_from_module(mod, pattern=pattern)
+    strip_grid_from_method_docstring(funcs)
     add_functions_to_class(cls, funcs)
+
+
+def strip_grid_from_method_docstring(funcs):
+    """Remove 'grid' from the parameters of a dict of functions' docstrings.
+
+    Note that the docstring must be close to numpydoc standards for this to
+    work.
+
+    Parameters
+    ----------
+    funcs : dict
+        Dictionary of functions to modify. Keys are the function names,
+        values are the functions themselves.
+
+    Examples
+    --------
+    >>> from landlab.grid.mappers import dummy_func_to_demonstrate_docstring_modification as dummy_func
+    >>> funcs = {'dummy_func_to_demonstrate_docstring_modification':
+    ...          dummy_func}
+    >>> help(dummy_func)
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab modelgrid.
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+    >>> strip_grid_from_method_docstring(funcs)
+    >>> help(dummy_func)
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            grid.dummy_func_to_demonstrate_docstring_modification(some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+    """
+    import re
+    for name, func in funcs.items():
+        # strip the entry under "Parameters":
+        func.__doc__ = re.sub('grid *:.*?\n.*?\n *', '', func.__doc__)
+        # # cosmetic magic to get a two-line signature to line up right:
+        match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
+                                  func.__doc__)
+        try:
+            lines_were = match_2_lines.group()
+        except AttributeError:  # no successful match
+            pass
+        else:
+            end_chars = re.search('    .*?\)', lines_were).group()[4:]
+            lines_are_now = re.sub('    .*?\)', '         '+end_chars,
+                                   lines_were)
+            func.__doc__ = (func.__doc__[:match_2_lines.start()] +
+                            lines_are_now +
+                            func.__doc__[match_2_lines.end():])
+        # Move "grid" in signature from an arg to the class position
+        func.__doc__ = re.sub(func.__name__+'\(grid, ',
+                              'grid.'+func.__name__+'(',
+                              func.__doc__)
 
 
 def argsort_points_by_x_then_y(points):
     """Sort points by coordinates, first x then y, returning sorted indices.
-    
+
     Parameters
     ----------
     points : tuple of ndarray or ndarray of float, shape `(*, 2)`
