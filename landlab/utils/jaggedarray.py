@@ -74,6 +74,42 @@ def flatten_jagged_array(jagged, dtype=None):
     return data, offset
 
 
+def unravel(data, offset, out=None, pad=None):
+    """Unravel a jagged array.
+
+    Parameters
+    ----------
+    data : ndarray
+        Flattened-array of the data.
+    offset : ndarray of int
+        Offsets to the start of rows of the jagged array.
+    out : ndarray
+        Buffer into which to place the unravelled data.
+    pad : number
+        Value to use to pad rows of the jagged array.
+
+    Returns
+    -------
+    ndarray
+        Matrix that holds the unravelled jagged array.
+    """
+    from .ext.jaggedarray import unravel
+
+    n_cols = np.diff(offset).max()
+    if out is None:
+        if pad is None:
+            out = np.empty((len(offset) - 1, n_cols), dtype=data.dtype)
+        else:
+            out = np.full((len(offset) - 1, n_cols), pad, dtype=data.dtype)
+    else:
+        if pad is not None:
+            out.fill(pad)
+
+    unravel(data, offset, out)
+
+    return out
+
+
 class JaggedArray(object):
 
     """A container for an array of variable-length arrays."""
