@@ -17,8 +17,8 @@ cdef _pad_jaggedarray(void * data, long * offset, size_t n_rows, size_t size,
     cdef void * src = data
 
     for row in range(n_rows):
-        dst = buff + n_cols * row * size
-        src = data + offset[row] * size
+        dst = <char *>buff + n_cols * row * size
+        src = <char *>data + offset[row] * size
 
         memcpy(dst, src, size * (offset[row + 1] - offset[row]))
 
