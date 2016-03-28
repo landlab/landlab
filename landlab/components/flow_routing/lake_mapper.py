@@ -669,9 +669,9 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
                 outlet_neighbors = np.hstack((self._grid.get_active_neighbors_at_node(
-                    outlet_node),
+                    outlet_node, bad_index=-1),
                     self._grid.get_diagonal_list(
-                    outlet_node)))
+                    outlet_node, bad_index=-1)))
             else:
                 outlet_neighbors = self._grid.get_active_neighbors_at_node(
                     outlet_node).copy()
@@ -685,9 +685,19 @@ class DepressionFinderAndRouter(Component):
                 link_l = self._link_lengths
             else:  # Voronoi
                 link_l = self._link_lengths[self._grid.links_at_node[outlet_node, :]]
-            eff_slopes = ((self._elev[outlet_node] -
-                           self._elev[out_draining]) /
-                          link_l[unique_indxs[1:]])
+            try:
+                eff_slopes = ((self._elev[outlet_node] -
+                               self._elev[out_draining]) /
+                              link_l[unique_indxs[1:]])
+            except IndexError:
+                print(outlet_neighbors)
+                print(outlet_node)
+                print(out_draining)
+                print(unique_indxs[1:])
+                print(self._D8)
+                print(self._grid.get_active_neighbors_at_node(outlet_node))
+                print(self._grid.get_diagonal_list(outlet_node))
+                raise
             lowest = np.argmax(eff_slopes)
             lowest_node = out_draining[lowest]
             # route the flow
