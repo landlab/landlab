@@ -9,6 +9,7 @@ from __future__ import print_function
 import landlab
 from landlab import (ModelParameterDictionary, Component, FieldError,
                      FIXED_VALUE_BOUNDARY)
+
 from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_routing import (DepressionFinderAndRouter,
@@ -73,6 +74,7 @@ class SinkFiller(Component):
                 'sediment_fill__depth': 'Depth of sediment added at each' +
                                         'node',
                 }
+
 
     @use_file_name_or_kwds
     def __init__(self, grid, routing='D8', apply_slope=False,

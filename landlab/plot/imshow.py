@@ -382,6 +382,9 @@ def imshow_grid(grid, values, **kwds):
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
 
+    if isinstance(values, str):
+        values = grid.field_values(values_at, values)
+
     if values_at == 'node':
         imshow_node_grid(grid, values, **kwds)
     elif values_at == 'cell':

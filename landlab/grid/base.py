@@ -3061,9 +3061,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.link_unit_vec_x) == grid.number_of_links + 1
+        >>> len(grid.unit_vector_xcomponent_at_link) == grid.number_of_links + 1
         True
-        >>> grid.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.unit_vector_xcomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  0.,  0.,  0.,
                 1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
         """
@@ -3084,9 +3084,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.link_unit_vec_y) == grid.number_of_links + 1
+        >>> len(grid.unit_vector_ycomponent_at_link) == grid.number_of_links + 1
         True
-        >>> grid.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.unit_vector_ycomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  1.,  1.,  1.,
                 0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
         """
@@ -3107,9 +3107,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.node_unit_vector_sum_x) == grid.number_of_nodes
+        >>> len(grid.unit_vector_sum_xcomponent_at_node) == grid.number_of_nodes
         True
-        >>> grid.node_unit_vector_sum_x
+        >>> grid.unit_vector_sum_xcomponent_at_node
         array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
         """
         if self._node_unit_vector_sum_x is None:
@@ -3129,9 +3129,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.node_unit_vector_sum_y) == grid.number_of_nodes
+        >>> len(grid.unit_vector_sum_ycomponent_at_node) == grid.number_of_nodes
         True
-        >>> grid.node_unit_vector_sum_y
+        >>> grid.unit_vector_sum_ycomponent_at_node
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
         """
         if self._node_unit_vector_sum_y is None:
