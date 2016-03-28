@@ -88,11 +88,16 @@ else:
     fr = FlowRouter(mg)
     sp = StreamPowerEroder(mg, input_file_string)
 
+x_profiles = []
+z_profiles = []
+S_profiles = []
+A_profiles = []
+
 if True:
     #perturb:
-    time_to_run = 500000.
-    precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
-    out_interval = 10000.
+    time_to_run = 300000.
+    precip_perturb = PrecipitationDistribution(input_file=input_file_string, mean_storm=10., mean_interstorm=40., total_t=time_to_run)
+    out_interval = 5000.
     last_trunc = time_to_run #we use this to trigger taking an output plot
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
@@ -112,7 +117,11 @@ if True:
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
-
+            x_profiles.append(dists_upstr[:])
+            z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
+            S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+            A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
+    
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
