@@ -69,7 +69,6 @@ def sort_graph(nodes, links=None, patches=None):
     >>> patches[1]
     array([ 0,  3,  7, 10])
     """
-    # from .cfuncs import _remap_nodes_at_link
     from .ext.remap_element import remap_graph_element
 
     if patches is not None and links is None:
@@ -106,7 +105,10 @@ def sort_graph(nodes, links=None, patches=None):
         #                       np.argsort(sorted_links, kind='mergesort'))
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)
 
-    return nodes, links, (links_at_patch, offset_to_patch)
+    if links_at_patch is None:
+        return nodes, links, None
+    else:
+        return nodes, links, (links_at_patch, offset_to_patch)
 
 
 def sort_nodes(nodes):
