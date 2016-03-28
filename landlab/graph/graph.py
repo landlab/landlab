@@ -8,16 +8,16 @@ Examples
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
 >>> graph = Graph((node_y, node_x))
 >>> graph.x_of_node
-array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
 >>> graph.y_of_node
-array([0, 1, 2, 0, 1, 2, 0, 1, 2])
+array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
 
 >>> links = ((0, 1), (1, 2),
 ...          (0, 3), (1, 4), (2, 5),
 ...          (3, 4), (4, 5),
 ...          (3, 6), (4, 7), (5, 8),
 ...          (6, 7), (7, 8))
->>> graph = Graph((node_y, node_x), links=links, ccw=True)
+>>> graph = Graph((node_y, node_x), links=links, rot_sort=True)
 >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
 array([[0, 1], [1, 2],
        [0, 3], [1, 4], [2, 5],
@@ -59,13 +59,17 @@ import numpy as np
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
 from .sort import sort_graph
+from .object.at_node import get_links_at_node
+from .object.at_patch import get_nodes_at_patch
+from .quantity.of_link import get_angle_of_link
 
 
 class Graph(object):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
 
-    def __init__(self, nodes, links=None, patches=None, sort=False, ccw=False):
+    def __init__(self, nodes, links=None, patches=None, xy_sort=False,
+                 rot_sort=False):
         """Define a graph of connected nodes.
 
         Parameters
@@ -76,23 +80,23 @@ class Graph(object):
             Tail node and head node for each link in the graph.
         patches : array_like of tuple
             Links that define each patch.
-        sort : bool, optional
+        xy_sort : bool, optional
             Sort elements by their *x* and then *y* coordinate.
-        ccw : bool, optional
+        rot_sort : bool, optional
             Use counter-clockwise element ordering when ordering one set
             of elements around another.
         """
-        self._sort = sort
-        self._ccw = ccw
+        self._xy_sort = xy_sort
+        self._rot_sort = rot_sort
 
-        nodes = [np.asarray(coord) for coord in nodes]
+        nodes = [np.asarray(coord, dtype=float) for coord in nodes]
         if links is not None:
             links = np.asarray(links, dtype=int)
 
         if len(nodes[0]) != len(nodes[1]):
             raise ValueError('length mismatch in node coordinates')
 
-        if sort:
+        if xy_sort:
             nodes, links, patches = sort_graph(nodes, links=links,
                                                patches=patches)
         else:
@@ -116,17 +120,18 @@ class Graph(object):
 
     def _setup_patches(self, patches):
         """Set up patch data structures."""
-        from .cfuncs import reorder_links_at_patch
+        from .sort.ext.remap_element import reorder_links_at_patch
+        from .quantity.ext.of_link import calc_midpoint_of_link
+        from .matrix.at_patch import links_at_patch
 
-        x = (self.x_of_node[self.node_at_link_head] +
-             self.x_of_node[self.node_at_link_tail]) * .5
-        y = (self.y_of_node[self.node_at_link_head] +
-             self.y_of_node[self.node_at_link_tail]) * .5
-        xy_of_link = np.vstack((x, y)).T
-
-        if self._ccw:
+        if self._rot_sort:
+            xy_of_link = np.empty((self.number_of_links, 2), dtype=float)
+            calc_midpoint_of_link(self.nodes_at_link, self.x_of_node,
+                                  self.y_of_node, xy_of_link)
             reorder_links_at_patch(patches[0], patches[1], xy_of_link)
-        self._links_at_patch = get_links_at_patch(patches)
+
+        self._links_at_patch = links_at_patch(patches,
+                                              nodes_at_link=self.nodes_at_link)
 
     @property
     def x_of_node(self):
@@ -138,7 +143,7 @@ class Graph(object):
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.x_of_node
-        array([0, 1, 2, 0, 1, 2])
+        array([ 0.,  1.,  2.,  0.,  1.,  2.])
         """
         return self._x_of_node
 
@@ -152,7 +157,7 @@ class Graph(object):
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.y_of_node
-        array([0, 0, 0, 1, 1, 1])
+        array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
         return self._y_of_node
 
@@ -344,7 +349,7 @@ class Graph(object):
         ...          (3, 4), (4, 5),
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
-        >>> graph = Graph((node_y, node_x), links=links, ccw=True)
+        >>> graph = Graph((node_y, node_x), links=links, rot_sort=True)
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
@@ -358,7 +363,7 @@ class Graph(object):
             return self._links_at_node
 
     def get_links_at_node(self):
-        return get_links_at_node(self, sort=self._ccw)
+        return get_links_at_node(self, sort=self._rot_sort)
 
     @property
     def link_dirs_at_node(self):
@@ -373,7 +378,7 @@ class Graph(object):
         ...          (3, 4), (4, 5),
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
-        >>> graph = Graph((node_y, node_x), links=links)
+        >>> graph = Graph((node_y, node_x), links=links, rot_sort=True)
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
                [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
@@ -383,7 +388,8 @@ class Graph(object):
             return self._link_dirs_at_node
         except AttributeError:
             (self._links_at_node,
-             self._link_dirs_at_node) = get_links_at_node(self, sort=True)
+             self._link_dirs_at_node) = get_links_at_node(self,
+                                                          sort=self._rot_sort)
             return self._link_dirs_at_node
 
     @property
@@ -393,151 +399,3 @@ class Graph(object):
         except AttributeError:
             self._angle_of_link = get_angle_of_link(self)
             return self._angle_of_link
-
-
-def get_angle_of_link(graph):
-    """Get angles of links in a graph.
-
-    Parameters
-    ----------
-    graph : `Graph`
-        A `Graph`.
-
-    Returns
-    -------
-    ndarray of float
-        Angle of each link as measured in radians from link tail to head.
-    """
-    y = graph.y_of_node[graph.nodes_at_link[:, ::-1]]
-    x = graph.x_of_node[graph.nodes_at_link[:, ::-1]]
-    angles = np.arctan2(np.diff(y), np.diff(x)).reshape((-1, )) + np.pi
-    angles[angles == 2. * np.pi] = 0.
-    return angles
-
-
-def get_links_at_node(graph, sort=False):
-    """Set up data structures for node-to-link connectivity.
-
-    Parameters
-    ----------
-    graph : Graph
-        A `Graph`.
-
-    nodes_at_link: ndarray of int
-        Nodes at either end of a link (tail node, then head node).
-    number_of_nodes: int, optional
-        The total number of nodes. If not given, use the largest node in
-        *nodes_at_link*.
-
-    Returns
-    -------
-    tuple of ndarray
-        Tuple of *links_at_node* and *link_dirs_at_node*.
-    """
-    from .cfuncs import _setup_links_at_node
-
-    node_count = np.bincount(graph.nodes_at_link.flat)
-    number_of_nodes = graph.number_of_nodes
-
-    max_node_count = np.max(node_count)
-
-    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0,
-                                dtype=int)
-    links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
-
-    _setup_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)
-
-    if sort:
-        sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-                                    graph.angle_of_link, inplace=True)
-
-    return links_at_node, link_dirs_at_node
-
-
-def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-                                angle_of_link, inplace=True):
-    """Sort links as spokes about a hub.
-
-    Parameters
-    ----------
-    links_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
-        Links entering or leaving each node.
-    link_dirs_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
-        Direction of links entering or leaving each node.
-    angle_of_link : ndarray of float, shape `(n_links, )`
-        Angle (in radians) of each link as measured from its head to tail.
-
-    Returns
-    -------
-    tuple of (links_at_node, link_dirs_at_node)
-        The sorted arrays. If `inplace` is `True`, these are the input
-        arrays.
-    """
-    from .cfuncs import _reorder_links_at_node
-
-    outward_angle = angle_of_link[links_at_node]
-
-    links_entering = np.where(link_dirs_at_node == 1)
-    outward_angle[links_entering] += np.pi
-    outward_angle[outward_angle >= 2 * np.pi] -= 2 * np.pi
-
-    outward_angle[np.where(link_dirs_at_node == 0)] = 4 * np.pi
-
-    sorted_links = np.argsort(outward_angle)
-
-    if not inplace:
-        links_at_node = links_at_node.copy()
-        link_dirs_at_node = link_dirs_at_node.copy()
-
-    _reorder_links_at_node(links_at_node, sorted_links)
-    _reorder_links_at_node(link_dirs_at_node, sorted_links)
-
-    return links_at_node, link_dirs_at_node
-
-
-def get_links_at_patch(patches):
-    """Set up data structure that describes link-patch connectivity.
-
-    Parameters
-    ----------
-    patches: iterable of iterables
-        List of links for each patch.
-
-    Returns
-    -------
-    ndarray
-        Links for each patch.
-    """
-    from .cfuncs import _setup_links_at_patch
-
-    max_links_per_patch = np.diff(patches[1]).max()
-    n_patches = len(patches[1]) - 1
-    links_at_patch = np.full((n_patches, max_links_per_patch), -1, dtype=int)
-
-    _setup_links_at_patch(patches[0], patches[1], links_at_patch)
-
-    return links_at_patch
-
-
-def get_nodes_at_patch(graph):
-    """Set up data structure that describes node-patch connectivity.
-
-    Parameters
-    ----------
-    links_at_patch: ndarray
-        Links that define each patch.
-    nodes_at_link: ndarray
-        Nodes that define each link.
-
-    Returns
-    -------
-    ndarray
-        Nodes that define each patch.
-    """
-    nodes_at_patch = np.full(graph.links_at_patch.shape, -1, dtype=int)
-
-    for patch, links in enumerate(graph.links_at_patch):
-        unique_nodes = np.unique(graph.nodes_at_link[links])
-        nodes_at_patch[patch, :len(unique_nodes)] = unique_nodes
-
-    return nodes_at_patch
