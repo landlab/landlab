@@ -37,13 +37,13 @@ def test_tl_fluvial():
     uplift_per_step = uplift_rate * dt
 
     mg = RasterModelGrid(nrows, ncols, dx)
-    mg.add_zeros('topographic__elevation', at='node')
-    z = np.loadtxt(os.path.join(_THIS_DIR, 'tl_init.gz'))
+    mg.add_zeros('node', 'topographic__elevation')
+    z = np.loadtxt(os.path.join(_THIS_DIR, 'tl_init.txt'))
     mg['node']['topographic__elevation'] = z
 
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
-    mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True,
-                                                value_of='topographic__elevation')
+    mg.set_fixed_value_boundaries_at_grid_edges(
+        False, True, False, True, value_of='topographic__elevation')
 
     fr = FlowRouter(mg)
     tl = TransportLimitedEroder(mg, input_file)
@@ -53,5 +53,5 @@ def test_tl_fluvial():
         mg = fr.route_flow()
         mg, _ = tl.erode(mg, dt, stability_condition='loose')
 
-    z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'tlz_tg.gz'))
+    z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'tlz_tg.txt'))
     assert_array_almost_equal(mg.at_node['topographic__elevation'], z_tg)

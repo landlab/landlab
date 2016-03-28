@@ -92,6 +92,9 @@ class use_field_name_or_array(object):
     ----------
     func : function
         A function that accepts a grid and array as arguments.
+    at_element : str
+        The element type that the field is defined on ('node', 'cell',
+        etc.)
 
     Returns
     -------

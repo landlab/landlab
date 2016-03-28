@@ -2,6 +2,45 @@ import numpy as np
 
 
 class NodeGrid(object):
+    """__init__((coord0, coord1))
+    Create a grid of nodes.
+
+    Parameters
+    ----------
+    coord0, coord1 : sequence of array-like
+        Coordinates of grid nodes
+
+    Returns
+    -------
+    NodeGrid :
+        A newly-created NodeGrid
+
+    Examples
+    --------
+    >>> from landlab.grid.unstructured.nodes import NodeGrid
+    >>> ngrid = NodeGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+    >>> ngrid.ndim == 2
+    True
+    >>> ngrid.number_of_nodes == 4
+    True
+    >>> ngrid.x
+    array([ 0.,  1.,  0.,  1.])
+    >>> ngrid.y
+    array([ 0.,  0.,  1.,  1.])
+
+    Create a 1D grid.
+
+    >>> ngrid = NodeGrid(((0, 1, 3), ))
+    >>> ngrid.ndim == 1
+    True
+    >>> ngrid.number_of_nodes
+    3
+    >>> ngrid.x
+    array([ 0.,  1.,  3.])
+    >>> ngrid.y
+    Traceback (most recent call last):
+    AttributeError: Grid has no y-coordinate
+    """
 
     def __init__(self, nodes):
         """__init__((coord0, coord1))

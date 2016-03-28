@@ -25,6 +25,7 @@ class classproperty(property):
 class Component(object):
     _input_var_names = set()
     _output_var_names = set()
+    _optional_var_names = set()
     _var_units = dict()
 
     def __init__(self, grid, map_vars=None, **kwds):
@@ -70,7 +71,7 @@ class Component(object):
     @classmethod
     def input_var_names(cls):
         """Names of fields that are used by the component.
-        
+
         Returns
         -------
         tuple of str
@@ -82,13 +83,51 @@ class Component(object):
     @classmethod
     def output_var_names(self):
         """Names of fields that are provided by the component.
-        
+
         Returns
         -------
         tuple of str
             Tuple of field names.
         """
         return tuple(self._output_var_names)
+
+    @classproperty
+    @classmethod
+    def optional_var_names(self):
+        """
+        Names of fields that are optionally provided by the component, if
+        any.
+
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
+        try:
+            return tuple(self._optional_var_names)
+        except AttributeError:
+            return ()
+
+    @classmethod
+    def var_type(cls, name):
+        """
+        Returns the dtype of a field (float, int, bool, str...), if declared.
+        Default is float.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        dtype
+            The dtype of the field.
+        """
+        try:
+            return cls._var_type[name]
+        except AttributeError:
+            return float
 
     @classproperty
     @classmethod
@@ -200,12 +239,60 @@ class Component(object):
     def var_loc(cls, name):
         """Location where a particular variable is defined.
 
+        Parameters
+        ----------
+        name : str
+            A field name.
+
         Returns
         -------
         str
             The location ('node', 'link', etc.) where a variable is defined.
         """
         return cls._var_mapping[name]
+
+    def initialize_output_fields(self):
+        """
+        Create fields for a component based on its input and output var names.
+
+        This method will create new fields (without overwrite) for any fields
+        output by, but not supplied to, the component. New fields are
+        initialized to zero. Ignores optional fields, if specified by
+        _optional_var_names. New fields are created as arrays of floats, unless
+        the component also contains the specifying property _var_type.
+        """
+        for field_to_set in (set(self.output_var_names) -
+                             set(self.input_var_names) -
+                             set(self.optional_var_names)):
+            grp = self.var_loc(field_to_set)
+            type_in = self.var_type(field_to_set)
+            init_vals = self.grid.zeros(grp, dtype=type_in)
+            units_in = self.var_units(field_to_set)
+            self.grid.add_field(grp,
+                                field_to_set,
+                                init_vals,
+                                units=units_in,
+                                copy=False,
+                                noclobber=True)
+
+    def initialize_optional_output_fields(self):
+        """
+        Create fields for a component based on its optional field outputs,
+        if declared in _optional_var_names.
+
+        This method will create new fields (without overwrite) for any fields
+        output by the component as optional. New fields are
+        initialized to zero. New fields are created as arrays of floats, unless
+        the component also contains the specifying property _var_type.
+        """
+        for field_to_set in (set(self.optional_var_names) -
+                             set(self.input_var_names)):
+            self.grid.add_field(self.var_loc(field_to_set),
+                                field_to_set,
+                                self.grid.zeros(
+                                    dtype=self.var_type(field_to_set)),
+                                units=self.var_units(field_to_set),
+                                noclobber=True)
 
     @property
     def shape(self):

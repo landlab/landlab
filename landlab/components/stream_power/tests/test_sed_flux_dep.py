@@ -39,7 +39,7 @@ def test_sed_dep():
     mg = RasterModelGrid((nrows, ncols), (dx, dx))
 
     mg.add_zeros('topographic__elevation', at='node')
-    z = np.loadtxt(os.path.join(_THIS_DIR, 'seddepinit.gz'))
+    z = np.loadtxt(os.path.join(_THIS_DIR, 'seddepinit.txt'))
     mg['node']['topographic__elevation'] = z
 
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
@@ -52,7 +52,7 @@ def test_sed_dep():
         mg = fr.route_flow()
         mg, _ = sde.erode(mg, dt)
 
-    z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'seddepz_tg.gz'))
+    z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'seddepz_tg.txt'))
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'][
         mg.core_nodes], z_tg[mg.core_nodes])

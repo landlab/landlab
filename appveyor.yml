@@ -10,13 +10,20 @@ environment:
 
   matrix:
     - PYTHON: "C:\\Miniconda"
+      DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "2.6"
     - PYTHON: "C:\\Miniconda"
+      DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "2.7"
     - PYTHON: "C:\\Miniconda3"
+      DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "3.3"
     - PYTHON: "C:\\Miniconda3"
+      DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "3.4"
+    - PYTHON: "C:\\Miniconda3"
+      PYTHON_VERSION: "3.5"
+      NUMPY_VERSION: "1.10"
 
 platform:
   - x64
@@ -24,6 +31,7 @@ platform:
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PLATFORM%"
+  - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
   - IF "%PLATFORM%"=="x64" (SET SUFFIX="-x64") ELSE (SET SUFFIX="")
@@ -58,4 +66,4 @@ notifications:
   - provider: Slack
     auth_token:
       secure: hvij8zEmE9LqjvwUJteiIZdwutlETmcJWwI/PtQEiAn3Hb2J+SH0Ye+pxMot2J2mc4i+zeNpHlzu8NV2CcLXzA==
-    channel: testing
+    channel: "#testing"
