@@ -65,7 +65,8 @@ cdef void _argsort_int(long * data, int n_elements, IntSorter * order):
         order[i].index = i
         order[i].value = data[i]
 
-    mergesort(<void*> order, n_elements, sizeof(IntSorter), _compare_int)
+    qsort(<void*> order, n_elements, sizeof(IntSorter), _compare_int)
+    # mergesort(<void*> order, n_elements, sizeof(IntSorter), _compare_int)
 
 
 cdef void argsort(double * data, int n_elements, int * out):
