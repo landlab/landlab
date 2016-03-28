@@ -133,6 +133,18 @@ class Graph(object):
         self._links_at_patch = links_at_patch(patches,
                                               nodes_at_link=self.nodes_at_link)
 
+    def _reorder_links_at_node(self):
+        from .cfuncs import _reorder_links_at_node
+
+        outward_angle = self.angle_of_link[self.links_at_node]
+        outward_angle[np.where(self.link_dirs_at_node == -1)] -= np.pi
+        outward_angle[np.where(self.link_dirs_at_node == 0)] = 2 * np.pi
+
+        sorted_links = np.argsort(outward_angle)
+
+        _reorder_links_at_node(self._links_at_node, sorted_links)
+        _reorder_links_at_node(self._link_dirs_at_node, sorted_links)
+
     @property
     def x_of_node(self):
         """Get x-coordinate of node.

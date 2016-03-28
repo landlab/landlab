@@ -113,6 +113,11 @@ class StructuredQuadGraph(Graph):
         self._link_dirs_at_node = link_dirs_at_node(self.shape)
         return (self._links_at_node, self._link_dirs_at_node)
 
+    def _setup_links_at_node(self):
+        """Set up node-link data structures."""
+        self._links_at_node = links_at_node(self.shape)
+        self._link_dirs_at_node = link_dirs_at_node(self.shape)
+
     @property
     def shape(self):
         return self._shape

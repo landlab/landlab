@@ -690,13 +690,6 @@ class DepressionFinderAndRouter(Component):
                                self._elev[out_draining]) /
                               link_l[unique_indxs[1:]])
             except IndexError:
-                print(outlet_neighbors)
-                print(outlet_node)
-                print(out_draining)
-                print(unique_indxs[1:])
-                print(self._D8)
-                print(self._grid.get_active_neighbors_at_node(outlet_node))
-                print(self._grid.get_diagonal_list(outlet_node))
                 raise
             lowest = np.argmax(eff_slopes)
             lowest_node = out_draining[lowest]
