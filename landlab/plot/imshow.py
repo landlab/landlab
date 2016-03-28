@@ -11,28 +11,51 @@ except ImportError:
 from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from landlab.utils.decorators import deprecated
 
 
-def imshow_node_grid(grid, values, **kwds):
+def imshow_grid_at_node(grid, values, **kwds):
     """Prepare a map view of data over all nodes in the grid.
 
-    Data is plotted with the surrounding cell shaded with the value
-    at the node at its center. Outer edges of perimeter cells are
-    extrapolated. Closed nodes are colored uniformly (default black,
-    overridden with kwd 'color_for_closed'); other open boundary nodes get
-    their actual values.
+    Data is plotted as cells shaded with the value at the node at its center.
+    Outer edges of perimeter cells are extrapolated. Closed elements are
+    colored uniformly (default black, overridden with kwd 'color_for_closed');
+    other open boundary nodes get their actual values.
+
+    *values* can be a field name, a regular array, or a masked array. If a
+    masked array is provided, masked entries will be treated as if they were
+    Landlab CLOSED_BOUNDARYs. Used together with the color_at_closed=None
+    keyword (i.e., "transparent"), this can allow for construction of overlay
+    layers in a figure (e.g., only defining values in a river network, and
+    overlaying it on another landscape).
+
+    Use matplotlib functions like xlim, ylim to modify your plot after calling
+    :func:`imshow_grid`, as desired.
+
+    This function happily works with both regular and irregular grids.
+
+    Construction ::
+
+        imshow_grid_at_node(grid, values, var_name=[field_name],
+                            var_units=[field_units], grid_units=None,
+                            symmetric_cbar=False, cmap='pink',
+                            limits=(values.min(), values.max()),
+                            vmin=values.min(), vmax=values.max(),
+                            allow_colorbar=True, norm=[linear], shrink=1.,
+                            color_for_closed='black', show_elements=False)
 
     Parameters
     ----------
     grid : ModelGrid
-        Grid containing node field to plot.
-    values : array_like or str
-        Node values or a field name as a string from which to draw the data.
+        Grid containing the field to plot, or describing the geometry of the
+        provided array.
+    values : array_like, masked_array, or str
+        Node values, or a field name as a string from which to draw the data.
     var_name : str, optional
         Name of the variable to put in plot title.
     var_units : str, optional
         Units for the variable being plotted.
-    grid_units : tuple of str
+    grid_units : tuple of str, optional
         Units for y, and x dimensions.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
@@ -41,24 +64,21 @@ def imshow_node_grid(grid, values, **kwds):
     limits : tuple of float
         Minimum and maximum of the colorbar.
     vmin, vmax: floats
-        Alternatives to limits
+        Alternatives to limits.
     allow_colorbar : bool
         If True, include the colorbar.
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
-        [0, 1].
+        [0, 1]. Ignore in most cases.
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed nodes (default 'black'). Use None for
-        transparent.
+        Color to use for closed nodes (default 'black'). If None, closed
+        (or masked) nodes will be transparent.
     show_elements : bool
         If True, and grid is a Voronoi, extra grid elements (nodes, faces,
         corners) will be plotted along with just the colour of the cell
         (defaults False).
-
-    Use matplotlib functions like xlim, ylim to modify your
-    plot after calling imshow_node_grid, as desired.
     """
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
@@ -82,20 +102,63 @@ def imshow_node_grid(grid, values, **kwds):
         plt.title(values)
 
 
-def imshow_cell_grid(grid, values, **kwds):
+@deprecated(use='imshow_grid_at_node', version='0.5')
+def imshow_node_grid(grid, values, **kwds):
+    imshow_grid_at_node(grid, values, **kwds)
+
+
+def imshow_grid_at_cell(grid, values, **kwds):
     """Map view of grid data over all grid cells.
 
     Prepares a map view of data over all cells in the grid.
-    Method can take any of the same **kwds as `imshow`.
+    Method can take any of the same **kwds as :func:`imshow_grid_at_node`.
+
+    Construction ::
+
+        imshow_grid_at_cell(grid, values, var_name=[field_name],
+                            var_units=[field_units], grid_units=None,
+                            symmetric_cbar=False, cmap='pink',
+                            limits=(values.min(), values.max()),
+                            vmin=values.min(), vmax=values.max(),
+                            allow_colorbar=True, norm=[linear], shrink=1.,
+                            color_for_closed='black', show_elements=False)
 
     Parameters
     ----------
-    grid : RasterModelGrid
-        A uniform rectilinear grid to plot.
-    values : array_like or str
-        Values at the cells *or* values on all nodes in the grid, from which
-        cell values will be extracted. Alternatively, can be a field name
+    grid : ModelGrid
+        Grid containing the field to plot, or describing the geometry of the
+        provided array.
+    values : array_like, masked_array, or str
+        Values at the cells on the grid. Alternatively, can be a field name
         (string) from which to draw the data from the grid.
+    var_name : str, optional
+        Name of the variable to put in plot title.
+    var_units : str, optional
+        Units for the variable being plotted.
+    grid_units : tuple of str, optional
+        Units for y, and x dimensions.
+    symmetric_cbar : bool
+        Make the colormap symetric about 0.
+    cmap : str
+        Name of a colormap
+    limits : tuple of float
+        Minimum and maximum of the colorbar.
+    vmin, vmax: floats
+        Alternatives to limits.
+    allow_colorbar : bool
+        If True, include the colorbar.
+    norm : matplotlib.colors.Normalize
+        The normalizing object which scales data, typically into the interval
+        [0, 1]. Ignore in most cases.
+    shrink : float
+        Fraction by which to shrink the colorbar.
+    color_for_closed : str or None
+        Color to use for closed elements (default 'black'). If None, closed
+        (or masked) elements will be transparent.
+    show_elements : bool
+        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
+        corners) will be plotted along with just the colour of the cell
+        (defaults False).
 
     Raises
     ------
@@ -129,6 +192,11 @@ def imshow_cell_grid(grid, values, **kwds):
         plt.title(values)
 
     return myimage
+
+
+@deprecated(use='imshow_grid_at_cell', version='0.5')
+def imshow_cell_grid(grid, values, **kwds):
+    imshow_grid_at_cell(grid, values, **kwds)
 
 
 def _imshow_grid_values(grid, values, var_name=None, var_units=None,
@@ -188,7 +256,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         # This is still very much ad-hoc, and needs prettifying.
         # We should save the modifications needed to plot color all the way
         # to the diagram edge *into* the grid, for faster plotting.
-        # (see http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram)
+        # (see http://stackoverflow.com/questions/20515554/...
+        # colorize-voronoi-diagram)
         # (This technique is not implemented yet)
         from scipy.spatial import voronoi_plot_2d
         import matplotlib.colors as colors
@@ -237,8 +306,81 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
 
 
 def imshow_grid(grid, values, **kwds):
+    """Prepare a map view of data over all nodes or cells in the grid.
+
+    Data is plotted as colored cells. If at='node', the surrounding cell is
+    shaded with the value at the node at its center. If at='cell', the cell
+    is shaded with its own value. Outer edges of perimeter cells are
+    extrapolated. Closed elements are colored uniformly (default black,
+    overridden with kwd 'color_for_closed'); other open boundary nodes get
+    their actual values.
+
+    *values* can be a field name, a regular array, or a masked array. If a
+    masked array is provided, masked entries will be treated as if they were
+    Landlab CLOSED_BOUNDARYs. Used together with the color_at_closed=None
+    keyword (i.e., "transparent"), this can allow for construction of overlay
+    layers in a figure (e.g., only defining values in a river network, and
+    overlaying it on another landscape).
+
+    Use matplotlib functions like xlim, ylim to modify your plot after calling
+    :func:`imshow_grid`, as desired.
+
+    This function happily works with both regular and irregular grids.
+
+    Construction ::
+
+        imshow_grid(grid, values, at='node', var_name=[field_name],
+                    var_units=[field_units], grid_units=None,
+                    symmetric_cbar=False, cmap='pink',
+                    limits=(values.min(), values.max()), vmin=values.min(),
+                    vmax=values.max(), allow_colorbar=True, norm=[linear],
+                    shrink=1., color_for_closed='black', show_elements=False,
+                    show=False)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        Grid containing the field to plot, or describing the geometry of the
+        provided array.
+    values : array_like, masked_array, or str
+        Node or cell values, or a field name as a string from which to draw
+        the data.
+    at : str, {'node', 'cell'}
+        Tells plotter where values are defined.
+    var_name : str, optional
+        Name of the variable to put in plot title.
+    var_units : str, optional
+        Units for the variable being plotted.
+    grid_units : tuple of str, optional
+        Units for y, and x dimensions.
+    symmetric_cbar : bool
+        Make the colormap symetric about 0.
+    cmap : str
+        Name of a colormap
+    limits : tuple of float
+        Minimum and maximum of the colorbar.
+    vmin, vmax: floats
+        Alternatives to limits.
+    allow_colorbar : bool
+        If True, include the colorbar.
+    norm : matplotlib.colors.Normalize
+        The normalizing object which scales data, typically into the interval
+        [0, 1]. Ignore in most cases.
+    shrink : float
+        Fraction by which to shrink the colorbar.
+    color_for_closed : str or None
+        Color to use for closed elements (default 'black'). If None, closed
+        (or masked) elements will be transparent.
+    show_elements : bool
+        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
+        corners) will be plotted along with just the colour of the cell
+        (defaults False).
+    show : bool
+        If True, plot the figure immediately after calling this method.
+    """
     show = kwds.pop('show', False)
     values_at = kwds.pop('values_at', 'node')
+    values_at = kwds.pop('at', values_at)
 
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
