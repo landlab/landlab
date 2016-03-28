@@ -1,11 +1,6 @@
 from .graph import Graph
-from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
-                              UniformRectilinearGraph, )
-from .dual_structured_quad import (DualUniformRectilinearGraph,
-                                   DualRectilinearGraph,
-                                   DualStructuredQuadGraph, )
-from .voronoi import VoronoiGraph
-from .dual_voronoi import DualVoronoiGraph
+from .structured_quad import *
+from .voronoi import *
 
 
 __all__ = ['Graph', 'StructuredQuadGraph', 'RectilinearGraph',
