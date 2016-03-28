@@ -2571,7 +2571,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             pass
 
-    @deprecated
+    @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
 
@@ -3054,7 +3054,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 self._link_unit_vec_y[self.node_outlink_matrix[i, :]])
 
     @property
-    def link_unit_vec_x(self):
+    def unit_vector_xcomponent_at_link(self):
         """Get array of x-component of unit vector for links.
 
         Examples
@@ -3072,7 +3072,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_unit_vec_x
 
     @property
-    def link_unit_vec_y(self):
+    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
+    def link_unit_vec_x(self):
+        return self.unit_vector_xcomponent_at_link
+
+    @property
+    def unit_vector_ycomponent_at_link(self):
         """Get array of y-component of unit vector for links.
 
         Examples
@@ -3090,7 +3095,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_unit_vec_y
 
     @property
-    def node_unit_vector_sum_x(self):
+    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
+    def link_unit_vec_y(self):
+        return self.unit_vector_ycomponent_at_link
+
+    @property
+    def unit_vector_sum_xcomponent_at_node(self):
         """Get array of x-component of unit vector sums at each node.
 
         Examples
@@ -3107,7 +3117,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._node_unit_vector_sum_x
 
     @property
-    def node_unit_vector_sum_y(self):
+    @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
+    def node_unit_vector_sum_x(self):
+        return self.unit_vector_sum_xcomponent_at_node
+
+    @property
+    def unit_vector_sum_ycomponent_at_node(self):
         """Get array of y-component of unit vector sums at each node.
 
         Examples
@@ -3122,6 +3137,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         if self._node_unit_vector_sum_y is None:
             self._make_link_unit_vectors()
         return self._node_unit_vector_sum_y
+
+    @property
+    @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
+    def node_unit_vector_sum_y(self):
+        return self.unit_vector_sum_ycomponent_at_node
 
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
