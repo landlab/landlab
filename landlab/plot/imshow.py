@@ -73,8 +73,8 @@ def imshow_grid_at_node(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed elements (default 'black'). If None, closed
-        (or masked) elements will be transparent.
+        Color to use for closed nodes (default 'black'). If None, closed
+        (or masked) nodes will be transparent.
     show_elements : bool
         If True, and grid is a Voronoi, extra grid elements (nodes, faces,
         corners) will be plotted along with just the colour of the cell
@@ -209,7 +209,10 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
     gridtypes = inspect.getmro(grid.__class__)
 
     cmap = plt.get_cmap(cmap)
-    cmap.set_bad(color=color_for_closed)
+    if color_for_closed is not None:
+        cmap.set_bad(color=color_for_closed)
+    else:
+        cmap.set_bad(alpha=0.)
 
     if isinstance(grid, RasterModelGrid):
         if values.ndim != 2:

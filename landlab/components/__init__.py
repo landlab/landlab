@@ -1,4 +1,5 @@
 from .craters import CratersComponent
+from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
 from .flexure import Flexure
@@ -22,7 +23,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
 
 
-COMPONENTS = [CratersComponent, LinearDiffuser, FireGenerator,
+COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
