@@ -182,6 +182,7 @@ class SedDepEroder(Component):
                 needed to allow calculation of shear stresses and hence
                 carrying capacities from the local slope and drainage area
                 alone.
+
                 Don't know what to set these values to? k_w=2.5, k_Q=2.5e-7,
                 mannings_n=0.05 give vaguely plausible numbers with b=0.5,
                 c = 1.(e.g., for a drainage area ~350km2, like Boulder Creek
@@ -203,11 +204,13 @@ class SedDepEroder(Component):
         Depending on which options are specified above, further parameters may
         be required:
             *If sed_dependency_type=='generalized_humped', need the shape
-            parameters used by Hobley et al:
+                parameters used by Hobley et al:
+
                 kappa_hump
                 nu_hump
                 phi_hump
                 c_hump
+                
                 Note the onus is on the user to ensure that these parameters
                 result in a viable shape, i.e., one where the maximum is 1 and
                 there is indeed a hump in the profile. If these parameters are
@@ -269,6 +272,7 @@ class SedDepEroder(Component):
         self.fraction_gradient_change = 0.25
         self.pseudoimplicit_repeats = 5
         self._grid = grid
+
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
         # ^needs to be filled with values in execution
         self.count_active_links = np.zeros_like(
@@ -557,7 +561,6 @@ class SedDepEroder(Component):
               # W_if_used=None, Q_if_used=None,
               stability_condition='loose',
               Dchar_if_used=None, io=None):
-
         """
         Note this method must be passed both 'receiver' and 'upstream_order',
         either as strings for field access, or nnode- long arrays of the
@@ -858,7 +861,7 @@ class SedDepEroder(Component):
 
         else:
             elev_name = node_elevs
-        
+
         if self.return_ch_props:
             # add the channel property field entries,
             # 'channel_width', 'channel_depth', and 'channel_discharge'

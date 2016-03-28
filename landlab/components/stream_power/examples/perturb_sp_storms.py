@@ -117,15 +117,11 @@ if True:
                             profile_IDs, mg.at_node['links_to_flow_receiver'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
-<<<<<<< HEAD
             x_profiles.append(dists_upstr[:])
             z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
             S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
             A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
     
-=======
-
->>>>>>> master
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 

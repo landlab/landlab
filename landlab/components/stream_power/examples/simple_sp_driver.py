@@ -73,6 +73,9 @@ while elapsed_time < time_to_run:
 time_off = time.time()
 print('Elapsed time: ', time_off-time_on)
 
+time_off = time.time()
+print('Elapsed time: ', time_off-time_on)
+
 #Finalize and plot
 elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)

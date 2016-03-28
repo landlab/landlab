@@ -3,6 +3,93 @@
 Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
 
+Getting Information about a Grid
+--------------------------------
+The following attributes, properties, and methods provide data about the grid, 
+its geometry, and the connectivity among the various elements. Each grid 
+element has an ID number, which is also its position in an array that
+contains information about that type of element. For example, the *x* 
+coordinate of node 5 would be found at `grid.node_x[5]`.
+
+The naming of grid-element arrays is *attribute*`_at_`*element*, where 
+*attribute* is the name of the data in question, and *element* is the element
+to which the attribute applies. For example, the property `node_at_cell` 
+contains the ID of the node associated with each cell. For example, 
+`node_at_cell[3]` contains the *node ID* of the node associated with cell 3. 
+The *attribute* is singular if there is only one value per element; for 
+example, there is only one node associated with each cell. It is plural when
+there are multiple values per element; for example, the `faces_at_cell` array
+contains multiple faces for each cell. Exceptions to these general rules are
+functions that return indices of a subset of all elements of a particular type.
+For example, you can obtain an array with IDs of only the core nodes using
+`core_nodes`, while `active_links` provides an array of IDs of active links
+(only). Finally, attributes that represent a measurement of something, such as
+the length of a link or the surface area of a cell, are described using `_of_`,
+as in the example `area_of_cell`.
+
+Information about nodes
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+    
+    ~landlab.grid.base.ModelGrid.number_of_nodes
+    ~landlab.grid.base.ModelGrid.number_of_core_nodes
+    ~landlab.grid.base.ModelGrid.nodes
+    ~landlab.grid.base.ModelGrid.core_nodes
+    ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
+    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.base.ModelGrid.node_x
+    ~landlab.grid.base.ModelGrid.node_y
+    ~landlab.grid.base.ModelGrid.status_at_node
+    ~landlab.grid.base.ModelGrid.cell_at_node
+    ~landlab.grid.base.ModelGrid.links_at_node
+    ~landlab.grid.base.ModelGrid.link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.neighbors_at_node
+
+Information about links
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+    
+    ~landlab.grid.base.ModelGrid.number_of_links
+    ~landlab.grid.base.ModelGrid.number_of_active_links
+    ~landlab.grid.base.ModelGrid.number_of_fixed_links
+    ~landlab.grid.base.ModelGrid.active_links
+    ~landlab.grid.base.ModelGrid.fixed_links
+    ~landlab.grid.base.ModelGrid.node_at_link_tail
+    ~landlab.grid.base.ModelGrid.node_at_link_head
+    ~landlab.grid.base.ModelGrid.face_at_link
+    ~landlab.grid.base.ModelGrid.status_at_link
+
+Information about cells
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+    
+    ~landlab.grid.base.ModelGrid.number_of_cells
+    ~landlab.grid.base.ModelGrid.number_of_core_cells
+    ~landlab.grid.base.ModelGrid.core_cells
+    ~landlab.grid.base.ModelGrid.node_at_cell
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.area_of_cell
+
+Information about faces
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+    
+    ~landlab.grid.base.ModelGrid.number_of_faces
+    ~landlab.grid.base.ModelGrid.number_of_active_faces
+    ~landlab.grid.base.ModelGrid.active_faces
+    ~landlab.grid.base.ModelGrid.link_at_face
+
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -2484,7 +2571,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             pass
 
-    @deprecated
+    @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
 
@@ -2967,16 +3054,16 @@ class ModelGrid(ModelDataFieldsMixIn):
                 self._link_unit_vec_y[self.node_outlink_matrix[i, :]])
 
     @property
-    def link_unit_vec_x(self):
+    def unit_vector_xcomponent_at_link(self):
         """Get array of x-component of unit vector for links.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.link_unit_vec_x) == grid.number_of_links + 1
+        >>> len(grid.unit_vector_xcomponent_at_link) == grid.number_of_links + 1
         True
-        >>> grid.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.unit_vector_xcomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  0.,  0.,  0.,
                 1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
         """
@@ -2985,16 +3072,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_unit_vec_x
 
     @property
-    def link_unit_vec_y(self):
+    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
+    def link_unit_vec_x(self):
+        return self.unit_vector_xcomponent_at_link
+
+    @property
+    def unit_vector_ycomponent_at_link(self):
         """Get array of y-component of unit vector for links.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.link_unit_vec_y) == grid.number_of_links + 1
+        >>> len(grid.unit_vector_ycomponent_at_link) == grid.number_of_links + 1
         True
-        >>> grid.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.unit_vector_ycomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  1.,  1.,  1.,
                 0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
         """
@@ -3003,16 +3095,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_unit_vec_y
 
     @property
-    def node_unit_vector_sum_x(self):
+    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
+    def link_unit_vec_y(self):
+        return self.unit_vector_ycomponent_at_link
+
+    @property
+    def unit_vector_sum_xcomponent_at_node(self):
         """Get array of x-component of unit vector sums at each node.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.node_unit_vector_sum_x) == grid.number_of_nodes
+        >>> len(grid.unit_vector_sum_xcomponent_at_node) == grid.number_of_nodes
         True
-        >>> grid.node_unit_vector_sum_x
+        >>> grid.unit_vector_sum_xcomponent_at_node
         array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
         """
         if self._node_unit_vector_sum_x is None:
@@ -3020,21 +3117,31 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._node_unit_vector_sum_x
 
     @property
-    def node_unit_vector_sum_y(self):
+    @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
+    def node_unit_vector_sum_x(self):
+        return self.unit_vector_sum_xcomponent_at_node
+
+    @property
+    def unit_vector_sum_ycomponent_at_node(self):
         """Get array of y-component of unit vector sums at each node.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.node_unit_vector_sum_y) == grid.number_of_nodes
+        >>> len(grid.unit_vector_sum_ycomponent_at_node) == grid.number_of_nodes
         True
-        >>> grid.node_unit_vector_sum_y
+        >>> grid.unit_vector_sum_ycomponent_at_node
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
         """
         if self._node_unit_vector_sum_y is None:
             self._make_link_unit_vectors()
         return self._node_unit_vector_sum_y
+
+    @property
+    @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
+    def node_unit_vector_sum_y(self):
+        return self.unit_vector_sum_ycomponent_at_node
 
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
