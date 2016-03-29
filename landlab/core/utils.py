@@ -117,10 +117,13 @@ def as_id_array(array):
     >>> y.dtype == np.int
     True
     """
-    if array.dtype == np.int:
-        return array.view(np.int)
-    else:
-        return array.astype(np.int)
+    try:
+        if array.dtype == np.int:
+            return array.view(np.int)
+        else:
+            return array.astype(np.int)
+    except AttributeError:
+        return np.asarray(array, dtype=np.int)
 
 
 if np.dtype(np.intp) == np.int:
