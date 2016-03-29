@@ -75,7 +75,7 @@ def sort_graph(nodes, links=None, patches=None):
         raise ValueError('graph that has patches must also have links')
 
     if links is not None:
-        links = np.asarray(links, dtype=int)
+        links = as_id_array(links)
 
     if patches is not None:
         if len(patches) == 2 and isinstance(patches[0], np.ndarray):
@@ -83,6 +83,8 @@ def sort_graph(nodes, links=None, patches=None):
         else:
             links_at_patch, offset_to_patch = flatten_jagged_array(patches,
                                                                    dtype=int)
+        links_at_patch, offset_to_patch = (as_id_array(links_at_patch),
+                                           as_id_array(offset_to_patch))
     else:
         links_at_patch, offset_to_patch = (None, None)
 
@@ -242,44 +244,3 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     # reorder_links_at_patch(links_at_patch, offset_to_patch, xy_of_link)
 
     return sorted_patches
-
-
-def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-                                angle_of_link, inplace=True):
-    """Sort links as spokes about a hub.
-
-    Parameters
-    ----------
-    links_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
-        Links entering or leaving each node.
-    link_dirs_at_node : ndarray of int, shape `(n_nodes, max_links_per_node)`
-        Direction of links entering or leaving each node.
-    angle_of_link : ndarray of float, shape `(n_links, )`
-        Angle (in radians) of each link as measured from its head to tail.
-
-    Returns
-    -------
-    tuple of (links_at_node, link_dirs_at_node)
-        The sorted arrays. If `inplace` is `True`, these are the input
-        arrays.
-    """
-    from .cfuncs import _reorder_links_at_node
-
-    outward_angle = angle_of_link[links_at_node]
-
-    links_entering = np.where(link_dirs_at_node == 1)
-    outward_angle[links_entering] += np.pi
-    outward_angle[outward_angle >= 2 * np.pi] -= 2 * np.pi
-
-    outward_angle[np.where(link_dirs_at_node == 0)] = 4 * np.pi
-
-    sorted_links = np.argsort(outward_angle)
-
-    if not inplace:
-        links_at_node = links_at_node.copy()
-        link_dirs_at_node = link_dirs_at_node.copy()
-
-    _reorder_links_at_node(links_at_node, sorted_links)
-    _reorder_links_at_node(link_dirs_at_node, sorted_links)
-
-    return links_at_node, link_dirs_at_node
