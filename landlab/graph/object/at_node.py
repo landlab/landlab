@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from ...utils.jaggedarray import unravel
 
@@ -78,8 +80,71 @@ def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
     tuple of (links_at_node, link_dirs_at_node)
         The sorted arrays. If `inplace` is `True`, these are the input
         arrays.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.graph.object.at_node import sort_links_at_node_by_angle
+
+    ::
+        (1) - 1 -> (3)
+         |          ^
+         2          3
+         V          |
+        (0) - 0 -> (2)
+
+    >>> links_at_node = [[2, 0], [1, 2], [3, 0], [3, 1]]
+    >>> link_dirs_at_node = [[1, -1], [-1, -1], [-1, 1], [1, 1]]
+    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+
+    >>> out = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
+    ...     angle_of_link)
+
+    The first item of the returned tuple is links at each node sorted
+    counterclockwise by angle.
+
+    >>> out[0]
+    array([[0, 2], [2, 1], [3, 0],  [1, 3]])
+
+    The second item is the direction of the link (entering or leaving).
+
+    >>> out[1]
+    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]])
+
+    Because the input arrays are lists, not numpy arrays, the sort is not
+    in-place.
+
+    >>> out[0] is not links_at_node
+    True
+
+    >>> links_at_node = np.asarray([[2, 0], [1, 2], [3, 0], [3, 1]])
+    >>> link_dirs_at_node = np.asarray([[1, -1], [-1, -1], [-1, 1], [1, 1]])
+    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+
+    >>> _ = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
+    ...     angle_of_link)
+    >>> links_at_node
+    array([[0, 2], [2, 1], [3, 0],  [1, 3]])
+    >>> link_dirs_at_node
+    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]])
     """
     from .ext.at_node import reorder_links_at_node
+
+    out = (np.asarray(links_at_node, dtype=int),
+           np.asarray(link_dirs_at_node, dtype=int))
+
+    if inplace:
+        if out[0] is not links_at_node or out[1] is not link_dirs_at_node:
+            inplace = False
+            warnings.warn('input must be ndarray of int for in-place sort')
+
+    if not inplace:
+        if out[0] is links_at_node:
+            out[0] = links_at_node.copy()
+        if out[1] is link_dirs_at_node:
+            out[1] = link_dirs_at_node.copy()
+
+    links_at_node, link_dirs_at_node = out
 
     outward_angle = angle_of_link[links_at_node]
 
@@ -90,10 +155,6 @@ def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
     outward_angle[np.where(link_dirs_at_node == 0)] = 4 * np.pi
 
     sorted_links = np.argsort(outward_angle)
-
-    if not inplace:
-        links_at_node = links_at_node.copy()
-        link_dirs_at_node = link_dirs_at_node.copy()
 
     reorder_links_at_node(links_at_node, sorted_links)
     reorder_links_at_node(link_dirs_at_node, sorted_links)
