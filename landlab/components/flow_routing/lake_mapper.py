@@ -62,6 +62,65 @@ class DepressionFinderAndRouter(Component):
         If grid is a raster type, controls whether lake connectivity can
         occur on diagonals ('D8', default), or only orthogonally ('D4').
         Has no effect if grid is not a raster.
+
+    Examples
+    --------
+    Route flow across a depression in a sloped surface.
+
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowRouter, DepressionFinderAndRouter
+    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] = 0.
+    >>> fr = FlowRouter(mg)
+    >>> _ = fr.route_flow()  # the flow "gets stuck" in the hole
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    >>> df = DepressionFinderAndRouter(mg)
+    >>> df.map_depressions()
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 5.25,  5.25,  3.75,  2.  ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  1.25,  1.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    >>> df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False]], dtype=bool)
+    >>> df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647]])
+    >>> df.lake_codes  # a unique code for each lake present on the grid
+    array([16])
+    >>> df.lake_outlets  # the outlet node of each lake in lake_codes
+    array([15])
+    >>> df.lake_areas  # the area of each lake in lake_codes
+    array([ 2.25])
     """
 
     _name = 'DepressionFinderAndRouter'
