@@ -103,7 +103,8 @@ def sort_graph(nodes, links=None, patches=None):
 
     if patches is not None:
         remap_graph_element(links_at_patch,
-                            np.argsort(sorted_links, kind='mergesort'))
+                            as_id_array(np.argsort(sorted_links,
+                                                   kind='mergesort')))
         # _remap_links_at_patch(links_at_patch,
         #                       np.argsort(sorted_links, kind='mergesort'))
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)

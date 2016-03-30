@@ -140,7 +140,7 @@ class Graph(object):
         outward_angle[np.where(self.link_dirs_at_node == -1)] -= np.pi
         outward_angle[np.where(self.link_dirs_at_node == 0)] = 2 * np.pi
 
-        sorted_links = np.argsort(outward_angle)
+        sorted_links = as_id_array(np.argsort(outward_angle))
 
         _reorder_links_at_node(self._links_at_node, sorted_links)
         _reorder_links_at_node(self._link_dirs_at_node, sorted_links)
