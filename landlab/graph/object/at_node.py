@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 from ...utils.jaggedarray import unravel
+from ...core.utils import as_id_array
 
 
 # def get_links_at_node(graph):
