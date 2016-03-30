@@ -1,5 +1,7 @@
 import numpy as np
 
+from ...core.utils import as_id_array
+
 
 def get_links(nodes_at_link, sort=True):
     """Get links and their directions at each node.
@@ -33,7 +35,7 @@ def get_links(nodes_at_link, sort=True):
     >>> offset_to_node
     array([ 0,  2,  5,  7, 10, 12])
     """
-    sorted = np.argsort(nodes_at_link.reshape((-1, )))
+    sorted = as_id_array(np.argsort(nodes_at_link.reshape((-1, ))))
 
     links_at_node = sorted // 2
     link_dirs_at_node = sorted % 2
