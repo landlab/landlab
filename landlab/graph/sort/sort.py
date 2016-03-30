@@ -92,7 +92,8 @@ def sort_graph(nodes, links=None, patches=None):
 
     if links is not None:
         remap_graph_element(links.reshape((-1, )),
-                            np.argsort(sorted_nodes, kind='mergesort'))
+                            as_id_array(np.argsort(sorted_nodes,
+                                                   kind='mergesort')))
 
         # _remap_nodes_at_link(links, np.argsort(sorted_nodes, kind='mergesort'))
 
