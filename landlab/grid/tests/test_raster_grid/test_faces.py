@@ -38,8 +38,8 @@ class TestRasterModelGridCellFaces():
         self.rmg = RasterModelGrid(4, 5)
 
     def test_id_as_int(self):
-        assert_array_equal(self.rmg.faces_at_cell(0), np.array([0, 3, 7, 4]))
+        assert_array_equal(self.rmg.faces_at_cell[0], np.array([4, 7, 3, 0]))
 
     def test_id_as_array(self):
-        assert_array_equal(self.rmg.faces_at_cell(np.array([0, 1])),
-                           np.array([[0, 3, 7, 4], [1, 4, 8, 5]]))
+        assert_array_equal(self.rmg.faces_at_cell[[0, 1]],
+                           np.array([[4, 7, 3, 0], [5, 8, 4, 1]]))
