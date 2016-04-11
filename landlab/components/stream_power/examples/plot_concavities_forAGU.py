@@ -1,4 +1,4 @@
-from pylab import figure, plot, xlabel, ylabel, title, loglog, show, gca, xlim, ylim
+from pylab import figure, plot, xlabel, ylabel, title, loglog, show, gca, xlim, ylim, legend
 import numpy as np
 
 yunnan_propx = np.loadtxt('yunnan_proplength.txt')
@@ -44,7 +44,7 @@ gca().set_yscale('log')
 xlim([0,1])
 ylim(y_scale)
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure('concavities_one_sde_one_DL')
 plot(pureDL_nothresh_propx, pureDL_nothresh_theta, 'b.-', label='pure detachment limited')
@@ -52,7 +52,7 @@ plot(seddepNMG_propx, seddepNMG_theta, 'rx-', label='sediment flux dependent')
 gca().set_yscale('log')
 xlim([0,1])
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure('all_models')
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
@@ -70,7 +70,7 @@ plot(bevel2seddep_propx[1:], bevel2seddep_theta[1:], 'rh-', label='bevel_highang
 gca().set_yscale('log')
 y_scale_all = gca().get_ylim()
 xlim([0,1])
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure('all_DL')
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
@@ -80,7 +80,7 @@ plot(stormsDL_thresh_propx, stormsDL_thresh_theta, 'b*-', label='pureDL_storms_t
 gca().set_yscale('log')
 xlim([0,1])
 ylim(y_scale_all)
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure('all_model_just_Ladakh')
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
@@ -99,7 +99,7 @@ plot(ladakh_propx, ladakh_theta, 'bo', label='Ladakh field data')
 gca().set_yscale('log')
 xlim([0,1])
 ylim(y_scale_all)
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure('all_model_all_data')
 plot(np.array([0.,1.]), 0.5*np.ones(2.), 'k--')
@@ -120,4 +120,4 @@ plot(fagaras_propx, fagaras_theta, 'vg', label='Fagaras field data')
 gca().set_yscale('log')
 xlim([0,1])
 ylim(y_scale_all)
-pylab.legend(loc=2)
+legend(loc=2)
