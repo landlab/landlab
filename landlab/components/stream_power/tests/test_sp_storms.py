@@ -48,6 +48,6 @@ def test_storms():
         if rainfall_rate != 0.:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
-            sp.run_one_timestep(dt)
+            sp.run_one_step(dt)
         mg.at_node['topographic__elevation'][
             mg.core_nodes] += uplift * interval_duration

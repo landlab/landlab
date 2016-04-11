@@ -920,7 +920,7 @@ class SedDepEroder(Component):
 
         return grid, grid.at_node['topographic__elevation']
 
-    def run_one_timestep(self, dt, flooded_depths=None, **kwds):
+    def run_one_step(self, dt, flooded_depths=None, **kwds):
         """
         Run the component across one timestep increment, dt.
 

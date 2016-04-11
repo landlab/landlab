@@ -77,7 +77,7 @@ class ChiFinder(Component):
     >>> for i in range(10):
     ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
     ...     _ = fr2.route_flow()
-    ...     sp2.run_one_timestep(1000.)
+    ...     sp2.run_one_step(1000.)
     >>> _ = fr2.route_flow()
     >>> cf2.calculate_chi()
     >>> mg2.at_node['channel__chi_index'].reshape(
@@ -339,7 +339,7 @@ class ChiFinder(Component):
         >>> for i in range(10):
         ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
         ...     _ = fr2.route_flow()
-        ...     sp2.run_one_timestep(1000.)
+        ...     sp2.run_one_step(1000.)
         >>> _ = fr2.route_flow()
         >>> output_array = np.zeros(25, dtype=float)
         >>> cf2.integrate_chi_each_dx(mg2.at_node['upstream_node_order'],
@@ -566,7 +566,7 @@ class ChiFinder(Component):
         >>> for i in range(10):
         ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
         ...     _ = fr.route_flow()
-        ...     sp.run_one_timestep(1000.)
+        ...     sp.run_one_step(1000.)
         >>> _ = fr.route_flow()
         >>> cf.calculate_chi()
 
