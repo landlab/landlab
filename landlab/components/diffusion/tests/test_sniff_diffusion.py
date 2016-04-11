@@ -20,8 +20,8 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_diffusion():
-    inputs = ModelParameterDictionary(os.path.join(_THIS_DIR,
-                                                   'diffusion_params.txt'))
+    infile = os.path.join(_THIS_DIR, 'diffusion_params.txt')
+    inputs = ModelParameterDictionary(infile, auto_type=True)
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')
@@ -41,14 +41,14 @@ def test_diffusion():
     mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
     # instantiate:
-    dfn = LinearDiffuser(mg, inputs)
+    dfn = LinearDiffuser(mg, **inputs)
 
     # perform the loop:
     elapsed_time = 0.  # total time in simulation
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        dfn.diffuse(dt)
+        dfn.run_one_step(dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_rate * dt
         elapsed_time += dt
 
