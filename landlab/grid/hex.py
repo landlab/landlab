@@ -538,6 +538,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         from numpy import array, amin, amax
         import matplotlib.pyplot as plt
+        import copy
 
         try:
             self._hexplot_configured is True
@@ -553,7 +554,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         ax = plt.gca()
         self._hexplot_pc.set_array(array(data))
-        ax.add_collection(self._hexplot_pc)
+        copy_of_pc = copy.copy(self._hexplot_pc)
+        ax.add_collection(copy_of_pc)
+        #ax.add_collection(self._hexplot_pc)
         plt.xlim([amin(self.node_x) - self._dx, amax(self.node_x) + self._dx])
         plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
         #cb = plt.colorbar(self._hexplot_pc)

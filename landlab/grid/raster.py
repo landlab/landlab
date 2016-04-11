@@ -1537,7 +1537,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def faces_at_cell(self, *args):
+    def _make_faces_at_cell(self, *args):
         """faces_at_cell([cell_id])
         Get array of faces of a cell.
 
@@ -1560,20 +1560,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.faces_at_cell(0)
-        array([0, 3, 7, 4])
+        >>> rmg.faces_at_cell[0]
+        array([4, 7, 3, 0])
 
-        >>> rmg.faces_at_cell([0, 5])
-        array([[ 0,  3,  7,  4],
-               [ 9, 12, 16, 13]])
-
-        >>> rmg.faces_at_cell()
-        array([[ 0,  3,  7,  4],
-               [ 1,  4,  8,  5],
-               [ 2,  5,  9,  6],
-               [ 7, 10, 14, 11],
-               [ 8, 11, 15, 12],
-               [ 9, 12, 16, 13]])
+        >>> rmg.faces_at_cell
+        array([[ 4,  7,  3,  0],
+               [ 5,  8,  4,  1],
+               [ 6,  9,  5,  2],
+               [11, 14, 10,  7],
+               [12, 15, 11,  8],
+               [13, 16, 12,  9]])
         """
         if len(args) == 0:
             cell_ids = np.arange(self.number_of_cells)
@@ -1585,8 +1581,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         node_ids = self.node_at_cell[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
-        return np.squeeze(np.concatenate(
-            (self._face_at_link[inlinks], self._face_at_link[outlinks]), axis=1))
+        self._faces_at_link = np.squeeze(np.concatenate(
+            (self._face_at_link[inlinks], 
+             self._face_at_link[outlinks]), axis=1))
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
@@ -3571,7 +3568,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns an array of face indices that *cell_a* and *cell_b* share.
         If the cells do not share any faces, returns an empty array.
         """
-        cell_faces = self.faces_at_cell([cell_a, cell_b])
+        cell_faces = self.faces_at_cell[[cell_a, cell_b]]
         return np.intersect1d(cell_faces[0], cell_faces[1],
                               assume_unique=True)
 

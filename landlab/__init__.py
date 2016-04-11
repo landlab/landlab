@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 """
 The Landlab
-
 :Package name: TheLandlab
 :Release date: 2013-03-24
 :Authors:
@@ -12,9 +11,7 @@ The Landlab
   Sai Nudurupati,
   Jordan Adams,
   Eric Hutton
-
 :URL: http://csdms.colorado.edu/trac/landlab
-
 :License: MIT
 """
 
@@ -52,3 +49,5 @@ __all__ = ['ModelParameterDictionary', 'MissingKeyError',
            'ParameterValueError', 'Component', 'Palette', 'Arena',
            'NoProvidersError', 'Implements', 'ImplementsOrRaise',
            'Framework', 'FieldError', 'LandlabTester']
+
+
