@@ -8,6 +8,7 @@ from __future__ import print_function
 
 from landlab import (ModelParameterDictionary, Component, FieldError,
                      FIXED_VALUE_BOUNDARY)
+from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.grid.base import BAD_INDEX_VALUE
@@ -369,7 +370,7 @@ class DepressionFinderAndRouter(Component):
 
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
-        self.pit_node_ids = np.where(self.is_pit)[0].astype(int)
+        self.pit_node_ids = as_id_array(np.where(self.is_pit)[0])
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".
@@ -624,9 +625,8 @@ class DepressionFinderAndRouter(Component):
             try:
                 pits = self._grid.at_node[pits]
                 supplied_pits = np.where(pits)[0]
-                self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                                 self._grid.boundary_nodes
-                                                 ).astype(int)
+                self.pit_node_ids = as_id_array(
+                    np.setdiff1d(supplied_pits, self._grid.boundary_nodes))
                 self.number_of_pits = self.pit_node_ids.size
                 self.is_pit.fill(False)
                 self.is_pit[self.pit_node_ids] = True
@@ -640,9 +640,9 @@ class DepressionFinderAndRouter(Component):
             else:  # it's an array of node ids
                 supplied_pits = pits
             # remove any boundary nodes from the supplied pit list
-            self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                             self._grid.boundary_nodes
-                                             ).astype(int)
+            self.pit_node_ids = as_id_array(
+                np.setdiff1d(supplied_pits, self._grid.boundary_nodes))
+
             self.number_of_pits = self.pit_node_ids.size
             self.is_pit.fill(False)
             self.is_pit[self.pit_node_ids] = True
