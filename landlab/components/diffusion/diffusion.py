@@ -187,8 +187,11 @@ class LinearDiffuser(Component):
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
-        >>> (ld.fixed_grad_nodes.size == 0 and ld.fixed_grad_anchors.size == 0)
-        ...     and ld.fixed_grad_offsets.size == 0
+        >>> ld.fixed_grad_nodes.size == 0
+        True
+        >>> ld.fixed_grad_anchors.size == 0
+        True
+        >>> ld.fixed_grad_offsets.size == 0
         True
         >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
         ...     'topographic__elevation')
@@ -247,12 +250,15 @@ class LinearDiffuser(Component):
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])
 
+            ##print(self.qs[self.grid.links_at_node])
             # Calculate the net deposition/erosion rate at each node
             self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
                 self.qs[self.grid.active_links])
-
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
+            ##print(dzdt[self.grid.core_nodes].reshape(
+            ##    (self.grid.number_of_node_rows-2,
+            ##     self.grid.number_of_node_columns-2)))
 
             # Update the elevations
             timestep = self.dt
@@ -262,6 +268,7 @@ class LinearDiffuser(Component):
                 pass
             self.grid.at_node[self.values_to_diffuse][core_nodes] += dzdt[
                 core_nodes] * timestep
+            ##print(self.grid.at_node[self.values_to_diffuse].reshape((9, 9)))
 
             # check the BCs, update if fixed gradient
             vals = self.grid.at_node[self.values_to_diffuse]
