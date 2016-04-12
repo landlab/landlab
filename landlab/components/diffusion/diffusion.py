@@ -173,6 +173,31 @@ class LinearDiffuser(Component):
         such that::
 
             value[fixed_grad_nodes] = value[fixed_grad_anchors] + offset
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z[mg.core_nodes] = 1.
+        >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
+        >>> ld.fixed_grad_nodes.size == 0 and ld.fixed_grad_anchors.size == 0
+        ...     and ld.fixed_grad_offsets.size == 0
+        True
+        >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
+        ...     'topographic__elevation')
+        >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> ld.updated_boundary_conditions()
+        >>> ld.fixed_grad_nodes
+        array([ 1,  2,  3,  5,  9, 10, 14, 16, 17, 18])
+        >>> ld.fixed_grad_anchors
+        array([ 6,  7,  8,  6,  8, 11, 13, 11, 12, 13])
+        >>> ld.fixed_grad_offsets
+        array([-1., -1., -1., -1., -1., -1., -1., -1., -1., -1.])
+        >>> np.allclose(z[ld.fixed_grad_nodes],
+        ...             z[ld.fixed_grad_anchors] + ld.fixed_grad_offsets)
+        True
         """
         fixed_grad_nodes = np.where(self.grid.status_at_node ==
                                     FIXED_GRADIENT_BOUNDARY)[0]
