@@ -51,7 +51,7 @@ class LinearDiffuser(Component):
     >>> z.reshape((9, 9))[4, 4] = 1.
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
-    >>> for i in xrange(1):
+    >>> for i in range(1):
     ...     ld.run_one_step(1.)
     >>> z[mg.core_nodes].sum() == 1.
     True
@@ -62,7 +62,7 @@ class LinearDiffuser(Component):
     >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> kd = mg2.node_x/mg2.node_x.mean()
     >>> ld2 = LinearDiffuser(mg2, linear_diffusivity=kd)
-    >>> for i in xrange(10):
+    >>> for i in range(10):
     ...     ld2.run_one_step(0.1)
     >>> z2[mg2.core_nodes].sum() == 2.
     True
@@ -187,7 +187,7 @@ class LinearDiffuser(Component):
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
-        >>> ld.fixed_grad_nodes.size == 0 and ld.fixed_grad_anchors.size == 0
+        >>> (ld.fixed_grad_nodes.size == 0 and ld.fixed_grad_anchors.size == 0)
         ...     and ld.fixed_grad_offsets.size == 0
         True
         >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
