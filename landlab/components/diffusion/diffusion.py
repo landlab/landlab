@@ -17,7 +17,8 @@ from landlab import ModelParameterDictionary, Component, FieldError, \
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.utils.decorators import use_file_name_or_kwds
 
-_ALPHA = 0.25   # time-step stability factor
+_ALPHA = 0.15   # time-step stability factor
+# ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
 
 class LinearDiffuser(Component):
@@ -53,7 +54,7 @@ class LinearDiffuser(Component):
     >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
     >>> for i in range(1):
     ...     ld.run_one_step(1.)
-    >>> z[mg.core_nodes].sum() == 1.
+    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
     True
     >>> mg2 = RasterModelGrid((5, 30), 1.)
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
@@ -250,15 +251,11 @@ class LinearDiffuser(Component):
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])
 
-            ##print(self.qs[self.grid.links_at_node])
             # Calculate the net deposition/erosion rate at each node
             self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
                 self.qs[self.grid.active_links])
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
-            ##print(dzdt[self.grid.core_nodes].reshape(
-            ##    (self.grid.number_of_node_rows-2,
-            ##     self.grid.number_of_node_columns-2)))
 
             # Update the elevations
             timestep = self.dt
@@ -268,7 +265,6 @@ class LinearDiffuser(Component):
                 pass
             self.grid.at_node[self.values_to_diffuse][core_nodes] += dzdt[
                 core_nodes] * timestep
-            ##print(self.grid.at_node[self.values_to_diffuse].reshape((9, 9)))
 
             # check the BCs, update if fixed gradient
             vals = self.grid.at_node[self.values_to_diffuse]
