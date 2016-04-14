@@ -194,10 +194,9 @@ class FastscapeEroder(Component):
         """
         self._grid = grid
 
-        self.K = K_sp
-        self.m = m_sp
-        self.n = n_sp
-        self.r_i = rainfall_intensity
+        self.K = K_sp  # overwritten below in special cases
+        self.m = float(m_sp)
+        self.n = float(n_sp)
         if type(threshold_sp) in (float, int):
             self.thresholds = float(threshold_sp)
         else:
@@ -206,9 +205,6 @@ class FastscapeEroder(Component):
             else:
                 self.thresholds = threshold_sp
             assert self.thresholds.size == self.grid.number_of_nodes
-        self.use_K = True
-        self.use_ri = True  # these ones overwritten below
-        self.dt = None  # dummy in case user is ever still using gear_timestep
 
         # make storage variables
         self.A_to_the_m = grid.zeros(at='node')
@@ -218,40 +214,21 @@ class FastscapeEroder(Component):
 
         self._grid.diagonal_links_at_node()  # calc number of diagonal links
 
-        if self.n != 1.:
-            self.nonlinear_flag = True
-        else:
-            self.nonlinear_flag = False
-
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
                              'field name. It was None.')
 
-        def func_for_newton(x, last_step_elev, receiver_elev,
-                            alpha_by_flow_link_lengthtothenless1, n):
-            y = (x - last_step_elev + alpha_by_flow_link_lengthtothenless1 *
-                 (x - receiver_elev)**n)
-            return y
-
-        def func_for_newton_diff(x, last_step_elev, receiver_elev,
-                                 alpha_by_flow_link_lengthtothenless1, n):
-            y = (1. + n * alpha_by_flow_link_lengthtothenless1 *
-                 (x - receiver_elev)**(n - 1.))
-            return y
-
-        self.func_for_newton = func_for_newton
-        self.func_for_newton_diff = func_for_newton_diff
-
         # now handle the inputs that could be float, array or field name:
+        # some support here for old-style inputs
         if type(K_sp) is str:
             if K_sp == 'array':
                 self.K = None
             else:
                 self.K = self._grid.at_node[K_sp]
         elif type(K_sp) in (float, int):  # a float
-            self.use_K = False
+            self.K = float(K_sp)
         elif len(K_sp) == self.grid.number_of_nodes:
-            pass  # array of right length
+            self.K = numpy.array(K_sp)
         else:
             raise TypeError('Supplied type of K_sp ' +
                             'was not recognised, or array was ' +
@@ -263,9 +240,9 @@ class FastscapeEroder(Component):
             else:
                 self.r_i = self._grid.at_node[rainfall_intensity]
         elif type(rainfall_intensity) in (float, int):  # a float
-            self.use_ri = False
+            self.r_i = float(rainfall_intensity)
         elif len(rainfall_intensity) == self.grid.number_of_nodes:
-            pass  # array of right length
+            self.r_i = numpy.array(rainfall_intensity)
         else:
             raise TypeError('Supplied type of rainfall_' +
                             'intensity was not recognised, or array was ' +
@@ -336,7 +313,7 @@ class FastscapeEroder(Component):
         if dt is None:
             dt = self.dt
         assert dt is not None, ('Fastscape component could not find a dt to ' +
-                                'use. Pass dt to the erode() method.')
+                                'use. Pass dt to the run_one_step() method.')
 
         if self.K is None:  # "old style" setting of array
             assert K_if_used is not None
@@ -372,29 +349,29 @@ class FastscapeEroder(Component):
         else:
             from .cfuncs import erode_with_link_alpha_varthresh
             erode_with_link_alpha_varthresh(upstream_order_IDs, flow_receivers,
-                                           threshdt, alpha_divided, n, z)
+                                            threshdt, alpha_divided, n, z)
             # # This replicates the cython for testing:
             # for i in range(upstream_order_IDs.size):
             #     src_id = upstream_order_IDs[i]
             #     dst_id = flow_receivers[src_id]
             #     thresh = threshdt[i]
-            # 
             #     if src_id != dst_id:
             #         next_z = z[src_id]
             #         prev_z = 0.
-            # 
             #         while True:
             #         #for j in xrange(2):
             #             z_diff = next_z - z[dst_id]
             #             f = alpha_divided[src_id] * pow(z_diff, n - 1.)
             #             # if z_diff -> 0, pow -> nan (in reality, inf)
             #             # print (f, prev_z, next_z, z_diff, z[dst_id])
-            #             next_z = next_z - ((next_z - z[src_id] + (f * z_diff -
-            #                                thresh).clip(0.)) / (1. + n * f))
+            #             next_z = next_z - ((next_z - z[src_id] + (
+            #                 f*z_diff - thresh).clip(0.)) / (1. + n * f))
             #             if next_z < z[dst_id]:
-            #                 next_z = z[dst_id] + 1.e-15  # maintain connectivity
+            #                 next_z = z[dst_id] + 1.e-15
+            #                 # ^maintain connectivity
             #             if next_z != 0.:
-            #                 if numpy.fabs((next_z - prev_z)/next_z) < 1.48e-08 or n == 1.:
+            #                 if (numpy.fabs((next_z - prev_z)/next_z) <
+            #                     1.48e-08) or (n == 1.):
             #                     break
             #             else:
             #                 break
@@ -406,7 +383,7 @@ class FastscapeEroder(Component):
 
     def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """
-        This method implements the stream power erosion across one time 
+        This method implements the stream power erosion across one time
         interval, dt, following the Braun-Willett (2013) implicit Fastscape
         algorithm.
 
@@ -423,7 +400,4 @@ class FastscapeEroder(Component):
             may still occur beneath the apparent water level (though will
             always still be positive).
         """
-        assert self.dt is None, ("Do not call :func:`gear_timestep` if using" +
-                                 "this run method. Pass timestep directly " +
-                                 "to this method, and only this method.")
         self.erode(grid_in=self._grid, dt=dt, flooded_nodes=flooded_nodes)
