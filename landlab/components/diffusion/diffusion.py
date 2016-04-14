@@ -4,283 +4,257 @@
 Component that models 2D diffusion using an explicit finite-volume method.
 
 Created July 2013 GT
-Last updated May 2015 DEJH
-
+Last updated March 2016 DEJH with LL v1.0 component style
 """
-
-##############DEJH is unsure if the uplift is correctly (not) incorporated here
-
 
 from __future__ import print_function
 
 import numpy as np
 from six.moves import range
 
-from landlab import ModelParameterDictionary, Component, FieldError
-from landlab import create_and_initialize_grid
+from landlab import ModelParameterDictionary, Component, FieldError, \
+    create_and_initialize_grid, FIXED_GRADIENT_BOUNDARY, FIXED_LINK
 from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab.utils.decorators import use_file_name_or_kwds
 
-_ALPHA = 0.25   # time-step stability factor
-
-#_VERSION = 'make_all_data'
-#_VERSION = 'explicit'
-_VERSION = 'pass_grid'
+_ALPHA = 0.15   # time-step stability factor
+# ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
 
 class LinearDiffuser(Component):
     """
-    This component implements linear diffusion of a field in the supplied
-    ModelGrid.
+    This component implements linear diffusion of a Landlab field.
 
-    This components requires the following parameters be set in the input file,
-    *input_stream*, set in the component initialization:
+    Component assumes grid does not deform. If the boundary conditions on the
+    grid change after component instantiation, be sure to also call
+    :func:`updated_boundary_conditions` to ensure these are reflected in the
+    component (especially if fixed_links are present).
 
-        'linear_diffusivity', the diffusivity to use
+    The primary method of this class is :func:`run_one_step`.
 
-    Optional inputs are:
+    Construction::
 
-        'uplift_rate', if you want this component to include the uplift
-            internally
-        'dt', the model timestep (assumed constant)
-        'values_to_diffuse', a string giving the name of the grid field
-        containing the data to diffuse.
+        FastscapeEroder(grid, linear_diffusivity=None)
 
-    Supply *dt* to the diffuser through the diffuse() argument.
-    This allows you to set a dynamic timestep for this class.
-    If 'values_to_diffuse' is not provided, defaults to
-    'topographic__elevation'.
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    linear_diffusivity : float, array, or field name (m**2/time)
+        The diffusivity.
 
-    No particular units are necessary where they are not specified, as long as
-    all units are internally consistent.
-
-    The component takes *grid*, the ModelGrid object, and (optionally)
-    *current_time* and *input_stream*. If *current_time* is not set, it defaults
-    to 0.0. If *input_stream* is not set in instantiation of the class,
-    :func:`initialize` with *input_stream* as in input must be called instead.
-    *Input_stream* is the filename of (& optionally, path to) the parameter
-    file.
-
-    At the moment, this diffuser can only work with constant diffusivity.
-    Spatially variable diffusivity hopefully coming soon.
-
-    The primary method of this class is :func:`diffuse`.
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> mg = RasterModelGrid((9, 9), 1.)
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z.reshape((9, 9))[4, 4] = 1.
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    >>> for i in range(1):
+    ...     ld.run_one_step(1.)
+    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
+    True
+    >>> mg2 = RasterModelGrid((5, 30), 1.)
+    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> z2.reshape((5, 30))[2, 8] = 1.
+    >>> z2.reshape((5, 30))[2, 22] = 1.
+    >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> kd = mg2.node_x/mg2.node_x.mean()
+    >>> ld2 = LinearDiffuser(mg2, linear_diffusivity=kd)
+    >>> for i in range(10):
+    ...     ld2.run_one_step(0.1)
+    >>> z2[mg2.core_nodes].sum() == 2.
+    True
+    >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
+    True
     """
 
     _name = 'LinearDiffuser'
 
-    _input_var_names = set(['topographic__elevation',
-                            ])
+    _input_var_names = ('topographic__elevation',)
 
-#############################UPDATE ME
-    _output_var_names = set(['topographic__elevation',
-                             'surface_gradient',
-                             'unit_flux',
-                             ])
+    _output_var_names = ('topographic__elevation',
+                         'topographic__gradient',
+                         'unit_flux',
+                         )
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'surface_gradient' : '-',
-                  'unit_flux' : 'm**3/s',
+    _var_units = {'topographic__elevation': 'm',
+                  'topographic__gradient': '-',
+                  'unit_flux': 'm**3/s',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                    'surface_gradient' : 'link',
-                    'unit_flux' : 'link',
+    _var_mapping = {'topographic__elevation': 'node',
+                    'topographic__gradient': 'link',
+                    'unit_flux': 'link',
                     }
 
-    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation; can be overwritten in initialization',
-                 'surface_gradient' : 'Gradient of surface, on links',
-                 'unit_flux' : 'Volume flux per unit width along links',
-                  }
+    _var_doc = {
+        'topographic__elevation': ('Land surface topographic elevation; can ' +
+                                   'be overwritten in initialization'),
+        'topographic__gradient': 'Gradient of surface, on links',
+        'unit_flux': 'Volume flux per unit width along links'
+    }
 
-    def __init__(self, grid, input_stream=None, current_time=0.):
+    @use_file_name_or_kwds
+    def __init__(self, grid, linear_diffusivity=None, **kwds):
         self._grid = grid
-        self.current_time = current_time
-        if input_stream:
-            self.initialize(input_stream)
+        self.current_time = 0.
+        if linear_diffusivity is not None:
+            if linear_diffusivity is not str:
+                self.kd = linear_diffusivity
+            else:
+                self.kd = self.grid.at_node[linear_diffusivity]
         else:
-            print('Ensure you call the initialize(input_stream) method before '
-                  'running the model!')
+            raise KeyError("linear_diffusivity must be provided to the " +
+                           "LinearDiffuser component")
 
-    def initialize(self, input_stream):
-
-        # Create a ModelParameterDictionary for the inputs
-        if type(input_stream)==ModelParameterDictionary:
-            inputs = input_stream
-        else:
-            inputs = ModelParameterDictionary(input_stream)
-
-        # Read input/configuration parameters
-        self.kd = inputs.read_float('linear_diffusivity')
-        try:
-            self.uplift_rate = inputs.read_float('uplift_rate')
-        except MissingKeyError:
-            self.uplift_rate = 0.
-        try:
-            self.values_to_diffuse = inputs.read_string('values_to_diffuse')
-        except MissingKeyError:
-            self.values_to_diffuse = 'topographic__elevation'
-        else:
-            #take switch in the new field name in the class properties
-            for mysets in (self._input_var_names, self._output_var_names):
-                mysets.remove('topographic__elevation')
-                mysets.add(self.values_to_diffuse)
+        # for component back compatibility (undocumented):
+        # note component can NO LONGER do internal uplift, at all.
+        # ###
+        self.timestep_in = kwds.pop('dt', None)
+        if 'values_to_diffuse' in kwds.keys():
+            self.values_to_diffuse = kwds.pop('values_to_diffuse')
+            for mytups in (self._input_var_names, self._output_var_names):
+                myset = set(mytups)
+                myset.remove('topographic__elevation')
+                myset.add(self.values_to_diffuse)
+                mytups = tuple(myset)
             for mydicts in (self._var_units, self._var_mapping, self._var_doc):
-                mydicts[self.values_to_diffuse] = mydicts.pop('topographic__elevation')
-
-        try:
-            self.timestep_in = inputs.read_float('dt')
-        except MissingKeyError:
-            pass
-
-
-        # Create grid if one doesn't already exist
+                mydicts[self.values_to_diffuse] = mydicts.pop(
+                    'topographic__elevation')
+        else:
+            self.values_to_diffuse = 'topographic__elevation'
+        # Raise an error if somehow someone is using this weird functionality
         if self._grid is None:
-            self._grid = create_and_initialize_grid(input_stream)
+            raise ValueError('You must now provide an existing grid!')
+        # ###
 
         # Set internal time step
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is
         #   adaptive/changing
-        dx = np.amin(self._grid.link_length[self._grid.active_links])
-        self.dt = _ALPHA * dx * dx / self.kd  # CFL condition
-        try:
-            self.tstep_ratio = self.timestep_in/self.dt
-        except AttributeError:
-            pass
+        # as of modern componentization (Spring '16), this can take arrays
+        # and irregular grids
+        if type(self.kd) not in (int, float):
+            assert len(self.kd) is self.grid.number_of_nodes, self.kd
+            kd_links = self.grid.map_max_of_link_nodes_to_link(self.kd)
+        else:
+            kd_links = float(self.kd)
+        # assert CFL condition:
+        CFL_prefactor = _ALPHA * self.grid.link_length ** 2.
+        self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
+        # ^note we can do this as topology shouldn't be changing
+        dt_links = CFL_prefactor / kd_links
+        self.dt = np.amin(dt_links[self.grid.active_links])
 
         # Get a list of interior cells
-        self.interior_cells = self._grid.node_at_core_cell
+        self.interior_cells = self.grid.node_at_core_cell
 
-##DEJH bites the bullet and forces the 2015 style with fields
-#        # Here we're experimenting with different approaches: with
-#        # 'make_all_data', we create and manage all the data we need and embed
-#        # it all in the grid. With 'explicit', we require the caller/user to
-#        # provide data.
-#        if _VERSION=='make_all_data':
-#            #print('creating internal data')
-#            self.z = self._grid.add_zeros('node', 'landscape_surface__elevation')
-#            self.g = self._grid.add_zeros('active_link', 'landscape_surface__gradient')  # surface gradients
-#            self.qs = self._grid.add_zeros('active_link','unit_sediment_flux')  # unit sediment flux
-#            self.dqds = self._grid.add_zeros('node', 'sediment_flux_divergence')  # sed flux derivative
-#        elif _VERSION=='explicit':
-#            pass
-#        else:
-#            # Create data arrays for variables that won't (?) be shared with other
-#            # components
-#            self.g = self._grid.zeros('active_link')  # surface gradients
-#            self.qs = self._grid.zeros('active_link')  # unit sediment flux
-#            self.dqds = self._grid.zeros(at='node')  # sed flux derivative
-
-        self.z = self._grid.at_node[self.values_to_diffuse]
-        g = self._grid.zeros(centering='link')
-        qs = self._grid.zeros(centering='link')
+        self.z = self.grid.at_node[self.values_to_diffuse]
+        g = self.grid.zeros(centering='link')
+        qs = self.grid.zeros(centering='link')
         try:
-            self.g = self._grid.add_field('link', 'surface__gradient', g, noclobber=True) #note this will object if this exists already
+            self.g = self.grid.add_field('link', 'topographic__gradient', g,
+                                         noclobber=True)
+            # ^note this will object if this exists already
         except FieldError:
-            pass #field exists, so no problem
+            pass  # field exists, so no problem
         try:
-            self.qs = self._grid.add_field('link', 'unit_flux', qs, noclobber=True)
+            self.qs = self.grid.add_field('link', 'unit_flux', qs,
+                                          noclobber=True)
         except FieldError:
             pass
-        #note all these terms are deliberately loose, as we won't always be dealing with topo
+        # note all these terms are deliberately loose, as we won't always be
+        # dealing with topo
 
+        # do some pre-work to make fixed grad BC updating faster in the loop:
+        self.updated_boundary_conditions()
 
-    def input_timestep(self, timestep_in):
+    def updated_boundary_conditions(self):
+        """Call if grid BCs are updated after component instantiation.
+
+        Sets `fixed_grad_nodes`, `fixed_grad_anchors`, & `fixed_grad_offsets`,
+        such that::
+
+            value[fixed_grad_nodes] = value[fixed_grad_anchors] + offset
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z[mg.core_nodes] = 1.
+        >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
+        >>> ld.fixed_grad_nodes.size == 0
+        True
+        >>> ld.fixed_grad_anchors.size == 0
+        True
+        >>> ld.fixed_grad_offsets.size == 0
+        True
+        >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
+        ...     'topographic__elevation')
+        >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> ld.updated_boundary_conditions()
+        >>> ld.fixed_grad_nodes
+        array([ 1,  2,  3,  5,  9, 10, 14, 16, 17, 18])
+        >>> ld.fixed_grad_anchors
+        array([ 6,  7,  8,  6,  8, 11, 13, 11, 12, 13])
+        >>> ld.fixed_grad_offsets
+        array([-1., -1., -1., -1., -1., -1., -1., -1., -1., -1.])
+        >>> np.allclose(z[ld.fixed_grad_nodes],
+        ...             z[ld.fixed_grad_anchors] + ld.fixed_grad_offsets)
+        True
         """
-        Allows the user to set a dynamic (evolving) timestep manually as part of
-        a run loop.
+        fixed_grad_nodes = np.where(self.grid.status_at_node ==
+                                    FIXED_GRADIENT_BOUNDARY)[0]
+        heads = self.grid.node_at_link_head[self.grid.fixed_links]
+        tails = self.grid.node_at_link_tail[self.grid.fixed_links]
+        head_is_fixed = np.in1d(heads, fixed_grad_nodes)
+        self.fixed_grad_nodes = np.where(head_is_fixed, heads, tails)
+        self.fixed_grad_anchors = np.where(head_is_fixed, tails, heads)
+        vals = self.grid.at_node[self.values_to_diffuse]
+        self.fixed_grad_offsets = (vals[self.fixed_grad_nodes] -
+                                   vals[self.fixed_grad_anchors])
+
+    def diffuse(self, dt, **kwds):
         """
-        self.timestep_in = timestep_in
-        self.tstep_ratio = timestep_in/self.dt
-
-
-    def run_one_step_explicit(self, mg, z, g, qs, dqsds, dzdt, delt):
-
-        # Take the smaller of delt or built-in time-step size self.dt
-        dt = min(self.dt, delt)
-
-        # Calculate the gradients and sediment fluxes
-        g = mg.calculate_gradients_at_active_links(z)
-        qs = -self.kd*g
-
-        # Calculate the net deposition/erosion rate at each node
-        dqsds = mg.calculate_flux_divergence_at_nodes(qs)
-
-        # Calculate the total rate of elevation change
-        dzdt = self.uplift_rate - dqsds
-
-        # Update the elevations
-        z[self.interior_cells] = z[self.interior_cells] \
-                                 + dzdt[self.interior_cells] * dt
-
-        # Update current time and return it
-        self.current_time += dt
-
-        return z, g, qs, dqsds, dzdt
-
-
-    def run_one_step_internal(self, delt):
-
-        # Take the smaller of delt or built-in time-step size self.dt
-        dt = min(self.dt, delt)
-
-        # Calculate the gradients and sediment fluxes
-        self.g = self._grid.calculate_gradients_at_active_links(self.z)
-        self.qs = -self.kd*self.g
-
-        # Calculate the net deposition/erosion rate at each node
-        self.dqsds = self._grid.calculate_flux_divergence_at_nodes(self.qs)
-
-        # Calculate the total rate of elevation change
-        dzdt = self.uplift_rate - self.dqsds
-
-        # Update the elevations
-        self.z[self.interior_cells] += dzdt[self.interior_cells] * dt
-
-        # Update current time and return it
-        self.current_time += dt
-        return self.current_time
-
-    def diffuse(self, dt, internal_uplift=False, num_uplift_implicit_comps = 1):
+        See :func:`run_one_step`.
         """
-        This is the primary method of the class. Call it to perform an iteration
-        of the model. Takes *dt*, the current timestep.
-
-        The modelgrid must contain the field to diffuse, which defaults to
-        'topographic__elevation'. This can be overridden with the
-        values_to_diffuse property in the input file.
-
-        See the class docstring for a list of the other properties necessary
-        in the input file for this component to run.
-
-        To improve stability, this component can incorporate uplift into its
-        internal mechanism. To use this, set *internal_uplift* to True, and . If you only have one module that requires this, do not add
-        uplift manually in your loop; this method will include uplift
-        automatically. If more than one of your components has this requirement,
-        set *num_uplift_implicit_comps* to the total number of components that
-        do.
-
-        You can suppress this behaviour by setting *internal_uplift* to False.
-
-        """
+        if 'internal_uplift' in kwds.keys():
+            raise KeyError('LinearDiffuser can no longer work with internal ' +
+                           'uplift')
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt/self.dt
         repeats = int(self.tstep_ratio//1.)
-        extra_time = self.tstep_ratio-repeats
-        z = self._grid.at_node[self.values_to_diffuse]
+        extra_time = self.tstep_ratio - repeats
+        z = self.grid.at_node[self.values_to_diffuse]
 
-        core_nodes = self._grid.node_at_core_cell
+        core_nodes = self.grid.node_at_core_cell
+        # do mapping of array kd here, in case it points at an updating field:
+        if type(self.kd) is np.ndarray:
+            kd_activelinks = self.grid.map_max_of_link_nodes_to_link(
+                self.kd)[self.grid.active_links]
+            # re-derive CFL condition, as could change dynamically:
+            dt_links = self._CFL_actives_prefactor / kd_activelinks
+            self.dt = dt_links.min()
+        else:
+            kd_activelinks = self.kd
 
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
-            self.g[self._grid.active_links] = self._grid.calculate_gradients_at_active_links(z)
-            self.qs[self._grid.active_links] = -self.kd*self.g[self._grid.active_links]
+            self.g[self.grid.active_links] = \
+                self.grid.calculate_gradients_at_active_links(z)
+            # if diffusivity is an array, self.kd is already active_links-long
+            self.qs[self.grid.active_links] = (-kd_activelinks *
+                                               self.g[self.grid.active_links])
 
             # Calculate the net deposition/erosion rate at each node
-            self.dqsds = self._grid.calculate_flux_divergence_at_nodes(self.qs[self._grid.active_links])
-
+            self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
+                self.qs[self.grid.active_links])
             # Calculate the total rate of elevation change
-            #dzdt = self.uplift_rate - self.dqsds
             dzdt = - self.dqsds
 
             # Update the elevations
@@ -289,52 +263,32 @@ class LinearDiffuser(Component):
                 timestep *= extra_time
             else:
                 pass
-            if internal_uplift:
-                add_uplift = self.uplift_rate/num_uplift_implicit_comps
-            else:
-                add_uplift = 0.
-            self._grid.at_node[self.values_to_diffuse][core_nodes] += add_uplift + dzdt[core_nodes] * timestep
+            self.grid.at_node[self.values_to_diffuse][core_nodes] += dzdt[
+                core_nodes] * timestep
 
-            #check the BCs, update if fixed gradient
-            if self._grid.fixed_gradient_boundary_nodes:
-                self._grid.at_node[self.values_to_diffuse][self._grid.fixed_gradient_node_properties['boundary_node_IDs']] = self._grid.at_node[self.values_to_diffuse][self._grid.fixed_gradient_node_properties['anchor_node_IDs']] + self._grid.fixed_gradient_node_properties['values_to_add']
+            # check the BCs, update if fixed gradient
+            vals = self.grid.at_node[self.values_to_diffuse]
+            vals[self.fixed_grad_nodes] = (vals[self.fixed_grad_anchors] +
+                                           self.fixed_grad_offsets)
 
-        #return the grid
-        return self._grid
+        return self.grid
 
+    def run_one_step(self, dt, **kwds):
+        """Run the diffuser for one timestep, dt.
 
-    def run_until_explicit(self, mg, t, z, g, qs, dqsds, dzdt):
+        If the imposed timestep dt is longer than the Courant-Friedrichs-Lewy
+        condition for the diffusion, this timestep will be internally divided
+        as the component runs, as needed.
 
-        while self.current_time < t:
-            remaining_time = t - self.current_time
-            z, g, qs, dqsds, dzdt = self.run_one_step_explicit(mg, z, g, qs, dqsds, dzdt, remaining_time)
-
-        return z, g, qs, dqsds, dzdt
-
-
-    def run_until_internal(self, t):
-
-        while self.current_time < t:
-            remaining_time = t - self.current_time
-            self.run_one_step_internal(remaining_time)
-
-
-    def run_until(self, t):  # this is just a temporary duplicate
-
-        while self.current_time < t:
-            remaining_time = t - self.current_time
-            self.run_one_step_internal(remaining_time)
-
-
-    def get_time_step(self):
+        Parameters
+        ----------
+        dt : float (time)
+            The imposed timestep.
         """
-        Returns time-step size.
-        """
-        return self.dt
+        self.diffuse(dt, **kwds)
 
     @property
     def time_step(self):
-        """
-        Returns time-step size (as a property).
+        """Returns internal time-step size (as a property).
         """
         return self.dt

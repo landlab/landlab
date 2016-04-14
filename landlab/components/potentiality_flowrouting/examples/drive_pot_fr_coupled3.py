@@ -18,7 +18,7 @@ from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
 from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import FastscapeEroder
-from landlab.grid.mappers import map_link_end_node_max_value_to_link
+# from landlab.grid.mappers import map_link_end_node_max_value_to_link
 
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
 nrows = 50#inputs.read_int('nrows')
@@ -46,6 +46,7 @@ mg.status_at_node[section_col] = 2
 mg.update_links_nodes_cells_to_new_BCs()
 mg.at_node['water__unit_flux_in'].fill(0.)
 mg.at_node['water__unit_flux_in'][inlet_node] = 1.
+mg.add_zeros('link', 'water__volume_flux_magnitude')
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 interior_nodes = mg.core_nodes
@@ -65,7 +66,10 @@ for i in range(3000):
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
-    map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
+    mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
+                                     out=mg.at_link[
+                                        'water__volume_flux_magnitude'])
+    #map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
     kd_link = 1.e6*mg.at_link['water__volume_flux_magnitude'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
@@ -84,7 +88,10 @@ for i in range(3000):
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
-    map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
+    mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
+                                     out=mg.at_link[
+                                        'water__volume_flux_magnitude'])
+    # map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
     kd_link = 1.e6*mg.at_link['water__volume_flux_magnitude'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
