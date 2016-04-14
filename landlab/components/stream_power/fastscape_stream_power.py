@@ -115,7 +115,8 @@ class FastscapeEroder(Component):
     >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
     >>> fr3 = FlowRouter(mg3)
-    >>> sp3 = FastscapeEroder(mg3, K_sp=1., m_sp=1., n_sp=0.6,
+    >>> K_field = mg3.ones('node')  # K can be a field
+    >>> sp3 = FastscapeEroder(mg3, K_sp=K_field, m_sp=1., n_sp=0.6,
     ...                       threshold_sp=mg3.node_x,
     ...                       rainfall_intensity=z)
     >>> fr3.run_one_step()
