@@ -2,7 +2,7 @@
 """
 Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
-find
+
 Getting Information about a Grid
 --------------------------------
 The following attributes, properties, and methods provide data about the grid,
