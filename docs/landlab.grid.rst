@@ -17,7 +17,7 @@ Mapping data between different grid elements
     :undoc-members:
     :show-inheritance:
 
-Gradient-calculation functions
+Gradient calculation functions
 ---------------------------
 
 .. automodule:: landlab.grid.gradients
@@ -67,7 +67,7 @@ Mapping data between different grid elements
     :undoc-members:
     :show-inheritance:
 
-Gradient-calculation functions
+Gradient calculation functions
 ----------------------------------
 
 .. automodule:: landlab.grid.raster_gradients
