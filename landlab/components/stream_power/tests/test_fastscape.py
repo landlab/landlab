@@ -97,7 +97,7 @@ def test_fastscape_new():
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         mg = fr.route_flow()
-        fsp.run_one_timestep(dt)  # new style
+        fsp.run_one_step(dt)  # new style
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
 

@@ -46,7 +46,7 @@ def test_sp_widths():
         # so widths has mean=1.
         # note the issue with drainage_area not defined at perimeter => nans
         # if not careful...
-        sp.run_one_timestep(dt)
+        sp.run_one_step(dt)
 
     z_tg = np.array([ 5.        ,  5.        ,  0.        ,  5.        ,  5.,
                       5.        ,  1.08502336,  0.00000100,  1.08502336,  5.,

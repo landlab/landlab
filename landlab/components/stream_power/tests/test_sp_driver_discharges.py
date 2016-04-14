@@ -79,7 +79,7 @@ def test_sp_discharges_new():
     # perform the loop (once!)
     for i in range(1):
         fr.route_flow()
-        sp.run_one_timestep(dt)
+        sp.run_one_step(dt)
 
     z_tg = np.array([5.00000000e+00,   5.00000000e+00,   0.00000000e+00,
                      5.00000000e+00,   5.00000000e+00,   5.00000000e+00,
