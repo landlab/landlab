@@ -69,7 +69,7 @@ class SteepnessFinder(Component):
     >>> for i in range(10):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
     ...     _ = fr.route_flow()
-    ...     sp.run_one_timestep(1000.)
+    ...     sp.run_one_step(1000.)
     >>> sf.calculate_steepnesses()
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([  0.        ,  29.28427125,   1.        ,   1.        ,
@@ -523,7 +523,7 @@ class SteepnessFinder(Component):
         >>> for i in range(10):
         ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
         ...     _ = fr.route_flow()
-        ...     sp.run_one_timestep(1000.)
+        ...     sp.run_one_step(1000.)
         >>> _ = fr.route_flow()
         >>> cf.calculate_steepnesses()
 

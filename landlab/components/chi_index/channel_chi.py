@@ -24,7 +24,7 @@ class ChiFinder(Component):
     Construction::
 
         ChiFinder(grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                  reference_area=None, use_true_dx=False)
+                  reference_area=1., use_true_dx=False)
 
     Parameters
     ----------
@@ -77,16 +77,16 @@ class ChiFinder(Component):
     >>> for i in range(10):
     ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
     ...     _ = fr2.route_flow()
-    ...     sp2.run_one_timestep(1000.)
+    ...     sp2.run_one_step(1000.)
     >>> _ = fr2.route_flow()
     >>> cf2.calculate_chi()
     >>> mg2.at_node['channel__chi_index'].reshape(
     ...     mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[   0.        ,    0.        ,    0.        ,    0.        ,  0. ],
-           [  77.21941631,  154.43883263,  263.64357846,  261.41943682,  0. ],
-           [ 109.20474583,  218.40949166,  152.21469099,  261.41943682,  0. ],
-           [  44.5826508 ,   89.16530159,  166.38471791,  275.58946374,  0. ],
-           [   0.        ,    0.        ,    0.        ,    0.        ,  0. ]])
+    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ],
+           [ 0.77219416,  1.54438833,  2.63643578,  2.61419437,  0.        ],
+           [ 1.09204746,  2.18409492,  1.52214691,  2.61419437,  0.        ],
+           [ 0.44582651,  0.89165302,  1.66384718,  2.75589464,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
 
     >>> cf2.calculate_chi(min_drainage_area=20000., use_true_dx=True,
     ...                   reference_area=mg2.at_node['drainage_area'].max())
@@ -153,7 +153,7 @@ class ChiFinder(Component):
                 }
 
     def __init__(self, grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                 reference_area=None, use_true_dx=False, **kwds):
+                 reference_area=1., use_true_dx=False, **kwds):
         """
         Constructor for the component.
         """
@@ -339,7 +339,7 @@ class ChiFinder(Component):
         >>> for i in range(10):
         ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
         ...     _ = fr2.route_flow()
-        ...     sp2.run_one_timestep(1000.)
+        ...     sp2.run_one_step(1000.)
         >>> _ = fr2.route_flow()
         >>> output_array = np.zeros(25, dtype=float)
         >>> cf2.integrate_chi_each_dx(mg2.at_node['upstream_node_order'],
@@ -566,7 +566,7 @@ class ChiFinder(Component):
         >>> for i in range(10):
         ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
         ...     _ = fr.route_flow()
-        ...     sp.run_one_timestep(1000.)
+        ...     sp.run_one_step(1000.)
         >>> _ = fr.route_flow()
         >>> cf.calculate_chi()
 

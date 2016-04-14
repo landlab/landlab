@@ -18,7 +18,7 @@ from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
 from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import FastscapeEroder
-from landlab.grid.mappers import map_link_end_node_max_value_to_link
+# from landlab.grid.mappers import map_link_end_node_max_value_to_link
 
 inputs = ModelParameterDictionary('./pot_fr_params.txt')
 nrows = 50#inputs.read_int('nrows')
@@ -34,6 +34,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 z = mg.zeros(at='node') + init_elev
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 mg.add_zeros('water__unit_flux_in', at='node')
+mg.add_zeros('water__volume_flux_magnitude', at='link')
 
 #Set boundary conditions
 inlet_node = np.array((int((1.5*mg.number_of_node_columns)//1)))
@@ -64,7 +65,10 @@ for i in range(2000):
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
-    map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
+    mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
+                                     out=mg.at_link[
+                                        'water__volume_flux_magnitude'])
+    # map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
     kd_link = 1.e6*mg.at_link['water__volume_flux_magnitude'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
