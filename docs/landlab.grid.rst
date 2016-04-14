@@ -107,7 +107,7 @@ Miscellaneous raster-grid functions
       :undoc-members:
       :show-inheritance:
 
-Voronoi-DeLaunay Grids (`VoronoiDelaunayGrid`)
+Voronoi-Delaunay Grids (`VoronoiDelaunayGrid`)
 ====================
 Inherits from `ModelGrid` and adds:
 

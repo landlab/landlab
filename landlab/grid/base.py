@@ -2,21 +2,21 @@
 """
 Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
-
+find
 Getting Information about a Grid
 --------------------------------
-The following attributes, properties, and methods provide data about the grid, 
-its geometry, and the connectivity among the various elements. Each grid 
+The following attributes, properties, and methods provide data about the grid,
+its geometry, and the connectivity among the various elements. Each grid
 element has an ID number, which is also its position in an array that
-contains information about that type of element. For example, the *x* 
+contains information about that type of element. For example, the *x*
 coordinate of node 5 would be found at `grid.node_x[5]`.
 
-The naming of grid-element arrays is *attribute*`_at_`*element*, where 
+The naming of grid-element arrays is *attribute*`_at_`*element*, where
 *attribute* is the name of the data in question, and *element* is the element
-to which the attribute applies. For example, the property `node_at_cell` 
-contains the ID of the node associated with each cell. For example, 
-`node_at_cell[3]` contains the *node ID* of the node associated with cell 3. 
-The *attribute* is singular if there is only one value per element; for 
+to which the attribute applies. For example, the property `node_at_cell`
+contains the ID of the node associated with each cell. For example,
+`node_at_cell[3]` contains the *node ID* of the node associated with cell 3.
+The *attribute* is singular if there is only one value per element; for
 example, there is only one node associated with each cell. It is plural when
 there are multiple values per element; for example, the `faces_at_cell` array
 contains multiple faces for each cell. Exceptions to these general rules are
@@ -32,12 +32,13 @@ Information about nodes
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.base.ModelGrid.number_of_nodes
     ~landlab.grid.base.ModelGrid.number_of_core_nodes
     ~landlab.grid.base.ModelGrid.nodes
     ~landlab.grid.base.ModelGrid.core_nodes
     ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.open_boundary_nodes
     ~landlab.grid.base.ModelGrid.closed_boundary_nodes
     ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
@@ -55,7 +56,7 @@ Information about links
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.base.ModelGrid.number_of_links
     ~landlab.grid.base.ModelGrid.number_of_active_links
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
@@ -71,7 +72,7 @@ Information about cells
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.base.ModelGrid.number_of_cells
     ~landlab.grid.base.ModelGrid.number_of_core_cells
     ~landlab.grid.base.ModelGrid.core_cells
@@ -84,7 +85,7 @@ Information about faces
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.base.ModelGrid.number_of_faces
     ~landlab.grid.base.ModelGrid.number_of_active_faces
     ~landlab.grid.base.ModelGrid.active_faces
@@ -182,6 +183,8 @@ fields:
 
     i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
+    # START HERE check that all functions listed below are included above, ignore ones that start with underscores(_)
+
 Notes
 -----
 It is important that when creating a new grid class that inherits from
@@ -261,6 +264,68 @@ True
 False
 >>> t is grid.at_node['air__temperature']
 True
+
+Other Grid Methods
+--------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.find_true_vector_from_link_vector_pair
+    ~landlab.grid.base.ModelGrid.number_of_elements
+    ~landlab.grid.base.ModelGrid.node_axis_coordinates
+    ~landlab.grid.base.ModelGrid.axis_units
+    ~landlab.grid.base.ModelGrid.axis_units
+    ~landlab.grid.base.ModelGrid.axis_name
+    ~landlab.grid.base.ModelGrid.axis_name
+    ~landlab.grid.base.ModelGrid.find_number_of_links_at_node
+    ~landlab.grid.base.ModelGrid.number_of_links_at_node
+    ~landlab.grid.base.ModelGrid.make_links_and_link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.active_links_at_node
+    ~landlab.grid.base.ModelGrid.active_links_at_node2
+    ~landlab.grid.base.ModelGrid.link_angle
+    ~landlab.grid.base.ModelGrid.sort_links_at_node_by_angle
+    ~landlab.grid.base.ModelGrid.resolve_values_on_links
+    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
+    ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
+    ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
+    ~landlab.grid.base.ModelGrid.upwind_links_at_node
+    ~landlab.grid.base.ModelGrid.downwind_links_at_node
+    ~landlab.grid.base.ModelGrid.faces_at_cell
+    ~landlab.grid.base.ModelGrid.find_number_of_faces_at_cell
+    ~landlab.grid.base.ModelGrid.sort_faces_at_cell_by_angle
+    ~landlab.grid.base.ModelGrid.make_faces_at_cell
+    ~landlab.grid.base.ModelGrid.node_slopes_using_patches
+    ~landlab.grid.base.ModelGrid.node_slopes
+    ~landlab.grid.base.ModelGrid.aspect
+    ~landlab.grid.base.ModelGrid.hillshade
+    ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_core_nodes
+    ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
+    ~landlab.grid.base.ModelGrid.cell_area_at_node
+    ~landlab.grid.base.ModelGrid.face_width
+    ~landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
+    ~landlab.grid.base.ModelGrid.link_length
+    ~landlab.grid.base.ModelGrid.assign_upslope_vals_to_active_links
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.base.ModelGrid.max_of_link_end_node_values
+    ~landlab.grid.base.ModelGrid.unit_vector_xcomponent_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node
+    ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
+    ~landlab.grid.base.ModelGrid.map_link_vector_to_nodes
+    ~landlab.grid.base.ModelGrid.display_grid
+    ~landlab.grid.base.ModelGrid.is_boundary
+    ~landlab.grid.base.ModelGrid.set_closed_nodes
+    ~landlab.grid.base.ModelGrid.get_distances_of_nodes_to_point
+    ~landlab.grid.base.ModelGrid.all_node_distances_map
+    ~landlab.grid.base.ModelGrid.all_node_azimuths_map
+    ~landlab.grid.base.ModelGrid.build_all_node_distances_azimuths_maps
+    ~landlab.grid.base.ModelGrid.sort_links_by_midpoint
+
+
+
+
 """
 
 import numpy
@@ -2488,7 +2553,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         fixed_link_fixed_val = (((fromnode_status == FIXED_VALUE_BOUNDARY) |
                                  (tonode_status == FIXED_VALUE_BOUNDARY)) &
-                                already_fixed)                    
+                                already_fixed)
         # these are the "special cases", where the user is probably trying to
         # adjust an individual fixed_link back to fixed value. We'll allow it:
         fixed_links[fixed_link_fixed_val] = False
