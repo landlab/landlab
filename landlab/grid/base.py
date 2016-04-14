@@ -266,7 +266,7 @@ False
 True
 
 Other Grid Methods
---------------------
+++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/

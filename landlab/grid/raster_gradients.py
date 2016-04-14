@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 """Calculate gradients on a raster grid.
 
-Gradient calculation functions for raster grids
-+++++++++++++++++++++++
+Gradient calculators for raster grids
+++++++++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/
