@@ -31,7 +31,7 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> rg = RasterModelGrid(3, 4, 10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
@@ -41,6 +41,12 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_face_flux_at_cells(rg, -fg)
     array([-164.,  -94.])
+    >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
+    >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
+    >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
+    >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
+    >>> calc_net_face_flux_at_cells(rg, unit_flux_at_faces)
+    array([-114.,  -22.])
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
