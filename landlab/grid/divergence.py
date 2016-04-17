@@ -77,3 +77,52 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
         * grid.link_dirs_at_node[grid.node_at_cell,c]
     return out
 
+
+@use_field_name_or_array('face')
+def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
+    """Calculate divergence of face-based fluxes at cells.
+
+    Given a flux per unit width across each face in the grid, calculate the net
+    outflux (or influx, if negative) divided by cell area, at each cell.
+
+    Construction::
+
+        calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    unit_flux_at_faces : ndarray or field name
+        Flux per unit width associated with faces.
+
+    Returns
+    -------
+    ndarray (x number of cells)
+        Net flux at cells.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[5] = 50.0
+    >>> z[6] = 36.0
+    >>> fg = rg.calculate_gradients_at_faces(z)  # there are 7 faces
+    >>> fg
+    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
+    >>> calc_face_flux_divergence_at_cells(rg, -fg)
+    array([-1.64, -0.94])
+    >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
+    >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
+    >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
+    >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
+    >>> calc_face_flux_divergence_at_cells(rg, unit_flux_at_faces)
+    array([-1.14, -0.22])
+
+    Notes
+    -----
+    .
+    """
+    return calc_net_face_flux_at_cells(grid, unit_flux_at_faces) \
+           / grid.area_of_cell
