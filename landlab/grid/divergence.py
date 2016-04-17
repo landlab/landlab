@@ -99,7 +99,7 @@ def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
     Returns
     -------
     ndarray (x number of cells)
-        Net flux at cells.
+        Flux divergence at cells.
 
     Examples
     --------
@@ -122,7 +122,7 @@ def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
 
     Notes
     -----
-    .
+    Performs a numerical flux divergence operation on cells.
     """
     return calc_net_face_flux_at_cells(grid, unit_flux_at_faces) \
            / grid.area_of_cell
