@@ -295,7 +295,7 @@ def _read_asc_data(asc_file):
     return np.loadtxt(asc_file)
 
 
-def read_esri_ascii(asc_file, grid=None, reshape=False, name=None):
+def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
 
     Read data from *asc_file*, an ESRI_ ASCII file, into a
