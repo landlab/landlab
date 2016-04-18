@@ -36,7 +36,7 @@ class FastscapeEroder(Component):
     If you want to implement an erosion threshold, use the explicit solver
     :class:`StreamPowerEroder`.
 
-    The primary method of this class is :func:`run_one_timestep`.
+    The primary method of this class is :func:`run_one_step`.
 
     Construction::
 
@@ -215,7 +215,7 @@ class FastscapeEroder(Component):
         scheme.
 
         This driving method for this component is now superceded by the new,
-        standardized wrapper :func:`run_one_timestep`, but is retained for
+        standardized wrapper :func:`run_one_step`, but is retained for
         back compatibility.
 
         Set 'K_if_used' as a field name or nnodes-long array if you set K_sp as
@@ -341,7 +341,7 @@ class FastscapeEroder(Component):
 
         return self._grid
 
-    def run_one_timestep(self, dt, flooded_nodes=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """
         This method implements the stream power erosion across one time 
         interval, dt, following the Braun-Willett (2013) implicit Fastscape

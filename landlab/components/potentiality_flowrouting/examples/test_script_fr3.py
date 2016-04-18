@@ -14,6 +14,8 @@ from six.moves import range
 #from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver
+from landlab.plot import imshow_grid_at_node
+from landlab import RasterModelGrid
 from matplotlib.ticker import MaxNLocator
 
 sqrt = np.sqrt
@@ -240,8 +242,10 @@ vval = uN[core]+uS[core]
 #vval /= velmag
 #imshow_node_grid(mg, h)
 figure(1)
-f1 = imshow(hR[core])
+mg = RasterModelGrid((nrows, ncols))
+f1 = imshow_grid_at_node(mg, hR[core].flatten(), grid_units=('m', 'm'))
 figure(2)
 f2 = contour(X,Y,hR[core], locator=MaxNLocator(nbins=100))
+# f2 = contour(X, Y, np.sqrt(uval**2+vval**2), locator=MaxNLocator(nbins=10))
 clabel(f2)
 quiver(X,Y,uval,vval)

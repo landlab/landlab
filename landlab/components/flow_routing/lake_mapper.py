@@ -8,6 +8,7 @@ from __future__ import print_function
 
 from landlab import (ModelParameterDictionary, Component, FieldError,
                      FIXED_VALUE_BOUNDARY)
+from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.grid.base import BAD_INDEX_VALUE
@@ -62,6 +63,65 @@ class DepressionFinderAndRouter(Component):
         If grid is a raster type, controls whether lake connectivity can
         occur on diagonals ('D8', default), or only orthogonally ('D4').
         Has no effect if grid is not a raster.
+
+    Examples
+    --------
+    Route flow across a depression in a sloped surface.
+
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowRouter, DepressionFinderAndRouter
+    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] = 0.
+    >>> fr = FlowRouter(mg)
+    >>> _ = fr.route_flow()  # the flow "gets stuck" in the hole
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    >>> df = DepressionFinderAndRouter(mg)
+    >>> df.map_depressions()
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 5.25,  5.25,  3.75,  2.  ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  1.25,  1.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    >>> df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False]], dtype=bool)
+    >>> df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647,         16,         16,         16,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647],
+           [2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+            2147483647, 2147483647]])
+    >>> df.lake_codes  # a unique code for each lake present on the grid
+    array([16])
+    >>> df.lake_outlets  # the outlet node of each lake in lake_codes
+    array([15])
+    >>> df.lake_areas  # the area of each lake in lake_codes
+    array([ 2.25])
     """
 
     _name = 'DepressionFinderAndRouter'
@@ -310,7 +370,7 @@ class DepressionFinderAndRouter(Component):
 
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
-        self.pit_node_ids = np.where(self.is_pit)[0]
+        self.pit_node_ids = as_id_array(np.where(self.is_pit)[0])
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".
@@ -565,8 +625,8 @@ class DepressionFinderAndRouter(Component):
             try:
                 pits = self._grid.at_node[pits]
                 supplied_pits = np.where(pits)[0]
-                self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                                 self._grid.boundary_nodes)
+                self.pit_node_ids = as_id_array(
+                    np.setdiff1d(supplied_pits, self._grid.boundary_nodes))
                 self.number_of_pits = self.pit_node_ids.size
                 self.is_pit.fill(False)
                 self.is_pit[self.pit_node_ids] = True
@@ -580,8 +640,9 @@ class DepressionFinderAndRouter(Component):
             else:  # it's an array of node ids
                 supplied_pits = pits
             # remove any boundary nodes from the supplied pit list
-            self.pit_node_ids = np.setdiff1d(supplied_pits,
-                                             self._grid.boundary_nodes)
+            self.pit_node_ids = as_id_array(
+                np.setdiff1d(supplied_pits, self._grid.boundary_nodes))
+
             self.number_of_pits = self.pit_node_ids.size
             self.is_pit.fill(False)
             self.is_pit[self.pit_node_ids] = True
