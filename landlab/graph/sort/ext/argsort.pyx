@@ -92,17 +92,24 @@ cdef void argsort_int(long * data, int n_elements, int * out):
         free(sorted_struct)
 
 
-cdef void unique_int(long * data, int n_elements, int * out):
+cdef int unique_int(long * data, int n_elements, int * out):
     cdef int * index = <int *>malloc(n_elements * sizeof(int))
+    cdef int n_unique
 
     try:
         argsort_int(data, n_elements, index)
 
         if data[index[0]] != data[index[1]]:
             out[0] = data[index[0]]
+        else:
+            out[0] = data[index[1]]
 
+        n_unique = 1
         for i in range(1, n_elements):
             if data[index[i]] != data[index[i - 1]]:
-                out[i] = data[index[i]]
+                out[n_unique] = data[index[i]]
+                n_unique += 1
     finally:
         free(index)
+
+    return n_unique
