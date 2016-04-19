@@ -34,6 +34,8 @@ ext_modules = [
               ['landlab/graph/voronoi/ext/delaunay.pyx']),
     Extension('landlab.graph.object.ext.at_node',
               ['landlab/graph/object/ext/at_node.pyx']),
+    Extension('landlab.graph.object.ext.at_patch',
+              ['landlab/graph/object/ext/at_patch.pyx']),
     Extension('landlab.graph.quantity.ext.of_link',
               ['landlab/graph/quantity/ext/of_link.pyx']),
     Extension('landlab.grid.structured_quad.cfuncs',
