@@ -40,8 +40,10 @@ class VoronoiGraph(Graph):
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 1,  0, -1, -1], [ 6,  7,  2,  1], [ 3,  5,  6, -1],
                [ 8,  0,  2, -1], [ 4,  8,  7,  5], [ 4,  3, -1, -1]])
+        >>> graph.links_at_patch
+        array([[2, 0, 1], [4, 5, 3], [5, 7, 6], [8, 2, 7]])
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
-        array([[0, 1, 3], [2, 4, 5], [1, 2, 4], [1, 3, 4]])
+        array([[1, 3, 0], [5, 4, 2], [2, 4, 1], [4, 3, 1]])
         """
         from .ext.delaunay import _setup_links_at_patch
 

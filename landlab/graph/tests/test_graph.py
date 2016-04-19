@@ -139,7 +139,7 @@ def test_nodes_at_patch():
     graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK,
                   patches=LINKS_AT_PATCH)
 
-    assert_array_equal(graph.nodes_at_patch, [[0, 1, 2, 3], [2, 3, 4, -1]])
+    assert_array_equal(graph.nodes_at_patch, [[2, 3, 1, 0], [2, 3, 4, -1]])
 
 
 def test_nodes_at_patch_ccw():
@@ -147,4 +147,4 @@ def test_nodes_at_patch_ccw():
     graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK,
                   patches=LINKS_AT_PATCH, rot_sort=True)
 
-    assert_array_equal(graph.nodes_at_patch, [[3, 2, 0, 1], [4, 5, 3, -1]])
+    assert_array_equal(graph.nodes_at_patch, [[3, 1, 0, 2], [4, 3, 2, -1]])

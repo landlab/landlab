@@ -24,7 +24,7 @@ def setup_links_at_patch(shape):
                                 vertical_links[:, :-1].flat,
                                 horizontal_links[:-1, :].flat)).T
 
-    return links_at_patch
+    return links_at_patch.copy(order='C')
 
 
 def setup_nodes_at_link(shape):
@@ -48,7 +48,7 @@ def setup_nodes_at_link(shape):
 
     nodes_at_link = np.vstack((link_tails.flat, link_heads.flat))
 
-    return nodes_at_link.T[:- (shape[1])]
+    return nodes_at_link.T[:- (shape[1])].copy(order='C')
 
 
 class StructuredQuadGraph(Graph):
@@ -191,9 +191,9 @@ class UniformRectilinearGraph(RectilinearGraph):
            [ 8, 10,  7,  5], [ 9, 11,  8,  6],
            [13, 15, 12, 10], [14, 16, 13, 11]])
     >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0,  1,  3,  4], [ 1,  2,  4,  5],
-           [ 3,  4,  6,  7], [ 4,  5,  7,  8],
-           [ 6,  7,  9, 10], [ 7,  8, 10, 11]])
+    array([[ 1,  4,  3,  0], [ 2,  5,  4,  1],
+           [ 4,  7,  6,  3], [ 5,  8,  7,  4],
+           [ 7, 10,  9,  6], [ 8, 11, 10,  7]])
     """
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):

@@ -47,10 +47,10 @@ array([[ 5,  3,  0,  2],
        [10,  8,  5,  7],
        [11,  9,  6,  8]])
 >>> graph.nodes_at_patch
-array([[0, 1, 3, 4],
-       [1, 2, 4, 5],
-       [3, 4, 6, 7],
-       [4, 5, 7, 8]])
+array([[3, 4, 1, 0],
+       [4, 5, 2, 1],
+       [6, 7, 4, 3],
+       [7, 8, 5, 4]])
 """
 from six.moves import range
 
@@ -318,8 +318,8 @@ class Graph(object):
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.nodes_at_patch
-        array([[0, 1, 3, 4],
-               [1, 2, 4, 5]])
+        array([[0, 1, 4, 3],
+               [1, 2, 5, 4]])
         """
         try:
             return self._nodes_at_patch
