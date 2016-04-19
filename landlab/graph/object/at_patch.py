@@ -1,6 +1,9 @@
 import numpy as np
 
 
+from .ext.at_patch import get_nodes_at_patch as _get_nodes_at_patch
+
+
 def get_nodes_at_patch(graph):
     """Set up data structure that describes node-patch connectivity.
 
@@ -18,8 +21,8 @@ def get_nodes_at_patch(graph):
     """
     nodes_at_patch = np.full(graph.links_at_patch.shape, -1, dtype=int)
 
-    for patch, links in enumerate(graph.links_at_patch):
-        unique_nodes = np.unique(graph.nodes_at_link[links])
-        nodes_at_patch[patch, :len(unique_nodes)] = unique_nodes
+    _get_nodes_at_patch(graph.links_at_patch,
+                        graph.nodes_at_link,
+                        nodes_at_patch)
 
     return nodes_at_patch
