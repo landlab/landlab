@@ -16,11 +16,24 @@ def get_center_of_patch(graph, out=None):
 
 
 def get_area_of_patch(graph, out=None):
-    from .ext.of_patch import calc_area_of_patch
+    from .ext.of_patch import calc_area_at_patch
 
     if out is None:
-        out = np.empty(n_patches, dtype=float)
+        out = np.empty(graph.number_of_patches, dtype=float)
 
-    calc_area_of_patch(graph.nodes_at_patch, out)
+    calc_area_at_patch(graph.nodes_at_patch, graph.x_of_node, graph.y_of_node,
+                       out)
+
+    return out
+
+
+def get_centroid_of_patch(graph, out=None):
+    from .ext.of_patch import calc_centroid_at_patch
+
+    if out is None:
+        out = np.empty((graph.number_of_patches, 2), dtype=float)
+
+    calc_centroid_at_patch(graph.nodes_at_patch, graph.x_of_node,
+                           graph.y_of_node, out)
 
     return out
