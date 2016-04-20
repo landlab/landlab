@@ -28,7 +28,7 @@ def get_angle_of_link(graph, out=None):
 
 
 def get_midpoint_of_link(graph, out=None):
-    from ext.remap_element import calc_midpoint_of_link
+    from .ext.of_link import calc_midpoint_of_link
 
     if out is None:
         out = np.empty((graph.number_of_links, 2), dtype=float)
