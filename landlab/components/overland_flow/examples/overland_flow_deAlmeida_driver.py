@@ -10,7 +10,7 @@ analytical solutions are compared.
 This is a componentized version of the driver example
 overland_flow_with_model_grid_deAlmeida_analyticalSolution.py
 
-@author: Jordan Adams
+.. codeauthor:: Jordan Adams <jadams15@tulane.edu>
 """
 
 from __future__ import print_function
@@ -61,6 +61,7 @@ inside_left_edge = rmg.nodes[1: -1, 1]
 
 # Initializing our class...
 of = OverlandFlow(rmg, mannings_n=n, theta=0.8, h_init=0.001)
+
 # Now, we need to set a fixed value on the left edge, so we find the
 # link neighbor arrays...
 of.set_up_neighbor_arrays()
