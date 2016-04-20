@@ -9,6 +9,54 @@ from ...core.utils import as_id_array, argsort_points_by_x_then_y
 from ...utils.jaggedarray import flatten_jagged_array
 
 
+def reindex_by_xy(graph):
+    reindex_nodes_by_xy(graph)
+    reindex_links_by_xy(graph)
+    reindex_patches_by_xy(graph)
+
+
+def reindex_patches_by_xy(graph):
+    from ..quantity.of_patch import get_centroid_of_patch
+
+    xy_at_patch = get_centroid_of_patch(graph)
+
+    sorted_patches = argsort_points_by_x_then_y(xy_at_patch)
+    graph._links_at_patch[:] = graph._links_at_patch[sorted_patches, :]
+
+    return sorted_patches
+
+
+def reindex_links_by_xy(graph):
+    from ..quantity.of_link import get_midpoint_of_link
+    from .ext.remap_element import remap_graph_element_ignore
+
+    xy_of_link = get_midpoint_of_link(graph)
+
+    sorted_links = argsort_points_by_x_then_y(xy_of_link)
+
+    graph._nodes_at_link[:] = graph._nodes_at_link[sorted_links, :]
+
+    remap_graph_element_ignore(graph.links_at_patch.reshape((-1, )),
+                               as_id_array(np.argsort(sorted_links)), -1)
+
+    return sorted_links
+
+
+def reindex_nodes_by_xy(graph):
+    from .ext.remap_element import remap_graph_element
+
+    sorted_nodes = argsort_points_by_x_then_y((graph.x_of_node,
+                                               graph.y_of_node))
+
+    graph.y_of_node[:] = graph.y_of_node[sorted_nodes]
+    graph.x_of_node[:] = graph.x_of_node[sorted_nodes]
+
+    remap_graph_element(graph.nodes_at_link.reshape((-1, )),
+                        as_id_array(np.argsort(sorted_nodes)))
+
+    return sorted_nodes
+
+
 def sort_graph(nodes, links=None, patches=None):
     """Sort elements of a graph by x, then y.
 
