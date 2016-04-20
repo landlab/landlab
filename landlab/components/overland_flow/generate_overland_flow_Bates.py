@@ -111,7 +111,7 @@ class OverlandFlowBates(Component):
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-    def gear_time_step(self):
+    def calc_time_step(self):
 
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al., 2012
         self.dt = self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
@@ -140,7 +140,7 @@ class OverlandFlowBates(Component):
 
         # If no dt is provided, one will be calculated using self.gear_time_step()
         if dt is None:
-            self.gear_time_step()
+            self.calc_time_step()
 
         # In case another component has added data to the fields, we just reset our
         # water depths, topographic elevations and water discharge variables to the fields.         self.h = self._grid['node']['water__depth']

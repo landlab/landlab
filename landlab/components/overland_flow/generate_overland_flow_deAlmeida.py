@@ -262,7 +262,7 @@ class OverlandFlow(Component):
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-    def gear_time_step(self):
+    def calc_time_step(self):
         """Calculate time step.
 
         Adaptive time stepper from Bates et al., 2010 and de Almeida
@@ -351,7 +351,7 @@ class OverlandFlow(Component):
         every point in the input grid.
         """
         if dt is None:
-            self.gear_time_step()
+            self.calc_time_step()
 
         # First, we check and see if the neighbor arrays have been initialized
         if self.neighbor_flag is False:
