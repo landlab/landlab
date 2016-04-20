@@ -36,6 +36,29 @@ def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
 
 
 @cython.boundscheck(False)
+def remap_graph_element_ignore(np.ndarray[DTYPE_t, ndim=1] elements,
+                               np.ndarray[DTYPE_t, ndim=1] old_to_new,
+                               DTYPE_t bad_val):
+    """Remap elements in an array in place, ignoring bad values.
+
+    Parameters
+    ----------
+    elements : ndarray of int
+        Identifiers of elements.
+    old_to_new : ndarray of int
+        Mapping from the old identifier to the new identifier.
+    bad_val : int
+        Ignore values in the input array when remapping.
+    """
+    cdef int n_elements = elements.size
+    cdef int i
+
+    for i in range(n_elements):
+        if elements != bad_val:
+            elements[i] = old_to_new[elements[i]]
+
+
+@cython.boundscheck(False)
 def reorder_patches(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
                     np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
                     np.ndarray[DTYPE_t, ndim=1] sorted_patches):
