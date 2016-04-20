@@ -54,7 +54,7 @@ def remap_graph_element_ignore(np.ndarray[DTYPE_t, ndim=1] elements,
     cdef int i
 
     for i in range(n_elements):
-        if elements != bad_val:
+        if elements[i] != bad_val:
             elements[i] = old_to_new[elements[i]]
 
 
