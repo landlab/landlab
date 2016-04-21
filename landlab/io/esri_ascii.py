@@ -320,6 +320,8 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         Add data to the grid as a named field.
     grid : *grid* , optional
         Adds data to an existing *grid* instead of creating a new one.
+    halo : integer, optional
+        Adds outer border of depth halo to the *grid*. 
 
     Returns
     -------
@@ -336,16 +338,35 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
-
-    shape = (header['nrows'], header['ncols'])
+    
+    #There is no reason for halo to be negative.
+    #Assume that if a negative value is given it should be 0.
+    if halo <= 0:
+        shape = (header['nrows'], header['ncols'])
+    else:
+        shape = (header['nrows'] + 2 * halo, header['ncols'] + 2 * halo)
+        nodata_value = header['NODATA_value']
     spacing = (header['cellsize'], header['cellsize'])
-    origin = (header['xllcorner'], header['yllcorner'])
+    origin = (header['xllcorner'], header['yllcorner'])    
 
-    if data.size != shape[0] * shape[1]:
-        raise DataSizeError(shape[0] * shape[1], data.size)
+#    if data.size != shape[0] * shape[1]:
+#        raise DataSizeError(shape[0] * shape[1], data.size)
 
     data.shape = shape
     data = np.flipud(data)
+    if halo > 0:
+        helper_row = np.ones(shape[1]) * nodata_value
+        #for the first halo row(s), add num cols worth of nodata vals to data
+        for i in range(0, halo):
+            data = np.insert(data,0,helper_row)
+        #then for header['nrows'] add halo number nodata vals, header['ncols'] 
+        #of data, then halo number of nodata vals
+        helper_row_ends = np.ones(halo) * nodata_value
+        for i in range(halo, shape[0]-1):
+            data = np.insert(data,i * shape[1],helper_row_ends) 
+        
+        #then add another halo row(s) of nodata vals to data.
+        
     if not reshape:
         data = data.flatten()
 
