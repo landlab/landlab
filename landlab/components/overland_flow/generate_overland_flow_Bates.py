@@ -1,4 +1,3 @@
-#Embedded file name: /Users/Jordan/Documents/landlab/landlab/components/overland_flow/generate_overland_flow_Bates.py
 """ generate_overland_flow.py
 
  This component simulates overland flow using
@@ -7,7 +6,8 @@
  algorithm for storage-cell inundation modeling.
 
 Written by Jordan Adams, based on code written by Greg Tucker.
-Last updated: July 17, 2015
+
+Last updated: April 21, 2016
 
 """
 from landlab import Component, ModelParameterDictionary
