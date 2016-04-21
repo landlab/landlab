@@ -111,13 +111,13 @@ class OverlandFlowBates(Component):
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-    def gear_time_step(self, grid):
+    def calc_time_step(self):
 
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al., 2012
-        dt = self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
+        self.dt = self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
             self._grid.at_node['water__depth']))
 
-        return dt
+        return self.dt
 
     def overland_flow(self, grid, dt = None, **kwds):
         """
@@ -140,7 +140,7 @@ class OverlandFlowBates(Component):
 
         # If no dt is provided, one will be calculated using self.gear_time_step()
         if dt is None:
-            dt = self.gear_time_step(grid)
+            self.calc_time_step()
 
         # In case another component has added data to the fields, we just reset our
         # water depths, topographic elevations and water discharge variables to the fields.         self.h = self._grid['node']['water__depth']
@@ -162,11 +162,18 @@ class OverlandFlowBates(Component):
         water_surface_slope = self._grid.calculate_gradients_at_active_links(w)
 
         # Here we calculate discharge at all active links using Eq. 11 from Bates et al., 2010
-        self.q[self.active_links] = (self.q[self.active_links] - self.g * hflow * dt * water_surface_slope) / (1.0 + self.g * hflow * dt * self.mannings_n_squared * abs(self.q[self.active_links]) / hflow ** self.ten_thirds)
+        self.q[self.active_links] = ((self.q[self.active_links] - self.g *
+            hflow * self.dt * water_surface_slope) / (1.0 + self.g * hflow *
+            self.dt * self.mannings_n_squared * abs(self.q[self.active_links])
+            / hflow ** self.ten_thirds))
 
         # Update our water depths
-        dhdt = self.rainfall_intensity - self._grid.calculate_flux_divergence_at_nodes(self.q[self.active_links])
-        self.h[self.core_nodes] = self.h[self.core_nodes] + dhdt[self.core_nodes] * dt
+        dhdt = (self.rainfall_intensity -
+            self._grid.calculate_flux_divergence_at_nodes(
+            self.q[self.active_links]))
+
+        self.h[self.core_nodes] = (self.h[self.core_nodes] +
+            dhdt[self.core_nodes] * self.dt)
 
         # And reset our field values with the newest water depth and discharge.
         self._grid.at_node['water__depth'] = self.h
