@@ -5,7 +5,7 @@ from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array('face')
-def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
+def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """Calculate net face fluxes at cells.
 
     Given a flux per unit width across each face in the grid, calculate the net
@@ -13,7 +13,7 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
 
     Construction::
 
-        calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None)
+        calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -39,13 +39,13 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
     >>> fg = rg.calculate_gradients_at_faces(z)  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_net_face_flux_at_cells(rg, -fg)
+    >>> calc_net_face_flux_at_cell(rg, -fg)
     array([-164.,  -94.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_net_face_flux_at_cells(rg, unit_flux_at_faces)
+    >>> calc_net_face_flux_at_cell(rg, unit_flux_at_faces)
     array([-114.,  -22.])
 
     >>> from landlab import HexModelGrid
@@ -56,7 +56,7 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
     >>> fg = hg.calculate_gradients_at_faces(z)  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
-    >>> nffc = calc_net_face_flux_at_cells(hg, -fg)
+    >>> nffc = calc_net_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
     array([-152.,  -96.])
 
@@ -68,7 +68,7 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
     will be in mass per unit time).
     """
     if out is None:
-        out = grid.empty(centering='cell')
+        out = grid.empty(at='cell')
     total_flux = unit_flux_at_faces * grid.face_width
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
@@ -79,7 +79,7 @@ def calc_net_face_flux_at_cells(grid, unit_flux_at_faces, out=None):
 
 
 @use_field_name_or_array('face')
-def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
+def calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     """Calculate divergence of face-based fluxes at cells.
 
     Given a flux per unit width across each face in the grid, calculate the net
@@ -87,7 +87,7 @@ def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
 
     Construction::
 
-        calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces, out=None)
+        calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -111,25 +111,25 @@ def calc_face_flux_divergence_at_cells(grid, unit_flux_at_faces):
     >>> fg = rg.calculate_gradients_at_faces(z)  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_face_flux_divergence_at_cells(rg, -fg)
+    >>> calc_face_flux_divergence_at_cell(rg, -fg)
     array([-1.64, -0.94])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_face_flux_divergence_at_cells(rg, unit_flux_at_faces)
+    >>> calc_face_flux_divergence_at_cell(rg, unit_flux_at_faces)
     array([-1.14, -0.22])
 
     Notes
     -----
     Performs a numerical flux divergence operation on cells.
     """
-    return calc_net_face_flux_at_cells(grid, unit_flux_at_faces) \
+    return calc_net_face_flux_at_cell(grid, unit_flux_at_faces) \
            / grid.area_of_cell
 
 
 @use_field_name_or_array('link')
-def calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None):
+def calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None):
     """Calculate net link fluxes at nodes.
 
     Given a flux per unit width along each link in the grid, calculate the net
@@ -139,7 +139,7 @@ def calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None):
 
     Construction::
 
-        calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None)
+        calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None)
 
     Parameters
     ----------
@@ -166,14 +166,14 @@ def calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None):
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
-    >>> calc_net_link_flux_at_nodes(rg, -lg)
+    >>> calc_net_link_flux_at_node(rg, -lg)
     array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
-    >>> nlfn = calc_net_link_flux_at_nodes(rg, unit_flux_at_links)
+    >>> nlfn = calc_net_link_flux_at_node(rg, unit_flux_at_links)
     >>> np.round(nlfn)
     array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
               0.,    0.,    0.])
@@ -187,7 +187,7 @@ def calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None):
     >>> lg
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
-    >>> nlfn = calc_net_link_flux_at_nodes(hg, -lg)
+    >>> nlfn = calc_net_link_flux_at_node(hg, -lg)
     >>> np.round(nlfn)
     array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
 
@@ -204,13 +204,13 @@ def calc_net_link_flux_at_nodes(grid, unit_flux_at_links, out=None):
     if out is None:
         out = grid.zeros(centering='node')
 
-    out[grid.node_at_cell] = calc_net_face_flux_at_cells(grid, 
+    out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                 unit_flux_at_links[grid.link_at_face])
     return out
 
 
 @use_field_name_or_array('link')
-def calc_link_flux_divergence_at_nodes(grid, unit_flux_at_links, out=None):
+def calc_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None):
     """Calculate divergence of link-based fluxes at nodes.
 
     Given a flux per unit width across each face in the grid, calculate the net
@@ -219,7 +219,7 @@ def calc_link_flux_divergence_at_nodes(grid, unit_flux_at_links, out=None):
 
     Construction::
 
-        calc_link_flux_divergence_at_nodes(grid, unit_flux_at_links, out=None)
+        calc_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None)
 
     Parameters
     ----------
@@ -244,14 +244,14 @@ def calc_link_flux_divergence_at_nodes(grid, unit_flux_at_links, out=None):
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
-    >>> calc_link_flux_divergence_at_nodes(rg, -lg)
+    >>> calc_link_flux_divergence_at_node(rg, -lg)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
-    >>> calc_link_flux_divergence_at_nodes(rg, unit_flux_at_links)
+    >>> calc_link_flux_divergence_at_node(rg, unit_flux_at_links)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
@@ -262,14 +262,14 @@ def calc_link_flux_divergence_at_nodes(grid, unit_flux_at_links, out=None):
     if out is None:
         out = grid.zeros(centering='node')
     
-    out[grid.node_at_cell] = calc_net_face_flux_at_cells(grid, 
+    out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                 unit_flux_at_links[grid.link_at_face]) \
                                 / grid.area_of_cell
     return out
 
 
 @use_field_name_or_array('face')
-def calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None):
+def calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     """Calculate net face fluxes at nodes.
 
     Given a flux per unit width across each face in the grid, calculate the net
@@ -278,7 +278,7 @@ def calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None):
 
     Construction::
 
-        calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None)
+        calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -304,14 +304,14 @@ def calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None):
     >>> fg = rg.calculate_gradients_at_faces(z)  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_net_face_flux_at_nodes(rg, -fg)
+    >>> calc_net_face_flux_at_node(rg, -fg)
     array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_net_face_flux_at_nodes(rg, unit_flux_at_faces)
+    >>> calc_net_face_flux_at_node(rg, unit_flux_at_faces)
     array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
               0.,    0.,    0.])
 
@@ -323,7 +323,7 @@ def calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None):
     >>> fg = hg.calculate_gradients_at_faces(z)  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
-    >>> nffc = calc_net_face_flux_at_nodes(hg, -fg)
+    >>> nffc = calc_net_face_flux_at_node(hg, -fg)
     >>> np.round(nffc)
     array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
 
@@ -337,13 +337,13 @@ def calc_net_face_flux_at_nodes(grid, unit_flux_at_faces, out=None):
     if out is None:
         out = grid.zeros(centering='node')
 
-    out[grid.node_at_cell] = calc_net_face_flux_at_cells(grid, 
+    out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                                          unit_flux_at_faces)
     return out
 
 
 @use_field_name_or_array('face')
-def calc_face_flux_divergence_at_nodes(grid, unit_flux_at_faces, out=None):
+def calc_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None):
     """Calculate divergence of face-based fluxes at nodes.
 
     Given a flux per unit width across each face in the grid, calculate the net
@@ -352,7 +352,7 @@ def calc_face_flux_divergence_at_nodes(grid, unit_flux_at_faces, out=None):
 
     Construction::
 
-        calc_face_flux_divergence_at_nodes(grid, unit_flux_at_faces, out=None)
+        calc_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -378,14 +378,14 @@ def calc_face_flux_divergence_at_nodes(grid, unit_flux_at_faces, out=None):
     >>> fg = rg.calculate_gradients_at_faces(z)  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_face_flux_divergence_at_nodes(rg, -fg)
+    >>> calc_face_flux_divergence_at_node(rg, -fg)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_face_flux_divergence_at_nodes(rg, unit_flux_at_faces)
+    >>> calc_face_flux_divergence_at_node(rg, unit_flux_at_faces)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
@@ -400,7 +400,7 @@ def calc_face_flux_divergence_at_nodes(grid, unit_flux_at_faces, out=None):
     if out is None:
         out = grid.zeros(centering='node')
     out[grid.node_at_cell] = \
-        calc_net_face_flux_at_cells(grid, unit_flux_at_faces) \
+        calc_net_face_flux_at_cell(grid, unit_flux_at_faces) \
         / grid.area_of_cell
     return out
 
