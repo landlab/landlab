@@ -3757,6 +3757,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
 add_module_functions_to_class(ModelGrid, 'gradients.py', pattern='calculate_*')
+add_module_functions_to_class(ModelGrid, 'divergence.py', pattern='calc_*')
 
 
 if __name__ == '__main__':
