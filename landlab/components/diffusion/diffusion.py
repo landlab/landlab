@@ -153,19 +153,19 @@ class LinearDiffuser(Component):
         self.interior_cells = self.grid.node_at_core_cell
 
         self.z = self.grid.at_node[self.values_to_diffuse]
-        g = self.grid.zeros(centering='link')
-        qs = self.grid.zeros(centering='link')
+        g = self.grid.zeros(at='link')
+        qs = self.grid.zeros(at='link')
         try:
             self.g = self.grid.add_field('link', 'topographic__gradient', g,
                                          noclobber=True)
             # ^note this will object if this exists already
         except FieldError:
-            pass  # field exists, so no problem
+            self.g = self.grid.at_link['topographic__gradient'] # keep a ref
         try:
             self.qs = self.grid.add_field('link', 'unit_flux', qs,
                                           noclobber=True)
         except FieldError:
-            pass
+            self.qs = self.grid.at_link['unit_flux']
         # note all these terms are deliberately loose, as we won't always be
         # dealing with topo
 
