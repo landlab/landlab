@@ -9,6 +9,32 @@ from libc.stdlib cimport malloc, free, qsort
 from ...sort.ext.argsort cimport unique_int
 
 
+@cython.boundscheck(True)
+def get_rightmost_edge_at_patch(
+    np.ndarray[long, ndim=2, mode="c"] links_at_patch,
+    np.ndarray[double, ndim=2, mode="c"] xy_of_link,
+    np.ndarray[long, ndim=1, mode="c"] edge):
+    cdef int n_patches = links_at_patch.shape[0]
+    cdef int n_cols = links_at_patch.shape[1]
+    cdef int patch
+    cdef int link
+    cdef int n
+    cdef int max_n
+    cdef float max_x
+
+    for patch in range(n_patches):
+        link = links_at_patch[patch, 0]
+        max_x, max_n = xy_of_link[link][0], 0
+
+        for n in range(1, n_cols):
+            link = links_at_patch[patch, n]
+            if link == -1:
+                break
+            if xy_of_link[link][0] > max_x:
+                max_x, max_n = xy_of_link[link][0], n
+        edge[patch] = max_n
+
+
 cdef find_common_node(long * link_a, long * link_b):
     if link_a[0] == link_b[0] or link_a[0] == link_b[1]:
         return link_a[0]

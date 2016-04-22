@@ -9,6 +9,33 @@ from ...core.utils import as_id_array, argsort_points_by_x_then_y
 from ...utils.jaggedarray import flatten_jagged_array
 
 
+def reorder_links_at_patch(graph):
+    from ..quantity.of_patch import get_area_of_patch
+    from ..quantity.of_link import get_midpoint_of_link
+    from ..matrix.ext.matrix import roll_id_matrix_rows
+    from ..object.ext.at_patch import get_rightmost_edge_at_patch
+
+    area_is_negative = get_area_of_patch(graph) < 0.
+    graph.links_at_patch[area_is_negative, :] = (
+        graph.links_at_patch[area_is_negative, ::-1])
+
+    xy_of_link = get_midpoint_of_link(graph)
+
+    shift = np.empty(graph.number_of_links, dtype=int)
+
+    get_rightmost_edge_at_patch(graph.links_at_patch, xy_of_link, shift)
+    roll_id_matrix_rows(graph.links_at_patch, shift)
+
+
+def reorient_link_dirs(graph):
+    from ..quantity.of_link import get_angle_of_link
+
+    angles = get_angle_of_link(graph)
+    links_to_swap = (angles < np.pi * .25) | (angles > np.pi * .75)
+    graph.nodes_at_link[links_to_swap, :] = (
+        graph.nodes_at_link[links_to_swap, ::-1])
+
+
 def reindex_by_xy(graph):
     reindex_nodes_by_xy(graph)
     reindex_links_by_xy(graph)
