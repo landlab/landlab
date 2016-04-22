@@ -40,6 +40,8 @@ ext_modules = [
               ['landlab/graph/quantity/ext/of_link.pyx']),
     Extension('landlab.graph.quantity.ext.of_patch',
               ['landlab/graph/quantity/ext/of_patch.pyx']),
+    Extension('landlab.graph.matrix.ext.matrix',
+              ['landlab/graph/matrix/ext/matrix.pyx']),
     Extension('landlab.grid.structured_quad.cfuncs',
               ['landlab/grid/structured_quad/cfuncs.pyx']),
     Extension('landlab.grid.structured_quad.c_faces',
