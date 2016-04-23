@@ -202,7 +202,7 @@ def calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None):
     calc_net_face_flux_at_cells) and could probably be made faster.
     """
     if out is None:
-        out = grid.zeros(centering='node')
+        out = grid.zeros(at='node')
 
     out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                 unit_flux_at_links[grid.link_at_face])
@@ -260,7 +260,7 @@ def calc_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None):
     Performs a numerical flux divergence operation on nodes.
     """
     if out is None:
-        out = grid.zeros(centering='node')
+        out = grid.zeros(at='node')
     
     out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                 unit_flux_at_links[grid.link_at_face]) \
@@ -335,7 +335,7 @@ def calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     previous values.
     """
     if out is None:
-        out = grid.zeros(centering='node')
+        out = grid.zeros(at='node')
 
     out[grid.node_at_cell] = calc_net_face_flux_at_cell(grid, 
                                                          unit_flux_at_faces)
@@ -398,7 +398,7 @@ def calc_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None):
     was).
     """
     if out is None:
-        out = grid.zeros(centering='node')
+        out = grid.zeros(at='node')
     out[grid.node_at_cell] = \
         calc_net_face_flux_at_cell(grid, unit_flux_at_faces) \
         / grid.area_of_cell
