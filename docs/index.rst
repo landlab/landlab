@@ -6,18 +6,21 @@
 
 Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
 
-==============================
-Landlab Developer API
-==============================
+==============================================
+Landlab Reference Manual and API Documentation
+==============================================
 
 The *Landlab Developer API* is a general reference manual for Landlab.
 
 Grids
 =======================
 
+Grid types
+-------------
+
 As of Landlab version 0.2, there are four types of Landlab grid:
  - Raster
- - Voronoi-DeLaunay
+ - Voronoi-Delaunay
  - Hex
  - Radial
 
@@ -26,7 +29,7 @@ The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDela
 `VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
 
 Methods and properties common to all grids
---------------------------
+-----------------------------
 .. toctree::
    :maxdepth: 4
 
@@ -136,6 +139,11 @@ these specialized developer install instructions.
 References
 ==========
 
-* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Search the Index
+==================
+
+* :ref:`genindex`

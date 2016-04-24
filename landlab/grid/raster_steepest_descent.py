@@ -1,5 +1,17 @@
 #! /usr/bin/env python
-"""Calculate steepest descent on a raster grid."""
+"""Calculate steepest descent on a raster grid.
+
+Steepest descent functions for raster grids
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.raster_steepest_descent.calculate_steepest_descent_across_adjacent_cells
+    ~landlab.grid.raster_steepest_descent.calculate_steepest_descent_across_cell_corners
+    ~landlab.grid.raster_steepest_descent.calculate_steepest_descent_across_cell_faces
+
+"""
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array
