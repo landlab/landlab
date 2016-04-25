@@ -1,4 +1,4 @@
-Gradient-calculation functions
+Gradient calculation functions
 ----------------------------------
 
 .. automodule:: landlab.grid.raster_gradients
