@@ -41,6 +41,9 @@ def reindex_by_xy(graph):
     reindex_links_by_xy(graph)
     reindex_patches_by_xy(graph)
 
+    if hasattr(graph, 'dual'):
+        reindex_by_xy(graph.dual)
+
 
 def reindex_patches_by_xy(graph):
     from ..quantity.of_patch import get_centroid_of_patch
