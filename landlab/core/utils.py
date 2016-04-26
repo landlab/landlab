@@ -381,7 +381,10 @@ def argsort_points_by_x_then_y(points):
     if isinstance(points, np.ndarray):
         if points.shape[0] > points.shape[1]:
             points = points.T
-        return argsort_points_by_x_then_y((points[0, :], points[1, :]))
+        try:
+            return argsort_points_by_x_then_y((points[0, :], points[1, :]))
+        except IndexError:
+            return as_id_array([0])
     else:
         points = [np.asarray(coord) for coord in points]
         a = points[0].argsort(kind='mergesort')
