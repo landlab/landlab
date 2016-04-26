@@ -40,7 +40,7 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_face_flux_at_cell(rg, -fg)
-    array([-164.,  -94.])
+    array([164.,  94.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
@@ -58,7 +58,7 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = calc_net_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
-    array([-152.,  -96.])
+    array([152.,  96.])
 
     Notes
     -----
@@ -73,7 +73,7 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
-        out += total_flux[fac[:,c]] \
+        out -= total_flux[fac[:,c]] \
         * grid.link_dirs_at_node[grid.node_at_cell,c]
     return out
 
