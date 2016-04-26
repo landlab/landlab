@@ -90,7 +90,18 @@ class DataSizeError(Error):
     def __str__(self):
         return '%s != %s' % (self._actual, self._expected)
 
+class MismatchGridSizeDataSizeError(Error):
+    
+    """Raise this error if the data size does not match the grid size."""
+    
+    def __init__(self, size, expected_size):
+        self._actual = size
+        self._expected = expected_size
 
+    def __str__(self):
+        return '(data size) %s != %s (grid size)' \
+        % (self._actual, self._expected)
+    
 def _parse_header_key_value(line):
     """Parse a header line into a key-value pair.
 
@@ -343,17 +354,22 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     #Assume that if a negative value is given it should be 0.
     if halo <= 0:
         shape = (header['nrows'], header['ncols'])
+        if data.size != shape[0] * shape[1]:
+            raise DataSizeError(shape[0] * shape[1], data.size)
     else:
         shape = (header['nrows'] + 2 * halo, header['ncols'] + 2 * halo)
         nodata_value = header['NODATA_value']
+        if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
+            raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
     origin = (header['xllcorner'], header['yllcorner'])    
 
-#    if data.size != shape[0] * shape[1]:
-#        raise DataSizeError(shape[0] * shape[1], data.size)
-
     data.shape = shape
     data = np.flipud(data)
+
+    #REMEMBER, shape contains the size with halo in place
+    #header contains the shape of the original data
+    #Add halo below
     if halo > 0:
         helper_row = np.ones(shape[1]) * nodata_value
         #for the first halo row(s), add num cols worth of nodata vals to data
@@ -362,13 +378,23 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         #then for header['nrows'] add halo number nodata vals, header['ncols'] 
         #of data, then halo number of nodata vals
         helper_row_ends = np.ones(halo) * nodata_value
-        for i in range(halo, shape[0]-1):
-            data = np.insert(data,i * shape[1],helper_row_ends) 
-        
-        #then add another halo row(s) of nodata vals to data.
+        for i in range(halo, header['nrows']+halo):
+            #this adds at the beginning of the row
+            data = np.insert(data,i * shape[1],helper_row_ends)
+            #this adds at the end of the row
+            data = np.insert(data,(i + 1) * shape[1] - halo,helper_row_ends)
+        #for the last halo row(s), add num cols worth of nodata vals to data
+        for i in range(header['nrows']+halo,shape[0]):
+            data = np.insert(data,data.size,helper_row)
         
     if not reshape:
         data = data.flatten()
+        
+    if grid is not None:
+        if (grid.number_of_node_rows != shape[0]) or \
+        (grid.number_of_node_cols != shape[1]):
+            raise MismatchGridSizeDataSizeError(shape[0] * shape[1], \
+            grid.number_of_node_rows * grid.number_of_node_cols )
 
     if grid is None:
         grid = RasterModelGrid(shape, spacing=spacing)
