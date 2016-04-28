@@ -40,13 +40,13 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_face_flux_at_cell(rg, -fg)
-    array([164.,  94.])
+    array([ 164.,   94.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_net_face_flux_at_cell(rg, unit_flux_at_faces)
-    array([-114.,  -22.])
+    array([ 114.,   22.])
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
@@ -58,7 +58,7 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = calc_net_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
-    array([152.,  96.])
+    array([ 152.,   96.])
 
     Notes
     -----
@@ -112,13 +112,13 @@ def calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_face_flux_divergence_at_cell(rg, -fg)
-    array([-1.64, -0.94])
+    array([ 1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_face_flux_divergence_at_cell(rg, unit_flux_at_faces)
-    array([-1.14, -0.22])
+    array([ 1.14,  0.22])
 
     Notes
     -----
@@ -166,11 +166,11 @@ def calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_active_face_flux_at_cell(rg, -fg)
-    array([-164.,  -94.])
+    array([ 164.,   94.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> calc_net_active_face_flux_at_cell(rg, -fg)
-    array([-114.,  -22.])
+    array([ 114.,   22.])
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
@@ -182,7 +182,7 @@ def calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = calc_net_active_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
-    array([-152.,  -96.])
+    array([ 152.,   96.])
 
     Notes
     -----
@@ -197,7 +197,7 @@ def calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):
-        out += total_flux[fac[:,c]] \
+        out -= total_flux[fac[:,c]] \
         * grid.active_link_dirs_at_node[grid.node_at_cell,c]
     return out
 
@@ -240,11 +240,11 @@ def calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_active_face_flux_divergence_at_cell(rg, -fg)
-    array([-1.64, -0.94])
+    array([ 1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> calc_active_face_flux_divergence_at_cell(rg, -fg)
-    array([-1.14, -0.22])
+    array([ 1.14,  0.22])
 
     Notes
     -----
@@ -293,7 +293,7 @@ def calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None):
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> calc_net_link_flux_at_node(rg, -lg)
-    array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  164.,   94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
@@ -301,7 +301,7 @@ def calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None):
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
     >>> nlfn = calc_net_link_flux_at_node(rg, unit_flux_at_links)
     >>> np.round(nlfn)
-    array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  114.,   22.,    0.,    0.,
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
@@ -315,7 +315,7 @@ def calc_net_link_flux_at_node(grid, unit_flux_at_links, out=None):
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
     >>> nlfn = calc_net_link_flux_at_node(hg, -lg)
     >>> np.round(nlfn)
-    array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
+    array([   0.,    0.,    0.,    0.,  152.,   96.,    0.,    0.,    0.,    0.])
 
     Notes
     -----
@@ -371,14 +371,14 @@ def calc_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None):
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> calc_link_flux_divergence_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
     >>> calc_link_flux_divergence_at_node(rg, unit_flux_at_links)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
     Notes
@@ -434,13 +434,13 @@ def calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> calc_net_active_link_flux_at_node(rg, -lg)
-    array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  164.,   94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> nlfn = calc_net_active_link_flux_at_node(rg, -lg)
     >>> np.round(nlfn)
-    array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  114.,   22.,    0.,    0.,
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
@@ -454,7 +454,7 @@ def calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
     >>> nlfn = calc_net_active_link_flux_at_node(hg, -lg)
     >>> np.round(nlfn)
-    array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
+    array([   0.,    0.,    0.,    0.,  152.,   96.,    0.,    0.,    0.,    0.])
 
     Notes
     -----
@@ -513,12 +513,12 @@ def calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> calc_active_link_flux_divergence_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> calc_active_link_flux_divergence_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
     Notes
@@ -571,14 +571,14 @@ def calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_face_flux_at_node(rg, -fg)
-    array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  164.,   94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_net_face_flux_at_node(rg, unit_flux_at_faces)
-    array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  114.,   22.,    0.,    0.,
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
@@ -591,7 +591,7 @@ def calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = calc_net_face_flux_at_node(hg, -fg)
     >>> np.round(nffc)
-    array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
+    array([   0.,    0.,    0.,    0.,  152.,   96.,    0.,    0.,    0.,    0.])
 
     Notes
     -----
@@ -645,14 +645,14 @@ def calc_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_face_flux_divergence_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_face_flux_divergence_at_node(rg, unit_flux_at_faces)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
     Notes
@@ -709,12 +709,12 @@ def calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_net_active_face_flux_at_node(rg, -fg)
-    array([   0.,    0.,    0.,    0.,    0., -164.,  -94.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  164.,   94.,    0.,    0.,
               0.,    0.,    0.])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> calc_net_active_face_flux_at_node(rg, -fg)
-    array([   0.,    0.,    0.,    0.,    0., -114.,  -22.,    0.,    0.,
+    array([   0.,    0.,    0.,    0.,    0.,  114.,   22.,    0.,    0.,
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
@@ -727,7 +727,7 @@ def calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = calc_net_active_face_flux_at_node(hg, -fg)
     >>> np.round(nffc)
-    array([   0.,    0.,    0.,    0., -152.,  -96.,    0.,    0.,    0.,    0.])
+    array([   0.,    0.,    0.,    0.,  152.,   96.,    0.,    0.,    0.,    0.])
 
     Notes
     -----
@@ -783,12 +783,12 @@ def calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None)
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_active_face_flux_divergence_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.64, -0.94,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> calc_active_face_flux_divergence_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.14, -0.22,  0.  ,  0.  ,
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
     Notes
