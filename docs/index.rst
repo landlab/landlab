@@ -32,6 +32,7 @@ Methods and properties common to all grids
 
    landlab.grid.mappers
    landlab.grid.gradients
+   landlab.grid.divergence
    landlab.grid.grid_funcs
    landlab.grid.create
    landlab.grid.base
