@@ -715,8 +715,10 @@ class CellLabCTSModel(object):
         Following an "external" change to the node state grid, updates link
         states where necessary and creates any needed events.
 
-        Algorithm
-        ---------
+        Notes
+        -----
+        **Algorithm**::
+
             FOR each active link:
                 if the actual node pair is different from the link's code:
                     change the link state to be correct

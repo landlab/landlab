@@ -1808,8 +1808,8 @@ class ModelGrid(ModelDataFieldsMixIn):
     def find_number_of_faces_at_cell(self):
         """Find and return how many faces are attached to each cell.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         >>> hg.find_number_of_faces_at_cell()
@@ -1839,8 +1839,8 @@ class ModelGrid(ModelDataFieldsMixIn):
     def make_faces_at_cell(self):
         """Construct faces_at_cell array.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         >>> hg.make_faces_at_cell()

@@ -17,8 +17,8 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
     flexure parameter is used. The number of dimension must be either 1, or
     2.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from __future__ import print_function
     >>> from landlab.components.flexure import get_flexure_parameter
 
@@ -97,8 +97,8 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     out : ndarray
         Array of deflections.
 
-    Example
-    -------
+    Examples
+    --------
 
     >>> from landlab.components.flexure import subside_point_load
 

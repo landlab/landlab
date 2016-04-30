@@ -816,8 +816,8 @@ def active_inlinks2(shape, node_status=None):
     2d numpy array of int (2 x number of grid nodes)
         Link ID of incoming links to each node
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_inlinks2
     >>> active_inlinks2((3,4))
     array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
@@ -862,8 +862,8 @@ def active_outlinks2(shape, node_status=None):
     2d numpy array of int (2 x number of grid nodes)
         Link ID of outgoing links from each node
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_outlinks2
     >>> active_outlinks2((3,4))
     array([[-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
@@ -1267,8 +1267,8 @@ def active_south_links2(shape, node_status=None):
     2d numpy array of int
         Link ID of active link connecting to a node from the south, or -1
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_south_links2
     >>> active_south_links2((3, 4))
     array([[-1, -1, -1, -1],
