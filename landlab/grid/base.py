@@ -2417,6 +2417,31 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             return self._link_length
 
+    @property
+    def length_of_link(self):
+        """Get lengths of links.
+
+        Returns
+        -------
+        ndarray
+            Lengths of all links, in ID order.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.link_length
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
+                1.,  1.,  1.,  1.,  1.])
+        >>> len(grid.link_length) == grid.number_of_links
+        True
+        """
+        if self._link_length is None:
+            return self._calculate_link_length()
+        else:
+            return self._link_length
+
     def _calculate_link_length(self):
         """Get array of the lengths of all links.
 
