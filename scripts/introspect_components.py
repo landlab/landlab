@@ -69,6 +69,8 @@ import dircache
 import pkgutil
 from copy import copy
 
+terminate_chars_map = {'[':']', '{':'}', '(':')'}
+
 abspath = path.abspath(comp.__path__[0])
 poss_comp_files = []
 for root, dirnames, filenames in walk(abspath):
@@ -100,6 +102,8 @@ for LLcomp in poss_comp_files:
     if 'example' in LLcomp.lower():
         print('Ignored ' + LLcomp)
         continue
+    else:
+        print ('Working on ' + LLcomp)
     found_a_name = False
     accumulated_props = set()
     for prop in props_to_strip_list:
@@ -111,7 +115,11 @@ for LLcomp in poss_comp_files:
                     accumulated_props.add(prop)
                     start_write = True
                     if prop != ' _name':
-                        assert ('{' in line) or ('[' in line)
+                        assert ('{' in line) or ('[' in line) or ('(' in line)
+                        for open_char in terminate_chars_map.keys():
+                            if open_char in line:
+                                close_char = terminate_chars_map[open_char]
+                                break
                     else:
                         found_a_name = True
                 if start_write:
@@ -121,7 +129,7 @@ for LLcomp in poss_comp_files:
                     nowhite = nowhite.lstrip()
                     no_nl = nowhite.replace('\\', '')
                     lines_captured.append(str(no_nl))
-                    if ('}' in line) or (']' in line) or (prop == ' _name'):
+                    if (close_char in line) or (prop == ' _name'):
                         break
         cat_lines = ''
         for expr in lines_captured:

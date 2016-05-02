@@ -1,5 +1,19 @@
 #! /usr/bin/env python
-"""Calculate gradients on a raster grid."""
+"""Calculate gradients on a raster grid.
+
+Gradient calculators for raster grids
+++++++++++++++++++++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.raster_gradients.calculate_gradients_at_links
+    ~landlab.grid.raster_gradients.calculate_gradients_at_active_links
+    ~landlab.grid.raster_gradients.calculate_gradient_across_cell_faces
+    ~landlab.grid.raster_gradients.calculate_gradient_across_cell_corners
+    ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
+
+"""
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array
@@ -12,11 +26,15 @@ from landlab.utils.decorators import use_field_name_or_array
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients over links.
 
+    Construction::
+
+        calculate_gradients_at_links(grid, node_values, out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
-    node_values : array_like
+    node_values : array_like or field name
         Values at nodes.
     out : ndarray, optional
         Buffer to hold result. If `None`, create a new array.
@@ -26,9 +44,6 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     ndarray
         Gradients of the nodes values for each link.
 
-    .. deprecated:: 0.1
-        Use :func:`calculate_gradient_across_cell_faces`
-                or :func:`calculate_gradient_across_cell_corners` instead
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -43,7 +58,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
     >>> rtn = grid.calculate_gradients_at_links(node_values, out=out)
     >>> rtn is out
     True
-    >>> out 
+    >>> out
     array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
     >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
@@ -130,8 +145,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
 
 @use_field_name_or_array('node')
 def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
-    """calculate_gradient_across_cell_faces(grid, node_values, [cell_ids], out=None)
-    Get gradients across the faces of a cell.
+    """Get gradients across the faces of a cell.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
@@ -140,11 +154,16 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
+    Construction::
+
+        calculate_gradient_across_cell_faces(grid, node_values, [cell_ids],
+                                             out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -155,7 +174,7 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
     Returns
     -------
-    (N, 4) ndarray
+    (N, 4) Masked ndarray
         Gradients for each face of the cell.
 
     Examples
@@ -211,18 +230,22 @@ def calculate_gradient_across_cell_faces(grid, node_values, *args, **kwds):
 
 @use_field_name_or_array('node')
 def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
-    """calculate_gradient_across_cell_corners(grid, node_values, [cell_ids], out=None)
-    Get gradients to diagonally opposite nodes.
+    """Get gradients to diagonally opposite nodes.
 
     Calculate gradient of the value field provided by *node_values* to
     the values at diagonally opposite nodes. The returned gradients are
     ordered as upper-right, upper-left, lower-left and lower-right.
 
+    Construction::
+
+        calculate_gradient_across_cell_corners(grid, node_values, [cell_ids],
+                                               out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     cell_ids : array_like, optional
         If provided, cell ids to measure gradients. Otherwise, find gradients
@@ -272,8 +295,7 @@ def calculate_gradient_across_cell_corners(grid, node_values, *args, **kwds):
 
 @use_field_name_or_array('node')
 def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
-    """calculate_gradient_along_node_links(grid, node_values, [cell_ids], out=None)
-    Get gradients along links touching a node.
+    """Get gradients along links touching a node.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the nodes of a grid. The returned gradients are
@@ -285,11 +307,16 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
 
+    Construction::
+
+        calculate_gradient_along_node_links(grid, node_values, [cell_ids],
+                                            out=None)
+
     Parameters
     ----------
     grid : RasterModelGrid
         Source grid.
-    node_values : array_like
+    node_values : array_like or field name
         Quantity to take the gradient of defined at each node.
     node_ids : array_like, optional
         If provided, node ids to measure gradients. Otherwise, find gradients
@@ -300,7 +327,7 @@ def calculate_gradient_along_node_links(grid, node_values, *args, **kwds):
 
     Returns
     -------
-    (N, 4) ndarray
+    (N, 4) Masked ndarray
         Gradients for each link of the node. Ordering is E,N,W,S.
 
     Examples

@@ -1,10 +1,87 @@
 """General decorators for the landlab library."""
 
+import os
 import warnings
 from functools import wraps
 
 import numpy as np
 import six
+
+from ..core.model_parameter_loader import load_params
+
+
+def use_file_name_or_kwds(func):
+
+    """Decorate a method so that it takes a file name or keywords.
+
+    Parameters
+    ----------
+    func : A function
+        A method function that accepts a ModelGrid as a first argument.
+
+    Returns
+    -------
+    function
+        A function that takes an optional second argument, a file, from which
+        to read keywords.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.utils.decorators import use_file_name_or_kwds
+
+    >>> class MyClass(object):
+    ...     @use_file_name_or_kwds
+    ...     def __init__(self, grid, kw=0.):
+    ...         self.kw = kw
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> foo = MyClass(grid)
+    >>> foo.kw
+    0.0
+
+    >>> foo = MyClass(grid, "kw: 1945")
+    >>> foo.kw
+    1945
+    >>> foo = MyClass(grid, "kw: 1945", kw=1973)
+    >>> foo.kw
+    1973
+
+    >>> mpd = \"\"\"
+    ... kw: kw value
+    ... 1e6
+    ... \"\"\"
+    >>> foo = MyClass(grid, mpd)
+    >>> foo.kw
+    1000000.0
+    """
+
+    @wraps(func)
+    def _wrapped(self, *args, **kwds):
+        from ..grid import ModelGrid
+
+        if not isinstance(args[0], ModelGrid):
+            raise ValueError('first argument must be a ModelGrid')
+
+        if len(args) == 2:
+            warnings.warn(
+                "Passing a file to a component's __init__ method is "
+                "deprecated. Instead, pass parameters as keywords.",
+                category=DeprecationWarning)
+
+            if os.path.isfile(args[1]):
+                with open(args[1], 'r') as fp:
+                    params = load_params(fp)
+            else:
+                params = load_params(args[1])
+        else:
+            params = {}
+
+        params.update(kwds)
+
+        func(self, args[0], **params)
+
+    return _wrapped
 
 
 class use_field_name_or_array(object):
@@ -15,6 +92,9 @@ class use_field_name_or_array(object):
     ----------
     func : function
         A function that accepts a grid and array as arguments.
+    at_element : str
+        The element type that the field is defined on ('node', 'cell',
+        etc.)
 
     Returns
     -------
@@ -109,26 +189,67 @@ def make_return_array_immutable(func):
     return _wrapped
 
 
-def deprecated(func):
+# def deprecated(use, version):
+#     """Mark a function as deprecated.
+# 
+#     Parameters
+#     ----------
+#     use : str
+#         Name of replacement function to use.
+#     version : str
+#         Version number when function was marked as deprecated.
+# 
+#     Returns
+#     -------
+#     func
+#         A wrapped function that issues a deprecation warning.
+#     """
+#     def real_decorator(func):
+# 
+#         def _wrapped(*args, **kwargs):
+#             """Warn that the function is deprecated before calling it."""
+#             warnings.warn(
+#                 "Call to deprecated function {name}.".format(
+#                     name=func.__name__), category=DeprecationWarning)
+#             return func(*args, **kwargs)
+#         _wrapped.__dict__.update(func.__dict__)
+# 
+#         return _wrapped
+# 
+#     return real_decorator
+
+def deprecated(use, version):
     """Mark a function as deprecated.
 
     Parameters
     ----------
-    func : function
-        A function.
+    use : str
+        Name of replacement function to use.
+    version : str
+        Version number when function was marked as deprecated.
 
     Returns
     -------
     func
         A wrapped function that issues a deprecation warning.
     """
-    @wraps(func)
-    def _wrapped(*args, **kwargs):
-        """Warn that the function is deprecated before calling it."""
-        warnings.warn(
-            "Call to deprecated function {name}.".format(name=func.__name__),
-            category=DeprecationWarning)
-        return func(*args, **kwargs)
-    _wrapped.__dict__.update(func.__dict__)
+    def real_decorator(func):
+        mystring = ("\n*************************\n" +
+                    "This method is deprecated as of Landlab version %s.\n" +
+                    "Use :func:`%s` instead.\n" +
+                    "*************************")
+        try:
+            func.__doc__ = func.__doc__ + mystring % (version, use)
+        except TypeError:
+            func.__doc__ = mystring % (version, use)
 
-    return _wrapped
+        @wraps(func)
+        def _wrapped(*args, **kwargs):
+            warnings.warn(
+                message="Call to deprecated function {name}.".format(
+                    name=func.__name__), category=DeprecationWarning)
+            return func(*args, **kwargs)
+        _wrapped.__dict__.update(func.__dict__)
+        return _wrapped
+
+    return real_decorator

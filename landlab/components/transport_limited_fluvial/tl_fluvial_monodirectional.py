@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import inspect
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY
+from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 from landlab import RasterModelGrid
 from time import sleep
 from landlab.utils import structured_grid as sgrid
@@ -13,11 +13,11 @@ from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 
 
-class TransportLimitedEroder(object):
+class TransportLimitedEroder(Component):
     """
-    This component implements transport limited erosion for a landscape in which
-    flow directions are fully convergent. i.e., all nodes in the landscape have
-    a single, uniquely defined downstream node.
+    This component implements transport limited erosion for a landscape in
+    which flow directions are fully convergent. i.e., all nodes in the
+    landscape have a single, uniquely defined downstream node.
 
     The module can in principle take multiple transport laws, but at the moment
     only Meyer-Peter Muller (MPM) is implemented.
@@ -34,7 +34,121 @@ class TransportLimitedEroder(object):
     (Only tested for raster grid so far)
     """
 
+    _name = 'TransportLimitedEroder'
+
+    _input_var_names = (
+        'topographic__elevation',
+        'drainage_area',
+        'flow_receiver',
+        'upstream_node_order',
+        'topographic__steepest_slope',
+        'links_to_flow_receiver'
+    )
+
+    _output_var_names = (
+        'topographic__elevation',
+        'fluvial_sediment_transport_capacity',
+        'fluvial_sediment_flux_into_node',
+        'effective_fluvial_diffusivity'
+    )
+
+    _optional_var_names = (
+        'channel_width',
+        'channel_depth',
+        'channel_discharge',
+        'channel_bed_shear_stress'
+    )
+
+    _var_units = {'topographic__elevation': 'm',
+                  'drainage_area': 'm**2',
+                  'flow_receiver': '-',
+                  'topographic__steepest_slope': '-',
+                  'upstream_node_order': '-',
+                  'links_to_flow_receiver': '-',
+                  'fluvial_sediment_transport_capacity': 'm**3/s',
+                  'fluvial_sediment_flux_into_node': 'm**3/s',
+                  'effective_fluvial_diffusivity': 'm**2/s',
+                  'channel_width': 'm',
+                  'channel_depth': 'm',
+                  'channel_discharge': 'm**3/s',
+                  'channel_bed_shear_stress': 'Pa'
+                  }
+
+    _var_mapping = {'topographic__elevation': 'node',
+                    'drainage_area': 'node',
+                    'flow_receiver': 'node',
+                    'topographic__steepest_slope': 'node',
+                    'upstream_node_order': 'node',
+                    'links_to_flow_receiver': 'node',
+                    'channel_bed_shear_stress': 'node',
+                    'fluvial_sediment_transport_capacity': 'node',
+                    'fluvial_sediment_flux_into_node': 'node',
+                    'effective_fluvial_diffusivity': 'node',
+                    'relative_sediment_flux': 'node',
+                    'channel_discharge': 'node',
+                    'channel_width': 'node',
+                    'channel_depth': 'node'
+                    }
+
+    _var_type = {'topographic__elevation': float,
+                 'drainage_area': float,
+                 'flow_receiver': int,
+                 'topographic__steepest_slope': float,
+                 'upstream_node_order': int,
+                 'links_to_flow_receiver': int,
+                 'channel_bed_shear_stress': float,
+                 'fluvial_sediment_transport_capacity': float,
+                 'fluvial_sediment_flux_into_node': float,
+                 'effective_fluvial_diffusivity': float,
+                 'relative_sediment_flux': float,
+                 'channel_discharge': float,
+                 'channel_width': float,
+                 'channel_depth': float
+                 }
+
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'drainage_area':
+            ("Upstream accumulated surface area contributing to the node's " +
+             "discharge"),
+        'flow_receiver':
+            ('Node array of receivers (node that receives flow from current ' +
+             'node)'),
+        'topographic__steepest_slope':
+            'Node array of steepest *downhill* slopes',
+        'upstream_node_order':
+            ('Node array containing downstream-to-upstream ordered list of ' +
+             'node IDs'),
+        'links_to_flow_receiver':
+            'ID of link downstream of each node, which carries the discharge',
+        'channel_bed_shear_stress':
+            ('Shear exerted on the bed of the channel, assuming all ' +
+             'discharge travels along a single, self-formed channel'),
+        'fluvial_sediment_transport_capacity':
+            ('Volumetric transport capacity of a channel carrying all runoff' +
+             ' through the node, assuming the Meyer-Peter Muller transport ' +
+             'equation'),
+        'fluvial_sediment_flux_into_node':
+            ('Total volumetric fluvial sediment flux brought into the node ' +
+             'from upstream'),
+        'effective_fluvial_diffusivity':
+            ('The effective (linear) diffusivity if a threshold is provided'),
+        'relative_sediment_flux':
+            ('The fluvial_sediment_flux_into_node divided by the fluvial_' +
+             'sediment_transport_capacity'),
+        'channel_discharge':
+            ('Volumetric water flux of the a single channel carrying all ' +
+             'runoff through the node'),
+        'channel_width':
+            ('Width of the a single channel carrying all runoff through the ' +
+             'node'),
+        'channel_depth':
+            ('Depth of the a single channel carrying all runoff through the ' +
+             'node')
+    }
+
     def __init__(self, grid, params):
+        self._grid = grid
         self.initialize(grid, params)
 
     def initialize(self, grid, params_file):
@@ -45,18 +159,19 @@ class TransportLimitedEroder(object):
         ***Parameters for input file***
         OBLIGATORY:
             * Qc -> String. Controls how to set the carrying capacity.
-                Either 'MPM', or a string giving the name of the model field
-                where capacity values are stored on nodes.
-                At the moment, only 'MPM' is permitted as a way to set the
-                capacity automatically, but expansion would be trivial.
+                Either 'MPM', 'power_law', or a string giving the name of the
+                model field where capacity values are stored on nodes.
+                At the moment, only 'MPM' and power_law' are permitted as a way
+                to set the capacity automatically, but expansion would be
+                trivial.
                 If 'from_array', the module will attempt to set the capacity
                 Note capacities must be specified as volume flux.
             *
 
             ...Then, assuming you set Qc=='MPM':
             * b_sp, c_sp -> Floats. These are the powers on discharge and
-                drainage area in the equations used to control channel width and
-                basin hydrology, respectively:
+                drainage area in the equations used to control channel width
+                and basin hydrology, respectively:
                         W = k_w * Q**b_sp
                         Q = k_Q * A**c_sp
                 These parameters are used to constrain flow depth, and may be
@@ -64,8 +179,9 @@ class TransportLimitedEroder(object):
             *k_Q, k_w, mannings_n -> floats. These are the prefactors on the
                 basin hydrology and channel width-discharge relations, and n
                 from the Manning's equation, respectively. These are
-                needed to allow calculation of shear stresses and hence carrying
-                capacities from the local slope and drainage area alone.
+                needed to allow calculation of shear stresses and hence
+                carrying capacities from the local slope and drainage area
+                alone.
                 Don't know what to set these values to? k_w=2.5, k_Q=2.5e-7,
                 mannings_n=0.05 give vaguely plausible numbers with b=0.5,
                 c = 1.(e.g., for a drainage area ~350km2, like Boulder Creek
@@ -75,20 +191,27 @@ class TransportLimitedEroder(object):
                 depths ~2.3m with Q~200m3/s]
             *Dchar -> float.  The characteristic grain diameter in meters
                 (==D50 in most cases) used to calculate Shields numbers
-                in the channel. If you want to define Dchar values at each node,
-                don't set, and use the Dchar_if_used argument in erode()
+                in the channel. If you want to define Dchar values at each
+                node, don't set, and use the Dchar_if_used argument in erode()
                 instead.
+
+            ...or if you set power_law, Qc = K_t*A**m_t*S**n_t,
+            * m_t, n_t -> Floats. The powers on A and S repectively in this
+                equation.
+            * K_t -> float. The prefactor (note time units are years).
+            Note that Qc is total capacity, not per unit width.
 
         OPTIONS:
             *rock_density -> in kg/m3 (defaults to 2700)
             *sediment_density -> in kg/m3 (defaults to 2700)
-            *fluid_density -> in most cases water density, in kg/m3 (defaults to 1000)
+            *fluid_density -> in most cases water density, in kg/m3 (defaults
+                to 1000)
             *g -> acceleration due to gravity, in m/s**2 (defaults to 9.81)
 
             *threshold_shields -> +ve float; the threshold taustar_crit.
-                Defaults to 0.047, or if 'slope_sensitive_threshold' is set True,
-                becomes a weak function of local slope following Lamb et al
-                (2008):
+                Defaults to 0.047, or if 'slope_sensitive_threshold' is set
+                True, becomes a weak function of local slope following Lamb et
+                al (2008):
                     threshold_shields=0.15*S**0.25
             *slope_sensitive_threshold -> bool, defaults to 'False'.
                 If true, threshold_shields is set according to the Lamb
@@ -119,8 +242,9 @@ class TransportLimitedEroder(object):
         '''
         # this is the fraction we allow any given slope in the grid to evolve
         # by in one go (suppresses numerical instabilities)
+        self.capacity_options = ['MPM', 'power_law']
         self.fraction_gradient_change = 0.25
-        self.grid = grid
+        self._grid = grid
         # needs to be filled with values in execution
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
         self.count_active_links = np.zeros_like(
@@ -150,7 +274,7 @@ class TransportLimitedEroder(object):
         except MissingKeyError:
             raise MissingKeyError("Qc must be 'MPM' or a grid field name!")
         else:
-            if self.Qc == 'MPM':
+            if self.Qc in self.capacity_options:
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
@@ -158,98 +282,114 @@ class TransportLimitedEroder(object):
             self.return_ch_props = inputs.read_bool('return_stream_properties')
         except MissingKeyError:
             self.return_ch_props = False
-
-        try:
-            self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
-        except:
-            self.lamb_flag = False
-        try:
-            self.shields_crit = inputs.read_float('threshold_shields')
-            # flag for sed_flux_dep_incision to see if the threshold was
-            # manually set.
-            self.set_threshold = True
-            # print("Found a threshold to use: ", self.shields_crit)
-            assert self.lamb_flag == False
-        except MissingKeyError:
-            if not self.lamb_flag:
-                self.shields_crit = 0.047
-            self.set_threshold = False
         try:
             self.tstep = inputs.read_float('dt')
         except MissingKeyError:
             pass
         try:
-            self.use_W = inputs.read_bool('use_W')
-        except MissingKeyError:
-            self.use_W = False
-        try:
-            self.use_Q = inputs.read_bool('use_Q')
-        except MissingKeyError:
-            self.use_Q = False
-        try:
             self.return_capacity = inputs.read_bool('return_capacity')
         except MissingKeyError:
             self.return_capacity = False
 
-        try:
-            self._b = inputs.read_float('b_sp')
-        except MissingKeyError:
-            if self.use_W:
-                self._b = 0.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('b was not set')
-        try:
-            self._c = inputs.read_float('c_sp')
-        except MissingKeyError:
-            if self.use_Q:
-                self._c = 1.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('c was not set')
-        try:
-            self.Dchar_in = inputs.read_float('Dchar')
-        except MissingKeyError:
-            pass
-
-        # assume Manning's equation to set the power on A for shear stress:
-        self.shear_area_power = 0.6 * self._c * (1. - self._b)
-
-        self.k_Q = inputs.read_float('k_Q')
-        self.k_w = inputs.read_float('k_w')
-        mannings_n = inputs.read_float('mannings_n')
-        self.mannings_n = mannings_n
-        if mannings_n < 0. or mannings_n > 0.2:
-            print("***STOP. LOOK. THINK. You appear to have set Manning's n outside its typical range. Did you mean it? Proceeding...***")
-            sleep(2)
-
-        try:
-            self.C_MPM = inputs.read_float('C_MPM')
-        except MissingKeyError:
-            self.C_MPM = 1.
-        self.diffusivity_power_on_A = 0.9 * self._c * \
-            (1. - self._b)  # i.e., q/D**(1/6)
-
-        # new for v3:
-        # set thresh in shear stress if poss at this stage:
-        try:  # fails if no Dchar provided, or shields crit is being set dynamically from slope
-            self.thresh = self.shields_crit * \
-                (self.sed_density - self.fluid_density) * self.g * self.Dchar_in
-        except AttributeError:
+        if self.Qc == 'MPM':
             try:
-                self.shields_prefactor_to_shear = (
+                self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
+            except:
+                self.lamb_flag = False
+            try:
+                self.shields_crit = inputs.read_float('threshold_shields')
+                # flag for sed_flux_dep_incision to see if the threshold was
+                # manually set.
+                self.set_threshold = True
+                # print("Found a threshold to use: ", self.shields_crit)
+                assert self.lamb_flag is False
+            except MissingKeyError:
+                if not self.lamb_flag:
+                    self.shields_crit = 0.047
+                self.set_threshold = False
+            try:
+                self.use_W = inputs.read_bool('use_W')
+            except MissingKeyError:
+                self.use_W = False
+            try:
+                self.use_Q = inputs.read_bool('use_Q')
+            except MissingKeyError:
+                self.use_Q = False
+
+            try:
+                self._b = inputs.read_float('b_sp')
+            except MissingKeyError:
+                if self.use_W:
+                    self._b = 0.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('b was not set')
+            try:
+                self._c = inputs.read_float('c_sp')
+            except MissingKeyError:
+                if self.use_Q:
+                    self._c = 1.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('c was not set')
+            try:
+                self.Dchar_in = inputs.read_float('Dchar')
+            except MissingKeyError:
+                pass
+
+            # assume Manning's equation to set the power on A for shear stress:
+            self.shear_area_power = 0.6 * self._c * (1. - self._b)
+
+            self.k_Q = inputs.read_float('k_Q')
+            self.k_w = inputs.read_float('k_w')
+            mannings_n = inputs.read_float('mannings_n')
+            self.mannings_n = mannings_n
+            if mannings_n < 0. or mannings_n > 0.2:
+                print("***STOP. LOOK. THINK. You appear to have set Manning's n " +
+                      "outside its typical range. Did you mean it? Proceeding..." +
+                      "***")
+                sleep(2)
+
+            try:
+                self.C_MPM = inputs.read_float('C_MPM')
+            except MissingKeyError:
+                self.C_MPM = 1.
+            self.diffusivity_power_on_A = 0.9 * self._c * \
+                (1. - self._b)  # i.e., q/D**(1/6)
+
+            # new for v3:
+            # set thresh in shear stress if poss at this stage:
+            try:  # fails if no Dchar provided, or shields crit is being set
+                # dynamically from slope
+                self.thresh = self.shields_crit * (
                     self.sed_density - self.fluid_density) * self.g * self.Dchar_in
-            except AttributeError:  # no Dchar
-                self.shields_prefactor_to_shear_noDchar = (
-                    self.sed_density - self.fluid_density) * self.g
-        twothirds = 2. / 3.
-        self.Qs_prefactor = 4. * self.C_MPM**twothirds * self.fluid_density**twothirds / (self.sed_density - self.fluid_density)**twothirds * self.g**(
-            twothirds / 2.) * mannings_n**0.6 * self.k_w**(1. / 15.) * self.k_Q**(0.6 + self._b / 15.) / self.sed_density**twothirds
-        self.Qs_thresh_prefactor = 4. * (self.C_MPM * self.k_w * self.k_Q**self._b / self.fluid_density**0.5 / (
-            self.sed_density - self.fluid_density) / self.g / self.sed_density)**twothirds
-        # both these are divided by sed density to give a vol flux
-        self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
-        self.Qs_power_onAthresh = twothirds * self._b * self._c
+            except AttributeError:
+                try:
+                    self.shields_prefactor_to_shear = ((
+                        self.sed_density - self.fluid_density) * self.g *
+                        self.Dchar_in)
+                except AttributeError:  # no Dchar
+                    self.shields_prefactor_to_shear_noDchar = (
+                        self.sed_density - self.fluid_density) * self.g
+            twothirds = 2. / 3.
+            self.Qs_prefactor = (
+                4.*self.C_MPM**twothirds*self.fluid_density**twothirds /
+                (self.sed_density-self.fluid_density)**twothirds *
+                self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.) *
+                self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds)
+            self.Qs_thresh_prefactor = 4.*(
+                self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density **
+                0.5/(self.sed_density-self.fluid_density)/self.g /
+                self.sed_density)**twothirds
+            # both these are divided by sed density to give a vol flux
+            self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
+            self.Qs_power_onAthresh = twothirds * self._b * self._c
+
+        elif self.Qc == 'power_law':
+            self._Kt = inputs.read_float('K_t')/31557600.  # in sec
+            self._mt = inputs.read_float('m_t')
+            self._nt = inputs.read_float('n_t')
+            self.return_ch_props = False
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
             self.cell_areas = grid.dx * grid.dy
@@ -273,6 +413,11 @@ class TransportLimitedEroder(object):
             }
             """
 
+        # set up the necessary fields:
+        self.initialize_output_fields()
+        if self.return_ch_props:
+            self.initialize_optional_output_fields()
+
     def erode(self, grid, dt=None, node_elevs='topographic__elevation',
               node_drainage_areas='drainage_area',
               node_receiving_flow='flow_receiver',
@@ -293,10 +438,10 @@ class TransportLimitedEroder(object):
         Pass another string to override which grid field the component looks
         at, or pass a nnodes-long array of elevation values directly instead.
 
-        *node_drainage_areas* tells the component where to look for the drainage
-        area values. Change to another string to override which grid field the
-        component looks at, or pass a nnodes-long array of drainage areas values
-        directly instead.
+        *node_drainage_areas* tells the component where to look for the
+        drainage area values. Change to another string to override which grid
+        field the component looks at, or pass a nnodes-long array of drainage
+        areas values directly instead.
 
         *node_receiving flow* tells the component where to look for the node
         ids which receive flow from each node. This is an output from the
@@ -309,10 +454,10 @@ class TransportLimitedEroder(object):
         is only available at links. 'planet_surface__derivative_of_elevation'
         is the default field name for link slopes. Override this name by
         setting the variable as the appropriate string, or override use of
-        grid fields altogether by passing an array. *link_node_mapping* controls
-        how the component maps these link values onto the arrays. We assume
-        there is always a 1:1 mapping (pass the values already projected onto
-        the nodes using slopes_at_nodes if not). Other components, e.g.,
+        grid fields altogether by passing an array. *link_node_mapping*
+        controls how the component maps these link values onto the arrays. We
+        assume there is always a 1:1 mapping (pass the values already projected
+        onto the nodes using slopes_at_nodes if not). Other components, e.g.,
         flow_routing.route_flow_dn, may provide the necessary outputs to make
         the mapping easier: e.g., just pass 'links_to_flow_reciever' from that
         module (the default name). If the component cannot find an existing
@@ -321,7 +466,8 @@ class TransportLimitedEroder(object):
 
         *slopes_from_elevs* allows the module to create gradients internally
         from elevations rather than have them provided. Set to True to force
-        the component to look for the data in grid.at_node['topographic__elevation'];
+        the component to look for the data in grid.at_node[
+        'topographic__elevation'];
         set to 'name_of_field' to override this name, or pass an nnode-array
         to use those values as elevations instead. Using this option is
         considerably slower than any of the alternatives, as it also has to
@@ -351,9 +497,9 @@ class TransportLimitedEroder(object):
         prove adequate for most uses. 'tight' uses a considerably stricter Lax/
         Von Neumann criterion, but will be considerably slower.
 
-        *Dchar_if_used* must be set as a grid field string or nnoodes-long array
-        if 'Dchar' as a float was not provided in the input file. (If it was,
-        this will be overridden).
+        *Dchar_if_used* must be set as a grid field string or nnoodes-long
+        array if 'Dchar' as a float was not provided in the input file. (If it
+        was, this will be overridden).
 
         SETS: (as fields on the grid)
         ***Note the time units are SECONDS in these fields***
@@ -379,13 +525,13 @@ class TransportLimitedEroder(object):
 
         """
 
-        if runoff_rate_if_used != None:
+        if runoff_rate_if_used is not None:
             runoff_rate = runoff_rate_if_used
             assert type(runoff_rate) in (int, float, np.ndarray)
         else:
             runoff_rate = 1.
 
-        if dt == None:
+        if dt is None:
             dt = self.tstep
         try:
             self.Dchar = self.Dchar_in
@@ -425,7 +571,8 @@ class TransportLimitedEroder(object):
         if self.lamb_flag:
             variable_shields_crit = 0.15 * node_S**0.25
             try:
-                variable_thresh = variable_shields_crit * self.shields_prefactor_to_shear
+                variable_thresh = (variable_shields_crit *
+                                   self.shields_prefactor_to_shear)
             except AttributeError:
                 variable_thresh = variable_shields_crit * \
                     self.shields_prefactor_to_shear_noDchar * self.Dchar
@@ -436,7 +583,8 @@ class TransportLimitedEroder(object):
             draining_nodes = np.not_equal(
                 grid.at_node[steepest_link], BAD_INDEX_VALUE)
             core_draining_nodes = np.intersect1d(
-                np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True)
+                np.where(draining_nodes)[0],
+                grid.core_nodes, assume_unique=True)
             link_length[core_draining_nodes] = grid.link_length[
                 grid.at_node[steepest_link][core_draining_nodes]]
             # link_length=grid.dx
@@ -445,13 +593,14 @@ class TransportLimitedEroder(object):
         square_link_length = np.square(link_length)  # nans propagate forward
 
         try:
-            transport_capacities_thresh = self.thresh * self.Qs_thresh_prefactor * \
-                runoff_rate**(0.66667 * self._b) * \
-                node_A**self.Qs_power_onAthresh
+            transport_capacities_thresh = (
+                self.thresh * self.Qs_thresh_prefactor * runoff_rate **
+                (0.66667 * self._b) * node_A**self.Qs_power_onAthresh)
         except AttributeError:
-            transport_capacities_thresh = variable_thresh * self.Qs_thresh_prefactor * \
-                runoff_rate**(0.66667 * self._b) * \
-                node_A**self.Qs_power_onAthresh
+            transport_capacities_thresh = (
+                variable_thresh * self.Qs_thresh_prefactor *
+                runoff_rate**(0.66667 * self._b) *
+                node_A**self.Qs_power_onAthresh)
 
         transport_capacity_prefactor_withA = self.Qs_prefactor * \
             runoff_rate**(0.6 + self._b / 15.) * node_A**self.Qs_power_onA
@@ -461,14 +610,17 @@ class TransportLimitedEroder(object):
         dt_secs = dt * 31557600.
         counter = 0
 
-        while 1:  # use the break flag, to improve computational efficiency for runs which are very stable
-            # we assume the drainage structure is forbidden to change during the whole dt
+        while 1:
+            # use the break flag, to improve computational efficiency for runs
+            # which are very stable
+            # we assume the drainage structure is forbidden to change during
+            # the whole dt
             # print "loop..."
             # note slopes will be *negative* at pits
             # track how many loops we perform:
             counter += 1
             downward_slopes = node_S.clip(0.)
-            #positive_slopes = np.greater(downward_slopes, 0.)
+            # positive_slopes = np.greater(downward_slopes, 0.)
             transport_capacities_S = transport_capacity_prefactor_withA * \
                 (downward_slopes)**0.7
             trp_diff = (transport_capacities_S -
@@ -519,7 +671,8 @@ class TransportLimitedEroder(object):
                 delta_dz = dz[flow_receiver] - dz
                 # note the condition is that gradient may not change by >X%,
                 # not must be >0
-                node_flattening = self.fraction_gradient_change * elev_diff - delta_dz
+                node_flattening = (self.fraction_gradient_change *
+                                   elev_diff - delta_dz)
                 # note all these things are zero for a pit node
                 most_flattened_nodes = np.argmin(
                     node_flattening[grid.core_nodes])
@@ -545,16 +698,18 @@ class TransportLimitedEroder(object):
 
             if break_flag:
                 break
-            # do we need to reroute the flow/recalc the slopes here? -> NO, slope is such a minor component of Diff we'll be OK
+            # do we need to reroute the flow/recalc the slopes here? -> NO,
+            # slope is such a minor component of Diff we'll be OK
             # BUT could be important not for the stability, but for the actual
             # calc. So YES.
             node_S = np.zeros_like(node_S)
             # print link_length[core_draining_nodes]
-            node_S[core_draining_nodes] = (
-                node_z - node_z[flow_receiver])[core_draining_nodes] / link_length[core_draining_nodes]
+            node_S[core_draining_nodes] = ((
+                node_z - node_z[flow_receiver])[core_draining_nodes] /
+                link_length[core_draining_nodes])
             internal_t += dt_this_step  # still in seconds, remember
 
-        self.grid = grid
+        self._grid = grid
 
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         if io:
@@ -571,23 +726,24 @@ class TransportLimitedEroder(object):
 
         if self.return_ch_props:
             # add the channel property field entries,
-            #'channel_width', 'channel_depth', and 'channel_discharge'
+            # 'channel_width', 'channel_depth', and 'channel_discharge'
             Q = self.k_Q * runoff_rate * node_A**self._c
             W = self.k_w * Q**self._b
             H = Q**(0.6 * (1. - self._b)) * \
                 (self.mannings_n / self.k_w)**0.6 * node_S**-0.3
             tau = self.fluid_density * self.g * H * node_S
-            grid.at_node['channel_width'] = W
-            grid.at_node['channel_depth'] = H
-            grid.at_node['channel_discharge'] = Q
-            grid.at_node['channel_bed_shear_stress'] = tau
+            grid.at_node['channel_width'][:] = W
+            grid.at_node['channel_depth'][:] = H
+            grid.at_node['channel_discharge'][:] = Q
+            grid.at_node['channel_bed_shear_stress'][:] = tau
 
         grid.at_node[
-            'fluvial_sediment_transport_capacity'] = transport_capacities
-        grid.at_node['fluvial_sediment_flux_into_node'] = sed_into_node
+            'fluvial_sediment_transport_capacity'][:] = transport_capacities
+        grid.at_node['fluvial_sediment_flux_into_node'][:] = sed_into_node
         # elevs set automatically to the name used in the function call.
         if stability_condition == 'tight':
-            grid.at_node['effective_fluvial_diffusivity'] = mock_diffusivities
+            grid.at_node[
+                'effective_fluvial_diffusivity'][:] = mock_diffusivities
         self.iterations_in_dt = counter
 
         return grid, grid.at_node[elev_name]

@@ -9,13 +9,13 @@ from __future__ import print_function
 import landlab
 from landlab import (ModelParameterDictionary, Component, FieldError,
                      FIXED_VALUE_BOUNDARY)
+
+from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_routing import (DepressionFinderAndRouter,
                                              FlowRouter)
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
-
-DEFAULT_SLOPE = 1.e-5
 
 
 class SinkFiller(Component):
@@ -26,6 +26,32 @@ class SinkFiller(Component):
     gradient downwards towards the depression outlet. The gradient can be
     spatially variable, and is chosen to not reverse any drainage directions
     at the perimeter of each lake.
+
+    Constructor assigns a copy of the grid, and calls the initialize
+    method.
+
+    Construction::
+
+        SinkFiller(grid, routing='D8', apply_slope=False, fill_slope=1.e-5):
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid.
+    routing : {'D8', 'D4'} (optional)
+        If grid is a raster type, controls whether fill connectivity can
+        occur on diagonals ('D8', default), or only orthogonally ('D4').
+        Has no effect if grid is not a raster.
+    apply_slope : bool
+        If False (default), leave the top of the filled sink flat. If True,
+        apply the slope fill_slope to the top surface to allow subsequent flow
+        routing. A test is performed to ensure applying this slope will not
+        alter the drainage structure at the edge of the filled region
+        (i.e., that we are not accidentally reversing the flow direction
+        far from the outlet.)
+    fill_slope : float (m/m)
+        The slope added to the top surface of filled pits to allow flow
+        routing across them, if apply_slope.
     """
     _name = 'HoleFiller'
 
@@ -45,29 +71,14 @@ class SinkFiller(Component):
                     }
 
     _var_doc = {'topographic__elevation': 'Surface topographic elevation',
-                 'sediment_fill__depth': 'Depth of sediment added at each' +
-                                         'node',
-                 }
+                'sediment_fill__depth': 'Depth of sediment added at each' +
+                                        'node',
+                }
 
-    def __init__(self, grid, input_stream=None, current_time=0.,
-                 routing='D8'):
-        """
-        Constructor assigns a copy of the grid, and calls the initialize
-        method.
 
-        Parameters
-        ----------
-        grid : RasterModelGrid
-            A landlab RasterModelGrid.
-        input_stream : str, file_like, or ModelParameterDictionary, optional
-            ModelParameterDictionary that holds the input parameters.
-        current_time : float, optional
-            The current time for the mapper.
-        routing : 'D8' or 'D4' (optional)
-            If grid is a raster type, controls whether fill connectivity can
-            occur on diagonals ('D8', default), or only orthogonally ('D4').
-            Has no effect if grid is not a raster.
-        """
+    @use_file_name_or_kwds
+    def __init__(self, grid, routing='D8', apply_slope=False,
+                 fill_slope=1.e-5, **kwds):
         self._grid = grid
         if routing is not 'D8':
             assert routing is 'D4'
@@ -80,7 +91,9 @@ class SinkFiller(Component):
             self._D8 = False  # useful shorthand for thia test we do a lot
             if type(self._grid) is landlab.grid.raster.RasterModelGrid:
                 self.num_nbrs = 4
-        self.initialize(input_stream)
+        self._fill_slope = fill_slope
+        self._apply_slope = apply_slope
+        self.initialize()
 
     def initialize(self, input_stream=None):
         """
@@ -134,28 +147,18 @@ class SinkFiller(Component):
                                                    'sediment_fill__depth')
 
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
-        self._fr = FlowRouter(self._grid)
+        self._fr = FlowRouter(self._grid, method=self._routing)
 
-    def fill_pits(self, apply_slope=None):
+    def fill_pits(self, **kwds):
         """
         This is the main method. Call it to fill depressions in a starting
         topography.
-
-        Parameters
-        ----------
-        apply_slope : bool
-            Whether to leave the filled surface flat (default), or apply a
-            gradient downwards through all lake nodes towards the outlet.
-            A test is performed to ensure applying this slope will not alter
-            the drainage structure at the edge of the filled region (i.e.,
-            that we are not accidentally reversing the flow direction far
-            from the outlet.)
-
-        Return fields
-        -------------
-        'topographic__elevation' : the updated elevations
-        'sediment_fill__depth' : the depth of sediment added at each node
         """
+        # added for back-compatibility with old formats
+        try:
+            self._apply_slope = kwds['apply_slope']
+        except KeyError:
+            pass
         self.original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.
@@ -165,7 +168,8 @@ class SinkFiller(Component):
         # delete them!
         existing_fields = {}
         spurious_fields = set()
-        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
+        set_of_outputs = (set(self._lf.output_var_names) |
+                          set(self._fr.output_var_names))
         try:
             set_of_outputs.remove(self.topo_field_name)
         except KeyError:
@@ -176,13 +180,13 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow(method=self._routing)
+        self._fr.route_flow()
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=True)
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']
         # if apply_slope is none, we're now done! But if not...
-        if apply_slope:
+        if self._apply_slope:
             # new way of doing this - use the upstream structure! Should be
             # both more general and more efficient
             for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
@@ -210,7 +214,7 @@ class SinkFiller(Component):
         for delete_me in spurious_fields:
             self._grid.delete_field('node', delete_me)
         for update_me in existing_fields.keys():
-            self.grid.at_node[update_me] = existing_fields[update_me]
+            self.grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
@@ -263,14 +267,14 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow(method=self._routing)
+        self._fr.route_flow()
         self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']
         # if apply_slope is none, we're now done! But if not...
         if apply_slope is True:
-            apply_slope = DEFAULT_SLOPE
+            apply_slope = self._fill_slope
         elif type(apply_slope) in (float, int):
             assert apply_slope >= 0.
         if apply_slope:

@@ -26,6 +26,10 @@ class RouteFlowD8(object):
     diagonals are considered.
     The class assumes that the model is using a rectangular, uniform (raster)
     grid.
+
+    This sets the num_cells parameter.
+    This class assumes that the number of cells does not change after a
+    class item has been instantiated.
     """
 
     def __init__(self, num_nodes):

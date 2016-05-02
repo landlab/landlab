@@ -1,12 +1,34 @@
 #! /usr/bin/env python
+from __future__ import print_function
+
+import os
+import textwrap
+import warnings
+import inspect
+
+
+_VAR_HELP_MESSAGE = """
+name: {name}
+description:
+{desc}
+units: {units}
+at: {loc}
+intent: {intent}
+"""
+
+
+class classproperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
 
 
 class Component(object):
     _input_var_names = set()
     _output_var_names = set()
+    _optional_var_names = set()
     _var_units = dict()
 
-    def __init__(self, grid, map_vars=None):
+    def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
         self._grid = grid
 
@@ -15,36 +37,262 @@ class Component(object):
                 grid.add_field(location, dest,
                                grid.field_values(location, src))
 
-    @property
-    def input_var_names(self):
-        return self._input_var_names
+        for key in kwds:
+            component_name = inspect.getmro(self.__class__)[0].__name__
+            warnings.warn(
+                "Ingnoring unrecognized input parameter, '{param}', for "
+                "{name} component".format(name=component_name, param=key))
 
-    @property
+    @classmethod
+    def from_path(cls, grid, path):
+        """Create a component from an input file.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A landlab grid.
+        path : str or file_like
+            Path to a parameter file, contents of a parameter file, or
+            a file-like object.
+
+        Returns
+        -------
+        Component
+            A newly-created component.
+        """
+        if os.path.isfile(path):
+            with open(path, 'r') as fp:
+                params = load_params(fp)
+        else:
+            params = load_params(path)
+        return cls(grid, **params)
+
+    @classproperty
+    @classmethod
+    def input_var_names(cls):
+        """Names of fields that are used by the component.
+
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
+        return tuple(cls._input_var_names)
+
+    @classproperty
+    @classmethod
     def output_var_names(self):
-        return self._output_var_names
+        """Names of fields that are provided by the component.
 
-    @property
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
+        return tuple(self._output_var_names)
+
+    @classproperty
+    @classmethod
+    def optional_var_names(self):
+        """
+        Names of fields that are optionally provided by the component, if
+        any.
+
+        Returns
+        -------
+        tuple of str
+            Tuple of field names.
+        """
+        try:
+            return tuple(self._optional_var_names)
+        except AttributeError:
+            return ()
+
+    @classmethod
+    def var_type(cls, name):
+        """
+        Returns the dtype of a field (float, int, bool, str...), if declared.
+        Default is float.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        dtype
+            The dtype of the field.
+        """
+        try:
+            return cls._var_type[name]
+        except AttributeError:
+            return float
+
+    @classproperty
+    @classmethod
     def name(self):
+        """Name of the component.
+
+        Returns
+        -------
+        str
+            Component name.
+        """
         return self._name
 
-    @property
+    @classproperty
+    @classmethod
     def units(self):
-        return self._var_units
+        """Get the units for all field values.
 
-    @property
-    def var_units(self):
-        return self._var_units
-
-    @property
-    def var_definitions(self):
-        return self._var_doc
-
-    @property
-    def var_mapping(self):
-        """var_mapping
-        This is 'node', 'cell', 'active_link', etc.
+        Returns
+        -------
+        tuple or str
+            Units for each field.
         """
-        return self._var_mapping
+        return tuple(self._var_units.items())
+
+    @classmethod
+    def var_units(cls, name):
+        """Get the units of a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        str
+            Units for the given field.
+        """
+        return cls._var_units[name]
+
+    @classproperty
+    @classmethod
+    def definitions(cls):
+        """Get a description of each field.
+
+        Returns
+        -------
+        tuple of (*name*, *description*)
+            A description of each field.
+        """
+        return tuple(cls._var_doc.items())
+
+    @classmethod
+    def var_definition(cls, name):
+        """Get a description of a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        tuple of (*name*, *description*)
+            A description of each field.
+        """
+        return cls._var_doc[name]
+
+    @classmethod
+    def var_help(cls, name):
+        """Print a help message for a particular field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+        """
+        desc = os.linesep.join(textwrap.wrap(cls._var_doc[name],
+                                             initial_indent='  ',
+                                             subsequent_indent='  '))
+        units = cls._var_units[name]
+        loc = cls._var_mapping[name]
+
+        intent = ''
+        if name in cls._input_var_names:
+            intent = 'in'
+        if name in cls._output_var_names:
+            intent += 'out'
+
+        help = _VAR_HELP_MESSAGE.format(name=name, desc=desc, units=units,
+                                        loc=loc, intent=intent)
+
+        print(help.strip())
+
+    @classproperty
+    @classmethod
+    def var_mapping(self):
+        """Location where variables are defined.
+
+        Returns
+        -------
+        tuple of (name, location)
+            Tuple of variable name and location ('node', 'link', etc.) pairs.
+        """
+        return tuple(self._var_mapping.items())
+
+    @classmethod
+    def var_loc(cls, name):
+        """Location where a particular variable is defined.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        str
+            The location ('node', 'link', etc.) where a variable is defined.
+        """
+        return cls._var_mapping[name]
+
+    def initialize_output_fields(self):
+        """
+        Create fields for a component based on its input and output var names.
+
+        This method will create new fields (without overwrite) for any fields
+        output by, but not supplied to, the component. New fields are
+        initialized to zero. Ignores optional fields, if specified by
+        _optional_var_names. New fields are created as arrays of floats, unless
+        the component also contains the specifying property _var_type.
+        """
+        for field_to_set in (set(self.output_var_names) -
+                             set(self.input_var_names) -
+                             set(self.optional_var_names)):
+            grp = self.var_loc(field_to_set)
+            type_in = self.var_type(field_to_set)
+            init_vals = self.grid.zeros(grp, dtype=type_in)
+            units_in = self.var_units(field_to_set)
+            self.grid.add_field(grp,
+                                field_to_set,
+                                init_vals,
+                                units=units_in,
+                                copy=False,
+                                noclobber=True)
+
+    def initialize_optional_output_fields(self):
+        """
+        Create fields for a component based on its optional field outputs,
+        if declared in _optional_var_names.
+
+        This method will create new fields (without overwrite) for any fields
+        output by the component as optional. New fields are
+        initialized to zero. New fields are created as arrays of floats, unless
+        the component also contains the specifying property _var_type.
+        """
+        for field_to_set in (set(self.optional_var_names) -
+                             set(self.input_var_names)):
+            self.grid.add_field(self.var_loc(field_to_set),
+                                field_to_set,
+                                self.grid.zeros(
+                                    dtype=self.var_type(field_to_set)),
+                                units=self.var_units(field_to_set),
+                                noclobber=True)
 
     @property
     def shape(self):

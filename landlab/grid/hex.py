@@ -13,8 +13,28 @@ class HexModelGrid(VoronoiDelaunayGrid):
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
 
+    Parameters
+    ----------
+    base_num_rows : int
+        Number of rows of nodes in the left column.
+    base_num_cols : int
+        Number of nodes on the first row.
+    dx : float, optional
+        Node spacing.
+    orientation : string, optional
+        One of the 3 cardinal directions in the grid, either 'horizontal'
+        (default) or 'vertical'
+
+    Returns
+    -------
+    HexModelGrid
+        A newly-created grid.
+
     Examples
     --------
+    Create a hex grid with 2 rows of nodes. The first and third rows will
+    have 2 nodes, and the second nodes.
+
     >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(3, 2, 1.0)
     >>> hmg.number_of_nodes
@@ -62,6 +82,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._initialize(base_num_rows, base_num_cols, dx, orientation,
                              shape, reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
+
+    @classmethod
+    def from_dict(cls, params):
+        shape = params['shape']
+        spacing = params.get('spacing', 1.)
+
+        return cls(shape[0], shape[1], spacing)
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
                     shape, reorient_links=True):
@@ -470,7 +497,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.node_y[0] == self.node_y[1]:   # horizontal
+        if self.orientation == 'horizontal':   # horizontal
             offsets[:, 0] = array(
                 [0., apothem, apothem, 0., -apothem, -apothem])
             offsets[:, 1] = array(
@@ -511,6 +538,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         from numpy import array, amin, amax
         import matplotlib.pyplot as plt
+        import copy
 
         try:
             self._hexplot_configured is True
@@ -526,7 +554,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         ax = plt.gca()
         self._hexplot_pc.set_array(array(data))
-        ax.add_collection(self._hexplot_pc)
+        copy_of_pc = copy.copy(self._hexplot_pc)
+        ax.add_collection(copy_of_pc)
+        #ax.add_collection(self._hexplot_pc)
         plt.xlim([amin(self.node_x) - self._dx, amax(self.node_x) + self._dx])
         plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
         #cb = plt.colorbar(self._hexplot_pc)
