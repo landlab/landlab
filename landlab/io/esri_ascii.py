@@ -90,7 +90,8 @@ class DataSizeError(Error):
     def __str__(self):
         return '%s != %s' % (self._actual, self._expected)
 
-class MismatchGridSizeDataSizeError(Error):
+
+class MismatchGridDataSizeError(Error):
     
     """Raise this error if the data size does not match the grid size."""
     
@@ -100,7 +101,8 @@ class MismatchGridSizeDataSizeError(Error):
 
     def __str__(self):
         return '(data size) %s != %s (grid size)' \
-        % (self._actual, self._expected)
+           % (self._actual, self._expected)
+
     
 def _parse_header_key_value(line):
     """Parse a header line into a key-value pair.
@@ -338,6 +340,43 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     -------
     (grid, data) : tuple
         A newly-created RasterModel grid and the associated node data.
+        
+    Raises
+    ------
+    DataSizeError
+        Data are not the same size as indicated by the header file.
+    MismatchGridDataSizeError
+        If a grid is passed, the size of the grid does not agree with the
+        size of the data.
+        
+    Examples
+    --------
+    Assume that fop is the name of a file that contains below
+    (make sure you have your path correct):
+    ncols         3
+    nrows         4
+    xllcorner     1.
+    yllcorner     2.
+    cellsize      10.
+    NODATA_value  -9999
+    0. 1. 2.
+    3. 4. 5.
+    6. 7. 8.
+    9. 10. 11.
+    --------
+    >>> from landlab.io import read_esri_ascii
+    >>> (grid, data) = read_esri_ascii('fop') # doctest: +SKIP
+    >>> #grid is an object of type RasterModelGrid with 4 rows and 3 cols
+    >>> #data contains an array of length 4*3 that is equal to
+    >>> # [9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.]
+    >>> (grid, data) = read_esri_ascii('fop', halo=1) # doctest: +SKIP
+    >>> #now the data has a nodata_value ring of -9999 around it. So array is
+    >>> # [-9999, -9999, -9999, -9999, -9999, -9999,
+    >>> #  -9999, 9., 10., 11., -9999, 
+    >>> #  -9999, 6., 7., 8., -9999, 
+    >>> #  -9999, 3., 4., 5., -9999,
+    >>> #  -9999, 0., 1., 2. -9999,
+    >>> #  -9999, -9999, -9999, -9999, -9999, -9999]
     """
     from ..grid import RasterModelGrid
 
@@ -358,13 +397,12 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             raise DataSizeError(shape[0] * shape[1], data.size)
     else:
         shape = (header['nrows'] + 2 * halo, header['ncols'] + 2 * halo)
-        nodata_value = header['NODATA_value']
+        nodata_value = header['nodata_value']
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
-    origin = (header['xllcorner'], header['yllcorner'])    
-
-    data.shape = shape
+    #origin = (header['xllcorner'], header['yllcorner'])   
+    
     data = np.flipud(data)
 
     #REMEMBER, shape contains the size with halo in place
@@ -392,9 +430,9 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         
     if grid is not None:
         if (grid.number_of_node_rows != shape[0]) or \
-        (grid.number_of_node_cols != shape[1]):
-            raise MismatchGridSizeDataSizeError(shape[0] * shape[1], \
-            grid.number_of_node_rows * grid.number_of_node_cols )
+        (grid.number_of_node_columns != shape[1]):
+            raise MismatchGridDataSizeError(shape[0] * shape[1], \
+            grid.number_of_node_rows * grid.number_of_node_columns )
 
     if grid is None:
         grid = RasterModelGrid(shape, spacing=spacing)

@@ -15,7 +15,8 @@ from six import StringIO
 
 from landlab.io import read_esri_ascii, read_asc_header
 from landlab.io import (MissingRequiredKeyError, KeyTypeError, DataSizeError,
-                        BadHeaderLineError, KeyValueError)
+                        BadHeaderLineError, KeyValueError, 
+                        MismatchGridDataSizeError)
 from landlab import RasterModelGrid
 
 
@@ -120,6 +121,21 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
         """)
     assert_raises(DataSizeError, read_esri_ascii, asc_file)
+    
+def test_grid_data_size_mismatch():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
+        """)
+    rmg = RasterModelGrid((10,10),10.)
+    assert_raises(MismatchGridDataSizeError, read_esri_ascii, asc_file, 
+                  grid=rmg)    
 
 
 def test_header_missing_required_key():
