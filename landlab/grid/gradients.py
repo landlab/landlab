@@ -241,6 +241,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
     return calc_diff_at_link(grid, node_values, out)
 
 
+@deprecated(use='calc_diff_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_diff_at_active_links(grid, node_values, out=None):
     """Calculate differences of node values over active links.
