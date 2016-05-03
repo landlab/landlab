@@ -138,7 +138,7 @@ class LinearDiffuser(Component):
         # as of modern componentization (Spring '16), this can take arrays
         # and irregular grids
         if type(self.kd) not in (int, float):
-            assert len(self.kd) is self.grid.number_of_nodes, self.kd
+            assert len(self.kd) == self.grid.number_of_nodes, self.kd
             kd_links = self.grid.map_max_of_link_nodes_to_link(self.kd)
         else:
             kd_links = float(self.kd)
