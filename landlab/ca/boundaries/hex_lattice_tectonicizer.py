@@ -17,7 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 
 from landlab import HexModelGrid
 from numpy import amax, zeros, arange, array
-from pylab import figure, show
+from pylab import figure, show, draw
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -162,6 +162,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         half_num_cols = (self.nc + 1) // 2
         bottom_row_node_id = (arange(self.nc) // 2 +
                               (arange(self.nc) % 2) * half_num_cols)
+        print bottom_row_node_id
 
         #   Find the first of the bottom-row nodes that lies in the footwall.
         # This loop exploits the fact that nodes are numbered in an order
@@ -458,16 +459,16 @@ class LatticeUplifter(HexLatticeTectonicizer):
             #print self.prop_data[self.propid]
 
 
-#def test_create_lnf(nr, nc):
-#
-#    pid = arange(nr*nc, dtype=int)
-#    ns = arange(nr*nc, dtype=int)
-#    pdata = arange(nr*nc)
-#    grid = HexModelGrid(nr, nc, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-#    lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-#    #for i in range(grid.number_of_nodes):
-#    #    print i, grid.node_x[i], grid.node_y[i]
-#    return lnf
+def create_lnf(nr, nc):
+    """Create a LatticeNormalFault (for testing purposes only)."""
+    pid = arange(nr*nc, dtype=int)
+    ns = arange(nr*nc, dtype=int)
+    pdata = arange(nr*nc)
+    grid = HexModelGrid(nr, nc, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    #for i in range(grid.number_of_nodes):
+    #    print i, grid.node_x[i], grid.node_y[i]
+    return lnf
 
 
 def main():
@@ -475,42 +476,53 @@ def main():
 
     Examples
     --------
-#    >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import test_create_lnf
-#    >>> lnf = test_create_lnf(4, 4)
-#    >>> lnf.incoming_node
-#    array([4, 8, 9])
-#    >>> lnf.outgoing_node
-#    array([13, 14, 15])
-#    >>> lnf.do_offset()
-#    >>> lnf.propid
-#    array([ 0,  1,  2,  3, 13,  5,  6,  7, 14, 15,  4, 11, 12,  8,  9, 10])
-#    >>> lnf = test_create_lnf(4, 5)
-#    >>> lnf.incoming_node
-#    array([ 4,  8,  9, 12])
-#    >>> lnf.outgoing_node
-#    array([18, 19, 15, 14])
-#    >>> lnf.do_offset()
-#    >>> lnf.propid
-#    array([ 0,  1,  2,  3, 18,  5,  6,  7, 19, 15,  4, 11, 14,  8,  9, 10, 16,
-#           17, 12, 13])
+    >>> pid = arange(16, dtype=int)
+    >>> ns = arange(16, dtype=int)
+    >>> pdata = arange(16)
+    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    >>> lnf.incoming_node
+    array([4, 8, 9])
+    >>> lnf.outgoing_node
+    array([13, 14, 15])
+    >>> lnf.do_offset()
+    >>> lnf.propid
+    array([ 0,  1,  2,  3, 13,  5,  6,  7, 14, 15,  4, 11, 12,  8,  9, 10])
+    >>> pid = arange(20, dtype=int)
+    >>> ns = arange(20, dtype=int)
+    >>> pdata = arange(20)
+    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    >>> lnf.incoming_node
+    array([ 4,  8,  9, 12])
+    >>> lnf.outgoing_node
+    array([18, 19, 15, 14])
+    >>> lnf.do_offset()
+    >>> lnf.propid
+    array([ 0,  1,  2,  3, 18,  5,  6,  7, 19, 15,  4, 11, 14,  8,  9, 10, 16,
+           17, 12, 13])
     """
     pid = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS, dtype=int)
     pdata = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS)
     lnf = LatticeNormalFault(propid=pid, prop_data=pdata, prop_reset_value=0.0)
 
-    for i in range(3):
-        lnf.do_offset()
+    lnf.node_state[1:3] = 1
+    lnf.node_state[4:7] = 1
     lnf.grid.hexplot(lnf.node_state)
-    show()
+    draw()
+    for i in range(1):
+        lnf.do_offset()
+        lnf.grid.hexplot(lnf.node_state)
+        draw()
 
-    lu = LatticeUplifter()
-    lu.uplift_interior_nodes()
-    figure(2)
-    for i in range(2):
-        lu.uplift_interior_nodes()
-        lu.grid.hexplot(lu.node_state)
+#    lu = LatticeUplifter()
+#    lu.uplift_interior_nodes()
+#    figure(2)
+#    for i in range(2):
+#        lu.uplift_interior_nodes()
+#        lu.grid.hexplot(lu.node_state)
 
 if __name__=='__main__':
-    #main()
-    import doctest
-    doctest.testmod()
+    main()
+    #import doctest
+    #doctest.testmod()
