@@ -1,6 +1,7 @@
-Radial Grids (`HexModelGrid`)
+Radial Grids (`RadialModelGrid`)
 ====================
-Inherits from `VoronoiDelauneyGrid` and adds:
+
+Landlab's radial grids are implemented by the class `RadialModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. automodule:: landlab.grid.radial
     :members:
