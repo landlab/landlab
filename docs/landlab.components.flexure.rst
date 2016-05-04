@@ -5,3 +5,11 @@ Flexure: Calculate elastic lithosphere flexure under given loads (assumes unifor
     :members:
     :undoc-members:
     :show-inheritance:
+
+Functions used to calculate lithospheric deflection
+---------------------------------------------------
+
+.. automodule:: landlab.components.flexure.funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
