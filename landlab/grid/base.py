@@ -1930,60 +1930,121 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces[cell] += 1
         self.sort_faces_at_cell_by_angle()
 
-    def node_slopes_using_patches(self, elevs='topographic__elevation',
+    def slope_of_node(self, elevs='topographic__elevation',
                                   unit='degrees', return_components=False):
+        """Array of slopes at nodes, averaged over neighboring patches.
+
+        Produces a value for slope at each node in a manner analogous to a
+        GIS-style slope map. It averages the gradient on each of the
+        patches surrounding the node, creating a value for node slope that
+        better incorporates nonlocal elevation information.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes. Controls only slope magnitude; components are
+            always returned as radians.
+        return_components : bool
+            If True, return a tuple, (array_of_magnitude,
+            (array_of_slope_x_radians, array_of_slope_y_radians)).
+            If false, return an array of floats of the slope magnitude.
+
+        Returns
+        -------
+        float array or length-2 tuple of float arrays
+            If return_components, returns (array_of_magnitude,
+            (array_of_slope_x_radians, array_of_slope_y_radians)).
+            If not return_components, returns an array of slope magnitudes.
+
+        Examples
+        --------
+        >>> import numpy
+        >>> from landlab import RadialModelGrid, RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> z = mg.node_x
+        >>> slopes = mg.slope_of_node(elevs=z, unit='radians')
+        >>> numpy.allclose(slopes, 45./180.*numpy.pi)
+        True
+        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> z = mg.node_y
+        >>> slope_mag, cmp = mg.slope_of_node(elevs=z, return_components=True)
+        >>> numpy.allclose(slope_mag, 45.)
+        True
+        >>> numpy.allclose(cmp[0], 0.)
+        True
+        >>> numpy.allclose(cmp[1], -1.)
+        True
+        >>> mg = RadialModelGrid(num_shells=9)
+        >>> z = mg.radius_at_node
+        >>> slopes = mg.slope_of_node(elevs=z)
+        >>> mean_ring_slope = []
+        >>> for i in xrange(10):
+        ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
+        ...                                              i)].mean())
+        >>> mean_ring_slope  # notice the small amounts of numerical error
+        [49.106605350869103,
+         45.471738628700471,
+         44.646123806208116,
+         44.896866010480984,
+         44.938839401113974,
+         44.950111880067674,
+         44.964377572754891,
+         44.980895342790689,
+         44.980506452187001,
+         45.069580163013605]
         """
-        trial run to extract average local slopes at nodes by the average slope
-        of its surrounding patches. DEJH 10/1/14
-        elevs either a field name or an nnodes-array.
-        unit is 'degrees' or 'radians'.
-        If return_components=False (the default), returns the slope magnitude.
-        If return_components=True, returns the slope magnitude, then the vector
-        (a tuple) of the slope components in the x, y directions. Note the
-        slope components will always be returned as rise/run.
-        If closed nodes were present in the original array, their values will
-        be masked.
-        """
-        dummy_patch_nodes = numpy.empty(
-            (self.nodes_at_patch.shape[0] + 1, self.nodes_at_patch.shape[1]),
-            dtype=int)
-        dummy_patch_nodes[:-1, :] = self.nodes_at_patch[:]
-        dummy_patch_nodes[-1, :] = -1
-
-        # Now any ref to a null node will be -1 in this new
-        # (N, patch_max_dim, 4or3) array.
-        nodes_on_patches = dummy_patch_nodes[self.patches_at_node()][:, :, :3]
-        # Note: we truncate the array to be [N, patch_max_dim,3]; we only
-        # need 3 pts per patch, if we're working on a raster
-
-        # Using the wrong values in -1 won't matter, as we'll mask with
-        # nodes_on_patches at the end
-        node_elevs = numpy.ones((nodes_on_patches.shape[0],
-                                 nodes_on_patches.shape[1], 3, 3),
-                                dtype=float)
-
-        mask_from_nop = nodes_on_patches[:, :, 0] == -1
-        node_elevs[:, :, :, 0] = self.node_x[nodes_on_patches]
-        node_elevs[:, :, :, 1] = self.node_y[nodes_on_patches]
-        c = numpy.ma.array(numpy.linalg.det(node_elevs), mask=mask_from_nop)
         try:
-            node_elevs[:, :, :, 2] = self.at_node[elevs][nodes_on_patches]
+            z = self.at_node[elevs]
         except TypeError:
-            node_elevs[:, :, :, 2] = elevs[nodes_on_patches]
-        node_elevs[:, :, :, 1] = 1.
-        b = numpy.linalg.det(node_elevs)
-        node_elevs[:, :, :, 1] = self.node_y[nodes_on_patches]
-        node_elevs[:, :, :, 0] = 1.
-        a = numpy.linalg.det(node_elevs)
+            z = elevs
+        # conceptualize patches as sets of 3 nodes, PQR
+        diff_xyz_PQ = numpy.empty((self.number_of_patches, 3))
+        # ^this is the vector (xQ-xP, yQ-yP, zQ-yP)
+        diff_xyz_PR = numpy.empty((self.number_of_patches, 3))
+        P = self.nodes_at_patch[:, 0]
+        Q = self.nodes_at_patch[:, 1]
+        R = self.nodes_at_patch[:, 2]
+        x_P = self.node_x[P]
+        y_P = self.node_y[P]
+        z_P = z[P]
+        diff_xyz_PQ[:, 0] = self.node_x[Q] - x_P
+        diff_xyz_PQ[:, 1] = self.node_y[Q] - y_P
+        diff_xyz_PQ[:, 2] = z[Q] - z_P
+        diff_xyz_PR[:, 0] = self.node_x[R] - x_P
+        diff_xyz_PR[:, 1] = self.node_y[R] - y_P
+        diff_xyz_PR[:, 2] = z[R] - z_P
+        # cross product is orthogonal to both vectors, and is the normal
+        # n = <a, b, c>, where plane is ax + by + cz = d
+        nhat = numpy.cross(diff_xyz_PQ, diff_xyz_PR)  # <a, b, c>
 
-        mask_from_nop = nodes_on_patches[:, :, 0] == -1
-        grad_x = -a / c
-        grad_y = -b / c  # ...still for each patch
-        mean_grad_x = numpy.mean(grad_x, axis=1)
-        mean_grad_y = numpy.mean(grad_y, axis=1)
+        # dotprod = numpy.dot(nhat, np.array([0., 0., 1.]))
+        dotprod = nhat[:, 2]  # by definition
+        nmag = numpy.sqrt(np.square(nhat).sum(axis=1))
+        cos_slopes_at_patch = dotprod / nmag  # == cos(theta)
+        slopes_at_patch = np.arccos(cos_slopes_at_patch)
 
-        slope_mag = numpy.arctan(numpy.sqrt(mean_grad_x**2 + mean_grad_y**2))
+        # now CAREFUL - patches_at_node is MASKED
+        slopes_at_node_unmasked = slopes_at_patch[self.patches_at_node()]
+        slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
+                                            mask=self.patches_at_node().mask)
+        slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
+        if return_components:
+            theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
+            x_slope_patches = numpy.cos(theta)
+            y_slope_patches = numpy.sin(theta)
+            x_slope_unmasked = x_slope_patches[self.patches_at_node()]
+            x_slope_masked = numpy.ma.array(x_slope_unmasked,
+                                            mask=self.patches_at_node().mask)
+            x_slope = numpy.mean(x_slope_masked, axis=1).data
+            y_slope_unmasked = y_slope_patches[self.patches_at_node()]
+            y_slope_masked = numpy.ma.array(y_slope_unmasked,
+                                            mask=self.patches_at_node().mask)
+            y_slope = numpy.mean(y_slope_masked, axis=1).data
+            mean_grad_x  = x_slope
+            mean_grad_y = y_slope
         if unit == 'radians':
             if not return_components:
                 return slope_mag
@@ -1996,20 +2057,6 @@ class ModelGrid(ModelDataFieldsMixIn):
                 return 180. / numpy.pi * slope_mag, (mean_grad_x, mean_grad_y)
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
-
-    def node_slopes(self, **kwargs):
-        """Array of slopes at nodes.
-
-        This method is an alias for :any:`node_slopes_using_patches`.
-
-        Parameters
-        ----------
-        elevs : str or ndarray, optional
-            Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes.
-        """
-        return self.node_slopes_using_patches(**kwargs)
 
     def aspect(self, slope_component_tuple=None,
                elevs='topographic__elevation', unit='degrees'):
