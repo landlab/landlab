@@ -1,5 +1,20 @@
 #! /usr/bin/env python
-"""Calculate gradients of quantities over links."""
+"""Calculate gradients of quantities over links.
+
+Gradient calculation functions
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.gradients.calculate_gradients_at_active_links
+    ~landlab.grid.gradients.calculate_gradients_at_links
+    ~landlab.grid.gradients.calculate_gradients_at_faces
+    ~landlab.grid.gradients.calculate_diff_at_links
+    ~landlab.grid.gradients.calculate_diff_at_active_links
+
+"""
+
 import numpy as np
 from landlab.utils.decorators import use_field_name_or_array
 

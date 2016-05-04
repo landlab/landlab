@@ -1,6 +1,8 @@
 Hex Grids (`HexModelGrid`)
 ==========================
-Inherits from `VoronoiDelauneyGrid` and adds:
+
+Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`,
+which inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. automodule:: landlab.grid.hex
     :members:

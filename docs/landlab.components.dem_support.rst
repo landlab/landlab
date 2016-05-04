@@ -1,20 +1,5 @@
-landlab.components.dem_support package
-======================================
-
-Submodules
-----------
-
-landlab.components.dem_support.dem_boundary_conditions module
--------------------------------------------------------------
-
-.. automodule:: landlab.components.dem_support.dem_boundary_conditions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
+WatershedBoundaryConditions: Set the boundary conditions of a watershed extracted from a digital elevation model
+------------------------------------------
 
 .. automodule:: landlab.components.dem_support
     :members:

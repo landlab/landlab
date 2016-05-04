@@ -1,20 +1,5 @@
-landlab.components.fracture_grid package
-========================================
-
-Submodules
-----------
-
-landlab.components.fracture_grid.fracture_grid module
+fracture_grid: Generate random fracture patterns on a regular raster grid
 -----------------------------------------------------
-
-.. automodule:: landlab.components.fracture_grid.fracture_grid
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
 
 .. automodule:: landlab.components.fracture_grid
     :members:

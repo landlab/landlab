@@ -6,18 +6,21 @@
 
 Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
 
-=====================
-Landlab Developer API
-=====================
+==============================================
+Landlab Reference Manual and API Documentation
+==============================================
 
 The *Landlab Developer API* is a general reference manual for Landlab.
 
 Grids
 =====
 
+Grid types
+-------------
+
 As of Landlab version 0.2, there are four types of Landlab grid:
  - Raster
- - Voronoi-DeLaunay
+ - Voronoi-Delaunay
  - Hex
  - Radial
 
@@ -27,7 +30,6 @@ The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDela
 
 Methods and properties common to all grids
 ------------------------------------------
-
 .. toctree::
    :maxdepth: 4
 
@@ -42,7 +44,8 @@ Methods and properties common to all grids
 Specialized methods and properties for Rectilinear Grids 'raster grids'
 -----------------------------------------------------------------------
 
-Inherits from 'ModelGrid' and adds:
+Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
+which inherits from `ModelGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -58,7 +61,7 @@ Inherits from 'ModelGrid' and adds:
 Specialized methods and properties for Voronoi-Delaunay grids
 -------------------------------------------------------------
 
-Inherits from 'ModelGrid' and adds:
+Landlab's Voronoi-Delaunay grids are implemented by the class `VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -68,7 +71,7 @@ Inherits from 'ModelGrid' and adds:
 Specialized methods and properties for hex grids
 ------------------------------------------------
 
-Inherits from 'VoronoiDelauneyGrid' and adds:
+Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -78,7 +81,7 @@ Inherits from 'VoronoiDelauneyGrid' and adds:
 Specialized methods and properties for radial grids
 ---------------------------------------------------
 
-Inherits from 'VoronoiDelauneyGrid' and adds:
+Landlab's radial grids are implemented by the class `RadialModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -89,10 +92,119 @@ Inherits from 'VoronoiDelauneyGrid' and adds:
 Components
 ==========
 
+This section contains documentation and API reference information for the following categories of components:
+
+Hillslope geomorphology
+---------------------------
+
 .. toctree::
    :maxdepth: 4
 
-   landlab.components
+   landlab.components.diffusion
+   landlab.components.nonlinear_diffusion
+
+Fluvial geomorphology
+---------------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.stream_power
+   landlab.components.transport_limited_fluvial
+
+Flow routing
+-------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.flow_routing
+
+Shallow water hydrodynamics
+-------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.overland_flow
+
+Land surface hydrology
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.radiation
+  landlab.components.PET
+  landlab.components.soil_moisture
+
+Vegetation
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.single_vegetation
+  landlab.components.vegetation_ca
+
+Precipitation
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.uniform_precip
+
+Terrain Analysis
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.steepness_index
+  landlab.components.chi_index
+  landlab.components.dem_support
+
+Glacial Processes
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.glacier_thin_ice_model
+
+Tectonics
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.flexure
+  landlab.components.gflex
+
+Fire
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.fire_generator
+
+Impact cratering
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.craters
+
+Initial conditions: random field generators
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.fracture_grid
 
 
 Input/Output (IO)
@@ -139,6 +251,11 @@ these specialized developer install instructions.
 References
 ==========
 
-* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Search the Index
+==================
+
+* :ref:`genindex`

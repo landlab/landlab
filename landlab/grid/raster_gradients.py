@@ -1,5 +1,19 @@
 #! /usr/bin/env python
-"""Calculate gradients on a raster grid."""
+"""Calculate gradients on a raster grid.
+
+Gradient calculators for raster grids
+++++++++++++++++++++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.raster_gradients.calculate_gradients_at_links
+    ~landlab.grid.raster_gradients.calculate_gradients_at_active_links
+    ~landlab.grid.raster_gradients.calculate_gradient_across_cell_faces
+    ~landlab.grid.raster_gradients.calculate_gradient_across_cell_corners
+    ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
+
+"""
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array

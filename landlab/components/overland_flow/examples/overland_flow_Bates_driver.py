@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 13 15:51:25 2015
+Last updated April 20, 2016.
 
 Simple driver showing how to use the Bates' overland flow component in Landlab.
 This driver sets up their test case from de Almeida et al., 2012, where output
-from the Bates et al., 2010, de Almeida et al., 2012 and analytical solutions
-are compared.
+from the Bates et al., 2010 algorithm is compared to the analytical solution.
 
 This is a componentized version of the driver example
 overland_flow_with_model_grid_Bates_analyticalSolution.py
 
-@author: Jordan Adams
+.. codeauthor:: Jordan Adams <jadams15@tulane.edu>
 """
 
 from __future__ import print_function
@@ -59,16 +58,16 @@ rmg.add_zeros('water__discharge', at='active_link') # unit discharge (m2/s)
 inside_left_edge = rmg.nodes[1: -1, 1]
 
 
-
 # Initializing our class...
 of = OverlandFlowBates(rmg, mannings_n=n, h_init=h_init)
-dt = 1.0
+
 # Let's see how long this run takes...
 starttime = time()
+
 while elapsed_time < run_time:
 
     # Now, we generate overland flow.
-    of.overland_flow(rmg, dt)
+    of.overland_flow(rmg)
 
     # Recalculate water depth at the boundary ...
     # water depth at left side (m)
@@ -79,12 +78,8 @@ while elapsed_time < run_time:
     # in all rows that are not boundary rows.
     rmg.at_node['water__depth'][inside_left_edge] = h_boundary
 
-    # Print time
-    #print(elapsed_time)
-    dt = of.gear_time_step(rmg)
-
     # Increased elapsed time
-    elapsed_time += dt
+    elapsed_time += of.dt
 
 # End time...
 endtime = time()
@@ -94,7 +89,6 @@ totaltime = endtime - starttime
 print("Total time: ", totaltime, " seconds")
 
 # Plotting
-
 # Our first figure will be the wave front on the horizontal plane
 pylab.plt.figure(1)
 imshow_grid(rmg, 'water__depth', cmap="Purples", grid_units=("m", "m"))

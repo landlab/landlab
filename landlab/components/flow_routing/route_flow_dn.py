@@ -37,7 +37,7 @@ class FlowRouter(Component):
     the grid. This is because under Landlab definitions, perimeter nodes lack
     cells, so cannot accumulate any discharge.
 
-    The primary method of this class is :func:`route_flow`.
+    The primary method of this class is :func:`run_one_step`.
 
     Construction::
 
@@ -345,6 +345,67 @@ class FlowRouter(Component):
         self._grid['node']['flow_sinks'][sink] = True
 
         return self._grid
+
+    def run_one_step(self, **kwds):
+        """Route surface-water flow over a landscape.
+
+        Routes surface-water flow by (1) assigning to each node a single
+        drainage direction, and then (2) adding up the number of nodes that
+        contribute flow to each node on the grid (including the node itself).
+
+        This is the fully standardized run method for this component. It
+        differs from :func:`route_flow` in that it has a standardized name,
+        and does not return anything.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing import FlowRouter
+        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> elev = np.array([0.,  0.,  0., 0.,
+        ...                  0., 21., 10., 0.,
+        ...                  0., 31., 20., 0.,
+        ...                  0., 32., 30., 0.,
+        ...                  0.,  0.,  0., 0.])
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fr = FlowRouter(mg)
+        >>> fr.run_one_step()
+        >>> mg.at_node['flow_receiver'] # doctest: +NORMALIZE_WHITESPACE
+        array([  0,  1,  2,  3,
+                 4,  1,  2,  7,
+                 8,  6,  6, 11,
+                12, 10, 10, 15,
+                16, 17, 18, 19])
+        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  1.,  5.,  0.,
+                0.,  1.,  5.,  0.,
+                0.,  1.,  3.,  0.,
+                0.,  1.,  1.,  0.,
+                0.,  0.,  0.,  0.])
+
+        Now let's change the cell area (100.) and the runoff rates:
+
+        >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+
+        Put the data back into the new grid.
+
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fr = FlowRouter(mg)
+        >>> runoff_rate = np.arange(mg.number_of_nodes)
+        >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
+        ...                  noclobber=False)
+        >>> fr.run_one_step()
+        >>> mg.at_node['water__volume_flux'] # doctest: +NORMALIZE_WHITESPACE
+        array([    0.,   500.,  5200.,     0.,
+                   0.,   500.,  5200.,     0.,
+                   0.,   900.,  3700.,     0.,
+                   0.,  1300.,  1400.,     0.,
+                   0.,     0.,     0.,     0.])
+        """
+        self.route_flow(**kwds)
 
     @property
     def node_drainage_area(self):

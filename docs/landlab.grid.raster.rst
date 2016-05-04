@@ -1,6 +1,7 @@
 Regular Rectilinear Grids (`RasterModelGrid`)
 =============================================
-Inherits from `ModelGrid` and adds:
+Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
+which inherits from `ModelGrid` and adds the following:
 
   .. automodule:: landlab.grid.raster
       :members:
