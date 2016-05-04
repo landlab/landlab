@@ -73,7 +73,7 @@ def calc_grad_at_link(grid, node_values, out=None):
 
 
 
-
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients of node values over active links.
@@ -106,6 +106,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
                      grid.link_length[grid.active_links], out=out)
 
 
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients of node values over links.
@@ -137,6 +138,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
                      grid.link_length, out=out)
 
 
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_faces(grid, node_values, out=None):
     """Calculate gradients of node values over faces.
@@ -190,7 +192,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
 
 
 @use_field_name_or_array('node')
-def calculate_diff_at_links(grid, node_values, out=None):
+def calc_diff_at_link(grid, node_values, out=None):
     """Calculate differences of node values over links.
 
     Calculates the difference in quantity *node_values* at each link in the
@@ -231,6 +233,15 @@ def calculate_diff_at_links(grid, node_values, out=None):
                        node_values[grid.node_at_link_tail], out=out)
 
 
+@deprecated(use='calc_diff_at_link', version='1.0beta')
+@use_field_name_or_array('node')
+def calculate_diff_at_links(grid, node_values, out=None):
+    """Calculate differences of node values over links.
+    """
+    return calc_diff_at_link(grid, node_values, out)
+
+
+@deprecated(use='calc_diff_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_diff_at_active_links(grid, node_values, out=None):
     """Calculate differences of node values over active links.
