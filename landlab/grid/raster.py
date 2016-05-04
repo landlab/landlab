@@ -2910,6 +2910,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # no fixed grad boundaries have been set
             pass
 
+                
     def calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 

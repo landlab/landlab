@@ -306,6 +306,23 @@ def test_halo_keyword():
                                  -9999.,     3.,     4.,     5., -9999.,
                                  -9999.,     0.,     1.,     2., -9999.,
                                  -9999., -9999., -9999., -9999., -9999.]))
+                                 
+def test_halo_keyword_no_nodata_value():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
+                                                '4_x_3_no_nodata_value.asc'), \
+                                                halo=1)
+                                    
+    assert_is_instance(grid, RasterModelGrid)
+
+    assert_is_instance(field, np.ndarray)
+    assert_array_equal(field,
+                       np.array([-9999., -9999., -9999., -9999., -9999.,  
+                                 -9999.,     9.,    10.,    11., -9999.,
+                                 -9999.,     6.,     7.,     8., -9999.,
+                                 -9999.,     3.,     4.,     5., -9999.,
+                                 -9999.,     0.,     1.,     2., -9999.,
+                                 -9999., -9999., -9999., -9999., -9999.]))
+
 
 if __name__ == '__main__':
     unittest.main()

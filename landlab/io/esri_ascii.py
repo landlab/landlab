@@ -351,7 +351,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         
     Examples
     --------
-    Assume that fop is the name of a file that contains below
+    Assume that fop is the name of a file that contains text below
     (make sure you have your path correct):
     ncols         3
     nrows         4
@@ -397,7 +397,12 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             raise DataSizeError(shape[0] * shape[1], data.size)
     else:
         shape = (header['nrows'] + 2 * halo, header['ncols'] + 2 * halo)
-        nodata_value = header['nodata_value']
+        #check to see if a nodata_value was given.  If not, assign -9999.
+        if 'nodata_value' in header.keys():
+            nodata_value = header['nodata_value']
+        else:
+            header['nodata_value'] = -9999.
+            nodata_value = header['nodata_value']
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
