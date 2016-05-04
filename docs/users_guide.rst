@@ -25,7 +25,7 @@ Functional modules
 .. autoclass:: landlab.components.fire_generator.generate_fire.FireGenerator
 
 
-.. autoclass:: landlab.components.flexure.flexure.FlexureComponent
+.. autoclass:: landlab.components.flexure.flexure.Flexure
 
 
 .. autoclass:: landlab.components.flow_routing.route_flow_dn.FlowRouter
