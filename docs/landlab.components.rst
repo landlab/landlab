@@ -45,7 +45,7 @@ Lake filling and routing (handling depressions in terrain)
 
 .. toctree::
 
-    landlab.components.cellular_automata
+    landlab.components.chi_index
     landlab.components.craters
     landlab.components.dem_support
     landlab.components.detachment_ltd_sed_trp
@@ -57,7 +57,6 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.fracture_grid
     landlab.components.gflex
     landlab.components.glacier_thin_ice_model
-    landlab.components.linkca
     landlab.components.nonlinear_diffusion
     landlab.components.overland_flow
     landlab.components.pet
@@ -66,7 +65,9 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.sed_trp_shallow_flow
     landlab.components.simple_power_law_incision
     landlab.components.single_vegetation
+    landlab.components.sink_fill
     landlab.components.soil_moisture
+    landlab.components.steepness_index
     landlab.components.stream_power
     landlab.components.transport_limited_fluvial
     landlab.components.uniform_precip
