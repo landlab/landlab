@@ -3978,6 +3978,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return aspect alone
         return a
 
+    @deprecated(use='calc_slope_of_node', version=1.0)
     def calculate_slope_at_nodes_bestFitPlane(self, id, val):
         """Slope of best-fit plane at nodes.
 
@@ -4034,6 +4035,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return slope alone
         return s
 
+    @deprecated(use='calc_slope_of_node', version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None,
                                                  vals='Elevation'):
         """Calculate topographic slope.
