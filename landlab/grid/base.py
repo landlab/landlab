@@ -1930,8 +1930,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces[cell] += 1
         self.sort_faces_at_cell_by_angle()
 
-    def slope_of_node(self, elevs='topographic__elevation',
-                                  unit='degrees', return_components=False):
+    def calc_slope_of_node(self, elevs='topographic__elevation',
+                           unit='degrees', return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
 
         Produces a value for node slope (i.e., mean gradient magnitude)
@@ -1944,7 +1944,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Note that under these definitions, it is not always true that::
 
-            mag, cmp = mg.slope_of_node(z)
+            mag, cmp = mg.calc_slope_of_node(z)
             mag**2 == cmp[0]**2 + cmp[1]**2  # not always true
 
         Parameters
@@ -1972,12 +1972,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RadialModelGrid, RasterModelGrid
         >>> mg = RasterModelGrid((4, 5), 1.)
         >>> z = mg.node_x
-        >>> slopes = mg.slope_of_node(elevs=z, unit='radians')
+        >>> slopes = mg.calc_slope_of_node(elevs=z, unit='radians')
         >>> numpy.allclose(slopes, 45./180.*numpy.pi)
         True
         >>> mg = RasterModelGrid((4, 5), 1.)
         >>> z = mg.node_y
-        >>> slope_mag, cmp = mg.slope_of_node(elevs=z, return_components=True)
+        >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
+        ...                                        return_components=True)
         >>> numpy.allclose(slope_mag, 45.)
         True
         >>> numpy.allclose(cmp[0], 0.)
@@ -1986,7 +1987,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         True
         >>> mg = RadialModelGrid(num_shells=9)
         >>> z = mg.radius_at_node
-        >>> slopes = mg.slope_of_node(elevs=z)
+        >>> slopes = mg.calc_slope_of_node(elevs=z)
         >>> mean_ring_slope = []
         >>> for i in xrange(10):
         ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
@@ -2051,7 +2052,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             y_slope_masked = numpy.ma.array(y_slope_unmasked,
                                             mask=self.patches_at_node().mask)
             y_slope = numpy.mean(y_slope_masked, axis=1).data
-            mean_grad_x  = x_slope
+            mean_grad_x = x_slope
             mean_grad_y = y_slope
         if unit == 'radians':
             if not return_components:
