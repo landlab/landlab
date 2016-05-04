@@ -1,3 +1,4 @@
+import os
 import re
 
 import six
@@ -19,13 +20,40 @@ _loader.add_implicit_resolver(
     list(u'-+0123456789.'))
 
 
+def load_file_contents(file_like):
+    """Load the contents of a file or file-like object.
+
+    Parameters
+    ----------
+    file_like : file_like or str
+        File to load either as a file-like object, path to an existing file,
+        or the contents of a file.
+
+    Returns
+    -------
+    str
+        The contents of the file.
+    """
+    try:
+        contents = file_like.read()
+    except AttributeError:  # was a str
+        if os.path.isfile(file_like):
+            with open(file_like, 'r') as fp:
+                contents = fp.read()
+        else:
+            contents = file_like
+
+    return contents
+
+
 def load_params(file_like):
     """Load parameters from a file.
 
     Parameters
     ----------
     file_like : file_like or str
-        Contents of a parameter file or a file-like object.
+        Contents of a parameter file, a file-like object, or the path to
+        a parameter file.
 
     Returns
     -------
@@ -60,15 +88,12 @@ def load_params(file_like):
     >>> params['start'], params['stop'], params['step']
     (0.0, 10.0, 2.0)
     """
+    contents = load_file_contents(file_like)
+
     try:
-        file_like = file_like.read()
-    except AttributeError:  # was a str
-        pass
-    try:
-        params = yaml.load(file_like, Loader=_loader)
+        params = yaml.load(contents, Loader=_loader)
     except yaml.YAMLError:
-        if isinstance(file_like, six.string_types):
-            file_like = six.StringIO(file_like)
+        file_like = six.StringIO(contents)
         params = ModelParameterDictionary(from_file=file_like, auto_type=True)
 
     if not isinstance(params, dict):

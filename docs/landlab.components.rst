@@ -1,5 +1,46 @@
-landlab.components 
------------
+This section contains documentation and API reference information for the following components:
+
+Hillslope geomorphology
+============================================
+
+Soil creep: linear diffusion
+------------------------
+
+.. automodule:: landlab.components.diffusion
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Soil creep: nonlinear diffusion
+------------------------
+
+.. automodule:: landlab.components.nonlinear_diffusion
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Boundary
+==========
+
+Flow routing
+============================================
+
+Flow direction and accumulation from topography
+------------------------
+
+.. automodule:: landlab.components.flow_routing.route_flow_dn
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Lake filling and routing (handling depressions in terrain)
+------------------------
+
+.. automodule:: landlab.components.flow_routing.lake_mapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 .. toctree::
 

@@ -1,6 +1,30 @@
 #! /usr/bin/env python
 """Map values from one grid element to another.
 
+Grid mapping functions
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.mappers.map_link_head_node_to_link
+    ~landlab.grid.mappers.map_link_tail_node_to_link
+    ~landlab.grid.mappers.map_min_of_link_nodes_to_link
+    ~landlab.grid.mappers.map_max_of_link_nodes_to_link
+    ~landlab.grid.mappers.map_mean_of_link_nodes_to_link
+    ~landlab.grid.mappers.map_value_at_min_node_to_link
+    ~landlab.grid.mappers.map_value_at_max_node_to_link
+    ~landlab.grid.mappers.map_node_to_cell
+    ~landlab.grid.mappers.map_min_of_node_links_to_node
+    ~landlab.grid.mappers.map_max_of_node_links_to_node
+    ~landlab.grid.mappers.map_upwind_node_link_max_to_node
+    ~landlab.grid.mappers.map_downwind_node_link_max_to_node
+    ~landlab.grid.mappers.map_upwind_node_link_mean_to_node
+    ~landlab.grid.mappers.map_downwind_node_link_mean_to_node
+    ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
+    ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.mappers.dummy_func_to_demonstrate_docstring_modification
+
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
 

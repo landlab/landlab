@@ -53,42 +53,12 @@ def erode_avoiding_pits(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
             node_dz[src_id] = (node_z[src_id] - z_dst_after) * 0.999999
 
 
-@cython.boundscheck(False)
-def erode_with_alpha(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                     np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
-    """Erode node elevations based on a scaling factor.
-
-    Parameters
-    ----------
-    src_nodes : array_like
-        Ordered upstream node ids.
-    dst_nodes : array_like
-        Node ids of nodes receiving flow.
-    alpha : array_like
-        Erosion factor.
-    z : array_like
-        Node elevations.
-    """
-    cdef unsigned int n_nodes = src_nodes.size
-    cdef unsigned int src_id
-    cdef unsigned int dst_id
-    cdef unsigned int i
-
-    for i in range(n_nodes):
-        src_id = src_nodes[i]
-        dst_id = dst_nodes[src_id]
-        if src_id != dst_id:
-            z[src_id] = ((z[src_id] + alpha[src_id] * z[dst_id]) /
-                         (1.0 + alpha[src_id]))
-
-
-def erode_with_link_alpha(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                          np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                          np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                          DTYPE_FLOAT_t n,
-                          np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
+def erode_with_link_alpha_varthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+                                    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+                                    np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
+                                    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+                                    DTYPE_FLOAT_t n,
+                                    np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
     """Erode node elevations using alpha scaled by link length.
 
     Parameters
@@ -97,6 +67,73 @@ def erode_with_link_alpha(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         Ordered upstream node ids.
     dst_nodes : array_like
         Node ids of nodes receiving flow.
+    threshsxdt : array_like
+        Incision thresholds at nodes multiplied by the timestep.
+    alpha : array_like
+        Erosion factor scaled by link length to the *n - 1*.
+    n : float
+        Exponent.
+    z : array_like
+        Node elevations.
+    """
+    cdef unsigned int n_nodes = src_nodes.size
+    cdef unsigned int src_id
+    cdef unsigned int dst_id
+    cdef unsigned int i
+    cdef double threshxdt
+    cdef double z_diff
+    cdef double prev_z
+    cdef double next_z
+    cdef double f
+    cdef double excess_thresh
+
+    for i in range(n_nodes):
+        src_id = src_nodes[i]
+        dst_id = dst_nodes[src_id]
+        threshxdt = threshsxdt[i]
+
+        if src_id != dst_id:
+            next_z = z[src_id]
+            prev_z = 0.
+
+            while True:
+                z_diff = next_z - z[dst_id]
+                f = alpha[src_id] * pow(z_diff, n - 1.)
+                excess_thresh = f * z_diff - threshxdt
+                if excess_thresh < 0.:
+                    excess_thresh = 0.
+                next_z = next_z - ((next_z - z[src_id] + excess_thresh) /
+                                   (1. + n * f))
+                if next_z < z[dst_id]:
+                    next_z = z[dst_id] + 1.e-15  # maintain connectivity
+                if next_z != 0.:
+                    if fabs((next_z - prev_z)/next_z) < 1.48e-08 or n == 1.:
+                        break
+                else:
+                    break
+
+                prev_z = next_z;
+
+            if next_z < z[src_id]:
+                z[src_id] = next_z
+
+
+def erode_with_link_alpha_fixthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+                                    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+                                    DTYPE_FLOAT_t threshxdt,
+                                    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+                                    DTYPE_FLOAT_t n,
+                                    np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
+    """Erode node elevations using alpha scaled by link length.
+
+    Parameters
+    ----------
+    src_nodes : array_like
+        Ordered upstream node ids.
+    dst_nodes : array_like
+        Node ids of nodes receiving flow.
+    threshxdt : float
+        The (spatially uniform) incision threshold multiplied by the timestep.
     alpha : array_like
         Erosion factor scaled by link length to the *n - 1*.
     n : float
@@ -112,6 +149,7 @@ def erode_with_link_alpha(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     cdef double prev_z
     cdef double next_z
     cdef double f
+    cdef double excess_thresh
 
     for i in range(n_nodes):
         src_id = src_nodes[i]
@@ -119,16 +157,26 @@ def erode_with_link_alpha(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
 
         if src_id != dst_id:
             next_z = z[src_id]
+            prev_z = 0.
 
             while True:
-                prev_z = next_z;
 
-                z_diff = prev_z - z[dst_id]
+                z_diff = next_z - z[dst_id]
                 f = alpha[src_id] * pow(z_diff, n - 1.)
-                next_z = prev_z - ((prev_z - z[src_id] + f * z_diff) /
+                excess_thresh = f * z_diff - threshxdt
+                if excess_thresh < 0.:
+                    excess_thresh = 0.
+                next_z = next_z - ((next_z - z[src_id] + excess_thresh) /
                                    (1. + n * f))
-
-                if fabs((next_z - prev_z) / next_z) < 1.48e-08:
+                if next_z < z[dst_id]:
+                   next_z = z[dst_id] + 1.e-15  # maintain connectivity
+                if next_z != 0.:
+                    if fabs((next_z - prev_z)/next_z) < 1.48e-08 or n == 1.:
+                        break
+                else:
                     break
 
-            z[src_id] = next_z
+                prev_z = next_z;
+
+            if next_z < z[src_id]:
+                z[src_id] = next_z

@@ -100,7 +100,7 @@ def test_sp_new():
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         fr.route_flow()
-        sp.run_one_timestep(dt)
+        sp.run_one_step(dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
 

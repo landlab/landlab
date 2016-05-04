@@ -18,7 +18,7 @@ from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                    CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
                    INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
-from landlab.utils.decorators import make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable, deprecated
 from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
@@ -31,6 +31,7 @@ from .decorators import return_id_array
 from . import gradients
 
 
+@deprecated(use='grid.has_boundary_neighbor', version='0.2')
 def node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
@@ -1536,7 +1537,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def faces_at_cell(self, *args):
+    def _make_faces_at_cell(self, *args):
         """faces_at_cell([cell_id])
         Get array of faces of a cell.
 
@@ -1559,20 +1560,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.faces_at_cell(0)
-        array([0, 3, 7, 4])
+        >>> rmg.faces_at_cell[0]
+        array([4, 7, 3, 0])
 
-        >>> rmg.faces_at_cell([0, 5])
-        array([[ 0,  3,  7,  4],
-               [ 9, 12, 16, 13]])
-
-        >>> rmg.faces_at_cell()
-        array([[ 0,  3,  7,  4],
-               [ 1,  4,  8,  5],
-               [ 2,  5,  9,  6],
-               [ 7, 10, 14, 11],
-               [ 8, 11, 15, 12],
-               [ 9, 12, 16, 13]])
+        >>> rmg.faces_at_cell
+        array([[ 4,  7,  3,  0],
+               [ 5,  8,  4,  1],
+               [ 6,  9,  5,  2],
+               [11, 14, 10,  7],
+               [12, 15, 11,  8],
+               [13, 16, 12,  9]])
         """
         if len(args) == 0:
             cell_ids = np.arange(self.number_of_cells)
@@ -1584,8 +1581,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         node_ids = self.node_at_cell[cell_ids]
         inlinks = self.node_inlink_matrix[:, node_ids].T
         outlinks = self.node_outlink_matrix[:, node_ids].T
-        return np.squeeze(np.concatenate(
-            (self._face_at_link[inlinks], self._face_at_link[outlinks]), axis=1))
+        self._faces_at_link = np.squeeze(np.concatenate(
+            (self._face_at_link[inlinks], 
+             self._face_at_link[outlinks]), axis=1))
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
@@ -1812,11 +1810,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         24
         """
         assert self._diagonal_links_created, \
-               "No diagonal links have been created in the grid yet!"
+            "No diagonal links have been created in the grid yet!"
         return 2 * self.number_of_patches
 
     @property
-    #@deprecated
+    @deprecated(use='dx', version='0.5')
     def node_spacing(self):
         """Spacing betweem node rows and columns.
 
@@ -1979,6 +1977,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return np.array([id_, id_ + self.number_of_node_columns,
                          id_ + self.number_of_node_columns + 1, id_ + 1])
 
+    @deprecated(use='find_nearest_node', version='0.2')
     def snap_coords_to_grid(self, xcoord, ycoord):
         """Snap coordinates to the nearest node.
 
@@ -2415,6 +2414,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return steepest_node
 
+    @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.5')
     def set_inactive_boundaries(self, right_is_inactive, top_is_inactive,
                                 left_is_inactive, bottom_is_inactive):
         """Set boundary nodes to be inactive.
@@ -2957,6 +2957,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return np.concatenate((diffs, diagonal_link_slopes))
 
+    @deprecated(use='landlab.components.FlowRouter', version='0.5')
     def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
                                             dstr_node_ids=False):
@@ -3140,6 +3141,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return fd
 
+    @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.1')
     def update_noflux_boundaries(self, u, bc=None):
         """*Deprecated*.
 
@@ -3483,6 +3485,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self.closed_boundary_nodes)] = bad_index
         return self.diagonal_cells
 
+    @deprecated(use='is_core', version='0.5')
     def is_interior(self, *args):
         """is_interior([ids])
         Check of a node is an interior node.
@@ -3528,6 +3531,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             return np.equal(self._node_status[node_ids], CORE_NODE)
 
+    @deprecated(use='are_all_core', version='0.5')
     def are_all_interior(self, IDs):
         """Check if nodes are interior.
 
@@ -3564,7 +3568,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Returns an array of face indices that *cell_a* and *cell_b* share.
         If the cells do not share any faces, returns an empty array.
         """
-        cell_faces = self.faces_at_cell([cell_a, cell_b])
+        cell_faces = self.faces_at_cell[[cell_a, cell_b]]
         return np.intersect1d(cell_faces[0], cell_faces[1],
                               assume_unique=True)
 

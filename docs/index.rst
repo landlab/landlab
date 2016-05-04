@@ -3,160 +3,206 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. Introduction to Landlab
-.. =======================
-
-.. toctree::
-..   :maxdepth: 1
-
-..   what_is_landlab
-
-.. toctree::
-..   :maxdepth: 2
-
-..   install
-..   getting_started
-
-.. toctree::
-..   :maxdepth: 1
-
-..   dan_installs_on_linux
-..   getting_example_files
-
-Landlab Developer API
-==============================
 
 Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
 
-Contributing to Landlab
-=======================
+==============================================
+Landlab Reference Manual and API Documentation
+==============================================
 
-If you're intending to make changes to the Landlab code base,
-or want to develop your own components, we recommend you follow
-these specialized developer install instructions.
-
-.. toctree::
-  :maxdepth: 3
-
-  dev_guide_install
-  dev_guide_components
-
-
-.. toctree::
-..    :maxdepth: 1
-
-.. The Nuts and Bolts of Coding in Landlab
-.. ---------------------------------------
-.. toctree::
-   :maxdepth: 2
-
-..   coding_style
-
-
-.. Landlab's Gridding Library
-.. --------------------------
-
-.. toctree::
-..   :maxdepth: 2
-
-..   model_grid_no_tutorials
-
-
-.. Building a Model
-.. ----------------
-
-.. toctree::
-..   :maxdepth: 3
-
-..   working_with_landlab
-
-.. toctree::
-..   :maxdepth: 3
-
-..   landlab_components
-
-
-.. Landlab Grid Data Structures
-.. ----------------------------
-..
-.. Quick links to the landlab grid data structures:
-..
-.. for some reason, these weren't working
-.. * `RasterModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RasterModelGrid.__init__>`_
-.. * `HexModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.HexModelGrid.__init__>`_
-.. * `RadialModelGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RadialModelGrid.__init__>`_
-.. * `VoronoiDelaunayGrid <landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.VonoroiDelaunayGrid.__init__>`_
-..
-..
-
-
-.. Tutorials
-.. ---------
-
-.. These tutorials are NOT IN MODERN STYLE, as of 05/25/15
-.. Thus DEJH has commented them out
-.. .. toctree::
-..    :maxdepth: 1
-.. replaced with the notebook tutorials
-.. diffusion_raster_grid_tutorial
-.. overland_flow_general_tutorial
-.. overland_flow_dem_tutorial
-
-.. Start with the :ref:`10 minute Landlab introduction tutorial <getting_started>`, then choose from:
-
-.. * A super-basic intro to Python and Numpy: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/python_intro/Python_intro.ipynb
-.. * An introduction to modelling with Landlab: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/fault_scarp_notebook/landlab-fault-scarp.ipynb
-.. * Using the Landlab component library: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb
-.. * The Landlab flexure component: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/flexure/lots_of_loads.ipynb
-.. * The Landlab ecohydrology components: http://nbviewer.ipython.org/github/landlab/tutorials/blob/master/ecohydrology/cellular_automaton_vegetation_DEM/cellular_automaton_vegetation_DEM.ipynb
-
-
-.. CellLab-CTS
-.. -----------
-
-.. CellLab-CTS is a Landlab module for building pairwise, continuous-time stochastic (CTS) cellular automata.
-
-.. toctree::
-	:maxdepth: 1
-
-..	celllab_manual.rst
-
-
-.. Frequently Asked Questions
-.. ==========================
-
-.. toctree::
-..   :maxdepth: 1
-
-..   faq
-
+The *Landlab Developer API* is a general reference manual for Landlab.
 
 Grids
 =======================
 
+Grid types
+-------------
+
 As of Landlab version 0.2, there are four types of Landlab grid:
- - `Raster <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.raster>`_
- - `Voronoi-DeLaunay <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.voronoi>`_
- - `Hex <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.hex>`_
- - `Radial <http://landlab.readthedocs.org/en/master/landlab.grid.html#module-landlab.grid.radial>`_
+ - Raster
+ - Voronoi-Delaunay
+ - Hex
+ - Radial
 
 The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDelaunayGrid`.
 
 `VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
 
+Methods and properties common to all grids
+-----------------------------
 .. toctree::
    :maxdepth: 4
 
-   landlab.grid
+   landlab.grid.mappers
+   landlab.grid.gradients
+   landlab.grid.grid_funcs
+   landlab.grid.create
+   landlab.grid.base
+   landlab.grid.decorators
+
+Specialized methods and properties for Rectilinear Grids 'raster grids'
+--------------------------
+
+Landlab's rectilinear grids are implemented by the class `RasterModelGrid`, which inherits from `ModelGrid` and adds the following:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.raster
+   landlab.grid.raster_mappers
+   landlab.grid.raster_gradients
+   landlab.grid.raster_aspect
+   landlab.grid.raster_steepest_descent
+   landlab.grid.raster_set_status
+   landlab.grid.raster_funcs
+
+Specialized methods and properties for Voronoi-Delaunay grids
+--------------------------
+
+Landlab's Voronoi-Delaunay grids are implemented by the class `VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.voronoi
+
+Specialized methods and properties for hex grids
+--------------------------
+
+Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.hex
+
+Specialized methods and properties for radial grids
+--------------------------
+
+Landlab's radial grids are implemented by the class `RadialModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.grid.radial
 
 
 Components
 =======================
 
+This section contains documentation and API reference information for the following categories of components:
+
+Hillslope geomorphology
+---------------------------
+
 .. toctree::
    :maxdepth: 4
 
-   landlab.components
+   landlab.components.diffusion
+   landlab.components.nonlinear_diffusion
+
+Fluvial geomorphology
+---------------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.stream_power
+   landlab.components.transport_limited_fluvial
+
+Flow routing
+-------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.flow_routing
+
+Shallow water hydrodynamics
+-------------------
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.overland_flow
+
+Land surface hydrology
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.radiation
+  landlab.components.PET
+  landlab.components.soil_moisture
+
+Vegetation
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.single_vegetation
+  landlab.components.vegetation_ca
+
+Precipitation
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.uniform_precip
+
+Terrain Analysis
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.steepness_index
+  landlab.components.chi_index
+  landlab.components.dem_support
+
+Glacial Processes
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.glacier_thin_ice_model
+
+Tectonics
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.flexure
+  landlab.components.gflex
+
+Fire
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.fire_generator
+
+Impact cratering
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.craters
+
+Initial conditions: random field generators
+-------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.fracture_grid
 
 
 Input/Output (IO)
@@ -186,30 +232,28 @@ Cellular Automata (CA)
    landlab.ca
 
 
+Contributing to Landlab
+=======================
 
-.. Simple guides to functionality
-.. ------------------------------
-
-.. These (slightly outdated) resources provide guides to the actual functions you can find and use through Landlab.
-
-.. toctree::
-..  :maxdepth: 1
-
-..  users_guide
+If you're intending to make changes to the Landlab code base,
+or want to develop your own components, we recommend you follow
+these specialized developer install instructions.
 
 .. toctree::
-..  :maxdepth: 2
+ :maxdepth: 3
 
-..  manual_index_alt_format
+ dev_guide_install
+ dev_guide_components
 
-.. toctree::
-..  :maxdepth: 1
-
-..  standard_names
 
 References
 ==========
 
-* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Search the Index
+==================
+
+* :ref:`genindex`

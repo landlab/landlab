@@ -111,7 +111,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
     internal_list = [
         0, 0, 0, 0]  # we're going to put the input arrays in here; must be a better way but this will do
     inputs = (elevations, drainage_area, flow_receiver, links_to_flow_receiver)
-    for i in range(5):
+    for i in range(4):
         j = inputs[i]
         if type(j) == str:
             internal_list[i] = grid.at_node[j]

@@ -159,10 +159,11 @@ class TransportLimitedEroder(Component):
         ***Parameters for input file***
         OBLIGATORY:
             * Qc -> String. Controls how to set the carrying capacity.
-                Either 'MPM', or a string giving the name of the model field
-                where capacity values are stored on nodes.
-                At the moment, only 'MPM' is permitted as a way to set the
-                capacity automatically, but expansion would be trivial.
+                Either 'MPM', 'power_law', or a string giving the name of the
+                model field where capacity values are stored on nodes.
+                At the moment, only 'MPM' and power_law' are permitted as a way
+                to set the capacity automatically, but expansion would be
+                trivial.
                 If 'from_array', the module will attempt to set the capacity
                 Note capacities must be specified as volume flux.
             *
@@ -193,6 +194,12 @@ class TransportLimitedEroder(Component):
                 in the channel. If you want to define Dchar values at each
                 node, don't set, and use the Dchar_if_used argument in erode()
                 instead.
+
+            ...or if you set power_law, Qc = K_t*A**m_t*S**n_t,
+            * m_t, n_t -> Floats. The powers on A and S repectively in this
+                equation.
+            * K_t -> float. The prefactor (note time units are years).
+            Note that Qc is total capacity, not per unit width.
 
         OPTIONS:
             *rock_density -> in kg/m3 (defaults to 2700)
@@ -235,6 +242,7 @@ class TransportLimitedEroder(Component):
         '''
         # this is the fraction we allow any given slope in the grid to evolve
         # by in one go (suppresses numerical instabilities)
+        self.capacity_options = ['MPM', 'power_law']
         self.fraction_gradient_change = 0.25
         self._grid = grid
         # needs to be filled with values in execution
@@ -266,7 +274,7 @@ class TransportLimitedEroder(Component):
         except MissingKeyError:
             raise MissingKeyError("Qc must be 'MPM' or a grid field name!")
         else:
-            if self.Qc == 'MPM':
+            if self.Qc in self.capacity_options:
                 self.calc_cap_flag = True
             else:
                 self.calc_cap_flag = False
@@ -274,107 +282,114 @@ class TransportLimitedEroder(Component):
             self.return_ch_props = inputs.read_bool('return_stream_properties')
         except MissingKeyError:
             self.return_ch_props = False
-
-        try:
-            self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
-        except:
-            self.lamb_flag = False
-        try:
-            self.shields_crit = inputs.read_float('threshold_shields')
-            # flag for sed_flux_dep_incision to see if the threshold was
-            # manually set.
-            self.set_threshold = True
-            # print("Found a threshold to use: ", self.shields_crit)
-            assert self.lamb_flag is False
-        except MissingKeyError:
-            if not self.lamb_flag:
-                self.shields_crit = 0.047
-            self.set_threshold = False
         try:
             self.tstep = inputs.read_float('dt')
         except MissingKeyError:
             pass
         try:
-            self.use_W = inputs.read_bool('use_W')
-        except MissingKeyError:
-            self.use_W = False
-        try:
-            self.use_Q = inputs.read_bool('use_Q')
-        except MissingKeyError:
-            self.use_Q = False
-        try:
             self.return_capacity = inputs.read_bool('return_capacity')
         except MissingKeyError:
             self.return_capacity = False
 
-        try:
-            self._b = inputs.read_float('b_sp')
-        except MissingKeyError:
-            if self.use_W:
-                self._b = 0.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('b was not set')
-        try:
-            self._c = inputs.read_float('c_sp')
-        except MissingKeyError:
-            if self.use_Q:
-                self._c = 1.
-            else:
-                if self.calc_cap_flag:
-                    raise NameError('c was not set')
-        try:
-            self.Dchar_in = inputs.read_float('Dchar')
-        except MissingKeyError:
-            pass
-
-        # assume Manning's equation to set the power on A for shear stress:
-        self.shear_area_power = 0.6 * self._c * (1. - self._b)
-
-        self.k_Q = inputs.read_float('k_Q')
-        self.k_w = inputs.read_float('k_w')
-        mannings_n = inputs.read_float('mannings_n')
-        self.mannings_n = mannings_n
-        if mannings_n < 0. or mannings_n > 0.2:
-            print("***STOP. LOOK. THINK. You appear to have set Manning's n " +
-                  "outside its typical range. Did you mean it? Proceeding..." +
-                  "***")
-            sleep(2)
-
-        try:
-            self.C_MPM = inputs.read_float('C_MPM')
-        except MissingKeyError:
-            self.C_MPM = 1.
-        self.diffusivity_power_on_A = 0.9 * self._c * \
-            (1. - self._b)  # i.e., q/D**(1/6)
-
-        # new for v3:
-        # set thresh in shear stress if poss at this stage:
-        try:  # fails if no Dchar provided, or shields crit is being set
-            # dynamically from slope
-            self.thresh = self.shields_crit * (
-                self.sed_density - self.fluid_density) * self.g * self.Dchar_in
-        except AttributeError:
+        if self.Qc == 'MPM':
             try:
-                self.shields_prefactor_to_shear = ((
-                    self.sed_density - self.fluid_density) * self.g *
-                    self.Dchar_in)
-            except AttributeError:  # no Dchar
-                self.shields_prefactor_to_shear_noDchar = (
-                    self.sed_density - self.fluid_density) * self.g
-        twothirds = 2. / 3.
-        self.Qs_prefactor = (4.*self.C_MPM**twothirds*self.fluid_density **
-                             twothirds/(self.sed_density-self.fluid_density) **
-                             twothirds * self.g**(twothirds/2.)*mannings_n **
-                             0.6*self.k_w**(1./15.)*self.k_Q **
-                             (0.6+self._b/15.) / self.sed_density**twothirds)
-        self.Qs_thresh_prefactor = (4.*(self.C_MPM*self.k_w*self.k_Q**self._b /
-                                    self.fluid_density**0.5 /
-                                    (self.sed_density-self.fluid_density) /
-                                    self.g/self.sed_density)**twothirds)
-        # both these are divided by sed density to give a vol flux
-        self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
-        self.Qs_power_onAthresh = twothirds * self._b * self._c
+                self.lamb_flag = inputs.read_bool('slope_sensitive_threshold')
+            except:
+                self.lamb_flag = False
+            try:
+                self.shields_crit = inputs.read_float('threshold_shields')
+                # flag for sed_flux_dep_incision to see if the threshold was
+                # manually set.
+                self.set_threshold = True
+                # print("Found a threshold to use: ", self.shields_crit)
+                assert self.lamb_flag is False
+            except MissingKeyError:
+                if not self.lamb_flag:
+                    self.shields_crit = 0.047
+                self.set_threshold = False
+            try:
+                self.use_W = inputs.read_bool('use_W')
+            except MissingKeyError:
+                self.use_W = False
+            try:
+                self.use_Q = inputs.read_bool('use_Q')
+            except MissingKeyError:
+                self.use_Q = False
+
+            try:
+                self._b = inputs.read_float('b_sp')
+            except MissingKeyError:
+                if self.use_W:
+                    self._b = 0.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('b was not set')
+            try:
+                self._c = inputs.read_float('c_sp')
+            except MissingKeyError:
+                if self.use_Q:
+                    self._c = 1.
+                else:
+                    if self.calc_cap_flag:
+                        raise NameError('c was not set')
+            try:
+                self.Dchar_in = inputs.read_float('Dchar')
+            except MissingKeyError:
+                pass
+
+            # assume Manning's equation to set the power on A for shear stress:
+            self.shear_area_power = 0.6 * self._c * (1. - self._b)
+
+            self.k_Q = inputs.read_float('k_Q')
+            self.k_w = inputs.read_float('k_w')
+            mannings_n = inputs.read_float('mannings_n')
+            self.mannings_n = mannings_n
+            if mannings_n < 0. or mannings_n > 0.2:
+                print("***STOP. LOOK. THINK. You appear to have set Manning's n " +
+                      "outside its typical range. Did you mean it? Proceeding..." +
+                      "***")
+                sleep(2)
+
+            try:
+                self.C_MPM = inputs.read_float('C_MPM')
+            except MissingKeyError:
+                self.C_MPM = 1.
+            self.diffusivity_power_on_A = 0.9 * self._c * \
+                (1. - self._b)  # i.e., q/D**(1/6)
+
+            # new for v3:
+            # set thresh in shear stress if poss at this stage:
+            try:  # fails if no Dchar provided, or shields crit is being set
+                # dynamically from slope
+                self.thresh = self.shields_crit * (
+                    self.sed_density - self.fluid_density) * self.g * self.Dchar_in
+            except AttributeError:
+                try:
+                    self.shields_prefactor_to_shear = ((
+                        self.sed_density - self.fluid_density) * self.g *
+                        self.Dchar_in)
+                except AttributeError:  # no Dchar
+                    self.shields_prefactor_to_shear_noDchar = (
+                        self.sed_density - self.fluid_density) * self.g
+            twothirds = 2. / 3.
+            self.Qs_prefactor = (
+                4.*self.C_MPM**twothirds*self.fluid_density**twothirds /
+                (self.sed_density-self.fluid_density)**twothirds *
+                self.g**(twothirds/2.)*mannings_n**0.6*self.k_w**(1./15.) *
+                self.k_Q**(0.6+self._b/15.)/self.sed_density**twothirds)
+            self.Qs_thresh_prefactor = 4.*(
+                self.C_MPM*self.k_w*self.k_Q**self._b/self.fluid_density **
+                0.5/(self.sed_density-self.fluid_density)/self.g /
+                self.sed_density)**twothirds
+            # both these are divided by sed density to give a vol flux
+            self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
+            self.Qs_power_onAthresh = twothirds * self._b * self._c
+
+        elif self.Qc == 'power_law':
+            self._Kt = inputs.read_float('K_t')/31557600.  # in sec
+            self._mt = inputs.read_float('m_t')
+            self._nt = inputs.read_float('n_t')
+            self.return_ch_props = False
 
         if RasterModelGrid in inspect.getmro(grid.__class__):
             self.cell_areas = grid.dx * grid.dy

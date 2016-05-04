@@ -390,7 +390,7 @@ class StreamPowerEroder(Component):
               flooded_nodes=None):
         """
         This run method is now DEPRECATED. Use the fully standardized method
-        :func:`run_one_timestep` instead.
+        :func:`run_one_step` instead.
 
         A simple, explicit implementation of a stream power algorithm.
 
@@ -635,7 +635,7 @@ class StreamPowerEroder(Component):
 
         return grid, node_z, self.stream_power_erosion
 
-    def run_one_timestep(self, dt, flooded_nodes=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """
         A simple, explicit implementation of a stream power algorithm.
 
