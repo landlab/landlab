@@ -1934,10 +1934,18 @@ class ModelGrid(ModelDataFieldsMixIn):
                                   unit='degrees', return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
 
-        Produces a value for slope at each node in a manner analogous to a
-        GIS-style slope map. It averages the gradient on each of the
+        Produces a value for node slope (i.e., mean gradient magnitude)
+        at each node in a manner analogous to a GIS-style slope map.
+        It averages the gradient on each of the
         patches surrounding the node, creating a value for node slope that
-        better incorporates nonlocal elevation information.
+        better incorporates nonlocal elevation information. Directional
+        information can still be returned through use of the return_components
+        keyword.
+
+        Note that under these definitions, it is not always true that::
+
+            mag, cmp = mg.slope_of_node(z)
+            mag**2 == cmp[0]**2 + cmp[1]**2  # not always true
 
         Parameters
         ----------
@@ -1974,7 +1982,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         True
         >>> numpy.allclose(cmp[0], 0.)
         True
-        >>> numpy.allclose(cmp[1], -1.)
+        >>> numpy.allclose(cmp[1], -np.pi/4.)
         True
         >>> mg = RadialModelGrid(num_shells=9)
         >>> z = mg.radius_at_node
@@ -2033,8 +2041,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         if return_components:
             theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
-            x_slope_patches = numpy.cos(theta)
-            y_slope_patches = numpy.sin(theta)
+            x_slope_patches = numpy.cos(theta)*slopes_at_patch
+            y_slope_patches = numpy.sin(theta)*slopes_at_patch
             x_slope_unmasked = x_slope_patches[self.patches_at_node()]
             x_slope_masked = numpy.ma.array(x_slope_unmasked,
                                             mask=self.patches_at_node().mask)
