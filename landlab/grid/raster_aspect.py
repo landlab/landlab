@@ -126,16 +126,17 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
 
     .. note::
 
-        THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-        elevation profile. Please check slope_aspect_routines_comparison.py
-        under landlab\examples before using this.
-        Suggested alternative: calculate_slope_aspect_at_nodes_burrough
-                                                    ~ SN 25Sep14
+        THIS CODE HAS ISSUES (SN 25-Sept-14): This code didn't perform well
+        on a NS facing elevation profile. Please check
+        slope_aspect_routines_comparison.py under landlab\examples before
+        using this.  Suggested alternative:
+        calculate_slope_aspect_at_nodes_burrough
 
     Calculates the local topographic slope (i.e., the down-dip slope, and
     presented as positive), and the aspect (dip direction in radians
     clockwise from north), at the given nodes, *ids*. All *ids* must be of
     core nodes.
+
     This method uses the Horn 1981 algorithm, the one employed by many GIS
     packages. It should be significantly faster than alternative slope
     methods.

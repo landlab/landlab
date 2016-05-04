@@ -15,41 +15,50 @@ import numpy as np
 import os
 
 class OverlandFlowBates(Component):
-    """  Landlab component that simulates overland flow using the Bates et al., (2010) approximations
-    of the 1D shallow water equations to be used for 2D flood inundation modeling.
+    u"""Simulate overland flow using Base et al. (2010).
 
-    This component calculates discharge, depth and shear stress after some precipitation event across
-    any raster grid. Default input file is named "overland_flow_input.txt' and is contained in the
+    Landlab component that simulates overland flow using the Bates et al.,
+    (2010) approximations of the 1D shallow water equations to be used for 2D
+    flood inundation modeling.
+
+    This component calculates discharge, depth and shear stress after some
+    precipitation event across any raster grid. Default input file is named
+    "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
 
-        Inputs
-        ------
-        grid : Requires a RasterGridModel instance
+    Parameters
+    ----------
+    grid : RasterGridModel
+        A grid.
+    input_file : str
+        Contains necessary and optional inputs. If not given, default input
+        file is used.
 
-        input_file : Contains necessary and optional inputs. If not given, default input file is used.
-            - Manning's n is REQUIRED.
-            - Storm duration is needed IF rainfall_duration is not passed in the initialization
-            - Rainfall intensity is needed IF rainfall_intensity is not passed in the initialization
-            - Model run time can be provided in initialization. If not it is set to the storm duration
+        -  Manning's n is *required*.
+        -  Storm duration is needed *if* rainfall_duration is not passed in the
+           initialization
+        -  Rainfall intensity is needed *if* rainfall_intensity is not passed
+           in the initialization
+        -  Model run time can be provided in initialization. If not it is set
+           to the storm duration
 
-        Constants
-        ---------
-        h_init : float
-            Some initial depth in the channels. Default = 0.001 m
-        g : float
-            Gravitational acceleration, \x0crac{m}{s^2}
-        alpha : float
-            Non-dimensional time step factor from Bates et al., (2010)
-        rho : integer
-            Density of water, \x0crac{kg}{m^3}
-        ten_thirds : float
-            Precalculated value of \x0crac{10}{3} which is used in the implicit shallow water equation.
+    h_init : float, optional
+        Some initial depth in the channels. Default = 0.001 m
+    g : float, optional
+        Gravitational acceleration, :math:`m / s^2`
+    alpha : float, optional
+        Non-dimensional time step factor from Bates et al., (2010)
+    rho : integer, optional
+        Density of water, :math:`kg / m^3`
+    ten_thirds : float, optional
+        Precalculated value of :math:`10 / 3` which is used in the
+        implicit shallow water equation.
 
-
-        >>> DEM_name = 'DEM_name.asc'
-        >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-        >>> of = OverlandFlowBates(rg) # doctest: +SKIP
-
+    Examples
+    --------
+    >>> DEM_name = 'DEM_name.asc'
+    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
+    >>> of = OverlandFlowBates(rg) # doctest: +SKIP
     """
     _name = 'OverlandFlowBates'
 
@@ -130,12 +139,13 @@ class OverlandFlowBates(Component):
         every point in the input grid.
 
 
-        Inputs
-        ------
-        grid : Requires a RasterGridModel instance
-
-        dt : either set when called or the fxn will do it for you.
-
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid.
+        dt : float, optional
+            Time step. Either set when called or the component will do it for
+            you.
         """
 
         # If no dt is provided, one will be calculated using self.gear_time_step()

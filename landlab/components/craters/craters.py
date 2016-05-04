@@ -1,12 +1,11 @@
 #! /usr/env/python
 # -*- coding: utf-8 -*-
 
-"""
-.. deprecated:: 0.4
-This code is no longer supported.
-Use 'dig_craters.py" instead.
-"""
+"""The old craters module.
 
+.. note:: deprecated, version 0.4
+    This code is no longer supported.  Use 'dig_craters.py" instead.
+"""
 from random import random
 import math
 import numpy

@@ -152,94 +152,113 @@ class TransportLimitedEroder(Component):
         self.initialize(grid, params)
 
     def initialize(self, grid, params_file):
-        '''
-        params_file is the name of the text file containing the parameters
-        needed for this stream power component.
+        """Initialize  from an input file.
 
-        ***Parameters for input file***
-        OBLIGATORY:
-            * Qc -> String. Controls how to set the carrying capacity.
-                Either 'MPM', 'power_law', or a string giving the name of the
-                model field where capacity values are stored on nodes.
-                At the moment, only 'MPM' and power_law' are permitted as a way
-                to set the capacity automatically, but expansion would be
-                trivial.
-                If 'from_array', the module will attempt to set the capacity
-                Note capacities must be specified as volume flux.
-            *
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid.
+        params_file : str
+            Path to a text file containing the parameters needed for this
+            stream power component.
 
-            ...Then, assuming you set Qc=='MPM':
-            * b_sp, c_sp -> Floats. These are the powers on discharge and
-                drainage area in the equations used to control channel width
-                and basin hydrology, respectively:
-                        W = k_w * Q**b_sp
-                        Q = k_Q * A**c_sp
-                These parameters are used to constrain flow depth, and may be
-                omitted if use_W or use_Q are set.
-            *k_Q, k_w, mannings_n -> floats. These are the prefactors on the
-                basin hydrology and channel width-discharge relations, and n
-                from the Manning's equation, respectively. These are
-                needed to allow calculation of shear stresses and hence
-                carrying capacities from the local slope and drainage area
-                alone.
-                Don't know what to set these values to? k_w=2.5, k_Q=2.5e-7,
-                mannings_n=0.05 give vaguely plausible numbers with b=0.5,
-                c = 1.(e.g., for a drainage area ~350km2, like Boulder Creek
-                at Boulder, => depth~1.3m, width~23m, shear stress ~O(200Pa)
-                for an "annual-ish" flood). [If you want to continue playing
-                with calibration, the ?50yr return time 2013 floods produced
-                depths ~2.3m with Q~200m3/s]
-            *Dchar -> float.  The characteristic grain diameter in meters
-                (==D50 in most cases) used to calculate Shields numbers
-                in the channel. If you want to define Dchar values at each
-                node, don't set, and use the Dchar_if_used argument in erode()
-                instead.
+        Notes
+        -----
 
-            ...or if you set power_law, Qc = K_t*A**m_t*S**n_t,
-            * m_t, n_t -> Floats. The powers on A and S repectively in this
-                equation.
-            * K_t -> float. The prefactor (note time units are years).
-            Note that Qc is total capacity, not per unit width.
+        **Parameters for input file**:
 
-        OPTIONS:
-            *rock_density -> in kg/m3 (defaults to 2700)
-            *sediment_density -> in kg/m3 (defaults to 2700)
-            *fluid_density -> in most cases water density, in kg/m3 (defaults
-                to 1000)
-            *g -> acceleration due to gravity, in m/s**2 (defaults to 9.81)
+        Obligatory:
 
-            *threshold_shields -> +ve float; the threshold taustar_crit.
-                Defaults to 0.047, or if 'slope_sensitive_threshold' is set
-                True, becomes a weak function of local slope following Lamb et
-                al (2008):
-                    threshold_shields=0.15*S**0.25
-            *slope_sensitive_threshold -> bool, defaults to 'False'.
-                If true, threshold_shields is set according to the Lamb
-                equation,
-                An exception will be raised if threshold_shields is
-                also set.
-            *dt -> +ve float. If set, this is the fixed timestep for this
-                component. Can be overridden easily as a parameter in erode().
-                If not set (default), this parameter MUST be set in erode().
-            *use_W -> Bool; if True, component will look for node-centered data
-                describing channel width in grid.at_node['channel_width'], and
-                use it to implement incision ~ stream power per unit width.
-                Defaults to False. NOT YET IMPLEMENTED
-            *use_Q -> Bool. Overrides the basin hydrology relation, using an
-                local water discharge value assumed already calculated and
-                stored in grid.at_node['discharge']. NOT YET IMPLEMENTED
-            *C_MPM -> float. Defaults to 1. Allows tuning of the MPM prefactor,
-                which is calculated as
-                    Qc = 8.*C_MPM*(taustar - taustarcrit)**1.5
-                In almost all cases, tuning depth_equation_prefactor' is
-                preferred to tuning this parameter.
-            *return_stream_properties -> bool (default False).
-                If True, this component will save the calculations for
-                'channel_width', 'channel_depth', and 'channel_discharge' in
-                those grid fields. (Requires some
-                additional math, so is suppressed for speed by default).
+        *  ``Qc`` : str. Controls how to set the carrying capacity.
+           Either ``'MPM'``, ``'power_law'``, or a string giving the name
+           of the model field where capacity values are stored on nodes.
+           At the moment, only ``'MPM'`` and ``'power_law'`` are permitted
+           as a way to set the capacity automatically, but expansion would be
+           trivial.  If ``'from_array'``, the module will attempt to set the
+           capacity
 
-        '''
+           Note capacities must be specified as volume flux.
+
+        Assuming you set ``Qc == 'MPM'``:
+
+        *  ``b_sp``, ``c_sp``: float. These are the powers on discharge and
+           drainage area in the equations used to control channel width
+           and basin hydrology, respectively::
+
+               W = k_w * Q ** b_sp
+               Q = k_Q * A ** c_sp
+
+           These parameters are used to constrain flow depth, and may be
+           omitted if ``use_W`` or ``use_Q`` are set.
+        *  ``k_Q``, ``k_w``, ``mannings_n``: float. These are the prefactors
+           on the basin hydrology and channel width-discharge relations, and
+           ``n`` from the Manning's equation, respectively. These are
+           needed to allow calculation of shear stresses and hence
+           carrying capacities from the local slope and drainage area
+           alone.
+
+           Don't know what to set these values to? k_w=2.5, k_Q=2.5e-7,
+           mannings_n=0.05 give vaguely plausible numbers with b=0.5,
+           c = 1.(e.g., for a drainage area ~350km2, like Boulder Creek
+           at Boulder, => depth~1.3m, width~23m, shear stress ~O(200Pa)
+           for an "annual-ish" flood). [If you want to continue playing
+           with calibration, the ~50yr return time 2013 floods produced
+           depths ~2.3m with Q~200m3/s]
+        *  ``Dchar``: float.  The characteristic grain diameter in meters
+           (==D50 in most cases) used to calculate Shields numbers
+           in the channel. If you want to define Dchar values at each
+           node, don't set, and use the Dchar_if_used argument in erode()
+           instead.
+
+        If you set power_law, :math:`Q_c = K_t A^m_t S ^ n_t`,
+
+        *  ``m_t``, ``n_t`` : float. The powers on ``A`` and ``S`` repectively
+           in this equation.
+        *  ``K_t``: float. The prefactor (note time units are years).
+           Note that `Qc` is total capacity, not per unit width.
+
+        Options:
+
+        *  ``rock_density``: float. in kg/m3 (defaults to 2700)
+        *  ``sediment_density``: float. in kg/m3 (defaults to 2700)
+        *  ``fluid_density``: float. in most cases water density, in kg/m3
+           (defaults to 1000)
+        *  ``g``: float. acceleration due to gravity, in m/s**2 (defaults to
+           9.81)
+        *  ``threshold_shields``: +ve float; the threshold taustar_crit.
+           Defaults to 0.047, or if 'slope_sensitive_threshold' is set
+           True, becomes a weak function of local slope following Lamb et
+           al (2008)::
+
+               threshold_shields = 0.15 * S ** 0.25
+
+        *  ``slope_sensitive_threshold``: bool, defaults to 'False'.
+           If true, threshold_shields is set according to the Lamb
+           equation, An exception will be raised if threshold_shields is
+           also set.
+        *  ``dt``: +ve float. If set, this is the fixed timestep for this
+           component. Can be overridden easily as a parameter in erode().
+           If not set (default), this parameter MUST be set in erode().
+        *  ``use_W``: bool; if ``True``, component will look for node-centered
+           data describing channel width in grid.at_node['channel_width'], and
+           use it to implement incision ~ stream power per unit width.
+           Defaults to False. **Not yet implemented**.
+        *  ``use_Q``: bool. Overrides the basin hydrology relation, using an
+           local water discharge value assumed already calculated and
+           stored in ``grid.at_node['discharge']``. **Not yet implemented**.
+        *  ``C_MPM``: float. Defaults to 1. Allows tuning of the MPM prefactor,
+           which is calculated as::
+
+               Qc = 8. * C_MPM * (taustar - taustarcrit) ** 1.5
+
+           In almost all cases, tuning depth_equation_prefactor' is
+           preferred to tuning this parameter.
+        *  ``return_stream_properties``: bool (default False).
+           If True, this component will save the calculations for
+           'channel_width', 'channel_depth', and 'channel_discharge' in
+           those grid fields. (Requires some additional math, so is suppressed
+           for speed by default).
+        """
         # this is the fraction we allow any given slope in the grid to evolve
         # by in one go (suppresses numerical instabilities)
         self.capacity_options = ['MPM', 'power_law']
@@ -428,101 +447,120 @@ class TransportLimitedEroder(Component):
               # W_if_used=None, Q_if_used=None,
               stability_condition='loose',
               Dchar_if_used=None, io=None):
-        """
+        """Calculate fluvial transport capacity.
+
+
         This method calculates the fluvial sediment transport capacity at all
         nodes, then erodes or deposits sediment as required.
 
-        *grid* & *dt* are the grid object and timestep (float) respectively.
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid
+        dt : float
+            Timestep.
+        node_elevs :
+            Tells the component where to look for the node elevations.
+            Pass another string to override which grid field the component
+            looks at, or pass a nnodes-long array of elevation values directly
+            instead.
+        node_drainage_areas :
+            Tells the component where to look for the drainage area values.
+            Change to another string to override which grid field the
+            component looks at, or pass a nnodes-long array of drainage
+            areas values directly instead.
+        node_receiving flow :
+            Tells the component where to look for the node ids which receive
+            flow from each node. This is an output from the flow_routing
+            module. Change to another string to override which grid field the
+            component looks at, or pass a nnodes-long array of IDs
+            directly instead.
 
-        *node_elevs* tells the component where to look for the node elevations.
-        Pass another string to override which grid field the component looks
-        at, or pass a nnodes-long array of elevation values directly instead.
+            Alternatively, set *link_slopes* (and *link_node_mapping*) if this
+            data is only available at links. 'planet_surface__derivative_of_elevation'
+            is the default field name for link slopes. Override this name by
+            setting the variable as the appropriate string, or override use of
+            grid fields altogether by passing an array. *link_node_mapping*
+            controls how the component maps these link values onto the arrays.
+            We assume there is always a 1:1 mapping (pass the values already projected
+            onto the nodes using slopes_at_nodes if not). Other components, e.g.,
+            flow_routing.route_flow_dn, may provide the necessary outputs to make
+            the mapping easier: e.g., just pass 'links_to_flow_reciever' from that
+            module (the default name). If the component cannot find an existing
+            mapping through this parameter, it will derive one on the fly, at
+            considerable cost of speed (see on-screen reports).
+        slopes_from_elevs :
+            allows the module to create gradients internally
+            from elevations rather than have them provided. Set to True to force
+            the component to look for the data in grid.at_node[
+            'topographic__elevation'];
+            set to 'name_of_field' to override this name, or pass an nnode-array
+            to use those values as elevations instead. Using this option is
+            considerably slower than any of the alternatives, as it also has to
+            calculate the link_node_mapping from stratch each time.
 
-        *node_drainage_areas* tells the component where to look for the
-        drainage area values. Change to another string to override which grid
-        field the component looks at, or pass a nnodes-long array of drainage
-        areas values directly instead.
+            In both these cases, at present the mapping is to use the maximum
+            slope of --any-- link attached to the node as the representative node
+            slope. This is primarily for speed, but may be a good idea to modify
+            later.
+        runoff_rate_if_used :
+            is the runoff rate in m/yr, if used (take care with the
+            units...!). Either a float, or an nnodes-long array
+            (NB: array functionality is untested).
+            If specified, becomes a multiplicative modifier on k_Q, above.
+            Ensure you adjust the precipitation time series so that the
+            flood series you get makes sense! If not set, the precip rate
+            is assumed to be rolled into the k_Q term already.
 
-        *node_receiving flow* tells the component where to look for the node
-        ids which receive flow from each node. This is an output from the
-        flow_routing module.
-        Change to another string to override which grid field the
-        component looks at, or pass a nnodes-long array of IDs
-        directly instead.
+            *W_if_used* and *Q_if_used* must be provided if you set use_W and
+            use_Q respectively in the component initialization. They can be
+            either field names or nnodes arrays as in the other cases.
+        stability_condition :
+            controls how we limit the internal timestep of the model to improve
+            solution stability. 'loose' (default) employs a condition that
+            prevents changes in the drainage structure of the
+            existing channel network - slopes may not reverse - and this should
+            prove adequate for most uses. 'tight' uses a considerably stricter Lax/
+            Von Neumann criterion, but will be considerably slower.
+        Dchar_if_used :
+            must be set as a grid field string or nnoodes-long array if
+            'Dchar' as a float was not provided in the input file. (If it
+            was, this will be overridden).
 
-        Alternatively, set *link_slopes* (and *link_node_mapping*) if this data
-        is only available at links. 'planet_surface__derivative_of_elevation'
-        is the default field name for link slopes. Override this name by
-        setting the variable as the appropriate string, or override use of
-        grid fields altogether by passing an array. *link_node_mapping*
-        controls how the component maps these link values onto the arrays. We
-        assume there is always a 1:1 mapping (pass the values already projected
-        onto the nodes using slopes_at_nodes if not). Other components, e.g.,
-        flow_routing.route_flow_dn, may provide the necessary outputs to make
-        the mapping easier: e.g., just pass 'links_to_flow_reciever' from that
-        module (the default name). If the component cannot find an existing
-        mapping through this parameter, it will derive one on the fly, at
-        considerable cost of speed (see on-screen reports).
+        Notes
+        -----
 
-        *slopes_from_elevs* allows the module to create gradients internally
-        from elevations rather than have them provided. Set to True to force
-        the component to look for the data in grid.at_node[
-        'topographic__elevation'];
-        set to 'name_of_field' to override this name, or pass an nnode-array
-        to use those values as elevations instead. Using this option is
-        considerably slower than any of the alternatives, as it also has to
-        calculate the link_node_mapping from stratch each time.
+        **Sets: (as fields on the grid)**:
 
-        In both these cases, at present the mapping is to use the maximum
-        slope of --any-- link attached to the node as the representative node
-        slope. This is primarily for speed, but may be a good idea to modify
-        later.
+        .. note::
+            Note the time units are SECONDS in these fields
 
-        *runoff_rate_if_used* is the runoff rate in m/yr, if used (take care
-        with the units...!). Either a float, or an nnodes-long array
-        (NB: array functionality is untested).
-        If specified, becomes a multiplicative modifier on k_Q, above.
-        Ensure you adjust the precipitation time series so that the
-        flood series you get makes sense! If not set, the precip rate
-        is assumed to be rolled into the k_Q term already.
+        *  ``topographic__elevation`` (m), the elevations (or your name)
+        *  ``fluvial_sediment_transport_capacity`` (m**3/s), the volumetric
+           transport capacities at each node
+        *  ``fluvial_sediment_flux_into_node`` (m**3/s), the total volumetric
+           sed flux entering each node
 
-        *W_if_used* and *Q_if_used* must be provided if you set use_W and use_Q
-        respectively in the component initialization. They can be either field
-        names or nnodes arrays as in the other cases.
-
-        *stability_condition* controls how we limit the internal timestep of
-        the model to improve solution stability. 'loose' (default) employs a
-        condition that prevents changes in the drainage structure of the
-        existing channel network - slopes may not reverse - and this should
-        prove adequate for most uses. 'tight' uses a considerably stricter Lax/
-        Von Neumann criterion, but will be considerably slower.
-
-        *Dchar_if_used* must be set as a grid field string or nnoodes-long
-        array if 'Dchar' as a float was not provided in the input file. (If it
-        was, this will be overridden).
-
-        SETS: (as fields on the grid)
-        ***Note the time units are SECONDS in these fields***
-        - 'topographic__elevation' (m), the elevations (or your name)
-        - 'fluvial_sediment_transport_capacity' (m**3/s), the volumetric
-            transport capacities at each node
-        - 'fluvial_sediment_flux_into_node' (m**3/s), the total volumetric sed
-            flux entering each node
         If your stability_condition was 'tight':
-        - 'effective_fluvial_diffusivity'
+
+        *  ``effective_fluvial_diffusivity``
+
         If return_stream_properties was True:
-        - 'channel_width' (m)
-        - 'channel_depth' (m)
-        - 'channel_discharge' (m**3/s)
-        - 'channel_bed_shear_stress' (Pa)
-        - The number of internal loops required per supplied time step is
-            stored as a property of the class instance, self.iterations_in_dt.
-            This can be useful for tracking computational load imposed by this
-            component.
 
-        RETURNS:
-        grid, elevations
+        *  ``channel_width`` (m)
+        *  ``channel_depth`` (m)
+        *  ``channel_discharge`` (m**3/s)
+        *  ``channel_bed_shear_stress`` (Pa)
 
+        The number of internal loops required per supplied time step is
+        stored as a property of the class instance, ``self.iterations_in_dt``.
+        This can be useful for tracking computational load imposed by this
+        component.
+
+        Returns
+        -------
+        tuple
+            Tuple of the grid and numpy array of node elevations.
         """
 
         if runoff_rate_if_used is not None:

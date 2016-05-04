@@ -21,19 +21,20 @@ Subclasses
 ----------
 
 Landlab provides for several different lattice and connection types:
-- RasterCTS: regular raster grid with transitions between horizontal and
-  vertical cell pairs
-- OrientedRasterCTS: like a RasterLCA, but different transition rates can
-  be assigned to vertical and horizontal pairs. This property of
-  orientation can be used, for example, to implement rules representing
-  gravitational attraction, or flow of a fluid with a particular
-  direction.
-- RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
-  and horizontal cell pairs.
-- OrientedRasterD8CTS: as above but orientation also matters.
-- HexCTS: hexagonal grid
-- OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
-  according to orientation.
+
+-  RasterCTS: regular raster grid with transitions between horizontal and
+   vertical cell pairs
+-  OrientedRasterCTS: like a RasterLCA, but different transition rates can
+   be assigned to vertical and horizontal pairs. This property of
+   orientation can be used, for example, to implement rules representing
+   gravitational attraction, or flow of a fluid with a particular
+   direction.
+-  RasterD8CTS: like a RasterLCA, but includes diagonal as well as vertical
+   and horizontal cell pairs.
+-  OrientedRasterD8CTS: as above but orientation also matters.
+-  HexCTS: hexagonal grid
+-  OrientedHexCTS: hexagonal grid, with transition rates allowed to vary
+   according to orientation.
 
 Encoding of "states"
 --------------------
@@ -510,14 +511,14 @@ class CellLabCTSModel(object):
         say, it's a Numpy array of the same length as the number of nodes in
         the grid.
 
+        **Creates**:
+
+        *  self.node_state : 1D array of ints (x number of nodes in grid)
+           The node-state array
+
         Parameters
         ----------
         node_states : 1D array of ints (x number of nodes in grid)
-
-        Creates
-        -------
-        self.node_state : 1D array of ints (x number of nodes in grid)
-            The node-state array
 
         Notes
         -----
@@ -571,11 +572,12 @@ class CellLabCTSModel(object):
         Creates and configures an array that contain the orientation code for
         each active link (and corresponding cell pair).
 
-        Notes
-        -----
         **creates**:
 
         * ``self.active_link_orientation`` : 1D numpy array
+
+        Notes
+        -----
 
         The setup varies depending on the type of LCA. The default is
         non-oriented, in which case we just have an array of zeros. Subclasses
@@ -593,8 +595,6 @@ class CellLabCTSModel(object):
         3-element tuple, comprising the TAIL state, FROM state, and
         orientation) to link states.
 
-        Notes
-        -----
         **creates**:
 
         * ``self.link_state`` : 1D numpy array

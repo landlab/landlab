@@ -210,7 +210,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         formula for area is:
 
         .. math::
-
             A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
         """
         self._area_of_cell = (0.8660254 * self._dx ** 2 +
@@ -219,19 +218,27 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @staticmethod
     def make_hex_points_horizontal_hex(num_rows, base_num_cols, dxh):
-        """
+        """Create a set of points on a staggered grid.
+
         Creates and returns a set of (x,y) points in a staggered grid in which the
         points represent the centers of regular hexagonal cells, and the points
         could be connected to form equilateral triangles. The overall shape of the
         lattice is hexagonal, and one of the 3 axes is horizontal.
 
-        Inputs: num_rows = number of rows in lattice
-                base_num_cols = number of columns in the bottom and top rows
-                                (middle rows have more)
-                dxh = horizontal and diagonal spacing between points
+        Parameters
+        ----------
+        num_rows : int
+            Number of rows in lattice
+        base_num_cols : int
+            Number of columns in the bottom and top rows (middle rows have more)
+        dxh : int
+            horizontal and diagonal spacing between points
 
-        Return: 2D numpy array containing point (x,y) coordinates, and total number
-                of points.
+        Returns
+        -------
+        points : ndarray
+            2D numpy array containing point (x,y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -244,7 +251,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 0]
         array([ 0. ,  1. , -0.5])
         """
-
         dxv = dxh * numpy.sqrt(3.) / 2.
         half_dxh = dxh / 2.
 
@@ -273,18 +279,27 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @staticmethod
     def make_hex_points_horizontal_rect(num_rows, num_cols, dxh):
-        """
-        Creates and returns a set of (x,y) points in a staggered grid in which the
-        points represent the centers of regular hexagonal cells, and the points
-        could be connected to form equilateral triangles. The overall shape of the
-        lattice is rectangular, and one of the 3 axes is horizontal.
+        """Create a set of points in a taggered grid.
 
-        Inputs: num_rows = number of rows in lattice
-                num_cols = number of columns in lattice
-                dxh = horizontal and diagonal spacing between points
+        Creates and returns a set of (x,y) points in a staggered grid in which
+        the points represent the centers of regular hexagonal cells, and the
+        points could be connected to form equilateral triangles. The overall
+        shape of the lattice is rectangular, and one of the 3 axes is
+        horizontal.
 
-        Return: 2D numpy array containing point (x,y) coordinates, and total number
-                of points.
+        Parameters
+        ----------
+        num_rows : int
+            Number of rows in lattice
+        num_cols : int
+            Number of columns in lattice
+        dxh : int
+            horizontal and diagonal spacing between points
+
+        Returns
+        -------
+        points : ndarray of shape `(n_points, 2)`
+            2D numpy array containing point (x,y) coordinates, and total number of points.
 
         Examples
         --------
@@ -297,7 +312,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 0]
         array([ 0.,  1.,  2.])
         """
-
         dxv = dxh * numpy.sqrt(3.) / 2.
         half_dxh = dxh / 2.
 
@@ -322,13 +336,21 @@ class HexModelGrid(VoronoiDelaunayGrid):
         could be connected to form equilateral triangles. The overall shape of the
         lattice is hexagonal.
 
-        Inputs: base_num_rows = number of columns in the left and right columns
-                                (middle columns have more)
-                num_cols = number of columns in lattice
-                dxv = vertical and diagonal spacing between points
+        Parameters
+        ----------
+        base_num_rows : int
+            Number of columns in the left and right columns (middle columns
+            have more)
+        num_cols : int
+            Number of columns in lattice
+        dxv : float
+            Vertical and diagonal spacing between points
 
-        Return: 2D numpy array containing point (x,y) coordinates, and total number
-                of points.
+        Returns
+        -------
+        points : ndarray of shape `(n_points, 2)`
+            2D numpy array containing point (x,y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -341,7 +363,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 1]
         array([ 0. ,  1. , -0.5])
         """
-
         dxh = dxv * numpy.sqrt(3.) / 2.
         half_dxv = dxv / 2.
 
@@ -376,12 +397,20 @@ class HexModelGrid(VoronoiDelaunayGrid):
         could be connected to form equilateral triangles. The overall shape of the
         lattice is rectangular.
 
-        Inputs: num_rows = number of columns in lattice
-                num_cols = number of columns in lattice
-                dxv = vertical and diagonal spacing between points
+        Parameters
+        ----------
+        num_rows : int
+            Number of columns in lattice
+        num_cols : float
+            Number of columns in lattice
+        dxv : float
+            Vertical and diagonal spacing between points
 
-        Return: 2D numpy array containing point (x,y) coordinates, and total number
-                of points.
+        Returns
+        -------
+        points : ndarray of shape `(n_points, 2)`
+            2D numpy array containing point (x,y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -394,7 +423,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 1]
         array([ 0.,  1.,  2.])
         """
-
         dxh = dxv * numpy.sqrt(3.) / 2.
         half_dxv = dxv / 2.
 
@@ -413,7 +441,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @property
     def number_of_node_columns(self):
-        """Number of node columns in a rectangular-shaped and/or
+        """Number of node columns hex grid.
+
+        Number of node columns in a rectangular-shaped and/or
         vertically oriented hex grid.
 
         Returns the number of columns, including boundaries.
@@ -521,20 +551,19 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._hexplot_configured = True
 
     def hexplot(self, data, data_label=None, color_map=None):
-        """
+        """Create a plot of the grid elements.
+
         Creates a plot of the grid and one node-data field, showing hexagonal
         cells colored by values in the field.
 
         Parameters
         ----------
-        data : str OR node array (1d numpy array with number_of_nodes entries)
-            Data field to be colored
+        data : str or node array (1d numpy array with number_of_nodes entries)
+            Data field to be colored.
         data_label : str, optional
-            Label for colorbar
-
-        Returns
-        -------
-        (none)
+            Label for colorbar.
+        color_map : matplotlib colormap object, None
+            Color map to apply (defaults to "jet")
         """
         from numpy import array, amin, amax
         import matplotlib.pyplot as plt

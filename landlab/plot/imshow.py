@@ -111,7 +111,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
     """Map view of grid data over all grid cells.
 
     Prepares a map view of data over all cells in the grid.
-    Method can take any of the same **kwds as :func:`imshow_grid_at_node`.
+    Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
 
     Construction ::
 

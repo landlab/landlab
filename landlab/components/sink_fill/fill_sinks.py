@@ -227,6 +227,11 @@ class SinkFiller(Component):
         This is the main method. Call it to fill depressions in a starting
         topography.
 
+        **Output fields**
+
+        *  `topographic__elevation` : the updated elevations
+        *  `sediment_fill__depth` : the depth of sediment added at each node
+
         Parameters
         ----------
         apply_slope : None, bool, or float
@@ -241,11 +246,6 @@ class SinkFiller(Component):
             accommodate this, but will eventually raise an OverflowError
             if it can't deal with it. If you pass True, the method will use
             the default value of 1.e-5.
-
-        Return fields
-        -------------
-        'topographic__elevation' : the updated elevations
-        'sediment_fill__depth' : the depth of sediment added at each node
         """
         self.original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage

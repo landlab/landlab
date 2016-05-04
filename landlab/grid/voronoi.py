@@ -381,9 +381,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         """Set up node connectivity.
 
         Creates and returns the following arrays:
-        1. For each node, the ID of the corresponding cell, or
+
+        *  For each node, the ID of the corresponding cell, or
            BAD_INDEX_VALUE if the node has no cell.
-        2. For each cell, the ID of the corresponding node.
+        *  For each cell, the ID of the corresponding node.
 
         Parameters
         ----------
@@ -422,12 +423,14 @@ class VoronoiDelaunayGrid(ModelGrid):
 
     @staticmethod
     def create_links_from_triangulation(tri):
-        """
+        """Create links from a Delaunay triangulation.
+
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
-            1) a numpy array containing the ID of the "from" node for each link
-            2) a numpy array containing the ID of the "to" node for each link
-            3) the number of links in the triangulation
+
+        *  a numpy array containing the ID of the "from" node for each link
+        *  a numpy array containing the ID of the "to" node for each link
+        *  the number of links in the triangulation
 
         Examples
         --------
