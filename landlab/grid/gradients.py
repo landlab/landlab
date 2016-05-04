@@ -16,9 +16,64 @@ Gradient calculation functions
 """
 
 import numpy as np
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.decorators import use_field_name_or_array, deprecated
 
 
+
+@use_field_name_or_array('node')
+def calc_grad_at_link(grid, node_values, out=None):
+    """Calculate gradients of node values over links.
+
+    Calculates the gradient in `node_values` at each link in the grid,
+    returning an array of length `number_of_links`.
+
+    Construction::
+
+        calc_grad_at_link(grid, node_values, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name (x number of nodes)
+        Values at grid nodes.
+    out : ndarray, optional (x number of links)
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Gradients across active links.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[5] = 50.0
+    >>> z[6] = 36.0
+    >>> calc_grad_at_link(rg, z)  # there are 17 links
+    array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
+           -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
+
+    >>> from landlab import HexModelGrid
+    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z[4] = 50.0
+    >>> z[5] = 36.0
+    >>> calc_grad_at_link(hg, z)  # there are 11 faces
+    array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
+            0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
+    """
+    if out is None:
+        out = grid.empty(at='link')
+    return np.divide(node_values[grid.node_at_link_head] -
+                     node_values[grid.node_at_link_tail],
+                     grid.length_of_link, out=out)
+
+
+
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_active_links(grid, node_values, out=None):
     """Calculate gradients of node values over active links.
@@ -51,6 +106,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
                      grid.link_length[grid.active_links], out=out)
 
 
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_links(grid, node_values, out=None):
     """Calculate gradients of node values over links.
@@ -82,6 +138,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
                      grid.link_length, out=out)
 
 
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_faces(grid, node_values, out=None):
     """Calculate gradients of node values over faces.
@@ -135,7 +192,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
 
 
 @use_field_name_or_array('node')
-def calculate_diff_at_links(grid, node_values, out=None):
+def calc_diff_at_link(grid, node_values, out=None):
     """Calculate differences of node values over links.
 
     Calculates the difference in quantity *node_values* at each link in the
@@ -176,6 +233,15 @@ def calculate_diff_at_links(grid, node_values, out=None):
                        node_values[grid.node_at_link_tail], out=out)
 
 
+@deprecated(use='calc_diff_at_link', version='1.0beta')
+@use_field_name_or_array('node')
+def calculate_diff_at_links(grid, node_values, out=None):
+    """Calculate differences of node values over links.
+    """
+    return calc_diff_at_link(grid, node_values, out)
+
+
+@deprecated(use='calc_diff_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_diff_at_active_links(grid, node_values, out=None):
     """Calculate differences of node values over active links.
