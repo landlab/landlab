@@ -1992,7 +1992,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> for i in xrange(10):
         ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
         ...                                              i)].mean())
-        >>> mean_ring_slope  # notice the small amounts of numerical error
+        >>> # notice the small amounts of numerical error here:
+        >>> mean_ring_slope  # doctest: +NORMALIZE_WHITESPACE
         [49.106605350869103,
          45.471738628700471,
          44.646123806208116,
