@@ -162,7 +162,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         half_num_cols = (self.nc + 1) // 2
         bottom_row_node_id = (arange(self.nc) // 2 +
                               (arange(self.nc) % 2) * half_num_cols)
-        print bottom_row_node_id
 
         #   Find the first of the bottom-row nodes that lies in the footwall.
         # This loop exploits the fact that nodes are numbered in an order
@@ -179,7 +178,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         self.num_fw_rows = zeros(self.nc, dtype=int)
         for c in range(self.nc):
             current_row = 0
-            while (current_row<self.nr and
+            while (current_row < self.nr and
                    in_footwall[bottom_row_node_id[c] + self.nc*current_row]):
                 self.num_fw_rows[c] += 1
                 current_row += 1
@@ -317,17 +316,19 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             #print 'pid for new base:',propids_for_incoming_nodes
 
         # We go column-by-column, starting from the right side
-        for c in range(self.grid.number_of_node_columns-1, self.first_fw_col-1, -1):
+        for c in range(self.grid.number_of_node_columns - 1,
+                       self.first_fw_col - 1, -1):
 
             # Odd-numbered rows are shifted up in the hexagonal, vertically
             # oriented lattice
             row_offset = 2 - (c % 2)
 
-            # Number of base nodes in the footwall in this column. Either 1 or 2.
+            # Number of base nodes in the footwall in this column (1 or 2).
             n_base_nodes = min(self.num_fw_rows[c], row_offset)
 
             # ID of the bottom footwall node
-            bottom_node = c*self.grid.number_of_node_rows
+            bottom_node = (c + 1) // 2 + ((c % 2) * ((self.nc - 1) // 2))
+            # GOT HERE; THE NEXT LINE NEEDS MODIFICATION FOR NEW INDEXING
 
             # The bottom 1 or 2 nodes in this column are set to rock
             self.node_state[bottom_node:(bottom_node+n_base_nodes)] = rock_state
