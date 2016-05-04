@@ -1,6 +1,6 @@
-Voronoi-DeLaunay Grids (`VoronoiDelaunayGrid`)
+Voronoi-Delaunay Grids (`VoronoiDelaunayGrid`)
 ====================
-Inherits from `ModelGrid` and adds:
+Landlab's Voronoi-Delaunay grids are implemented by the class `VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
 
 .. automodule:: landlab.grid.voronoi
     :members:
