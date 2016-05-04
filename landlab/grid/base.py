@@ -1989,22 +1989,23 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> z = mg.radius_at_node
         >>> slopes = mg.calc_slope_of_node(elevs=z)
         >>> mean_ring_slope = []
-        >>> for i in xrange(10):
+        >>> for i in range(10):
         ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
         ...                                              i)].mean())
         >>> # notice the small amounts of numerical error here:
-        >>> mean_ring_slope  # doctest: +NORMALIZE_WHITESPACE
-        [49.106605350869103,
-         45.471738628700471,
-         44.646123806208116,
-         44.896866010480984,
-         44.938839401113974,
-         44.950111880067674,
-         44.964377572754891,
-         44.980895342790689,
-         44.980506452187001,
-         45.069580163013605]
+        >>> target_mean_ring_slope = [49.106605350869103, 45.471738628700471,
+        ...                           44.646123806208102, 44.896866010480977,
+        ...                           44.938839401113974, 44.950111880067681,
+        ...                           44.964377572754891, 44.980895342790689,
+        ...                           44.980506452187001, 45.069580163013619]
+         >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
+         True
         """
+        try:
+            patches_at_node = self.patches_at_node()
+        except TypeError:  # was a property, not a fn (=> new style)
+            patches_at_node = numpy.ma.masked_where(
+                self.patches_at_node == -1, self.patches_at_node, copy=False)
         try:
             z = self.at_node[elevs]
         except TypeError:
@@ -2036,22 +2037,22 @@ class ModelGrid(ModelDataFieldsMixIn):
         slopes_at_patch = np.arccos(cos_slopes_at_patch)
 
         # now CAREFUL - patches_at_node is MASKED
-        slopes_at_node_unmasked = slopes_at_patch[self.patches_at_node()]
+        slopes_at_node_unmasked = slopes_at_patch[patches_at_node]
         slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
-                                            mask=self.patches_at_node().mask)
+                                            mask=patches_at_node.mask)
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
         if return_components:
             theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
             x_slope_patches = numpy.cos(theta)*slopes_at_patch
             y_slope_patches = numpy.sin(theta)*slopes_at_patch
-            x_slope_unmasked = x_slope_patches[self.patches_at_node()]
+            x_slope_unmasked = x_slope_patches[patches_at_node]
             x_slope_masked = numpy.ma.array(x_slope_unmasked,
-                                            mask=self.patches_at_node().mask)
+                                            mask=patches_at_node.mask)
             x_slope = numpy.mean(x_slope_masked, axis=1).data
-            y_slope_unmasked = y_slope_patches[self.patches_at_node()]
+            y_slope_unmasked = y_slope_patches[patches_at_node]
             y_slope_masked = numpy.ma.array(y_slope_unmasked,
-                                            mask=self.patches_at_node().mask)
+                                            mask=patches_at_node.mask)
             y_slope = numpy.mean(y_slope_masked, axis=1).data
             mean_grad_x = x_slope
             mean_grad_y = y_slope

@@ -3775,8 +3775,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> np.allclose(cmp[0].reshape((4, 4))[:, 0],
         ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
         True
-
         """
+        try:
+            patches_at_node = self.patches_at_node()
+        except TypeError:  # was a property, not a fn (=> new style)
+            patches_at_node = numpy.ma.masked_where(
+                self.patches_at_node == -1, self.patches_at_node, copy=False)
         try:
             z = self.at_node[elevs]
         except TypeError:
@@ -3850,16 +3854,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         diag_upright_mean_patch = (slopes_at_patch_topright +
                                    slopes_at_patch_bottomleft) / 2.
         slopes_at_node1_unmasked = diag_upleft_mean_patch[
-            self.patches_at_node()[:, [0, 2]]]
+            patches_at_node[:, [0, 2]]]
         slopes_at_node2_unmasked = diag_upright_mean_patch[
-            self.patches_at_node()[:, [1, 3]]]
-        slopes_at_allnode_masked = np.ma.empty_like(self.patches_at_node(),
+            patches_at_node[:, [1, 3]]]
+        slopes_at_allnode_masked = np.ma.empty_like(patches_at_node,
                                                     dtype=float)
         slopes_at_allnode_masked[:, :2] = np.ma.array(
-            slopes_at_node1_unmasked, mask=self.patches_at_node()[
+            slopes_at_node1_unmasked, mask=patches_at_node[
                 :, [0, 2]].mask)
         slopes_at_allnode_masked[:, 2:] = np.ma.array(
-            slopes_at_node2_unmasked, mask=self.patches_at_node()[
+            slopes_at_node2_unmasked, mask=patches_at_node[
                 :, [1, 3]].mask)
         slope_mag = np.mean(slopes_at_allnode_masked, axis=1).data
 
@@ -3883,29 +3887,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             x_slope_upright_diag = (x_slope_patches_TR + x_slope_patches_BL)/2.
             y_slope_upright_diag = (y_slope_patches_TR + y_slope_patches_BL)/2.
 
-            x_slope1_unmasked = x_slope_upleft_diag[self.patches_at_node()[
+            x_slope1_unmasked = x_slope_upleft_diag[patches_at_node[
                 :, [0, 2]]]
-            y_slope1_unmasked = y_slope_upleft_diag[self.patches_at_node()[
+            y_slope1_unmasked = y_slope_upleft_diag[patches_at_node[
                 :, [0, 2]]]
-            x_slope2_unmasked = x_slope_upright_diag[self.patches_at_node()[
+            x_slope2_unmasked = x_slope_upright_diag[patches_at_node[
                 :, [1, 3]]]
-            y_slope2_unmasked = y_slope_upright_diag[self.patches_at_node()[
+            y_slope2_unmasked = y_slope_upright_diag[patches_at_node[
                 :, [1, 3]]]
             xslopes_at_allnode_masked = np.ma.empty_like(
-                self.patches_at_node(), dtype=float)
+                patches_at_node, dtype=float)
             yslopes_at_allnode_masked = np.ma.empty_like(
-                self.patches_at_node(), dtype=float)
+                patches_at_node, dtype=float)
             xslopes_at_allnode_masked[:, :2] = np.ma.array(
-                x_slope1_unmasked, mask=self.patches_at_node()[
+                x_slope1_unmasked, mask=patches_at_node[
                     :, [0, 2]].mask)
             xslopes_at_allnode_masked[:, 2:] = np.ma.array(
-                x_slope2_unmasked, mask=self.patches_at_node()[
+                x_slope2_unmasked, mask=patches_at_node[
                     :, [1, 3]].mask)
             yslopes_at_allnode_masked[:, :2] = np.ma.array(
-                y_slope1_unmasked, mask=self.patches_at_node()[
+                y_slope1_unmasked, mask=patches_at_node[
                     :, [0, 2]].mask)
             yslopes_at_allnode_masked[:, 2:] = np.ma.array(
-                y_slope2_unmasked, mask=self.patches_at_node()[
+                y_slope2_unmasked, mask=patches_at_node[
                     :, [1, 3]].mask)
             x_slope = np.mean(xslopes_at_allnode_masked, axis=1).data
             y_slope = np.mean(yslopes_at_allnode_masked, axis=1).data
