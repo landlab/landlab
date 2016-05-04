@@ -1,8 +1,8 @@
 Base Class (`ModelGrid`)
-====================
+========================
 
 General class methods and attributes of the `landlab.grid.base` module
-------------------------
+----------------------------------------------------------------------
 
 .. automodule:: landlab.grid.base
     :members:
@@ -10,7 +10,7 @@ General class methods and attributes of the `landlab.grid.base` module
     :show-inheritance:
 
 Mapping data between different grid elements
----------------------------
+--------------------------------------------
 
 .. automodule:: landlab.grid.mappers
     :members:
@@ -18,7 +18,7 @@ Mapping data between different grid elements
     :show-inheritance:
 
 Gradient-calculation functions
----------------------------
+------------------------------
 
 .. automodule:: landlab.grid.gradients
     :members:
@@ -26,7 +26,7 @@ Gradient-calculation functions
     :show-inheritance:
 
 Miscellaneous functions
-------------------------
+-----------------------
 
 .. automodule:: landlab.grid.grid_funcs
   :members:
@@ -35,7 +35,7 @@ Miscellaneous functions
 
 
 Grid creation from a formatted input file
---------------------------
+-----------------------------------------
 
 .. automodule:: landlab.grid.create
     :members:
@@ -51,7 +51,7 @@ Function/method decorators
     :show-inheritance:
 
 Regular Rectilinear Grids (`RasterModelGrid`)
-====================
+=============================================
 Inherits from `ModelGrid` and adds:
 
   .. automodule:: landlab.grid.raster
@@ -60,7 +60,7 @@ Inherits from `ModelGrid` and adds:
       :show-inheritance:
 
 Mapping data between different grid elements
-----------------------------------
+--------------------------------------------
 
 .. automodule:: landlab.grid.raster_mappers
     :members:
@@ -68,7 +68,7 @@ Mapping data between different grid elements
     :show-inheritance:
 
 Gradient-calculation functions
-----------------------------------
+------------------------------
 
 .. automodule:: landlab.grid.raster_gradients
     :members:
@@ -84,7 +84,7 @@ Slope-aspect calculation functions
     :show-inheritance:
 
 Steepest-descent functions
-----------------------------------
+--------------------------
 
 .. automodule:: landlab.grid.raster_steepest_descent
     :members:
@@ -92,7 +92,7 @@ Steepest-descent functions
     :show-inheritance:
 
 Boundary handling for grid edges
-----------------------------------
+--------------------------------
 
 .. automodule:: landlab.grid.raster_set_status
     :members:
@@ -100,7 +100,7 @@ Boundary handling for grid edges
     :show-inheritance:
 
 Miscellaneous raster-grid functions
-  --------------------------------
+-----------------------------------
 
   .. automodule:: landlab.grid.raster_funcs
       :members:
@@ -108,7 +108,7 @@ Miscellaneous raster-grid functions
       :show-inheritance:
 
 Voronoi-DeLaunay Grids (`VoronoiDelaunayGrid`)
-====================
+==============================================
 Inherits from `ModelGrid` and adds:
 
 .. automodule:: landlab.grid.voronoi
@@ -117,7 +117,7 @@ Inherits from `ModelGrid` and adds:
     :show-inheritance:
 
 Hex Grids (`HexModelGrid`)
-====================
+==========================
 Inherits from `VoronoiDelauneyGrid` and adds:
 
 .. automodule:: landlab.grid.hex
@@ -126,7 +126,7 @@ Inherits from `VoronoiDelauneyGrid` and adds:
     :show-inheritance:
 
 Radial Grids (`HexModelGrid`)
-====================
+=============================
 Inherits from `VoronoiDelauneyGrid` and adds:
 
 .. automodule:: landlab.grid.radial

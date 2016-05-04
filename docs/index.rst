@@ -6,14 +6,14 @@
 
 Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
 
-==============================
+=====================
 Landlab Developer API
-==============================
+=====================
 
 The *Landlab Developer API* is a general reference manual for Landlab.
 
 Grids
-=======================
+=====
 
 As of Landlab version 0.2, there are four types of Landlab grid:
  - Raster
@@ -26,7 +26,8 @@ The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDela
 `VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
 
 Methods and properties common to all grids
---------------------------
+------------------------------------------
+
 .. toctree::
    :maxdepth: 4
 
@@ -39,7 +40,8 @@ Methods and properties common to all grids
    landlab.grid.decorators
 
 Specialized methods and properties for Rectilinear Grids 'raster grids'
---------------------------
+-----------------------------------------------------------------------
+
 Inherits from 'ModelGrid' and adds:
 
 .. toctree::
@@ -54,7 +56,7 @@ Inherits from 'ModelGrid' and adds:
    landlab.grid.raster_funcs
 
 Specialized methods and properties for Voronoi-Delaunay grids
---------------------------
+-------------------------------------------------------------
 
 Inherits from 'ModelGrid' and adds:
 
@@ -64,7 +66,7 @@ Inherits from 'ModelGrid' and adds:
    landlab.grid.voronoi
 
 Specialized methods and properties for hex grids
---------------------------
+------------------------------------------------
 
 Inherits from 'VoronoiDelauneyGrid' and adds:
 
@@ -74,7 +76,7 @@ Inherits from 'VoronoiDelauneyGrid' and adds:
    landlab.grid.hex
 
 Specialized methods and properties for radial grids
---------------------------
+---------------------------------------------------
 
 Inherits from 'VoronoiDelauneyGrid' and adds:
 
@@ -85,7 +87,7 @@ Inherits from 'VoronoiDelauneyGrid' and adds:
 
 
 Components
-=======================
+==========
 
 .. toctree::
    :maxdepth: 4
@@ -94,7 +96,7 @@ Components
 
 
 Input/Output (IO)
-=======================
+=================
 
 .. toctree::
    :maxdepth: 4
@@ -103,7 +105,7 @@ Input/Output (IO)
 
 
 Plotting and Visualization
-=======================
+==========================
 
 .. toctree::
    :maxdepth: 4
@@ -112,7 +114,7 @@ Plotting and Visualization
 
 
 Cellular Automata (CA)
-=======================
+======================
 
 .. toctree::
    :maxdepth: 4
