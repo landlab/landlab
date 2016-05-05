@@ -44,7 +44,7 @@ mg.at_node['topographic__elevation'][section_col] = 1.
 mg.set_closed_boundaries_at_grid_edges(False, False, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
 mg.status_at_node[section_col] = 2
-mg.update_links_nodes_cells_to_new_BCs()
+mg._update_links_nodes_cells_to_new_BCs()
 mg.at_node['water__unit_flux_in'].fill(0.)
 mg.at_node['water__unit_flux_in'][inlet_node] = 1.
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')

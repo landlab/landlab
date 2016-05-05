@@ -239,7 +239,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                                           INACTIVE_LINK, dtype=int)
 
         # Sort them by midpoint coordinates
-        self.sort_links_by_midpoint()
+        self._sort_links_by_midpoint()
 
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
@@ -259,10 +259,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._reset_link_status_list()
 
         # NODES & LINKS: IDs and directions of links at each node
-        self.make_links_and_link_dirs_at_node()
+        self._create_links_and_link_dirs_at_node()
 
         # LINKS: set up link unit vectors and node unit-vector sums
-        self._make_link_unit_vectors()
+        self._create_link_unit_vectors()
 
     @property
     def number_of_patches(self):
@@ -678,7 +678,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
         for i in range(self.number_of_nodes):
-            if not self.is_boundary(i, boundary_flag=4):  # don't include closed nodes
+            if not self.node_is_boundary(i, boundary_flag=4):  # don't include closed nodes
                 patches_with_node = numpy.argwhere(
                     numpy.equal(self._nodes_at_patch, i))[:, 0]
                 _patches_at_node[

@@ -632,7 +632,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                        INACTIVE_LINK, dtype=int)
 
         # Sort them by midpoint coordinates
-        self.sort_links_by_midpoint()
+        self._sort_links_by_midpoint()
 
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
@@ -649,7 +649,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.make_link_dirs_at_node()
 
         #   set up link unit vectors and node unit-vector sums
-        self._make_link_unit_vectors()
+        self._create_link_unit_vectors()
 
         #   set up link faces
         #
@@ -821,7 +821,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                      dtype=float)
         return self._area_of_cell
 
-    def _setup_cell_areas_array_force_inactive(self):
+    def _create_cell_areas_array_force_inactive(self):
         """Set up array cell areas including extra cells for perimeter nodes.
 
         This method supports the creation of the array that stores cell areas.
@@ -1144,7 +1144,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # now we blank out any patches that have a closed node as any
             # vertex:
             patch_nodes = self.nodes_at_patch
-            dead_nodes_in_patches = self.is_boundary(
+            dead_nodes_in_patches = self.node_is_boundary(
                 patch_nodes, boundary_flag=4)
             # IDs of patches with dead nodes
             dead_patches = np.where(np.any(dead_nodes_in_patches, axis=1))
@@ -1433,7 +1433,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
 
-    def _make_link_unit_vectors(self):
+    def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
 
         Creates self.link_unit_vec_x and self.link_unit_vec_y. These contain,
@@ -1453,7 +1453,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -----
         .. note::
 
-            Overrides ModelGrid._make_link_unit_vectors().
+            Overrides ModelGrid._create_link_unit_vectors().
 
         Creates the following:
         * `self.link_unit_vec_x`, `self.link_unit_vec_y` : `ndarray`
@@ -1537,7 +1537,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def _make_faces_at_cell(self, *args):
+    def __create_faces_at_cell(self, *args):
         """faces_at_cell([cell_id])
         Get array of faces of a cell.
 
@@ -1585,7 +1585,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             (self._face_at_link[inlinks], 
              self._face_at_link[outlinks]), axis=1))
 
-    def _setup_link_at_face(self):
+    def _create_link_at_face(self):
         """Set up links associated with faces.
 
         Returns an array of the link IDs for the links which intersect the
@@ -1609,7 +1609,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._link_at_face = squad_faces.link_at_face(self.shape)
         return self._link_at_face
 
-    def _setup_face_at_link(self):
+    def _create_face_at_link(self):
         """Set up array of faces associated with links.
 
         Return an array of the face IDs for the faces that intersect the links
@@ -2093,18 +2093,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 5.,  5.,  5.,  5.,  5.])
         """
         if self._link_length is None:
-            return self._calculate_link_length()
+            return self._create_length_of_link()
         else:
             return self._link_length
 
-    def _calculate_link_length(self):
+    def _create_length_of_link(self):
         """Calculate link lengths for a raster grid.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
-        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.,
@@ -2112,7 +2112,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 3., 3., 3.])
 
         >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
-        >>> grid._calculate_link_length() # doctest: +NORMALIZE_WHITESPACE
+        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 2., 2.,
                 1., 1., 1.,
                 2., 2.,
@@ -2509,7 +2509,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        self.update_links_nodes_cells_to_new_BCs()
+        self._update_links_nodes_cells_to_new_BCs()
 
     def set_closed_boundaries_at_grid_edges(self, right_is_closed,
                                             top_is_closed,
@@ -2610,7 +2610,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if left_is_closed:
             self._node_status[left_edge] = CLOSED_BOUNDARY
 
-        self.update_links_nodes_cells_to_new_BCs()
+        self._update_links_nodes_cells_to_new_BCs()
 
     def set_fixed_value_boundaries_at_grid_edges(
         self, right_is_fixed_val, top_is_fixed_val, left_is_fixed_val,
@@ -2720,7 +2720,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if left_is_fixed_val:
             self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        self.update_links_nodes_cells_to_new_BCs()
+        self._update_links_nodes_cells_to_new_BCs()
 
         # save some internal data to speed updating:
         self.fixed_value_node_properties = {}
@@ -2851,7 +2851,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 these_linked_nodes,
                 right_edge - 1, left_edge + 1))
 
-        self.update_links_nodes_cells_to_new_BCs()
+        self._update_links_nodes_cells_to_new_BCs()
 
         if not self.looped_node_properties:
             existing_IDs = np.array([])

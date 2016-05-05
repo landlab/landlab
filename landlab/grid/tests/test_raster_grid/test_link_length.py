@@ -19,13 +19,13 @@ def setup_grid():
 
 @with_setup(setup_unit_grid)
 def test_unit_spacing():
-    lengths = _RMG._calculate_link_length()
+    lengths = _RMG._create_length_of_link()
     assert_array_equal(lengths, np.ones(31))
 
 
 @with_setup(setup_grid)
 def test_non_unit_spacing():
-    assert_array_equal(_RMG._calculate_link_length(),
+    assert_array_equal(_RMG._create_length_of_link(),
                        [4., 4., 4., 4.,
                         3., 3., 3., 3., 3.,
                         4., 4., 4., 4.,
