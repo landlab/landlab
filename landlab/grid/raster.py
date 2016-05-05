@@ -3703,6 +3703,262 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """Stub for adding unit tests to RasterModelGrid."""
         pass
 
+    def calc_unit_normal_of_patch(self, elevs='topographic__elevation'):
+        """Calculate and return the unit normal vector <a, b, c> to a patch.
+
+        This method is not defined on a raster, as there is no unique unit
+        normal for a square patch. Use
+        `_calc_unit_normals_to_patch_subtriangles` instead.
+        """
+        raise NameError(
+            'This method is not defined on a raster, as there is no unique ' +
+            'unit normal for a square patch. Use ' +
+            '`_calc_unit_normals_to_patch_subtriangles` instead.')
+
+    def calc_unit_normals_of_patch_subtriangles(
+            self, elevs='topographic__elevation'):
+        """
+        Calculate the four unit normal vectors <a, b, c> to the four possible
+        subtriangles of a four-cornered (raster) patch.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+
+        Returns
+        -------
+        (n_TR, n_TL, n_BL, n_BR) : each a num-patches x length-3 array
+            Len-4 tuple of the four unit normal vectors <a, b, c> for the four
+            possible subtriangles in the patch. Order is (topright, topleft,
+            bottomleft, bottomright).
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> z = mg.node_x**2
+        >>> four_tris = mg.calc_unit_normals_of_patch_subtriangles(z)
+        >>> type(four_tris) is tuple
+        True
+        >>> len(four_tris)
+        4
+        >>> np.allclose(four_tris[0], four_tris[1])
+        True
+        >>> np.allclose(four_tris[2], four_tris[3])
+        True
+        >>> np.allclose(four_tris[0], four_tris[2])
+        True
+        >>> np.allclose(np.square(four_tris[0]).sum(axis=1), 1.)
+        True
+        >>> four_tris[0]
+        array([[-0.70710678,  0.        ,  0.70710678],
+               [-0.9486833 ,  0.        ,  0.31622777],
+               [-0.98058068,  0.        ,  0.19611614],
+               [-0.98994949,  0.        ,  0.14142136],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.9486833 ,  0.        ,  0.31622777],
+               [-0.98058068,  0.        ,  0.19611614],
+               [-0.98994949,  0.        ,  0.14142136],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.9486833 ,  0.        ,  0.31622777],
+               [-0.98058068,  0.        ,  0.19611614],
+               [-0.98994949,  0.        ,  0.14142136]])
+        """
+        try:
+            z = self.at_node[elevs]
+        except TypeError:
+            z = elevs
+        # conceptualize patches as TWO sets of 3 nodes
+        # the corners are PQRS, CC from NE
+        diff_xyz_PQ = np.empty((self.number_of_patches, 3))  # TOP
+        # ^this is the vector (xQ-xP, yQ-yP, zQ-yP)
+        diff_xyz_PS = np.empty((self.number_of_patches, 3))  # RIGHT
+        # we have RS and QR implicitly in PQ and PS - but store them too
+        diff_xyz_RS = np.empty((self.number_of_patches, 3))  # BOTTOM
+        diff_xyz_QR = np.empty((self.number_of_patches, 3))  # LEFT
+        P = self.nodes_at_patch[:, 0]
+        Q = self.nodes_at_patch[:, 1]
+        R = self.nodes_at_patch[:, 2]
+        S = self.nodes_at_patch[:, 3]
+        x_P = self.node_x[P]
+        y_P = self.node_y[P]
+        z_P = z[P]
+        x_Q = self.node_x[Q]
+        y_Q = self.node_y[Q]
+        z_Q = z[Q]
+        x_R = self.node_x[R]
+        y_R = self.node_y[R]
+        z_R = z[R]
+        x_S = self.node_x[S]
+        y_S = self.node_y[S]
+        z_S = z[S]
+        diff_xyz_PQ[:, 0] = x_Q - x_P
+        diff_xyz_PQ[:, 1] = y_Q - y_P
+        diff_xyz_PQ[:, 2] = z_Q - z_P
+        diff_xyz_PS[:, 0] = x_S - x_P
+        diff_xyz_PS[:, 1] = y_S - y_P
+        diff_xyz_PS[:, 2] = z_S - z_P
+        diff_xyz_RS[:, 0] = x_S - x_R
+        diff_xyz_RS[:, 1] = y_S - y_R
+        diff_xyz_RS[:, 2] = z_S - z_R
+        diff_xyz_QR[:, 0] = x_R - x_Q
+        diff_xyz_QR[:, 1] = y_R - y_Q
+        diff_xyz_QR[:, 2] = z_R - z_Q
+        # make the other ones
+        # cross product is orthogonal to both vectors, and is the normal
+        # n = <a, b, c>, where plane is ax + by + cz = d
+        nhat_topleft = np.cross(diff_xyz_PQ, diff_xyz_QR)  # <a, b, c>
+        nhat_bottomright = np.cross(diff_xyz_PS, diff_xyz_RS)
+        nhat_topright = np.cross(diff_xyz_PQ, diff_xyz_PS)
+        nhat_bottomleft = np.cross(diff_xyz_QR, diff_xyz_RS)
+        nmag_topleft = np.sqrt(np.square(nhat_topleft).sum(axis=1))
+        nmag_bottomright = np.sqrt(np.square(nhat_bottomright).sum(axis=1))
+        nmag_topright = np.sqrt(np.square(nhat_topright).sum(axis=1))
+        nmag_bottomleft = np.sqrt(np.square(nhat_bottomleft).sum(axis=1))
+        n_TR = nhat_topright/nmag_topright.reshape(self.number_of_patches, 1)
+        n_TL = nhat_topleft/nmag_topleft.reshape(self.number_of_patches, 1)
+        n_BL = nhat_bottomleft/nmag_bottomleft.reshape(
+            self.number_of_patches, 1)
+        n_BR = nhat_bottomright/nmag_bottomright.reshape(
+            self.number_of_patches, 1)
+
+        return (n_TR, n_TL, n_BL, n_BR)
+
+    def calc_slope_of_patch(self, elevs='topographic__elevation',
+                            unit='degrees', subtriangle_unit_normals=None):
+        """
+        Calculate the slope (positive magnitude of gradient) at raster patches.
+
+        Returns the mean of the slopes of the four possible patch subtriangles.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes. Controls only slope magnitude; components are
+            always returned as radians.
+        subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
+            The unit normal vectors for the four subtriangles of each patch,
+            if already known. Order is TR, TL, BL, BR.
+
+        Returns
+        -------
+        slopes_at_patch : n_patches-long array
+            The slope (positive gradient magnitude) of each patch.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> z = mg.node_x
+        >>> S = mg.calc_slope_of_patch(elevs=z)
+        >>> S.size == mg.number_of_patches
+        True
+        >>> np.allclose(S, 45.)
+        True
+        >>> z = mg.node_y**2
+        >>> mg.calc_slope_of_patch(elevs=z, unit='radians').reshape((3, 4))
+        array([[ 0.78539816,  0.78539816,  0.78539816,  0.78539816],
+               [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
+               [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
+        """
+        if subtriangle_unit_normals is not None:
+            assert len(subtriangle_unit_normals) == 4
+            assert subtriangle_unit_normals[0].shape[1] == 3
+            assert subtriangle_unit_normals[1].shape[1] == 3
+            assert subtriangle_unit_normals[2].shape[1] == 3
+            assert subtriangle_unit_normals[3].shape[1] == 3
+            n_TR, n_TL, n_BL, n_BR = subtriangle_unit_normals
+        else:
+            n_TR, n_TL, n_BL, n_BR = \
+                self.calc_unit_normals_of_patch_subtriangles(elevs)
+        dotprod_TL = n_TL[:, 2]  # by definition
+        dotprod_BR = n_BR[:, 2]
+        dotprod_TR = n_TR[:, 2]
+        dotprod_BL = n_BL[:, 2]
+        slopes_at_patch_TL = np.arccos(dotprod_TL)
+        slopes_at_patch_BR = np.arccos(dotprod_BR)
+        slopes_at_patch_TR = np.arccos(dotprod_TR)
+        slopes_at_patch_BL = np.arccos(dotprod_BL)
+        mean_slope_at_patch = (slopes_at_patch_TR + slopes_at_patch_TL +
+                               slopes_at_patch_BL + slopes_at_patch_BR)/4.
+
+        if unit == 'radians':
+            return mean_slope_at_patch
+        elif unit == 'degrees':
+            return mean_slope_at_patch * 180. / np.pi
+        else:
+            raise TypeError('unit keyword not recognised')
+
+    def calc_grad_of_patch(self, elevs='topographic__elevation',
+                           unit='degrees', subtriangle_unit_normals=None,
+                           slope_magnitude=None):
+        """Calculate the components of the gradient of each raster patch.
+
+        Returns the mean gradient of the four possible patch subtriangles.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes. Controls only slope magnitude; components are
+            always returned as radians.
+        subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
+            The unit normal vectors for the four subtriangles of each patch,
+            if already known. Order is TR, TL, BL, BR.
+        slope_magnitude : array with size num_patches (optional)
+            The mean slope of each patch, if already known. Units must be the
+            same as provided here!
+
+        Returns
+        -------
+        gradient_tuple : (x_component_at_patch, y_component_at_patch)
+            Len-2 tuple of arrays giving components of gradient in the x and y
+            directions, in the units of *units*.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> z = mg.node_y
+        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z, unit='radians')
+        >>> np.allclose(y_grad, -np.pi/4.)
+        True
+        >>> np.allclose(x_grad, 0.)
+        True
+        """
+        if subtriangle_unit_normals is not None:
+            assert len(subtriangle_unit_normals) == 4
+            assert subtriangle_unit_normals[0].shape[1] == 3
+            assert subtriangle_unit_normals[1].shape[1] == 3
+            assert subtriangle_unit_normals[2].shape[1] == 3
+            assert subtriangle_unit_normals[3].shape[1] == 3
+            n_TR, n_TL, n_BL, n_BR = subtriangle_unit_normals
+        else:
+            n_TR, n_TL, n_BL, n_BR = \
+                self.calc_unit_normals_of_patch_subtriangles(elevs)
+        if slope_magnitude is not None:
+            assert slope_magnitude.size == self.number_of_patches
+            slopes_at_patch = slope_magnitude
+        else:
+            slopes_at_patch = self.calc_slope_of_patch(
+                elevs=elevs, unit=unit, subtriangle_unit_normals=(
+                    n_TR, n_TL, n_BL, n_BR))
+
+        n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
+        n_sum_y = n_TR[:, 1] + n_TL[:, 1] + n_BL[:, 1] + n_BR[:, 1]
+        theta_sum = np.arctan2(n_sum_y, n_sum_x)
+        x_slope_patches = np.cos(theta_sum)*slopes_at_patch
+        y_slope_patches = np.sin(theta_sum)*slopes_at_patch
+
+        return (x_slope_patches, y_slope_patches)
+
     def calc_slope_of_node(self, elevs='topographic__elevation',
                            unit='degrees', return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
@@ -3721,10 +3977,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             mag**2 == cmp[0]**2 + cmp[1]**2  # not always true
 
         This is a verion of this code specialized for a raster. It subdivides
-        the four square patches around each node into eight triangles in a
-        windmill configuration, in order to ensure more correct solutions that
-        incorporate equally weighted information from all surrounding nodes on
-        rough surfaces.
+        the four square patches around each node into subtriangles,
+        in order to ensure more correct solutions that incorporate equally
+        weighted information from all surrounding nodes on rough surfaces.
 
         Parameters
         ----------
@@ -3779,154 +4034,45 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         try:
             patches_at_node = self.patches_at_node()
         except TypeError:  # was a property, not a fn (=> new style)
-            patches_at_node = numpy.ma.masked_where(
+            patches_at_node = np.ma.masked_where(
                 self.patches_at_node == -1, self.patches_at_node, copy=False)
-        try:
-            z = self.at_node[elevs]
-        except TypeError:
-            z = elevs
-        # conceptualize patches as TWO sets of 3 nodes
-        # the corners are PQRS, CC from NE
-        diff_xyz_PQ = np.empty((self.number_of_patches, 3))  # TOP
-        # ^this is the vector (xQ-xP, yQ-yP, zQ-yP)
-        diff_xyz_PS = np.empty((self.number_of_patches, 3))  # RIGHT
-        # we have RS and QR implicitly in PQ and PS - but store them too
-        diff_xyz_RS = np.empty((self.number_of_patches, 3))  # BOTTOM
-        diff_xyz_QR = np.empty((self.number_of_patches, 3))  # LEFT
-        P = self.nodes_at_patch[:, 0]
-        Q = self.nodes_at_patch[:, 1]
-        R = self.nodes_at_patch[:, 2]
-        S = self.nodes_at_patch[:, 3]
-        x_P = self.node_x[P]
-        y_P = self.node_y[P]
-        z_P = z[P]
-        x_Q = self.node_x[Q]
-        y_Q = self.node_y[Q]
-        z_Q = z[Q]
-        x_R = self.node_x[R]
-        y_R = self.node_y[R]
-        z_R = z[R]
-        x_S = self.node_x[S]
-        y_S = self.node_y[S]
-        z_S = z[S]
-        diff_xyz_PQ[:, 0] = x_Q - x_P
-        diff_xyz_PQ[:, 1] = y_Q - y_P
-        diff_xyz_PQ[:, 2] = z_Q - z_P
-        diff_xyz_PS[:, 0] = x_S - x_P
-        diff_xyz_PS[:, 1] = y_S - y_P
-        diff_xyz_PS[:, 2] = z_S - z_P
-        diff_xyz_RS[:, 0] = x_S - x_R
-        diff_xyz_RS[:, 1] = y_S - y_R
-        diff_xyz_RS[:, 2] = z_S - z_R
-        diff_xyz_QR[:, 0] = x_R - x_Q
-        diff_xyz_QR[:, 1] = y_R - y_Q
-        diff_xyz_QR[:, 2] = z_R - z_Q
-        # make the other ones
-        # cross product is orthogonal to both vectors, and is the normal
-        # n = <a, b, c>, where plane is ax + by + cz = d
-        nhat_topleft = np.cross(diff_xyz_PQ, diff_xyz_QR)  # <a, b, c>
-        nhat_bottomright = np.cross(diff_xyz_PS, diff_xyz_RS)
-        nhat_topright = np.cross(diff_xyz_PQ, diff_xyz_PS)
-        nhat_bottomleft = np.cross(diff_xyz_QR, diff_xyz_RS)
+        n_TR, n_TL, n_BL, n_BR = \
+            self.calc_unit_normals_of_patch_subtriangles(elevs)
 
-        # dotprod = np.dot(nhat, np.array([0., 0., 1.]))
-        dotprod_topleft = nhat_topleft[:, 2]  # by definition
-        dotprod_bottomright = nhat_bottomright[:, 2]
-        dotprod_topright = nhat_topright[:, 2]
-        dotprod_bottomleft = nhat_bottomleft[:, 2]
-        nmag_topleft = np.sqrt(np.square(nhat_topleft).sum(axis=1))
-        nmag_bottomright = np.sqrt(np.square(nhat_bottomright).sum(axis=1))
-        nmag_topright = np.sqrt(np.square(nhat_topright).sum(axis=1))
-        nmag_bottomleft = np.sqrt(np.square(nhat_bottomleft).sum(axis=1))
-        cos_slopes_at_patch_topleft = dotprod_topleft / nmag_topleft
-        cos_slopes_at_patch_bottomright = dotprod_bottomright/nmag_bottomright
-        cos_slopes_at_patch_topright = dotprod_topright / nmag_topright
-        cos_slopes_at_patch_bottomleft = dotprod_bottomleft / nmag_bottomleft
-        slopes_at_patch_topleft = np.arccos(cos_slopes_at_patch_topleft)
-        slopes_at_patch_bottomright = np.arccos(
-            cos_slopes_at_patch_bottomright)
-        slopes_at_patch_topright = np.arccos(cos_slopes_at_patch_topright)
-        slopes_at_patch_bottomleft = np.arccos(cos_slopes_at_patch_bottomleft)
+        mean_slope_at_patches = self.calc_slope_of_patch(
+            elevs=elevs, unit=unit, subtriangle_unit_normals=(
+                n_TR, n_TL, n_BL, n_BR))
 
         # now CAREFUL - patches_at_node is MASKED
-        diag_upleft_mean_patch = (slopes_at_patch_topleft +
-                                  slopes_at_patch_bottomright) / 2.
-        diag_upright_mean_patch = (slopes_at_patch_topright +
-                                   slopes_at_patch_bottomleft) / 2.
-        slopes_at_node1_unmasked = diag_upleft_mean_patch[
-            patches_at_node[:, [0, 2]]]
-        slopes_at_node2_unmasked = diag_upright_mean_patch[
-            patches_at_node[:, [1, 3]]]
-        slopes_at_allnode_masked = np.ma.empty_like(patches_at_node,
-                                                    dtype=float)
-        slopes_at_allnode_masked[:, :2] = np.ma.array(
-            slopes_at_node1_unmasked, mask=patches_at_node[
-                :, [0, 2]].mask)
-        slopes_at_allnode_masked[:, 2:] = np.ma.array(
-            slopes_at_node2_unmasked, mask=patches_at_node[
-                :, [1, 3]].mask)
-        slope_mag = np.mean(slopes_at_allnode_masked, axis=1).data
-
+        slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
+        slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
+                                            mask=patches_at_node.mask)
+        slope_mag = np.mean(slopes_at_node_masked, axis=1).data
+        if unit == 'degrees':
+            mean_slope_at_patches_inrad = mean_slope_at_patches*np.pi/180.
+        else:
+            mean_slope_at_patches_inrad = mean_slope_at_patches
         if return_components:
-            theta_TL = np.arctan2(nhat_topleft[:, 1], nhat_topleft[:, 0])
-            theta_BR = np.arctan2(nhat_bottomright[:, 1],
-                                  nhat_bottomright[:, 0])
-            theta_TR = np.arctan2(nhat_topright[:, 1], nhat_topright[:, 0])
-            theta_BL = np.arctan2(nhat_bottomleft[:, 1], nhat_bottomleft[:, 0])
-            x_slope_patches_TL = np.cos(theta_TL)*slopes_at_patch_topleft
-            y_slope_patches_TL = np.sin(theta_TL)*slopes_at_patch_topleft
-            x_slope_patches_BR = np.cos(theta_BR)*slopes_at_patch_bottomright
-            y_slope_patches_BR = np.sin(theta_BR)*slopes_at_patch_bottomright
-            x_slope_patches_TR = np.cos(theta_TR)*slopes_at_patch_topright
-            y_slope_patches_TR = np.sin(theta_TR)*slopes_at_patch_topright
-            x_slope_patches_BL = np.cos(theta_BL)*slopes_at_patch_bottomleft
-            y_slope_patches_BL = np.sin(theta_BL)*slopes_at_patch_bottomleft
-            # collapse the vectors in each quadrant
-            x_slope_upleft_diag = (x_slope_patches_TL + x_slope_patches_BR)/2.
-            y_slope_upleft_diag = (y_slope_patches_TL + y_slope_patches_BR)/2.
-            x_slope_upright_diag = (x_slope_patches_TR + x_slope_patches_BL)/2.
-            y_slope_upright_diag = (y_slope_patches_TR + y_slope_patches_BL)/2.
-
-            x_slope1_unmasked = x_slope_upleft_diag[patches_at_node[
-                :, [0, 2]]]
-            y_slope1_unmasked = y_slope_upleft_diag[patches_at_node[
-                :, [0, 2]]]
-            x_slope2_unmasked = x_slope_upright_diag[patches_at_node[
-                :, [1, 3]]]
-            y_slope2_unmasked = y_slope_upright_diag[patches_at_node[
-                :, [1, 3]]]
-            xslopes_at_allnode_masked = np.ma.empty_like(
-                patches_at_node, dtype=float)
-            yslopes_at_allnode_masked = np.ma.empty_like(
-                patches_at_node, dtype=float)
-            xslopes_at_allnode_masked[:, :2] = np.ma.array(
-                x_slope1_unmasked, mask=patches_at_node[
-                    :, [0, 2]].mask)
-            xslopes_at_allnode_masked[:, 2:] = np.ma.array(
-                x_slope2_unmasked, mask=patches_at_node[
-                    :, [1, 3]].mask)
-            yslopes_at_allnode_masked[:, :2] = np.ma.array(
-                y_slope1_unmasked, mask=patches_at_node[
-                    :, [0, 2]].mask)
-            yslopes_at_allnode_masked[:, 2:] = np.ma.array(
-                y_slope2_unmasked, mask=patches_at_node[
-                    :, [1, 3]].mask)
-            x_slope = np.mean(xslopes_at_allnode_masked, axis=1).data
-            y_slope = np.mean(yslopes_at_allnode_masked, axis=1).data
+            (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
+                elevs=elevs, unit=unit, subtriangle_unit_normals=(
+                    n_TR, n_TL, n_BL, n_BR),
+                slope_magnitude=mean_slope_at_patches_inrad)
+            # These can be in DEGREES!!!!!
+            x_slope_unmasked = x_slope_patches[patches_at_node]
+            x_slope_masked = np.ma.array(x_slope_unmasked,
+                                         mask=patches_at_node.mask)
+            x_slope = np.mean(x_slope_masked, axis=1).data
+            y_slope_unmasked = y_slope_patches[patches_at_node]
+            y_slope_masked = np.ma.array(y_slope_unmasked,
+                                         mask=patches_at_node.mask)
+            y_slope = np.mean(y_slope_masked, axis=1).data
             mean_grad_x = x_slope
             mean_grad_y = y_slope
-        if unit == 'radians':
-            if not return_components:
-                return slope_mag
-            else:
-                return slope_mag, (mean_grad_x, mean_grad_y)
-        if unit == 'degrees':
-            if not return_components:
-                return 180. / np.pi * slope_mag
-            else:
-                return 180. / np.pi * slope_mag, (mean_grad_x, mean_grad_y)
+
+            return slope_mag, (mean_grad_x, mean_grad_y)
+
         else:
-            raise TypeError("unit must be 'degrees' or 'radians'")
+            return slope_mag
 
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
         """Aspect at nodes.

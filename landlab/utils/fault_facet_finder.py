@@ -133,7 +133,7 @@ class find_facets(object):
         distance_to_ft.fill(sys.float_info.max)
         new_distance_to_ft = np.empty_like(closest_ft_node, dtype=float)
         for i in self.ft_trace_node_ids:
-            grid.get_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
+            grid.calc_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
                                                  node_subset=grid.core_nodes[
                                                      subset], get_az='angles',
                                                  out_distance=new_distance_to_ft, out_azimuth=new_angle_to_ft)
@@ -297,7 +297,7 @@ class find_facets(object):
             count += 1
             print("Running ", count, " of ", unique_starting_pts.size)
             # set the local angle of the ft trace:
-            ft_pt_distances_to_node = self.grid.get_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
+            ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
                                                                                 node_subset=self.ft_trace_node_ids)
             close_ft_nodes = np.less(
                 ft_pt_distances_to_node, 5. * grid.node_spacing)
@@ -323,9 +323,9 @@ class find_facets(object):
                 y_ref = grid.node_y[
                     i] + cmp(grid.node_y[i], np.mean(grid.node_y[grid.core_nodes[nodes_possible]])) * multiplier
                 # get new absolute distances
-                dist_to_ft = self.grid.get_distances_of_nodes_to_point(
+                dist_to_ft = self.grid.calc_distances_of_nodes_to_point(
                     (x_ref, y_ref), node_subset=np.array([i]))
-                dists_along_profile = self.grid.get_distances_of_nodes_to_point(
+                dists_along_profile = self.grid.calc_distances_of_nodes_to_point(
                     (x_ref, y_ref), node_subset=grid.core_nodes[nodes_possible]) - dist_to_ft
                 # note the ft is now the origin, but pts might be back-to-front (consistently, though)
                 # sort the distances. Remove any pts that aren't in a "cluster".

@@ -29,7 +29,7 @@ mg.set_inactive_boundaries(True, False, True, False)
 #print sgrid.node_tolink_index(mg.shape)[1]
 #mg.reset_list_of_active_links()
 
-#node_distances_to_inlet = mg.get_distances_of_nodes_to_point((mg.node_x[0], mg.node_y[0]))
+#node_distances_to_inlet = mg.calc_distances_of_nodes_to_point((mg.node_x[0], mg.node_y[0]))
 #z0 = initial_slope*(np.amax(node_distances_to_inlet) - node_distances_to_inlet)
 #z0[sgrid.boundary_nodes(mg.shape)] = 10.
 #z0[inlet_nodes] = z0[inlet_nodes]+0.05

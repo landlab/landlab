@@ -27,6 +27,21 @@ For example, you can obtain an array with IDs of only the core nodes using
 the length of a link or the surface area of a cell, are described using `_of_`,
 as in the example `area_of_cell`.
 
+Information about the grid as a whole
++++++++++++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.axis_name
+    ~landlab.grid.base.ModelGrid.axis_units
+    ~landlab.grid.base.ModelGrid.display_grid
+    ~landlab.grid.base.ModelGrid.ndim
+    ~landlab.grid.base.ModelGrid.number_of_elements
+    ~landlab.grid.base.ModelGrid.set_units
+    ~landlab.grid.base.ModelGrid.size
+    ~landlab.grid.raster.RasterModelGrid.shape
+
 Information about nodes
 +++++++++++++++++++++++
 
@@ -46,6 +61,7 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.node_y
     ~landlab.grid.base.ModelGrid.status_at_node
     ~landlab.grid.base.ModelGrid.cell_at_node
+    ~landlab.grid.base.ModelGrid.patches_at_node
     ~landlab.grid.base.ModelGrid.links_at_node
     ~landlab.grid.base.ModelGrid.link_dirs_at_node
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
@@ -90,6 +106,15 @@ Information about faces
     ~landlab.grid.base.ModelGrid.number_of_active_faces
     ~landlab.grid.base.ModelGrid.active_faces
     ~landlab.grid.base.ModelGrid.link_at_face
+
+Information about patches
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.number_of_patches
+    ~landlab.grid.base.ModelGrid.nodes_at_patch
 
 Data Fields in ModelGrid
 ------------------------
@@ -184,6 +209,76 @@ fields:
     i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
     # START HERE check that all functions listed below are included above, ignore ones that start with underscores(_)
+
+Gradients, fluxes, and divergences on the grid
+----------------------------------------------
+
+Landlab is designed to easily calculate gradients in quantities across the
+grid, and to construct fluxes and flux divergences from them. Because these
+calculations tend to be a little more involved than property lookups, the
+methods tend to start with `calc_`.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.calc_diff_at_link
+    ~landlab.grid.base.ModelGrid.calc_grad_at_link
+    ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
+    ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
+    ~landlab.grid.base.ModelGrid.calc_unit_normal_of_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_of_patch_subtriangles
+    ~landlab.grid.base.ModelGrid.calc_grad_of_patch
+    ~landlab.grid.base.ModelGrid.calc_slope_of_patch
+    ~landlab.grid.base.ModelGrid.calc_slope_of_node
+
+Mappers
+-------
+
+These methods allow mapping of values defined on one grid element type onto a
+second, e.g., mapping upwind node values onto links, or mean link values onto
+nodes.
+
+...
+
+
+Boundary condition control
+--------------------------
+
+These are the primary properties for getting and setting the grid boundary
+conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
+:meth:`~.ModelGrid.status_at_node` will automatically update the conditions
+defined at other grid elements automatically.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.status_at_node
+    ~landlab.grid.base.ModelGrid.status_at_link
+    ~landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs
+
+...
+
+Identifying node subsets
+------------------------
+
+These methods are useful in identifying subsets of nodes, e.g., closest node
+to a point; nodes at edges.
+
+...
+
+Surface analysis
+----------------
+
+These methods permit the kinds of surface analysis that you might expect to
+find in GIS software.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.calc_slope_of_node
+    ~landlab.grid.base.ModelGrid.hillshade
+    ~landlab.grid.base.ModelGrid.aspect
+    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
 
 Notes
 -----
@@ -317,7 +412,7 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.display_grid
     ~landlab.grid.base.ModelGrid.is_boundary
     ~landlab.grid.base.ModelGrid.set_closed_nodes
-    ~landlab.grid.base.ModelGrid.get_distances_of_nodes_to_point
+    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.base.ModelGrid.all_node_distances_map
     ~landlab.grid.base.ModelGrid.all_node_azimuths_map
     ~landlab.grid.base.ModelGrid.build_all_node_distances_azimuths_maps
@@ -1930,6 +2025,165 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces[cell] += 1
         self.sort_faces_at_cell_by_angle()
 
+    def calc_unit_normal_of_patch(self, elevs='topographic__elevation'):
+        """Calculate and return the unit normal vector <a, b, c> to a patch.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+
+        Returns
+        -------
+        nhat : num-patches x length-3 array
+            The unit normal vector <a, b, c> to each patch.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 3)
+        >>> z = mg.node_x
+        >>> mg.calc_unit_normal_of_patch(z)
+        array([[-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678],
+               [-0.70710678,  0.        ,  0.70710678]])
+        """
+        try:
+            z = self.at_node[elevs]
+        except TypeError:
+            z = elevs
+        # conceptualize patches as sets of 3 nodes, PQR
+        diff_xyz_PQ = numpy.empty((self.number_of_patches, 3))
+        # ^this is the vector (xQ-xP, yQ-yP, zQ-yP)
+        diff_xyz_PR = numpy.empty((self.number_of_patches, 3))
+        P = self.nodes_at_patch[:, 0]
+        Q = self.nodes_at_patch[:, 1]
+        R = self.nodes_at_patch[:, 2]
+        x_P = self.node_x[P]
+        y_P = self.node_y[P]
+        z_P = z[P]
+        diff_xyz_PQ[:, 0] = self.node_x[Q] - x_P
+        diff_xyz_PQ[:, 1] = self.node_y[Q] - y_P
+        diff_xyz_PQ[:, 2] = z[Q] - z_P
+        diff_xyz_PR[:, 0] = self.node_x[R] - x_P
+        diff_xyz_PR[:, 1] = self.node_y[R] - y_P
+        diff_xyz_PR[:, 2] = z[R] - z_P
+        # cross product is orthogonal to both vectors, and is the normal
+        # n = <a, b, c>, where plane is ax + by + cz = d
+        nhat = numpy.cross(diff_xyz_PQ, diff_xyz_PR)  # <a, b, c>
+        nmag = numpy.sqrt(np.square(nhat).sum(axis=1))
+
+        return nhat/nmag.reshape(self.number_of_patches, 1)
+
+    def calc_slope_of_patch(self, elevs='topographic__elevation',
+                            unit='degrees', unit_normal=None):
+        """
+        Calculate the slope (positive magnitude of gradient) at patches.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes. Controls only slope magnitude; components are
+            always returned as radians.
+        unit_normal : array with shape (num_patches, 3) (optional)
+            The unit normal vector to each patch, if already known.
+
+        Returns
+        -------
+        slopes_at_patch : n_patches-long array
+            The slope (positive gradient magnitude) of each patch.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> z = mg.node_x
+        >>> S = mg.calc_slope_of_patch(elevs=z)
+        >>> S.size == mg.number_of_patches
+        True
+        >>> np.allclose(S, 45.)
+        True
+        """
+        if unit_normal is not None:
+            assert unit_normal.shape[1] == 3
+            nhat = unit_normal
+        else:
+            nhat = self.calc_unit_normal_of_patch(elevs)
+        dotprod = nhat[:, 2]  # by definition
+        cos_slopes_at_patch = dotprod  # ...because it's now a unit vector
+        slopes_at_patch = np.arccos(cos_slopes_at_patch)
+
+        if unit == 'radians':
+            return slopes_at_patch
+        elif unit == 'degrees':
+            return slopes_at_patch * 180. / numpy.pi
+        else:
+            raise TypeError('unit keyword not recognised')
+
+    def calc_grad_of_patch(self, elevs='topographic__elevation',
+                           unit='degrees', unit_normal=None,
+                           slope_magnitude=None):
+        """Calculate the components of the gradient of each patch.
+
+        Parameters
+        ----------
+        elevs : str or ndarray, optional
+            Field name or array of node values.
+        unit : {'degrees', 'radians'}
+            Units for slopes. Controls only slope magnitude; components are
+            always returned as radians.
+        unit_normal : array with shape (num_patches, 3) (optional)
+            The unit normal vector to each patch, if already known. Units must
+            be the same as provided here!
+        slope_magnitude : array with size num_patches (optional)
+            The slope of each patch, if already known. Units must be the same
+            as provided here!
+
+        Returns
+        -------
+        gradient_tuple : (x_component_at_patch, y_component_at_patch)
+            Len-2 tuple of arrays giving components of gradient in the x and y
+            directions, in the units of *units*.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> z = mg.node_y
+        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z, unit='radians')
+        >>> np.allclose(y_grad, -np.pi/4.)
+        True
+        >>> np.allclose(x_grad, 0.)
+        True
+        """
+        if unit_normal is not None:
+            assert unit_normal.shape[1] == 3
+            nhat = unit_normal
+        else:
+            nhat = self.calc_unit_normal_of_patch(elevs)
+        if slope_magnitude is not None:
+            assert slope_magnitude.size == self.number_of_patches
+            slopes_at_patch = slope_magnitude
+        else:
+            slopes_at_patch = self.calc_slope_of_patch(elevs=elevs, unit=unit,
+                                                       unit_normal=nhat)
+        theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
+        x_slope_patches = numpy.cos(theta)*slopes_at_patch
+        y_slope_patches = numpy.sin(theta)*slopes_at_patch
+
+        return (x_slope_patches, y_slope_patches)
+
     def calc_slope_of_node(self, elevs='topographic__elevation',
                            unit='degrees', return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
@@ -1994,47 +2248,22 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...                                              i)].mean())
         >>> # notice the small amounts of numerical error here:
         >>> target_mean_ring_slope = [49.106605350869103, 45.471738628700471,
-        ...                           44.646123806208102, 44.896866010480977,
-        ...                           44.938839401113974, 44.950111880067681,
+        ...                           44.646123806208116, 44.896866010480984,
+        ...                           44.938839401113974, 44.950111880067674,
         ...                           44.964377572754891, 44.980895342790689,
         ...                           44.980506452187001, 45.069580163013619]
-         >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
-         True
+        >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
+        True
         """
         try:
             patches_at_node = self.patches_at_node()
         except TypeError:  # was a property, not a fn (=> new style)
             patches_at_node = numpy.ma.masked_where(
                 self.patches_at_node == -1, self.patches_at_node, copy=False)
-        try:
-            z = self.at_node[elevs]
-        except TypeError:
-            z = elevs
-        # conceptualize patches as sets of 3 nodes, PQR
-        diff_xyz_PQ = numpy.empty((self.number_of_patches, 3))
-        # ^this is the vector (xQ-xP, yQ-yP, zQ-yP)
-        diff_xyz_PR = numpy.empty((self.number_of_patches, 3))
-        P = self.nodes_at_patch[:, 0]
-        Q = self.nodes_at_patch[:, 1]
-        R = self.nodes_at_patch[:, 2]
-        x_P = self.node_x[P]
-        y_P = self.node_y[P]
-        z_P = z[P]
-        diff_xyz_PQ[:, 0] = self.node_x[Q] - x_P
-        diff_xyz_PQ[:, 1] = self.node_y[Q] - y_P
-        diff_xyz_PQ[:, 2] = z[Q] - z_P
-        diff_xyz_PR[:, 0] = self.node_x[R] - x_P
-        diff_xyz_PR[:, 1] = self.node_y[R] - y_P
-        diff_xyz_PR[:, 2] = z[R] - z_P
-        # cross product is orthogonal to both vectors, and is the normal
-        # n = <a, b, c>, where plane is ax + by + cz = d
-        nhat = numpy.cross(diff_xyz_PQ, diff_xyz_PR)  # <a, b, c>
 
-        # dotprod = numpy.dot(nhat, np.array([0., 0., 1.]))
-        dotprod = nhat[:, 2]  # by definition
-        nmag = numpy.sqrt(np.square(nhat).sum(axis=1))
-        cos_slopes_at_patch = dotprod / nmag  # == cos(theta)
-        slopes_at_patch = np.arccos(cos_slopes_at_patch)
+        nhat = self.calc_unit_normal_of_patch(elevs=elevs)
+        slopes_at_patch = self.calc_slope_of_patch(elevs=elevs, unit=unit,
+                                                   unit_normal=nhat)
 
         # now CAREFUL - patches_at_node is MASKED
         slopes_at_node_unmasked = slopes_at_patch[patches_at_node]
@@ -2043,9 +2272,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
         if return_components:
-            theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
-            x_slope_patches = numpy.cos(theta)*slopes_at_patch
-            y_slope_patches = numpy.sin(theta)*slopes_at_patch
+            (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
+                elevs=elevs, unit=unit, unit_normal=nhat,
+                slope_magnitude=slopes_at_patch)
             x_slope_unmasked = x_slope_patches[patches_at_node]
             x_slope_masked = numpy.ma.array(x_slope_unmasked,
                                             mask=patches_at_node.mask)
@@ -2056,18 +2285,11 @@ class ModelGrid(ModelDataFieldsMixIn):
             y_slope = numpy.mean(y_slope_masked, axis=1).data
             mean_grad_x = x_slope
             mean_grad_y = y_slope
-        if unit == 'radians':
-            if not return_components:
-                return slope_mag
-            else:
-                return slope_mag, (mean_grad_x, mean_grad_y)
-        if unit == 'degrees':
-            if not return_components:
-                return 180. / numpy.pi * slope_mag
-            else:
-                return 180. / numpy.pi * slope_mag, (mean_grad_x, mean_grad_y)
+
+            return slope_mag, (mean_grad_x, mean_grad_y)
+
         else:
-            raise TypeError("unit must be 'degrees' or 'radians'")
+            return slope_mag
 
     def aspect(self, slope_component_tuple=None,
                elevs='topographic__elevation', unit='degrees'):
@@ -3594,7 +3816,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_status[nodes] = CLOSED_BOUNDARY
         self.update_links_nodes_cells_to_new_BCs()
 
-    def get_distances_of_nodes_to_point(self, coord, get_az=None,
+    def calc_distances_of_nodes_to_point(self, coord, get_az=None,
                                         node_subset=None,
                                         out_distance=None, out_azimuth=None):
         """Get distances for nodes to a given point.
@@ -3665,13 +3887,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         Calculate distances from point at (2., 1.) to a subset of nodes on
         the grid.
 
-        >>> grid.get_distances_of_nodes_to_point((2, 1),
+        >>> grid.calc_distances_of_nodes_to_point((2, 1),
         ...     node_subset=(2, 6, 7, 8, 12))
         array([ 1.,  1.,  0.,  1.,  1.])
 
         Calculate distances from a point to all nodes on the grid.
 
-        >>> dist = grid.get_distances_of_nodes_to_point((2, 1))
+        >>> dist = grid.calc_distances_of_nodes_to_point((2, 1))
         >>> dist.shape == (grid.number_of_nodes, )
         True
         >>> dist.take((2, 6, 7, 8, 12))
@@ -3680,7 +3902,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Put the distances into a buffer.
 
         >>> out = np.empty(grid.number_of_nodes, dtype=float)
-        >>> dist = grid.get_distances_of_nodes_to_point((2, 1),
+        >>> dist = grid.calc_distances_of_nodes_to_point((2, 1),
         ...     out_distance=out)
         >>> out is dist
         True
@@ -3690,11 +3912,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         Calculate azimuths along with distances. The azimuths are calculated
         in radians but measured clockwise from north.
 
-        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
         ...     get_az='angles')
         >>> azim.take((2, 6, 7, 8, 12)) * 180. / np.pi
         array([ 180.,  270.,    0.,   90.,    0.])
-        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
         ...     get_az='angles', node_subset=(1, 3, 11, 13))
         >>> azim * 180. / np.pi
         array([ 225.,  135.,  315.,   45.])
@@ -3702,7 +3924,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         When calculating displacements, the first row contains displacements
         in x and the second displacements in y.
 
-        >>> (_, azim) = grid.get_distances_of_nodes_to_point((2, 1),
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
         ...     get_az='displacements', node_subset=(2, 6, 7, 8, 12))
         >>> azim
         array([[ 0., -1.,  0.,  1.,  0.],
@@ -3878,7 +4100,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         for i in range(self.number_of_nodes):
             (self._all_node_distances_map[i, :],
              self._all_node_azimuths_map[i, :]) = (
-                 self.get_distances_of_nodes_to_point(
+                 self.calc_distances_of_nodes_to_point(
                      (node_coords[i, 0], node_coords[i, 1]), get_az='angles'))
 
         assert numpy.all(self._all_node_distances_map >= 0.)
