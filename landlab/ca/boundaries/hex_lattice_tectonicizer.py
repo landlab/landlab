@@ -328,23 +328,29 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
             # ID of the bottom footwall node
             bottom_node = (c + 1) // 2 + ((c % 2) * ((self.nc - 1) // 2))
-            # GOT HERE; THE NEXT LINE NEEDS MODIFICATION FOR NEW INDEXING
 
             # The bottom 1 or 2 nodes in this column are set to rock
-            self.node_state[bottom_node:(bottom_node+n_base_nodes)] = rock_state
+            self.node_state[bottom_node] = rock_state
+            if n_base_nodes == 2:
+                self.node_state[bottom_node+self.nc] = rock_state
 
             # "indices" here contains the array indices of those nodes in this
             # column that are to be replaced by the ones in the column to the
             # left and down one or two nodes. We do this replacement if indices
             # contains any data.
-            indices = arange(n_base_nodes, self.num_fw_rows[c], dtype=int)+bottom_node
-            if len(indices)>0:
-                self.node_state[indices] = self.node_state[indices-(self.nr+row_offset)]
+            first_repl = bottom_node + n_base_nodes * self.nc
+            last_repl = first_repl + (self.num_fw_rows[c] - \
+                        (n_base_nodes + 1)) * self.nc
+            indices = arange(first_repl, last_repl + 1, self.nc)
+
+            if len(indices) > 0:
+                offset = self.nc + ((self.nc + (1 - c % 2)) // 2) + (c % 2)
+                self.node_state[indices] = self.node_state[indices-offset]
                 if self.propid is not None:
                     #print 'in col',c,'replacing nodes',indices,'with',indices-(self.nr+row_offset)
                     #if c==2:
                         #print 'node 18 propid changing from',self.propid[18],'(',self.prop_data[self.propid[18]],')'
-                    self.propid[indices] = self.propid[indices-(self.nr+row_offset)]
+                    self.propid[indices] = self.propid[indices-offset]
                     #if c==2:
                         #print '    to',self.propid[18],'(',self.prop_data[self.propid[18]],')'
 
@@ -507,14 +513,17 @@ def main():
     pdata = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS)
     lnf = LatticeNormalFault(propid=pid, prop_data=pdata, prop_reset_value=0.0)
 
-    lnf.node_state[1:3] = 1
-    lnf.node_state[4:7] = 1
+    lnf.node_state[0:5] = 1
+    print lnf.node_state
+    figure(1)
     lnf.grid.hexplot(lnf.node_state)
-    draw()
+    show()
     for i in range(1):
         lnf.do_offset()
+        print lnf.node_state
+        figure(i+2)
         lnf.grid.hexplot(lnf.node_state)
-        draw()
+        show()
 
 #    lu = LatticeUplifter()
 #    lu.uplift_interior_nodes()
