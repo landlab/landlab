@@ -27,7 +27,7 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
               PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
-              PowerLawIncision, Vegetation, SinkFiller, SoilMoisture,
+              Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, SteepnessFinder,
               PrecipitationDistribution, VegCA]
