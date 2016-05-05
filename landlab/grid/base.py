@@ -209,7 +209,7 @@ comes with a set of pre-defined value groups. One group for each grid element.
 Use the groups attribute to see the group names.
 
 >>> from landlab import RasterModelGrid
->>> grid = RasterModelGrid(3, 3)
+>>> grid = RasterModelGrid((3, 3))
 >>> groups = list(grid.groups)
 >>> groups.sort()
 >>> groups # doctest: +NORMALIZE_WHITESPACE
@@ -1053,7 +1053,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid(4, 5)
+        >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_cells
         6
         """
@@ -1125,7 +1125,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> grid = RasterModelGrid(4, 5)
+        >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_core_nodes
         6
 
@@ -1144,7 +1144,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> grid = RasterModelGrid(4, 5)
+        >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_core_cells
         6
 
@@ -2178,7 +2178,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5, 1.0)
+        >>> rmg = RasterModelGrid((4, 5), 1.0)
         >>> u = [0., 1., 2., 3., 0.,
         ...      1., 2., 3., 2., 3.,
         ...      0., 1., 2., 1., 2.,
@@ -2361,7 +2361,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid(4, 5)
+        >>> rmg = ll.RasterModelGrid((4, 5))
         >>> rmg.get_active_link_connecting_node_pair(8, 3)
         array([2])
         """
@@ -2482,7 +2482,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid(3, 3)
+        >>> grid = RasterModelGrid((3, 3))
         >>> u = np.arange(9.)
         >>> grid.assign_upslope_vals_to_active_links(u)
         array([ 4.,  4.,  5.,  7.])
@@ -2683,7 +2683,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid(3, 4, 1.0)
+        >>> mg = RasterModelGrid((3, 4), 1.0)
         >>> mg.status_at_node
         array([1, 1, 1, 1,
                1, 0, 0, 1,
@@ -2742,7 +2742,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> import numpy as np
         >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid(3, 4, 1.0)
+        >>> mg = ll.RasterModelGrid((3, 4), 1.0)
         >>> mg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
         >>> h = np.array([-9999, -9999, -9999, -9999, -9999, -9999, 12345.,
@@ -2810,7 +2810,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 9)
+        >>> rmg = RasterModelGrid((4, 9))
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 1, 1, 1,
                1, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -3843,6 +3843,38 @@ class ModelGrid(ModelDataFieldsMixIn):
         indices = argsort_points_by_x_then_y(pts)
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
+        
+    def move_origin(self, origin):
+        """Changes the x, y values of all nodes.  Initially a grid will have
+        an origin of 0,0, and all x,y values will be relative to 0,0.  This 
+        will add origin[0] to all x values and origin[1] to all y values.
+        
+        Note this is most likely useful when importing a DEM that has an
+        absolute location, however it can be used generally.
+
+        Parameters
+        ----------
+        origin : list of two float values, can be negative.
+            [x,y], where x is the value to add to all x values and  
+            y is the value to add to all y values
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid((4, 3), 1.0) # rows, columns, spacing
+        >>> rmg.node_x
+        array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+        >>> rmg.node_y
+        array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
+        >>> rmg.move_origin((5,1.5))
+        >>> rmg.node_x
+        array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
+        >>> rmg.node_y
+        array([ 1.5,  1.5,  1.5,  2.5,  2.5,  2.5,  3.5,  3.5,  3.5,  4.5,  4.5,
+        4.5])
+        """
+        self._node_x += origin[0]
+        self._node_y += origin[1]
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
