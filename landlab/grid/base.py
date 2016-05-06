@@ -1461,6 +1461,11 @@ class ModelGrid(ModelDataFieldsMixIn):
     def node_x(self):
         """Get array of the x-coordinates of nodes.
 
+        See also
+        --------
+        x_of_node
+            Exquivalent method.
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1478,11 +1483,60 @@ class ModelGrid(ModelDataFieldsMixIn):
     def node_y(self):
         """Get array of the y-coordinates of nodes.
 
+        See also
+        --------
+        y_of_node
+            Exquivalent method.
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5), (2., 3.))
         >>> mg.node_y.reshape((4, 5))
+        array([[ 0.,  0.,  0.,  0.,  0.],
+               [ 2.,  2.,  2.,  2.,  2.],
+               [ 4.,  4.,  4.,  4.,  4.],
+               [ 6.,  6.,  6.,  6.,  6.]])
+        """
+        return self._node_y
+
+    @property
+    @make_return_array_immutable
+    def x_of_node(self):
+        """Get array of the x-coordinates of nodes.
+
+        See also
+        --------
+        node_x
+            Exquivalent method.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.x_of_node.reshape((4, 5))
+        array([[  0.,   3.,   6.,   9.,  12.],
+               [  0.,   3.,   6.,   9.,  12.],
+               [  0.,   3.,   6.,   9.,  12.],
+               [  0.,   3.,   6.,   9.,  12.]])
+        """
+        return self._node_x
+
+    @property
+    @make_return_array_immutable
+    def y_of_node(self):
+        """Get array of the y-coordinates of nodes.
+
+        See also
+        --------
+        node_y
+            Exquivalent method.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.y_of_node.reshape((4, 5))
         array([[ 0.,  0.,  0.,  0.,  0.],
                [ 2.,  2.,  2.,  2.,  2.],
                [ 4.,  4.,  4.,  4.,  4.],
