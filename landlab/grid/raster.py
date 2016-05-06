@@ -32,7 +32,7 @@ from . import gradients
 
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
-def node_node_has_boundary_neighbor(mg, id, method='d8'):
+def node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
     .. note:: Deprecated since version 0.6.
@@ -110,7 +110,7 @@ def _make_arg_into_array(arg):
     return ids
 
 
-node_has_boundary_neighbor = np.vectorize(node_node_has_boundary_neighbor,
+node_has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
                                      excluded=['mg'])
 
 
@@ -2962,7 +2962,8 @@ XXXXXXeric should be killing this with graphs.
             # no fixed grad boundaries have been set
             pass
 
-    @deprecated(use='no direct replacement', version=0.1)
+    # DEJH believes this needs deprecating, but it's pretty hard wired into
+    # the flow router. So I've restored it for now.
     def calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 
