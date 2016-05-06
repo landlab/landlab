@@ -3827,7 +3827,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return (n_TR, n_TL, n_BL, n_BR)
 
     def calc_slope_of_patch(self, elevs='topographic__elevation',
-                            unit='degrees', subtriangle_unit_normals=None):
+                            subtriangle_unit_normals=None):
         """
         Calculate the slope (positive magnitude of gradient) at raster patches.
 
@@ -3837,9 +3837,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
             The unit normal vectors for the four subtriangles of each patch,
             if already known. Order is TR, TL, BL, BR.
@@ -3858,10 +3855,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> S = mg.calc_slope_of_patch(elevs=z)
         >>> S.size == mg.number_of_patches
         True
-        >>> np.allclose(S, 45.)
+        >>> np.allclose(S, np.pi/4.)
         True
         >>> z = mg.node_y**2
-        >>> mg.calc_slope_of_patch(elevs=z, unit='radians').reshape((3, 4))
+        >>> mg.calc_slope_of_patch(elevs=z).reshape((3, 4))
         array([[ 0.78539816,  0.78539816,  0.78539816,  0.78539816],
                [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
                [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
@@ -3887,15 +3884,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         mean_slope_at_patch = (slopes_at_patch_TR + slopes_at_patch_TL +
                                slopes_at_patch_BL + slopes_at_patch_BR)/4.
 
-        if unit == 'radians':
-            return mean_slope_at_patch
-        elif unit == 'degrees':
-            return mean_slope_at_patch * 180. / np.pi
-        else:
-            raise TypeError('unit keyword not recognised')
+        return mean_slope_at_patch
 
     def calc_grad_of_patch(self, elevs='topographic__elevation',
-                           unit='degrees', subtriangle_unit_normals=None,
+                           subtriangle_unit_normals=None,
                            slope_magnitude=None):
         """Calculate the components of the gradient of each raster patch.
 
@@ -3905,9 +3897,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
             The unit normal vectors for the four subtriangles of each patch,
             if already known. Order is TR, TL, BL, BR.
@@ -3927,7 +3916,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.node_y
-        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z, unit='radians')
+        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
         >>> np.allclose(y_grad, -np.pi/4.)
         True
         >>> np.allclose(x_grad, 0.)
@@ -3948,8 +3937,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             slopes_at_patch = slope_magnitude
         else:
             slopes_at_patch = self.calc_slope_of_patch(
-                elevs=elevs, unit=unit, subtriangle_unit_normals=(
-                    n_TR, n_TL, n_BL, n_BR))
+                elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
 
         n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
         n_sum_y = n_TR[:, 1] + n_TL[:, 1] + n_BL[:, 1] + n_BR[:, 1]
@@ -3960,7 +3948,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return (x_slope_patches, y_slope_patches)
 
     def calc_slope_of_node(self, elevs='topographic__elevation',
-                           unit='degrees', return_components=False):
+                           return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
 
         Produces a value for node slope (i.e., mean gradient magnitude)
@@ -3985,9 +3973,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         return_components : bool
             If True, return a tuple, (array_of_magnitude,
             (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -4006,14 +3991,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RadialModelGrid, RasterModelGrid
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = mg.node_x
-        >>> slopes = mg.calc_slope_of_node(elevs=z, unit='radians')
-        >>> numpy.allclose(slopes, 45./180.*numpy.pi)
+        >>> slopes = mg.calc_slope_of_node(elevs=z)
+        >>> numpy.allclose(slopes, numpy.pi/4.)
         True
         >>> mg = RasterModelGrid((4, 5), 2.)
         >>> z = mg.node_y
         >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
         ...                                        return_components=True)
-        >>> numpy.allclose(slope_mag, 45.)
+        >>> numpy.allclose(slope_mag, np.pi/4.)
         True
         >>> numpy.allclose(cmp[0], 0.)
         True
@@ -4023,10 +4008,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> z = mg.node_x**2 + mg.node_y**2
         >>> slopes, cmp = mg.calc_slope_of_node(z, return_components=True)
         >>> slopes
-        array([ 54.73561032,  63.59360485,  75.67789805,  78.90419672,
-                63.59360485,  69.09403327,  77.09041116,  79.58636062,
-                75.67789805,  77.09041116,  79.80622652,  81.10952878,
-                78.90419672,  79.58636062,  81.10952878,  81.95053302])
+        array([ 0.95531662,  1.10991779,  1.32082849,  1.37713803,  1.10991779,
+                1.20591837,  1.3454815 ,  1.38904403,  1.32082849,  1.3454815 ,
+                1.39288142,  1.41562833,  1.37713803,  1.38904403,  1.41562833,
+                1.43030663])
         >>> np.allclose(cmp[0].reshape((4, 4))[:, 0],
         ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
         True
@@ -4040,24 +4025,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.calc_unit_normals_of_patch_subtriangles(elevs)
 
         mean_slope_at_patches = self.calc_slope_of_patch(
-            elevs=elevs, unit=unit, subtriangle_unit_normals=(
-                n_TR, n_TL, n_BL, n_BR))
+            elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
 
         # now CAREFUL - patches_at_node is MASKED
         slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
         slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
                                             mask=patches_at_node.mask)
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
-        if unit == 'degrees':
-            mean_slope_at_patches_inrad = mean_slope_at_patches*np.pi/180.
-        else:
-            mean_slope_at_patches_inrad = mean_slope_at_patches
         if return_components:
             (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
-                elevs=elevs, unit=unit, subtriangle_unit_normals=(
+                elevs=elevs, subtriangle_unit_normals=(
                     n_TR, n_TL, n_BL, n_BR),
-                slope_magnitude=mean_slope_at_patches_inrad)
-            # These can be in DEGREES!!!!!
+                slope_magnitude=mean_slope_at_patches)
             x_slope_unmasked = x_slope_patches[patches_at_node]
             x_slope_masked = np.ma.array(x_slope_unmasked,
                                          mask=patches_at_node.mask)

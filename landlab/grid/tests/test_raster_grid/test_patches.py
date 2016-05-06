@@ -99,14 +99,15 @@ class TestSlopesAtPatches():
     def test_slopes_at_patches(self):
         rmg = RasterModelGrid((4, 5))
         rmg.at_node['topographic__elevation'] = rmg.node_x.copy()
-        slopes_out = rmg.calc_slope_of_node(unit='degrees')
-        assert_array_almost_equal(slopes_out, np.full(20, 45., dtype=float))
+        slopes_out = rmg.calc_slope_of_node()
+        assert_array_almost_equal(slopes_out, np.full(20, np.pi/4.,
+                                  dtype=float))
 
     def test_slopes_at_patches_comps(self):
         rmg = RasterModelGrid((4, 5))
         rmg.at_node['topographic__elevation'] = rmg.node_y.copy()
         slopes_out = rmg.calc_slope_of_node(
-            rmg.at_node['topographic__elevation'], unit='radians',
+            rmg.at_node['topographic__elevation'],
             return_components=True)
         assert_array_almost_equal(slopes_out[0],
                                   np.full(20, np.pi/4., dtype=float))

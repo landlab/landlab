@@ -2083,7 +2083,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return nhat/nmag.reshape(self.number_of_patches, 1)
 
     def calc_slope_of_patch(self, elevs='topographic__elevation',
-                            unit='degrees', unit_normal=None):
+                            unit_normal=None):
         """
         Calculate the slope (positive magnitude of gradient) at patches.
 
@@ -2091,9 +2091,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         unit_normal : array with shape (num_patches, 3) (optional)
             The unit normal vector to each patch, if already known.
 
@@ -2111,7 +2108,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> S = mg.calc_slope_of_patch(elevs=z)
         >>> S.size == mg.number_of_patches
         True
-        >>> np.allclose(S, 45.)
+        >>> np.allclose(S, np.pi/4.)
         True
         """
         if unit_normal is not None:
@@ -2123,31 +2120,20 @@ class ModelGrid(ModelDataFieldsMixIn):
         cos_slopes_at_patch = dotprod  # ...because it's now a unit vector
         slopes_at_patch = np.arccos(cos_slopes_at_patch)
 
-        if unit == 'radians':
-            return slopes_at_patch
-        elif unit == 'degrees':
-            return slopes_at_patch * 180. / numpy.pi
-        else:
-            raise TypeError('unit keyword not recognised')
+        return slopes_at_patch
 
     def calc_grad_of_patch(self, elevs='topographic__elevation',
-                           unit='degrees', unit_normal=None,
-                           slope_magnitude=None):
+                           unit_normal=None, slope_magnitude=None):
         """Calculate the components of the gradient of each patch.
 
         Parameters
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         unit_normal : array with shape (num_patches, 3) (optional)
-            The unit normal vector to each patch, if already known. Units must
-            be the same as provided here!
+            The unit normal vector to each patch, if already known.
         slope_magnitude : array with size num_patches (optional)
-            The slope of each patch, if already known. Units must be the same
-            as provided here!
+            The slope of each patch, if already known.
 
         Returns
         -------
@@ -2161,7 +2147,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.node_y
-        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z, unit='radians')
+        >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
         >>> np.allclose(y_grad, -np.pi/4.)
         True
         >>> np.allclose(x_grad, 0.)
@@ -2176,7 +2162,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             assert slope_magnitude.size == self.number_of_patches
             slopes_at_patch = slope_magnitude
         else:
-            slopes_at_patch = self.calc_slope_of_patch(elevs=elevs, unit=unit,
+            slopes_at_patch = self.calc_slope_of_patch(elevs=elevs,
                                                        unit_normal=nhat)
         theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
         x_slope_patches = numpy.cos(theta)*slopes_at_patch
@@ -2185,7 +2171,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return (x_slope_patches, y_slope_patches)
 
     def calc_slope_of_node(self, elevs='topographic__elevation',
-                           unit='degrees', return_components=False):
+                           return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
 
         Produces a value for node slope (i.e., mean gradient magnitude)
@@ -2205,9 +2191,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
-        unit : {'degrees', 'radians'}
-            Units for slopes. Controls only slope magnitude; components are
-            always returned as radians.
         return_components : bool
             If True, return a tuple, (array_of_magnitude,
             (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -2226,14 +2209,14 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RadialModelGrid, RasterModelGrid
         >>> mg = RasterModelGrid((4, 5), 1.)
         >>> z = mg.node_x
-        >>> slopes = mg.calc_slope_of_node(elevs=z, unit='radians')
+        >>> slopes = mg.calc_slope_of_node(elevs=z)
         >>> numpy.allclose(slopes, 45./180.*numpy.pi)
         True
         >>> mg = RasterModelGrid((4, 5), 1.)
         >>> z = mg.node_y
         >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
         ...                                        return_components=True)
-        >>> numpy.allclose(slope_mag, 45.)
+        >>> numpy.allclose(slope_mag, numpy.pi/4.)
         True
         >>> numpy.allclose(cmp[0], 0.)
         True
@@ -2247,11 +2230,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
         ...                                              i)].mean())
         >>> # notice the small amounts of numerical error here:
-        >>> target_mean_ring_slope = [49.106605350869103, 45.471738628700471,
-        ...                           44.646123806208116, 44.896866010480984,
-        ...                           44.938839401113974, 44.950111880067674,
-        ...                           44.964377572754891, 44.980895342790689,
-        ...                           44.980506452187001, 45.069580163013619]
+        >>> target_mean_ring_slope = [0.85707194785013108, 0.79363155567711452,
+        ...                           0.77922185867135429, 0.78359813570962411,
+        ...                           0.78433070957439543, 0.78452745144699965,
+        ...                           0.78477643475446901, 0.78506472422668094,
+        ...                           0.78505793680521629, 0.78661256633611021]
         >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
         True
         """
@@ -2262,7 +2245,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 self.patches_at_node == -1, self.patches_at_node, copy=False)
 
         nhat = self.calc_unit_normal_of_patch(elevs=elevs)
-        slopes_at_patch = self.calc_slope_of_patch(elevs=elevs, unit=unit,
+        slopes_at_patch = self.calc_slope_of_patch(elevs=elevs,
                                                    unit_normal=nhat)
 
         # now CAREFUL - patches_at_node is MASKED
@@ -2273,7 +2256,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         if return_components:
             (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
-                elevs=elevs, unit=unit, unit_normal=nhat,
+                elevs=elevs, unit_normal=nhat,
                 slope_magnitude=slopes_at_patch)
             x_slope_unmasked = x_slope_patches[patches_at_node]
             x_slope_masked = numpy.ma.array(x_slope_unmasked,
@@ -2292,7 +2275,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             return slope_mag
 
     def aspect(self, slope_component_tuple=None,
-               elevs='topographic__elevation', unit='degrees'):
+               elevs='topographic__elevation'):
         """Get array of aspect of a surface.
 
         Calculates at returns the aspect of a surface. Aspect is returned as
