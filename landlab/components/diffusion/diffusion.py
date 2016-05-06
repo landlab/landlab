@@ -143,7 +143,7 @@ class LinearDiffuser(Component):
         else:
             kd_links = float(self.kd)
         # assert CFL condition:
-        CFL_prefactor = _ALPHA * self.grid.link_length ** 2.
+        CFL_prefactor = _ALPHA * self.grid.length_of_link ** 2.
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
         # ^note we can do this as topology shouldn't be changing
         dt_links = CFL_prefactor / kd_links

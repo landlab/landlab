@@ -393,7 +393,7 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.cell_area_at_node
     ~landlab.grid.base.ModelGrid.face_width
     ~landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
-    ~landlab.grid.base.ModelGrid.link_length
+    ~landlab.grid.base.ModelGrid.length_of_link
     ~landlab.grid.base.ModelGrid.assign_upslope_vals_to_active_links
     ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -3021,11 +3021,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.link_length
+        >>> grid.length_of_link
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
                 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
                 1.,  1.,  1.,  1.,  1.])
-        >>> len(grid.link_length) == grid.number_of_links
+        >>> len(grid.length_of_link) == grid.number_of_links
         True
         """
         if self._link_length is None:
@@ -3720,8 +3720,8 @@ class ModelGrid(ModelDataFieldsMixIn):
             self.node_x[self.node_at_link_tail]
         dy = self.node_y[self.node_at_link_head] - \
             self.node_y[self.node_at_link_tail]
-        self._link_unit_vec_x[:self.number_of_links] = dx / self.link_length
-        self._link_unit_vec_y[:self.number_of_links] = dy / self.link_length
+        self._link_unit_vec_x[:self.number_of_links] = dx / self.length_of_link
+        self._link_unit_vec_y[:self.number_of_links] = dy / self.length_of_link
 
         # While we're at it, calculate the unit vector sums for each node.
         # These will be useful in averaging link-based vectors at the nodes.

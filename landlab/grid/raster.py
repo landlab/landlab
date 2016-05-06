@@ -2127,7 +2127,7 @@ XXXXXXeric should be killing this with graphs.
 
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
         >>> _ = grid.diagonal_links_at_node()
-        >>> grid.link_length # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,
                 3.,  3.,  4.,  4.,  4.,
                 3.,  3.,  5.,  5.,  5.,

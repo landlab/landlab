@@ -37,7 +37,7 @@ def test_non_unit_spacing():
 
 @with_setup(setup_grid)
 def test_link_length():
-    assert_array_equal(_RMG.link_length,
+    assert_array_equal(_RMG.length_of_link,
                        [4., 4., 4., 4.,
                         3., 3., 3., 3., 3.,
                         4., 4., 4., 4.,
@@ -49,7 +49,7 @@ def test_link_length():
 
 @with_setup(setup_grid)
 def test_active_link_length():
-    assert_array_equal(_RMG.link_length[_RMG.active_links],
+    assert_array_equal(_RMG.length_of_link[_RMG.active_links],
                        [3., 3., 3.,
                         4., 4., 4., 4.,
                         3., 3., 3.,

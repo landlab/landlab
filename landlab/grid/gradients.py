@@ -103,7 +103,7 @@ def calculate_gradients_at_active_links(grid, node_values, out=None):
         out = grid.empty(centering='active_link')
     return np.divide(node_values[grid.activelink_tonode] -
                      node_values[grid.activelink_fromnode],
-                     grid.link_length[grid.active_links], out=out)
+                     grid.length_of_link[grid.active_links], out=out)
 
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
@@ -135,7 +135,7 @@ def calculate_gradients_at_links(grid, node_values, out=None):
         out = grid.empty(centering='link')
     return np.divide(node_values[grid.node_at_link_head] -
                      node_values[grid.node_at_link_tail],
-                     grid.link_length, out=out)
+                     grid.length_of_link, out=out)
 
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
@@ -188,7 +188,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     laf = grid.link_at_face
     return np.divide(node_values[grid.node_at_link_head[laf]] -
                      node_values[grid.node_at_link_tail[laf]],
-                     grid.link_length[laf], out=out)
+                     grid.length_of_link[laf], out=out)
 
 
 @use_field_name_or_array('node')

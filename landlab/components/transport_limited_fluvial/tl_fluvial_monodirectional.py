@@ -585,11 +585,11 @@ class TransportLimitedEroder(Component):
             core_draining_nodes = np.intersect1d(
                 np.where(draining_nodes)[0],
                 grid.core_nodes, assume_unique=True)
-            link_length[core_draining_nodes] = grid.link_length[
+            link_length[core_draining_nodes] = grid.length_of_link[
                 grid.at_node[steepest_link][core_draining_nodes]]
             # link_length=grid.dx
         else:
-            link_length = grid.link_length[steepest_link]
+            link_length = grid.length_of_link[steepest_link]
         square_link_length = np.square(link_length)  # nans propagate forward
 
         try:
