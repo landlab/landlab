@@ -1678,11 +1678,11 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.get_grid_xdimension
+        >>> grid.grid_xdimension
         4.0
 
         >>> grid = RasterModelGrid((4, 5), 2.)
-        >>> grid.get_grid_xdimension
+        >>> grid.grid_xdimension
         8.0
 
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
@@ -1713,11 +1713,11 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.get_grid_ydimension
+        >>> grid.grid_ydimension
         3.0
 
         >>> grid = RasterModelGrid((4, 5), 0.5)
-        >>> grid.get_grid_ydimension
+        >>> grid.grid_ydimension
         1.5
 
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
