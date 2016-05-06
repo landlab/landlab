@@ -213,8 +213,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._node_x = x
         self._node_y = y
         [self._node_status, self._core_nodes, self._boundary_nodes] = \
-            self.find_perimeter_nodes(pts)
-        [self._cell_at_node, self._node_at_cell] = self.setup_node_cell_connectivity(
+            self._find_perimeter_nodes_and_BC_set(pts)
+        [self._cell_at_node, self._node_at_cell] = self._node_to_cell_connectivity(
             self._node_status, self.number_of_cells)
         active_cell_at_node = self.cell_at_node[self.core_nodes]
 
@@ -234,7 +234,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         (self._node_at_link_tail,
          self._node_at_link_head,
          self.active_links_ids,
-         self._face_width) = self.create_links_and_faces_from_voronoi_diagram(vor)
+         self._face_width) = self._create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
                                           INACTIVE_LINK, dtype=int)
 
@@ -244,7 +244,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Optionally re-orient links so that they all point within upper-right
         # semicircle
         if reorient_links:
-            self.reorient_links_upper_right()
+            self._reorient_links_upper_right()
 
         # LINKS: Calculate link lengths
         self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
@@ -273,7 +273,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._number_of_patches
         except AttributeError:
-            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._number_of_patches
 
     @property
@@ -283,7 +283,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._nodes_at_patch
         except AttributeError:
-            self.create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._nodes_at_patch
 
     def patches_at_node(self, nodata=-1):
@@ -303,21 +303,21 @@ class VoronoiDelaunayGrid(ModelGrid):
             try:
                 return self._patches_at_node
             except AttributeError:
-                self.create_patches_from_delaunay_diagram(
+                self._create_patches_from_delaunay_diagram(
                     self.pts, self.vor, nodata)
                 return self._patches_at_node
         else:
             try:
                 self.set_bad_value
             except:
-                self.create_patches_from_delaunay_diagram(
+                self._create_patches_from_delaunay_diagram(
                     self.pts, self.vor, nodata)
                 self.set_bad_value = True
                 return self._patches_at_node
             else:
                 return self._patches_at_node
 
-    def find_perimeter_nodes(self, pts):
+    def _find_perimeter_nodes_and_BC_set(self, pts):
         """
         Uses a convex hull to locate the perimeter nodes of the Voronoi grid,
         then sets them as fixed value boundary nodes.
@@ -377,7 +377,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         return self._cell_areas
 
     @staticmethod
-    def setup_node_cell_connectivity(node_status, ncells):
+    def _node_to_cell_connectivity(node_status, ncells):
         """Set up node connectivity.
 
         Creates and returns the following arrays:
@@ -398,7 +398,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> import numpy as np
         >>> from landlab.grid import VoronoiDelaunayGrid, BAD_INDEX_VALUE
         >>> ns = np.array([1, 0, 0, 1, 0])  # 3 interior, 2 boundary nodes
-        >>> [node_cell, cell_node] = VoronoiDelaunayGrid.setup_node_cell_connectivity(ns, 3)
+        >>> [node_cell, cell_node] = VoronoiDelaunayGrid._node_to_cell_connectivity(ns, 3)
         >>> node_cell[1:3]
         array([0, 1])
         >>> node_cell[0] == BAD_INDEX_VALUE
@@ -421,7 +421,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         return node_cell, cell_node
 
     @staticmethod
-    def create_links_from_triangulation(tri):
+    def _create_links_from_triangulation(tri):
         """
         From a Delaunay Triangulation of a set of points, contained in a
         scipy.spatial.Delaunay object "tri", creates and returns:
@@ -438,7 +438,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         ...                 [-0.5, 0.87], [ 0.5, 0.87], [ 0., 1.73],
         ...                 [ 1., 1.73]])
         >>> dt = Delaunay(pts)
-        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid.create_links_from_triangulation(dt)
+        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid._create_links_from_triangulation(dt)
         >>> print myfrom, myto, nl # doctest: +SKIP
         [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
         """
@@ -489,14 +489,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         return link_fromnode, link_tonode, num_links
 
     @staticmethod
-    def is_valid_voronoi_ridge(vor, n):
+    def _is_valid_voronoi_ridge(vor, n):
 
         SUSPICIOUSLY_BIG = 40000000.0
         return vor.ridge_vertices[n][0] != -1 and vor.ridge_vertices[n][1] != -1 \
             and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG
 
     @staticmethod
-    def create_links_and_faces_from_voronoi_diagram(vor):
+    def _create_links_and_faces_from_voronoi_diagram(vor):
         """
         From a Voronoi diagram object created by scipy.spatial.Voronoi(),
         builds and returns:
@@ -524,7 +524,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> pts = np.array([[ 0., 0.],[  1., 0.],[-0.5, 0.87],[ 0.5, 0.87],[  1.5, 0.87],[  0., 1.73],[  1., 1.73]])
         >>> from scipy.spatial import Voronoi
         >>> vor = Voronoi(pts)
-        >>> [tn,hn,al,fw] = VoronoiDelaunayGrid.create_links_and_faces_from_voronoi_diagram(vor)
+        >>> [tn,hn,al,fw] = VoronoiDelaunayGrid._create_links_and_faces_from_voronoi_diagram(vor)
         >>> tn
         array([0, 0, 0, 1, 1, 2, 3, 2, 3, 6, 6, 6])
         >>> hn
@@ -578,7 +578,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             face_corner1 = vor.ridge_vertices[ind[i]][0]
             face_corner2 = vor.ridge_vertices[ind[i]][1]
             # means it's a valid face
-            if VoronoiDelaunayGrid.is_valid_voronoi_ridge(vor, ind[i]):
+            if VoronoiDelaunayGrid._is_valid_voronoi_ridge(vor, ind[i]):
                 dx = vor.vertices[face_corner2, 0] - \
                     vor.vertices[face_corner1, 0]
                 dy = vor.vertices[face_corner2, 1] - \
@@ -589,7 +589,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         return link_fromnode, link_tonode, active_links, face_width
 
-    def reorient_links_upper_right(self):
+    def _reorient_links_upper_right(self):
         """Reorient links to all point within the upper-right semi-circle.
 
         Notes
@@ -645,7 +645,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                 flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
 
-    def create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
+    def _create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
         """
         Uses a delaunay diagram drawn from the provided points to
         generate an array of patches and patch-node-link connectivity.
