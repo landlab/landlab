@@ -191,8 +191,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
-        x = pts[:,0]
-        y = pts[:,1]
+        x = pts[:, 0]
+        y = pts[:, 1]
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -214,8 +214,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._node_y = y
         [self._node_status, self._core_nodes, self._boundary_nodes] = \
             self._find_perimeter_nodes_and_BC_set(pts)
-        [self._cell_at_node, self._node_at_cell] = self._node_to_cell_connectivity(
-            self._node_status, self.number_of_cells)
+        [self._cell_at_node, self._node_at_cell] = \
+            self._node_to_cell_connectivity(self._node_status,
+                                            self.number_of_cells)
         active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
@@ -234,7 +235,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         (self._node_at_link_tail,
          self._node_at_link_head,
          self.active_links_ids,
-         self._face_width) = self._create_links_and_faces_from_voronoi_diagram(vor)
+         self._face_width) = \
+            self._create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
                                           INACTIVE_LINK, dtype=int)
 
@@ -299,7 +301,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         Note that this method returns a *masked* array, with the normal
         provisos that integer indexing with a masked array removes the mask.
         """
-        if nodata == -1:  # fiddle needed to ensure we set the nodata value properly if we've called patches elsewhere
+        if nodata == -1:
+            # ^fiddle needed to ensure we set the nodata value properly if
+            # we've called patches elsewhere
             try:
                 return self._patches_at_node
             except AttributeError:
@@ -395,10 +399,11 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         Examples
         --------
+        >>> import VoronoiDelaunayGrid as vdg
         >>> import numpy as np
-        >>> from landlab.grid import VoronoiDelaunayGrid, BAD_INDEX_VALUE
+        >>> from landlab.grid import BAD_INDEX_VALUE
         >>> ns = np.array([1, 0, 0, 1, 0])  # 3 interior, 2 boundary nodes
-        >>> [node_cell, cell_node] = VoronoiDelaunayGrid._node_to_cell_connectivity(ns, 3)
+        >>> [node_cell, cell_node] = vdg._node_to_cell_connectivity(ns, 3)
         >>> node_cell[1:3]
         array([0, 1])
         >>> node_cell[0] == BAD_INDEX_VALUE
@@ -433,12 +438,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         --------
         >>> from scipy.spatial import Delaunay
         >>> import numpy as np
-        >>> from landlab.grid import VoronoiDelaunayGrid
+        >>> from landlab.grid import VoronoiDelaunayGrid as vdg
         >>> pts = np.array([[ 0., 0.], [ 1., 0.], [ 1., 0.87],
         ...                 [-0.5, 0.87], [ 0.5, 0.87], [ 0., 1.73],
         ...                 [ 1., 1.73]])
         >>> dt = Delaunay(pts)
-        >>> [myfrom,myto,nl] = VoronoiDelaunayGrid._create_links_from_triangulation(dt)
+        >>> [myfrom,myto,nl] = vdg._create_links_from_triangulation(dt)
         >>> print myfrom, myto, nl # doctest: +SKIP
         [5 3 4 6 4 3 0 4 1 1 2 6] [3 4 5 5 6 0 4 1 0 2 4 2] 12
         """
@@ -473,7 +478,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         tridone = numpy.zeros(tri.nsimplex, dtype=bool)
         for t in range(tri.nsimplex):  # loop over triangles
             for i in range(0, 3):       # loop over vertices & neighbors
-                if tri.neighbors[t, i] == -1 or not tridone[tri.neighbors[t, i]]:
+                if tri.neighbors[t, i] == -1 or not tridone[
+                        tri.neighbors[t, i]]:
                     link_fromnode[link_id] = tri.simplices[
                         t, numpy.mod(i + 1, 3)]
                     link_tonode[link_id] = tri.simplices[
@@ -482,8 +488,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             tridone[t] = True
 
         # save the results
-        #self.node_at_link_tail = link_fromnode
-        #self.node_at_link_head = link_tonode
+        # self.node_at_link_tail = link_fromnode
+        # self.node_at_link_head = link_tonode
 
         # Return the results
         return link_fromnode, link_tonode, num_links
@@ -492,8 +498,10 @@ class VoronoiDelaunayGrid(ModelGrid):
     def _is_valid_voronoi_ridge(vor, n):
 
         SUSPICIOUSLY_BIG = 40000000.0
-        return vor.ridge_vertices[n][0] != -1 and vor.ridge_vertices[n][1] != -1 \
-            and numpy.amax(numpy.abs(vor.vertices[vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG
+        return (vor.ridge_vertices[n][0] != -1 and
+                vor.ridge_vertices[n][1] != -1 and
+                numpy.amax(numpy.abs(vor.vertices[
+                    vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG)
 
     @staticmethod
     def _create_links_and_faces_from_voronoi_diagram(vor):
@@ -514,17 +522,19 @@ class VoronoiDelaunayGrid(ModelGrid):
         out : tuple of ndarrays
             - link_fromnode = "from" node for each link (len=num_links)
             - link_tonode   = "to" node for each link (len=num_links)
-            - active_links  = link ID for each active link (len=num_active_links)
+            - active_links  = link ID for each active link
+                                                    (len=num_active_links)
             - face_width    = width of each face (len=num_active_links
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.grid import VoronoiDelaunayGrid
-        >>> pts = np.array([[ 0., 0.],[  1., 0.],[-0.5, 0.87],[ 0.5, 0.87],[  1.5, 0.87],[  0., 1.73],[  1., 1.73]])
+        >>> from landlab.grid import VoronoiDelaunayGrid as vdg
+        >>> pts = np.array([[0., 0.], [1., 0.], [-0.5, 0.87], [0.5, 0.87],
+        ...                 [1.5, 0.87], [0., 1.73], [1., 1.73]])
         >>> from scipy.spatial import Voronoi
         >>> vor = Voronoi(pts)
-        >>> [tn,hn,al,fw] = VoronoiDelaunayGrid._create_links_and_faces_from_voronoi_diagram(vor)
+        >>> [tn,hn,al,fw] = vdg._create_links_and_faces_from_voronoi_diagram(vor)
         >>> tn
         array([0, 0, 0, 1, 1, 2, 3, 2, 3, 6, 6, 6])
         >>> hn
@@ -564,7 +574,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Find the order to sort by link midpoints
         link_midpoints = numpy.zeros((num_links, 2))
         for i in range(num_links):
-            link_midpoints[i][:] = (vor.points[vor.ridge_points[i,0]]+vor.points[vor.ridge_points[i,1]])/2
+            link_midpoints[i][:] = (vor.points[vor.ridge_points[i, 0]] +
+                                    vor.points[vor.ridge_points[i, 1]])/2.
         ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
@@ -596,7 +607,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         -----
         "Upper right semi-circle" means that the angle of the link with respect
         to the vertical (measured clockwise) falls between -45 and +135. More
-        precisely, if :math:`\theta' is the angle, :math:`-45 \ge \theta < 135`.
+        precisely, if :math:`\theta' is the angle,
+        :math:`-45 \ge \theta < 135`.
         For example, the link could point up and left as much as -45, but not
         -46. It could point down and right as much as 134.9999, but not 135. It
         will never point down and left, or up-but-mostly-left, or
@@ -678,7 +690,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
         for i in range(self.number_of_nodes):
-            if not self.node_is_boundary(i, boundary_flag=4):  # don't include closed nodes
+            if not self.node_is_boundary(i, boundary_flag=4):
+                # ^don't include closed nodes
                 patches_with_node = numpy.argwhere(
                     numpy.equal(self._nodes_at_patch, i))[:, 0]
                 _patches_at_node[
