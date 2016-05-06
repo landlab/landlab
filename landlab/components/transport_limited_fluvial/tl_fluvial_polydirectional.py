@@ -393,7 +393,7 @@ class TransportLimitedEroder(object):
             if reps == num_reps_internal:
                 delta_t_internal = dt_excess
 
-            node_gradients = grid.calculate_gradient_along_node_links(node_z)
+            node_gradients = grid.calc_grad_along_node_links(node_z)
             # pylab.figure(2)
             # pylab.imshow(node_gradients[:,3].reshape((nrows,ncols)))
             # pylab.colorbar()

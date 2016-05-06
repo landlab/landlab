@@ -62,8 +62,8 @@ for i in xrange(nt):
     #print 'loop ', i
     mg.at_node['topographic_elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
-    #mg.calculate_gradient_across_cell_faces(mg.at_node['topographic_elevation'])
-    #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic_elevation'])
+    #mg.calc_grad_across_cell_faces(mg.at_node['topographic_elevation'])
+    #neighbor_slopes = mg.calc_grad_along_node_links(mg.at_node['topographic_elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)
     #max_slope = np.max(np.fabs(neighbor_slopes),axis=1)
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='steepest_slope')

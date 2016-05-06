@@ -65,7 +65,7 @@ for i in range(3000):
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
-    g = mg.calculate_gradients_at_active_links(mg.at_node[
+    g = mg.calc_grad_of_active_link(mg.at_node[
         'topographic__elevation'])
     mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
                                      out=mg.at_link[
@@ -93,7 +93,7 @@ for i in range(3000):
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
-    g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
+    g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
     mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
                                      out=mg.at_link[
                                         'water__volume_flux_magnitude'])

@@ -222,7 +222,7 @@ methods tend to start with `calc_`.
     :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.calc_diff_at_link
-    ~landlab.grid.base.ModelGrid.calc_grad_at_link
+    ~landlab.grid.base.ModelGrid.calc_grad_of_link
     ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
     ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
     ~landlab.grid.base.ModelGrid.calc_unit_normal_of_patch
@@ -2777,7 +2777,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad = rmg.calc_grad_of_active_link(u)
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
@@ -4503,7 +4503,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
-add_module_functions_to_class(ModelGrid, 'gradients.py', pattern='calculate_*')
+# add_module_functions_to_class(ModelGrid, 'gradients.py',
+#                               pattern='calculate_*')
 add_module_functions_to_class(ModelGrid, 'gradients.py', pattern='calc_*')
 add_module_functions_to_class(ModelGrid, 'divergence.py', pattern='calc_*')
 

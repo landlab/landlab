@@ -8,7 +8,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab.grid.raster_steepest_descent import (
-    calculate_steepest_descent_across_cell_faces)
+    calc_steepest_descent_across_cell_faces)
 
 
 _GRID = None
@@ -30,22 +30,22 @@ def setup_3x3_grid():
 
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
-    grad = calculate_steepest_descent_across_cell_faces(
+    grad = calc_steepest_descent_across_cell_faces(
         _GRID, _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
-    grad = _GRID.calculate_steepest_descent_across_cell_faces(
+    grad = _GRID.calc_steepest_descent_across_cell_faces(
         _VALUES_AT_NODES, 0)
     assert_equal(grad, -5.)
 
 
 @with_setup(setup_unit_grid)
 def test_iterable():
-    grad = calculate_steepest_descent_across_cell_faces(
+    grad = calc_steepest_descent_across_cell_faces(
         _GRID, _VALUES_AT_NODES, [0, 4])
     assert_array_equal(grad, [-5., -5.])
 
-    grad = _GRID.calculate_steepest_descent_across_cell_faces(
+    grad = _GRID.calc_steepest_descent_across_cell_faces(
         _VALUES_AT_NODES, [0, 4])
     assert_array_equal(grad, [-5., -5.])
 
@@ -56,7 +56,7 @@ def test_scalar_arg_with_return_node():
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10, ], dtype=float)
-    (grad, node) = _GRID.calculate_steepest_descent_across_cell_faces(
+    (grad, node) = _GRID.calc_steepest_descent_across_cell_faces(
         values, (0, 4), return_node=True)
     assert_array_equal(grad, [-1, -6])
     assert_array_equal(node, [5, 17])
@@ -67,7 +67,7 @@ def test_node_in_direction_of_max():
     for neighbor_id in [1, 3, 5, 7]:
         values = np.zeros(9)
         values[neighbor_id] = -1
-        (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_faces(
+        (_, node) = rmg_3x3.calc_steepest_descent_across_cell_faces(
             values, 0, return_node=True)
         assert_array_equal(node, neighbor_id)
 
@@ -75,18 +75,18 @@ def test_node_in_direction_of_max():
 @with_setup(setup_3x3_grid)
 def test_node_in_direction_of_max_with_ties():
     values = np.zeros(9)
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_faces(
+    (_, node) = rmg_3x3.calc_steepest_descent_across_cell_faces(
         values, 0, return_node=True)
     assert_array_equal(node, 5)
 
     values = np.zeros(9)
     values[5] = 1
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_faces(
+    (_, node) = rmg_3x3.calc_steepest_descent_across_cell_faces(
         values, 0, return_node=True)
     assert_array_equal(node, 7)
 
     values = np.zeros(9)
     values[[5, 7]] = 1
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_faces(
+    (_, node) = rmg_3x3.calc_steepest_descent_across_cell_faces(
         values, 0, return_node=True)
     assert_array_equal(node, 3)

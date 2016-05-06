@@ -2477,7 +2477,7 @@ XXXXXXeric should be killing this with graphs.
               inactive (so they appear on link-based lists, but not
               active_link-based lists)
 
-        This means that if you call the calculate_gradients_at_active_links
+        This means that if you call the calc_grad_of_active_link
         method, the inactive boundaries will be ignored: there can be no
         gradients or fluxes calculated, because the links that connect to that
         edge of the grid are not included in the calculation. So, setting a
@@ -2572,7 +2572,7 @@ XXXXXXeric should be killing this with graphs.
               flagged as inactive (so they appear on link-based lists, but
               not active_link-based lists)
 
-        This means that if you call the calculate_gradients_at_active_links
+        This means that if you call the calc_grad_of_active_link
         method, links connecting to closed boundaries will be ignored: there
         can be no gradients or fluxes calculated, because the links that
         connect to that edge of the grid are not included in the calculation.
@@ -3037,7 +3037,7 @@ XXXXXXeric should be killing this with graphs.
         ...               9., 3., 9.,
         ...               6., 9., 6.])
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
-        >>> grads = grid.calculate_gradients_at_active_links(z)
+        >>> grads = grid.calc_grad_of_active_link(z)
         >>> max_grad, dest_node = (
         ...     grid.calculate_steepest_descent_on_nodes(z, grads))
         >>> max_grad # doctest: +NORMALIZE_WHITESPACE
@@ -3141,7 +3141,7 @@ XXXXXXeric should be killing this with graphs.
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calculate_gradients_at_active_links(u)
+        >>> grad = rmg.calc_grad_of_active_link(u)
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
@@ -5329,11 +5329,9 @@ def from_dict(param_dict):
 
 add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
                               pattern='map_*')
-add_module_functions_to_class(RasterModelGrid, 'raster_aspect.py',
-                              pattern='calculate_slope_aspect*')
 add_module_functions_to_class(RasterModelGrid, 'raster_gradients.py',
-                              pattern='calculate_*')
+                              pattern='calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
-                              pattern='calculate_*')
+                              pattern='calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_set_status.py',
                               pattern='set_status_at_node*')
