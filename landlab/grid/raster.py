@@ -4485,9 +4485,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.
         
-        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).  
-        All nodes with data values are set to CORE_NODES (0), with the 
-        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+        All nodes with nodata_value are set to CLOSED_BOUNDARY 
+        (grid.status_at_node == 4). All nodes with data values
+        are set to CORE_NODES (grid.status_at_node == 0), with
+        the exception that the outlet node is set to a 
+        FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
         
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would
@@ -4586,15 +4588,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         locs = list(np.where(node_data != nodata_value)[0])
         if len(locs) < 1:
             raise ValueError('All data values are no_data values')
-        #print('locs', locs)
 
         #now find minimum of the data values
         min_val=np.min(node_data[locs])
-        #print('min_val', min_val)
 
         #now find where minimum values are
         min_locs=list(np.where(node_data == min_val)[0])
-        #print('min_locs', min_locs)
 
         #check all the locations with the minimum value to see if one
         #is adjacent to a boundary location.  If so, that will be the
@@ -4645,9 +4644,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                      node_data, nodata_value): 
         """
         Set the boundary conditions for a watershed.  
-        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).  
-        All nodes with data values are set to CORE_NODES (0), with the 
-        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+        All nodes with nodata_value are set to CLOSED_BOUNDARY 
+        (grid.status_at_node == 4). All nodes with data values
+        are set to CORE_NODES (grid.status_at_node == 0), with
+        the exception that the outlet node is set to a 
+        FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
         
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would
