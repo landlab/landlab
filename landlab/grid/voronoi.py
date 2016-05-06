@@ -399,7 +399,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         Examples
         --------
-        >>> import VoronoiDelaunayGrid as vdg
+        >>> from landlab import VoronoiDelaunayGrid as vdg
         >>> import numpy as np
         >>> from landlab.grid import BAD_INDEX_VALUE
         >>> ns = np.array([1, 0, 0, 1, 0])  # 3 interior, 2 boundary nodes
