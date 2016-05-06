@@ -336,7 +336,7 @@ class SinkFiller(Component):
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
-        d = self._grid.get_distances_of_nodes_to_point(outlet_coord,
+        d = self._grid.calc_distances_of_nodes_to_point(outlet_coord,
                                                        node_subset=lake_nodes)
         add_vals = slope*d
         new_elevs[lake_nodes] += add_vals

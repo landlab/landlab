@@ -100,6 +100,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
+        self._origin_x = origin_x
+        self._origin_y = origin_y
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
@@ -192,18 +194,6 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             return self._nnodes_inshell
 
     @property
-    def radius_to_shell(self):
-        """Distance from central node to each shell.
-
-        Returns
-        -------
-        ndarray of float
-            The distance from the central node to each shell.
-        """
-        return ((numpy.arange(self.number_of_shells, dtype=float) + 1.) *
-                self.shell_spacing)
-
-    @property
     def radius_at_node(self):
         """Distance for center node to each node.
 
@@ -211,16 +201,17 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         -------
         ndarray of float
             The distance from the center node of each node.
+
+        >>> mg = RadialModelGrid(num_shells=2)
+        >>> mg.radius_at_node
+        array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  0.,  1.,  1.,  2.,  2.,
+                1.,  1.,  2.,  2.,  2.,  2.,  2.])
         """
         try:
             return self._node_radii
         except AttributeError:
-            self._node_radii = numpy.empty(self.number_of_nodes, dtype=float)
-            self._node_radii[0] = 0
-            start_index = 1
-            for i in range(self.number_of_shells):
-                end_index = start_index + self.number_of_nodes_in_shell[i]
-                self._node_radii[start_index:
-                                 end_index] = self.radius_to_shell[i]
-                start_index = end_index
+            self._node_radii = numpy.sqrt(numpy.square(self.node_x -
+                                                       self._origin_x) +
+                                          numpy.square(self.node_y -
+                                                       self._origin_y))
             return self._node_radii
