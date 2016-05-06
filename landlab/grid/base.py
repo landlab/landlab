@@ -2586,8 +2586,24 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg = RasterModelGrid((4, 4))
         >>> z = mg.node_x**2 + mg.node_y**2
         >>> mg.calc_aspect(elevs=z)
+        array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
+                209.83414961,  225.        ,  243.54632481,  248.77808974,
+                194.7203682 ,  206.45367519,  225.        ,  231.94498651,
+                191.30993247,  201.22191026,  218.05501349,  225.        ])
         >>> z = z.max() - z
         >>> mg.calc_aspect(elevs=z)
+        array([ 45.        ,  60.16585039,  75.2796318 ,  78.69006753,
+                29.83414961,  45.        ,  63.54632481,  68.77808974,
+                14.7203682 ,  26.45367519,  45.        ,  51.94498651,
+                11.30993247,  21.22191026,  38.05501349,  45.        ])
+
+        >>> mg = RasterModelGrid((4, 4), (2., 3.))
+        >>> z = mg.node_x**2 + mg.node_y**2
+        >>> mg.calc_aspect(elevs=z)
+        array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
+                220.75264634,  234.41577266,  251.13402374,  255.29210302,
+                201.54258265,  215.47930877,  235.73541937,  242.24162456,
+                196.69924423,  209.43534223,  229.19345757,  236.30993247])
 
         Note that a small amount of asymmetry arises at the grid edges due
         to the "missing" nodes beyond the edge of the grid.
@@ -2605,8 +2621,9 @@ class ModelGrid(ModelDataFieldsMixIn):
                 elevs=elev_array, return_components=True)
         angle_from_x_ccw = numpy.arctan2(
             slope_component_tuple[1], slope_component_tuple[0])
-        angle_from_N_cw = 2.*np.pi - ((angle_from_x_ccw + numpy.pi / 2.) % (
-            2 * numpy.pi))
+        # angle_from_N_cw = ((angle_from_x_ccw + numpy.pi / 2.) % (
+        #     2 * numpy.pi))
+        angle_from_N_cw = (5.*numpy.pi/2. - angle_from_x_ccw) % (2.*numpy.pi)
         if unit == 'degrees':
             return 180. / numpy.pi * angle_from_N_cw
         elif unit == 'radians':
@@ -2659,10 +2676,14 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((5, 5))
-        >>> z = 50. - mg.node_x**2 + mg.node_y**2
-        >>> mg.calc_hillshade(elevs=z)
-
+        >>> mg = RasterModelGrid((5, 5), 1.)
+        >>> z = 6. - ((mg.node_x-2.)**2 + (mg.node_y-2.)**2)
+        >>> mg.calc_hillshade(elevs=z) # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.16222142,  0.03572257, -0.26353058, -0.4766685 , -0.52602578,
+                0.33996228,  0.25232065, -0.13335582, -0.4082354 , -0.4766685 ,
+                0.68993201,  0.76230631,  0.2256741 , -0.13335582, -0.26353058,
+                0.85235335,  0.9128767 ,  0.76230631,  0.25232065,  0.03572257,
+                0.85046862,  0.85235335,  0.68993201,  0.33996228,  0.16222142])
         """
         if slp is not None and asp is not None:
             if unit == 'degrees':
