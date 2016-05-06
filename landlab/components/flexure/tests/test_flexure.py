@@ -61,14 +61,14 @@ def test_grid_shape():
 
 
 @with_setup(setup_grid)
-def test_grid_xdimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
+def test_grid_xdimension:
+    assert_equal(flex.grid.grid_xdimension,
                  (_SHAPE[1] - 1) * _SPACING[1])
 
 
 @with_setup(setup_grid)
 def test_grid_ydimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
+    assert_equal(flex.grid.grid_xdimension,
                  (_SHAPE[0] - 1) * _SPACING[0])
 
 

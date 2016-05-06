@@ -291,8 +291,8 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
     ~landlab.grid.base.ModelGrid.node_slopes_using_patches
     ~landlab.grid.base.ModelGrid.node_slopes
-    ~landlab.grid.base.ModelGrid.aspect
-    ~landlab.grid.base.ModelGrid.hillshade
+    ~landlab.grid.base.ModelGrid.calc_aspect
+    ~landlab.grid.base.ModelGrid.calc_hillshade
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_core_nodes
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
     ~landlab.grid.base.ModelGrid.cell_area_at_node
@@ -2290,7 +2290,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         return self.node_slopes_using_patches(**kwargs)
 
-    def aspect(self, slope_component_tuple=None,
+    def calc_aspect(self, slope_component_tuple=None,
                elevs='topographic__elevation', unit='degrees'):
         """Get array of aspect of a surface.
 
@@ -2323,7 +2323,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 4))
         >>> z = mg.node_x**2 + mg.node_y**2
-        >>> mg.aspect(elevs=z)
+        >>> mg.calc_aspect(elevs=z)
         
         """
         if slope_component_tuple:
@@ -2347,8 +2347,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
 
-    def hillshade(self, alt=45., az=315., slp=None, asp=None, unit='degrees',
-                  elevs='topographic__elevation'):
+    def calc_hillshade(self, alt=45., az=315., slp=None, asp=None,
+                       unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
@@ -2394,7 +2394,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((5, 5))
         >>> z = 50. - mg.node_x**2 + mg.node_y**2
-        >>> mg.hillshade(elevs=z)
+        >>> mg.calc_hillshade(elevs=z)
 
         """
         if slp is not None and asp is not None:
@@ -2420,7 +2420,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                 raise TypeError("unit must be 'degrees' or 'radians'")
             slp, slp_comps = self.calc_slope_of_node(
                 elevs, unit='radians', return_components=True)
-            asp = self.aspect(slope_component_tuple=slp_comps, unit='radians')
+            asp = self.calc_aspect(slope_component_tuple=slp_comps,
+                                   unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')
 
@@ -2607,7 +2608,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         try:
             return self._face_width
         except AttributeError:
-            return self._setup_face_width()
+            return self._create_face_width()
 
     def _create_face_at_link(self):
         """Set up face_at_link array.

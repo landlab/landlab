@@ -102,7 +102,7 @@ class WatershedBoundaryConditions(object):
                 local_not_found=True
                 i=0
                 while (i<len(min_locs) and local_not_found):
-                    if grid.has_boundary_neighbor(min_locs[i]):
+                    if grid.node_has_boundary_neighbor(min_locs[i]):
                         local_not_found = False
                         #outlet_loc contains the index of the outlet location
                         #in the node_data array
@@ -158,7 +158,7 @@ class WatershedBoundaryConditions(object):
                 local_not_found=True
                 i=0
                 while (i<len(min_locs) and local_not_found):
-                    if grid.has_boundary_neighbor(min_locs[i]):
+                    if grid.node_has_boundary_neighbor(min_locs[i]):
                         local_not_found = False
                         #outlet_loc contains the index of the outlet location
                         #in the node_data array

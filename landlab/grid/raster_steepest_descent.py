@@ -352,7 +352,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.get_active_neighbors_at_node()[grid.node_at_cell[cell_ids], ind]
+        node_ids = grid.active_neighbors_at_node()[grid.node_at_cell[cell_ids], ind]
         # node_ids = grid.neighbor_nodes[grid.node_at_cell[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)

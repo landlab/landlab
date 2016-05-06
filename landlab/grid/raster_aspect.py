@@ -234,7 +234,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
             raise IndexError('*vals* was not of a compatible length!')
 
     # [right, top, left, bottom]
-    neighbors = grid.get_active_neighbors_at_node(ids)
+    neighbors = grid.active_neighbors_at_node(ids)
     # [topright, topleft, bottomleft, bottomright]
     diagonals = grid.get_diagonal_list(ids)
 

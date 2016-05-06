@@ -1919,7 +1919,7 @@ def diagonal_array_slow(shape):
     return diagonal_cells
 
 
-def has_boundary_neighbor(neighbors, diagonals,
+def node_has_boundary_neighbor(neighbors, diagonals,
                           out_of_bounds=BAD_INDEX_VALUE):
     """Array of booleans that indicate if a node has a boundary neighbor.
 
@@ -1932,7 +1932,7 @@ def has_boundary_neighbor(neighbors, diagonals,
             out_of_bounds in diagonals)
 
 
-def has_boundary_neighbor_slow(neighbors, diagonals,
+def node_has_boundary_neighbor_slow(neighbors, diagonals,
                                out_of_bounds=BAD_INDEX_VALUE):
     """Array of booleans that indicate if a node has a boundary neighbor.
 

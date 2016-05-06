@@ -46,7 +46,7 @@ mass_balance = np.empty(nt)
 for i in range(loops):
     for j in range(nt):
         if j == 1:
-            craters_component._ycoord = 0.45*mg.get_grid_xdimension()
+            craters_component._ycoord = 0.45*mg.grid_xdimension
             craters_component._radius /= 10.
         mg = craters_component.excavate_a_crater_furbish(mg)
         x[j] = craters_component.impact_xy_location[0]

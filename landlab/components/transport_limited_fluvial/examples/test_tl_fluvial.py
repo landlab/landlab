@@ -84,7 +84,6 @@ for i in range(nt):
                                                  profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node[
                           'topographic__elevation'])
-    # mg.update_boundary_nodes()
     #vid.add_frame(mg, 'topographic__elevation')
 
 

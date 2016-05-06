@@ -35,9 +35,9 @@ def dig_one_crater_timetest(reps, nr, nc, dx, rel_x, rel_y, radius, switch):
         cr.set_depth_from_size()
         #print 'Depth: ', cr._depth
         cr.set_crater_volume()
-        cr._xcoord = rel_x*mg.get_grid_xdimension()
-        cr._ycoord = rel_y*mg.get_grid_ydimension()
-        vertices_array = mg.get_nodes_around_point(cr._xcoord, cr._ycoord)
+        cr._xcoord = rel_x*mg.grid_xdimension
+        cr._ycoord = rel_y*mg.grid_ydimension
+        vertices_array = mg.nodes_around_point(cr._xcoord, cr._ycoord)
         distances_to_vertices = []
         #print vertices_array
         #print len(mg.node_x)

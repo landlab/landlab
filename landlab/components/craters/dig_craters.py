@@ -65,8 +65,8 @@ class impactor(object):
         else:
             self.radius_auto_flag = 0
         try:
-            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
+            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.grid_xdimension-grid.dx)
+            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position')*(grid.grid_ydimension-grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -210,8 +210,8 @@ class impactor(object):
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
-        self._xcoord = 0.5*grid.dx + random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = 0.5*grid.dy + random() * (grid.get_grid_ydimension() - grid.dy)
+        self._xcoord = 0.5*grid.dx + random() * (grid.grid_xdimension - grid.dx)
+        self._ycoord = 0.5*grid.dy + random() * (grid.grid_ydimension - grid.dy)
         #Snap impact to grid:
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
@@ -234,8 +234,8 @@ class impactor(object):
         cos_alpha = numpy.cos(alpha)
         sin_alpha = numpy.sin(alpha)
         grid = self.grid
-        gridx = grid.get_grid_xdimension()
-        gridy = grid.get_grid_ydimension()
+        gridx = grid.grid_xdimension
+        gridy = grid.grid_ydimension
         dx = grid.dx
         dy - grid.dy
         x = self._xcoord
@@ -531,7 +531,7 @@ class impactor(object):
             self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
             self.set_crater_mean_slope_v2()
         else:
-            slope_pts %= numpy.array([self.grid.get_grid_xdimension(), self.grid.get_grid_ydimension()]) #added new, to remove boundaries
+            slope_pts %= numpy.array([self.grid.grid_xdimension, self.grid.grid_ydimension]) #added new, to remove boundaries
             slope_pts_ongrid = grid.find_nearest_node((slope_pts[:,0],slope_pts[:,1]))
             self.closest_node_index = slope_pts_ongrid[4]
             cardinal_elevs = elev[slope_pts_ongrid]
@@ -1123,8 +1123,8 @@ class impactor(object):
         '''
         assert type(center) == tuple
         assert len(center) == 2
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        grid_x = self.grid.grid_xdimension-self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.grid_ydimension-self.grid.dy
         six.print_('center, r, x', center[0], eff_radius, grid_x)
         left_repeats = -int((center[0]-eff_radius)//grid_x)
         right_repeats = int((center[0]+eff_radius)//grid_x)
@@ -1539,8 +1539,8 @@ class impactor(object):
 
         This method is a generator.
         '''
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        grid_x = self.grid.grid_xdimension-self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.grid_ydimension-self.grid.dy
         assert type(center_tuple) == tuple
 
         if flag_from_footprint_edge_type == 'I':

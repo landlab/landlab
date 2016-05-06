@@ -200,7 +200,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Remember grid spacing
         self._dx = dx
 
-    def _setup_cell_areas_array(self):
+    def _create_cell_areas_array(self):
         r"""Create an array of surface areas of hexagonal cells.
 
         Creates and returns an array containing the surface areas of the

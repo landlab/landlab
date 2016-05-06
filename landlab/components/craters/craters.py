@@ -186,8 +186,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random() * grid.get_grid_xdimension()
-        self._ycoord = random() * grid.get_grid_ydimension()
+        self._xcoord = random() * grid.grid_xdimension
+        self._ycoord = random() * grid.grid_ydimension
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -431,7 +431,7 @@ class impactor(object):
                     depth_excavated = (pre_elev-_new_z)
                     crater_vol_below_ground += depth_excavated
                     self.mass_balance_in_impact -= depth_excavated
-                    neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
+                    neighbors_active_node = grid.active_neighbors_at_node(active_node)
                     for x in neighbors_active_node:
                         if not flag_already_in_the_list[x]:
                             if x!=-1: #Not an edge
@@ -466,7 +466,7 @@ class impactor(object):
                         self.mass_balance_in_impact += _thickness
 
                     if _thickness > self._minimum_ejecta_thickness:
-                        neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
+                        neighbors_active_node = grid.active_neighbors_at_node(active_node)
                         for x in neighbors_active_node:
                             if not flag_already_in_the_list[x]:
                                 if x!=-1:
@@ -657,13 +657,13 @@ class impactor(object):
         self.set_depth_from_size()
         self.set_crater_volume()
         try:
-            self._xcoord = kwds['forced_pos'][0]*grid.get_grid_xdimension()
+            self._xcoord = kwds['forced_pos'][0]*grid.grid_xdimension
         except:
             six.print_('Randomly generating impact site...')
             self.set_coords(grid, data)
         else:
             try:
-                self._ycoord = kwds['forced_pos'][1]*grid.get_grid_ydimension()
+                self._ycoord = kwds['forced_pos'][1]*grid.grid_ydimension
                 six.print_(self._xcoord, self._ycoord)
                 self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
                 self.closest_node_elev = data.elev[self.closest_node_index]

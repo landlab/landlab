@@ -115,7 +115,6 @@ for i in range(nt):
             else:
                 savefig('profile_anim_'+str(i)+'.png')
             close('long_profile_anim')
-#mg.update_boundary_nodes()
 #vid.add_frame(mg, 'topographic__elevation')
 
 

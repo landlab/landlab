@@ -371,7 +371,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # Return the results
         return node_status, core_nodes, boundary_nodes
 
-    def _setup_cell_areas_array(self):
+    def _create_cell_areas_array(self):
         """Set up an array of cell areas."""
         self._cell_areas = self.active_cell_areas
         return self._cell_areas

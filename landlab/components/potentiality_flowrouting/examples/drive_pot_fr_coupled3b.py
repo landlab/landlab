@@ -110,7 +110,7 @@ for i in range(3000):
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
-imshow_node_grid(mg, mg.hillshade(), cmap='bone')
+imshow_node_grid(mg, mg.calc_hillshade(), cmap='bone')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)

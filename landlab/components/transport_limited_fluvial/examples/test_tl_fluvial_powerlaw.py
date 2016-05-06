@@ -81,7 +81,6 @@ for i in xrange(nt):
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['steepest_slope']),
                         profile_IDs, mg.at_node['links_to_flow_receiver'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
-    #mg.update_boundary_nodes()
     #vid.add_frame(mg, 'topographic_elevation')
     
  
