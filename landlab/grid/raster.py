@@ -1556,54 +1556,6 @@ XXXXXXeric should be killing this with graphs.
         self._node_unit_vector_sum_y += np.abs(
             self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
 
-    def _create_faces_at_cell(self, *args):
-        """faces_at_cell([cell_id])
-        Get array of faces of a cell.
-
-        Return an array of the face IDs for the faces of a cell with ID,
-        *cell_id*. The faces are listed clockwise, starting with the bottom
-        face. *cell_id* can be either a scalar or an array. If an array,
-        return the faces for each cell of the array.
-
-        Parameters
-        ----------
-        cell_id : array_like
-            Grid cell ids.
-
-        Returns
-        -------
-        (N, 4) ndarray
-            Face IDs
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid(4, 5)
-        >>> rmg.faces_at_cell[0]
-        array([4, 7, 3, 0])
-
-        >>> rmg.faces_at_cell
-        array([[ 4,  7,  3,  0],
-               [ 5,  8,  4,  1],
-               [ 6,  9,  5,  2],
-               [11, 14, 10,  7],
-               [12, 15, 11,  8],
-               [13, 16, 12,  9]])
-        """
-        if len(args) == 0:
-            cell_ids = np.arange(self.number_of_cells)
-        elif len(args) == 1:
-            cell_ids = np.broadcast_arrays(args[0])[0].ravel()
-        else:
-            raise ValueError()
-
-        node_ids = self.node_at_cell[cell_ids]
-        inlinks = self.node_inlink_matrix[:, node_ids].T
-        outlinks = self.node_outlink_matrix[:, node_ids].T
-        self._faces_at_link = np.squeeze(np.concatenate(
-            (self._face_at_link[inlinks],
-             self._face_at_link[outlinks]), axis=1))
-
     def _create_link_at_face(self):
         """Set up links associated with faces.
 
@@ -4567,9 +4519,9 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((10, 10))
-        >>> mg.double_ring_looped_neighbors_at_cell[36, :]
+        >>> mg.second_ring_looped_neighbors_at_cell[36, :]
         array([38, 46, 54, 53, 52, 51, 50, 42, 34, 26, 18, 19, 20, 21, 22, 30])
-        >>> mg.double_ring_looped_neighbors_at_cell[8, :]
+        >>> mg.second_ring_looped_neighbors_at_cell[8, :]
         array([10, 18, 26, 25, 24, 31, 30, 22, 14,  6, 62, 63, 56, 57, 58,  2])
 
         ...take a look at the cell grid to understand why:
@@ -4596,7 +4548,7 @@ XXXXXXeric should be killing this with graphs.
         2D array of size ( self.number_of_cells, 16 ).
         Order or neighbors: Starts with E and goes counter clockwise
         """
-        inf = self.get_looped_cell_neighbor_list()
+        inf = self.looped_neighbors_at_cell
         second_ring = np.empty([self.number_of_cells, 16], dtype=int)
         order = np.arange(-1, 15)
         order[0] = 15

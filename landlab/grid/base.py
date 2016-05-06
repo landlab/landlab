@@ -2241,7 +2241,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @deprecated(use='number_of_faces_at_cell', version=1.0)
     def find_number_of_faces_at_cell(self):
-        return number_of_faces_at_cell()
+        return self.number_of_faces_at_cell()
 
     def number_of_faces_at_cell(self):
         """Number of faces attached to each cell.
@@ -2553,7 +2553,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             return slope_mag
 
     def calc_aspect(self, slope_component_tuple=None,
-               elevs='topographic__elevation', unit='degrees'):
+                    elevs='topographic__elevation', unit='degrees'):
         """Get array of aspect of a surface.
 
         Calculates at returns the aspect of a surface. Aspect is returned as
@@ -2586,7 +2586,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg = RasterModelGrid((4, 4))
         >>> z = mg.node_x**2 + mg.node_y**2
         >>> mg.calc_aspect(elevs=z)
-        
+        >>> z = z.max() - z
+        >>> mg.calc_aspect(elevs=z)
+
+        Note that a small amount of asymmetry arises at the grid edges due
+        to the "missing" nodes beyond the edge of the grid.
         """
         if slope_component_tuple:
             assert type(slope_component_tuple) == tuple
@@ -2594,14 +2598,15 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             try:
                 elev_array = self.at_node[elevs]
-            except MissingKeyError:
+            except (MissingKeyError, TypeError):
                 assert elevs.size == self.number_of_nodes
                 elev_array = elevs
             _, slope_component_tuple = self.calc_slope_of_node(
                 elevs=elev_array, return_components=True)
         angle_from_x_ccw = numpy.arctan2(
             slope_component_tuple[1], slope_component_tuple[0])
-        angle_from_N_cw = -(angle_from_x_ccw + numpy.pi / 2.) % (2 * numpy.pi)
+        angle_from_N_cw = 2.*np.pi - ((angle_from_x_ccw + numpy.pi / 2.) % (
+            2 * numpy.pi))
         if unit == 'degrees':
             return 180. / numpy.pi * angle_from_N_cw
         elif unit == 'radians':
@@ -2681,7 +2686,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
             slp, slp_comps = self.calc_slope_of_node(
-                elevs, unit='radians', return_components=True)
+                elevs, return_components=True)
             asp = self.calc_aspect(slope_component_tuple=slp_comps,
                                    unit='radians')
         else:
@@ -4071,9 +4076,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.node_is_boundary([0, 6])
-        array([ True, False])
+        array([ True, False], dtype=bool)
         >>> mg.node_is_boundary([0, 6], boundary_flag=CLOSED_BOUNDARY)
-        array([False, False])
+        array([False, False], dtype=bool)
         """
         if boundary_flag is None:
             return ~ (self._node_status[ids] == CORE_NODE)

@@ -156,8 +156,7 @@ class StructuredQuadGrid(BaseGrid):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.grid.structured_quad.structured import \
-        ...     StructuredQuadGrid
+        >>> from landlab.grid.structured_quad.structured import StructuredQuadGrid
         >>> (x, y) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
         >>> grid = StructuredQuadGrid((x, y))
         >>> grid.nodes_at_corners_of_grid
