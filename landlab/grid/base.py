@@ -386,8 +386,8 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
     ~landlab.grid.base.ModelGrid.node_slopes_using_patches
     ~landlab.grid.base.ModelGrid.node_slopes
-    ~landlab.grid.base.ModelGrid.calc_aspect
-    ~landlab.grid.base.ModelGrid.calc_hillshade
+    ~landlab.grid.base.ModelGrid.calc_aspect_of_node
+    ~landlab.grid.base.ModelGrid.calc_hillshade_of_node
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_core_nodes
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
     ~landlab.grid.base.ModelGrid.cell_area_at_node
@@ -2606,7 +2606,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             return slope_mag
 
-    def calc_aspect(self, slope_component_tuple=None,
+    def calc_aspect_of_node(self, slope_component_tuple=None,
                     elevs='topographic__elevation', unit='degrees'):
         """Get array of aspect of a surface.
 
@@ -2639,13 +2639,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 4))
         >>> z = mg.node_x**2 + mg.node_y**2
-        >>> mg.calc_aspect(elevs=z)
+        >>> mg.calc_aspect_of_node(elevs=z)
         array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
                 209.83414961,  225.        ,  243.54632481,  248.77808974,
                 194.7203682 ,  206.45367519,  225.        ,  231.94498651,
                 191.30993247,  201.22191026,  218.05501349,  225.        ])
         >>> z = z.max() - z
-        >>> mg.calc_aspect(elevs=z)
+        >>> mg.calc_aspect_of_node(elevs=z)
         array([ 45.        ,  60.16585039,  75.2796318 ,  78.69006753,
                 29.83414961,  45.        ,  63.54632481,  68.77808974,
                 14.7203682 ,  26.45367519,  45.        ,  51.94498651,
@@ -2653,7 +2653,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> mg = RasterModelGrid((4, 4), (2., 3.))
         >>> z = mg.node_x**2 + mg.node_y**2
-        >>> mg.calc_aspect(elevs=z)
+        >>> mg.calc_aspect_of_node(elevs=z)
         array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
                 220.75264634,  234.41577266,  251.13402374,  255.29210302,
                 201.54258265,  215.47930877,  235.73541937,  242.24162456,
@@ -2685,7 +2685,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise TypeError("unit must be 'degrees' or 'radians'")
 
-    def calc_hillshade(self, alt=45., az=315., slp=None, asp=None,
+    def calc_hillshade_of_node(self, alt=45., az=315., slp=None, asp=None,
                        unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
 
@@ -2732,7 +2732,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = 6. - ((mg.node_x-2.)**2 + (mg.node_y-2.)**2)
-        >>> mg.calc_hillshade(elevs=z) # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.calc_hillshade_of_node(elevs=z) # doctest: +NORMALIZE_WHITESPACE
         array([ 0.16222142,  0.03572257, -0.26353058, -0.4766685 , -0.52602578,
                 0.33996228,  0.25232065, -0.13335582, -0.4082354 , -0.4766685 ,
                 0.68993201,  0.76230631,  0.2256741 , -0.13335582, -0.26353058,
@@ -2762,7 +2762,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 raise TypeError("unit must be 'degrees' or 'radians'")
             slp, slp_comps = self.calc_slope_of_node(
                 elevs, return_components=True)
-            asp = self.calc_aspect(slope_component_tuple=slp_comps,
+            asp = self.calc_aspect_of_node(slope_component_tuple=slp_comps,
                                    unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')

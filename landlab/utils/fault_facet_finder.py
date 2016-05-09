@@ -64,7 +64,7 @@ class find_facets(object):
 
     def set_slopes_aspects(self):
         self.slopes = self.grid.calc_slopes_of_nodes(elevs=self.elevs)
-        self.aspect = self.grid.calc_aspect(elevs=self.elevs)
+        self.aspect = self.grid.calc_aspect_of_node(elevs=self.elevs)
         print('Calculated and stored slopes and aspects...')
 
     def define_aspect_node_subset(self, angle_tolerance=5.):

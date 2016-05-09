@@ -4136,7 +4136,7 @@ XXXXXXeric should be killing this with graphs.
         else:
             return slope_mag
 
-    @deprecated(use='calc_aspect', version=1.0)
+    @deprecated(use='calc_aspect_of_node', version=1.0)
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
         """Aspect at nodes.
 
@@ -4248,7 +4248,7 @@ XXXXXXeric should be killing this with graphs.
         # return slope alone
         return s
 
-    @deprecated(use='calc_slope_of_node, calc_aspect', version=1.0)
+    @deprecated(use='calc_slope_of_node, calc_aspect_of_node', version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None,
                                                  vals='Elevation'):
         """Calculate topographic slope.
@@ -4316,7 +4316,7 @@ XXXXXXeric should be killing this with graphs.
 
         return slope, aspect
 
-    @deprecated(use='calc_slope_of_node, calc_aspect', version=1.0)
+    @deprecated(use='calc_slope_of_node, calc_aspect_of_node', version=1.0)
     def calculate_slope_aspect_at_nodes_best_fit_plane(self, nodes, val):
         r"""Calculate slope aspect.
 
