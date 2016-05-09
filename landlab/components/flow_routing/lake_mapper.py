@@ -254,7 +254,7 @@ class DepressionFinderAndRouter(Component):
         # We'll also need a handy copy of the node neighbor lists
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.get_active_neighbors_at_node()
+        self._node_nbrs = self._grid.active_neighbors_at_node()
         dx = self._grid.dx
         dy = self._grid.dy
         if self._D8:
@@ -274,7 +274,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
         else:
-            self._link_lengths = self._grid.link_length
+            self._link_lengths = self._grid.length_of_link
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
@@ -674,12 +674,12 @@ class DepressionFinderAndRouter(Component):
                 self.handle_outlet_node(outlet_node, nodes_in_lake)
                 while (len(nodes_in_lake) + 1) != len(nodes_routed):
                     if self._D8:
-                        all_nbrs = np.hstack((self._grid.get_active_neighbors_at_node(
+                        all_nbrs = np.hstack((self._grid.active_neighbors_at_node(
                             nodes_on_front),
                             self._grid.get_diagonal_list(
                             nodes_on_front)))
                     else:
-                        all_nbrs = self._grid.get_active_neighbors_at_node(nodes_on_front)
+                        all_nbrs = self._grid.active_neighbors_at_node(nodes_on_front)
                     outlake = np.logical_not(np.in1d(all_nbrs.flat,
                                                      nodes_in_lake))
                     all_nbrs[outlake.reshape(all_nbrs.shape)] = -1
@@ -745,12 +745,12 @@ class DepressionFinderAndRouter(Component):
         """
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
-                outlet_neighbors = np.hstack((self._grid.get_active_neighbors_at_node(
+                outlet_neighbors = np.hstack((self._grid.active_neighbors_at_node(
                     outlet_node, bad_index=-1),
                     self._grid.get_diagonal_list(
                     outlet_node, bad_index=-1)))
             else:
-                outlet_neighbors = self._grid.get_active_neighbors_at_node(
+                outlet_neighbors = self._grid.active_neighbors_at_node(
                     outlet_node, bad_index=-1).copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0

@@ -48,7 +48,7 @@ MAX_NUM_LINKS = 6
 
 def gt_grads_at_faces1(grid, nv):
     
-    lg = (nv[grid.node_at_link_head]-nv[grid.node_at_link_tail])/grid.link_length
+    lg = (nv[grid.node_at_link_head]-nv[grid.node_at_link_tail])/grid.length_of_link
     #return lg[grid.link_at_face]
     return None # temporary
     

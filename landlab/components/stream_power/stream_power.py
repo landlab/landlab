@@ -544,7 +544,7 @@ class StreamPowerEroder(Component):
         except FieldError:
             if slopes_from_elevs is True:
                 S_links = (node_z[grid.node_at_link_tail] -
-                           node_z[grid.node_at_link_head])/grid.link_length
+                           node_z[grid.node_at_link_head])/grid.length_of_link
             else:
                 if link_slopes:
                     if type(link_slopes) is str:

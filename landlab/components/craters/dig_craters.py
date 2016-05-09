@@ -67,8 +67,8 @@ class impactor(object):
         else:
             self.radius_auto_flag = 0
         try:
-            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
+            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position') * (grid.extent[1] - grid.dx)
+            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position') * (grid.extent[0] - grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -213,8 +213,8 @@ class impactor(object):
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
-        self._xcoord = 0.5*grid.dx + random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = 0.5*grid.dy + random() * (grid.get_grid_ydimension() - grid.dy)
+        self._xcoord = 0.5*grid.dx + random() * (grid.extent[1] - grid.dx)
+        self._ycoord = 0.5*grid.dy + random() * (grid.extent[0] - grid.dy)
         #Snap impact to grid:
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
@@ -238,8 +238,8 @@ class impactor(object):
         cos_alpha = numpy.cos(alpha)
         sin_alpha = numpy.sin(alpha)
         grid = self.grid
-        gridx = grid.get_grid_xdimension()
-        gridy = grid.get_grid_ydimension()
+        gridx = grid.extent[1]
+        gridy = grid.extent[0]
         dx = grid.dx
         dy - grid.dy
         x = self._xcoord
@@ -548,7 +548,7 @@ class impactor(object):
             self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
             self.set_crater_mean_slope_v2()
         else:
-            slope_pts %= numpy.array([self.grid.get_grid_xdimension(), self.grid.get_grid_ydimension()]) #added new, to remove boundaries
+            slope_pts %= numpy.array([self.grid.extent[1], self.grid.extent[0]]) #added new, to remove boundaries
             slope_pts_ongrid = grid.find_nearest_node((slope_pts[:,0],slope_pts[:,1]))
             self.closest_node_index = slope_pts_ongrid[4]
             cardinal_elevs = elev[slope_pts_ongrid]
@@ -673,7 +673,7 @@ class impactor(object):
 #        crater_center_offset_iterator = self.center_offset_list_for_looped_BCs((self._xcoord,self._ycoord), crater_edge_type_flag, crater_num_repeats)
 #        excavated_volume = 0.
 #        for i,j in izip(crater_footprint_iterator,crater_center_offset_iterator):
-#            _vec_r_to_center_excav,_vec_theta_excav = grid.get_distances_of_nodes_to_point(j, get_az='angles', node_subset=i)
+#            _vec_r_to_center_excav,_vec_theta_excav = grid.calc_distances_of_nodes_to_point(j, get_az='angles', node_subset=i)
 #            slope_offsets_rel_to_center_excav = -_vec_r_to_center_excav*numpy.tan(self._surface_slope)*numpy.cos(_vec_theta_excav-self._surface_dip_direction) #node leading negative - downslopes are +ve!!
 #            _vec_new_z_excav = slope_offsets_rel_to_center_excav + self.closest_node_elev - 1.*self._depth #Arbitrary assumed scaling: rim is 0.1 of total depth
 #            _vec_new_z_excav += self._depth * (_vec_r_to_center_excav/_radius)**crater_bowl_exp #note there's another fix here - we've relaxed the constraint that slopes outside one radius are at repose. It will keep curling up, so poke out quicker
@@ -717,7 +717,7 @@ class impactor(object):
 #
 #        for footprint_nodes,center_tuple in izip(footprint_iterator, center_offset_iterator):
 #            elev = self.elev
-#            _vec_r_to_center, _vec_theta = grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles') #, node_subset=footprint_nodes)
+#            _vec_r_to_center, _vec_theta = grid.calc_distances_of_nodes_to_point(center_tuple, get_az='angles') #, node_subset=footprint_nodes)
 #            _vec_r_to_center = _vec_r_to_center[footprint_nodes]
 #            _vec_theta = _vec_theta[footprint_nodes]
 #
@@ -912,7 +912,7 @@ class impactor(object):
         for footprint_tuple,j in six.moves.zip(crater_footprint_iterator,crater_center_offset_iterator):
             i = footprint_tuple[0]
             self.crater_footprint_max = footprint_tuple[1]
-            grid.get_distances_of_nodes_to_point(j, get_az='angles', node_subset=self.crater_footprint_max[:i], out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
+            grid.calc_distances_of_nodes_to_point(j, get_az='angles', node_subset=self.crater_footprint_max[:i], out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
             numpy.subtract(self._vec_theta[:i], self._surface_dip_direction, out=self.dummy_1[:i])
             numpy.cos(self.dummy_1[:i], out=self.dummy_2[:i])
             numpy.multiply(self.dummy_2[:i], self._vec_r_to_center[:i], out=self.dummy_1[:i])
@@ -964,7 +964,7 @@ class impactor(object):
                 i = footprint_tuple[0]
                 self.crater_footprint_max = footprint_tuple[1]
                 footprint_nodes = self.crater_footprint_max[:i]
-                grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes, out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
+                grid.calc_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes, out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
                 self._vec_new_z[:i].fill(self.closest_node_elev + thickness_at_rim - self._depth)
                 numpy.divide(self._vec_r_to_center[:i], _radius, out=self.dummy_2[:i])
                 numpy.power(self.dummy_2[:i], crater_bowl_exp, out=self.dummy_3[:i])
@@ -1019,8 +1019,8 @@ class impactor(object):
             six.print_('looping... effective center is at ', center_tuple)
             footprint_nodes = self.crater_footprint_max[:i]
             #print footprint_nodes
-            #self._vec_r_to_center[:i], self._vec_theta[:i] = grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes)
-            grid.get_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes, out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
+            #self._vec_r_to_center[:i], self._vec_theta[:i] = grid.calc_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes)
+            grid.calc_distances_of_nodes_to_point(center_tuple, get_az='angles', node_subset=footprint_nodes, out_distance=self._vec_r_to_center[:i], out_azimuth=self._vec_theta[:i])
             #_vec_r_to_center = _vec_r_to_center[footprint_nodes]
             #_vec_theta = _vec_theta[footprint_nodes]
 
@@ -1143,8 +1143,8 @@ class impactor(object):
         """
         assert type(center) == tuple
         assert len(center) == 2
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        grid_x = self.grid.extent[1] - self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.extent[0] - self.grid.dy
         six.print_('center, r, x', center[0], eff_radius, grid_x)
         left_repeats = -int((center[0]-eff_radius)//grid_x)
         right_repeats = int((center[0]+eff_radius)//grid_x)
@@ -1569,8 +1569,8 @@ class impactor(object):
 
         This method is a generator.
         """
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        grid_x = self.grid.extent[1] - self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.extent[0] - self.grid.dy
         assert type(center_tuple) == tuple
 
         if flag_from_footprint_edge_type == 'I':

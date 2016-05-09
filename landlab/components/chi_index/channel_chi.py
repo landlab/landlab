@@ -354,7 +354,7 @@ class ChiFinder(Component):
         """
         receivers = self.grid.at_node['flow_receiver']
         links = self.grid.at_node['links_to_flow_receiver']
-        link_lengths = self.grid.link_length
+        link_lengths = self.grid.length_of_link
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         half_integrand = 0.5 * chi_integrand_at_nodes
@@ -404,7 +404,7 @@ class ChiFinder(Component):
         """
         ch_links = self.grid.at_node['links_to_flow_receiver'][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
-        valid_link_lengths = self.grid.link_length[ch_links_valid]
+        valid_link_lengths = self.grid.length_of_link[ch_links_valid]
         return valid_link_lengths.mean()
 
     @property

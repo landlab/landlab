@@ -298,7 +298,7 @@ class FastscapeEroder(Component):
         z = self._grid['node']['topographic__elevation']
         defined_flow_receivers = numpy.not_equal(self._grid['node'][
             'links_to_flow_receiver'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.link_length[self._grid['node'][
+        flow_link_lengths = self._grid.length_of_link[self._grid['node'][
             'links_to_flow_receiver'][defined_flow_receivers]]
 
         # make arrays from input the right size

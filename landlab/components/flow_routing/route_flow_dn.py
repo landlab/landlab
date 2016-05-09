@@ -298,7 +298,7 @@ class FlowRouter(Component):
             link_slope = - self._grid.calculate_gradients_at_d8_active_links(
                 elevs)
         else:
-            link_slope = - self._grid.calculate_gradients_at_active_links(
+            link_slope = - self._grid.calc_grad_of_active_link(
                 elevs)
 
         # Find the baselevel nodes

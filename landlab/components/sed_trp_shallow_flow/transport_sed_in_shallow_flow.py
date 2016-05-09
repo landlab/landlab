@@ -100,7 +100,7 @@ class SurfaceFlowTransport(object):
         hflow = wmax - zmax
 
         # Calculate water-surface slopes
-        water_surface_slope = grid.calculate_gradients_at_active_links(w)
+        water_surface_slope = grid.calc_grad_of_active_link(w)
 
         # Calculate the unit discharges (Bates et al., eq 11)
         q = (q-g*hflow*dtmax*water_surface_slope)/ \

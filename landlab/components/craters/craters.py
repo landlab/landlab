@@ -185,8 +185,8 @@ class impactor(object):
         '''
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
-        self._xcoord = random() * grid.get_grid_xdimension()
-        self._ycoord = random() * grid.get_grid_ydimension()
+        self._xcoord = random() * grid.extent[1]
+        self._ycoord = random() * grid.extent[0]
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -408,7 +408,7 @@ class impactor(object):
                 break
             else:
                 pre_elev = data.elev[active_node]
-                _r_to_center, _theta = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=active_node)
+                _r_to_center, _theta = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=active_node)
 
                 ##We need to account for deposition depth elevating the crater rim, i.e., we need to deposit *before* we cut the cavity. We do this by defining three domains for the node to lie in: 1. r<r_calc, i.e., below the pre-impact surface. No risk of intersecting the surface here. 2. r_calc < r; Th>z_new. this is the domain in the inward sloping rim of the crater ejecta. 3. Th<z_new and beyond. out on the ejecta proper. Note - (1) is not hard & fast rule if the surface dips. Safer is just (Th-lowering)<z_new
                 ##So, calc the excavation depth for all nodes, just to be on the safe side for strongly tilted geometries:
@@ -430,7 +430,7 @@ class impactor(object):
                     depth_excavated = (pre_elev-_new_z)
                     crater_vol_below_ground += depth_excavated
                     self.mass_balance_in_impact -= depth_excavated
-                    neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
+                    neighbors_active_node = grid.active_neighbors_at_node(active_node)
                     for x in neighbors_active_node:
                         if not flag_already_in_the_list[x]:
                             if x!=-1: #Not an edge
@@ -465,7 +465,7 @@ class impactor(object):
                         self.mass_balance_in_impact += _thickness
 
                     if _thickness > self._minimum_ejecta_thickness:
-                        neighbors_active_node = grid.get_active_neighbors_at_node(active_node)
+                        neighbors_active_node = grid.active_neighbors_at_node(active_node)
                         for x in neighbors_active_node:
                             if not flag_already_in_the_list[x]:
                                 if x!=-1:
@@ -567,11 +567,11 @@ class impactor(object):
         six.print_('max_radius_ejecta: ', max_radius_ejecta_on_flat)
         footprint_center_x = self._xcoord+sin(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
         footprint_center_y = self._ycoord+cos(_azimuth_of_travel)*max_radius_ejecta_on_flat*tan_beta
-        distances_to_footprint_center = grid.get_distances_of_nodes_to_point((footprint_center_x,footprint_center_y))
+        distances_to_footprint_center = grid.calc_distances_of_nodes_to_point((footprint_center_x,footprint_center_y))
 
         #There's currently issues doing this "properly" - and would also extend anyway as by moving the ejecta field, it's also possible to chop off part of the actual crater.
         #Resolve by also doing a full distance map for the actual impact site, and making a union of the two distance thresholds as the footprint:
-        distances_to_crater_center, azimuths_to_crater_center = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az=1)
+        distances_to_crater_center, azimuths_to_crater_center = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az=1)
         footprint_nodes = numpy.logical_or(distances_to_footprint_center<=max_radius_ejecta_on_flat, distances_to_crater_center<=max_radius_ejecta_on_flat)
 
         #Define a shortcut identity for the elev[footprint_nodes] patch, so we don't have to keep looking it up:
@@ -656,13 +656,13 @@ class impactor(object):
         self.set_depth_from_size()
         self.set_crater_volume()
         try:
-            self._xcoord = kwds['forced_pos'][0]*grid.get_grid_xdimension()
+            self._xcoord = kwds['forced_pos'][0]*grid.extent[1]
         except:
             six.print_('Randomly generating impact site...')
             self.set_coords(grid, data)
         else:
             try:
-                self._ycoord = kwds['forced_pos'][1]*grid.get_grid_ydimension()
+                self._ycoord = kwds['forced_pos'][1]*grid.extent[0]
                 six.print_(self._xcoord, self._ycoord)
                 self.closest_node_index = grid.snap_coords_to_grid(self._xcoord, self._ycoord)
                 self.closest_node_elev = data.elev[self.closest_node_index]

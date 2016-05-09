@@ -24,7 +24,7 @@ def resolve_values_on_active_links(grid, active_link_values):
     tuple of ndarray
         Values resolved into x-component and y-component.
     """
-    link_lengths = grid.link_length[grid.active_links]
+    link_lengths = grid.length_of_link[grid.active_links]
     return (
         np.multiply(((grid.node_x[grid.activelink_tonode] -
                       grid.node_x[grid.activelink_fromnode]) /
@@ -56,10 +56,10 @@ def resolve_values_on_links(grid, link_values):
     return (
         np.multiply(((grid.node_x[grid.node_at_link_head] -
                       grid.node_x[grid.node_at_link_tail]) /
-                     grid.link_length), link_values),
+                     grid.length_of_link), link_values),
         np.multiply(((grid.node_y[grid.node_at_link_head] -
                       grid.node_y[grid.node_at_link_tail]) /
-                     grid.link_length), link_values))
+                     grid.length_of_link), link_values))
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):

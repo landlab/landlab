@@ -143,7 +143,7 @@ class LinearDiffuser(Component):
         else:
             kd_links = float(self.kd)
         # assert CFL condition:
-        CFL_prefactor = _ALPHA * self.grid.link_length ** 2.
+        CFL_prefactor = _ALPHA * self.grid.length_of_link ** 2.
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
         # ^note we can do this as topology shouldn't be changing
         dt_links = CFL_prefactor / kd_links
@@ -153,19 +153,19 @@ class LinearDiffuser(Component):
         self.interior_cells = self.grid.node_at_core_cell
 
         self.z = self.grid.at_node[self.values_to_diffuse]
-        g = self.grid.zeros(centering='link')
-        qs = self.grid.zeros(centering='link')
+        g = self.grid.zeros(at='link')
+        qs = self.grid.zeros(at='link')
         try:
             self.g = self.grid.add_field('link', 'topographic__gradient', g,
                                          noclobber=True)
             # ^note this will object if this exists already
         except FieldError:
-            pass  # field exists, so no problem
+            self.g = self.grid.at_link['topographic__gradient'] # keep a ref
         try:
             self.qs = self.grid.add_field('link', 'unit_flux', qs,
                                           noclobber=True)
         except FieldError:
-            pass
+            self.qs = self.grid.at_link['unit_flux']
         # note all these terms are deliberately loose, as we won't always be
         # dealing with topo
 
@@ -194,7 +194,7 @@ class LinearDiffuser(Component):
         True
         >>> ld.fixed_grad_offsets.size == 0
         True
-        >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
+        >>> mg.at_link['topographic__slope'] = mg.calc_grad_of_link(
         ...     'topographic__elevation')
         >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
         >>> ld.updated_boundary_conditions()
@@ -246,7 +246,7 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calculate_gradients_at_active_links(z)
+                self.grid.calc_grad_of_active_link(z)
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])

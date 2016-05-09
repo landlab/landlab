@@ -57,8 +57,8 @@ class impactor(object):
         else:
             self.radius_auto_flag = 0
         try:
-            self._xcoord = inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
+            self._xcoord = inputs.read_float('x_position') * (grid.extent[1] - grid.dx)
+            self._ycoord = inputs.read_float('y_position') * (grid.extent[0] - grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -154,8 +154,8 @@ class impactor(object):
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
-        self._xcoord = random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = random() * (grid.get_grid_ydimension() - grid.dy)
+        self._xcoord = random() * (grid.extent[1] - grid.dx)
+        self._ycoord = random() * (grid.extent[0] - grid.dy)
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -422,11 +422,11 @@ class impactor(object):
         #This material assumed we could construct a distance map for all nodes, but it's too big.
         #Instead, we're going to simplify the footprint to a rectangle, not circle, to accelerate the search.
         # => added self.create_square_footprint() below; used it beneath this comment block.
-        #if 0. < footprint_center_x < (grid.get_grid_xdimension()-grid.dx) and 0. < footprint_center_y < (grid.get_grid_ydimension()-grid.dx):
+        #if 0. < footprint_center_x < (grid.extent[1] - grid.dx) and 0. < footprint_center_y < (grid.extent[0] - grid.dx):
         #    closest_node_to_footprint_center = grid.snap_coords_to_grid(footprint_center_x, footprint_center_y)
         #    footprint_nodes = self.all_node_distances_map[closest_node_to_footprint_center,:] < max_radius_ejecta_on_flat
         #else:
-        #    footprint_nodes = grid.get_distances_of_nodes_to_point((footprint_center_x, footprint_center_y)) < max_radius_ejecta_on_flat
+        #    footprint_nodes = grid.calc_distances_of_nodes_to_point((footprint_center_x, footprint_center_y)) < max_radius_ejecta_on_flat
         #if excess_excavation_radius:
         #    dist_to_center = self.all_node_distances_map[self.closest_node_index,:]
         #    footprint_nodes = numpy.logical_or(dist_to_center<_radius, footprint_nodes)
@@ -437,7 +437,7 @@ class impactor(object):
             cavity_footprint = self.create_square_footprint((self._xcoord,self._ycoord),_radius)
             footprint_nodes = numpy.unique(numpy.concatenate((footprint_nodes,cavity_footprint))) #combine the two footprints into array of unique IDs
 
-        _vec_r_to_center, _vec_theta = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
+        _vec_r_to_center, _vec_theta = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
         #Disabled, 112713
         #slope_offsets_rel_to_center = _vec_r_to_center*numpy.tan(self._surface_slope)*numpy.cos(_vec_theta-self._surface_dip_direction)
 
@@ -587,7 +587,7 @@ class impactor(object):
         ###Here's the oh-so-ugly ad-hoc fix to address the mass balance problems
         #We're calculating the approx excavated volume directly to feed the ejecta thickness calculator...
         excavation_nodes = self.create_square_footprint((self._xcoord,self._ycoord),4.*_radius) #Arbitrary increase in radius to try to catch the additional excavated material
-        _vec_r_to_center_excav = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), node_subset=excavation_nodes)
+        _vec_r_to_center_excav = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), node_subset=excavation_nodes)
         _vec_new_z_excav = numpy.empty_like(_vec_r_to_center_excav)
         _vec_new_z_excav.fill(self.closest_node_elev - 0.9*self._depth) #Arbitrary assumed scaling: rim is 0.1 of total depth
         _vec_new_z_excav += self._depth * (_vec_r_to_center_excav/_radius)**crater_bowl_exp #note there's another fix here - we've relaxed the constraint that slopes outside one radius are at repose. It will keep curling up, so poke out quicker
@@ -616,11 +616,11 @@ class impactor(object):
         #This material assumed we could construct a distance map for all nodes, but it's too big.
         #Instead, we're going to simplify the footprint to a rectangle, not circle, to accelerate the search.
         # => added self.create_square_footprint() below; used it beneath this comment block.
-        #if 0. < footprint_center_x < (grid.get_grid_xdimension()-grid.dx) and 0. < footprint_center_y < (grid.get_grid_ydimension()-grid.dx):
+        #if 0. < footprint_center_x < (grid.extent[1] - grid.dx) and 0. < footprint_center_y < (grid.extent[0] - grid.dx):
         #    closest_node_to_footprint_center = grid.snap_coords_to_grid(footprint_center_x, footprint_center_y)
         #    footprint_nodes = self.all_node_distances_map[closest_node_to_footprint_center,:] < max_radius_ejecta_on_flat
         #else:
-        #    footprint_nodes = grid.get_distances_of_nodes_to_point((footprint_center_x, footprint_center_y)) < max_radius_ejecta_on_flat
+        #    footprint_nodes = grid.calc_distances_of_nodes_to_point((footprint_center_x, footprint_center_y)) < max_radius_ejecta_on_flat
         #if excess_excavation_radius:
         #    dist_to_center = self.all_node_distances_map[self.closest_node_index,:]
         #    footprint_nodes = numpy.logical_or(dist_to_center<_radius, footprint_nodes)
@@ -631,7 +631,7 @@ class impactor(object):
             cavity_footprint = self.create_square_footprint((self._xcoord,self._ycoord),_radius)
             footprint_nodes = numpy.unique(numpy.concatenate((footprint_nodes,cavity_footprint))) #combine the two footprints into array of unique IDs
 
-        _vec_r_to_center, _vec_theta = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
+        _vec_r_to_center, _vec_theta = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
         ###Might be worth exploring doing this by reading off the distances_map, then correcting for offset from grid
 
         #Define a shortcut identity for the elev[footprint_nodes] patch, so we don't have to keep looking it up:
@@ -775,7 +775,7 @@ class impactor(object):
         max_ejecta_multiple = 1./numpy.cos(_surface_slope)*(1.+numpy.tan(_surface_slope)*numpy.tan(ejection_angle)) #...in the direction of max dip
 
         footprint_nodes = self.create_square_footprint((self._xcoord,self._ycoord),max_radius_ejecta_on_flat*max_ejecta_multiple)
-        _vec_r_to_center, _vec_theta = grid.get_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
+        _vec_r_to_center, _vec_theta = grid.calc_distances_of_nodes_to_point((self._xcoord,self._ycoord), get_az='angles', node_subset=footprint_nodes)
         #Disabled, 112713
         #slope_offsets_rel_to_center = _vec_r_to_center*numpy.tan(self._surface_slope)*numpy.cos(_vec_theta-self._surface_dip_direction)
 

@@ -616,7 +616,7 @@ class SedDepEroder(Component):
         core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0],
                                              grid.core_nodes,
                                              assume_unique=True)
-        link_length[core_draining_nodes] = grid.link_length[grid.at_node[
+        link_length[core_draining_nodes] = grid.length_of_link[grid.at_node[
             steepest_link][core_draining_nodes]]
 
         if self.Qc == 'MPM':

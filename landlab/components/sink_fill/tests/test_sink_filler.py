@@ -267,7 +267,7 @@ def test_add_slopes():
     lake_map[lake] = lake_code
     hf._lf._lake_map = lake_map
     hf.lake_nodes_treated = np.array([], dtype=int)
-    dists = mg.get_distances_of_nodes_to_point((mg.node_x[outlet],
+    dists = mg.calc_distances_of_nodes_to_point((mg.node_x[outlet],
                                                 mg.node_y[outlet]))
     new_z[lake] = outlet_elev
     new_z[lake] += dists[lake]*slope_to_add

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Calculate slope aspects on a :any:`RasterModelGrid`."""
 import numpy as np
+from landlab.utils.decorators import deprecated
 
 
 def _one_line_slopes(input_array, grid, vals):
@@ -120,8 +121,9 @@ def _one_line_slopes(input_array, grid, vals):
         return slope_we, slope_sn
 
 
-def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
-                                         vals='topographic__elevation'):
+@deprecated(use='grid.calc_slope_of_node', version=1.0)
+def calc_slope_aspect_of_nodes_horn(grid, ids=None,
+                                    vals='topographic__elevation'):
     r"""Calculate slope and aspect.
 
     .. note::
@@ -178,7 +180,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     ...     1., 1., 1., 1., 1,
     ...     2., 2., 2., 2., 2,
     ...     3., 3., 3., 3., 3])
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> len(slope) == grid.number_of_core_nodes
     True
@@ -193,7 +195,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     will still be positive but the aspects will change.
 
     >>> elevation *= -1
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 1.,  1.,  1.,  1.,  1.,  1.])
@@ -208,7 +210,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     ...     0., 1., 2., 3., 4.,
     ...     0., 1., 2., 3., 4.])
     >>> elevation *= 2.
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 2.,  2.,  2.,  2.,  2.,  2.])
@@ -219,7 +221,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     will still be positive but the aspects will change.
 
     >>> elevation *= -1.
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 2.,  2.,  2.,  2.,  2.,  2.])
@@ -235,7 +237,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
             raise IndexError('*vals* was not of a compatible length!')
 
     # [right, top, left, bottom]
-    neighbors = grid.get_active_neighbors_at_node(ids)
+    neighbors = grid.active_neighbors_at_node(ids)
     # [topright, topleft, bottomleft, bottomright]
     diagonals = grid.get_diagonal_list(ids)
 
@@ -250,7 +252,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     slope_sn = slopes_array[:, 1]
 
     slope = np.sqrt(slope_we * slope_we + slope_sn * slope_sn)
-    #aspect = np.empty_like(slope)
+    # aspect = np.empty_like(slope)
     aspect = np.ones(slope.size, dtype=float)
     simple_cases = slope_we != 0.
     complex_cases = np.logical_not(simple_cases)
