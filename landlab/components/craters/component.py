@@ -96,8 +96,8 @@ class CratersComponent(Component):
         return cr
 
     def next_impact_position(self):
-        return (np.random.uniform() * self.grid.grid_xdimension,
-                np.random.uniform() * self.grid.grid_ydimension)
+        return (np.random.uniform() * self.grid.extent[1],
+                np.random.uniform() * self.grid.extent[0])
 
     def next_impactor_radius(self, method='weibull'):
         assert(method in ['weibull', 'normal'])

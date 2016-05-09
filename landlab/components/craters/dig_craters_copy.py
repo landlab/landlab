@@ -57,8 +57,8 @@ class impactor(object):
         else:
             self.radius_auto_flag = 0
         try:
-            self._xcoord = inputs.read_float('x_position')*(grid.grid_xdimension-grid.dx)
-            self._ycoord = inputs.read_float('y_position')*(grid.grid_ydimension-grid.dy)
+            self._xcoord = inputs.read_float('x_position') * (grid.extent[1] - grid.dx)
+            self._ycoord = inputs.read_float('y_position') * (grid.extent[0] - grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -154,8 +154,8 @@ class impactor(object):
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
-        self._xcoord = random() * (grid.grid_xdimension - grid.dx)
-        self._ycoord = random() * (grid.grid_ydimension - grid.dy)
+        self._xcoord = random() * (grid.extent[1] - grid.dx)
+        self._ycoord = random() * (grid.extent[0] - grid.dy)
         #print (self._xcoord, self._ycoord)
         #print grid.dx
         #print grid.number_of_node_columns
@@ -422,7 +422,7 @@ class impactor(object):
         #This material assumed we could construct a distance map for all nodes, but it's too big.
         #Instead, we're going to simplify the footprint to a rectangle, not circle, to accelerate the search.
         # => added self.create_square_footprint() below; used it beneath this comment block.
-        #if 0. < footprint_center_x < (grid.grid_xdimension-grid.dx) and 0. < footprint_center_y < (grid.grid_ydimension-grid.dx):
+        #if 0. < footprint_center_x < (grid.extent[1] - grid.dx) and 0. < footprint_center_y < (grid.extent[0] - grid.dx):
         #    closest_node_to_footprint_center = grid.snap_coords_to_grid(footprint_center_x, footprint_center_y)
         #    footprint_nodes = self.all_node_distances_map[closest_node_to_footprint_center,:] < max_radius_ejecta_on_flat
         #else:
@@ -616,7 +616,7 @@ class impactor(object):
         #This material assumed we could construct a distance map for all nodes, but it's too big.
         #Instead, we're going to simplify the footprint to a rectangle, not circle, to accelerate the search.
         # => added self.create_square_footprint() below; used it beneath this comment block.
-        #if 0. < footprint_center_x < (grid.grid_xdimension-grid.dx) and 0. < footprint_center_y < (grid.grid_ydimension-grid.dx):
+        #if 0. < footprint_center_x < (grid.extent[1] - grid.dx) and 0. < footprint_center_y < (grid.extent[0] - grid.dx):
         #    closest_node_to_footprint_center = grid.snap_coords_to_grid(footprint_center_x, footprint_center_y)
         #    footprint_nodes = self.all_node_distances_map[closest_node_to_footprint_center,:] < max_radius_ejecta_on_flat
         #else:
