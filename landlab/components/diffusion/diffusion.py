@@ -143,7 +143,7 @@ class LinearDiffuser(Component):
         else:
             kd_links = float(self.kd)
         # assert CFL condition:
-        CFL_prefactor = _ALPHA * self.grid.link_length ** 2.
+        CFL_prefactor = _ALPHA * self.grid.length_of_link ** 2.
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
         # ^note we can do this as topology shouldn't be changing
         dt_links = CFL_prefactor / kd_links
@@ -194,7 +194,7 @@ class LinearDiffuser(Component):
         True
         >>> ld.fixed_grad_offsets.size == 0
         True
-        >>> mg.at_link['topographic__slope'] = mg.calculate_gradients_at_links(
+        >>> mg.at_link['topographic__slope'] = mg.calc_grad_of_link(
         ...     'topographic__elevation')
         >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
         >>> ld.updated_boundary_conditions()
@@ -246,7 +246,7 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calculate_gradients_at_active_links(z)
+                self.grid.calc_grad_of_active_link(z)
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])

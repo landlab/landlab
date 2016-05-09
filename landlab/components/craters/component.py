@@ -61,7 +61,7 @@ class CratersComponent(Component):
 
         z0 = self._grid.at_node['topographic__elevation'].copy()
 
-        vertices_array = self.grid.get_nodes_around_point(impact_loc[1],
+        vertices_array = self.grid.nodes_around_point(impact_loc[1],
                                                           impact_loc[0])
 
         distances_to_vertices = []
@@ -96,8 +96,8 @@ class CratersComponent(Component):
         return cr
 
     def next_impact_position(self):
-        return (np.random.uniform() * self.grid.get_grid_xdimension(),
-                np.random.uniform() * self.grid.get_grid_ydimension())
+        return (np.random.uniform() * self.grid.extent[1],
+                np.random.uniform() * self.grid.extent[0])
 
     def next_impactor_radius(self, method='weibull'):
         assert(method in ['weibull', 'normal'])
