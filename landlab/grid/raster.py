@@ -3651,8 +3651,8 @@ XXXXXXeric should be killing this with graphs.
         array([], dtype=int64)
         """
         cell_faces = self.faces_at_cell[[cell_a, cell_b]]
-        return np.intersect1d(cell_faces[0], cell_faces[1],
-                              assume_unique=True)
+        return as_id_array(np.intersect1d(cell_faces[0], cell_faces[1],
+                                          assume_unique=True))
 
     @deprecated(use='no replacement', version=1.0)
     def get_link_connecting_node_pair(self, node_a, node_b):
@@ -3710,7 +3710,7 @@ XXXXXXeric should be killing this with graphs.
         links_at_b = self.links_at_node[node_b]
 
         try:
-            return np.intersect1d(links_at_a, links_at_b)[0]
+            return as_id_array(np.intersect1d(links_at_a, links_at_b)[0])
         except IndexError:
             raise ValueError('disconnected nodes')
 
