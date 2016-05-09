@@ -1657,13 +1657,13 @@ XXXXXXeric should be killing this with graphs.
         self._face_at_link = squad_faces.face_at_link(self.shape)
         return self._face_at_link
 
-    @deprecated(use='grid_xdimension', version=1.0)
+    @deprecated(use='extent', version=1.0)
     def get_grid_xdimension(self):
-        return self.grid_xdimension
+        return self.extent[1]
 
     @property
-    def grid_xdimension(self):
-        """Length of the grid in the x-dimension.
+    def extent(self):
+        """Extent of the grid in the y and x-dimensions.
 
         Return the x-dimension of the grid. Because boundary nodes don't have
         cells, the dimension of the grid is ``num_columns`` - 1, not
@@ -1671,31 +1671,33 @@ XXXXXXeric should be killing this with graphs.
 
         Returns
         -------
-        float
-            Length of the grid in the x-dimension.
+        (y_extent, x_extent) : tupl of float
+            Length of the grid in the y and x-dimensions.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.grid_xdimension
-        4.0
+        >>> grid.extent
+        (3.0, 4.0)
 
         >>> grid = RasterModelGrid((4, 5), 2.)
-        >>> grid.grid_xdimension
-        8.0
+        >>> grid.extent
+        (6.0, 8.0)
 
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
-        >>> grid.grid_xdimension
-        12.0
+        >>> grid.extent
+        (6.0, 12.0)
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
-        return ((self.number_of_node_columns - 1) * self._dx)
+        return (
+            (self.number_of_node_rows - 1) * self._dy,
+            (self.number_of_node_columns - 1) * self._dx)
 
-    @deprecated(use='grid_ydimension', version=1.0)
+    @deprecated(use='extent', version=1.0)
     def get_grid_ydimension(self):
-        return self.grid_ydimension
+        return self.extent[0]
 
     @property
     def grid_ydimension(self):

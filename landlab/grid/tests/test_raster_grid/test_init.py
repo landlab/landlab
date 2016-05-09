@@ -85,14 +85,16 @@ def test_spacing_is_float():
 
 @with_setup(setup_grid)
 def test_grid_dimensions():
-    assert_equal(rmg.grid_ydimension, rmg.number_of_node_rows - 1)
-    assert_equal(rmg.grid_xdimension, rmg.number_of_node_columns - 1)
+    """Test extent of grid with unit spacing."""
+    assert_equal(rmg.extent[0], rmg.number_of_node_rows - 1)
+    assert_equal(rmg.extent[1], rmg.number_of_node_columns - 1)
 
 
 def test_grid_dimensions_non_unit_spacing():
+    """Test extent of grid with non-unit spacing."""
     rmg = RasterModelGrid((4, 5), spacing=2.)
-    assert_equal(rmg.grid_ydimension, 6.)
-    assert_equal(rmg.grid_xdimension, 8.)
+    assert_equal(rmg.extent[0], 6.)
+    assert_equal(rmg.extent[1], 8.)
 
 
 @with_setup(setup_grid)
