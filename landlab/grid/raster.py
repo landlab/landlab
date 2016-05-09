@@ -1665,13 +1665,14 @@ XXXXXXeric should be killing this with graphs.
     def extent(self):
         """Extent of the grid in the y and x-dimensions.
 
-        Return the x-dimension of the grid. Because boundary nodes don't have
-        cells, the dimension of the grid is ``num_columns`` - 1, not
-        ``num_columns``.
+        Return the y and x-dimension of the grid. Because boundary nodes
+        don't have cells, the dimension of the grid is
+        ``((num_rows - 1) * dy, (num_columns - 1) * dx)``, not
+        ``(num_rows * dy, num_cols * dx)``.
 
         Returns
         -------
-        (y_extent, x_extent) : tupl of float
+        (y_extent, x_extent) : tuple of float
             Length of the grid in the y and x-dimensions.
 
         Examples
