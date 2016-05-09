@@ -8,6 +8,7 @@ from landlab.grid.base import BAD_INDEX_VALUE
 # these ones only so we can run this module ad-hoc:
 # import pylab
 from landlab import ModelParameterDictionary
+from landlab.utils.decorators import use_file_name_or_kwds
 # from copy import copy
 
 # Things to add: 1. Explicit stability check.
@@ -59,7 +60,263 @@ class PerronNLDiffuse(object):
     The primary method of this class is :func:`diffuse`.
     '''
 
-    def __init__(self, grid, input_stream):
+    @use_file_name_or_kwds
+    def __init__(self, grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
+                 rock_density=2.7, sed_density=2.7, internal_uplift=None,
+                 **kwds):
+        self._grid = grid
+        if nonlinear_diffusivity is not None:
+            if nonlinear_diffusivity is not str:
+                self._kappa = nonlinear_diffusivity
+            else:
+                self._kappa = self.grid.at_node[nonlinear_diffusivity]
+        else:
+            try:
+                self._kappa = kwds.pop('kappa', None)
+            except KeyError:
+                raise KeyError("nonlinear_diffusivity must be provided to " +
+                               "the PerronNLDiffuse component")
+        if internal_uplift is None:
+            self.internal_uplifts = False
+        else:
+            self.internal_uplifts = True
+            self._uplift = internal_uplift
+            assert type(self._uplift) in (float, int)
+        self._rock_density = inputs.read_float('rock_density')
+        self._sed_density = inputs.read_float('sed_density')
+        self._S_crit = inputs.read_float('S_crit')
+
+        # for component back compatibility (undocumented):
+        # ###
+        self.timestep_in = kwds.pop('dt', None)
+        if 'values_to_diffuse' in kwds.keys():
+            self.values_to_diffuse = kwds.pop('values_to_diffuse')
+            for mytups in (self._input_var_names, self._output_var_names):
+                myset = set(mytups)
+                myset.remove('topographic__elevation')
+                myset.add(self.values_to_diffuse)
+                mytups = tuple(myset)
+            for mydicts in (self._var_units, self._var_mapping, self._var_doc):
+                mydicts[self.values_to_diffuse] = mydicts.pop(
+                    'topographic__elevation')
+
+        self._delta_x = grid.dx
+        self._delta_y = grid.dy
+        self._one_over_delta_x = 1. / self._delta_x
+        self._one_over_delta_y = 1. / self._delta_y
+        self._one_over_delta_x_sqd = self._one_over_delta_x**2.
+        self._one_over_delta_y_sqd = self._one_over_delta_y**2.
+        self._b = 1. / self._S_crit**2.
+
+        ncols = grid.number_of_node_columns
+        self.ncols = ncols
+        nrows = grid.number_of_node_rows
+        self.nrows = nrows
+        nnodes = grid.number_of_nodes
+        self.nnodes = nnodes
+        ninteriornodes = grid.number_of_interior_nodes
+        ncorenodes = ninteriornodes - 2 * (ncols + nrows - 6)
+        self.ninteriornodes = ninteriornodes
+        self.interior_grid_width = ncols - 2
+        self.core_cell_width = ncols - 4
+
+        self._interior_corners = numpy.array([ncols + 1, 2 * ncols - 2,
+                                              nnodes - 2 * ncols + 1,
+                                              nnodes - ncols - 2])
+        _left_list = numpy.array(
+            range(2 * ncols + 1, nnodes - 2 * ncols, ncols))
+        # ^these are still real IDs
+        _right_list = numpy.array(
+            range(3 * ncols - 2, nnodes - 2 * ncols, ncols))
+        _bottom_list = numpy.array(range(ncols + 2, 2 * ncols - 2))
+        _top_list = numpy.array(
+            range(nnodes - 2 * ncols + 2, nnodes - ncols - 2))
+        self._left_list = _left_list
+        self._right_list = _right_list
+        self._bottom_list = _bottom_list
+        self._top_list = _top_list
+
+        self._core_nodes = self.coreIDtoreal(numpy.arange(
+            ncorenodes, dtype=int))
+        self.corenodesbyintIDs = self.realIDtointerior(self._core_nodes)
+        self.ncorenodes = len(self._core_nodes)
+
+        self.corner_interior_IDs = self.realIDtointerior(
+            self._interior_corners)
+        # ^i.e., interior corners as interior IDs
+        self.bottom_interior_IDs = self.realIDtointerior(numpy.array(
+            _bottom_list))
+        self.top_interior_IDs = self.realIDtointerior(numpy.array(_top_list))
+        self.left_interior_IDs = self.realIDtointerior(numpy.array(_left_list))
+        self.right_interior_IDs = self.realIDtointerior(numpy.array(
+            _right_list))
+
+        # build an ID map to let us easily map the variables of the core nodes
+        # onto the operating matrix:
+        # This array is ninteriornodes long, but the IDs it contains are
+        # REAL IDs
+        operating_matrix_ID_map = numpy.empty((ninteriornodes, 9))
+        self.interior_IDs_as_real = self.interiorIDtoreal(
+            numpy.arange(ninteriornodes))
+        for j in range(ninteriornodes):
+            i = self.interior_IDs_as_real[j]
+            operating_matrix_ID_map[j, :] = numpy.array([(i - ncols - 1),
+                                                         (i - ncols),
+                                                         (i - ncols +
+                                                          1), (i - 1), i,
+                                                         (i + 1),
+                                                         (i + ncols - 1),
+                                                         (i + ncols),
+                                                         (i + ncols + 1)])
+        self.operating_matrix_ID_map = operating_matrix_ID_map
+        self.operating_matrix_core_int_IDs = self.realIDtointerior(
+            operating_matrix_ID_map[self.corenodesbyintIDs, :])
+        # ^shape(ncorenodes,9)
+        # see below for corner and edge maps
+
+        # Build masks for the edges and corners to be applied to the operating
+        # matrix map.
+        # Antimasks are the boundary nodes, masks are "normal"
+        topleft_mask = [1, 2, 4, 5]
+        topleft_antimask = [0, 3, 6, 7, 8]
+        topright_mask = [0, 1, 3, 4]
+        topright_antimask = [2, 5, 6, 7, 8]
+        bottomleft_mask = [4, 5, 7, 8]
+        bottomleft_antimask = [0, 1, 2, 3, 6]
+        bottomright_mask = [3, 4, 6, 7]
+        bottomright_antimask = [0, 1, 2, 5, 8]
+        self.corners_masks = (numpy.vstack((bottomleft_mask, bottomright_mask,
+                                            topleft_mask, topright_mask)))
+        # ^(each_corner,mask_for_each_corner)
+        self.corners_antimasks = (numpy.vstack((bottomleft_antimask,
+                                                bottomright_antimask,
+                                                topleft_antimask,
+                                                topright_antimask)))
+        # ^so shape becomes (4,5)
+        self.left_mask = [1, 2, 4, 5, 7, 8]
+        self.left_antimask = [0, 3, 6]
+        self.top_mask = [0, 1, 2, 3, 4, 5]
+        self.top_antimask = [6, 7, 8]
+        self.right_mask = [0, 1, 3, 4, 6, 7]
+        self.right_antimask = [2, 5, 8]
+        self.bottom_mask = [3, 4, 5, 6, 7, 8]
+        self.bottom_antimask = [0, 1, 2]
+        self.antimask_corner_position = [0, 2, 2, 4]
+        # ^this is the position w/i the corner antimasks that the true corner
+        # actually occupies
+
+        self.modulator_mask = numpy.array([-ncols - 1, -ncols, -ncols + 1, -1,
+                                           0, 1, ncols - 1, ncols, ncols + 1])
+
+        # ^Set up terms for BC handling (still feels very clumsy)
+        bottom_edge = grid.nodes_at_bottom_edge[1: -1]
+        top_edge = grid.nodes_at_top_edge[1: -1]
+        left_edge = grid.nodes_at_left_edge[1: -1]
+        right_edge = grid.nodes_at_right_edge[1: -1]
+        self.bottom_flag = 1
+        self.top_flag = 1
+        self.left_flag = 1
+        self.right_flag = 1
+        # self.corner_flags = [1,1,1,1] #In ID order, so BL,BR,TL,TR
+        if numpy.all(grid.status_at_node[bottom_edge] == 4):
+            # ^This should be all of them, or none of them
+            self.bottom_flag = 4
+        elif numpy.all(grid.status_at_node[bottom_edge] == 3):
+            self.bottom_flag = 3
+        elif numpy.all(grid.status_at_node[bottom_edge] == 2):
+            self.bottom_flag = 2
+        elif numpy.all(grid.status_at_node[bottom_edge] == 1):
+            pass
+        else:
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+            # Note this could get fraught if we need to open a cell to let
+            # water flow out...
+        if numpy.all(grid.status_at_node[top_edge] == 4):
+            self.top_flag = 4
+        elif numpy.all(grid.status_at_node[top_edge] == 3):
+            self.top_flag = 3
+        elif numpy.all(grid.status_at_node[top_edge] == 2):
+            self.top_flag = 2
+        elif numpy.all(grid.status_at_node[top_edge] == 1):
+            pass
+        else:
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+        if numpy.all(grid.status_at_node[left_edge] == 4):
+            self.left_flag = 4
+        elif numpy.all(grid.status_at_node[left_edge] == 3):
+            self.left_flag = 3
+        elif numpy.all(grid.status_at_node[left_edge] == 2):
+            self.left_flag = 2
+        elif numpy.all(grid.status_at_node[left_edge] == 1):
+            pass
+        else:
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+        if numpy.all(grid.status_at_node[right_edge] == 4):
+            self.right_flag = 4
+        elif numpy.all(grid.status_at_node[right_edge] == 3):
+            self.right_flag = 3
+        elif numpy.all(grid.status_at_node[right_edge] == 2):
+            self.right_flag = 2
+        elif numpy.all(grid.status_at_node[right_edge] == 1):
+            pass
+        else:
+            raise NameError("Different cells on the same grid edge have "
+                            "different boundary statuses")
+
+        self.fixed_grad_BCs_present = (self.bottom_flag == 2 or
+                                       self.top_flag == 2 or
+                                       self.left_flag == 2 or
+                                       self.right_flag == 2)
+        self.looped_BCs_present = (self.bottom_flag == 3 or
+                                   self.top_flag == 3 or
+                                   self.left_flag == 3 or
+                                   self.right_flag == 3)
+        if self.fixed_grad_BCs_present:
+            if self.values_to_diffuse != grid.fixed_gradient_of:
+                raise ValueError("Boundary conditions set in the grid don't "
+                                 "apply to the data the diffuser is trying to "
+                                 "work with")
+
+        if numpy.any(grid.status_at_node == 2):
+            self.fixed_grad_offset_map = numpy.empty(
+                nrows * ncols, dtype=float)
+            self.fixed_grad_anchor_map = numpy.empty_like(
+                self.fixed_grad_offset_map)
+            self.fixed_grad_offset_map[grid.fixed_gradient_node_properties[
+                'boundary_node_IDs']] = grid.fixed_gradient_node_properties[
+                'values_to_add']
+
+        self.corner_flags = grid.status_at_node[[0, ncols - 1, -ncols, -1]]
+
+        op_mat_just_corners = operating_matrix_ID_map[self.corner_interior_IDs,
+                                                      :]
+        op_mat_cnr0 = op_mat_just_corners[0, bottomleft_mask]
+        op_mat_cnr1 = op_mat_just_corners[1, bottomright_mask]
+        op_mat_cnr2 = op_mat_just_corners[2, topleft_mask]
+        op_mat_cnr3 = op_mat_just_corners[3, topright_mask]
+        op_mat_just_active_cnrs = numpy.vstack((op_mat_cnr0, op_mat_cnr1,
+                                                op_mat_cnr2, op_mat_cnr3))
+        self.operating_matrix_corner_int_IDs = self.realIDtointerior(
+            op_mat_just_active_cnrs)
+        # ^(4corners,4nodesactivepercorner)
+        self.operating_matrix_bottom_int_IDs = self.realIDtointerior(
+            operating_matrix_ID_map[
+                self.bottom_interior_IDs, :][:, self.bottom_mask])
+        # ^(nbottomnodes,6activenodeseach)
+        self.operating_matrix_top_int_IDs = self.realIDtointerior(
+            operating_matrix_ID_map[
+                self.top_interior_IDs, :][:, self.top_mask])
+        self.operating_matrix_left_int_IDs = self.realIDtointerior(
+            operating_matrix_ID_map[
+                self.left_interior_IDs, :][:, self.left_mask])
+        self.operating_matrix_right_int_IDs = self.realIDtointerior(
+            operating_matrix_ID_map[
+                self.right_interior_IDs, :][:, self.right_mask])
+
+    def _initialize(self, grid, input_stream):
         inputs = ModelParameterDictionary(input_stream)
         self.inputs = inputs
         self.grid = grid
@@ -110,7 +367,8 @@ class PerronNLDiffuse(object):
         self.core_cell_width = ncols - 4
 
         self._interior_corners = numpy.array([ncols + 1, 2 * ncols - 2,
-                                              nnodes - 2 * ncols + 1, nnodes - ncols - 2])
+                                              nnodes - 2 * ncols + 1,
+                                              nnodes - ncols - 2])
         _left_list = numpy.array(
             range(2 * ncols + 1, nnodes - 2 * ncols, ncols))
         # ^these are still real IDs
@@ -152,7 +410,8 @@ class PerronNLDiffuse(object):
                                                          (i - ncols),
                                                          (i - ncols +
                                                           1), (i - 1), i,
-                                                         (i + 1), (i + ncols - 1),
+                                                         (i + 1),
+                                                         (i + ncols - 1),
                                                          (i + ncols),
                                                          (i + ncols + 1)])
         self.operating_matrix_ID_map = operating_matrix_ID_map
@@ -176,7 +435,8 @@ class PerronNLDiffuse(object):
                                             topleft_mask, topright_mask)))
         # ^(each_corner,mask_for_each_corner)
         self.corners_antimasks = (numpy.vstack((bottomleft_antimask,
-                                                bottomright_antimask, topleft_antimask,
+                                                bottomright_antimask,
+                                                topleft_antimask,
                                                 topright_antimask)))
         # ^so shape becomes (4,5)
         self.left_mask = [1, 2, 4, 5, 7, 8]
@@ -191,8 +451,8 @@ class PerronNLDiffuse(object):
         # ^this is the position w/i the corner antimasks that the true corner
         # actually occupies
 
-        self.modulator_mask = numpy.array([-ncols - 1, -ncols, -ncols + 1, -1, 0,
-                                           1, ncols - 1, ncols, ncols + 1])
+        self.modulator_mask = numpy.array([-ncols - 1, -ncols, -ncols + 1, -1,
+                                           0, 1, ncols - 1, ncols, ncols + 1])
 
         # ^Set up terms for BC handling (still feels very clumsy)
         bottom_edge = grid.nodes_at_bottom_edge[1: -1]
@@ -309,7 +569,7 @@ class PerronNLDiffuse(object):
         """
         self.timestep_in = timestep_in
 
-    def gear_timestep(self, timestep_in, new_grid):
+    def _gear_timestep(self, timestep_in, new_grid):
         """
         This method allows the gearing between the model run step and the
         component (shorter) step.
@@ -348,8 +608,7 @@ class PerronNLDiffuse(object):
                 self.values_to_diffuse]
         return self._delta_t
 
-    # @profile #for line_profiler
-    def set_variables(self, grid):
+    def _set_variables(self, grid):
         '''
         This function sets the variables needed for update().
         Now vectorized, shouold run faster.
@@ -367,7 +626,7 @@ class PerronNLDiffuse(object):
         try:
             _delta_t = self._delta_t
         except:
-            raise NameError('''Timestep not set! Call gear_timestep(tstep)
+            raise NameError('''Timestep not set! Call _gear_timestep(tstep)
                             after initializing the component, but before
                             running it.''')
         _one_over_delta_x = self._one_over_delta_x
@@ -502,7 +761,7 @@ class PerronNLDiffuse(object):
                                                         _S_crit * _S_crit)**2.)))
 
         # Remember, the RHS is getting wiped each loop as part of
-        # self.set_variables()
+        # self._set_variables()
         # _mat_RHS is ninteriornodes long, but were only working on a
         # ncorenodes long subset here
         _mat_RHS[corenodesbyintIDs] += elev[_core_nodes] + _delta_t * (
@@ -1121,19 +1380,19 @@ class PerronNLDiffuse(object):
             # this is adhoc to fix for the duration of Germany visit
             self._uplift = self.inputs.read_float('uplift_rate')
             self._delta_t = self.timestep_in
-            self.set_variables(self.grid)
+            self._set_variables(self.grid)
             _interior_elevs = linalg.spsolve(self._operating_matrix,
                                              self._mat_RHS)
             self.grid['node'][self.values_to_diffuse][
                 self.interior_IDs_as_real] = _interior_elevs
             grid_in = self.grid
         else:
-            self.gear_timestep(self.timestep_in, grid_in)
+            self._gear_timestep(self.timestep_in, grid_in)
             for i in range(self.internal_repeats):
                 grid_in['node'][self.values_to_diffuse][:] = self.grid['node'][
                     self.values_to_diffuse] + self.uplift_per_step
             # Initialize the variables for the step:
-                self.set_variables(grid_in)
+                self._set_variables(grid_in)
                 # Solve interior of grid:
                 _interior_elevs = linalg.spsolve(self._operating_matrix,
                                                  self._mat_RHS)
@@ -1163,3 +1422,6 @@ class PerronNLDiffuse(object):
                                         'linked_node_IDs']]
 
         return self.grid
+
+    def run_one_step(self, dt):
+        
