@@ -3647,8 +3647,8 @@ XXXXXXeric should be killing this with graphs.
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.face_connecting_cell_pair(0, 1)
         array([4])
-        >>> mg.face_connecting_cell_pair(0, 2)
-        array([], dtype=int64)
+        >>> mg.face_connecting_cell_pair(0, 2).size  # empty array returned
+        0
         """
         cell_faces = self.faces_at_cell[[cell_a, cell_b]]
         return as_id_array(np.intersect1d(cell_faces[0], cell_faces[1],
