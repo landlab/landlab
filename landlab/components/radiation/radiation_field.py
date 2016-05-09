@@ -7,7 +7,7 @@
 #################################################################
 
 from landlab import Component
-
+from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
 _VALID_METHODS = set(['Grid'])
@@ -22,21 +22,29 @@ class Radiation(Component):
     radiation. This code also computes relative incidence shortwave radiation
     compared to a flat surface.
 
-    Radiation(grid, **kwds)
-        Adds two 'cellular' fields on grid 'topographic__total_short_wave_radiation' and
-        'topographic__radiation_factor'
+    Construction::
+        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34., \
+                  albedo=0.2, solar_constant=1366.67, \
+                  clearsky_turbidity=2., opt_airmass=0.)
 
-    Parameters:
-        grid : RasterModelGrid (might work on other grids but not tested yet)
-
-      Optional (**kwds):
-        method : Currently, only default is available
-        CLOUDINESS: set cloudiness value. default value is 0.0
-        LATITUDE: set Latitude. default value is 34.0
-        ALBEDO: set albedo. default value is 0.2
-        SOLARCONSTANT: default value is 1353.0
-        CLRSKYTURBIDITY: set clear sky turbidity. default value is 2.
-        OPTAIRMASS: set optical air mass. default value is 0.0
+    Parameters
+    ----------
+    grid : RasterModelGrid 
+        A grid.
+    method : {'Grid'}, optional
+        Currently, only default is available.
+    cloudiness: float, optional
+        Cloudiness.
+    latitude: float, optional
+        Latitude (Radians).
+    albedo: float, optional
+        Albedo.
+    solar_constant: float, optional
+        Solar Constant (W/m^2).
+    clearsky_turbidity: float, optional
+        Clear sky turbidity.
+    opt_airmass: float, optional
+        Optical air mass.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.radiation import Radiation
@@ -49,7 +57,7 @@ class Radiation(Component):
     >>> current_time = 0.5
     >>> rad.update( current_time )
 
-    >>> x = grid['cell']['topographic__total_short_wave_radiation']
+    >>> x = grid['cell']['topographic__total_shortwave_radiation']
     >>> isinstance(x, np.ndarray)
     True
     >>> x.shape == (6, )
@@ -69,45 +77,69 @@ class Radiation(Component):
     ])
 
     _output_var_names = set([
-        'topographic__total_short_wave_radiation',
+        'topographic__total_shortwave_radiation',
         'topographic__radiation_factor',
-        'topographic__net_short_wave_radiation',
+        'topographic__net_shortwave_radiation',
     ])
 
     _var_units = {
         'topographic__elevation' : 'm',
-        'topographic__total_short_wave_radiation' : 'W/m^2',
+        'topographic__total_shortwave_radiation' : 'W/m^2',
         'topographic__radiation_factor' : 'None',
-        'topographic__net_short_wave_radiation' : 'W/m^2',
+        'topographic__net_shortwave_radiation' : 'W/m^2',
     }
     
     _var_mapping = {
         'topographic__elevation' : 'node',
-        'topographic__total_short_wave_radiation' : 'cell',
+        'topographic__total_shortwave_radiation' : 'cell',
         'topographic__radiation_factor' : 'cell',
-        'topographic__net_short_wave_radiation' : 'cell',
+        'topographic__net_shortwave_radiation' : 'cell',
     }
 
     _var_doc = {
         'topographic__elevation' : 
             'elevation of the ground surface relative to some datum',
-        'topographic__total_short_wave_radiation' : 
+        'topographic__total_shortwave_radiation' : 
             'total incident shortwave radiation over the time step',
         'topographic__radiation_factor' : 
             'ratio of total incident shortwave radiation on sloped surface \
              to flat surface',
-        'topographic__net_short_wave_radiation' : 
+        'topographic__net_shortwave_radiation' : 
             'net incident shortwave radiation over the time step',
     }
 
-    def __init__( self, grid, **kwds ):
-        self._method = kwds.pop('method', 'Grid')
-        self._N = kwds.pop('CLOUDINESS', 0.2)
-        self._latitude = kwds.pop('LATITUDE', 34.0)
-        self._A = kwds.pop('ALBEDO', 0.2)
-        self._Io = kwds.pop('SOLARCONSTANT', 1366.67)
-        self._n = kwds.pop('CLRSKYTURBIDITY', 2.0)
-        self._m = kwds.pop('OPTAIRMASS', 0.0)
+    @use_file_name_or_kwds
+    def __init__( self, grid, method='Grid', cloudiness=0.2, \
+                  latitude=34., albedo=0.2, solar_constant=1366.67, \
+                  clearsky_turbidity=2., opt_airmass=0., **kwds ):
+        """
+        Parameters
+        ----------
+        grid : RasterModelGrid 
+            A grid.
+        method : {'Grid'}, optional
+            Currently, only default is available.
+        cloudiness: float, optional
+            Cloudiness.
+        latitude: float, optional
+            Latitude (Radians).
+        albedo: float, optional
+            Albedo.
+        solar_constant: float, optional
+            Solar Constant (W/m^2).
+        clearsky_turbidity: float, optional
+            Clear sky turbidity.
+        opt_airmass: float, optional
+            Optical air mass.
+        """
+        
+        self._method = method
+        self._N = cloudiness
+        self._latitude = latitude
+        self._A = albedo
+        self._Io = solar_constant
+        self._n = clearsky_turbidity
+        self._m = opt_airmass
 
         assert_method_is_valid(self._method)
 
@@ -129,26 +161,37 @@ class Radiation(Component):
 
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
-        self._slope,self._aspect = \
-            grid.calculate_slope_aspect_at_nodes_burrough(vals = 'topographic__elevation')
+        self._slope, self._aspect = \
+            grid.calculate_slope_aspect_at_nodes_burrough( \
+                vals='topographic__elevation')
+#        self._slope = grid.calc_slope_of_node( \
+#                                elevs = 'topographic__elevation')
+#        self._aspect = 
         self._cell_values['Slope'] = self._slope
         self._cell_values['Aspect'] = self._aspect
 
     def update( self, current_time, **kwds ):
-
+        """
+        Update fields with current loading conditions.
+        Parameters
+        ----------
+        current_time: float
+              Current time (years).
+        hour: float, optional
+              Hour of the day. 
+        """
         self._t = kwds.pop('Hour', 12.)
-        #self._elev = self._nodal_values['topographic__elevation']
         self._radf = self._cell_values['topographic__radiation_factor']
-        self._Rs = self._cell_values['topographic__total_short_wave_radiation']
-        self._Rnet = self._cell_values['topographic__net_short_wave_radiation']
+        self._Rs = self._cell_values['topographic__total_shortwave_radiation']
+        self._Rnet = self._cell_values['topographic__net_shortwave_radiation']
 
         self._julian = np.floor( ( current_time - np.floor( current_time ) )  \
-                                  * 365.25 )                          # Julian day
+                                  * 365.25 )                     # Julian day
 
-        self._phi = np.radians(self._latitude)        # Latitude in Radians
+        self._phi = np.radians(self._latitude)           # Latitude in Radians
 
         self._delta = 23.45 * np.radians(np.cos(2*np.pi/365                 \
-                        * (172 - self._julian)))             # Declination angle
+                        * (172 - self._julian)))           # Declination angle
 
 
         self._tau = (self._t + 12.0) * np.pi/12.0                # Hour angle
@@ -167,7 +210,7 @@ class Radiation(Component):
         self._phisun = np.arctan(-np.sin(self._tau)/(np.tan(self._delta)      \
                     *np.cos(self._phi) - np.sin(self._phi)                    \
                         *np.cos(self._tau)))
-                                                                # Sun's Azhimuth
+                                                              # Sun's Azhimuth
 
         if ( self._phisun >= 0 and -np.sin(self._tau) <= 0 ):
             self._phisun = self._phisun + np.pi
@@ -202,5 +245,5 @@ class Radiation(Component):
         self._Rnet = self._Rnetflat * self._radf
 
         self._cell_values['topographic__radiation_factor'] = self._radf
-        self._cell_values['topographic__total_short_wave_radiation'] = self._Rs
-        self._cell_values['topographic__net_short_wave_radiation'] = self._Rnet
+        self._cell_values['topographic__total_shortwave_radiation'] = self._Rs
+        self._cell_values['topographic__net_shortwave_radiation'] = self._Rnet
