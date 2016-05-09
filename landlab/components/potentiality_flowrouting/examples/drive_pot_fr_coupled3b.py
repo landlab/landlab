@@ -44,7 +44,7 @@ mg.at_node['topographic__elevation'][section_col] = 1.
 mg.set_closed_boundaries_at_grid_edges(False, False, False, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, True, True, True)
 mg.status_at_node[section_col] = 2
-mg.update_links_nodes_cells_to_new_BCs()
+mg._update_links_nodes_cells_to_new_BCs()
 mg.at_node['water__unit_flux_in'].fill(0.)
 mg.at_node['water__unit_flux_in'][inlet_node] = 1.
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
@@ -65,7 +65,7 @@ for i in range(3000):
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
-    g = mg.calculate_gradients_at_active_links(mg.at_node[
+    g = mg.calc_grad_of_active_link(mg.at_node[
         'topographic__elevation'])
     mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
                                      out=mg.at_link[
@@ -93,7 +93,7 @@ for i in range(3000):
     kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
-    g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
+    g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
     mg.map_max_of_link_nodes_to_link('water__volume_flux_magnitude',
                                      out=mg.at_link[
                                         'water__volume_flux_magnitude'])
@@ -110,7 +110,7 @@ for i in range(3000):
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
-imshow_node_grid(mg, mg.hillshade(), cmap='bone')
+imshow_node_grid(mg, mg.calc_hillshade_of_node(), cmap='bone')
 figure(3)
 imshow_node_grid(mg, 'water__volume_flux_magnitude', cmap='Blues_r')
 figure(4)

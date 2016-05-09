@@ -268,7 +268,7 @@ class TransportLimitedEroder(object):
         self.dx2 = grid.dx ** 2
         self.dy2 = grid.dy ** 2
         self.bad_neighbor_mask = np.equal(
-            grid.get_active_neighbors_at_node(bad_index=-1), -1)
+            grid.active_neighbors_at_node(bad_index=-1), -1)
 
     def erode(self, grid, dt, node_drainage_areas='drainage_area',
               node_elevs='topographic__elevation',
@@ -359,7 +359,7 @@ class TransportLimitedEroder(object):
         all_nodes_diffusivity = self.diffusivity_prefactor * \
             node_A**self.diffusivity_power_on_A
         # ALT
-        neighbor_nodes = grid.get_active_neighbors_at_node(bad_index=-1)
+        neighbor_nodes = grid.active_neighbors_at_node(bad_index=-1)
         # the -1 lets us get *some* value for all nodes, which we then mask:
         neighbor_diffusivities = np.ma.array(
             all_nodes_diffusivity[neighbor_nodes], mask=self.bad_neighbor_mask)
@@ -393,7 +393,7 @@ class TransportLimitedEroder(object):
             if reps == num_reps_internal:
                 delta_t_internal = dt_excess
 
-            node_gradients = grid.calculate_gradient_along_node_links(node_z)
+            node_gradients = grid.calc_grad_along_node_links(node_z)
             # pylab.figure(2)
             # pylab.imshow(node_gradients[:,3].reshape((nrows,ncols)))
             # pylab.colorbar()
@@ -451,7 +451,6 @@ class TransportLimitedEroder(object):
         #    node_z_asgrid[1:-1,1:-1] = new_z_internal
         #    #repin the BCs, in case there are any interior boundaries
         #    #grid.at_node[node_elevs][sgrid.interior_nodes((nrows,ncols))] = node_z_asgrid.ravel()
-        #    #grid.update_boundary_nodes()
         #    #...remember, because everything has hopefully been passed by reference, the
         #    #fields should already have updated to reflect changes to z here
         #

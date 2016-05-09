@@ -24,7 +24,7 @@ class RectilinearGrid(StructuredQuadGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
@@ -93,7 +93,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
@@ -171,7 +171,7 @@ class RasterGrid(UniformRectilinearGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
