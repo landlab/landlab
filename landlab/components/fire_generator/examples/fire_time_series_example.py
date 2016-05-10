@@ -1,4 +1,4 @@
-""" fire_test_driver.py
+""" fire_test_series_example.py
 
 This is a sample driver simply showing the histogram of fire recurrence
 values drawn from the Weibull distribution.
