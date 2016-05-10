@@ -92,28 +92,29 @@ class gFlex(Component):
         input text file.
 
         gFlex requires:
-        * E, Young's modulus
-        * nu, Poisson's ratio
-        * rho_m, the mantle density
-        * rho_fill, the infill material density
-        * Te, the elastic thickness. Can be scalar or an nnodes-long array.
-            If you want an array, supply a grid field name where the data can
-            be found.
-        * BC_W, BC_E, BC_S, BC_N, strings describing the boundary conditions.
-            Choose from ('Dirichlet0', '0Moment0Shear', 'Periodic').
 
+        *  E, Young's modulus
+        *  nu, Poisson's ratio
+        *  rho_m, the mantle density
+        *  rho_fill, the infill material density
+        *  Te, the elastic thickness. Can be scalar or an nnodes-long array.
+           If you want an array, supply a grid field name where the data can
+           be found.
+        *  BC_W, BC_E, BC_S, BC_N, strings describing the boundary conditions.
+           Choose from ('Dirichlet0', '0Moment0Shear', 'Periodic').
 
         gFlex can take as options:
-        * g, the gravitational acceleration (defaults to 9.81)
+
+        *  g, the gravitational acceleration (defaults to 9.81)
 
         gFlex takes as input fields:
-        * surface_load__stress
+
+        *  surface_load__stress
 
         gFlex modifies/returns:
-        * topographic__elevation (if it exists already)
-        * lithosphere__vertical_displacement
 
-
+        *  topographic__elevation (if it exists already)
+        *  lithosphere__vertical_displacement
         """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         BC_options = ('Dirichlet0', '0Moment0Shear', '0Slope0Shear', 'Periodic')

@@ -4,7 +4,9 @@
    contain the root `toctree` directive.
 
 
-Find Landlab's `User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the `Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
+Find Landlab's
+`User Guide <https://github.com/landlab/landlab/wiki/User-Guide>`_ on the
+`Landlab Wiki <https://github.com/landlab/landlab/wiki/User-Guide>`_
 
 ==============================================
 Landlab Reference Manual and API Documentation
@@ -13,37 +15,42 @@ Landlab Reference Manual and API Documentation
 The *Landlab Developer API* is a general reference manual for Landlab.
 
 Grids
-=======================
+=====
 
 Grid types
--------------
+----------
 
 As of Landlab version 0.2, there are four types of Landlab grid:
- - Raster
- - Voronoi-Delaunay
- - Hex
- - Radial
 
-The base class is `ModelGrid` with subclasses `RasterModelGrid` and `VoronoiDelaunayGrid`.
+-  Raster
+-  Voronoi-Delaunay
+-  Hex
+-  Radial
 
-`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid` and `RadialModelGrid`.
+The base class is `ModelGrid` with subclasses `RasterModelGrid` and
+`VoronoiDelaunayGrid`.
+
+`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid`
+and `RadialModelGrid`.
 
 Methods and properties common to all grids
------------------------------
+------------------------------------------
 .. toctree::
    :maxdepth: 4
 
    landlab.grid.mappers
    landlab.grid.gradients
+   landlab.grid.divergence
    landlab.grid.grid_funcs
    landlab.grid.create
    landlab.grid.base
    landlab.grid.decorators
 
 Specialized methods and properties for Rectilinear Grids 'raster grids'
---------------------------
+-----------------------------------------------------------------------
 
-Landlab's rectilinear grids are implemented by the class `RasterModelGrid`, which inherits from `ModelGrid` and adds the following:
+Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
+which inherits from `ModelGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -57,9 +64,10 @@ Landlab's rectilinear grids are implemented by the class `RasterModelGrid`, whic
    landlab.grid.raster_funcs
 
 Specialized methods and properties for Voronoi-Delaunay grids
---------------------------
+-------------------------------------------------------------
 
-Landlab's Voronoi-Delaunay grids are implemented by the class `VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
+Landlab's Voronoi-Delaunay grids are implemented by the class
+`VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -67,9 +75,10 @@ Landlab's Voronoi-Delaunay grids are implemented by the class `VoronoiDelaunayGr
    landlab.grid.voronoi
 
 Specialized methods and properties for hex grids
---------------------------
+------------------------------------------------
 
-Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`,
+which inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -77,9 +86,10 @@ Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`, which 
    landlab.grid.hex
 
 Specialized methods and properties for radial grids
---------------------------
+---------------------------------------------------
 
-Landlab's radial grids are implemented by the class `RadialModelGrid`, which inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's radial grids are implemented by the class `RadialModelGrid`, which
+inherits from `VoronoiDelauneyGrid` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -88,9 +98,10 @@ Landlab's radial grids are implemented by the class `RadialModelGrid`, which inh
 
 
 Components
-=======================
+==========
 
-This section contains documentation and API reference information for the following categories of components:
+This section contains documentation and API reference information for the
+following categories of components:
 
 Hillslope geomorphology
 ---------------------------
@@ -205,7 +216,7 @@ Initial conditions: random field generators
 
 
 Input/Output (IO)
-=======================
+=================
 
 .. toctree::
    :maxdepth: 4
@@ -214,7 +225,7 @@ Input/Output (IO)
 
 
 Plotting and Visualization
-=======================
+==========================
 
 .. toctree::
    :maxdepth: 4
@@ -223,7 +234,7 @@ Plotting and Visualization
 
 
 Cellular Automata (CA)
-=======================
+======================
 
 .. toctree::
    :maxdepth: 4

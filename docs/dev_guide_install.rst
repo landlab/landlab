@@ -12,6 +12,7 @@ merging) by requesting that the main repository "pull" in your changes. This
 is known as a pull request and is facilitated through the GitHub website.
 
 .. note::
+
     For dev work, we actively recommend Anaconda over the Enthought Python
     Distribution, especially on Windows machines. This is because it ships 
     with a working compiler already associated with Python, whereas the EPD
@@ -247,6 +248,7 @@ will be added to the current pull request and the tests automatically rerun.
 
 You can also run unit tests locally with the `test-installed-landlab.py` script
 found in the `scripts` folder::
+
     > python test-installed-landlab.py --doctest
 
 If you don't want to run the doctests, you can drop the `--doctest` option.
@@ -271,10 +273,12 @@ The bash script, `dist_to_pypi.sh` is intended to help with this process.
 Note that it uses `conda` to create environments and install packages. Thus,
 to use this script you will need to have Anaconda installed. To build (and
 upload) a new set of binaries::
+
     > bash_to_pypi.sh version [version [...]]
 
 Where *version* is the Python version for your build. You can also build
 distributions for multiple version of Python. For example::
+
     > bash_to_pypi.sh 2.6 2.7 3.3 3.4
 
 If the version of landlab you are installing is the same as what is already
@@ -286,10 +290,12 @@ Windows distributions are built in much the same way. However, they are
 created on Appveyor as part of the Windows CI. Note that although Appveyor
 runs the landlab tests with every push to GitHub, binary distributions are
 only built when a version is tagged. To create a tag for a new release::
+
     > git tag <version>
 
 You will then need to push the tag to GitHub to activate the build. For
 example::
+
     > git tag v0.1.27
     > git push --tags
 
@@ -303,24 +309,29 @@ Troubleshooting
 What do I do if my pull request cannot be automatically merged?
 ---------------------------------------------------------------
 
-Get the latest upstream/master and go to the `master` branch. Remember, *do not develop here*.
-Always develop in a feature branch. Merge the lastest upstream master with your master::
+Get the latest upstream/master and go to the `master` branch. Remember,
+*do not develop here*.  Always develop in a feature branch. Merge the lastest
+upstream master with your master::
+
   > git fetch upstream
   > git checkout master
   > git merge upstream/master
 
-Go to the branch on which you are developing and merge the lastest upstream master with your
-branch::
+Go to the branch on which you are developing and merge the lastest upstream
+master with your branch::
+
   > git checkout <branch_name>
   > git merge upstream/master
 
-Fix the conflicts. Do this by hand or with a merge editor. This is where you decide how to
-integrate the conflicting changes. Since only you know what and why you made the changes
-you did, this can only be done by you::
+Fix the conflicts. Do this by hand or with a merge editor. This is where you
+decide how to integrate the conflicting changes. Since only you know what and
+why you made the changes you did, this can only be done by you::
+
   > git mergetool
 
-After everything has been fixed, commit the changes and push the changes to the repository.
-The pull request will automatically be updated::
+After everything has been fixed, commit the changes and push the changes to
+the repository.  The pull request will automatically be updated::
+
   > git commit
   > git push
 

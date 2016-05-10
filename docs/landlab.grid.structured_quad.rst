@@ -1,20 +1,29 @@
 landlab.grid.structured_quad package
 ====================================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.grid.structured_quad.tests
-
 Submodules
 ----------
+
+landlab.grid.structured_quad.c_faces module
+-------------------------------------------
+
+.. automodule:: landlab.grid.structured_quad.c_faces
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 landlab.grid.structured_quad.cells module
 -----------------------------------------
 
 .. automodule:: landlab.grid.structured_quad.cells
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.grid.structured_quad.cfuncs module
+------------------------------------------
+
+.. automodule:: landlab.grid.structured_quad.cfuncs
     :members:
     :undoc-members:
     :show-inheritance:

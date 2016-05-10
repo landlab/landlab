@@ -174,8 +174,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     cells of any kind, because they are on the perimeter). It's up to the
     user to decide what to do with these boundary values.
 
-    Example
-    -------
+    Examples
+    --------
     Calculate the gradient of values at a grid's nodes.
 
     >>> from landlab import RasterModelGrid

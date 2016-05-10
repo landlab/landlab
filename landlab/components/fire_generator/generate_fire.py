@@ -22,33 +22,29 @@ from landlab import ModelParameterDictionary
 
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__), 'fire.txt')
 
+
 class FireGenerator:
     """All initial values are set to zero until initalized
     using the initialize() method which reads in data using
     the ModelParameterDictionary and sets the random variables
     according to their respective distribution.
 
-    REQUIRED PARAMETERS
-    ------------------
+    Notes
+    -----
+    **Required parmeters**:
 
-    Shape Parameter: Describes the skew of the Weibull distribution.
-    If shape < 3.5, data skews left.
-    If shape == 3.5, data is normal.
-    If shape > 3.5, data skews right.
+    *  Shape Parameter: Describes the skew of the Weibull distribution.
+       If shape < 3.5, data skews left.
+       If shape == 3.5, data is normal.
+       If shape > 3.5, data skews right.
+    *  Scale Parameter: Describes the peak of the Weibull distribution,
+       located at 63.5% value of the cumulative distribution function. If unknown,
+       it can be found using mean fire recurrence value and the
+       ``get_scale_parameter()`` method described later.
+    *  Mean Fire Recurrence : Average recurrence for a given area, elevation, veg type, etc.
+    *  Total Run Time : Total model run time
+    *  Delta T : Model time step.
 
-    Scale Parameter: Describes the peak of the Weibull distribution,
-    located at 63.5% value of the cumulative distribution function. If unknown,
-    it can be found using mean fire recurrence value and the get_scale_parameter()
-    method described later.
-
-    Mean Fire Recurrence : Average recurrence for a given area, elevation, veg type, etc.
-
-    Total Run Time : Total model run time
-
-    Delta T : Model time step.
-
-
-    -------
     Time to Next Fire: Value generated from the random.weibullvariate() function based
     on the scale and shape parameters
     """
@@ -59,29 +55,27 @@ class FireGenerator:
         the ModelParameterDictionary and sets the random variables
         according to their respective distribution.
 
-        REQUIRED PARAMETERS
-        ------------------
+        Notes
+        -----
+        **Required Parameters**:
 
-        Shape Parameter: Describes the skew of the Weibull distribution.
-        If shape < 3.5, data skews left.
-        If shape == 3.5, data is normal.
-        If shape > 3.5, data skews right.
+        *  Shape Parameter: Describes the skew of the Weibull distribution.
 
-        Scale Parameter: Describes the peak of the Weibull distribution,
-        located at 63.5% value of the cumulative distribution function. If unknown,
-        it can be found using mean fire recurrence value and the get_scale_parameter()
-        method described later.
+           *  If shape < 3.5, data skews left.
+           *  If shape == 3.5, data is normal.
+           *  If shape > 3.5, data skews right.
 
-        Mean Fire Recurrence : Average recurrence for a given area, elevation, veg type, etc.
+        *  Scale Parameter: Describes the peak of the Weibull distribution,
+           located at 63.5% value of the cumulative distribution function. If unknown,
+           it can be found using mean fire recurrence value and the
+           ``get_scale_parameter()``
+           method described later.
+        *  Mean Fire Recurrence : Average recurrence for a given area, elevation, veg type, etc.
+        *  Total Run Time : Total model run time
+        *  Delta T : Model time step.
 
-        Total Run Time : Total model run time
-
-        Delta T : Model time step.
-
-
-        -------
-        Time to Next Fire: Value generated from the random.weibullvariate() function based
-        on the scale and shape parameters
+        Time to Next Fire: Value generated from the random.weibullvariate()
+        function based on the scale and shape parameters.
         """
         # We import methods from ModelParameterDictionary
         # to read the parameters from the input file.
@@ -104,17 +98,24 @@ class FireGenerator:
         self.time_to_next_fire = 0.0
 
     def get_scale_parameter(self):
-
-        """ If the scale factor is unknown, we can draw it from the mean
+        """Get the scale parameter.
+        
+        If the scale factor is unknown, we can draw it from the mean
         fire recurrence interval, given the following equation:
 
-        This ONLY works if we have the shape parameter. Generally, the shape
-        parameter will be greater than 3.5, creating a distribution that is skewed
-        to the higher values (skewed to the right).
+        This *only* works if we have the shape parameter. Generally, the shape
+        parameter will be greater than 3.5, creating a distribution that is
+        skewed to the higher values (skewed to the right).
 
-        Mean_fire_recurrence = scale_parameter*(gamma_function(1+(1/shape)))
+        ::
 
-        :returns: scale_parameter as a float"""
+            Mean_fire_recurrence = scale_parameter * (gamma_function(1 + (1 / shape)))
+
+        Returns
+        -------
+        float
+            Scale parameter.
+        """
 
         if self.scale_parameter == 0.0:
             shape_in_gamma_func = float(1+(1/self.shape_parameter))
@@ -125,27 +126,35 @@ class FireGenerator:
             return self.scale_parameter
 
     def generate_fire_recurrence(self):
-
-        """ Finds the time to next fire (fire recurrence) based on the scale parameter (63.5% of
-        fire Weibull distribution) and the shape parameter (describes the skew of the histogram, shape = 3.5
+        """Find time to next fire.
+        
+        Finds the time to next fire (fire recurrence) based on the scale
+        parameter (63.5% of fire Weibull distribution) and the shape
+        parameter (describes the skew of the histogram, shape = 3.5
         represents a normal distribution).
 
         Rounds the time to next fire to 4 significant figures, for neatness.
 
-        :returns: time_to_next_fire as a float"""
-
+        Returns
+        -------
+        float
+            Time to next fire.
+        """
         self.time_to_next_fire = round(weibullvariate(self.scale_parameter, self.shape_parameter),2)
         return self.time_to_next_fire
 
     def generate_fire_time_series(self):
+        """Generate a series of fire events.
 
-        """Allows for a series of fire events to be generated given
-        a total time.
+        Allows for a series of fire events to be generated given a total time.
 
         Created for situations where total run time is definite, and number
         of fires can change across different runs.
 
-        :creates: array with several fire events, all values are float"""
+        Notes
+        -----
+        Creates array with several fire events, all values are float
+        """
 
         self.fire_events =[]
         event = self.generate_fire_recurrence()
@@ -168,7 +177,10 @@ class FireGenerator:
         Created for instances when a definite number of fires need to
         be generated.
 
-        :returns: updated value for time_to_next_fire as a float"""
-
+        Returns
+        -------
+        float
+            Updated value for the time to next fire.
+        """
         self.time_to_next_fire = self.generate_fire_recurrence()
         return self.time_to_next_fire

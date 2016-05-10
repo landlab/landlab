@@ -1,5 +1,5 @@
 fracture_grid: Generate random fracture patterns on a regular raster grid
------------------------------------------------------
+-------------------------------------------------------------------------
 
 .. automodule:: landlab.components.fracture_grid
     :members:

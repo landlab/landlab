@@ -173,9 +173,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
-        - Pass active_links in as argument
-        - In calling code, only refer to receiver_links for active nodes
-
+    *  Pass active_links in as argument
+    *  In calling code, only refer to receiver_links for active nodes
     """
     # Setup
     num_nodes = len(elev)

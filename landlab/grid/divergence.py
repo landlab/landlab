@@ -711,8 +711,7 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
 
     Given a flux per unit width across each face in the grid, calculate the net
     outflux (or influx, if negative) divided by cell area, at each node that
-    lies within a cell. Same as `_calc_face_flux_divergence_at_node` but
-    ignores inactive faces.
+    lies within a cell.
 
     Construction::
 

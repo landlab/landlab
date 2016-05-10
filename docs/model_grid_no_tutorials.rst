@@ -165,8 +165,10 @@ e.g., you can force a copy of the data to be made, or you can assign units to th
 >>> mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, noclobber=True)
 
 
-.. Dan has taken all reference to active_links, core_cells, etc out of this section, as it's not
-.. best practice.
+..
+    Dan has taken all reference to active_links, core_cells, etc out of this
+    section, as it's not best practice.
+
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the 
 latter two or three are very rarely, if ever, used). Which of these you select is 
 described in Landlab jargon as that field's *centering* or *group*, and you will 
@@ -203,9 +205,10 @@ accessed individually for each component with the properties
 
 We also maintain this list of all the :ref:`Landlab standard names <standard_name_list>`.
 
-.. We don't have a standard list yet. We should.
+..
+    We don't have a standard list yet. We should.
+    internal link goes on "direct compatibility"
 
-.. internal link goes on "direct compatibility"
 Our fields also offer direct compatibility with `CSDMS’s standard naming system for 
 variables <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_. 
 However, note that, for ease of use and readability, Landlab standard 
@@ -388,7 +391,7 @@ calculations only on active links, as seen in `this tutorial
 .. _bc_details:
 
 Boundary condition details and methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 A call to mg.node_status returns the codes representing the boundary condition
 of each node in the grid. There are 5 possible types:

@@ -78,6 +78,7 @@ def link_at_face(shape):
     Notes
     -----
     The algorithm is based on the following considerations:
+
     1. To get the link ID associated with a face ID, we start with the face
        ID and add something to it.
     2. Face 0 crosses the second vertical link. The first NC-1 links are

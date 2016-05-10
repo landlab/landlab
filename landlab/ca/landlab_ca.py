@@ -20,19 +20,20 @@ Subclasses
 ----------
 
 Landlab provides for several different lattice and connection types:
-    - RasterLCA: regular raster grid with transitions between horizontal and
-        vertical cell pairs
-    - OrientedRasterLCA: like a RasterLCA, but different transition rates can
-        be assigned to vertical and horizontal pairs. This property of
-        orientation can be used, for example, to implement rules representing
-        gravitational attraction, or flow of a fluid with a particular
-        direction.
-    - RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
-        and horizontal cell pairs.
-    - OrientedRasterD8LCA: as above but orientation also matters.
-    - HexLCA: hexagonal grid
-    - OrientedLCA: hexagonal grid, with transition rates allowed to vary
-        according to orientation.
+
+-  RasterLCA: regular raster grid with transitions between horizontal and
+   vertical cell pairs
+-  OrientedRasterLCA: like a RasterLCA, but different transition rates can
+   be assigned to vertical and horizontal pairs. This property of
+   orientation can be used, for example, to implement rules representing
+   gravitational attraction, or flow of a fluid with a particular
+   direction.
+-  RasterD8LCA: like a RasterLCA, but includes diagonal as well as vertical
+   and horizontal cell pairs.
+-  OrientedRasterD8LCA: as above but orientation also matters.
+-  HexLCA: hexagonal grid
+-  OrientedLCA: hexagonal grid, with transition rates allowed to vary
+   according to orientation.
 
 Encoding of "states"
 --------------------
@@ -115,7 +116,6 @@ xn_to : 2d array of ints (# possible link states x max. # transitions)
 
 xn_rate : 2d array of floats (# possible link states x max. # transitions)
     Rate associated with each link-state transition.
-
 
 Created GT Sep 2014, starting from link_ca.py.
 """
@@ -504,11 +504,10 @@ class LandlabCellularAutomaton(object):
 
         Notes
         -----
-
         **Creates**:
 
-        * ``self.node_state``: 1D array of ints (x number of nodes in grid)
-          The node-state array
+        *  ``self.node_state``: 1D array of ints (x number of nodes in grid)
+           The node-state array
 
         The node-state array is attached to the grid as a field with the name
         'node_state'.
@@ -601,16 +600,17 @@ class LandlabCellularAutomaton(object):
         """
         Using the transition list and the number of link states, creates
         three arrays that collectively contain data on state transitions:
-        * ``n_xn``: for each link state, contains the number of transitions
-          out of that state.
-        * ``xn_to``: 2D array that records, for each link state and each
-          transition, the new state into which the link transitions.
-        * ``xn_rate``: 2D array that records, for each link state and each
-          transition, the rate (1/time) of the transition.
-        * ``xn_propswap``: 2D array that indicates, for each link state and
-          each transition, whether that transition is accompanied by
-          a "property" swap, in which the two cells exchange
-          properties (in order to represent a particle moving)
+
+        *  ``n_xn``: for each link state, contains the number of transitions
+           out of that state.
+        *  ``xn_to``: 2D array that records, for each link state and each
+           transition, the new state into which the link transitions.
+        *  ``xn_rate``: 2D array that records, for each link state and each
+           transition, the rate (1/time) of the transition.
+        *  ``xn_propswap``: 2D array that indicates, for each link state and
+           each transition, whether that transition is accompanied by
+           a "property" swap, in which the two cells exchange
+           properties (in order to represent a particle moving)
         """
         # First, create an array that stores the number of possible transitions
         # out of each state.
@@ -691,9 +691,11 @@ class LandlabCellularAutomaton(object):
 
         Notes
         -----
-        * FOR each active link:
-          * if the actual node pair is different from the link's code:
-            * change the link state to be correct schedule an event
+        ::
+
+            FOR each active link:
+                if the actual node pair is different from the link's code:
+                    change the link state to be correct schedule an event
         """
         for i in self.grid.active_links:
             # for i in range(self.grid.number_of_active_links):
@@ -917,12 +919,11 @@ class LandlabCellularAutomaton(object):
 
         If the transition is valid, we:
 
-        1. Update the states of the two nodes attached to the link
-        2. Update the link's state, choose its next transition, and push it on
-           the event queue.
-        3. Update the states of the other links attached to the two nodes,
-           choose their next transitions, and push them on the event queue.
-
+        1.  Update the states of the two nodes attached to the link
+        2.  Update the link's state, choose its next transition, and push it on
+            the event queue.
+        3.  Update the states of the other links attached to the two nodes,
+            choose their next transitions, and push them on the event queue.
         """
         if _DEBUG:
             six.print_()

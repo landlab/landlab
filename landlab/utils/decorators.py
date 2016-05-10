@@ -3,6 +3,7 @@
 import os
 import warnings
 from functools import wraps
+import textwrap
 
 import numpy as np
 import six
@@ -234,14 +235,26 @@ def deprecated(use, version):
         A wrapped function that issues a deprecation warning.
     """
     def real_decorator(func):
-        mystring = ("\n*************************\n" +
-                    "This method is deprecated as of Landlab version %s.\n" +
-                    "Use :func:`%s` instead.\n" +
-                    "*************************")
-        try:
-            func.__doc__ = func.__doc__ + mystring % (version, use)
-        except TypeError:
-            func.__doc__ = mystring % (version, use)
+        warning_str = """
+.. note:: This method is deprecated as of Landlab version {ver}.
+
+    Use :func:`{use}` instead.
+
+""".format(ver=version, use=use)
+
+        doc_lines = (func.__doc__ or "").split(os.linesep)
+
+        for lineno, line in enumerate(doc_lines):
+            if len(line.rstrip()) == 0:
+                break
+
+        head = doc_lines[:lineno]
+        body = doc_lines[lineno:]
+
+        head = textwrap.dedent(os.linesep.join(head))
+        body = textwrap.dedent(os.linesep.join(body))
+
+        func.__doc__ = os.linesep.join([head, warning_str, body])
 
         @wraps(func)
         def _wrapped(*args, **kwargs):
@@ -250,6 +263,7 @@ def deprecated(use, version):
                     name=func.__name__), category=DeprecationWarning)
             return func(*args, **kwargs)
         _wrapped.__dict__.update(func.__dict__)
+
         return _wrapped
 
     return real_decorator
