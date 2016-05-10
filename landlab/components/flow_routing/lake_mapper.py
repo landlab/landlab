@@ -242,9 +242,10 @@ class DepressionFinderAndRouter(Component):
         # Note that we initialize depression
         # outlet ID to BAD_INDEX_VALUE (which is a major clue!)
         self.depression_depth = self._grid.add_zeros('node',
-                                                     'depression__depth')
+                                                     'depression__depth',
+                                                     noclobber=False)
         self.depression_outlet_map = self._grid.add_zeros(
-            'node', 'depression__outlet_node', dtype=int)
+            'node', 'depression__outlet_node', dtype=int, noclobber=False)
         self.depression_outlet_map += BAD_INDEX_VALUE
 
         # Later on, we'll need a number that's guaranteed to be larger than the
@@ -278,9 +279,10 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool)
+        self.is_pit = self._grid.add_ones('node', 'is_pit', dtype=bool,
+                                          noclobber=False)
         self.flood_status = self._grid.add_zeros('node', 'flood_status_code',
-                                                 dtype=int)
+                                                 dtype=int, noclobber=False)
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(BAD_INDEX_VALUE)
 

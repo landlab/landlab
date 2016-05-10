@@ -10,7 +10,7 @@ import landlab
 from landlab import (ModelParameterDictionary, Component, FieldError,
                      FIXED_VALUE_BOUNDARY)
 
-from landlab.utils.decorators import use_file_name_or_kwds
+from landlab.utils.decorators import use_file_name_or_kwds, deprecated
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_routing import (DepressionFinderAndRouter,
                                              FlowRouter)
@@ -26,6 +26,9 @@ class SinkFiller(Component):
     gradient downwards towards the depression outlet. The gradient can be
     spatially variable, and is chosen to not reverse any drainage directions
     at the perimeter of each lake.
+
+    The primary method of this class is 'run_one_step'. 'fill_pits' is a
+    synonym.
 
     Constructor assigns a copy of the grid, and calls the initialize
     method.
@@ -52,8 +55,53 @@ class SinkFiller(Component):
     fill_slope : float (m/m)
         The slope added to the top surface of filled pits to allow flow
         routing across them, if apply_slope.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab import BAD_INDEX_VALUE as XX
+    >>> from landlab.components import FlowRouter, SinkFiller
+    >>> import numpy as np
+    >>> lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
+    >>> lake2 = np.array([78, 87, 88])
+    >>> guard_nodes = np.array([23, 33, 53, 63, 73, 83])
+    >>> lake = np.concatenate((lake1, lake2))
+    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> z = np.ones(100, dtype=float)
+    >>> z += mg.node_x  # add a slope
+    >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
+    >>> z[lake] = 0.
+    >>> field = mg.add_field('node', 'topographic__elevation', z,
+    ...                      units='-', copy=True)
+    >>> fr = FlowRouter(mg)
+    >>> fr.run_one_step()
+    >>> mg.at_node['flow_sinks'][mg.core_nodes].sum()
+    14
+    >>> hf = SinkFiller(mg, apply_slope=False)
+    >>> hf.run_one_step()
+    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], 4.)
+    True
+    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], 7.)
+    True
+
+    Now reset and demonstrate the adding of an inclined surface:
+
+    >>> field[:] = z
+    >>> hf = SinkFiller(mg, apply_slope=True)
+    >>> hf.run_one_step()
+    >>> hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00053846,
+    ...                   4.00038462, 4.00030769, 4.00069231, 4.00061538,
+    ...                   4.00046154, 4.00076923, 4.00084615])
+    >>> hole2 = np.array([7.4, 7.2, 7.6])
+    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], hole1)
+    True
+    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], hole2)
+    True
+    >>> fr.run_one_step()
+    >>> mg.at_node['flow_sinks'][mg.core_nodes].sum()
+    0
     """
-    _name = 'HoleFiller'
+    _name = 'SinkFiller'
 
     _input_var_names = set(['topographic__elevation',
                             ])
@@ -74,7 +122,6 @@ class SinkFiller(Component):
                 'sediment_fill__depth': 'Depth of sediment added at each' +
                                         'node',
                 }
-
 
     @use_file_name_or_kwds
     def __init__(self, grid, routing='D8', apply_slope=False,
@@ -144,12 +191,19 @@ class SinkFiller(Component):
             self.topo_field_name = 'topographic__elevation'
         # create the only new output field:
         self.sed_fill_depth = self._grid.add_zeros('node',
-                                                   'sediment_fill__depth')
+                                                   'sediment_fill__depth',
+                                                   noclobber=False)
 
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowRouter(self._grid, method=self._routing)
 
     def fill_pits(self, **kwds):
+        """
+        This is a synonym for the main method :func:`run_one_step`.
+        """
+        self.run_one_step(**kwds)
+
+    def run_one_step(self, **kwds):
         """
         This is the main method. Call it to fill depressions in a starting
         topography.
@@ -192,7 +246,7 @@ class SinkFiller(Component):
             for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
                                                 self._lf.lake_codes):
                 lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
-                lake_perim = self.get_lake_ext_margin(lake_nodes)
+                lake_perim = self._get_lake_ext_margin(lake_nodes)
                 perim_elevs = self._elev[lake_perim]
                 out_elev = self._elev[outlet_node]
                 lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
@@ -218,7 +272,8 @@ class SinkFiller(Component):
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
-    def fill_pits_old(self, apply_slope=None):
+    @deprecated(use='fill_pits', version=1.0)
+    def _fill_pits_old(self, apply_slope=None):
         """
 
         .. deprecated:: 0.1.38
@@ -288,8 +343,9 @@ class SinkFiller(Component):
                 while 1:
                     for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
                                                         self._lf.lake_codes):
-                        self.apply_slope_current_lake(apply_slope, outlet_node,
-                                                      lake_code, sublake)
+                        self._apply_slope_current_lake(apply_slope,
+                                                       outlet_node,
+                                                       lake_code, sublake)
                     # Call the mapper again here. Bail out if no core pits are
                     # found.
                     # This is necessary as there are some configs where adding
@@ -325,7 +381,7 @@ class SinkFiller(Component):
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
-    def add_slopes(self, slope, outlet_node, lake_code):
+    def _add_slopes(self, slope, outlet_node, lake_code):
         """
         Assuming you have already run the lake_mapper, adds an incline towards
         the outlet to the nodes in the lake.
@@ -335,7 +391,7 @@ class SinkFiller(Component):
                         self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
-        lake_ext_margin = self.get_lake_ext_margin(lake_nodes)
+        lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
         d = self._grid.calc_distances_of_nodes_to_point(outlet_coord,
                                                        node_subset=lake_nodes)
         add_vals = slope*d
@@ -344,20 +400,21 @@ class SinkFiller(Component):
                                              lake_nodes)
         return new_elevs, lake_nodes
 
-    def get_lake_ext_margin(self, lake_nodes):
+    def _get_lake_ext_margin(self, lake_nodes):
         """
         Returns the nodes forming the external margin of the lake, honoring
         the *routing* method (D4/D8) if applicable.
         """
         if self._D8 is True:
-            all_poss = np.union1d(self._grid.active_neighbors_at_node(lake_nodes),
-                                  self._grid.get_diagonal_list(lake_nodes))
+            all_poss = np.union1d(self._grid.active_neighbors_at_node(
+                lake_nodes), self._grid.get_diagonal_list(lake_nodes))
         else:
-            all_poss = np.unique(self._grid.active_neighbors_at_node(lake_nodes))
+            all_poss = np.unique(self._grid.active_neighbors_at_node(
+                lake_nodes))
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
-    def get_lake_int_margin(self, lake_nodes, lake_ext_edge):
+    def _get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """
         Returns the nodes forming the internal margin of the lake, honoring
         the *routing* method (D4/D8) if applicable.
@@ -371,17 +428,18 @@ class SinkFiller(Component):
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
-    def apply_slope_current_lake(self, apply_slope, outlet_node, lake_code,
+    def _apply_slope_current_lake(self, apply_slope, outlet_node, lake_code,
                                  sublake):
         """
-        Wraps the add_slopes method to allow handling of conditions where the
+        Wraps the _add_slopes method to allow handling of conditions where the
         drainage structure would be changed or we're dealing with a sublake.
         """
         while 1:
             starting_elevs = self._elev.copy()
-            self._elev[:], lake_nodes = self.add_slopes(apply_slope,
-                                                        outlet_node, lake_code)
-            ext_edge = self.get_lake_ext_margin(lake_nodes)
+            self._elev[:], lake_nodes = self._add_slopes(apply_slope,
+                                                         outlet_node,
+                                                         lake_code)
+            ext_edge = self._get_lake_ext_margin(lake_nodes)
             if sublake:
                 break
             else:
@@ -400,7 +458,7 @@ class SinkFiller(Component):
         """
         True if the drainage structure at lake margin changes, False otherwise.
         """
-        ext_edge = self.get_lake_ext_margin(lake_nodes)
+        ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
             edge_neighbors = np.hstack((self._grid.active_neighbors_at_node(ext_edge),
                                         self._grid.get_diagonal_list(
