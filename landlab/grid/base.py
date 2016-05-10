@@ -2715,12 +2715,15 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = 6. - ((mg.node_x-2.)**2 + (mg.node_y-2.)**2)
-        >>> mg.calc_hillshade_of_node(elevs=z)
-        array([ 0.16222142,  0.03572257,  0.        ,  0.        ,  0.        ,
-                0.33996228,  0.25232065,  0.        ,  0.        ,  0.        ,
-                0.68993201,  0.76230631,  0.95597085,  0.        ,  0.        ,
-                0.85235335,  0.9128767 ,  0.76230631,  0.25232065,  0.03572257,
-                0.85046862,  0.85235335,  0.68993201,  0.33996228,  0.16222142])
+        >>> target_hillsh = np.array(
+        ... [ 0.16222142,  0.03572257,  0.        ,  0.        ,  0.        ,
+        ...   0.33996228,  0.25232065,  0.        ,  0.        ,  0.        ,
+        ...   0.68993201,  0.76230631,  0.95597085,  0.        ,  0.        ,
+        ...   0.85235335,  0.9128767 ,  0.76230631,  0.25232065,  0.03572257,
+        ...   0.85046862,  0.85235335,  0.68993201,  0.33996228,  0.16222142])
+        >>> hillsh = mg.calc_hillshade_of_node(elevs=z)
+        >>> np.allclose(hillsh, target_hillsh)
+        True
         """
         if slp is not None and asp is not None:
             if unit == 'degrees':
