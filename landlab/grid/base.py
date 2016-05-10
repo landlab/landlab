@@ -2480,7 +2480,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.node_y
         >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
-        >>> np.allclose(y_grad, -np.pi/4.)
+        >>> np.allclose(y_grad, np.pi/4.)
         True
         >>> np.allclose(x_grad, 0.)
         True
@@ -2496,14 +2496,15 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             slopes_at_patch = self.calc_slope_of_patch(elevs=elevs,
                                                        unit_normal=nhat)
-        theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
+        theta = numpy.arctan2(-nhat[:, 1], -nhat[:, 0])
         x_slope_patches = numpy.cos(theta)*slopes_at_patch
         y_slope_patches = numpy.sin(theta)*slopes_at_patch
 
         return (x_slope_patches, y_slope_patches)
 
     def calc_slope_of_node(self, elevs='topographic__elevation',
-                           return_components=False):
+                           method='patch_mean',
+                           return_components=False, **kwds):
         """Array of slopes at nodes, averaged over neighboring patches.
 
         Produces a value for node slope (i.e., mean gradient magnitude)
@@ -2523,6 +2524,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
+        method : {'patch_mean', 'Horn'}
+            By equivalence to the raster version, 'patch_mean' returns a scalar
+            mean on the patches; 'Horn' returns a vector mean on the patches.
         return_components : bool
             If True, return a tuple, (array_of_magnitude,
             (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -2545,7 +2549,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> numpy.allclose(slopes, 45./180.*numpy.pi)
         True
         >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> z = mg.node_y
+        >>> z = -mg.node_y
         >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
         ...                                        return_components=True)
         >>> numpy.allclose(slope_mag, numpy.pi/4.)
@@ -2570,6 +2574,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
         True
         """
+        assert method in ('patch_mean', 'Horn')
         try:
             patches_at_node = self.patches_at_node()
         except TypeError:  # was a property, not a fn (=> new style)
@@ -2586,7 +2591,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                                             mask=patches_at_node.mask)
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
-        if return_components:
+        if return_components or method == 'Horn':
             (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
                 elevs=elevs, unit_normal=nhat,
                 slope_magnitude=slopes_at_patch)
@@ -2601,13 +2606,18 @@ class ModelGrid(ModelDataFieldsMixIn):
             mean_grad_x = x_slope
             mean_grad_y = y_slope
 
-            return slope_mag, (mean_grad_x, mean_grad_y)
+            if method == 'Horn':
+                slope_mag = np.arctan(numpy.sqrt(numpy.tan(y_slope_masked)**2 +
+                                                 numpy.tan(x_slope_masked)**2))
+                return slope_mag
+            else:
+                return slope_mag, (mean_grad_x, mean_grad_y)
 
         else:
             return slope_mag
 
     def calc_aspect_of_node(self, slope_component_tuple=None,
-                    elevs='topographic__elevation', unit='degrees'):
+                            elevs='topographic__elevation', unit='degrees'):
         """Get array of aspect of a surface.
 
         Calculates at returns the aspect of a surface. Aspect is returned as
@@ -2615,12 +2625,16 @@ class ModelGrid(ModelDataFieldsMixIn):
         'degrees'.
 
         If slope_component_tuple is provided, i.e., (slope_x, slope_y), the
-        aspect will be calculated from these data.
+        aspect will be calculated from these data. Remember, aspect points
+        180 degrees away from the slope direction as under Landlab conventions,
+        slope is defined as UPSLOPE direction (i.e., positive gradient),
+        but aspect is the surface dip direction.
 
         If it is not, it will be derived from elevation data at the nodes,
         which can either be a string referring to a grid field (default:
         'topographic__elevation'), or an nnodes-long numpy array of the
-        values themselves.
+        values themselves. The slope will be taken as the mean gradient of the
+        surrounding patches.
 
         Parameters
         ----------
@@ -2674,7 +2688,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             _, slope_component_tuple = self.calc_slope_of_node(
                 elevs=elev_array, return_components=True)
         angle_from_x_ccw = numpy.arctan2(
-            slope_component_tuple[1], slope_component_tuple[0])
+            -slope_component_tuple[1], -slope_component_tuple[0])
         # angle_from_N_cw = ((angle_from_x_ccw + numpy.pi / 2.) % (
         #     2 * numpy.pi))
         angle_from_N_cw = (5.*numpy.pi/2. - angle_from_x_ccw) % (2.*numpy.pi)
@@ -2686,7 +2700,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             raise TypeError("unit must be 'degrees' or 'radians'")
 
     def calc_hillshade_of_node(self, alt=45., az=315., slp=None, asp=None,
-                       unit='degrees', elevs='topographic__elevation'):
+                               unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
@@ -2696,7 +2710,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         alt : float
             Sun altitude (from horizon) - defaults to 45 degrees
         az : float
-            Sun azimuth (from north) - defaults to 315 degrees
+            Sun azimuth (CW from north) - defaults to 315 degrees
         slp : float
             slope of cells at surface - optional
         asp : float
@@ -2729,13 +2743,14 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = 6. - ((mg.node_x-2.)**2 + (mg.node_y-2.)**2)
-        >>> mg.calc_hillshade_of_node(elevs=z) # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.16222142,  0.03572257, -0.26353058, -0.4766685 , -0.52602578,
-                0.33996228,  0.25232065, -0.13335582, -0.4082354 , -0.4766685 ,
-                0.68993201,  0.76230631,  0.2256741 , -0.13335582, -0.26353058,
+        >>> mg.calc_hillshade_of_node(elevs=z)
+        array([ 0.16222142,  0.03572257,  0.        ,  0.        ,  0.        ,
+                0.33996228,  0.25232065,  0.        ,  0.        ,  0.        ,
+                0.68993201,  0.76230631,  0.95597085,  0.        ,  0.        ,
                 0.85235335,  0.9128767 ,  0.76230631,  0.25232065,  0.03572257,
                 0.85046862,  0.85235335,  0.68993201,  0.33996228,  0.16222142])
         """
@@ -2763,7 +2778,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             slp, slp_comps = self.calc_slope_of_node(
                 elevs, return_components=True)
             asp = self.calc_aspect_of_node(slope_component_tuple=slp_comps,
-                                   unit='radians')
+                                           unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')
 
@@ -2772,7 +2787,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             numpy.cos(alt) * numpy.sin(slp) * numpy.cos(az - asp)
         )
 
-        return shaded
+        return shaded.clip(0.)
 
     @deprecated(use='calc_flux_div_at_node', version=1.0)
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux,
