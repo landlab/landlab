@@ -4086,7 +4086,7 @@ XXXXXXeric should be killing this with graphs.
         ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
         True
         """
-        assert method in {'patch_mean', 'Horn'}
+        assert method in ('patch_mean', 'Horn')
         try:
             patches_at_node = self.patches_at_node()
         except TypeError:  # was a property, not a fn (=> new style)
