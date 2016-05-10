@@ -1,13 +1,6 @@
 landlab.plot package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.plot.tests
-
 Submodules
 ----------
 
@@ -15,6 +8,14 @@ landlab.plot.channel_profile module
 -----------------------------------
 
 .. automodule:: landlab.plot.channel_profile
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.plot.colors module
+--------------------------
+
+.. automodule:: landlab.plot.colors
     :members:
     :undoc-members:
     :show-inheritance:

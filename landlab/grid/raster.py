@@ -35,9 +35,6 @@ from . import gradients
 def node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
-    .. note:: Deprecated since version 0.6.
-        Use in favor of class methods in RasterModelGrid.
-
     Test if one of the neighbors of node *id* is a boundary node.
 
     Parameters
@@ -48,7 +45,6 @@ def node_has_boundary_neighbor(mg, id, method='d8'):
         ID of node to test.
     method: string, optional
         default is d8 neighbor, other method is 'd4'
-
 
     Returns
     -------
@@ -115,6 +111,7 @@ node_has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
 
 
 class RasterModelGridPlotter(object):
+
     """MixIn that provides plotting functionality.
 
     Inhert from this class to provide a ModelDataFields object with the
@@ -187,15 +184,13 @@ def _old_style_args(args):
 
     The old way of initializing a :any:`RasterModelGrid` was like,
 
-        .. code::
-
-            grid = RasterModelGrid(n_rows, n_cols)
+    .. code::
+        grid = RasterModelGrid(n_rows, n_cols)
 
     The new way passes the grid shape as a tuple, like numpy functions,
 
-        .. code::
-
-            grid = RasterModelGrid((n_rows, n_cols))
+    .. code::
+        grid = RasterModelGrid((n_rows, n_cols))
 
     Parameters
     ----------
@@ -1475,12 +1470,13 @@ XXXXXXeric should be killing this with graphs.
             Overrides ModelGrid._create_link_unit_vectors().
 
         Creates the following:
-        * `self.link_unit_vec_x`, `self.link_unit_vec_y` : `ndarray`
-            x and y components of unit vectors at each link (extra 0
-            entries at end)
-        * `self.node_vector_sum_x`, `self.node_vector_sum_y` : `ndarray`
-            Sums of x & y unit vector components for each node. Sum is over all
-            links connected to a given node.
+
+        *  `self.link_unit_vec_x`, `self.link_unit_vec_y` : `ndarray`
+           x and y components of unit vectors at each link (extra 0
+           entries at end)
+        *  `self.node_vector_sum_x`, `self.node_vector_sum_y` : `ndarray`
+           Sums of x & y unit vector components for each node. Sum is over all
+           links connected to a given node.
 
         Examples
         --------
@@ -2025,9 +2021,6 @@ XXXXXXeric should be killing this with graphs.
     def snap_coords_to_grid(self, xcoord, ycoord):
         """Snap coordinates to the nearest node.
 
-        .. deprecated:: 0.6
-            :func:`find_nearest_node` is equivalent, and faster.
-
         This method takes existing coordinates, inside the grid, and returns
         the ID of the closest grid node. That node can be a boundary node.
         """
@@ -2125,8 +2118,6 @@ XXXXXXeric should be killing this with graphs.
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
-
-        # array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
         >>> _ = grid.diagonal_links_at_node()
@@ -2258,9 +2249,6 @@ XXXXXXeric should be killing this with graphs.
     def find_node_in_direction_of_max_slope(self, u, node_id):
         """Node of steepest gradient.
 
-        .. deprecated:: 0.1
-            Use :func:`calculate_max_gradient_across_adjacent_cells` instead
-
         This method calculates the slopes (-dz/dx) in u across all 4 faces of
         the cell with ID node_id, and across the four diagonals.
         It then returns the node ID in the direction of the steepest
@@ -2369,9 +2357,6 @@ XXXXXXeric should be killing this with graphs.
     def find_node_in_direction_of_max_slope_d4(self, u, node_id):
         """Node of steepest descent using d4.
 
-        .. deprecated:: 0.1
-            Use :func:`calculate_max_gradient_across_adjacent_cells` instead
-
         This method is exactly the same as find_node_in_direction_of_max_slope
         except that this method only considers nodes that are connected by
         links, or in otherwords, in the 0, 90, 180 and 270 directions.
@@ -2465,20 +2450,17 @@ XXXXXXeric should be killing this with graphs.
                                 left_is_inactive, bottom_is_inactive):
         """Set boundary nodes to be inactive.
 
-        .. deprecated:: 0.6
-            Due to imprecise terminology. Use
-        :func:`set_closed_boundaries_at_grid_edges` instead.
-
         Handles boundary conditions by setting each of the four sides of the
         rectangular grid to either 'inactive' or 'active (fixed value)' status.
         Arguments are booleans indicating whether the bottom, right, top, and
         left are inactive (True) or not (False).
 
         For an inactive boundary:
-            - the nodes are flagged CLOSED_BOUNDARY (normally status type 4)
-            - the links between them and the adjacent interior nodes are
-              inactive (so they appear on link-based lists, but not
-              active_link-based lists)
+
+        *  the nodes are flagged CLOSED_BOUNDARY (normally status type 4)
+        *  the links between them and the adjacent interior nodes are
+           inactive (so they appear on link-based lists, but not
+           active_link-based lists)
 
         This means that if you call the calc_grad_of_active_link
         method, the inactive boundaries will be ignored: there can be no
@@ -2514,6 +2496,7 @@ XXXXXXeric should be killing this with graphs.
         Notes
         -----
         The four corners are treated as follows:
+
         - bottom left = BOTTOM
         - bottom right = BOTTOM
         - top right = TOP
@@ -2570,10 +2553,11 @@ XXXXXXeric should be killing this with graphs.
         right are closed (``True``) or not (``False``).
 
         For a closed boundary:
-            - the nodes are flagged ``CLOSED_BOUNDARY`` (status type 4)
-            - all links that connect to a ``CLOSED_BOUNDARY`` node are
-              flagged as inactive (so they appear on link-based lists, but
-              not active_link-based lists)
+
+        *  the nodes are flagged ``CLOSED_BOUNDARY`` (status type 4)
+        *  all links that connect to a ``CLOSED_BOUNDARY`` node are
+           flagged as inactive (so they appear on link-based lists, but
+           not active_link-based lists)
 
         This means that if you call the calc_grad_of_active_link
         method, links connecting to closed boundaries will be ignored: there
@@ -2604,10 +2588,12 @@ XXXXXXeric should be killing this with graphs.
         Notes
         -----
         Note that the four corners are treated as follows:
-        - bottom left = BOTTOM
-        - bottom right = BOTTOM
-        - top right = TOP
-        - top left = TOP
+
+        *  bottom left = BOTTOM
+        *  bottom right = BOTTOM
+        *  top right = TOP
+        *  top left = TOP
+
         This scheme is necessary for internal consistency with looped
         boundaries.
 
@@ -2735,10 +2721,12 @@ XXXXXXeric should be killing this with graphs.
                1, 1, 1, 1, 1], dtype=int8)
 
         Note that the four corners are treated as follows:
-        * bottom left = BOTTOM
-        * bottom right = BOTTOM
-        * top right = TOP
-        * top left = TOP
+
+        *  bottom left = BOTTOM
+        *  bottom right = BOTTOM
+        *  top right = TOP
+        *  top left = TOP
+
         This scheme is necessary for internal consistency with looped
         boundaries.
         """
@@ -2840,9 +2828,9 @@ XXXXXXeric should be killing this with graphs.
 
         Parameters
         ----------
-        top_bottom_are_looped : boolean
+        top_bottom_are_looped : bool
             Top and bottom are wrap-around.
-        sides_are_looped : boolean
+        sides_are_looped : bool
             Left and right sides are wrap-around.
 
         Examples
@@ -3177,7 +3165,8 @@ XXXXXXeric should be killing this with graphs.
         """Flux divergence.
 
         Candidate for depreciation, DEJH 5/14
-        ..todo: UPDATE THIS TO USE NEW DATA STRUCTURES!
+
+        .. todo:: UPDATE THIS TO USE NEW DATA STRUCTURES!
 
         This is like calculate_flux_divergences (plural!), but only does
         it for cell "id".
@@ -3197,10 +3186,7 @@ XXXXXXeric should be killing this with graphs.
 
     @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.1')
     def update_noflux_boundaries(self, u, bc=None):
-        """*Deprecated*.
-
-        .. note:: Deprecated since version 0.1
-            Use the newer BC handling framework instead
+        """Deprecated.
 
         Sets the value of u at all noflux boundary cells equal to the
         value of their interior neighbors, as recorded in the
@@ -3299,6 +3285,8 @@ XXXXXXeric should be killing this with graphs.
         bottom. If the *interior_only* is set, data along the left and right
         grid edges are not changed.
 
+        Note that the contents of the *data_name* field are changed.
+
         Parameters
         ----------
         data_name : string
@@ -3307,10 +3295,6 @@ XXXXXXeric should be killing this with graphs.
             Number of rows to shift upward.
         interior_only : bool, optional
             If True, data along left and right edges are not shifted
-
-        Returns
-        -------
-        None, but contents of data *data_name* are changed.
 
         Examples
         --------
@@ -3400,7 +3384,7 @@ XXXXXXeric should be killing this with graphs.
         >>> np.array_equal(rmg.active_neighbors_at_node(2), [X, 7, X, X])
         True
 
-        ..todo: could use inlink_matrix, outlink_matrix
+        .. todo:: could use inlink_matrix, outlink_matrix
         """
         bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
         if len(args) not in (0, 1):
@@ -3495,7 +3479,7 @@ XXXXXXeric should be killing this with graphs.
         >>> mg.get_diagonal_list(7)
         array([13, 11,  1,  3])
 
-        ..todo: could use inlink_matrix, outlink_matrix
+        .. todo:: could use inlink_matrix, outlink_matrix
         """
         # Added DEJH 051513
         bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
@@ -3557,10 +3541,6 @@ XXXXXXeric should be killing this with graphs.
         """is_interior([ids])
         Check of a node is an interior node.
 
-        .. deprecated:: 0.6
-            Deprecated due to out-of-date terminology.
-            Use :func:`is_core` instead.
-
         Returns an boolean array of truth values for each node ID provided;
         True if the node is an interior node, False otherwise.
         If no IDs are provided, method returns a boolean array for every node.
@@ -3605,10 +3585,6 @@ XXXXXXeric should be killing this with graphs.
     @deprecated(use='nodes_are_all_core', version=1.0)
     def are_all_interior(self, IDs):
         """Check if nodes are interior.
-
-        .. deprecated:: 0.6
-            Deprecated due to out-of-date terminology.
-            Use :func:`are_all_core` instead.
 
         Returns a single boolean truth value, True if all nodes with *IDs* are
         interior nodes, False if not.
@@ -4329,11 +4305,11 @@ XXXXXXeric should be killing this with graphs.
 
         .. note::
 
-            THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-            elevation profile. Please check slope_aspect_routines_comparison.py
-            under landlab\examples before using this.
-            Suggested alternative: calculate_slope_aspect_at_nodes_burrough
-                                                                ~ SN 25Sep14
+            THIS CODE HAS ISSUES (SN 25-Sept-14): This code didn't perform
+            well on a NS facing elevation profile. Please check
+            slope_aspect_routines_comparison.py under landlab\examples before
+            using this.  Suggested alternative:
+            calculate_slope_aspect_at_nodes_burrough
 
         Calculates both the slope and aspect at each node based on the
         elevation of the node and its neighbors using a best fit plane
@@ -4348,7 +4324,7 @@ XXXXXXeric should be killing this with graphs.
 
         Returns
         -------
-        tuple of floats
+        (slope, aspect) : tuple of floats
             Tuple containing (*slope*, *aspect*)
         """
         # additional note, KRB has written three codes in raster.py
@@ -4403,6 +4379,8 @@ XXXXXXeric should be killing this with graphs.
             List of field names to save, defaults to all if not specified.
         format : {'netcdf', 'esri-ascii'}, optional
             Output file format. Guess from file extension if not given.
+        at : str
+            Grid element where values are defined.
 
         Examples
         --------
@@ -4682,7 +4660,6 @@ XXXXXXeric should be killing this with graphs.
             Set left edge horizontal links as fixed boundary.
         bottom_is_fixed : boolean
             Set bottom edge vertical links as fixed boundary.
-
         link_value : float, array or None (default).
             Override value to be kept constant at links.
         node_value : float, array or None (default).

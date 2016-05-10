@@ -148,10 +148,10 @@ def boundary_cell_count(shape):
     boundary nodes are not really cells. If they were, though, this is how
     many there would be.
 
-    **** Shouldn't be deprecated. This routine returns the cells on the
-    boundary. Not the cells surrounding boundary nodes because there aren't
-    cells around boundary nodes by definition as previously understood.
-      - SN  30Nov14  ****
+    .. note:: SN 30-Nov-14
+        Shouldn't be deprecated. This routine returns the cells on the
+        boundary. Not the cells surrounding boundary nodes because there aren't
+        cells around boundary nodes by definition as previously understood.
 
     Examples
     --------
@@ -333,8 +333,9 @@ def boundary_nodes(shape):
     """Array of perimeter nodes.
 
     .. deprecated:: 0.6
-    Deprecated due to imprecise terminology. This is really perimeter_iter
-    (see below).
+        Deprecated due to imprecise terminology. This is really perimeter_iter
+        (see below).
+
     An array of the indices of the boundary nodes.
 
     Examples
@@ -528,7 +529,7 @@ def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     indices to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
-    Note that all three functions [X_]cell_index_at_nodes are equivalent.
+    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
 
     >>> from landlab.utils.structured_grid import active_cell_index_at_nodes
     >>> active_cell_index_at_nodes((3, 4), boundary_node_index=-1)
@@ -557,7 +558,7 @@ def core_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
-    Note that all three functions [X_]cell_index_at_nodes are equivalent.
+    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
 
     Examples
     --------
@@ -588,7 +589,7 @@ def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
     to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
     the value of indices to boundary nodes.
 
-    Note that all three functions [X_]cell_index_at_nodes are equivalent.
+    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
 
     Examples
     --------
@@ -816,8 +817,8 @@ def active_inlinks2(shape, node_status=None):
     2d numpy array of int (2 x number of grid nodes)
         Link ID of incoming links to each node
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_inlinks2
     >>> active_inlinks2((3,4))
     array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
@@ -862,8 +863,8 @@ def active_outlinks2(shape, node_status=None):
     2d numpy array of int (2 x number of grid nodes)
         Link ID of outgoing links from each node
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_outlinks2
     >>> active_outlinks2((3,4))
     array([[-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
@@ -1267,8 +1268,8 @@ def active_south_links2(shape, node_status=None):
     2d numpy array of int
         Link ID of active link connecting to a node from the south, or -1
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab.utils.structured_grid import active_south_links2
     >>> active_south_links2((3, 4))
     array([[-1, -1, -1, -1],

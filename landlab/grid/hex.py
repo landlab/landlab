@@ -211,7 +211,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         formula for area is:
 
         .. math::
-
             A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
         """
         self._area_of_cell = (0.8660254 * self._dx ** 2 +
@@ -220,7 +219,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @staticmethod
     def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh):
-        """
+        """Create a set of points on a staggered grid.
+
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
         points could be connected to form equilateral triangles. The overall
@@ -238,7 +238,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Returns
         -------
-        A 2D numpy array containing point (x,y) coordinates, and total
+        poinst : ndarray
+            A 2D numpy array containing point (x,y) coordinates, and total
             number of points.
 
         Examples
@@ -252,7 +253,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 0]
         array([ 0. ,  1. , -0.5])
         """
-
         dxv = dxh * numpy.sqrt(3.) / 2.
         half_dxh = dxh / 2.
 
@@ -281,7 +281,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @staticmethod
     def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh):
-        """
+        """Create a set of points in a taggered grid.
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
         points could be connected to form equilateral triangles. The overall
@@ -299,8 +299,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Returns
         -------
-        A 2D numpy array containing point (x,y) coordinates, and total number
-            of points.
+        points : ndarray of shape `(n_points, 2)`
+            A 2D numpy array containing point (x, y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -313,7 +314,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 0]
         array([ 0.,  1.,  2.])
         """
-
         dxv = dxh * numpy.sqrt(3.) / 2.
         half_dxh = dxh / 2.
 
@@ -350,8 +350,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Returns
         -------
-        A 2D numpy array containing point (x,y) coordinates, and total number
-            of points.
+        points : ndarray of shape `(n_points, 2)`
+            2D numpy array containing point (x,y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -364,7 +365,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 1]
         array([ 0. ,  1. , -0.5])
         """
-
         dxh = dxv * numpy.sqrt(3.) / 2.
         half_dxv = dxv / 2.
 
@@ -410,8 +410,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Returns
         -------
-        A 2D numpy array containing point (x,y) coordinates, and total number
-            of points.
+        points : ndarray of shape `(n_points, 2)`
+            2D numpy array containing point (x,y) coordinates, and total
+            number of points.
 
         Examples
         --------
@@ -424,7 +425,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> points[:3, 1]
         array([ 0.,  1.,  2.])
         """
-
         dxh = dxv * numpy.sqrt(3.) / 2.
         half_dxv = dxv / 2.
 
@@ -443,7 +443,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @property
     def number_of_node_columns(self):
-        """Number of node columns in a rectangular-shaped and/or
+        """Number of node columns hex grid.
+
+        Number of node columns in a rectangular-shaped and/or
         vertically oriented hex grid.
 
         Returns the number of columns, including boundaries.
@@ -552,16 +554,19 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._hexplot_configured = True
 
     def hexplot(self, data, data_label=None, color_map=None):
-        """
+        """Create a plot of the grid elements.
+
         Creates a plot of the grid and one node-data field, showing hexagonal
         cells colored by values in the field.
 
         Parameters
         ----------
-        data : str OR node array (1d numpy array with number_of_nodes entries)
-            Data field to be colored
+        data : str or node array (1d numpy array with number_of_nodes entries)
+            Data field to be colored.
         data_label : str, optional
-            Label for colorbar
+            Label for colorbar.
+        color_map : matplotlib colormap object, None
+            Color map to apply (defaults to "jet")
 
         See also
         --------
