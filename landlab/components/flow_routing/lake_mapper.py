@@ -48,18 +48,18 @@ class DepressionFinderAndRouter(Component):
     Note the routing part of this component is not yet compatible with
     irregular grids.
 
-    Constructor assigns a copy of the grid, sets the current time, and
-    calls the initialize method.
+    The prinary method of this class is *map_depressions(pits='flow_sinks',
+    reroute_flow=True)*.
+
+    Construction::
+
+        DepressionFinderAndRouter(grid, grid, routing='D8')
 
     Parameters
     ----------
     grid : RasterModelGrid
         A landlab RasterModelGrid.
-    input_stream : str, file_like, or ModelParameterDictionary, optional
-        ModelParameterDictionary that holds the input parameters.
-    current_time : float, optional
-        The current time for the mapper.
-    routing : 'D8' or 'D4' (optional)
+    routing : {'D8', 'D4'} (optional)
         If grid is a raster type, controls whether lake connectivity can
         occur on diagonals ('D8', default), or only orthogonally ('D4').
         Has no effect if grid is not a raster.
@@ -74,7 +74,7 @@ class DepressionFinderAndRouter(Component):
     >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] = 0.
     >>> fr = FlowRouter(mg)
-    >>> _ = fr.route_flow()  # the flow "gets stuck" in the hole
+    >>> fr.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
@@ -84,7 +84,7 @@ class DepressionFinderAndRouter(Component):
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
     >>> df = DepressionFinderAndRouter(mg)
-    >>> df.map_depressions()
+    >>> df.map_depressions()  # reroute_flow defaults to True
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
@@ -122,6 +122,10 @@ class DepressionFinderAndRouter(Component):
     array([15])
     >>> df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
+
+    Because rereoute_flow defaults to True, the flow connectivity fields
+    created by the FlowRouter will have now been modified to route flow over
+    the depressions in the surface. The topogrphy itself is not modified.
     """
 
     _name = 'DepressionFinderAndRouter'
@@ -151,8 +155,7 @@ class DepressionFinderAndRouter(Component):
             'otherwise BAD_INDEX_VALUE'
     }
 
-    def __init__(self, grid, input_stream=None, current_time=0.,
-                 routing='D8'):
+    def __init__(self, grid, routing='D8', **kwds):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -162,17 +165,12 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        input_stream : str, file_like, or ModelParameterDictionary, optional
-            ModelParameterDictionary that holds the input parameters.
-        current_time : float, optional
-            The current time for the mapper.
         routing : 'D8' or 'D4' (optional)
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
         """
         self._grid = grid
-        self.current_time = current_time
         if routing is not 'D8':
             assert routing is 'D4'
         self._routing = routing
@@ -184,9 +182,9 @@ class DepressionFinderAndRouter(Component):
             self._D8 = False  # useful shorthand for thia test we do a lot
             if type(self._grid) is landlab.grid.raster.RasterModelGrid:
                 self.num_nbrs = 4
-        self.initialize(input_stream)
+        self._initialize()
 
-    def initialize(self, input_stream=None):
+    def _initialize(self, input_stream=None):
         """Initialize the component from an input file.
 
         The BMI-style initialize method takes an optional input_stream
@@ -286,7 +284,7 @@ class DepressionFinderAndRouter(Component):
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(BAD_INDEX_VALUE)
 
-    def find_pits(self):
+    def _find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
 
         Notes
@@ -321,18 +319,6 @@ class DepressionFinderAndRouter(Component):
         self.is_pit.fill(True)
         self.is_pit[self._grid.boundary_nodes] = False
 
-#        # Get a list of active links; in a raster, this (TODO: optionally)
-#        # includes diagonals.
-#        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-#            (active_links, tails, heads) = self._grid.d8_active_links()
-#        else:
-#            active_links = self._grid.active_links
-#            tails = self._grid.node_index_at_link_tail
-#            heads = self._grid.node_index_at_link_head
-#        print 'AL',active_links
-#        print 'T',tails
-#        print 'H',heads
-
         # Loop over all active links: if one of a link's two nodes is higher
         # than the other, the higher one is not a pit. Also, if they have
         # equal elevations and one is an open boundary, the other is not a pit.
@@ -349,8 +335,10 @@ class DepressionFinderAndRouter(Component):
 
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
-        self.is_pit[h_orth[np.where(self._elev[h_orth]>self._elev[t_orth])[0]]] = False
-        self.is_pit[t_orth[np.where(self._elev[t_orth]>self._elev[h_orth])[0]]] = False
+        self.is_pit[h_orth[np.where(
+            self._elev[h_orth] > self._elev[t_orth])[0]]] = False
+        self.is_pit[t_orth[np.where(
+            self._elev[t_orth] > self._elev[h_orth])[0]]] = False
 
         # If we have a raster grid, handle the diagonal active links too
         # (At the moment, their data structure is a bit different)
@@ -449,8 +437,8 @@ class DepressionFinderAndRouter(Component):
         if self.node_can_drain(the_node, nodes_this_depression):
             return True
 
-    def record_depression_depth_and_outlet(self, nodes_this_depression,
-                                           outlet_id, pit_node):
+    def _record_depression_depth_and_outlet(self, nodes_this_depression,
+                                            outlet_id, pit_node):
         """Record information about a depression.
 
         Record information about this depression/lake in the flood_status,
@@ -552,16 +540,16 @@ class DepressionFinderAndRouter(Component):
         self.depression_outlets.append(lowest_node_on_perimeter)
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
-        self.record_depression_depth_and_outlet(nodes_this_depression,
-                                                lowest_node_on_perimeter,
-                                                pit_node)
+        self._record_depression_depth_and_outlet(nodes_this_depression,
+                                                 lowest_node_on_perimeter,
+                                                 pit_node)
 
         # TODO: ideally we need a way to keep track of the number, area extent,
         # and average depth of depressions. Tricky thing is that one might be
         # devoured by another, so would need to be removed from the list.
 
-    def identify_depressions_and_outlets(self):
-        """Find depression and likes on a topographic surface.
+    def _identify_depressions_and_outlets(self):
+        """Find depression and lakes on a topographic surface.
 
         Find and map the depressions/lakes in a topographic surface,
         given a previously identified list of pits (if any) in the surface.
@@ -633,9 +621,9 @@ class DepressionFinderAndRouter(Component):
                 self.is_pit.fill(False)
                 self.is_pit[self.pit_node_ids] = True
             except FieldError:
-                self.find_pits()
+                self._find_pits()
         elif pits is None:
-            self.find_pits()
+            self._find_pits()
         else:  # hopefully an array or other sensible iterable
             if len(pits) == self._grid.number_of_nodes:
                 supplied_pits = np.where(pits)[0]
@@ -652,16 +640,16 @@ class DepressionFinderAndRouter(Component):
         self.flood_status.fill(_UNFLOODED)
         self.flood_status[self.pit_node_ids] = _PIT
 
-        self.identify_depressions_and_outlets()
+        self._identify_depressions_and_outlets()
 
         if reroute_flow and ('flow_receiver' in self._grid.at_node.keys()):
             self.receivers = self._grid.at_node['flow_receiver']
             self.sinks = self._grid.at_node['flow_sinks']
             self.grads = self._grid.at_node['topographic__steepest_slope']
-            self.route_flow()
-            self.reaccumulate_flow()
+            self._route_flow()
+            self._reaccumulate_flow()
 
-    def route_flow(self):
+    def _route_flow(self):
         """Route flow across lake flats.
 
         Route flow across lake flats, which have already been identified.
@@ -673,15 +661,17 @@ class DepressionFinderAndRouter(Component):
                 nodes_routed = np.array([outlet_node])
                 # ^using set on assumption of cythonizing later
                 nodes_on_front = np.array([outlet_node])
-                self.handle_outlet_node(outlet_node, nodes_in_lake)
+                self._handle_outlet_node(outlet_node, nodes_in_lake)
                 while (len(nodes_in_lake) + 1) != len(nodes_routed):
                     if self._D8:
-                        all_nbrs = np.hstack((self._grid.active_neighbors_at_node(
-                            nodes_on_front),
-                            self._grid.get_diagonal_list(
-                            nodes_on_front)))
+                        all_nbrs = np.hstack(
+                            (self._grid.active_neighbors_at_node(
+                                nodes_on_front),
+                             self._grid.get_diagonal_list(
+                                nodes_on_front)))
                     else:
-                        all_nbrs = self._grid.active_neighbors_at_node(nodes_on_front)
+                        all_nbrs = self._grid.active_neighbors_at_node(
+                            nodes_on_front)
                     outlake = np.logical_not(np.in1d(all_nbrs.flat,
                                                      nodes_in_lake))
                     all_nbrs[outlake.reshape(all_nbrs.shape)] = -1
@@ -708,7 +698,7 @@ class DepressionFinderAndRouter(Component):
                     # ^downstream grad is 0.
         self.sinks[self.pit_node_ids] = False
 
-    def reaccumulate_flow(self):
+    def _reaccumulate_flow(self):
         """Update drainage area, discharge, and upstream order.
 
         Invoke the accumulator a second time to update drainage area,
@@ -730,7 +720,7 @@ class DepressionFinderAndRouter(Component):
         # ## Think more on this.
         # ## Right now, we're just not updating it.
 
-    def handle_outlet_node(self, outlet_node, nodes_in_lake):
+    def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
 
         Makes sure the outlet node is drains to the grid edge, not back
@@ -747,10 +737,11 @@ class DepressionFinderAndRouter(Component):
         """
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
-                outlet_neighbors = np.hstack((self._grid.active_neighbors_at_node(
-                    outlet_node, bad_index=-1),
-                    self._grid.get_diagonal_list(
-                    outlet_node, bad_index=-1)))
+                outlet_neighbors = np.hstack(
+                    (self._grid.active_neighbors_at_node(
+                         outlet_node, bad_index=-1),
+                     self._grid.get_diagonal_list(
+                         outlet_node, bad_index=-1)))
             else:
                 outlet_neighbors = self._grid.active_neighbors_at_node(
                     outlet_node, bad_index=-1).copy()
@@ -763,7 +754,8 @@ class DepressionFinderAndRouter(Component):
             if isinstance(self._grid, landlab.grid.raster.RasterModelGrid):
                 link_l = self._link_lengths
             else:  # Voronoi
-                link_l = self._link_lengths[self._grid.links_at_node[outlet_node, :]]
+                link_l = self._link_lengths[
+                    self._grid.links_at_node[outlet_node, :]]
             eff_slopes = ((self._elev[outlet_node] -
                            self._elev[out_draining]) /
                           link_l[unique_indxs[1:]])
@@ -826,13 +818,13 @@ class DepressionFinderAndRouter(Component):
         Nodes not in a lake are labelled with BAD_INDEX_VALUE.
         """
         return self._lake_map
-    
+
     @property
     def lake_at_node(self):
         """
         Return a boolean array, True if the node is flooded, False otherwise.
         """
-        return self._lake_map!=BAD_INDEX_VALUE
+        return self._lake_map != BAD_INDEX_VALUE
 
     @property
     def lake_areas(self):
