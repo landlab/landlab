@@ -35,6 +35,11 @@ class PerronNLDiffuse(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
+    Construction::
+
+        PerronNLDiffuse(grid, linear_diffusivity=None, S_crit=33.*np.pi/180.,
+                        rock_density=2700., sed_density=2700.)
+
     Parameters
     ----------
     grid : RasterModelGrid
