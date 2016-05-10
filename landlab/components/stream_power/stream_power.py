@@ -12,16 +12,19 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class StreamPowerEroder(Component):
-    """
-    Module erodes where channels are, implemented as
+    """Erode where channels are.
 
-    E = K * A**m * S**n - sp_crit,
+    Implemented as:
 
-    and if E<0, E=0.
+    .. math::
+        E = K A^m S^n - sp_{crit},
 
-    If 'use_W' is declared and True, the module instead implements:
+    and if :math:`E < 0`, :math:`E = 0`.
 
-    E = K * A**m * S**n / W - sp_crit
+    If ``use_W`` is declared and ``True``, the module instead implements:
+
+    .. math::
+        E = K A^m S^n / W - sp_{crit}
 
     DEJH Sept 2013, major modifications Sept 14.
 
@@ -32,8 +35,8 @@ class StreamPowerEroder(Component):
     Construction::
 
         StreamPowerEroder(grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
-                     m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
-                     use_W=None, use_Q=None):
+                          m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
+                          use_W=None, use_Q=None):
 
     Parameters
     ----------
@@ -50,9 +53,12 @@ class StreamPowerEroder(Component):
         values of m_sp and n_sp. Else, component will derive values of m and n
         from supplied values of a_sp, b_sp, and c_sp, following Whipple and
         Tucker:
-            ... If 'Total', m=a*c, n=a.
-            ... If 'Unit', m=a*c*(1-b), n=a.
-            ... If 'Shear_stress', m=2*a*c*(1-b)/3, n = 2*a/3.
+
+        *  If ``'Total'``, ``m = a * c``, ``n = a``.
+        *  If ``'Unit'``, ``m = a * c *(1 - b)``, ``n = a``.
+        *  If ``'Shear_stress'``, ``m = 2 * a * c * (1 - b) / 3``,
+           ``n = 2 * a / 3``.
+
     m_sp : float, optional
         m in the stream power equation (power on drainage area). Overridden if
         a_sp, b_sp, and c_sp are supplied.
@@ -247,63 +253,85 @@ class StreamPowerEroder(Component):
 
     def initialize(self, grid, params_file):
         r"""
-        NOW DEPRECATED, USE __INIT__ DIRECTLY.
+        .. note:: deprecated
+            Use the ``__init__`` method directly.
+
         params_file is the name of the text file containing the parameters
         needed for this stream power component.
 
         Module erodes where channels are, implemented as
 
-        E = K * A**m * S**n - sp_crit,
+        .. math::
+            E = K A^m S^n - sp_{crit}
 
-        and if E<0, E=0.
+        and if ``E < 0``, ``E = 0``.
 
-        If 'use_W' is declared and True, the module instead implements:
+        If ``use_W`` is declared and ``True``, the module instead implements:
 
-        E = K * A**m * S**n / W - sp_crit
+        .. math::
+            E = K A^m S^n / W - sp_{crit}
 
-        ***Parameters for input file***
-        OBLIGATORY:
-            K_sp -> positive float, the prefactor. This is defined per unit
-                time, not per tstep. Type the string 'array' to cause the
-                component's erode method to look for an array of values of K
-                (see documentation for 'erode').
-        ALTERNATIVES:
-        *either*
-            m_sp -> positive float, the power on A
-        and
-            n_sp -> positive float, the power on S
+        **Parameters for input file**:
+
+        Obligatory:
+
+        *  K_sp : positive float, the prefactor. This is defined per unit
+           time, not per tstep. Type the string 'array' to cause the
+           component's erode method to look for an array of values of K
+           (see documentation for 'erode').
+
+        Alternatives:
+
+        *either*:
+
+        *  ``m_sp``: positive float, the power on ``A`` *and*
+        *  ``n_sp``: positive float, the power on ``S``
+
         *or*
-            sp_type -> String. Must be one of 'Total', 'Unit', or
-                'Shear_stress'.
-        and (following Whipple & Tucker 1999)
-            a_sp -> +ve float. The power on the SP/shear term to get the
-                erosion rate.
-            b_sp -> +ve float. The power on discharge to get width, "hydraulic
-                geometry". Unnecessary if sp_type='Total'.
-            c_sp -> +ve float. The power on area to get discharge, "basin
-                hydology".
-            ... If 'Total', m=a*c, n=a.
-            ... If 'Unit', m=a*c*(1-b), n=a.
-            ... If 'Shear_stress', m=2*a*c*(1-b)/3, n = 2*a/3.
-        OPTIONS:
-            threshold_sp -> +ve float; the threshold sp_crit. Defaults to 0.
-                This threshold is assumed to be in "stream power" units, i.e.,
-                if 'Shear_stress', the value should be tau**a.
-            dt -> +ve float. If set, this is the fixed timestep for this
-                component. Can be overridden easily as a parameter in erode().
-                If not set (default), this parameter MUST be set in erode().
-            use_W -> Bool; if True, component will look for node-centered data
-                describing channel width in grid.at_node['channel_width'], and
-                use it to implement incision ~ stream power per unit width.
-                Defaults to False. If you set sp_m and sp_n, follows the
-                equation given above. If you set sp_type, it will be ignored if
-                'Total', but used directly if you want 'Unit' or
-                'Shear_stress'.
-            use_Q -> Bool. If true, the equation becomes E=K*Q**m*S**n.
-                Effectively sets c=1 in Wh&T's 1999 derivation, if you are
-                setting m and n through a, b, and c.
-        """
 
+        *  ``sp_type``: str. Must be one of ``'Total'``, ``'Unit'``, or
+           ``'Shear_stress'``.
+
+        and (following Whipple & Tucker 1999)
+
+        *  ``a_sp``: +ve float. The power on the SP/shear term to get the
+           erosion rate.
+        *  ``b_sp``: +ve float. The power on discharge to get width,
+           "hydraulic
+           geometry". Unnecessary if sp_type='Total'.
+        *  ``c_sp``: +ve float. The power on area to get discharge, "basin
+           hydology".
+
+        If:
+
+        *  ``'Total'``, :math:`m = a c, n = a`.
+        *  ``'Unit'``, :math:`m = a c (1 - b), n = a`.
+        *  ``'Shear_stress'``, :math:`m =2 a c (1 - b) / 3, n = 2 a / 3`.
+
+
+        Options:
+
+        *  ``threshold_sp``: +ve float; the threshold sp_crit. Defaults to 0.
+           This threshold is assumed to be in "stream power" units, i.e.,
+           if 'Shear_stress', the value should be tau**a.
+        *  ``dt``: +ve float. If set, this is the fixed timestep for this
+           component. Can be overridden easily as a parameter in erode().
+           If not set (default), this parameter MUST be set in erode().
+        *  ``use_W``: ``bool``; if True, component will look for node-centered
+           data describing channel width in ``grid.at_node['channel_width']``,
+           and use it to implement incision ~ stream power per unit width.
+           Defaults to ``False``. If you set sp_m and sp_n, follows the
+           equation given above. If you set sp_type, it will be ignored if
+           'Total', but used directly if you want 'Unit' or
+           'Shear_stress'.
+        *  ``use_Q``: ``Bool``. If true, the equation becomes
+
+           .. math::
+               E = K Q^m S^n
+
+           Effectively sets c=1 in Wh&T's 1999 derivation, if you are
+           setting m and n through a, b, and c.
+        """
         self._grid = grid
         self.fraction_gradient_change = 1.
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
@@ -389,75 +417,91 @@ class StreamPowerEroder(Component):
               W_if_used=None, Q_if_used=None, K_if_used=None,
               flooded_nodes=None):
         """
-        This run method is now DEPRECATED. Use the fully standardized method
-        :func:`run_one_step` instead.
+        .. note:: deprecated
+            This run method is now DEPRECATED. Use the fully standardized
+            method :func:`run_one_step` instead.
 
         A simple, explicit implementation of a stream power algorithm.
 
-        *grid* & *dt* are the grid object and timestep (float) respectively.
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid.
+        dt : float
+            Component time step.
 
-        *node_elevs* is the elevations on the grid, either a field string or
-        nnodes-long array.
+        node_elevs : str or ndarray, optional
+            Elevations on the grid, either a field string or nnodes-long array.
 
-        *Node_drainage_areas* tells the component where to look for the
-        drainage area values. Change to another string to override which grid
-        field the component looks at, or pass a nnodes-long array of drainage
-        areas values directly instead.
+        node_drainage_areas: str or ndarray, optional
+            Tells the component where to look for the drainage area values.
+            Change to another string to override which grid field the
+            component looks at, or pass a nnodes-long array of drainage
+            areas values directly instead.
 
-        *flow_receiver* and *node_order_upstream*, the downstream node to which
-        each node flows and the ordering of the nodes in the network starting
-        at the outlet, respectively,
-        are both necessary as inputs to allow stability testing.
+        flow_receiver, node_order_upstream : str or ndarray, optional
+            The downstream node to which each node flows and the ordering of
+            the nodes in the network starting at the outlet, respectively,
+            are both necessary as inputs to allow stability testing.
 
-        If you already have slopes defined at nodes on the grid, pass them to
-        the component with *slopes_at_nodes*. The same syntax is expected:
-        string gives a name in the grid fields, an array gives values direct.
+            If you already have slopes defined at nodes on the grid, pass them
+            to the component with *slopes_at_nodes*. The same syntax is
+            expected: string gives a name in the grid fields, an array gives
+            values direct.
 
-        Alternatively, set *link_slopes* (and *link_node_mapping*) if this data
-        is only available at links. 'topographic__derivative_of_elevation'
-        is the default field name for link slopes. Override this name by
-        setting the variable as the appropriate string, or override use of
-        grid fields altogether by passing an array. *link_node_mapping*
-        controls how the component maps these link values onto the arrays. We
-        assume there is always a 1:1 mapping (pass the values already projected
-        onto the nodes using slopes_at_nodes if not). Other components, e.g.,
-        flow_routing.route_flow_dn, may provide the necessary outputs to make
-        the mapping easier: e.g., just pass 'links_to_flow_receiver' from that
-        module (the default name). If the component cannot find an existing
-        mapping through this parameter, it will derive one on the fly, at
-        considerable cost of speed (see on-screen reports).
+            Alternatively, set *link_slopes* (and *link_node_mapping*) if this
+            data
+            is only available at links. 'topographic__derivative_of_elevation'
+            is the default field name for link slopes. Override this name by
+            setting the variable as the appropriate string, or override use of
+            grid fields altogether by passing an array. *link_node_mapping*
+            controls how the component maps these link values onto the arrays.
+            We assume there is always a 1:1 mapping (pass the values already
+            projected onto the nodes using slopes_at_nodes if not). Other
+            components, e.g., flow_routing.route_flow_dn, may provide the
+            necessary outputs to make the mapping easier: e.g., just pass
+            'links_to_flow_receiver' from that module (the default name). If
+            the component cannot find an existing mapping through this
+            parameter, it will derive one on the fly, at considerable cost of
+            speed (see on-screen reports).
 
-        *slopes_from_elevs* allows the module to create gradients internally
-        from elevations rather than have them provided. Set to True to force
-        the component to look for the data in the location specified by
-        node_elevs. Using this option is
-        considerably slower than any of the alternatives, as it also has to
-        calculate the link_node_mapping from stratch each time.
+        slopes_from_elevs : str, optional
+            Allows the module to create gradients internally
+            from elevations rather than have them provided. Set to True to
+            force the component to look for the data in the location specified
+            by node_elevs. Using this option is
+            considerably slower than any of the alternatives, as it also has to
+            calculate the link_node_mapping from stratch each time.
 
-        In both these cases, at present the mapping is to use the maximum
-        slope of --any-- link attached to the node as the representative node
-        slope. This is primarily for speed, but may be a good idea to modify
-        later.
+            In both these cases, at present the mapping is to use the maximum
+            slope of *any* link attached to the node as the representative
+            node slope. This is primarily for speed, but may be a good idea
+            to modify later.
 
-        *W_if_used* and *Q_if_used* must be provided if you set use_W and use_Q
-        respectively in the component initialization. They can be either field
-        names or nnodes arrays as in the other cases.
+        W_if_used, Q_if_used : str or ndarray, optional
+            Must be provided if you set *use_W* and *use_Q* respectively in
+            the component initialization. They can be either field names or
+            nnodes arrays as in the other cases.
 
-        If you are routing across flooded depressions in your flow routing
-        scheme, be sure to set *flooded_nodes* with a boolean array or array
-        of IDs to ensure erosion cannot occur in the lake. Erosion
-        is always zero if the gradient is adverse, but can still procede as
-        usual on the entry into the depression unless *flooded_nodes* is set.
+            If you are routing across flooded depressions in your flow routing
+            scheme, be sure to set *flooded_nodes* with a boolean array or
+            array of IDs to ensure erosion cannot occur in the lake. Erosion
+            is always zero if the gradient is adverse, but can still procede as
+            usual on the entry into the depression unless *flooded_nodes* is
+            set.
 
-        NB: If you want spatially or temporally variable runoff, pass the
-        runoff values at each pixel to the flow router, then pass discharges
-        at each node using *Q_if_used* to this component.
+            NB: If you want spatially or temporally variable runoff, pass the
+            runoff values at each pixel to the flow router, then pass
+            discharges at each node using *Q_if_used* to this component.
 
-        RETURNS (grid, modified_elevs, stream_power_erosion); modifies grid
-        elevation fields to reflect updates; creates and maintains
-        grid.at_node['stream_power_erosion']. Note the value
-        stream_power_erosion is not an excess stream power; any specified
-        erosion threshold is not incorporated into it.
+        Returns
+        -------
+        tuple
+            Tuple of (*grid*, *modified_elevs*, *stream_power_erosion*);
+            modifies grid elevation fields to reflect updates; creates and
+            maintains ``grid.at_node['stream_power_erosion']``. Note the value
+            stream_power_erosion is not an excess stream power; any specified
+            erosion threshold is not incorporated into it.
         """
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 

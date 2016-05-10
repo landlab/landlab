@@ -234,9 +234,10 @@ class find_facets(object):
         A patch is only recorded if it consists of at least *threshold_num_px*.
 
         The method records and returns:
-        1. a ragged array of lists, where each list is the pixels comprising
+
+        *  a ragged array of lists, where each list is the pixels comprising
            each facet patch, and
-        2. a (num_patches, 2) array recording the mean slope and and its stdev
+        *  a (num_patches, 2) array recording the mean slope and and its stdev
            for each patch.
         """
         self.possible_core_nodes = np.where(np.logical_and(

@@ -84,12 +84,21 @@ class PotentialityFlowRouter(Component):
 
 
     def initialize(self, grid, params):
-        """
-        Optional input parameters are:
-        * "flow_equation" - options are "default" (default), "Manning", or "Chezy".
-          If Equation is Manning or Chezy, you must also specify:
-           - "Mannings_n" (if "Manning") : float
-           - "Chezys_C" (if "Chezy") : float
+        """Initialize flow router.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid
+        params : dict
+            Input parameters. Optional parameters are:
+
+            *  `flow_equation` : options are ``default`` (default),
+               ``Manning``, or ``Chezy``.  If Equation is ``Manning`` or
+               ``Chezy``, you must also specify:
+
+               *  ``Mannings_n`` (if ``Manning``) : float
+               *  ``Chezys_C`` (if ``Chezy``) : float
         """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         assert grid.number_of_node_rows >= 3

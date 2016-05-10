@@ -17,9 +17,9 @@ from landlab.utils.decorators import make_return_array_immutable
 class SedDepEroder(Component):
     """
     This module implements sediment flux dependent channel incision
-    following:
+    following::
 
-    E = f(Qs, Qc) * ([a stream power-like term] - [an optional threshold]),
+        E = f(Qs, Qc) * ([a stream power-like term] - [an optional threshold]),
 
     where E is the bed erosion rate, Qs is the volumetric sediment flux
     into a node, and Qc is the volumetric sediment transport capacity at
@@ -36,16 +36,14 @@ class SedDepEroder(Component):
     Note that a convex-up channel can result in many cases assuming MPM,
     unless parameters b and c are carefully tuned.
 
-    If Qc == 'power_law':
+    If ``Qc == 'power_law'``::
 
-        E = K_sp * f(Qs, Qc) * A ** m_sp * S ** n_sp;
-
+        E  = K_sp * f(Qs, Qc) * A ** m_sp * S ** n_sp;
         Qc = K_t * A ** m_t * S ** n_t
 
-    If Qc == 'MPM':
+    If ``Qc == 'MPM'``::
 
         shear_stress = fluid_density * g * depth * S
-
                      = fluid_density * g * (mannings_n/k_w) ** 0.6 * (
                        k_Q* A ** c_sp) ** (0.6 * (1. - b_sp)) * S ** 0.7,
                        for consistency with MPM
@@ -118,8 +116,7 @@ class SedDepEroder(Component):
         Whether to perform a few additional calculations in order to set
         the additional optional output fields, 'channel_width',
         'channel_depth', and 'channel_discharge' (default False).
-    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
-                           'almost_parabolic'}
+    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline', 'almost_parabolic'}
         The shape of the sediment flux function. For definitions, see
         Hobley et al., 2011. 'None' gives a constant value of 1.
         NB: 'parabolic' is currently not supported, due to numerical
@@ -131,7 +128,8 @@ class SedDepEroder(Component):
         shear stress based erosion model consistent with MPM (per
         Hobley et al., 2011).
 
-    *If sed_dependency_type == 'generalized_humped'*...
+    If ``sed_dependency_type == 'generalized_humped'``...
+
     kappa_hump : float
         Shape parameter for sediment flux function. Primarily controls
         function amplitude (i.e., scales the function to a maximum of 1).
@@ -149,7 +147,8 @@ class SedDepEroder(Component):
         degree of function asymmetry. Default follows Leh valley values
         from Hobley et al., 2011.
 
-    *If Qc == 'power_law'*...
+    If ``Qc == 'power_law'``...
+
     m_sp : float
         Power on drainage area in the erosion equation.
     n_sp : float
@@ -161,7 +160,8 @@ class SedDepEroder(Component):
     n_t : float
         Power on slope in the transport capacity equation.
 
-    *if Qc == 'MPM'*...
+    if ``Qc == 'MPM'``...
+
     C_MPM : float
         A prefactor on the MPM relation, allowing tuning to known sediment
         saturation conditions (leave as 1. in most cases).
@@ -328,9 +328,7 @@ class SedDepEroder(Component):
                  # params for model numeric behavior:
                  pseudoimplicit_repeats=5, return_stream_properties=False,
                  **kwds):
-        """
-        Constructor for the class.
-        """
+        """Constructor for the class."""
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
 
@@ -577,8 +575,7 @@ class SedDepEroder(Component):
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
     def erode(self, dt, flooded_depths=None, **kwds):
-        """
-        Erode and deposit on the channel bed for a duration of *dt*.
+        """Erode and deposit on the channel bed for a duration of *dt*.
 
         Erosion occurs according to the sediment dependent rules specified
         during initialization.
@@ -921,8 +918,7 @@ class SedDepEroder(Component):
         return grid, grid.at_node['topographic__elevation']
 
     def run_one_step(self, dt, flooded_depths=None, **kwds):
-        """
-        Run the component across one timestep increment, dt.
+        """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
         during initialization. Method is fully equivalent to the :func:`erode`

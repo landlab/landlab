@@ -1819,39 +1819,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Notes
         -----
-        On it's way to being obsolete.
-        DEPRECATED!
-
-#        Examples
-#        --------
-#        >>> from landlab import HexModelGrid
-#        >>> hmg = HexModelGrid(3, 2)
-#        >>> hmg.active_links_at_node(3)
-#        array([[ 2],
-#               [ 3],
-#               [ 5],
-#               [-1],
-#               [-1],
-#               [-1],
-#               [ 0],
-#               [ 1],
-#               [ 4],
-#               [-1],
-#               [-1],
-#               [-1]])
-#        >>> hmg.active_links_at_node()
-#        array([[-1, -1, -1,  2,  4,  1,  0],
-#               [-1, -1, -1,  3, -1, -1, -1],
-#               [-1, -1, -1,  5, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1],
-#               [ 3,  5,  2,  0, -1, -1, -1],
-#               [-1, -1, -1,  1, -1, -1, -1],
-#               [-1, -1, -1,  4, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1],
-#               [-1, -1, -1, -1, -1, -1, -1]])
+        On it's way to being obsolete. **Deprecated**.
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
@@ -2300,8 +2268,8 @@ class ModelGrid(ModelDataFieldsMixIn):
     def number_of_faces_at_cell(self):
         """Number of faces attached to each cell.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         >>> hg.number_of_faces_at_cell()
@@ -2331,8 +2299,8 @@ class ModelGrid(ModelDataFieldsMixIn):
     def _create_faces_at_cell(self):
         """Construct faces_at_cell array.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
         >>> hg._create_faces_at_cell()
@@ -2809,32 +2777,33 @@ class ModelGrid(ModelDataFieldsMixIn):
         There should be one value per active link. Returns an array of net
         total flux per unit area, one value per core node (creates this
         array if it is not given as an argument).
-          By convention, divergence is positive for net outflow, and negative
+
+        By convention, divergence is positive for net outflow, and negative
         for net outflow. That's why we *add* outgoing flux and *subtract*
         incoming flux. This makes net_unit_flux have the same sign and
         dimensions as a typical divergence term in a conservation equation.
 
-        In general, for a polygonal cell with $N$ sides of lengths
+        In general, for a polygonal cell with *N* sides of lengths
         Li and with surface area A, the net influx divided by cell
         area would be:
-            .. math::
 
-                {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
+        .. math::
+            {Q_{net} \over A} = {1 \over A} \sum{q_i L_i}
 
         For a square cell, which is what we have in RasterModelGrid,
-        the sum is over 4 sides of length dx, and
-        :math:`A = dx^2`, so:
-            .. math::
+        the sum is over 4 sides of length dx, and :math:`A = dx^2`, so:
 
-                {Q_{net} \over A} = {1 \over dx} \sum{q_i}
+        .. math::
+            {Q_{net} \over A} = {1 \over dx} \sum{q_i}
 
         .. note::
             The net flux is defined as positive outward, negative
             inward. In a diffusion problem, for example, one would use:
-                .. math::
 
-                    {du \over dt} = \\text{source} - \\text{fd}
-            where fd is "flux divergence".
+            .. math::
+                {du \over dt} = \text{source} - \text{fd}
+
+            where *fd* is "flux divergence".
 
         Examples
         --------
@@ -3328,10 +3297,6 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Set the status to CLOSED_BOUNDARY for all nodes whose value
         of node_data is equal to the nodata_value.
-
-        .. note:: Deprecated since version 0.6.
-            Deprecated due to out of date terminology;
-            use :func:`set_nodata_nodes_to_closed` instead.
 
         Parameters
         ----------
@@ -3932,7 +3897,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         x- and y-components according to each link's unit vector. The
         x-component of q at a node is a weighted sum of the x-components of the
         links that are attached to that node. A good way to appreciate this
-        is by example. Consider a 3x4 raster grid:
+        is by example. Consider a 3x4 raster grid::
 
             8--14---9--15--10--16--11
             |       |       |       |
@@ -3950,10 +3915,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         all the y components. Here's what that would look like for the above
         grid ("vsx" and "vsy" stand for "vector sum x" and "vector sum y"):
 
-            Corner nodes (0, 3, 8, 11): vsx = 1, vsy = 1
-            Bottom and top nodes (1-2, 9-10): vsx = 2, vsy = 1
-            Left and right nodes (4, 7): vsx = 1, vsy = 2
-            All others: vsx = 2, vsy = 2
+        *  Corner nodes (0, 3, 8, 11): vsx = 1, vsy = 1
+        *  Bottom and top nodes (1-2, 9-10): vsx = 2, vsy = 1
+        *  Left and right nodes (4, 7): vsx = 1, vsy = 2
+        *  All others: vsx = 2, vsy = 2
 
         The process of creating unit-vector sums at nodes is handled by
         ModelGrid._create_link_unit_vectors() (and, for raster grids, by the
@@ -3969,15 +3934,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         components at a link, and :math:`(S_x,S_y)` represents the unit-vector
         sum at a given node.
 
-        ..math::
-
+        .. math::
             U_i = \sum_{j=1}^{L_i} q_j m_j / S_{xi}
             V_i = \sum_{j=1}^{L_i} q_j n_j / S_{yi}
 
         Suppose that the vector q is uniform and equal to one.
-        Then, at node 0 in the above grid, this works out to:
-
-        ..math::
+        Then, at node 0 in the above grid, this works out to::
 
             U_0 = (q_0 m_0) / 1 + (q_8 m_8) / 1 = (1 0)/ 1 + (1 1)/1 = 1
             V_0 = (q_0 n_0) / 1 + (q_8 n_8) / 1 = (1 1) / 1 + (1 0) / 1 = 1
@@ -3987,9 +3949,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         is 2 because there are two horizontal links, each with an x- unit
         vector value of unity.  The y-vector sum is 1 because only one of the
         three (link #1) has a non-zero y component (equal to one). Here is
-        how the numbers work out:
-
-        ..math::
+        how the numbers work out::
 
             U_1 = (q_1 m_1) / 2 + (q_8 m_8) / 2 + (q_9 m_9) / 2
                 = (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
@@ -3998,24 +3958,24 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         At node 5, in the interior, there are four connected links (two
         in-links and two out-links; two horizontal and two vertical). So, we
-        add up the q values associated with all four:
+        add up the q values associated with all four::
 
-        U_5 = (q_1 m_1) / 2 + (q_5 m_5) / 2 + (q_11 m_11) / 2 + (q_12 m_12) / 2
-            = (1 0) / 2 + (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
+            U_5 = (q_1 m_1) / 2 + (q_5 m_5) / 2 + (q_11 m_11) / 2 + (q_12 m_12) / 2
+                = (1 0) / 2 + (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
 
-        V_5 = (q_1 n_1) / 2 + (q_5 n_5) / 2 + (q_11 n_11) / 2 + (q_12 n_12) / 2
-            = (1 1) / 2 + (1 1) / 2 + (1 0) / 2 + (1 0) / 2 = 1
+            V_5 = (q_1 n_1) / 2 + (q_5 n_5) / 2 + (q_11 n_11) / 2 + (q_12 n_12) / 2
+                = (1 1) / 2 + (1 1) / 2 + (1 0) / 2 + (1 0) / 2 = 1
 
-        To do this calculation efficiently, we use the following algorithm:
+        To do this calculation efficiently, we use the following algorithm::
 
-        FOR each row in node_inlink_matrix (representing one inlink @ each
-        node)
-        * Multiply the link's q value by its unit x component ...
-          ... divide by node's unit vector sum in x ...
-          ... and add it to the node's total q_x
-        * Multiply the link's q value by its unit y component ...
-          ... divide by node's unit vector sum in y ...
-          ... and add it to the node's total q_y
+            FOR each row in node_inlink_matrix (representing one inlink @ each
+            node)
+                Multiply the link's q value by its unit x component ...
+                ... divide by node's unit vector sum in x ...
+                ... and add it to the node's total q_x
+                Multiply the link's q value by its unit y component ...
+                ... divide by node's unit vector sum in y ...
+                ... and add it to the node's total q_y
 
         Examples
         --------
@@ -4061,9 +4021,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         pre-calculated to have the right values to represent a uniform
         vector with magnitude 5 and orientation 30 degrees counter-clockwise
         from horizontal.
-        # >>> hmg = ll.HexModelGrid(3, 2, 2.0)
-        # >>> q = np.array([4.598, 0.598, -4., -4.598, 4., -0.598, -0.598,
-        # ...     -4., -4.598, -0.598, 4., -4.598])
         """
 
         # Create the arrays to hold the node-based values of the x and y

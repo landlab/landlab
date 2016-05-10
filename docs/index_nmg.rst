@@ -86,7 +86,7 @@ Developer Documentation
 
 
 Code Documentation
-=================
+==================
 
 These webpages are auto-generated from Landlab, and list all available
 functions, methods, and properties. All available documentation in the code is
