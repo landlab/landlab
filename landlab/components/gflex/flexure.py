@@ -50,36 +50,41 @@ class gFlex(Component):
     """
     _name = 'gFlex'
 
-    _input_var_names = set(['surface_load__stress',
-                        ])
+    _input_var_names = ('surface_load__stress',)
 
-    _output_var_names = set(['lithosphere__vertical_displacement',
-                             'topographic__elevation',
-                        ])
+    _output_var_names = ('lithosphere__vertical_displacement',
+                         'topographic__elevation')
 
-    _var_units = {'earth_material_load__magnitude_of_stress' : 'Pa',
-                  'earth_material_load__x_positions' : 'm',
-                  'earth_material_load__y_positions' : 'm',
-                  'earth_material_load__force' : 'N',
-                  'lithosphere__elastic_thickness' : 'm',
-                  'lithosphere__vertical_displacement' : 'm',
+    _var_units = {'earth_material_load__magnitude_of_stress': 'Pa',
+                  'earth_material_load__x_positions': 'm',
+                  'earth_material_load__y_positions': 'm',
+                  'earth_material_load__force': 'N',
+                  'lithosphere__elastic_thickness': 'm',
+                  'lithosphere__vertical_displacement': 'm',
                   }
 
-    _var_mapping = {'earth_material_load__magnitude_of_stress' : 'node',
-                  'earth_material_load__x_positions' : 'node',
-                  'earth_material_load__y_positions' : 'node',
-                  'earth_material_load__force' : 'node',
-                  'lithosphere__elastic_thickness' : 'node',
-                  'lithosphere__vertical_displacement' : 'node',
-                  }
+    _var_mapping = {'earth_material_load__magnitude_of_stress': 'node',
+                    'earth_material_load__x_positions': 'node',
+                    'earth_material_load__y_positions': 'node',
+                    'earth_material_load__force': 'node',
+                    'lithosphere__elastic_thickness': 'node',
+                    'lithosphere__vertical_displacement': 'node',
+                    }
 
-    _var_doc = {'earth_material_load__magnitude_of_stress' : 'Magnitude of stress exerted by surface load',
-                  'earth_material_load__x_positions' : 'x position of any surface load',
-                  'earth_material_load__y_positions' : 'y position of any surface load',
-                  'earth_material_load__force' : 'Force exerted by surface load',
-                  'lithosphere__elastic_thickness' : 'Elastic thickness of the lithosphere',
-                  'lithosphere__vertical_displacement' : 'Vertical deflection of the surface and of the lithospheric plate',
-                  }
+    _var_doc = {'earth_material_load__magnitude_of_stress':
+                    'Magnitude of stress exerted by surface load',
+                'earth_material_load__x_positions':
+                    'x position of any surface load',
+                'earth_material_load__y_positions':
+                    'y position of any surface load',
+                'earth_material_load__force':
+                    'Force exerted by surface load',
+                'lithosphere__elastic_thickness':
+                    'Elastic thickness of the lithosphere',
+                'lithosphere__vertical_displacement':
+                    ('Vertical deflection of the surface and of the ' +
+                     'lithospheric plate'),
+                }
 
     def __init__(self, grid, params):
         self.initialize(grid, params)
@@ -101,7 +106,7 @@ class gFlex(Component):
            If you want an array, supply a grid field name where the data can
            be found.
         *  BC_W, BC_E, BC_S, BC_N, strings describing the boundary conditions.
-           Choose from ('Dirichlet0', '0Moment0Shear', 'Periodic').
+           Choose from ('0Displacement0Slope', '0Moment0Shear', 'Periodic').
 
         gFlex can take as options:
 
@@ -117,7 +122,8 @@ class gFlex(Component):
         *  lithosphere__vertical_displacement
         """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
-        BC_options = ('Dirichlet0', '0Moment0Shear', '0Slope0Shear', 'Periodic')
+        BC_options = ('0Displacement0Slope', '0Moment0Shear', '0Slope0Shear',
+                      'Periodic')
 
         if type(params) == str:
             input_dict = ModelParameterDictionary(params)
