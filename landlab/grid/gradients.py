@@ -279,6 +279,8 @@ def calc_unit_normal_of_patch(grid, elevs='topographic__elevation'):
 
     Parameters
     ----------
+    grid : ModelGrid
+        A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
 
@@ -338,6 +340,8 @@ def calc_slope_of_patch(grid, elevs='topographic__elevation',
 
     Parameters
     ----------
+    grid : ModelGrid
+        A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
     unit_normal : array with shape (num_patches, 3) (optional)
@@ -378,6 +382,8 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
 
     Parameters
     ----------
+    grid : ModelGrid
+        A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
     unit_normal : array with shape (num_patches, 3) (optional)
@@ -440,6 +446,8 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
 
     Parameters
     ----------
+    grid : ModelGrid
+        A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
     return_components : bool
@@ -545,6 +553,8 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
 
     Parameters
     ----------
+    grid : ModelGrid
+        A ModelGrid.
     slope_component_tuple : (slope_x_array, slope_y_array) (optional)
         Tuple of components of slope in the x and y directions, defined
         on nodes, if already known. If not, provide *elevs*.
