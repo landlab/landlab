@@ -17,7 +17,6 @@ from .sink_fill import SinkFiller
 from .soil_moisture import SoilMoisture
 from .steepness_index import SteepnessFinder
 from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
-from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
 from .gflex import gFlex
@@ -30,7 +29,7 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
-              TransportLimitedEroder, SteepnessFinder,
+              SteepnessFinder,
               PrecipitationDistribution, VegCA, gFlex]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
