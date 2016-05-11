@@ -4916,7 +4916,7 @@ XXXXXXeric should be killing this with graphs.
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         
-    def set_watershed_boundary_condition(self, node_data, nodata_value):
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.
@@ -4950,7 +4950,7 @@ XXXXXXeric should be killing this with graphs.
         ----------
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
@@ -5077,7 +5077,7 @@ XXXXXXeric should be killing this with graphs.
         return outlet_loc
         
     def set_watershed_boundary_condition_outlet_coords(self, outlet_coords, 
-                                                     node_data, nodata_value): 
+                                                     node_data, nodata_value=-9999.): 
         """
         Set the boundary conditions for a watershed.  
         All nodes with nodata_value are set to CLOSED_BOUNDARY 
@@ -5095,8 +5095,8 @@ XXXXXXeric should be killing this with graphs.
         This assumes that the grid has a single watershed.  If this is not
         the case this will not work.
 
-        This must be passed the grid, node_data and nodata_value,
-        and the values of the outlet_row and outlet_column.
+        This must be passed the values of the outlet_row and outlet_column. 
+        Also takes node_data and optionally, nodata_value.
         
         Parameters
         ----------
@@ -5104,7 +5104,7 @@ XXXXXXeric should be killing this with graphs.
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
@@ -5152,7 +5152,7 @@ XXXXXXeric should be killing this with graphs.
         return outlet_node
 
     def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data, 
-                                                   nodata_value):
+                                                   nodata_value=-9999.):
         """
         Set the boundary conditions for a watershed.  
         All nodes with nodata_value are set to CLOSED_BOUNDARY (4).  
@@ -5174,7 +5174,7 @@ XXXXXXeric should be killing this with graphs.
             id of the outlet node
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
