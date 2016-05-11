@@ -24,7 +24,7 @@ the detachment ltd transport component, use the *input_var_names* class
 property.
 
 >>> DetachmentLtdErosion.input_var_names
-('topographic__elevation', 'water__discharge', 'topographic__slope')
+('topographic__elevation', 'topographic__slope', 'water__discharge')
 
 Create fields of data for each of these input variables.
 
