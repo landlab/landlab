@@ -1,4 +1,4 @@
-from .radiation_field import Radiation
+from .radiation import Radiation
 
 
 __all__ = ['Radiation', ]

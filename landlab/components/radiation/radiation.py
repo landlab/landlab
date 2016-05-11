@@ -102,7 +102,7 @@ class Radiation(Component):
     cloudiness: float, optional
         Cloudiness.
     latitude: float, optional
-        Latitude (Radians).
+        Latitude (radians).
     albedo: float, optional
         Albedo.
     solar_constant: float, optional
@@ -113,30 +113,48 @@ class Radiation(Component):
         Optical air mass.
 
     Examples
-    --------
-    
+    --------    
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.radiation import Radiation
     >>> import numpy as np
+    
     >>> grid = RasterModelGrid( (5, 4), spacing=(0.2,0.2))
-    >>> grid['node']['topographic__elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
     'Radiation'
+    >>> rad.input_var_names
+    ('topographic__elevation',)    
+    >>> rad.output_var_names
+    ('radiation__total_shortwave',
+     'radiation__net_shortwave',
+     'radiation__ratio_to_flat_surface') 
+    >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
+    [('radiation__net_shortwave', 'W/m^2'),
+     ('radiation__ratio_to_flat_surface', 'None'),
+     ('radiation__total_shortwave', 'W/m^2'),
+     ('topographic__elevation', 'm')]
+     
+    >>> rad.grid.number_of_node_rows
+    5    
+    >>> rad.grid.number_of_node_columns
+    4    
+    >>> rad.grid is grid
+    True    
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    True
+    >>> np.all(grid.at_node['topographic__elevation'] == 0.)
+    True
+    
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       1., 1., 1., 1.,
+    ...       2., 2., 2., 2., 
+    ...       3., 4., 4., 3., 
+    ...       4., 4., 4., 4.])
     >>> current_time = 0.5
-    >>> rad.update( current_time )
-
-    >>> x = grid['cell']['radiation__total_shortwave']
-    >>> isinstance(x, np.ndarray)
-    True
-    >>> x.shape == (6, )
-    True
-
-    >>> x = grid['cell']['radiation__ratio_to_flat_surface']
-    >>> isinstance(x, np.ndarray)
-    True
-    >>> x.shape == (6, )
-    True
+    >>> rad.update(current_time)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    False
     """
 
     _name = 'Radiation'
