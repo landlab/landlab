@@ -329,7 +329,7 @@ def calc_unit_normal_of_patch(grid, elevs='topographic__elevation'):
     nhat = np.cross(diff_xyz_PQ, diff_xyz_PR)  # <a, b, c>
     nmag = np.sqrt(np.square(nhat).sum(axis=1))
 
-    return nhat/nmag.reshape(grid.number_of_patches, 1)
+    return nhat / nmag.reshape(grid.number_of_patches, 1)
 
 
 def calc_slope_of_patch(grid, elevs='topographic__elevation',
@@ -357,7 +357,7 @@ def calc_slope_of_patch(grid, elevs='topographic__elevation',
     >>> S = mg.calc_slope_of_patch(elevs=z)
     >>> S.size == mg.number_of_patches
     True
-    >>> np.allclose(S, np.pi/4.)
+    >>> np.allclose(S, np.pi / 4.)
     True
     """
     if unit_normal is not None:
@@ -414,9 +414,9 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
     else:
         slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
                                                    unit_normal=nhat)
-    theta = numpy.arctan2(nhat[:, 1], nhat[:, 0])
-    x_slope_patches = numpy.cos(theta)*slopes_at_patch
-    y_slope_patches = numpy.sin(theta)*slopes_at_patch
+    theta = np.arctan2(nhat[:, 1], nhat[:, 0])
+    x_slope_patches = np.cos(theta) * slopes_at_patch
+    y_slope_patches = np.sin(theta) * slopes_at_patch
 
     return (x_slope_patches, y_slope_patches)
 
@@ -436,7 +436,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     Note that under these definitions, it is not always true that::
 
         mag, cmp = mg.calc_slope_of_node(z)
-        mag**2 == cmp[0]**2 + cmp[1]**2  # not always true
+        mag ** 2 == cmp[0] ** 2 + cmp[1] ** 2  # not always true
 
     Parameters
     ----------
@@ -456,48 +456,49 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
 
     Examples
     --------
-    >>> import numpy
+    >>> import numpy as np
     >>> from landlab import RadialModelGrid, RasterModelGrid
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_of_node(elevs=z)
-    >>> numpy.allclose(slopes, 45./180.*numpy.pi)
+    >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
     ...                                        return_components=True)
-    >>> numpy.allclose(slope_mag, numpy.pi/4.)
+    >>> np.allclose(slope_mag, np.pi / 4.)
     True
-    >>> numpy.allclose(cmp[0], 0.)
+    >>> np.allclose(cmp[0], 0.)
     True
-    >>> numpy.allclose(cmp[1], -np.pi/4.)
+    >>> np.allclose(cmp[1], -np.pi/4.)
     True
     >>> mg = RadialModelGrid(num_shells=9)
     >>> z = mg.radius_at_node
     >>> slopes = mg.calc_slope_of_node(elevs=z)
     >>> mean_ring_slope = []
     >>> for i in range(10):
-    ...     mean_ring_slope.append(slopes[np.isclose(mg.radius_at_node,
-    ...                                              i)].mean())
-    >>> # notice the small amounts of numerical error here:
+    ...     mean_ring_slope.append(
+    ...         slopes[np.isclose(mg.radius_at_node, i)].mean())
+
+    Notice the small amounts of numerical error here:
+
     >>> target_mean_ring_slope = [0.85707194785013108, 0.79363155567711452,
     ...                           0.77922185867135429, 0.78359813570962411,
     ...                           0.78433070957439543, 0.78452745144699965,
     ...                           0.78477643475446901, 0.78506472422668094,
     ...                           0.78505793680521629, 0.78661256633611021]
-    >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
+    >>> np.allclose(mean_ring_slope, target_mean_ring_slope)
     True
     """
     try:
         patches_at_node = grid.patches_at_node()
     except TypeError:  # was a property, not a fn (=> new style)
-        patches_at_node = numpy.ma.masked_where(
+        patches_at_node = np.ma.masked_where(
             grid.patches_at_node == -1, grid.patches_at_node, copy=False)
 
     nhat = grid.calc_unit_normal_of_patch(elevs=elevs)
-    slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
-                                               unit_normal=nhat)
+    slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs, unit_normal=nhat)
 
     # now CAREFUL - patches_at_node is MASKED
     slopes_at_node_unmasked = slopes_at_patch[patches_at_node]
@@ -510,13 +511,13 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
             elevs=elevs, unit_normal=nhat,
             slope_magnitude=slopes_at_patch)
         x_slope_unmasked = x_slope_patches[patches_at_node]
-        x_slope_masked = numpy.ma.array(x_slope_unmasked,
-                                        mask=patches_at_node.mask)
-        x_slope = numpy.mean(x_slope_masked, axis=1).data
+        x_slope_masked = np.ma.array(x_slope_unmasked,
+                                     mask=patches_at_node.mask)
+        x_slope = np.mean(x_slope_masked, axis=1).data
         y_slope_unmasked = y_slope_patches[patches_at_node]
-        y_slope_masked = numpy.ma.array(y_slope_unmasked,
-                                        mask=patches_at_node.mask)
-        y_slope = numpy.mean(y_slope_masked, axis=1).data
+        y_slope_masked = np.ma.array(y_slope_unmasked,
+                                     mask=patches_at_node.mask)
+        y_slope = np.mean(y_slope_masked, axis=1).data
         mean_grad_x = x_slope
         mean_grad_y = y_slope
 
@@ -572,7 +573,7 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
             11.30993247,  21.22191026,  38.05501349,  45.        ])
 
     >>> mg = RasterModelGrid((4, 4), (2., 3.))
-    >>> z = mg.node_x**2 + mg.node_y**2
+    >>> z = mg.node_x ** 2 + mg.node_y ** 2
     >>> mg.calc_aspect_of_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
             220.75264634,  234.41577266,  251.13402374,  255.29210302,
