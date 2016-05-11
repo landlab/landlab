@@ -5,7 +5,6 @@ from .fire_generator import FireGenerator
 from .flexure import Flexure
 from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
-from .glacier_thin_ice_model import Glacier
 from .nonlinear_diffusion import PerronNLDiffuse
 from .overland_flow import OverlandFlowBates, OverlandFlow
 from .pet import PotentialEvapotranspiration
@@ -23,7 +22,7 @@ from .gflex import gFlex
 
 COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
-              Glacier, PerronNLDiffuse, OverlandFlowBates,
+              PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
               PotentialityFlowRouter, Radiation,
               Vegetation, SinkFiller, SoilMoisture,
