@@ -2,6 +2,7 @@
 Unit tests for landlab.components.radiation.radiation
 """
 from nose.tools import assert_equal, assert_true, assert_raises, with_setup
+from numpy.testing import assert_array_almost_equal
 try:
     from nose.tools import assert_is_instance
 except ImportError:
@@ -95,7 +96,9 @@ def test_field_getters():
 def test_field_initialized_to_zero():
     for name in rad.grid['node']:
         field = rad.grid['node'][name]
-        assert_true(np.all(field == 0.))
+        assert_array_almost_equal(field, np.zeros(rad.grid.number_of_nodes))
     for name in rad.grid['cell']:
+        if name == 'Slope' or name == 'Aspect':
+            continue
         field = rad.grid['cell'][name]
-        assert_true(np.all(field == 0.))
+        assert_array_almost_equal(field, np.zeros(rad.grid.number_of_cells))

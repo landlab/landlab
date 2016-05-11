@@ -14,7 +14,7 @@ compared to a flat surface.
 
 Create a grid on which to calculate incident shortwave radiation
 
->>> grid = RasterModelGrid( (5, 4), spacing=(0.2,0.2))
+>>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
 
 The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
@@ -25,7 +25,7 @@ class property.
 
 Check the units for the fields.
 
->>>  Radiation.var_units('topographic__elevation')
+>>> Radiation.var_units('topographic__elevation')
 'm'
 
 Create the input fields.
@@ -50,10 +50,10 @@ intent: in
 
 Check the output variable names
 
->>> rad.output_var_names
-('radiation__total_shortwave',
- 'radiation__net_shortwave',
- 'radiation__ratio_to_flat_surface')
+>>> sorted(Radiation.output_var_names)
+['radiation__net_shortwave',
+ 'radiation__ratio_to_flat_surface',
+ 'radiation__total_shortwave']
 
 Instantiate the 'Radiation' component to work on this grid, and run it.
 
@@ -126,10 +126,10 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> rad.output_var_names
-    ('radiation__total_shortwave',
-     'radiation__net_shortwave',
-     'radiation__ratio_to_flat_surface')
+    >>> sorted(rad.output_var_names)
+    ['radiation__net_shortwave',
+     'radiation__ratio_to_flat_surface',
+     'radiation__total_shortwave']
     >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
     [('radiation__net_shortwave', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
