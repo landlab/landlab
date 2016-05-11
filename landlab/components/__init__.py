@@ -23,7 +23,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
 
 
-COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
+COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
@@ -31,6 +31,6 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, SteepnessFinder,
-              PrecipitationDistribution, VegCA, DetachmentLtdErosion]
+              VegCA, DetachmentLtdErosion]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
