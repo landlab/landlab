@@ -23,9 +23,6 @@ transport component. To check the names of the fields that provide input to
 the detachment ltd transport component, use the *input_var_names* class
 property.
 
->>> DetachmentLtdErosion._input_var_names
-('topographic__elevation', 'topographic__slope', 'water__discharge')
-
 Create fields of data for each of these input variables.
 
 >>> grid.at_node['topographic__elevation'] = np.array([
@@ -102,6 +99,7 @@ This component calculates changes in elevation in response to vertical incision.
         'topographic__slope',
         'water__discharge',
     ])
+    
     _output_var_names = set([
         'topographic__elevation',
     ])
