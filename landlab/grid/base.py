@@ -2538,11 +2538,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> numpy.allclose(mean_ring_slope, target_mean_ring_slope)
         True
         """
-        try:
-            patches_at_node = self.patches_at_node()
-        except TypeError:  # was a property, not a fn (=> new style)
-            patches_at_node = numpy.ma.masked_where(
-                self.patches_at_node == -1, self.patches_at_node, copy=False)
+        patches_at_node = numpy.ma.masked_where(
+            self.patches_at_node == -1, self.patches_at_node, copy=False)
 
         nhat = self.calc_unit_normal_of_patch(elevs=elevs)
         slopes_at_patch = self.calc_slope_of_patch(elevs=elevs,
@@ -2575,7 +2572,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             return slope_mag
 
     def calc_aspect_of_node(self, slope_component_tuple=None,
-                    elevs='topographic__elevation', unit='degrees'):
+                            elevs='topographic__elevation', unit='degrees'):
         """Get array of aspect of a surface.
 
         Calculates at returns the aspect of a surface. Aspect is returned as
