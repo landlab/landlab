@@ -1,4 +1,4 @@
-"""
+"""Simulate detachment limited sediment transport.
 
 Landlab component that simulates detachment limited sediment transport is more
 general than the stream power component. Doesn't require the upstream node
@@ -38,7 +38,7 @@ Using the set topography, now we will calculate slopes on all nodes.
 ...     -0.        , -0.        , -0.        , -0.        , -0,
 ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
 ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
-...     0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678])
+...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678])
 
 
 Now we will arbitrarily add water discharge to each node for simplicity.
@@ -46,7 +46,7 @@ Now we will arbitrarily add water discharge to each node for simplicity.
 ...     30., 30., 30., 30., 30.,
 ...     20., 20., 20., 20., 20.,
 ...     10., 10., 10., 10., 10.,
-...     5., 5., 5., 5., 5.])
+...      5., 5., 5., 5., 5.])
 
 Instantiate the `DetachmentLtdErosion` component to work on this grid, and
 run it. In this simple case, we need to pass it a time step ('dt')
@@ -86,12 +86,13 @@ from matplotlib import pyplot as plt
 from landlab.field.scalar_data_fields import FieldError
 
 class DetachmentLtdErosion(Component):
-    '''  Landlab component that simulates detachment-limited river erosion.
 
-This component calculates changes in elevation in response to vertical incision.
+    """Landlab component that simulates detachment-limited river erosion.
 
+    This component calculates changes in elevation in response to vertical
+    incision.
+    """
 
-    '''
     _name = 'DetachmentLtdErosion'
 
     _input_var_names = set([
@@ -123,11 +124,8 @@ This component calculates changes in elevation in response to vertical incision.
     }
 
     def __init__(self, grid, K_sp = 0.00002, m_sp = 0.5, n_sp = 1.0,
-                     uplift_rate = 0.0, entraiment_threshold = 0.0, **kwds):
-
-
-        """
-        Calculate detachment limited erosion rate on nodes.
+                 uplift_rate = 0.0, entraiment_threshold = 0.0, **kwds):
+        """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion
         equation, primarily to be coupled to the the Landlab OverlandFlow
@@ -143,7 +141,7 @@ This component calculates changes in elevation in response to vertical incision.
         K_sp : float, optional
             K in the stream power equation (units vary with other parameters -
             if used with the de Almeida equation it is paramount to make sure
-            the time component is set to SECONDS, not YEARS!)
+            the time component is set to *seconds*, not *years*!)
         m_sp : float, optional
             Stream power exponent, power on discharge
         n_sp : float, optional
@@ -152,45 +150,43 @@ This component calculates changes in elevation in response to vertical incision.
             changes in topographic elevation due to tectonic uplift
         entrainment_threshold : float, optional
             threshold for sediment movement
-
         """
-
         self._grid = grid
 
         self.K = K_sp
         self.m = m_sp
         self.n = n_sp
 
-        self.I = self._grid.zeros(centering='node')
+        self.I = self._grid.zeros(at='node')
         self.uplift_rate = uplift_rate
         self.entraiment_threshold = entraiment_threshold
 
-        self.dzdt = self._grid.zeros(centering='node')
+        self.dzdt = self._grid.zeros(at='node')
 
+    def erode(self, dt, discharge_cms='water__discharge',
+              slope='topographic__slope'):
+        """Erode into grid topography.
 
-    def erode(self, dt, discharge_cms = 'water__discharge',
-              slope='topographic__slope',):
-
-        """
         For one time step, this erodes into the grid topography using
         the water discharge and topographic slope.
 
         The grid field 'topographic__elevation' is altered each time step.
 
-        Inputs
-        ------
-        dt : time step
-
-        discharge_cms : discharge on the nodes, if from the de Almeida solution
-                        have units of cubic meters per second
-
-        slope : topographic slope on each node.
-
+        Parameters
+        ----------
+        dt : float
+            Time step.
+        discharge_cms : str, optional
+            Name of the field that represents discharge on the nodes, if
+            from the de Almeida solution have units of cubic meters per second.
+        slope : str, optional
+            Name of the field that represent topographic slope on each node.
         """
         try:
             S = self._grid.at_node[slope]
         except FieldError:
-            print('Slope field was incorrectly passed to the component! Aborting')
+            raise ValueError('missing field for slope')
+
         if type(discharge_cms) is str:
             Q = self._grid.at_node[discharge_cms]
         else:
