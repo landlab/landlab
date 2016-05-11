@@ -24,6 +24,12 @@ class PrecipitationDistribution(Component):
     duration, precipitation intensity or storm depth from a Poisson
     distribution when given a mean value.
 
+    Construction::
+
+        PrecipitationDistribution(mean_storm_duration=0.0,
+                                  mean_interstorm_duration=0.0,
+                                  mean_storm_depth=0.0, total_t=0.0,
+                                  delta_t=0.0)
 
     Parameters
     ----------
@@ -52,8 +58,20 @@ class PrecipitationDistribution(Component):
     ...     total_t = 100.0, delta_t = 1)
     """
 
+    _name = 'PrecipitationDistribution'
+
+    _input_var_names = ()
+
+    _output_var_names = ()
+
+    _var_units = dict()
+
+    _var_mapping = dict()
+
+    _var_doc = dict()
+
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
-                 mean_storm_depth=0.0, total_t=0.0, delta_t=0.0):
+                 mean_storm_depth=0.0, total_t=0.0, delta_t=0.0, **kwds):
         """
 
         Parameters
@@ -87,7 +105,7 @@ class PrecipitationDistribution(Component):
         self.mean_intensity = self.mean_storm_depth / self.mean_storm_duration
 
         # If a time series is created later, this blank list will be used.
-        self.storm_time_series =[]
+        self.storm_time_series = []
 
         # Given the mean values assigned above using either the model
         # parameter dictionary or the init function, we can call the
@@ -98,7 +116,6 @@ class PrecipitationDistribution(Component):
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
         self._elapsed_time = 0.
-
 
     def update(self):
         """Update the storm values.
@@ -163,8 +180,6 @@ class PrecipitationDistribution(Component):
         self.storm_duration = storm
         return self.storm_duration
 
-
-
     def get_interstorm_event_duration(self):
         """Generate interstorm events.
 
@@ -202,7 +217,6 @@ class PrecipitationDistribution(Component):
         self.interstorm_duration = interstorm
         return self.interstorm_duration
 
-
     def get_storm_depth(self):
         """Generate storm depth.
 
@@ -234,7 +248,6 @@ class PrecipitationDistribution(Component):
         self.storm_depth = np.random.gamma(shape_parameter, scale_parameter)
         return self.storm_depth
 
-
     def get_storm_intensity(self):
         """Get the storm intensity.
 
@@ -253,7 +266,6 @@ class PrecipitationDistribution(Component):
         """
         self.intensity = self.storm_depth / self.storm_duration
         return self.intensity
-
 
     def get_storm_time_series(self):
         """
@@ -283,7 +295,7 @@ class PrecipitationDistribution(Component):
         storm_helper = storm
         storm_iterator = storm
         while storm_iterator <= self.run_time:
-            next_storm_start  = storm_helper + (round(
+            next_storm_start = storm_helper + (round(
                                     self.get_interstorm_event_duration(), 2))
             next_storm_end = next_storm_start + (round(
                                 self.get_precipitation_event_duration(), 2))
@@ -331,17 +343,19 @@ class PrecipitationDistribution(Component):
         """
         # Added DEJH, Dec 2014
         delta_t = self.delta_t
-        if delta_t == None:
-            assert subdivide_interstorms == False, 'You specified you wanted storm subdivision, but did not provide a delta_t to allow this!'
+        if delta_t is None:
+            assert subdivide_interstorms is False, (
+                'You specified you wanted storm subdivision, but did not ' +
+                'provide a delta_t to allow this!')
         self._elapsed_time = 0.
         while self._elapsed_time < self.run_time:
             storm_duration = self.get_precipitation_event_duration()
             step_time = 0.
             self.get_storm_depth()
-            intensity = self.get_storm_intensity() #this is a rainfall rate
+            intensity = self.get_storm_intensity()  # this is a rainfall rate
             if self._elapsed_time + storm_duration > self.run_time:
                 storm_duration = self.run_time - self._elapsed_time
-            while delta_t != None and storm_duration - step_time > delta_t:
+            while delta_t is not None and storm_duration - step_time > delta_t:
                 yield (delta_t, intensity)
                 step_time += delta_t
             yield (storm_duration - step_time, intensity)
