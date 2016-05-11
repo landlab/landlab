@@ -17,7 +17,7 @@ Gradient calculation functions
 
 import numpy as np
 from landlab.utils.decorators import use_field_name_or_array, deprecated
-
+from landlab.core.utils import radians_to_degrees
 
 
 @use_field_name_or_array('node')
@@ -584,24 +584,28 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
     to the "missing" nodes beyond the edge of the grid.
     """
     if slope_component_tuple:
-        assert type(slope_component_tuple) == tuple
-        assert len(slope_component_tuple) == 2
+        if not isinstance(slope_component_tuple, (tuple, list)):
+            raise TypeError('slope_component_tuple must be tuple')
+        if len(slope_component_tuple) != 2:
+            raise ValueError('slope_component_tuple must be of length 2')
     else:
         try:
             elev_array = grid.at_node[elevs]
         except (KeyError, TypeError):
             assert elevs.size == grid.number_of_nodes
             elev_array = elevs
+
         _, slope_component_tuple = grid.calc_slope_of_node(
             elevs=elev_array, return_components=True)
+
     angle_from_x_ccw = np.arctan2(
         slope_component_tuple[1], slope_component_tuple[0])
-    # angle_from_N_cw = ((angle_from_x_ccw + np.pi / 2.) % (
-    #     2 * np.pi))
-    angle_from_N_cw = (5.*np.pi/2. - angle_from_x_ccw) % (2.*np.pi)
+
     if unit == 'degrees':
-        return 180. / np.pi * angle_from_N_cw
+        return radians_to_degrees(angle_from_x_ccw)
     elif unit == 'radians':
-        return angle_from_N_cw
+        angle_from_north_cw = (5. * np.pi / 2. -
+                               angle_from_x_ccw) % (2. * np.pi)
+        return angle_from_north_cw
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")
