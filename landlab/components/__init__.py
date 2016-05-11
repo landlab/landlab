@@ -11,7 +11,6 @@ from .overland_flow import OverlandFlowBates, OverlandFlow
 from .pet import PotentialEvapotranspiration
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .radiation import Radiation
-from .sed_trp_shallow_flow import SurfaceFlowTransport
 from .single_vegetation import Vegetation
 from .sink_fill import SinkFiller
 from .soil_moisture import SoilMoisture
@@ -26,7 +25,7 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
-              PotentialityFlowRouter, Radiation, SurfaceFlowTransport,
+              PotentialityFlowRouter, Radiation,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               SteepnessFinder,
