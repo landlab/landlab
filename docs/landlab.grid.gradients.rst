@@ -1,5 +1,5 @@
 Gradient calculators
----------------------------
+--------------------
 
 .. automodule:: landlab.grid.gradients
     :members:

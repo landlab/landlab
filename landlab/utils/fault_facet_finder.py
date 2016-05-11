@@ -63,8 +63,8 @@ class find_facets(object):
         return self.az
 
     def set_slopes_aspects(self):
-        self.slopes, self.aspect = self.grid.calculate_slope_aspect_at_nodes_horn(
-            vals=self.elevs)
+        self.slopes = self.grid.calc_slopes_of_nodes(elevs=self.elevs)
+        self.aspect = self.grid.calc_aspect_of_node(elevs=self.elevs)
         print('Calculated and stored slopes and aspects...')
 
     def define_aspect_node_subset(self, angle_tolerance=5.):
@@ -234,9 +234,10 @@ class find_facets(object):
         A patch is only recorded if it consists of at least *threshold_num_px*.
 
         The method records and returns:
-        1. a ragged array of lists, where each list is the pixels comprising
+
+        *  a ragged array of lists, where each list is the pixels comprising
            each facet patch, and
-        2. a (num_patches, 2) array recording the mean slope and and its stdev
+        *  a (num_patches, 2) array recording the mean slope and and its stdev
            for each patch.
         """
         self.possible_core_nodes = np.where(np.logical_and(
@@ -248,7 +249,7 @@ class find_facets(object):
             mean_slope = self.slopes[nodes_in_patch]
             while 1:
                 possible_neighbors = np.union1d(
-                    self.grid.get_active_neighbors_at_node(
+                    self.grid.active_neighbors_at_node(
                         nodes_in_patch).flat, self.possible_core_nodes)
                 neighbor_slopes = self.slopes[possible_neighbors]
                 low_tol_condition = np.greater(

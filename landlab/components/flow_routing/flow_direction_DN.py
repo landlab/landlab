@@ -14,7 +14,7 @@ import inspect
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.grid.raster_steepest_descent import (
-    calculate_steepest_descent_across_cell_faces)
+    calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 
@@ -101,7 +101,7 @@ def grid_flow_directions(grid, elevations):
     >>> list(zip(mg.node_at_cell, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
-    slope, receiver = calculate_steepest_descent_across_cell_faces(
+    slope, receiver = calc_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
     (sink_cell, ) = np.where(slope >= 0.)
@@ -173,9 +173,8 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
-        - Pass active_links in as argument
-        - In calling code, only refer to receiver_links for active nodes
-
+    *  Pass active_links in as argument
+    *  In calling code, only refer to receiver_links for active nodes
     """
     # Setup
     num_nodes = len(elev)
@@ -234,7 +233,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                 links_list[:, :4] = grid.links_at_node[non_boundary_nodes] # Reorder as SWNE
                 links_list[:, 4:] = grid.diagonal_links_at_node().T[non_boundary_nodes,:] #SW,NW,NE,NE
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
-            slope_array = (elev[non_boundary_nodes].reshape((non_boundary_nodes.size, 1)) - elevs_array)/grid.link_length[links_list]
+            slope_array = (elev[non_boundary_nodes].reshape((non_boundary_nodes.size, 1)) - elevs_array)/grid.length_of_link[links_list]
             axis_indices = np.argmax(slope_array, axis=1)
             steepest_slope[non_boundary_nodes] = slope_array[np.indices(axis_indices.shape),axis_indices]
             downslope = np.greater(steepest_slope, 0.)

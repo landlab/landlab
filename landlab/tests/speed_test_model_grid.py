@@ -20,7 +20,7 @@ def main():
 
     for i in range(nt):
 
-        g = mg.calculate_gradients_at_active_links(s, g)
+        g = mg.calc_grad_of_active_link(s, g)
 
     time1 = time.time()
 

@@ -33,13 +33,15 @@ from six.moves import zip, range
 
 from landlab import ModelParameterDictionary
 
+
 class impactor(object):
-    '''
+    """
     This class holds all parameters decribing properties of a single impact
     structure, and contains methods for recalculating fresh and internally
     consistent data describing such a impact structure.
+
     Built DEJH Winter 2013, after an earlier version, Spring 2013.
-    '''
+    """
 
     def __init__(self, grid, input_stream):
         self.grid = grid
@@ -65,8 +67,8 @@ class impactor(object):
         else:
             self.radius_auto_flag = 0
         try:
-            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position')*(grid.get_grid_xdimension()-grid.dx)
-            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position')*(grid.get_grid_ydimension()-grid.dy)
+            self._xcoord = 0.5*grid.dx + inputs.read_float('x_position') * (grid.extent[1] - grid.dx)
+            self._ycoord = 0.5*grid.dy + inputs.read_float('y_position') * (grid.extent[0] - grid.dy)
         except:
             six.print_('Impact sites will be randomly generated.')
             self.position_auto_flag = 1
@@ -155,10 +157,10 @@ class impactor(object):
         six.print_('Craters component setup complete!')
 
     def draw_new_parameters(self):
-        '''
-        This method updates the core properties of radius, position and angle to
-        vertical for a new impact crater.
-        '''
+        """
+        This method updates the core properties of radius, position and angle
+        to vertical for a new impact crater.
+        """
         #Need to ensure the elevs and grid have been updated before this call...
         if self.radius_auto_flag == 1:
             self.set_cr_radius_from_shoemaker()
@@ -168,7 +170,7 @@ class impactor(object):
             self.set_impactor_angles()
 
     def get_crater_shape_exp(self):
-        '''
+        """
         This method assumes the max depth and radius of a crater are known.
         It provides n for a power law of form d = D*(r/R)**n, where D and R are
         the known values, by assuming the outer edges of the crater sit at angle
@@ -177,7 +179,7 @@ class impactor(object):
         craters to become more paraboloidal with increasing diameter,
         independent of location.") and n~1.3 for ~2km simple craters (Garvin,
         following Croft has ~1.18).
-        '''
+        """
         return 0.51 * self._radius / self._depth
 
     #Holsapple & Housen et al 1983 note that in the strength regime, ejecta
@@ -195,35 +197,37 @@ class impactor(object):
     #turnover is more likely to depend on the crater transient depth.
 
     def set_cr_radius_from_shoemaker(self):
-        '''
+        """
         This method takes a random number between 0 and 1, and returns a crater
-        radius based on a py distn N = kD^-2.9, following Shoemaker et al., 1970.
-        '''
+        radius based on a py distn N = kD^-2.9, following Shoemaker et al.,
+        1970.
+        """
         self._radius = self._minimum_crater*(random())**-0.345
 
     def set_coords(self):
-        '''
+        """
         This method selects a random location inside the grid onto which to map
         an impact. It also sets variables for the closest grid node to the
         impact, and the elevation at that node.
-        '''
+        """
         #NB - we should be allowing craters OUTSIDE the grid - as long as part of them impinges.
         #This would be relatively easy to implement - allow allocation out to the max crater we expect, then allow runs using these coords on our smaller grid. Can save comp time by checking if there will be impingement before doing the search.
         grid = self.grid
-        self._xcoord = 0.5*grid.dx + random() * (grid.get_grid_xdimension() - grid.dx)
-        self._ycoord = 0.5*grid.dy + random() * (grid.get_grid_ydimension() - grid.dy)
+        self._xcoord = 0.5*grid.dx + random() * (grid.extent[1] - grid.dx)
+        self._ycoord = 0.5*grid.dy + random() * (grid.extent[0] - grid.dy)
         #Snap impact to grid:
         self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
         self.closest_node_elev = self.elev[self.closest_node_index]
         #NB - snapping to the grid may be quite computationally demanding in a Voronoi.
 
     def check_coords_and_angles_for_grazing(self):
-        '''
+        """
         This method migrates the coords of a given impactor if its normal angle
         means it would clip other topo before striking home.
-        It assumes both set_impactor_angles() and set_coords() have already both
-        been called.
-        '''
+
+        It assumes both `set_impactor_angles()` and `set_coords()` have
+        already both been called.
+        """
         ###At the moment, this method is introducing subtle bias: low angle impactors
         ###are more likely to get rejected, as they disappear off the grid edges
         ###more readily.
@@ -234,8 +238,8 @@ class impactor(object):
         cos_alpha = numpy.cos(alpha)
         sin_alpha = numpy.sin(alpha)
         grid = self.grid
-        gridx = grid.get_grid_xdimension()
-        gridy = grid.get_grid_ydimension()
+        gridx = grid.extent[1]
+        gridy = grid.extent[0]
         dx = grid.dx
         dy - grid.dy
         x = self._xcoord
@@ -365,37 +369,40 @@ class impactor(object):
 
 
     def set_impactor_angles(self):
-        '''
+        """
         This method sets the angle of impact, assuming the only effect is
         rotation of the planet under the impactor bombardment (i.e., if the
         target looks like a circle to the oncoming impactor, there's more limb
         area there to hit). As long as target is rotating relative to the sun,
         other (directional) effects should cancel. i.e., it draws from a sine
         distribution.
+
         Angle is given to vertical.
+
         Also sets a random azimuth.
-        '''
+        """
         self._angle_to_vertical =  abs(numpy.arcsin(random())) #gives sin distn with most values drawn nearer to 0
         self._azimuth_of_travel = random() * 2. * numpy.pi #equal chance of any azimuth
         #Shoemaker 1983 gives a speculative equn for the suppression of D by increasing impact angle (his equ 3), but effect is minor, and it's probably not worth the trouble.
         #Shoemaker 1962 (in book) apparently states low angle impacts are very rare.
 
     def set_depth_from_size(self):
-        '''
+        """
         This method sets the maximum depth at the center for a crater of known
         (i.e., already set) radius.
-        '''
+        """
         #Let's ignore the strength transition at the lowest size scales for now.
         self._depth = self._radius / self._simple_radius_depth_ratio_Pike
 
     def set_crater_volume(self):
-        '''
+        """
         This method uses known crater depth and radius and sets the volume of
         the excavated cavity.
+
         Note this is is the cavity volume, not the subsurface excavation vol.
         The true excavated volume is used to set the ejecta volumes in the
         ..._BAND_AID methods.
-        '''
+        """
         radius = self._radius
         depth = self._depth
         self._cavity_volume = 0.51 * numpy.pi * depth * radius*radius*radius / (0.51*radius + 2.*depth)
@@ -403,15 +410,18 @@ class impactor(object):
     def create_lambda_fn_for_ejecta_thickness(self):
         """
         This method takes the complicated equation that relates "flat" ejecta
-        thickness (symmetrical, with impact angle=0) to radius and cavity volume
-        which is set in __init__(), and solves it for a given pair of impact
-        specific parameters, V_cavity & crater radius.
+        thickness (symmetrical, with impact angle=0) to radius and cavity
+        volume which is set in ``__init__()``, and solves it for a given
+        pair of impact specific parameters, V_cavity & crater radius.
+
         Both the cavity volume and crater radius need to have been set before
         this method is called.
+
         Method returns a lambda function for the radially symmetrical ejecta
         thickness distribution as a function of distance from crater center, r.
         i.e., call unique_expression_for_local_thickness(r) to calculate a
         thickness.
+
         Added DEJH Sept 2013.
         """
         local_solution_for_rim_thickness = self.solution_for_rim_thickness[0].subs(self.V, self._cavity_volume)
@@ -422,18 +432,22 @@ class impactor(object):
     def create_lambda_fn_for_ejecta_thickness_BAND_AID(self, excavated_vol):
         """
         This method takes the complicated equation that relates "flat" ejecta
-        thickness (symmetrical, with impact angle=0) to radius and cavity volume
-        which is set in __init__(), and solves it for a given pair of impact
-        specific parameters, V_cavity & crater radius.
+        thickness (symmetrical, with impact angle=0) to radius and cavity
+        volume which is set in ``__init__()``, and solves it for a given pair
+        of impact specific parameters, V_cavity & crater radius.
+
         Both the cavity volume and crater radius need to have been set before
         this method is called.
+
         Method returns a lambda function for the radially symmetrical ejecta
         thickness distribution as a function of distance from crater center, r.
-        i.e., call unique_expression_for_local_thickness(r) to calculate a
+        i.e., call ``unique_expression_for_local_thickness(r)`` to calculate a
         thickness.
+
         This method is exactly equivalent to the non _BAND_AID equivalent,
         except it takes the volume to use as a parameter rather than reading it
         from the impactor object.
+
         Added DEJH Sept 2013.
         """
         local_solution_for_rim_thickness = self.solution_for_rim_thickness[0].subs(self.V, excavated_vol)
@@ -443,7 +457,7 @@ class impactor(object):
 
 
     def set_crater_mean_slope_v2(self):
-        '''
+        """
         This method takes a crater of known radius, and which has already been
         "snapped" to the grid through snap_impact_to_grid(mygrid), and returns a
         spatially averaged value for the local slope of the preexisting topo
@@ -452,14 +466,17 @@ class impactor(object):
         calculating the slope along each, then setting the slope as the greatest,
         positive downwards and in the appropriate D8 direction. This function
         also sets the mean surface dip direction.
+
         In here, we start to assume a convex and structured grid, such that if
         pts N and W on the rim are in the grid, so is the point NW.
         This version is vectorized, and so hopefully faster.
-        This method is largely superceded by set_crater_mean_slope_v3(), which
-        uses an GIS-style routine to set slopes. However, it may still be
+
+        This method is largely superceded by ``set_crater_mean_slope_v3()``,
+        which uses an GIS-style routine to set slopes. However, it may still be
         preferable for grid-marginal craters.
+
         DEJH, Sept 2013.
-        '''
+        """
         grid = self.grid
         #It would be trivial to add more divisions, i.e., D16, D32, D64, etc. Code is setup for this; just add to the slope_pts lists, and adjust the set length of the arrays with divisions
         divisions = 4 #len(radial_points1), i.e., half the no. of points == the number of lines across the wheel
@@ -507,15 +524,15 @@ class impactor(object):
 
 
     def set_crater_mean_slope_v3(self):
-        '''
+        """
         Runs on a square which encapsulates the crater.
         If some of the nodes are off the grid AND the boundaries aren't looped,
         it falls back on v2.
-        If they are, it will freely loo the nodes back onto the grid, and return
-        a real slope.
+        If they are, it will freely loo the nodes back onto the grid, and
+        return a real slope.
         This version uses the Horn, 1981 algorithm, the same one used by many
         GIS packages.
-        '''
+        """
         grid = self.grid
         elev = self.elev
         r = 0.7071*self._radius
@@ -531,7 +548,7 @@ class impactor(object):
             self.closest_node_index = grid.find_nearest_node((self._xcoord, self._ycoord))
             self.set_crater_mean_slope_v2()
         else:
-            slope_pts %= numpy.array([self.grid.get_grid_xdimension(), self.grid.get_grid_ydimension()]) #added new, to remove boundaries
+            slope_pts %= numpy.array([self.grid.extent[1], self.grid.extent[0]]) #added new, to remove boundaries
             slope_pts_ongrid = grid.find_nearest_node((slope_pts[:,0],slope_pts[:,1]))
             self.closest_node_index = slope_pts_ongrid[4]
             cardinal_elevs = elev[slope_pts_ongrid]
@@ -771,7 +788,7 @@ class impactor(object):
 
 
     def set_elev_change_only_beneath_footprint_BAND_AID_memory_save(self):
-        '''
+        """
         This is a method to take an existing impact properties and a known
         nearest node to the impact site, and alter the topography to model the
         impact. It assumes crater radius and depth are known, models cavity
@@ -781,6 +798,7 @@ class impactor(object):
         model transition to peak ring craters, or enhanced diffusion by ejecta
         in the strength regime. All craters are dug perpendicular to the geoid,
         not the surface.
+
         This version of the code does NOT correct for slope dip direction -
         because Furbish showed momentum almost always wins, and these impactors
         have a lot of momentum!
@@ -795,8 +813,9 @@ class impactor(object):
         large sheets of material, or otherwise destabilize the mass balance of
         the component.
         It pays no regard for the inefficiency of doing that!
+
         Created DEJH Dec 2013
-        '''
+        """
         #Load in the data, for speed and conciseness:
         _angle_to_vertical=self._angle_to_vertical
         _surface_slope=self._surface_slope
@@ -1109,22 +1128,23 @@ class impactor(object):
 
 
     def footprint_edge_type(self, center, eff_radius):
-        '''
-        Returns the edge type of a given node footprint to be build with create_
-        square_footsix.print_()  around the given center.
-        Returns 2 values:
-        * One of N,S,E,W,NW,NE,SW,SE, if the footprint overlaps a single edge or
-          corner; 'C' for an entirely enclosed footprint; 'I' if it intersects
-          opposite sides of the grid (i.e., bigger than the grid); 'X' if looped
-          boundaries aren't set.
-        * An integer. If the first return is 'I', this is the number of "whole"
-          grids the footprint could enclose (minimum 1). If it's something else,
-          returns 0.
-        '''
+        """
+        Returns the edge type of a given node footprint to be build with
+        ``create_square_footsix.print_()``  around the given center.  Returns 2
+        values:
+
+        *  One of N,S,E,W,NW,NE,SW,SE, if the footprint overlaps a single edge
+           or corner; 'C' for an entirely enclosed footprint; 'I' if it
+           intersects opposite sides of the grid (i.e., bigger than the grid);
+           'X' if looped boundaries aren't set.
+        *  An integer. If the first return is 'I', this is the number of
+           "whole" grids the footprint could enclose (minimum 1). If it's
+           something else, returns 0.
+        """
         assert type(center) == tuple
         assert len(center) == 2
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        grid_x = self.grid.extent[1] - self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.extent[0] - self.grid.dy
         six.print_('center, r, x', center[0], eff_radius, grid_x)
         left_repeats = -int((center[0]-eff_radius)//grid_x)
         right_repeats = int((center[0]+eff_radius)//grid_x)
@@ -1162,56 +1182,65 @@ class impactor(object):
             return 'X', 0
 
     def create_square_footprint(self, center, eff_radius, footprint_edge_type, array_in=None):
-        '''
+        """Create a square footprint of nodes.
+
         This method creates a square footprint of nodes around a given center
         point, with a specified halfwidth.
         It is designed to avoid the need to actually search the whole grid
         in order to establish the footprint, to accelerate the craters
         module.
-        "Center" is a tuple, (x,y), the footprint's center.
-        eff_radius is the footprint halfwidth.
-        footprint_edge_type and whole_grid_repeats are the outputs from
-        footprint_edge_type() for this footprint.
+
+        Parameters
+        ----------
+        center : tuple of float
+            The footprint's center as (x, y).
+        eff_radius : float
+            The footprint halfwidth.
+        footprint_edge_type, whole_grid_repeats :
+           Outputs from ``footprint_edge_type()`` for this footprint.
+
+        Notes
+        -----
         The function is a generator, designed to interface with a loop on the
         grids it outputs. The method generates intelligently:
-        -If loops AREN'T active, it returns just a single array and terminates.
-        Note we can never return the IDs of the boundary nodes - we shouldn't
-        ever be operating directly on them in the meat of this module.
-        -If loops ARE active, it differentiates between big ('I') footprints
-        and the others-
-            Edge type 'C' - the entire footprint is within the grid, and one
+
+        *  If loops AREN'T active, it returns just a single array and
+           terminates.  Note we can never return the IDs of the boundary
+           nodes - we shouldn't ever be operating directly on them in the meat
+           of this module.
+        *  If loops ARE active, it differentiates between big ('I') footprints
+           and the others-
+
+           *  Edge type 'C' - the entire footprint is within the grid, and one
               array is output.
-            Edge type 'N', 'E', 'S', 'W' - the footprint overlaps with one
+           *  Edge type 'N', 'E', 'S', 'W' - the footprint overlaps with one
               edge only. Two arrays follow; the center grid nodes, then the
               edge nodes.
-            Edge type 'NE','SE','SW','NW' - the footprint overlaps with a
+           *  Edge type 'NE','SE','SW','NW' - the footprint overlaps with a
               corner and two edges. three arrays follow; the center tile, then
               the edges (clockwise), then the corner.
 
-          If it's 'I', it means the footprint is "large" compared to the
-          grid. The method then uses the integer stored in whole_grid_repeats.
-          this works as 1: one whole grid plus edges needed.
-          2: a 3x3 grid surrounded by edges. 3: a 5x5 grid surrounded by edges.
-          The intention is that these will be rare enough just using whole grids
-          is not too inefficient.
+        If it's 'I', it means the footprint is "large" compared to the
+        grid. The method then uses the integer stored in whole_grid_repeats.
+        this works as 1: one whole grid plus edges needed.
+        2: a 3x3 grid surrounded by edges. 3: a 5x5 grid surrounded by edges.
+        The intention is that these will be rare enough just using whole grids
+        is not too inefficient.::
 
-
-          ______________________________________
-          |                                     | 'I'
-          |      * * * * * * * * * * *          |
-          |      *  ___              *          |
-          |      * |   | 'C'        _*___       |
-          |      * |___|           | *   | 'E'  |
-          |      *                 | *   |      |
-          |    __*__               |_*___|      |
-          |   |  *  | 'SW'           *          |
-          |   |  * * * * * * * * * * *          |
-          |   |_____|                           |
-          |                                     |
-          |_____________________________________|
-
-
-        '''
+            ______________________________________
+            |                                     | 'I'
+            |      o o o o o o o o o o o          |
+            |      o  ___              o          |
+            |      o |   | 'C'        _o___       |
+            |      o |___|           | o   | 'E'  |
+            |      o                 | o   |      |
+            |    __o__               |_o___|      |
+            |   |  o  | 'SW'           o          |
+            |   |  o o o o o o o o o o o          |
+            |   |_____|                           |
+            |                                     |
+            |_____________________________________|
+        """
         if array_in is not None:
             x = numpy.empty(self.grid.number_of_node_columns-2)
             y_column = numpy.empty(self.grid.number_of_node_rows-2).reshape((self.grid.number_of_node_rows-2,1))
@@ -1525,22 +1554,23 @@ class impactor(object):
 
 
     def center_offset_list_for_looped_BCs(self, center_tuple, flag_from_footprint_edge_type, whole_grid_repeats_from_fet):
-        '''
-        This helper method takes the output from the function self.footprint_
-        edge_type() and returns a list of center tuples paired with the arrays
-        in that output so that iterating on those arrays is easier.
+        """
+        This helper method takes the output from the function
+        ``self.footprint_edge_type()`` and returns a list of center tuples
+        paired with the arrays in that output so that iterating on those
+        arrays is easier.
         If the output flag is 'I' (a big footprint), it instead returns a
         number_of_tiles long list (e.g., 9, 25, 49...) of the relevant
         offsets, in effective ID order (i.e., from bottom left, working across
         line-by-line), as (x, y) tuples.
 
-        It needs to be supplied with the second output from self.create_square
-        _footprint() also.
+        It needs to be supplied with the second output from
+        ``self.create_square_footprint()`` also.
 
         This method is a generator.
-        '''
-        grid_x = self.grid.get_grid_xdimension()-self.grid.dx #as the edge nodes are looped!
-        grid_y = self.grid.get_grid_ydimension()-self.grid.dy
+        """
+        grid_x = self.grid.extent[1] - self.grid.dx #as the edge nodes are looped!
+        grid_y = self.grid.extent[0] - self.grid.dy
         assert type(center_tuple) == tuple
 
         if flag_from_footprint_edge_type == 'I':
@@ -1591,15 +1621,17 @@ class impactor(object):
 
 
     def correct_for_slope(self):
-        '''
+        """
         This method uses an empirically observed correlation between surface
         slope and mass_balance to correct the mass balance in the impact back
         towards zero.
+
         The calibration is performed only for vertical impacts. A second,
         subsequent calibration is needed to correct for impact angle losses (a
         different geometrical effect).
-        It returns 1/(mass_bal+1), which is the multiplier to use on
-        '''
+
+        It returns ``1 / (mass_bal + 1)``, which is the multiplier to use on.
+        """
         coeffs = numpy.array([  1.90725634e+03,  -2.22353553e+03,   9.94701549e+02,
                                -2.04517399e+02,   2.04931537e+01,  -5.84367364e-01,
                                -3.53244682e-01])
@@ -1637,15 +1669,17 @@ class impactor(object):
 
     #@profile
     def excavate_a_crater_noangle(self, grid):
-        '''
+        """
         This method executes the most of the other methods of this crater
         class, and makes the geomorphic changes to a mesh associated with a
         single bolide impact with randomized properties. It receives and works
         on the data fields attached to the model grid.
-        This version calls the _no_angle() method above, and thus produces
+
+        This version calls the ``_no_angle()`` method above, and thus produces
         always radially symmetric distributions.
+
         ***This is one of the primary interface method of this class.***
-        '''
+        """
         self.grid = grid
         self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
@@ -1674,15 +1708,17 @@ class impactor(object):
 
 
     def excavate_a_crater_furbish(self, grid, single_process=False):
-        '''
+        """
         This method executes the most of the other methods of this crater
         class, and makes the geomorphic changes to a mesh associated with a
         single bolide impact with randomized properties. It receives and works
         on the data fields attached to the model grid.
+
         This version implements the full, angle dependent versions of the
         methods, following Furbish et al., 2007.
+
         ***This is one of the primary interface method of this class.***
-        '''
+        """
         self.grid = grid
         self.elev = grid.at_node['topographic__elevation']
         self.draw_new_parameters()
@@ -1728,12 +1764,12 @@ class impactor(object):
         return self.grid
 
     def crawl_roughness(self, window_dimension, accelerate=True):
-        '''
+        """
         Takes a dimension, D, then passes a DxD window over the elevation grid.
         Returns the mean and standard error (SD/sqrt(n)) of the local relief in
         all windows of that size possible on the grid.
-        self.elev_r, the rasterized form of the grid, must already exist.
-        '''
+        ``self.elev_r``, the rasterized form of the grid, must already exist.
+        """
         #for clarity, a shortcut:
         D = window_dimension
         #make the storing list:
@@ -1760,7 +1796,9 @@ class impactor(object):
         return mean_relief, stderr_relief
 
 
-    def calculate_scale_roughness_dependence(self, elevations, min_window_size=2, max_window_size=100, step=5):
+    def calculate_scale_roughness_dependence(self, elevations,
+                                             min_window_size=2,
+                                             max_window_size=100, step=5):
         self.elev = elevations
         #create the 2D grid
         self.elev_r = self.grid.node_vector_to_raster(elevations)
@@ -1780,7 +1818,7 @@ class impactor(object):
 
 
     def calculate_smoothed_ffts(self, elevations, smoothing_window=10000):
-        '''
+        """
         Takes the elevations on the grid, and returns the real part of the fast
         Fourier transform of those elevations, smoothed at the supplied scale.
         Smoothing is applied on a log scale, but the returned values are both in
@@ -1788,7 +1826,7 @@ class impactor(object):
 
         Returns the frequency domain values, and the fft real part at each of
         those frequencies.
-        '''
+        """
         self.elev = elevations
         fft = numpy.log(numpy.fft.fft(elevations))
         fftfreq = numpy.fft.fftfreq(len(elevations))
@@ -1843,12 +1881,12 @@ class impactor(object):
 
     @property
     def mass_balance(self):
-        '''
+        """Mass balance in the impact.
+
         Mass balance in the impact. Negative means mass loss in the impact.
-        '''
+        """
         return self.mass_balance_in_impact
 
     @property
     def slope_insensitive(self):
         return self.cheater_flag
-

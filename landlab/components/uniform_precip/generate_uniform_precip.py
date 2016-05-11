@@ -1,18 +1,16 @@
-""" generate_uniform_precip.py
- This component generates rainfall
- events based on statistical distributions.
+"""Generate rainfall events based on statistical distributions.
 
- No particular units must be used, but it was
- written with the storm units in hours (hr)
-and depth units in millimeters (mm)
+No particular units must be used, but it was written with the storm units in
+hours (hr) and depth units in millimeters (mm)
 
-
- Written by Jordan Adams, 2013.
+Written by Jordan Adams, 2013.
 """
 
 import os
-import numpy as np
 import random
+
+import numpy as np
+
 from landlab import Component, ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError
 
@@ -20,8 +18,11 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 _DEFAULT_INPUT_FILE = os.path.join(os.path.dirname(__file__),
                                   'preciptest.in')
 
+
 class PrecipitationDistribution(Component):
-    """Landlab component that generates precipitation events
+    """Generate precipitation events.
+
+    Landlab component that generates precipitation events
     using the rectangular Poisson pulse model described in
     Eagleson (1978).
 
@@ -32,30 +33,42 @@ class PrecipitationDistribution(Component):
     Default input file is named 'preciptest.in' and can be found in
     the landlab.components.uniform_precip folder.
 
-        Inputs
-        ------
-        input_file : Contains necessary inputs. If not given, default input file is used.
-            - MEAN_STORM: (type : float) the mean storm duration if not provided in initialization
-            - MEAN_DEPTH: (type : float) the mean storm depth if not provided in initizalization
-            - MEAN_INTERSTORM: (type : float) the mean interstorm duration if not provided in initialization
-            - RUN_TIME: (type : float) total model run time if not provided in initialization
-            - DELTA_T: (type : int) external time step increment if not provided in initialization
-                (it is not obligtory to provide a DELTA_T)
+    Parameters
+    ----------
+    input_file : str
+        Path to input file that contains necessary inputs. If not given,
+        default input file is used.
 
-    So, without an input file (selecting the default), we can call this component like...
+        -  MEAN_STORM: (type : float) the mean storm duration if not provided
+           in initialization
+        -  MEAN_DEPTH: (type : float) the mean storm depth if not provided
+           in initizalization
+        -  MEAN_INTERSTORM: (type : float) the mean interstorm duration if
+           not provided in initialization
+        -  RUN_TIME: (type : float) total model run time if not provided in
+           initialization
+        -  DELTA_T: (type : int) external time step increment if not provided
+           in initialization (it is not obligtory to provide a DELTA_T)
+
+    Examples
+    --------
+    Without an input file (selecting the default), we can call this component
+    like...
 
     >>> from landlab.components.uniform_precip import PrecipitationDistribution
     >>> precip = PrecipitationDistribution()
 
-    To use hard-coded values for mean storm, mean interstorm, mean depth, model run time and delta t...
-    Say we use 1.5 for mean storm, 15 for mean interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
+    To use hard-coded values for mean storm, mean interstorm, mean depth,
+    model run time and delta t...  Say we use 1.5 for mean storm, 15 for mean
+    interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
 
     >>> precip = PrecipitationDistribution(input_file=None,
     ...     mean_storm=1.5, mean_interstorm=15.0, mean_storm_depth=0.5,
     ...     total_t=100.0, delta_t=1)
     """
 
-    def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None, mean_storm_depth=None, total_t=None, delta_t=None):
+    def __init__(self, input_file=None, mean_storm=None, mean_interstorm=None,
+                 mean_storm_depth=None, total_t=None, delta_t=None):
         """ This reads in information from the input_file (either default or user
             assigned, and creates an instantaneous storm event drawn from the Poisson distribution
         """
@@ -122,10 +135,14 @@ class PrecipitationDistribution(Component):
 
 
     def update(self):
-        """If new values for storm duration, interstorm duration, storm depth
-        and intensity are needed, this method can be used to update those values
-        one time.
+        """Update the storm values.
 
+        If new values for storm duration, interstorm duration, storm depth
+        and intensity are needed, this method can be used to update those
+        values one time.
+
+        Examples
+        --------
         >>> from landlab.components.uniform_precip import (
         ...     PrecipitationDistribution)
         >>> PD = PrecipitationDistribution()
@@ -152,25 +169,28 @@ class PrecipitationDistribution(Component):
     def get_precipitation_event_duration(self):
         """This method is the storm generator.
 
-    This method has one argument: the mean_storm parameter.
-    (In Eagleson (1978), this parameter was called Tr.)
+        This method has one argument: the mean_storm parameter.
+        (In Eagleson (1978), this parameter was called Tr.)
 
-    It finds a random storm_duration value
-    based on the poisson distribution about the mean.
-    This is accomplished using the expovariate function
-    from the "random" standard library.
-    Additionally, it is rounded to contain 4 significant figures,
-    for neatness.
+        It finds a random storm_duration value
+        based on the poisson distribution about the mean.
+        This is accomplished using the expovariate function
+        from the "random" standard library.
+        Additionally, it is rounded to contain 4 significant figures,
+        for neatness.
 
-    The if-else statement is very important here. Values of 0
-    can exist in the Poission distribution, but it does not make
-    sense to have 0 duration storms, so to avoid that,
-    we return a storm duration IF it is greater than 0,
-    otherwise, recursion is employed to re-call the storm
-    generator function and get a new value.
+        The if-else statement is very important here. Values of 0
+        can exist in the Poission distribution, but it does not make
+        sense to have 0 duration storms, so to avoid that,
+        we return a storm duration IF it is greater than 0,
+        otherwise, recursion is employed to re-call the storm
+        generator function and get a new value.
 
-    :returns: storm_duration as a float
-    """
+        Returns
+        -------
+        float
+            The storm duration.
+        """
         storm = round(random.expovariate(1/self.mean_storm),2)
         while storm == 0:
             storm = round(random.expovariate(1/self.mean_storm),2)
@@ -180,29 +200,34 @@ class PrecipitationDistribution(Component):
 
 
     def get_interstorm_event_duration(self):
-        """ This method is the interstorm duration generator
+        """Generate interstorm events.
 
-    This method takes one argument, the mean_interstorm parameter.
-    (In Eagleson (1978), this parameter was called Tb.)
+        This method takes one argument, the mean_interstorm parameter.
+        (In Eagleson (1978), this parameter was called Tb.)
 
-    This method is modeled identically to get_precipitation_event_duration()
+        This method is modeled identically to
+        get_precipitation_event_duration()
 
-    This method finds a random value for interstorm_duration
-    based on the poisson distribution about the mean.
-    This is accomplished using the expovariate function
-    from the "random" standard library.
-    Additionally, it is rounded to contain 4 significant figures, for neatness.
+        This method finds a random value for interstorm_duration
+        based on the poisson distribution about the mean.
+        This is accomplished using the expovariate function
+        from the "random" standard library.
+        Additionally, it is rounded to contain 4 significant figures, for
+        neatness.
 
-    The if-else statement is very important here. Values of 0
-    can exist in the Poission distribution, but it does not make
-    sense to have 0 hour interstorm durations.
-    To avoid 0 hour interstorm durations, we return a
-    interstorm duration IF it is greater than 0,
-    otherwise, recursion is employed to re-call the interstorm
-    duration generator function and get a new value.
+        The if-else statement is very important here. Values of 0
+        can exist in the Poission distribution, but it does not make
+        sense to have 0 hour interstorm durations.
+        To avoid 0 hour interstorm durations, we return a
+        interstorm duration IF it is greater than 0,
+        otherwise, recursion is employed to re-call the interstorm
+        duration generator function and get a new value.
 
-    :returns: interstorm_duration as a float"""
-
+        Returns
+        -------
+        float
+            The interstorm duration.
+        """
         interstorm = round(random.expovariate(1/self.mean_interstorm),2)
         while interstorm == 0:
             interstorm = round(random.expovariate(1/self.mean_interstorm),2)
@@ -211,25 +236,29 @@ class PrecipitationDistribution(Component):
 
 
     def get_storm_depth(self):
-        """  This method is the storm depth generator.
-    Storm depth is used to generate a realistic
-    intensity for different storm events.
+        """Generate storm depth.
 
-    (In Eagleson (1978) this parameter was called "h")
+        Storm depth is used to generate a realistic
+        intensity for different storm events.
 
-    This method requires storm_duration, mean_storm duration
-    and the mean_storm_depth. Storm_duration is generated through
-    the initialize() or update() method. mean_storm and mean_storm_depth
-    are read in using the ModelParameterDictionary.
+        (In Eagleson (1978) this parameter was called "h")
 
-    Numpy has a random number generator to get values
-    from a given Gamma distribution. It takes two arguments,
-    alpha (or the shape parameter), which is the generated over the mean event
-    and beta (or the scale parameter), which is the mean value
-    These are all arguments in the function, which returns storm depth.
+        This method requires storm_duration, mean_storm duration
+        and the mean_storm_depth. Storm_duration is generated through
+        the initialize() or update() method. mean_storm and mean_storm_depth
+        are read in using the ModelParameterDictionary.
 
-    :returns: storm_depth as a float
-    """
+        Numpy has a random number generator to get values
+        from a given Gamma distribution. It takes two arguments,
+        alpha (or the shape parameter), which is the generated over the mean
+        event and beta (or the scale parameter), which is the mean value
+        These are all arguments in the function, which returns storm depth.
+
+        Returns
+        -------
+        float
+            The storm depth.
+        """
 
         shape_parameter = (self.storm_duration/self.mean_storm)
         scale_parameter = (self.mean_storm_depth)
@@ -238,17 +267,21 @@ class PrecipitationDistribution(Component):
 
 
     def get_storm_intensity(self):
-        """   This method draws storm intensity out of the storm depth
-    generated by get_storm_depth.
+        """Get the storm intensity.
 
-    This method requires the storm_depth and storm_duration
-    and is the same as the parameter ("i") in Eagleson (1978), but instead of
-    being drawn from Poission, this is drawn from the Gamma distribution
-    of ("h"), as h = i*Tr.
+        This method draws storm intensity out of the storm depth generated by
+        get_storm_depth.
 
-    :returns: storm_intensity as a float
+        This method requires the storm_depth and storm_duration
+        and is the same as the parameter ("i") in Eagleson (1978), but instead
+        of being drawn from Poission, this is drawn from the Gamma distribution
+        of (*h*), as :math:`h = i * Tr`.
 
-                            """
+        Returns
+        -------
+        float
+            The storm intensity.
+        """
         self.intensity = self.storm_depth / self.storm_duration
         return self.intensity
 
@@ -291,7 +324,8 @@ class PrecipitationDistribution(Component):
             storm_iterator = storm_helper
         return self.storm_time_series
 
-    def yield_storm_interstorm_duration_intensity(self, subdivide_interstorms=False):
+    def yield_storm_interstorm_duration_intensity(self,
+                                                  subdivide_interstorms=False):
         """
         This method is intended to be equivalent to get_storm_time_series,
         but instead offers a generator functionality. This will be useful in
@@ -315,14 +349,15 @@ class PrecipitationDistribution(Component):
         The method will keep yielding until it reaches the RUN_TIME, where it
         will terminate.
 
-        YIELDS:
-            - a tuple, (interval_duration, rainfall_rate_in_interval)
+        Yields
+        ------
+        tuple of float
+            (interval_duration, rainfall_rate_in_interval)
 
         One recommended procedure is to instantiate the generator, then call
         instance.next() repeatedly to get the sequence.
-
-        Added DEJH, Dec 2014
         """
+        # Added DEJH, Dec 2014
         delta_t = self.delta_t
         if delta_t == None:
             assert subdivide_interstorms == False, 'You specified you wanted storm subdivision, but did not provide a DELTA_T to allow this!'
@@ -355,8 +390,8 @@ class PrecipitationDistribution(Component):
 
     @property
     def elapsed_time(self):
-        """
-        Return the elapsed time recorded by the module.
+        """Get the elapsed time recorded by the module.
+
         This will be particularly useful in the midst of a yield loop.
         """
         return self._elapsed_time

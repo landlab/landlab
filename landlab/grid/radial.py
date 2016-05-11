@@ -4,6 +4,7 @@ import numpy
 from six.moves import range
 
 from .voronoi import VoronoiDelaunayGrid
+from landlab.utils.decorators import deprecated
 
 
 class RadialModelGrid(VoronoiDelaunayGrid):
@@ -87,7 +88,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         by six other nodes.
 
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
+        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0.,
+        ...                       origin_y=0.)
         >>> omg.number_of_nodes
         7
         >>> omg.number_of_cells
@@ -116,12 +118,13 @@ class RadialModelGrid(VoronoiDelaunayGrid):
                    origin_y=origin[1])
 
     def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
-        [pts, npts] = self.make_radial_points(num_shells, dr)
+        [pts, npts] = self._create_radial_points(num_shells, dr)
         self._n_shells = int(num_shells)
         self._dr = dr
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
 
-    def make_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
+    def _create_radial_points(self, num_shells, dr, origin_x=0.0,
+                              origin_y=0.0):
         """Create a set of points on concentric circles.
 
         Creates and returns a set of (x,y) points placed in a series of
@@ -172,7 +175,13 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         return self._n_shells
 
     @property
+    @deprecated(use='spacing_of_shells', version=1.0)
     def shell_spacing(self):
+        """Fixed distance between shells."""
+        return self._dr
+
+    @property
+    def spacing_of_shells(self):
         """Fixed distance between shells."""
         return self._dr
 

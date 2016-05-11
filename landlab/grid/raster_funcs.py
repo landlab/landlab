@@ -82,7 +82,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.get_active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node(node_ids)
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -174,8 +174,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     cells of any kind, because they are on the perimeter). It's up to the
     user to decide what to do with these boundary values.
 
-    Example
-    -------
+    Examples
+    --------
     Calculate the gradient of values at a grid's nodes.
 
     >>> from landlab import RasterModelGrid
@@ -184,7 +184,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     ...               1., 2., 3., 2., 3.,
     ...               0., 1., 2., 1., 2.,
     ...               0., 0., 2., 2., 0.])
-    >>> grad = rmg.calculate_gradients_at_active_links(u)
+    >>> grad = rmg.calc_grad_of_active_link(u)
     >>> grad # doctest: +NORMALIZE_WHITESPACE
     array([ 1.,  1., -1.,
             1.,  1., -1.,  1.,
@@ -216,7 +216,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
 
     >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grad = grid.calculate_gradients_at_active_links(2 * u)
+    >>> grad = grid.calc_grad_of_active_link(2 * u)
     >>> grad
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 2.,  2., -2.,

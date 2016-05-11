@@ -38,8 +38,8 @@ class RasterCTS(CellLabCTSModel):
         Default or initial value for a node/cell property (e.g., 0.0).
         Must be same type as *prop_data*.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.ca.celllab_cts import Transition
     >>> from landlab.ca.raster_cts import RasterCTS

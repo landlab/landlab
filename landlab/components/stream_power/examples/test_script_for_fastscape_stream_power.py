@@ -54,7 +54,7 @@ for i in range(grid.number_of_nodes):
 
 # Calculate lengths of flow links
 flow_link_length = np.ones(np.size(z))
-flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
+flow_link_length[interior_nodes] = grid.length_of_link[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
 print('fll:', flow_link_length)
 
 # Get a 2D array version of the elevations
