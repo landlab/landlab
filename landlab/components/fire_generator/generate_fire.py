@@ -38,29 +38,6 @@ Testing this...
 >>> fg.scale_parameter
 16.437036931437866
 
-How to access the data?
-
->>> fg._input_var_names # doctest: +NORMALIZE_WHITESPACE
-('mean_fire_recurrence', 'shape_parameter', 'scale_parameter')
-
->>> fg._output_var_names
-('time_to_next_fire',)
-
->>> fg._var_units # doctest: +NORMALIZE_WHITESPACE
-{'mean_fire_recurrence': 'yr', 'shape_parameter': '-', 'scale_parameter': '-',
- 'time_to_next_fire': 'yr'}
-
->>> fg._var_mapping # doctest: +NORMALIZE_WHITESPACE
-{'mean_fire_recurrence': '-', 'shape_parameter': '-', 'scale_parameter': '-',
-'time_to_next_fire': '-'}
-
->>> fg._var_doc # doctest: +NORMALIZE_WHITESPACE
-{'mean_fire_recurrence': 'Mean time between fires for a given location',
-'shape_parameter': 'Describes the skew of the Weibull distribution',
- 'scale_parameter': 'the 63.5% value of the Weibull distribution function.',
- 'time_to_next_fire': 'Time elapsed before the next fire'}
-
-
 To get a time to next fire:
 
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
