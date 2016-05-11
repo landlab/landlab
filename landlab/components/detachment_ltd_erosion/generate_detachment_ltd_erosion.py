@@ -23,7 +23,7 @@ transport component. To check the names of the fields that provide input to
 the detachment ltd transport component, use the *input_var_names* class
 property.
 
->>> DetachmentLtdErosion.input_var_names
+>>> DetachmentLtdErosion._input_var_names
 ('topographic__elevation', 'topographic__slope', 'water__discharge')
 
 Create fields of data for each of these input variables.
