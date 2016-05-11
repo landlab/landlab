@@ -12,7 +12,7 @@ Examples
 --------
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
->>> from landlab.components.detachment_ltd_erosion.generate_detachment_ltd_erosion import DetachmentLtdErosion
+>>> from landlab.components import DetachmentLtdErosion
 
 Create a grid on which to calculate detachment ltd sediment transport.
 
@@ -53,7 +53,7 @@ run it. In this simple case, we need to pass it a time step ('dt')
 
 >>> dt = 10.0
 >>> dle = DetachmentLtdErosion(grid)
->>> dle.erode(dt = dt)
+>>> dle.erode(dt=dt)
 
 After calculating the erosion rate, the elevation field is updated in the
 grid. Use the *output_var_names* property to see the names of the fields that
@@ -85,6 +85,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from landlab.field.scalar_data_fields import FieldError
 
+
 class DetachmentLtdErosion(Component):
 
     """Landlab component that simulates detachment-limited river erosion.
@@ -108,7 +109,7 @@ class DetachmentLtdErosion(Component):
     _var_units = {
         'topographic__elevation': 'm',
         'topographic__slope': '-',
-        'water__discharge': 'm**3/s',
+        'water__discharge': 'm^3/s',
     }
 
     _var_mapping = {
@@ -151,7 +152,7 @@ class DetachmentLtdErosion(Component):
         entrainment_threshold : float, optional
             threshold for sediment movement
         """
-        self._grid = grid
+        super(DetachmentLtdErosion, self).__init__(grid, **kwds)
 
         self.K = K_sp
         self.m = m_sp
