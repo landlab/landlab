@@ -1,10 +1,76 @@
+"""Landlab component that simulates incident shortwave radiation. 
 
-#################################################################
-##
-##  'Field' concept is implemented for Radiation component.
-##
-##  Sai Nudurupati and Erkan Istanbulluoglu - 14May2014
-#################################################################
+Landlab component that computes 1D and 2D total incident shortwave
+radiation. This code also computes relative incidence shortwave radiation
+compared to a flat surface.
+
+.. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu
+
+ Examples
+--------
+>>> import numpy as np
+>>> from landlab import RasterModelGrid
+>>> from landlab.components.radiation import Radiation
+
+Create a grid on which to calculate incident shortwave radiation
+
+>>> grid = RasterModelGrid( (5, 4), spacing=(0.2,0.2))
+
+The grid will need some input data. To check the names of the fields
+that provide the input to this component, use the *input_var_names* 
+class property. 
+
+>>> Radiation.input_var_names
+('topographic__elevation',)
+
+Check the units for the fields.
+
+>>>  Radiation.var_units('topographic__elevation')
+'m'
+
+Create the input fields.
+
+>>> grid['node']['topographic__elevation'] = np.array([
+...       0., 0., 0., 0.,
+...       1., 1., 1., 1.,
+...       2., 2., 2., 2., 
+...       3., 4., 4., 3., 
+...       4., 4., 4., 4.])
+
+If you are not sure about one of the input or output variables, you can
+get help for specific variables.
+
+>>> Radiation.var_help('topographic__elevation')
+name: topographic__elevation
+description:
+  elevation of the ground surface relative to some datum
+units: m
+at: node
+intent: in
+
+Check the output variable names
+
+>>> rad.output_var_names
+('radiation__total_shortwave',
+ 'radiation__net_shortwave',
+ 'radiation__ratio_to_flat_surface')
+ 
+Instantiate the 'Radiation' component to work on this grid, and run it.
+
+>>> rad = Radiation( grid )
+
+Run the *update* method to update output variables with current time
+>>> current_time = 0.5
+>>> rad.update( current_time )
+
+>>> rad.grid.at_cell['radiation__ratio_to_flat_surface']
+array([ 0.38488566,  0.38488566,  0.33309785,  0.33309785,  0.37381705,
+        0.37381705])
+        
+>>> rad.grid.at_cell['radiation__total_shortwave']
+array([ 398.33664988,  398.33664988,  344.73895668,  344.73895668,
+        386.88120966,  386.88120966])
+"""
 
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
@@ -46,10 +112,13 @@ class Radiation(Component):
     opt_airmass: float, optional
         Optical air mass.
 
+    Examples
+    --------
+    
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.radiation import Radiation
     >>> import numpy as np
-    >>> grid = RasterModelGrid( 5, 4, 0.2 )
+    >>> grid = RasterModelGrid( (5, 4), spacing=(0.2,0.2))
     >>> grid['node']['topographic__elevation'] = np.random.rand( grid.number_of_nodes ) * 1000
     >>> rad = Radiation( grid )
     >>> rad.name
@@ -57,13 +126,13 @@ class Radiation(Component):
     >>> current_time = 0.5
     >>> rad.update( current_time )
 
-    >>> x = grid['cell']['topographic__total_shortwave_radiation']
+    >>> x = grid['cell']['radiation__total_shortwave']
     >>> isinstance(x, np.ndarray)
     True
     >>> x.shape == (6, )
     True
 
-    >>> x = grid['cell']['topographic__radiation_factor']
+    >>> x = grid['cell']['radiation__ratio_to_flat_surface']
     >>> isinstance(x, np.ndarray)
     True
     >>> x.shape == (6, )
@@ -77,34 +146,34 @@ class Radiation(Component):
     ])
 
     _output_var_names = set([
-        'topographic__total_shortwave_radiation',
-        'topographic__radiation_factor',
-        'topographic__net_shortwave_radiation',
+        'radiation__total_shortwave',
+        'radiation__ratio_to_flat_surface',
+        'radiation__net_shortwave',
     ])
 
     _var_units = {
         'topographic__elevation' : 'm',
-        'topographic__total_shortwave_radiation' : 'W/m^2',
-        'topographic__radiation_factor' : 'None',
-        'topographic__net_shortwave_radiation' : 'W/m^2',
+        'radiation__total_shortwave' : 'W/m^2',
+        'radiation__ratio_to_flat_surface' : 'None',
+        'radiation__net_shortwave' : 'W/m^2',
     }
     
     _var_mapping = {
         'topographic__elevation' : 'node',
-        'topographic__total_shortwave_radiation' : 'cell',
-        'topographic__radiation_factor' : 'cell',
-        'topographic__net_shortwave_radiation' : 'cell',
+        'radiation__total_shortwave' : 'cell',
+        'radiation__ratio_to_flat_surface' : 'cell',
+        'radiation__net_shortwave' : 'cell',
     }
 
     _var_doc = {
         'topographic__elevation' : 
             'elevation of the ground surface relative to some datum',
-        'topographic__total_shortwave_radiation' : 
+        'radiation__total_shortwave' : 
             'total incident shortwave radiation over the time step',
-        'topographic__radiation_factor' : 
+        'radiation__ratio_to_flat_surface' : 
             'ratio of total incident shortwave radiation on sloped surface \
              to flat surface',
-        'topographic__net_shortwave_radiation' : 
+        'radiation__net_shortwave' : 
             'net incident shortwave radiation over the time step',
     }
 
@@ -170,9 +239,10 @@ class Radiation(Component):
         self._cell_values['Slope'] = self._slope
         self._cell_values['Aspect'] = self._aspect
 
-    def update( self, current_time, **kwds ):
+    def update( self, current_time, hour=12., **kwds ):
         """
         Update fields with current loading conditions.
+        
         Parameters
         ----------
         current_time: float
@@ -180,10 +250,10 @@ class Radiation(Component):
         hour: float, optional
               Hour of the day. 
         """
-        self._t = kwds.pop('Hour', 12.)
-        self._radf = self._cell_values['topographic__radiation_factor']
-        self._Rs = self._cell_values['topographic__total_shortwave_radiation']
-        self._Rnet = self._cell_values['topographic__net_shortwave_radiation']
+        self._t = hour
+        self._radf = self._cell_values['radiation__ratio_to_flat_surface']
+        self._Rs = self._cell_values['radiation__total_shortwave']
+        self._Rnet = self._cell_values['radiation__net_shortwave']
 
         self._julian = np.floor( ( current_time - np.floor( current_time ) )  \
                                   * 365.25 )                     # Julian day
@@ -244,6 +314,6 @@ class Radiation(Component):
                     # Sloped surface Toatl Incoming Shortwave Radn
         self._Rnet = self._Rnetflat * self._radf
 
-        self._cell_values['topographic__radiation_factor'] = self._radf
-        self._cell_values['topographic__total_shortwave_radiation'] = self._Rs
-        self._cell_values['topographic__net_shortwave_radiation'] = self._Rnet
+        self._cell_values['radiation__ratio_to_flat_surface'] = self._radf
+        self._cell_values['radiation__total_shortwave'] = self._Rs
+        self._cell_values['radiation__net_shortwave'] = self._Rnet
