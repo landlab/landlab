@@ -1,4 +1,4 @@
-"""
+"""Generate precipitation using the Poisson pulse model.
 
 Landlab component that generates precipitation events using the rectangular
 Poisson pulse model described in Eagleson (1978, Water Resources Research).
@@ -17,8 +17,8 @@ from landlab import Component
 
 
 class PrecipitationDistribution(Component):
-    """Generate precipitation events.
 
+    """Generate precipitation events.
 
     This component can generate a random storm duration, interstorm
     duration, precipitation intensity or storm depth from a Poisson
@@ -72,7 +72,7 @@ class PrecipitationDistribution(Component):
 
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
                  mean_storm_depth=0.0, total_t=0.0, delta_t=0.0, **kwds):
-        """
+        """Create the storm generator.
 
         Parameters
         ----------
@@ -87,7 +87,6 @@ class PrecipitationDistribution(Component):
         delta_t : float, optional
             If you want to break up storms into determined subsections using
             yield_storm_interstorm_duration_intensity, a delta_t is needed.
-
         """
 
         self.mean_storm_duration = mean_storm_duration
@@ -126,24 +125,22 @@ class PrecipitationDistribution(Component):
 
         Examples
         --------
-        >>> from landlab.components.uniform_precip import (
-        ...     PrecipitationDistribution)
-        >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
-        ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
-        ...     total_t = 100.0, delta_t = 1)
+        >>> from landlab.components import PrecipitationDistribution
+        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=100.0, delta_t=1)
 
         Additionally, if we wanted to update several times, a loop could be
         utilized to accomplish this. Say we want 5 storm_durations; this
         pseudo-code represents a way to accomplish this...
 
-        >>> storm_duration_list=[]
+        >>> storm_duration_list = []
         >>> i = 0
         >>> while i < 4:
         ...     storm_duration_list.append(precip.storm_duration)
         ...     precip.update()
-        ...     i+=1
+        ...     i += 1
         """
-
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
@@ -268,7 +265,8 @@ class PrecipitationDistribution(Component):
         return self.intensity
 
     def get_storm_time_series(self):
-        """
+        """Get a time series of storms.
+
         This method creates a time series of storms based on storm_duration,
         and interstorm_duration. From these values it will calculate a complete
         time series.
@@ -310,7 +308,8 @@ class PrecipitationDistribution(Component):
 
     def yield_storm_interstorm_duration_intensity(self,
                                                   subdivide_interstorms=False):
-        """
+        """Iterator for a time series of storms.
+
         This method is intended to be equivalent to get_storm_time_series,
         but instead offers a generator functionality. This will be useful in
         cases where the whole sequence of storms and interstorms doesn't need
@@ -338,6 +337,8 @@ class PrecipitationDistribution(Component):
         tuple of float
             (interval_duration, rainfall_rate_in_interval)
 
+        Notes
+        -----
         One recommended procedure is to instantiate the generator, then call
         instance.next() repeatedly to get the sequence.
         """
