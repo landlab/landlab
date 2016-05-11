@@ -20,6 +20,7 @@ from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
+from .gflex import gFlex
 
 
 COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
@@ -30,6 +31,6 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, SteepnessFinder,
-              PrecipitationDistribution, VegCA]
+              PrecipitationDistribution, VegCA, gFlex]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

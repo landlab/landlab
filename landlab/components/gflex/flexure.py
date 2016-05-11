@@ -43,11 +43,67 @@ For installation instructions see gFlex on GitHub:
 
 class gFlex(Component):
     """
-    This is the Landlab component controlling the gFlex code.
+    This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et
+    al., 2016, Geoscientific Model Development). The most up-to-date version of
+    his code can be found at github.com/awickert/gFlex.
+
+    This Landlab wrapper will use a snapshot of that code, which YOU need to
+    install on your own machine.
+    A stable snapshot of gFlex is hosted on PyPI, which is the recommended
+    version to install.
+    If you have pip (the Python package install tool), simply run
+    'pip install gFlex' from a command prompt.
+    Alternatively, you can download and unpack the code (from github, or with
+    PyPI, pypi.python.org/pypi/gFlex/), then run 'python setup.py install'.
 
     Note that gFlex maintains its own internal version if the grid, but this
     should not affect performance.
+
+    This component will modify the topographic__elevation field only if one
+    already exists. Note that the gFlex component **demands lengths in
+    meters**, including the grid dimensions.
+
+    Parameters
+    ----------
+    Youngs_modulus : float
+        Young's modulus for the lithosphere.
+    Poissons_ratio : float
+        Poisson's ratio for the lithosphere.
+    rho_mantle : float (kg*m**-3)
+        The density of the mantle.
+    rho_fill : float (kg*m**-3)
+        The density of the infilling material (air, water...)
+    elastic_thickness : float (m)
+        The elastic thickness of the lithosphere.
+    BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
+                              'Periodic'}
+        The boundary condition status of each grid edge, following gFlex's
+        definitions. Periodic boundaries must be paired (obviously).
+    g : float (m*s**-2)
+        The acceleration due to gravity.
+
+    The component also recognises the gFlex specific parameters 'Method',
+    'PlateSolutionType', 'Solver', and 'Quiet'. See the gFlex software
+    documentation for more details.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import gFlex
+    >>> mg = RasterModelGrid((10, 10), 25000.)
+    >>> z = mg.add_zeros('topographic__elevation', at='node', dtype=float)
+    >>> stress = mg.add_zeros('surface_load__stress', at='node', dtype=float)
+    >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.e6
+    >>> gf = gFlex(mg, BC_E='0Moment0Shear', BC_N='Periodic', BC_S='Periodic')
+    >>> gf.run_one_step()
+    >>> z.reshape(mg.shape)[:, 5]  # N-S profile
+    array([-4.54872677, -4.6484927 , -4.82638669, -5.03001546, -5.15351385,
+           -5.15351385, -5.03001546, -4.82638669, -4.6484927 , -4.54872677])
+    >>> z.reshape(mg.shape)[5, :]  # W-E profile, note free BC to E
+    array([-0.43536739, -1.19197738, -2.164915  , -3.2388464 , -4.2607558 ,
+           -5.15351385, -5.89373366, -6.50676947, -7.07880156, -7.63302576])
     """
+
     _name = 'gFlex'
 
     _input_var_names = ('surface_load__stress',)
@@ -55,142 +111,111 @@ class gFlex(Component):
     _output_var_names = ('lithosphere__vertical_displacement',
                          'topographic__elevation')
 
-    _var_units = {'earth_material_load__magnitude_of_stress': 'Pa',
-                  'earth_material_load__x_positions': 'm',
-                  'earth_material_load__y_positions': 'm',
-                  'earth_material_load__force': 'N',
-                  'lithosphere__elastic_thickness': 'm',
+    _var_units = {'surface_load__stress': 'Pa',
                   'lithosphere__vertical_displacement': 'm',
+                  'topographic__elevation': 'm'
                   }
 
-    _var_mapping = {'earth_material_load__magnitude_of_stress': 'node',
-                    'earth_material_load__x_positions': 'node',
-                    'earth_material_load__y_positions': 'node',
-                    'earth_material_load__force': 'node',
-                    'lithosphere__elastic_thickness': 'node',
+    _var_mapping = {'surface_load__stress': 'node',
                     'lithosphere__vertical_displacement': 'node',
+                    'topographic__elevation': 'node'
                     }
 
-    _var_doc = {'earth_material_load__magnitude_of_stress':
-                    'Magnitude of stress exerted by surface load',
-                'earth_material_load__x_positions':
-                    'x position of any surface load',
-                'earth_material_load__y_positions':
-                    'y position of any surface load',
-                'earth_material_load__force':
-                    'Force exerted by surface load',
-                'lithosphere__elastic_thickness':
-                    'Elastic thickness of the lithosphere',
+    _var_doc = {'surface_load__stress': (
+                    'Magnitude of stress exerted by surface load'),
                 'lithosphere__vertical_displacement':
                     ('Vertical deflection of the surface and of the ' +
                      'lithospheric plate'),
+                'topographic__elevation': (
+                    'Land surface topographic elevation; can ' +
+                    'be overwritten in initialization'),
                 }
 
-    def __init__(self, grid, params):
-        self.initialize(grid, params)
-
-    def initialize(self, grid, params):
-        """
-        grid must be a landlab RasterModelGrid to use gFlex.
-
-        params may be a dictionary of input parameters, or a standard Landlab
-        input text file.
-
-        gFlex requires:
-
-        *  E, Young's modulus
-        *  nu, Poisson's ratio
-        *  rho_m, the mantle density
-        *  rho_fill, the infill material density
-        *  Te, the elastic thickness. Can be scalar or an nnodes-long array.
-           If you want an array, supply a grid field name where the data can
-           be found.
-        *  BC_W, BC_E, BC_S, BC_N, strings describing the boundary conditions.
-           Choose from ('0Displacement0Slope', '0Moment0Shear', 'Periodic').
-
-        gFlex can take as options:
-
-        *  g, the gravitational acceleration (defaults to 9.81)
-
-        gFlex takes as input fields:
-
-        *  surface_load__stress
-
-        gFlex modifies/returns:
-
-        *  topographic__elevation (if it exists already)
-        *  lithosphere__vertical_displacement
-        """
+    def __init__(self, grid, Youngs_modulus=6.5e11, Poissons_ratio=0.25,
+                 rho_mantle=3300., rho_fill=0., elastic_thickness=35000.,
+                 BC_W='0Displacement0Slope', BC_E='0Displacement0Slope',
+                 BC_N='0Displacement0Slope', BC_S='0Displacement0Slope',
+                 g=9.81, **kwds):
+        """Constructor for Wickert's gFlex in Landlab."""
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         BC_options = ('0Displacement0Slope', '0Moment0Shear', '0Slope0Shear',
                       'Periodic')
 
-        if type(params) == str:
-            input_dict = ModelParameterDictionary(params)
-        else:
-            assert type(params) == dict
-            input_dict = params
-
-        #instantiate the module:
+        # instantiate the module:
         self.flex = gflex.F2D()
         flex = self.flex
 
-        #set up the grid variables:
+        # set up the grid variables:
         self._grid = grid
         flex.dx = grid.dx
         flex.dy = grid.dy
 
-        #we assume these properties are fixed in this relatively
-        #straightforward implementation, but they can still be set if you want:
+        # we assume these properties are fixed in this relatively
+        # straightforward implementation, but they can still be set if you
+        # want:
         try:
-            flex.Method = input_dict['Method']
+            flex.Method = kwds['Method']
         except KeyError:
             flex.Method = 'FD'
         try:
-            flex.PlateSolutionType = input_dict['PlateSolutionType']
+            flex.PlateSolutionType = kwds['PlateSolutionType']
         except KeyError:
             flex.PlateSolutionType = 'vWC1994'
         try:
-            flex.Solver = input_dict['Solver']
+            flex.Solver = kwds['Solver']
         except KeyError:
             flex.Solver = 'direct'
         try:
-            quiet = input_dict['Quiet']
+            quiet = kwds['Quiet']
         except KeyError:
             flex.Quiet = True
         else:
             flex.Quiet = bool(quiet)
 
-        flex.E = float(input_dict['E'])
-        flex.nu = float(input_dict['nu'])
-        flex.rho_m = float(input_dict['rho_m'])
-        flex.rho_fill = float(input_dict['rho_fill'])
-        try:
-            flex.g = input_dict['g']
-        except KeyError:
-            flex.g = 9.81
-        flex.BC_W = input_dict['BC_W']
-        flex.BC_E = input_dict['BC_E']
-        flex.BC_S = input_dict['BC_S']
-        flex.BC_N = input_dict['BC_N']
+        flex.E = float(Youngs_modulus)
+        flex.nu = float(Poissons_ratio)
+        flex.rho_m = float(rho_mantle)
+        flex.rho_fill = float(rho_fill)
+        flex.g = float(g)
+        flex.BC_W = BC_W
+        flex.BC_E = BC_E
+        flex.BC_S = BC_S
+        flex.BC_N = BC_N
         for i in (flex.BC_E, flex.BC_W, flex.BC_N, flex.BC_S):
             assert i in BC_options
 
-        Te_in = input_dict['Te']
+        if BC_W == 'Periodic':
+            assert BC_E == 'Periodic'
+        if BC_E == 'Periodic':
+            assert BC_W == 'Periodic'
+        if BC_N == 'Periodic':
+            assert BC_S == 'Periodic'
+        if BC_S == 'Periodic':
+            assert BC_N == 'Periodic'
+
+        Te_in = elastic_thickness
         try:
             flex.Te = float(Te_in)
         except ValueError:
-            flex.Te = grid.at_node[Te_in].view().reshape((grid.number_of_node_rows, grid.number_of_node_columns))
+            try:
+                flex.Te = grid.at_node[Te_in].view().reshape(grid.shape)
+            except TypeError:
+                flex.Te = Te_in.view().reshape(grid.shape)
             self._input_var_names.add(Te_in)
             self._output_var_names.add(Te_in)
 
-        #set up the link between surface load stresses in the gFlex component and the LL grid field:
-        flex.qs = grid.at_node['surface_load__stress'].view().reshape((grid.number_of_node_rows, grid.number_of_node_columns))
+        # set up the link between surface load stresses in the gFlex component
+        # and the LL grid field:
+        flex.qs = grid.at_node['surface_load__stress'].view().reshape(
+            grid.shape)
 
-        #create a holder for the "pre-flexure" state of the grid, to allow updating of elevs:
+        # create a holder for the "pre-flexure" state of the grid, to allow
+        # updating of elevs:
         self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
 
-
+        # create the primary output field:
+        self.grid.add_zeros('lithosphere__vertical_displacement', at='node',
+                            dtype=float, noclobber=False)
 
     def flex_lithosphere(self, **kwds):
         """
@@ -198,20 +223,36 @@ class gFlex(Component):
         of gFlex. Note that flexure of the lithosphere proceeds to steady state
         in a single timestep.
         """
-        #note kwds is redundant at the moment, but could be used subsequently for dynamic control over params
-        self.flex.qs = self._grid.at_node['surface_load__stress'].view().reshape((self._grid.number_of_node_rows, self._grid.number_of_node_columns))
+        # note kwds is redundant at the moment, but could be used subsequently
+        # for dynamic control over params
+        self.flex.qs = self.grid.at_node[
+            'surface_load__stress'].view().reshape(self.grid.shape)
         self.flex.initialize()
         self.flex.run()
         self.flex.finalize()
 
-        self._grid.at_node['lithosphere__vertical_displacement'] = self.flex.w.view().ravel()
+        self.grid.at_node['lithosphere__vertical_displacement'][:] = \
+            self.flex.w.view().ravel()
 
         try:
             self._grid.at_node['topographic__elevation']
-            #a topo exists...
+            # a topo exists...
         except FieldError:
             pass
         else:
-            topo_diff = self._grid.at_node['lithosphere__vertical_displacement'] - self.pre_flex
-            self._grid.at_node['topographic__elevation'] += topo_diff
+            topo_diff = self.grid.at_node[
+                'lithosphere__vertical_displacement'] - self.pre_flex
+            self.grid.at_node['topographic__elevation'] += topo_diff
             self.pre_flex += topo_diff
+
+    def run_one_step(self, **kwds):
+        """
+        Flex the lithosphere to find its steady state form.
+
+        The standardized run method for this component.
+
+        Parameters
+        ----------
+        None
+        """
+        self.flex_lithosphere(**kwds)
