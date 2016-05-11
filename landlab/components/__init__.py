@@ -2,6 +2,7 @@ from .craters import CratersComponent
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
+from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
 from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
@@ -30,6 +31,6 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, SteepnessFinder,
-              PrecipitationDistribution, VegCA]
+              PrecipitationDistribution, VegCA, DetachmentLtdErosion]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
