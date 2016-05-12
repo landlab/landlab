@@ -22,6 +22,8 @@ ext_modules = [
               ['landlab/utils/ext/jaggedarray.pyx']),
     Extension('landlab.graph.structured_quad.ext.structured_quad',
               ['landlab/graph/structured_quad/ext/structured_quad.pyx']),
+    Extension('landlab.graph.hex.ext.hex',
+              ['landlab/graph/hex/ext/hex.pyx']),
     Extension('landlab.graph.sort.ext.remap_element',
               ['landlab/graph/sort/ext/remap_element.pyx']),
     Extension('landlab.graph.sort.ext.argsort',
