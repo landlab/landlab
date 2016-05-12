@@ -184,7 +184,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     ...               1., 2., 3., 2., 3.,
     ...               0., 1., 2., 1., 2.,
     ...               0., 0., 2., 2., 0.])
-    >>> grad = rmg.calc_grad_of_active_link(u)
+    >>> grad = rmg.calc_grad_at_active_link(u)
     >>> grad # doctest: +NORMALIZE_WHITESPACE
     array([ 1.,  1., -1.,
             1.,  1., -1.,  1.,
@@ -216,7 +216,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
 
     >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grad = grid.calc_grad_of_active_link(2 * u)
+    >>> grad = grid.calc_grad_at_active_link(2 * u)
     >>> grad
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 2.,  2., -2.,
