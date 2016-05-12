@@ -2325,7 +2325,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._sort_faces_at_cell_by_angle()
 
     def calc_hillshade_of_node(self, alt=45., az=315., slp=None, asp=None,
-                       unit='degrees', elevs='topographic__elevation'):
+                               unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
 
         .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
@@ -2335,7 +2335,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         alt : float
             Sun altitude (from horizon) - defaults to 45 degrees
         az : float
-            Sun azimuth (from north) - defaults to 315 degrees
+            Sun azimuth (CW from north) - defaults to 315 degrees
         slp : float
             slope of cells at surface - optional
         asp : float
@@ -2373,11 +2373,11 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = mg.x_of_node * np.tan(60. * np.pi / 180.)
-        >>> mg.calc_hillshade_of_node(elevs=z, alt=30., az=30.)
-        array([-0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125,
-               -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125,
-               -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125,
-               -0.125])
+        >>> mg.calc_hillshade_of_node(elevs=z, alt=30., az=210.)
+        array([ 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+                0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+                0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+                0.625])
         """
         if slp is not None and asp is not None:
             if unit == 'degrees':
@@ -2403,7 +2403,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             slp, slp_comps = self.calc_slope_of_node(
                 elevs, return_components=True)
             asp = self.calc_aspect_of_node(slope_component_tuple=slp_comps,
-                                   unit='radians')
+                                           unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')
 
@@ -2412,7 +2412,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             numpy.cos(alt) * numpy.sin(slp) * numpy.cos(az - asp)
         )
 
-        return shaded
+        return shaded.clip(0.)
 
     @deprecated(use='calc_flux_div_at_node', version=1.0)
     def calculate_flux_divergence_at_core_nodes(self, active_link_flux,

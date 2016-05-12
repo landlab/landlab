@@ -404,7 +404,7 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_y
     >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
-    >>> np.allclose(y_grad, -np.pi/4.)
+    >>> np.allclose(y_grad, np.pi / 4.)
     True
     >>> np.allclose(x_grad, 0.)
     True
@@ -420,7 +420,7 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
     else:
         slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
                                                    unit_normal=nhat)
-    theta = np.arctan2(nhat[:, 1], nhat[:, 0])
+    theta = np.arctan2(- nhat[:, 1], - nhat[:, 0])
     x_slope_patches = np.cos(theta) * slopes_at_patch
     y_slope_patches = np.sin(theta) * slopes_at_patch
 
@@ -428,7 +428,7 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
 
 
 def calc_slope_of_node(grid, elevs='topographic__elevation',
-                       return_components=False):
+                       method='patch_mean', return_components=False, **kwds):
     """Array of slopes at nodes, averaged over neighboring patches.
 
     Produces a value for node slope (i.e., mean gradient magnitude)
@@ -450,6 +450,9 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
         A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
+    method : {'patch_mean', 'Horn'}
+        By equivalence to the raster version, `'patch_mean'` returns a scalar
+        mean on the patches; `'Horn'` returns a vector mean on the patches.
     return_components : bool
         If True, return a tuple, (array_of_magnitude,
         (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -472,14 +475,14 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
     >>> mg = RasterModelGrid((4, 5), 1.)
-    >>> z = mg.node_y
+    >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
     ...                                        return_components=True)
     >>> np.allclose(slope_mag, np.pi / 4.)
     True
     >>> np.allclose(cmp[0], 0.)
     True
-    >>> np.allclose(cmp[1], -np.pi/4.)
+    >>> np.allclose(cmp[1], - np.pi / 4.)
     True
     >>> mg = RadialModelGrid(num_shells=9)
     >>> z = mg.radius_at_node
@@ -499,6 +502,9 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     >>> np.allclose(mean_ring_slope, target_mean_ring_slope)
     True
     """
+    if method not in ('patch_mean', 'Horn'):
+        raise ValueError('method name not understood')
+
     try:
         patches_at_node = grid.patches_at_node()
     except TypeError:  # was a property, not a fn (=> new style)
@@ -506,7 +512,8 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
             grid.patches_at_node == -1, grid.patches_at_node, copy=False)
 
     nhat = grid.calc_unit_normal_of_patch(elevs=elevs)
-    slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs, unit_normal=nhat)
+    slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
+                                               unit_normal=nhat)
 
     # now CAREFUL - patches_at_node is MASKED
     slopes_at_node_unmasked = slopes_at_patch[patches_at_node]
@@ -514,7 +521,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
                                         mask=patches_at_node.mask)
     slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
-    if return_components:
+    if return_components or method == 'Horn':
         (x_slope_patches, y_slope_patches) = grid.calc_grad_of_patch(
             elevs=elevs, unit_normal=nhat,
             slope_magnitude=slopes_at_patch)
@@ -529,7 +536,12 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
         mean_grad_x = x_slope
         mean_grad_y = y_slope
 
-        return slope_mag, (mean_grad_x, mean_grad_y)
+        if method == 'Horn':
+            slope_mag = np.arctan(np.sqrt(np.tan(y_slope_masked) ** 2 +
+                                          np.tan(x_slope_masked) ** 2))
+            return slope_mag
+        else:
+            return slope_mag, (mean_grad_x, mean_grad_y)
 
     else:
         return slope_mag
@@ -569,7 +581,7 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 4))
-    >>> z = mg.node_x**2 + mg.node_y**2
+    >>> z = mg.node_x ** 2 + mg.node_y ** 2
     >>> mg.calc_aspect_of_node(elevs=z)
     array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
             209.83414961,  225.        ,  243.54632481,  248.77808974,
@@ -609,7 +621,7 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
             elevs=elev_array, return_components=True)
 
     angle_from_x_ccw = np.arctan2(
-        slope_component_tuple[1], slope_component_tuple[0])
+        - slope_component_tuple[1], - slope_component_tuple[0])
 
     if unit == 'degrees':
         return radians_to_degrees(angle_from_x_ccw)

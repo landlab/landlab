@@ -105,7 +105,7 @@ class TestSlopesAtPatches():
 
     def test_slopes_at_patches_comps(self):
         rmg = RasterModelGrid((4, 5))
-        rmg.at_node['topographic__elevation'] = rmg.node_y.copy()
+        rmg.at_node['topographic__elevation'] = -rmg.node_y
         slopes_out = rmg.calc_slope_of_node(
             rmg.at_node['topographic__elevation'],
             return_components=True)
