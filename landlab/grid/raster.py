@@ -58,7 +58,7 @@ def node_has_boundary_neighbor(mg, id, method='d8'):
         except IndexError:
             return True
     if method == 'd8':
-        for neighbor in mg.get_diagonal_list(id):
+        for neighbor in mg._get_diagonal_list(id):
             try:
                 if mg.status_at_node[neighbor] != CORE_NODE:
                     return True
@@ -592,7 +592,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._neighbors_at_node = (
             sgrid.neighbor_node_ids(self.shape).transpose().copy())
-        self._diagonal_neighbors_at_node = sgrid.diagonal_node_array(self.shape,
+        self.__diagonal_neighbors_at_node = sgrid.diagonal_node_array(self.shape,
                                                             contiguous=True)
 
         self._links_at_node = squad_links.links_at_node(self.shape)
@@ -918,14 +918,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self._dy
 
     @property
-    @deprecated(use='diagonal_neighbors_at_node', version=1.0)
+    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
     @make_return_array_immutable
-    def diagonal_neighbors_at_node(self):
-        return self.diagonal_neighbors_at_node
+    def get__diagonal_neighbors_at_node(self):
+        return self._diagonal_neighbors_at_node
 
     @property
     @make_return_array_immutable
-    def diagonal_neighbors_at_node(self):
+    def _diagonal_neighbors_at_node(self):
         """Get diagonally neighboring nodes.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -937,7 +937,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> grid = RasterModelGrid((4, 3))
-        >>> diagonals = grid.diagonal_neighbors_at_node.copy()
+        >>> diagonals = grid._diagonal_neighbors_at_node.copy()
         >>> diagonals[diagonals == BAD_INDEX_VALUE] = -1
         >>> diagonals # doctest: +NORMALIZE_WHITESPACE
         array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
@@ -945,7 +945,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
         """
-        return self._diagonal_neighbors_at_node
+        return self.__diagonal_neighbors_at_node
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
@@ -1001,37 +1001,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             raise ValueError('only zero or one arguments accepted')
 
     @property
-    def number_of_d8_links(self):
+    def _number_of_d8_links(self):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
         try:
-            return self._number_of_d8_links
+            return self._num_d8_links
         except AttributeError:
-            self._number_of_d8_links = self.number_of_links + \
+            self._num_d8_links = self.number_of_links + \
                 4*self.number_of_interior_nodes + \
                 2*(self.number_of_nodes-self.number_of_interior_nodes-4) + 4
             # cores w 4, edges w 2, corners w 1
-            return self._number_of_d8_links
+            return self._num_d8_links
 
     @property
-    def number_of_d8_active_links(self):
+    def _number_of_d8_active_links(self):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
         try:
-            return self._number_of_d8_active_links
+            return self._num_d8_active_links
         except AttributeError:
-            self._number_of_d8_active_links = self.d8_active_links()[0].size
+            self._num_d8_active_links = self._d8_active_links()[0].size
             # this creates the diagonals as well, but that's appropriate if
             # you're already asking for this property
-            return self._number_of_d8_active_links
+            return self._num_d8_active_links
 
     @property
     @return_readonly_id_array
-    def diagonal_links_at_node(self, *args):
+    def _diagonal_links_at_node(self, *args):
         """Diagonal links attached to nodes.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -1053,20 +1053,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4))
-        >>> mg.diagonal_links_at_node.shape
+        >>> mg._diagonal_links_at_node.shape
         (12, 4)
-        >>> mg.diagonal_links_at_node[5]
+        >>> mg._diagonal_links_at_node[5]
         array([25, 24, 17, 20])
-        >>> mg.diagonal_links_at_node[7]
+        >>> mg._diagonal_links_at_node[7]
         array([-1, 28, 21, -1])
         """
         try:
-            return self._diagonal_links_at_node
+            return self._diag_links_at_node
         except AttributeError:
-            self._create_diagonal_links_at_node()
-            return self._diagonal_links_at_node
+            self._create_diag_links_at_node()
+            return self._diag_links_at_node
 
-    def _create_diagonal_links_at_node(self):
+    def _create_diag_links_at_node(self):
         """
         Create the diagonal link list.
 
@@ -1074,27 +1074,27 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         methods like this may be soon superceded.
         """
         self._setup_diagonal_links()
-        self._diagonal_links_at_node = np.empty((self.number_of_nodes, 4),
+        self._diag_links_at_node = np.empty((self.number_of_nodes, 4),
                                                 dtype=int)
-        self._diagonal_links_at_node.fill(-1)
+        self._diag_links_at_node.fill(-1)
 
         # Number of patches is number_of_diagonal_nodes / 2
-        self._diagonal_links_at_node[:, 0][np.setdiff1d(np.arange(
+        self._diag_links_at_node[:, 0][np.setdiff1d(np.arange(
             self.number_of_nodes), np.union1d(
                 self.nodes_at_right_edge, self.nodes_at_top_edge))] = \
             (np.arange(0, self.number_of_patches*2, 2) +
              self.number_of_links)
-        self._diagonal_links_at_node[:, 1][np.setdiff1d(np.arange(
+        self._diag_links_at_node[:, 1][np.setdiff1d(np.arange(
             self.number_of_nodes), np.union1d(
                 self.nodes_at_left_edge, self.nodes_at_top_edge))] = \
             (np.arange(0, self.number_of_patches*2, 2) + 1 +
              self.number_of_links)
-        self._diagonal_links_at_node[:, 2][np.setdiff1d(np.arange(
+        self._diag_links_at_node[:, 2][np.setdiff1d(np.arange(
             self.number_of_nodes), np.union1d(
                 self.nodes_at_left_edge, self.nodes_at_bottom_edge))] = \
             (np.arange(0, self.number_of_patches*2, 2) +
              self.number_of_links)
-        self._diagonal_links_at_node[:, 3][np.setdiff1d(np.arange(
+        self._diag_links_at_node[:, 3][np.setdiff1d(np.arange(
             self.number_of_nodes), np.union1d(
                 self.nodes_at_right_edge, self.nodes_at_bottom_edge))] = \
             (np.arange(0, self.number_of_patches*2, 2) + 1 +
@@ -1371,7 +1371,7 @@ XXXXXXeric should be killing this with graphs.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
         Assumes _setup_diagonal_links() has been called, either explicitly or
-        by another grid method (e.g., d8_active_links()).
+        by another grid method (e.g., _d8_active_links()).
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
@@ -1409,7 +1409,7 @@ XXXXXXeric should be killing this with graphs.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
         Assumes _setup_diagonal_links() has been called, either explicitly or
-        by another grid method (e.g., d8_active_links()).
+        by another grid method (e.g., _d8_active_links()).
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
@@ -1847,7 +1847,7 @@ XXXXXXeric should be killing this with graphs.
         return (self._nrows - 1) * (self._ncols - 1)
 
     @property
-    def number_of_diagonal_links(self):
+    def _number_of_diagonal_links(self):
         """Number of diagonal links.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -1861,12 +1861,12 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.number_of_diagonal_links
+        >>> grid._number_of_diagonal_links
         Traceback (most recent call last):
             ...
         AssertionError: No diagonal links have been created in the grid yet!
-        >>> _ = grid.diagonal_links_at_node
-        >>> grid.number_of_diagonal_links
+        >>> _ = grid._diagonal_links_at_node
+        >>> grid._number_of_diagonal_links
         24
         """
         assert self._diagonal_links_created, \
@@ -2152,7 +2152,7 @@ XXXXXXeric should be killing this with graphs.
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
-        >>> _ = grid.diagonal_links_at_node
+        >>> _ = grid._diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,
                 3.,  3.,  4.,  4.,  4.,
@@ -2194,7 +2194,7 @@ XXXXXXeric should be killing this with graphs.
         if self._link_length is None:
             if self._diagonal_links_created:
                 self._link_length = np.empty(
-                    self.number_of_links + self.number_of_diagonal_links)
+                    self.number_of_links + self._number_of_diagonal_links)
                 self._link_length[self.number_of_links:] = np.sqrt(
                     self._dy ** 2. + self._dx ** 2.)
             else:
@@ -2238,7 +2238,7 @@ XXXXXXeric should be killing this with graphs.
 
         self._reset_list_of_active_diagonal_links()
 
-    def d8_active_links(self):
+    def _d8_active_links(self):
         """Get active links, including diagonals.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -2264,7 +2264,7 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> (links, from_nodes, to_nodes) = grid.d8_active_links()
+        >>> (links, from_nodes, to_nodes) = grid._d8_active_links()
         >>> links
         array([ 3,  5,  6,  8, 12, 15, 17, 18])
         >>> from_nodes
@@ -2993,7 +2993,7 @@ XXXXXXeric should be killing this with graphs.
 
     # DEJH believes this needs deprecating, but it's pretty hard wired into
     # the flow router. So I've restored it for now.
-    def calculate_gradients_at_d8_active_links(self, node_values):
+    def _calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -3012,12 +3012,12 @@ XXXXXXeric should be killing this with graphs.
         >>> z = np.array([3., 3., 3., 3.,
         ...               3., 3., 0., 0.,
         ...               3., 0., 0., 0.])
-        >>> grid.calculate_gradients_at_d8_active_links(z)
+        >>> grid._calculate_gradients_at_d8_active_links(z)
         ...     # doctest: +NORMALIZE_WHITESPACE
         array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
                 0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
         """
-        (active_links, _, _) = self.d8_active_links()
+        (active_links, _, _) = self._d8_active_links()
         diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
         active_links = active_links[~ diagonal_links]
 
@@ -3501,9 +3501,9 @@ XXXXXXeric should be killing this with graphs.
         else:
             return ans
 
-    @deprecated(use='diagonal_neighbors_at_node', version=1.0)
-    def get_diagonal_list(self, *args, **kwds):
-        """get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
+    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
+    def _get_diagonal_list(self, *args, **kwds):
+        """_get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of diagonal node IDs.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
@@ -3518,10 +3518,10 @@ XXXXXXeric should be killing this with graphs.
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.get_diagonal_list([-1, 6])
+        >>> mg._get_diagonal_list([-1, 6])
         array([[2147483647, 2147483647,         13, 2147483647],
                [        12,         10,          0,          2]])
-        >>> mg.get_diagonal_list(7)
+        >>> mg._get_diagonal_list(7)
         array([13, 11,  1,  3])
 
         .. todo:: could use inlink_matrix, outlink_matrix
@@ -4184,7 +4184,7 @@ XXXXXXeric should be killing this with graphs.
             except TypeError:
                 z[:-1] = elevs
             # proof code for bad indexing:
-            diags = self.diagonal_neighbors_at_node.copy()  # LL order
+            diags = self._diagonal_neighbors_at_node.copy()  # LL order
             orthos = self.neighbors_at_node.copy()
             # these have closed node neighbors...
             for dirs in (diags, orthos):
@@ -4376,7 +4376,7 @@ XXXXXXeric should be killing this with graphs.
         # [right, top, left, bottom]
         neighbors[:, ] = self.active_neighbors_at_node(ids)
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:, ] = self.get_diagonal_list(ids)
+        diagonals[:, ] = self._get_diagonal_list(ids)
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]

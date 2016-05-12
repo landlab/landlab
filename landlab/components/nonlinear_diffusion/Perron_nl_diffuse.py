@@ -427,7 +427,7 @@ class PerronNLDiffuse(object):
         # replacing loop:
         cell_neighbors = grid.active_neighbors_at_node(bad_index=-1)
         # ^E,N,W,S
-        cell_diagonals = grid.get_diagonal_list()  # NE,NW,SW,SE
+        cell_diagonals = grid._get_diagonal_list()  # NE,NW,SW,SE
         cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
         cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1
 

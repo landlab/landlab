@@ -1940,7 +1940,7 @@ def node_has_boundary_neighbor_slow(neighbors, diagonals,
     .. note:: deprecated
     """
     # nbr_nodes=self.get_neighbor_list(id)
-    # diag_nbrs=self.get_diagonal_list(id)
+    # diag_nbrs=self._get_diagonal_list(id)
 
     in_bounds_count = 0
     while in_bounds_count < 4 and neighbors[in_bounds_count] != out_of_bounds:
