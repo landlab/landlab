@@ -431,8 +431,8 @@ def anticlockwise_argsort_points(pts, midpt=None):
     >>> pts[:,0] = np.array([-3., -1., -1., -3.])
     >>> pts[:,1] = np.array([-1., -3., -1., -3.])
     >>> sortorder = anticlockwise_argsort_points(pts)
-    >>> sortorder
-    array([2, 0, 3, 1])
+    >>> np.all(sortorder == np.array([2, 0, 3, 1]))
+    True
     """
     if midpt is None:
         midpt = pts.mean(axis=0)
