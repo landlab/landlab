@@ -1,4 +1,34 @@
-class DualGraphMixIn(object):
+import numpy as np
+
+from ..core.utils import as_id_array
+from .graph import Graph
+from .sort.sort import reverse_one_to_one
+
+
+def _sort_dual_graph(graph):
+    from .sort.sort import reindex_by_xy
+    from .sort.ext.remap_element import remap_graph_element
+
+    sorted_dual = reindex_by_xy(graph._dual)
+    sorted = reindex_by_xy(graph)
+
+    graph._node_at_cell = graph._node_at_cell[sorted_dual[2]]
+    remap_graph_element(graph._node_at_cell,
+                        as_id_array(np.argsort(sorted[0])))
+
+
+class DualGraph(object):
+    def __init__(self, *args, **kwds):
+        node_at_cell = kwds.pop('node_at_cell', None)
+        nodes_at_face = kwds.pop('nodes_at_face', None)
+
+        self._node_at_cell = as_id_array(node_at_cell)
+        self._nodes_at_face = as_id_array(nodes_at_face)
+
+        super(DualGraph, self).__init__(*args, **kwds)
+
+        _sort_dual_graph(self)
+
     @property
     def dual(self):
         return self._dual
@@ -6,6 +36,44 @@ class DualGraphMixIn(object):
     @property
     def node_at_cell(self):
         return self._node_at_cell
+
+    @property
+    def cell_at_node(self):
+        try:
+            return self._cell_at_node
+        except AttributeError:
+            self._cell_at_node = reverse_one_to_one(
+                self.node_at_cell, minlength=self.number_of_nodes)
+            return self._cell_at_node
+
+    @property
+    def link_at_face(self):
+        try:
+            return self._link_at_face
+        except AttributeError:
+            return self._create_link_at_face()
+
+    def _create_link_at_face(self):
+        link_at_nodes = {}
+        for link, pair in enumerate(self.nodes_at_link):
+            pair.sort()
+            link_at_nodes[tuple(pair)] = link
+
+        link_at_face = np.full((self.number_of_faces, ), -1, dtype=int)
+        for face, pair in enumerate(self._nodes_at_face):
+            pair.sort()
+            link_at_face[face] = link_at_nodes[tuple(pair)]
+        self._link_at_face = link_at_face
+        return self._link_at_face
+
+    @property
+    def face_at_link(self):
+        try:
+            return self._face_at_link
+        except AttributeError:
+            self._face_at_link = reverse_one_to_one(
+                self.link_at_face, minlength=self.number_of_links)
+            return self._face_at_link
 
     @property
     def x_of_corner(self):
@@ -58,3 +126,11 @@ class DualGraphMixIn(object):
     @property
     def face_dirs_at_corner(self):
         return self._dual.link_dirs_at_node
+
+    @property
+    def cells_at_face(self):
+        return self._dual.patches_at_link
+
+    @property
+    def cells_at_corner(self):
+        return self._dual.patches_at_node
