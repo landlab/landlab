@@ -1,4 +1,3 @@
-from .craters import CratersComponent
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
