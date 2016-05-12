@@ -33,6 +33,7 @@ cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
         for n in range(n_vertices):
             node = nodes_at_patch[n]
             if node == -1:
+                n -= 1
                 break
             x_of_vertex[n] = x_of_node[node]
             y_of_vertex[n] = y_of_node[node]
@@ -71,10 +72,10 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
         for n in range(n_vertices):
             node = nodes_at_patch[n]
             if node == -1:
+                n -= 1
                 break
             x[n] = x_of_node[node]
             y[n] = y_of_node[node]
-
         calc_centroid_of_polygon(x, y, n + 1, out)
     finally:
         free(y)
