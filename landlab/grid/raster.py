@@ -3906,7 +3906,7 @@ XXXXXXeric should be killing this with graphs.
         Returns
         -------
         slopes_at_patch : n_patches-long array
-            The slope (positive gradient magnitude) of each patch.
+            The slope (positive gradient magnitude) of each patch, in radians.
 
         Examples
         --------
@@ -3953,7 +3953,8 @@ XXXXXXeric should be killing this with graphs.
                            slope_magnitude=None):
         """Calculate the components of the gradient of each raster patch.
 
-        Returns the mean gradient of the four possible patch subtriangles.
+        Returns the mean gradient of the four possible patch subtriangles,
+        in radians.
 
         Parameters
         ----------
@@ -3970,7 +3971,7 @@ XXXXXXeric should be killing this with graphs.
         -------
         gradient_tuple : (x_component_at_patch, y_component_at_patch)
             Len-2 tuple of arrays giving components of gradient in the x and y
-            directions, in the units of *units*.
+            directions, in the units of *radians*.
 
         Examples
         --------
@@ -3979,7 +3980,7 @@ XXXXXXeric should be killing this with graphs.
         >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.node_y
         >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
-        >>> np.allclose(y_grad, -np.pi/4.)
+        >>> np.allclose(y_grad, np.pi/4.)
         True
         >>> np.allclose(x_grad, 0.)
         True
@@ -4003,28 +4004,29 @@ XXXXXXeric should be killing this with graphs.
 
         n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
         n_sum_y = n_TR[:, 1] + n_TL[:, 1] + n_BL[:, 1] + n_BR[:, 1]
-        theta_sum = np.arctan2(n_sum_y, n_sum_x)
+        theta_sum = np.arctan2(-n_sum_y, -n_sum_x)
         x_slope_patches = np.cos(theta_sum)*slopes_at_patch
         y_slope_patches = np.sin(theta_sum)*slopes_at_patch
 
         return (x_slope_patches, y_slope_patches)
 
     def calc_slope_of_node(self, elevs='topographic__elevation',
-                           return_components=False):
+                           method='patch_mean', return_components=False):
         """Array of slopes at nodes, averaged over neighboring patches.
 
         Produces a value for node slope (i.e., mean gradient magnitude)
         at each node in a manner analogous to a GIS-style slope map.
-        It averages the gradient on each of the
-        patches surrounding the node, creating a value for node slope that
-        better incorporates nonlocal elevation information. Directional
-        information can still be returned through use of the return_components
-        keyword.
+        If method=='patch_mean', it averages the gradient on each of the
+        patches surrounding the node; if method=='Horn', it returns the
+        resolved slope direction. Directional information can still be
+        returned through use of the return_components keyword.
+        All values are returned in radians, including the components;
+        take the tan to recover the rise/run.
 
         Note that under these definitions, it is not always true that::
 
             mag, cmp = mg.calc_slope_of_node(z)
-            mag**2 == cmp[0]**2 + cmp[1]**2  # not always true
+            mag**2 == cmp[0]**2 + cmp[1]**2  # only if method=='Horn'
 
         This is a verion of this code specialized for a raster. It subdivides
         the four square patches around each node into subtriangles,
@@ -4035,6 +4037,12 @@ XXXXXXeric should be killing this with graphs.
         ----------
         elevs : str or ndarray, optional
             Field name or array of node values.
+        method : {'patch_mean', 'Horn'}
+            Controls the slope algorithm. Current options are 'patch_mean',
+            which takes the mean slope of each pf the four neighboring
+            square patches, and 'Horn', which is the standard ArcGIS slope
+            algorithm. These produce very similar solutions; the Horn method
+            gives a vector mean and the patch_mean gives a scalar mean.
         return_components : bool
             If True, return a tuple, (array_of_magnitude,
             (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -4057,7 +4065,7 @@ XXXXXXeric should be killing this with graphs.
         >>> numpy.allclose(slopes, numpy.pi/4.)
         True
         >>> mg = RasterModelGrid((4, 5), 2.)
-        >>> z = mg.node_y
+        >>> z = -mg.node_y
         >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
         ...                                        return_components=True)
         >>> numpy.allclose(slope_mag, np.pi/4.)
@@ -4078,38 +4086,89 @@ XXXXXXeric should be killing this with graphs.
         ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
         True
         """
+        assert method in ('patch_mean', 'Horn')
         try:
             patches_at_node = self.patches_at_node()
         except TypeError:  # was a property, not a fn (=> new style)
             patches_at_node = np.ma.masked_where(
-                self.patches_at_node == -1, self.patches_at_node, copy=False)
-        n_TR, n_TL, n_BL, n_BR = \
-            self.calc_unit_normals_of_patch_subtriangles(elevs)
+                self.patches_at_node == -1, self.patches_at_node,
+                copy=False)
+        # now, we also want to mask any "closed" patches (any node closed)
+        closed_patches = (self.status_at_node[self.nodes_at_patch] ==
+                          CLOSED_BOUNDARY).sum(axis=1) > 0
+        closed_patch_mask = np.logical_or(
+            patches_at_node.mask, closed_patches[patches_at_node.data])
 
-        mean_slope_at_patches = self.calc_slope_of_patch(
-            elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+        if method == 'patch_mean':
+            n_TR, n_TL, n_BL, n_BR = \
+                self.calc_unit_normals_of_patch_subtriangles(elevs)
 
-        # now CAREFUL - patches_at_node is MASKED
-        slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
-        slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
-                                            mask=patches_at_node.mask)
-        slope_mag = np.mean(slopes_at_node_masked, axis=1).data
+            mean_slope_at_patches = self.calc_slope_of_patch(
+                elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+
+            # now CAREFUL - patches_at_node is MASKED
+            slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
+            slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
+                                                mask=closed_patch_mask)
+            slope_mag = np.mean(slopes_at_node_masked, axis=1).data
+            if return_components:
+                (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
+                    elevs=elevs, subtriangle_unit_normals=(
+                        n_TR, n_TL, n_BL, n_BR),
+                    slope_magnitude=mean_slope_at_patches)
+                x_slope_unmasked = x_slope_patches[patches_at_node]
+                x_slope_masked = np.ma.array(x_slope_unmasked,
+                                             mask=closed_patch_mask)
+                x_slope = np.mean(x_slope_masked, axis=1).data
+                y_slope_unmasked = y_slope_patches[patches_at_node]
+                y_slope_masked = np.ma.array(y_slope_unmasked,
+                                             mask=closed_patch_mask)
+                y_slope = np.mean(y_slope_masked, axis=1).data
+                mean_grad_x = x_slope
+                mean_grad_y = y_slope
+        elif method == 'Horn':
+            z = np.empty(self.number_of_nodes + 1, dtype=float)
+            mean_grad_x = self.empty('node', dtype=float)
+            mean_grad_y = self.empty('node', dtype=float)
+            z[-1] = 0.
+            try:
+                z[:-1] = self.at_node[elevs]
+            except TypeError:
+                z[:-1] = elevs
+            # proof code for bad indexing:
+            diags = self.diagonal_neighbors_at_node.copy()  # LL order
+            orthos = self.neighbors_at_node.copy()
+            # these have closed node neighbors...
+            for dirs in (diags, orthos):
+                dirs[dirs == BAD_INDEX_VALUE] = -1  # indexing to work
+            # now make an array like patches_at_node to store the interim calcs
+            patch_slopes_x = np.ma.zeros(patches_at_node.shape, dtype=float)
+            patch_slopes_y = np.ma.zeros(patches_at_node.shape, dtype=float)
+            diff_E = z[orthos[:, 0]] - z[:-1]
+            diff_W = z[:-1] - z[orthos[:, 2]]
+            diff_N = z[orthos[:, 1]] - z[:-1]
+            diff_S = z[:-1] - z[orthos[:, 3]]
+            patch_slopes_x[:, 0] = z[diags[:, 0]] - z[orthos[:, 1]] + diff_E
+            patch_slopes_x[:, 1] = z[orthos[:, 1]] - z[diags[:, 1]] + diff_W
+            patch_slopes_x[:, 2] = z[orthos[:, 3]] - z[diags[:, 2]] + diff_W
+            patch_slopes_x[:, 3] = z[diags[:, 3]] - z[orthos[:, 3]] + diff_E
+            patch_slopes_y[:, 0] = z[diags[:, 0]] - z[orthos[:, 0]] + diff_N
+            patch_slopes_y[:, 1] = z[diags[:, 1]] - z[orthos[:, 2]] + diff_N
+            patch_slopes_y[:, 2] = z[orthos[:, 2]] - z[diags[:, 2]] + diff_S
+            patch_slopes_y[:, 3] = z[orthos[:, 0]] - z[diags[:, 3]] + diff_S
+            patch_slopes_x /= (2. * self.dx)
+            patch_slopes_y /= (2. * self.dy)
+            patch_slopes_x.mask = closed_patch_mask
+            patch_slopes_y.mask = closed_patch_mask
+            mean_grad_x = patch_slopes_x.mean(axis=1).data
+            mean_grad_y = patch_slopes_y.mean(axis=1).data
+            slope_mag = np.arctan(np.sqrt(np.square(mean_grad_x) +
+                                          np.square(mean_grad_y)))
+            if return_components:
+                mean_grad_x = np.arctan(mean_grad_x)
+                mean_grad_y = np.arctan(mean_grad_y)
+
         if return_components:
-            (x_slope_patches, y_slope_patches) = self.calc_grad_of_patch(
-                elevs=elevs, subtriangle_unit_normals=(
-                    n_TR, n_TL, n_BL, n_BR),
-                slope_magnitude=mean_slope_at_patches)
-            x_slope_unmasked = x_slope_patches[patches_at_node]
-            x_slope_masked = np.ma.array(x_slope_unmasked,
-                                         mask=patches_at_node.mask)
-            x_slope = np.mean(x_slope_masked, axis=1).data
-            y_slope_unmasked = y_slope_patches[patches_at_node]
-            y_slope_masked = np.ma.array(y_slope_unmasked,
-                                         mask=patches_at_node.mask)
-            y_slope = np.mean(y_slope_masked, axis=1).data
-            mean_grad_x = x_slope
-            mean_grad_y = y_slope
-
             return slope_mag, (mean_grad_x, mean_grad_y)
 
         else:
@@ -4916,7 +4975,7 @@ XXXXXXeric should be killing this with graphs.
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         
-    def set_watershed_boundary_condition(self, node_data, nodata_value):
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.
@@ -4950,7 +5009,7 @@ XXXXXXeric should be killing this with graphs.
         ----------
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
@@ -5077,7 +5136,7 @@ XXXXXXeric should be killing this with graphs.
         return outlet_loc
         
     def set_watershed_boundary_condition_outlet_coords(self, outlet_coords, 
-                                                     node_data, nodata_value): 
+                                                     node_data, nodata_value=-9999.): 
         """
         Set the boundary conditions for a watershed.  
         All nodes with nodata_value are set to CLOSED_BOUNDARY 
@@ -5095,8 +5154,8 @@ XXXXXXeric should be killing this with graphs.
         This assumes that the grid has a single watershed.  If this is not
         the case this will not work.
 
-        This must be passed the grid, node_data and nodata_value,
-        and the values of the outlet_row and outlet_column.
+        This must be passed the values of the outlet_row and outlet_column. 
+        Also takes node_data and optionally, nodata_value.
         
         Parameters
         ----------
@@ -5104,7 +5163,7 @@ XXXXXXeric should be killing this with graphs.
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
@@ -5152,7 +5211,7 @@ XXXXXXeric should be killing this with graphs.
         return outlet_node
 
     def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data, 
-                                                   nodata_value):
+                                                   nodata_value=-9999.):
         """
         Set the boundary conditions for a watershed.  
         All nodes with nodata_value are set to CLOSED_BOUNDARY (4).  
@@ -5174,7 +5233,7 @@ XXXXXXeric should be killing this with graphs.
             id of the outlet node
         node_data : ndarray
             Data values.
-        nodata_value : float
+        nodata_value : float, optional
             Value that indicates an invalid value.
             
         Returns:
